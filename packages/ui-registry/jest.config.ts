@@ -5,7 +5,11 @@ const config: Config = {
   testEnvironment: "jsdom",
   extensionsToTreatAsEsm: [".ts", ".tsx"],
   // Only match test files ending in .test.ts or .test.tsx
-  testMatch: ["<rootDir>/src/**/*.test.ts", "<rootDir>/src/**/*.test.tsx"],
+  testMatch: [
+    "<rootDir>/src/**/*.test.ts",
+    "<rootDir>/src/**/*.test.tsx",
+    "<rootDir>/scripts/**/*.test.ts",
+  ],
   moduleNameMapper: {
     // Ensure single React instance - point to monorepo root node_modules
     "^react$": "<rootDir>/../../node_modules/react",
