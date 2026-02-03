@@ -185,8 +185,11 @@ export function contentToV1Blocks(
     }
   }
 
-  // Add component content block if present
-  if (message.componentDecision) {
+  // Add component content block if present (only for assistant messages)
+  // Tool messages may have componentDecision copied from the assistant message,
+  // but we don't want to duplicate the component block - it belongs on the
+  // assistant message that decided to render it.
+  if (message.componentDecision && message.role !== "tool") {
     const component = message.componentDecision;
     if (!component.componentName) {
       // Log warning for data integrity issue but don't break the response

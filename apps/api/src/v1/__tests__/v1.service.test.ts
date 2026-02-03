@@ -754,6 +754,34 @@ describe("V1Service", () => {
       expect(result.content).toEqual([]);
     });
 
+    it("should not include component block for tool role messages", async () => {
+      // Tool messages may have componentDecision copied from the assistant message,
+      // but the component block should only appear on the assistant message
+      const toolMessageWithComponent = {
+        ...mockMessage,
+        role: "tool",
+        content: [{ type: "text", text: "Component was rendered" }],
+        componentDecision: {
+          componentName: "WeatherCard",
+          props: { temperature: 72 },
+        },
+        toolCallId: "call_xyz789",
+      };
+      mockOperations.getMessageByIdInThread.mockResolvedValue(
+        toolMessageWithComponent as any,
+      );
+
+      const result = await service.getMessage("thr_123", "msg_123");
+
+      // Role should be mapped to assistant, but no component block
+      expect(result.role).toBe("assistant");
+      expect(result.content).toHaveLength(1);
+      expect(result.content[0].type).toBe("text");
+      expect(
+        result.content.find((c) => c.type === "component"),
+      ).toBeUndefined();
+    });
+
     it("should include tool_use content block when toolCallRequest exists", async () => {
       const messageWithToolCall = {
         ...mockMessage,
