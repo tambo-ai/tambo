@@ -61,17 +61,60 @@ export interface V1ComponentContent extends ComponentContent {
 }
 
 /**
+ * Special display properties that can be included in tool input.
+ * These are used to customize tool status messages shown in the UI.
+ */
+export interface TamboToolDisplayProps {
+  /** Generic display message for the tool */
+  _tambo_displayMessage?: string;
+  /** Message shown while the tool is executing */
+  _tambo_statusMessage?: string;
+  /** Message shown after the tool completes */
+  _tambo_completionStatusMessage?: string;
+}
+
+/**
+ * Extended ToolUseContent with computed state properties.
+ * Used by the v1 SDK to provide pre-computed tool state to consumers.
+ *
+ * Note: The computed properties are populated by `useTamboV1()` hook.
+ * When accessed via lower-level APIs, they may be undefined.
+ */
+export interface V1ToolUseContent extends ToolUseContent {
+  /**
+   * Whether this tool call has completed (has a matching tool_result).
+   * Computed by `useTamboV1()` based on presence of matching tool_result.
+   */
+  hasCompleted?: boolean;
+
+  /**
+   * The current status message to display, resolved based on completion state.
+   * Uses _tambo_completionStatusMessage when completed, _tambo_statusMessage otherwise.
+   * Falls back to "Called {toolName}" or "Calling {toolName}" if not provided.
+   * Computed by `useTamboV1()`.
+   */
+  currentStatusMessage?: string;
+
+  /**
+   * Extracted Tambo display properties from the tool input.
+   * Consumers can use these for custom rendering if needed.
+   * Computed by `useTamboV1()`.
+   */
+  tamboDisplayProps?: TamboToolDisplayProps;
+}
+
+/**
  * Message role (from SDK)
  */
 export type MessageRole = "user" | "assistant";
 
 /**
  * Union type of all content block types.
- * Uses V1ComponentContent which includes streaming state and rendered component.
+ * Uses V1ComponentContent and V1ToolUseContent which include computed state.
  */
 export type Content =
   | TextContent
-  | ToolUseContent
+  | V1ToolUseContent
   | ToolResultContent
   | V1ComponentContent
   | ResourceContent;
