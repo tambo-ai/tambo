@@ -30,7 +30,7 @@
     "@tambo-ai/eslint-config": "*",
     "@tambo-ai/typescript-config": "*",
     "@types/express": "^5.0.0",
-    "@types/node": "^22.19.5",
+    "@types/node": "^22.19.7",
     "tsx": "^4.21.0",
     "typescript": "^5.9.2"
   }

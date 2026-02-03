@@ -87,7 +87,7 @@
     "@types/cross-spawn": "^6.0.6",
     "@types/diffable-html": "^5.0.2",
     "@types/jest": "^30.0.0",
-    "@types/node": "^22.19.5",
+    "@types/node": "^22.19.7",
     "@types/node-fetch": "^2.6.13",
     "@types/semver": "^7.7.1",
     "diffable-html": "^6.0.1",
