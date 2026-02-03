@@ -271,21 +271,36 @@ Before creating the base package, refactor existing components to separate "dumb
 
 #### Progress (Step 1)
 
-**Base Primitives Created** (in `packages/ui-registry/src/base/`):
+**Base Primitives Created** (in `packages/react-ui-base/src/`):
 
-- [x] `message/` - MessageBase compound components (Root, Content, Avatar, Group)
-- [x] `reasoning-info/` - ReasoningInfoBase compound components
-- [x] `toolcall-info/` - ToolcallInfoBase compound components
-- [x] `types/` - Shared type definitions
+- [x] `message/` - MessageBase compound components (Root, Content, Images, LoadingIndicator, RenderedComponent)
+- [x] `reasoning-info/` - ReasoningInfoBase compound components (Root, Trigger, Content, Steps, StatusText)
+- [x] `toolcall-info/` - ToolcallInfoBase compound components (Root, Trigger, Content, StatusIcon, StatusText, ToolName, Parameters, Result)
+- [x] `types/` - Shared type definitions (BaseProps, ComponentRenderOrChildren)
 - [x] `use-render/` - Render utility hook
+- [x] `utils/` - Shared utilities (message-content.ts with convertContentToMarkdown, getMessageImages)
+
+**Package Infrastructure**:
+
+- [x] `@tambo-ai/react-ui-base` package created with Vite library mode build
+- [x] TypeScript declaration generation via vite-plugin-dts
+- [x] Jest test setup with @tambo-ai/react mocking
+- [x] 52 tests passing (formatReasoningDuration, getToolStatusMessage, getToolCallRequest, keyifyParameters, toolcall-info rendering)
+- [x] Turbo config updated: `test` and `check-types` tasks depend on `^build` for proper dependency ordering
 
 **Package Exports Added**:
 
-- [x] `"./base/*": "./src/base/*/index.tsx"` added to ui-registry package.json
+- [x] Subpath exports: `./message`, `./reasoning-info`, `./toolcall-info`, `./types`, `./use-render`
+- [x] `"sideEffects": false` for tree-shaking
 
 **Data Attributes**:
 
 - [x] `data-slot` attributes added to all base components for CSS targeting
+
+**Styled Components Updated** (in `packages/ui-registry/src/`):
+
+- [x] `message/message.tsx` - Refactored to compose base components from react-ui-base
+- [x] Render props pattern used instead of exporting context hooks (marked `@internal`)
 
 **Goal:** Each component directory exports both:
 
@@ -820,25 +835,39 @@ Add comprehensive tests for all extracted functionality.
 
 **Step 1 (In-Place Refactoring):**
 
-- [ ] Each component has clear separation between logic (hooks) and display
-- [ ] All existing tests pass without modification
-- [ ] No changes to public component APIs
-- [ ] Showcase app renders and functions identically
+- [x] `message` component has clear separation between logic and display (uses base compound components)
+- [ ] `message-input` component has clear separation between logic and display
+- [ ] `message-suggestions` component refactored
+- [ ] `scrollable-message-container` component refactored
+- [ ] `thread-dropdown` component refactored
+- [x] All existing tests pass without modification
+- [x] No changes to public component APIs
+- [x] Showcase app renders and functions identically (verified via screenshot comparison)
 
-**Steps 2-10 (Subpath Export & Migration):**
+**Step 2 (Package Scaffolding):**
 
-- [ ] Subpath exports added to react-sdk package.json
-- [ ] react-sdk builds without errors: `npm run build -w react-sdk`
-- [ ] All tests pass: `npm test -w react-sdk`
-- [ ] Lint passes: `npm run lint -w react-sdk`
-- [ ] Subpath imports work: `import { ... } from "@tambo-ai/react-ui-base"`
-- [ ] Tree-shaking works: unused exports not bundled
-- [ ] All utility functions extracted and tested in isolation
+- [x] `@tambo-ai/react-ui-base` package created
+- [x] Vite library mode build configured
+- [x] TypeScript declarations generated via vite-plugin-dts
+- [x] `"sideEffects": false` for tree-shaking
+- [x] Subpath exports: `./message`, `./reasoning-info`, `./toolcall-info`, `./types`, `./use-render`
+- [x] Peer dependencies on `@tambo-ai/react` and `react`
+
+**Steps 3-10 (Extraction & Migration):**
+
+- [x] react-ui-base builds without errors: `npm run build -w packages/react-ui-base`
+- [x] All tests pass: `npm test -w packages/react-ui-base` (52 tests)
+- [x] Lint passes: `npm run lint`
+- [x] Subpath imports work: `import { ... } from "@tambo-ai/react-ui-base"`
+- [ ] Tree-shaking verified: unused exports not bundled
+- [x] Core utility functions extracted and tested (formatReasoningDuration, getToolStatusMessage, getToolCallRequest, keyifyParameters)
 - [ ] All hooks extracted and tested with renderHook
-- [ ] ui-registry components import from `@tambo-ai/react-ui-base`
-- [ ] No changes to component public APIs
-- [ ] All existing tests pass without modification
-- [ ] Showcase app renders and functions identically
+- [x] ui-registry `message` component imports from `@tambo-ai/react-ui-base`
+- [ ] ui-registry `message-input` component imports from `@tambo-ai/react-ui-base`
+- [x] No changes to component public APIs
+- [x] All existing tests pass without modification
+- [x] Showcase app renders and functions identically
 - [ ] JSDoc comments on all public exports
-- [ ] `useTamboAutoScroll` hook properly integrates with `useTambo()` provider
-- [ ] Formatting utilities are pure functions with no React dependencies
+- [ ] `useTamboAutoScroll` hook extracted and tested
+- [x] Formatting utilities are pure functions with no React dependencies
+- [x] Turbo config: `test` and `check-types` depend on `^build`
