@@ -67,7 +67,7 @@
     "deepmerge": "^4.3.1",
     "diff": "^8.0.3",
     "dotenv": "^17.2.3",
-    "env-paths": "^3.0.0",
+    "env-paths": "^4.0.0",
     "fast-equals": "^5.3.3",
     "inquirer": "^13.2.1",
     "meow": "^14.0.0",
