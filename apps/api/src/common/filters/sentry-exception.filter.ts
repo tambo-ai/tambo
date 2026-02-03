@@ -8,8 +8,6 @@ import {
 import { BaseExceptionFilter } from "@nestjs/core";
 import * as Sentry from "@sentry/nestjs";
 import { Request } from "express";
-import { ContextKey } from "../../projects/guards/bearer-token.guard";
-import { ProjectId } from "../../projects/guards/apikey.guard";
 
 @Catch()
 export class SentryExceptionFilter extends BaseExceptionFilter {
@@ -41,19 +39,6 @@ export class SentryExceptionFilter extends BaseExceptionFilter {
     if (status >= 500 || !exception.statusCode) {
       // Only send server errors and unhandled exceptions to Sentry
       Sentry.withScope((scope) => {
-        // Extract Tambo context from request
-        const projectId = request[ProjectId];
-        const contextKey = request[ContextKey];
-        const correlationId = (request as unknown as Record<string, unknown>)[
-          "correlationId"
-        ] as string | undefined;
-        // Routes use :id, :threadId, or :thread_id depending on the endpoint
-        const isThreadRoute = request.path?.includes("/threads/");
-        const threadId =
-          request.params?.threadId ??
-          request.params?.thread_id ??
-          (isThreadRoute ? request.params?.id : undefined);
-
         // Add request context
         scope.setContext("request", {
           method: request.method,
@@ -62,14 +47,6 @@ export class SentryExceptionFilter extends BaseExceptionFilter {
           query: request.query,
           params: request.params,
           body: request.body,
-        });
-
-        // Add Tambo context
-        scope.setContext("tambo", {
-          projectId,
-          threadId,
-          contextKey,
-          correlationId,
         });
 
         // DO NOT set custom fingerprints - let Sentry's automatic grouping handle it
@@ -81,12 +58,6 @@ export class SentryExceptionFilter extends BaseExceptionFilter {
         scope.setTag("http.method", request.method);
         scope.setTag("http.status_code", status);
         scope.setTag("http.route", request.route?.path || "unknown");
-
-        // Add Tambo-specific tags for filtering
-        if (projectId) scope.setTag("project_id", projectId);
-        if (threadId) scope.setTag("thread_id", threadId);
-        if (contextKey) scope.setTag("context_key", contextKey);
-        if (correlationId) scope.setTag("correlation_id", correlationId);
 
         // Add user context if available (helps track affected users)
         if ((request as any).user) {
