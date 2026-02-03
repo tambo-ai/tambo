@@ -134,7 +134,7 @@ jobs:
           network: host
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: docker-${{ matrix.images.name }}
           path: ${{ runner.temp }}/docker-${{ matrix.images.name }}.tar

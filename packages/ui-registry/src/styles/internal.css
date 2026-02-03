@@ -29,7 +29,5 @@ If you also want to use the default tambo theme, you can add:
 ```
 */
 
-/* import tailwindcss if necessary, but prevent it from generating any styles */
-@import "tailwindcss" source(none);
-/* manually source components */
+/* manually source components but don't double import tailwind */
 @source "../../**/*.{ts,tsx}";
