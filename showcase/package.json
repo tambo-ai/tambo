@@ -36,7 +36,7 @@
     "@tiptap/react": "^3.16.0",
     "@tiptap/suggestion": "^3.11.1",
     "@vercel/og": "^1.0.0",
-    "autoprefixer": "^10.4.23",
+    "autoprefixer": "^10.4.24",
     "class-variance-authority": "^0.7.1",
     "dompurify": "^3.3.1",
     "framer-motion": "^12.29.0",
