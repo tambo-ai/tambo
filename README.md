@@ -2,7 +2,7 @@
   <img src="assets/octo-white-background-rounded.png" width="150">
   <h1>Tambo AI</h1>
   <h3>Build agents that speak your UI</h3>
-  <p>An open-source generative UI toolkit for React. Connect your components—Tambo handles streaming, state management, and MCP.</p>
+  <p>The open-source generative UI toolkit for React. Connect your components—Tambo handles streaming, state management, and MCP.</p>
 </div>
 
 <p align="center">
