@@ -13,7 +13,7 @@ jobs:
     concurrency: upload-openapi-spec-action
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       # setup tools
       - uses: ./.github/actions/setup-tools
       # Run the generate-config script from the apps/api directory
