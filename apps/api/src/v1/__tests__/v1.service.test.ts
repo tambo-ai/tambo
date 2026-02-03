@@ -754,6 +754,60 @@ describe("V1Service", () => {
       expect(result.content).toEqual([]);
     });
 
+    it("should include tool_use content block when toolCallRequest exists", async () => {
+      const messageWithToolCall = {
+        ...mockMessage,
+        role: "assistant",
+        content: [{ type: "text", text: "Let me fetch the weather" }],
+        toolCallRequest: {
+          toolName: "getWeather",
+          parameters: [
+            { parameterName: "location", parameterValue: "San Francisco" },
+            { parameterName: "unit", parameterValue: "celsius" },
+          ],
+        },
+        toolCallId: "call_abc123",
+      };
+      mockOperations.getMessageByIdInThread.mockResolvedValue(
+        messageWithToolCall as any,
+      );
+
+      const result = await service.getMessage("thr_123", "msg_123");
+
+      expect(result.content).toHaveLength(2);
+      const toolUseBlock = result.content.find((c) => c.type === "tool_use");
+      expect(toolUseBlock).toBeDefined();
+      expect((toolUseBlock as any).id).toBe("call_abc123");
+      expect((toolUseBlock as any).name).toBe("getWeather");
+      expect((toolUseBlock as any).input).toEqual({
+        location: "San Francisco",
+        unit: "celsius",
+      });
+    });
+
+    it("should not include tool_use block when toolCallId is missing", async () => {
+      const messageWithToolCallNoId = {
+        ...mockMessage,
+        role: "assistant",
+        content: [{ type: "text", text: "Let me fetch the weather" }],
+        toolCallRequest: {
+          toolName: "getWeather",
+          parameters: [
+            { parameterName: "location", parameterValue: "San Francisco" },
+          ],
+        },
+        toolCallId: null,
+      };
+      mockOperations.getMessageByIdInThread.mockResolvedValue(
+        messageWithToolCallNoId as any,
+      );
+
+      const result = await service.getMessage("thr_123", "msg_123");
+
+      expect(result.content).toHaveLength(1);
+      expect(result.content[0].type).toBe("text");
+    });
+
     it("should skip unknown content types without error", async () => {
       const warnSpy = jest
         .spyOn(Logger.prototype, "warn")

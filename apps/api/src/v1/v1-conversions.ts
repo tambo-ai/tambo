@@ -12,6 +12,7 @@ import {
   V1ComponentContentDto,
   V1TextContentDto,
   V1ResourceContentDto,
+  V1ToolUseContentDto,
 } from "./dto/content.dto";
 import { V1MessageDto, V1MessageRole } from "./dto/message.dto";
 import { V1ThreadDto } from "./dto/thread.dto";
@@ -203,6 +204,24 @@ export function contentToV1Blocks(
       };
       blocks.push(componentBlock);
     }
+  }
+
+  // Add tool_use content block if present (assistant messages with tool calls)
+  if (message.toolCallRequest && message.toolCallId) {
+    const toolCallRequest = message.toolCallRequest;
+    // Convert parameters array to input object
+    const input: Record<string, unknown> = {};
+    for (const param of toolCallRequest.parameters) {
+      input[param.parameterName] = param.parameterValue;
+    }
+
+    const toolUseBlock: V1ToolUseContentDto = {
+      type: "tool_use",
+      id: message.toolCallId,
+      name: toolCallRequest.toolName,
+      input,
+    };
+    blocks.push(toolUseBlock);
   }
 
   return blocks;
