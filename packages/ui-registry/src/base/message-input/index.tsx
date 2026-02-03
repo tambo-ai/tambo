@@ -1,7 +1,6 @@
 "use client";
 
 import { MessageInputContent } from "./message-input-content";
-import { MessageInputContext } from "./message-input-context";
 import { MessageInputError } from "./message-input-error";
 import { MessageInputFileButton } from "./message-input-file-button";
 import { MessageInputRoot } from "./message-input-root";
@@ -82,13 +81,15 @@ export const MessageInput = {
   Error: MessageInputError,
   StagedImages: MessageInputStagedImages,
   Toolbar: MessageInputToolbar,
-  /** Provides value/setValue/editorRef via render props for components that need to modify input */
   ValueAccess: MessageInputValueAccess,
-  /** Internal: The React Context used by MessageInput */
-  Context: MessageInputContext,
 };
 
 // Re-export types and constants
+export type {
+  MessageInputContentProps,
+  MessageInputContentRenderProps,
+} from "./message-input-content";
+export { IS_PASTED_IMAGE, MAX_IMAGES } from "./message-input-context";
 export type {
   MessageInputContextValue,
   PromptItem,
@@ -98,11 +99,6 @@ export type {
   StagedImage,
   TamboEditor,
 } from "./message-input-context";
-export { IS_PASTED_IMAGE, MAX_IMAGES } from "./message-input-context";
-export type {
-  MessageInputContentProps,
-  MessageInputContentRenderProps,
-} from "./message-input-content";
 export type {
   MessageInputErrorProps,
   MessageInputErrorRenderProps,
@@ -130,8 +126,6 @@ export type {
   MessageInputValueAccessProps,
   MessageInputValueAccessRenderProps,
 } from "./message-input-value-access";
-
-// Export format option types for Textarea props
 export type {
   PromptFormatOptions,
   ResourceFormatOptions,
