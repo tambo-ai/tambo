@@ -2,10 +2,7 @@
 
 import { Slot } from "@radix-ui/react-slot";
 import * as React from "react";
-import { useMessageInputContext } from "./message-input-context";
-
-/** Maximum number of images that can be staged at once */
-const MAX_IMAGES = 10;
+import { MAX_IMAGES, useMessageInputContext } from "./message-input-context";
 
 /**
  * Render props for the FileButton component.

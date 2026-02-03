@@ -31,11 +31,13 @@ import {
   type TamboEditor,
 } from "./text-editor";
 
-// Import base compound components and hooks
+// Import base compound components and constants
 import {
+  IS_PASTED_IMAGE,
+  MAX_IMAGES,
   MessageInput as MessageInputBase,
-  useCombinedPromptList,
-  useCombinedResourceList,
+  type PromptProvider,
+  type ResourceProvider,
   type StagedImageRenderProps,
 } from "../../base/message-input";
 
@@ -66,25 +68,8 @@ const DictationButton = () => {
   );
 };
 
-/**
- * Provider interface for searching resources (for "@" mentions).
- * Empty query string "" should return all available resources.
- */
-export interface ResourceProvider {
-  /** Search for resources matching the query */
-  search(query: string): Promise<ResourceItem[]>;
-}
-
-/**
- * Provider interface for searching and fetching prompts (for "/" commands).
- * Empty query string "" should return all available prompts.
- */
-export interface PromptProvider {
-  /** Search for prompts matching the query */
-  search(query: string): Promise<PromptItem[]>;
-  /** Get the full prompt details including text by ID */
-  get(id: string): Promise<PromptItem>;
-}
+// Re-export provider interfaces from base
+export type { PromptProvider, ResourceProvider };
 
 /**
  * CSS variants for the message input container
@@ -127,7 +112,7 @@ export interface MessageInputProps extends React.HTMLAttributes<HTMLFormElement>
   /** Optional styling variant for the input container. */
   variant?: VariantProps<typeof messageInputVariants>["variant"];
   /** Optional ref to forward to the TamboEditor instance. */
-  inputRef?: React.RefObject<TamboEditor>;
+  inputRef?: React.RefObject<TamboEditor | null>;
   /** The child elements to render within the form container. */
   children?: React.ReactNode;
 }
@@ -151,7 +136,7 @@ const MessageInput = React.forwardRef<HTMLFormElement, MessageInputProps>(
     return (
       <MessageInputBase.Root
         ref={ref}
-        inputRef={inputRef as React.RefObject<TamboEditor | null>}
+        inputRef={inputRef}
         className={cn(messageInputVariants({ variant }), className)}
         {...props}
       >
@@ -195,22 +180,7 @@ const MessageInput = React.forwardRef<HTMLFormElement, MessageInputProps>(
 );
 MessageInput.displayName = "MessageInput";
 
-/**
- * Symbol for marking pasted images
- */
-const IS_PASTED_IMAGE = Symbol.for("tambo-is-pasted-image");
-
-/** Maximum number of images that can be staged at once */
-const MAX_IMAGES = 10;
-
-/**
- * Extend the File interface to include IS_PASTED_IMAGE symbol
- */
-declare global {
-  interface File {
-    [IS_PASTED_IMAGE]?: boolean;
-  }
-}
+// IS_PASTED_IMAGE and MAX_IMAGES imported from base
 
 /**
  * Props for the MessageInputTextarea component.
@@ -262,17 +232,6 @@ const MessageInputTextarea = ({
   onResourceSelect,
   ...props
 }: MessageInputTextareaProps) => {
-  const {
-    value,
-    setValue,
-    handleSubmit,
-    editorRef,
-    setImageError,
-    isIdle,
-    addImage,
-    images,
-    isUpdatingToken,
-  } = useMessageInputContext();
   // Resource names are extracted from editor at submit time, no need to track in state
   const setResourceNames = React.useCallback(
     (
@@ -285,12 +244,6 @@ const MessageInputTextarea = ({
     [],
   );
 
-  // Track search state for resources (controlled by TextEditor)
-  const [resourceSearch, setResourceSearch] = React.useState("");
-
-  // Track search state for prompts (controlled by TextEditor)
-  const [promptSearch, setPromptSearch] = React.useState("");
-
   // Icon factories for MCP items (styled layer provides the icons)
   const resourceFormatOptions = React.useMemo(
     () => ({ createMcpIcon: () => <AtSign className="w-4 h-4" /> }),
@@ -301,20 +254,6 @@ const MessageInputTextarea = ({
     [],
   );
 
-  // Get combined resource list (MCP + external provider), filtered by search
-  const resourceItems = useCombinedResourceList(
-    resourceProvider,
-    resourceSearch,
-    resourceFormatOptions,
-  );
-
-  // Get combined prompt list (MCP + external provider), filtered by search
-  const promptItems = useCombinedPromptList(
-    promptProvider,
-    promptSearch,
-    promptFormatOptions,
-  );
-
   // State for MCP prompt fetching (since we can't call hooks inside get())
   const [selectedMcpPromptName, setSelectedMcpPromptName] = React.useState<
     string | null
@@ -323,13 +262,117 @@ const MessageInputTextarea = ({
     selectedMcpPromptName ?? "",
   );
 
-  // Handle MCP prompt insertion when data is fetched
+  // Handle prompt selection - check if it's an MCP prompt
+  const handlePromptSelect = React.useCallback((item: PromptItem) => {
+    if (item.id.startsWith("mcp-prompt:")) {
+      const promptName = item.id.replace("mcp-prompt:", "");
+      setSelectedMcpPromptName(promptName);
+    }
+  }, []);
+
+  // Handle image paste - mark as pasted and add to thread
+  const pendingImagesRef = React.useRef(0);
+
+  return (
+    <MessageInputBase.Textarea
+      placeholder={placeholder}
+      resourceProvider={resourceProvider}
+      promptProvider={promptProvider}
+      resourceFormatOptions={resourceFormatOptions}
+      promptFormatOptions={promptFormatOptions}
+      className={cn("flex-1", className)}
+      data-slot="message-input-textarea"
+      {...props}
+    >
+      {({
+        value,
+        setValue,
+        handleSubmit,
+        editorRef,
+        disabled,
+        addImage,
+        images,
+        setImageError,
+        resourceItems,
+        setResourceSearch,
+        promptItems,
+        setPromptSearch,
+      }) => {
+        // Handle image paste - mark as pasted and add to thread
+        const handleAddImage = async (file: File) => {
+          if (images.length + pendingImagesRef.current >= MAX_IMAGES) {
+            setImageError(`Max ${MAX_IMAGES} uploads at a time`);
+            return;
+          }
+          setImageError(null);
+          pendingImagesRef.current += 1;
+          try {
+            file[IS_PASTED_IMAGE] = true;
+            await addImage(file);
+          } finally {
+            pendingImagesRef.current -= 1;
+          }
+        };
+
+        return (
+          <>
+            <McpPromptEffect
+              selectedMcpPromptName={selectedMcpPromptName}
+              selectedMcpPromptData={selectedMcpPromptData}
+              editorRef={editorRef}
+              setValue={setValue}
+              onComplete={() => setSelectedMcpPromptName(null)}
+            />
+            <TextEditor
+              ref={editorRef as React.RefObject<TamboEditor>}
+              value={value}
+              onChange={setValue}
+              onResourceNamesChange={setResourceNames}
+              onSubmit={handleSubmit}
+              onAddImage={handleAddImage}
+              placeholder={placeholder}
+              disabled={disabled}
+              className="bg-background text-foreground"
+              onSearchResources={setResourceSearch}
+              resources={resourceItems}
+              onSearchPrompts={setPromptSearch}
+              prompts={promptItems}
+              onResourceSelect={onResourceSelect ?? (() => {})}
+              onPromptSelect={handlePromptSelect}
+            />
+          </>
+        );
+      }}
+    </MessageInputBase.Textarea>
+  );
+};
+MessageInputTextarea.displayName = "MessageInput.Textarea";
+
+/**
+ * Helper component to handle MCP prompt insertion effect.
+ * Extracted to avoid hooks-in-render-prop issues.
+ */
+interface McpPromptEffectProps {
+  selectedMcpPromptName: string | null;
+  selectedMcpPromptData: { messages?: Array<{ content?: { type: string; text?: string } }> } | undefined;
+  editorRef: React.RefObject<TamboEditor | null>;
+  setValue: (value: string) => void;
+  onComplete: () => void;
+}
+
+const McpPromptEffect: React.FC<McpPromptEffectProps> = ({
+  selectedMcpPromptName,
+  selectedMcpPromptData,
+  editorRef,
+  setValue,
+  onComplete,
+}) => {
   React.useEffect(() => {
     if (selectedMcpPromptData && selectedMcpPromptName) {
       const promptMessages = selectedMcpPromptData?.messages;
       if (promptMessages) {
         const promptText = promptMessages
-          .map((msg: { content?: { type: string; text?: string } }) => {
+          .map((msg) => {
             if (msg.content?.type === "text") {
               return msg.content.text;
             }
@@ -345,66 +388,12 @@ const MessageInputTextarea = ({
           editor.focus("end");
         }
       }
-      setSelectedMcpPromptName(null);
+      onComplete();
     }
-  }, [selectedMcpPromptData, selectedMcpPromptName, editorRef, setValue]);
+  }, [selectedMcpPromptData, selectedMcpPromptName, editorRef, setValue, onComplete]);
 
-  // Handle prompt selection - check if it's an MCP prompt
-  const handlePromptSelect = React.useCallback((item: PromptItem) => {
-    if (item.id.startsWith("mcp-prompt:")) {
-      const promptName = item.id.replace("mcp-prompt:", "");
-      setSelectedMcpPromptName(promptName);
-    }
-  }, []);
-
-  // Handle image paste - mark as pasted and add to thread
-  const pendingImagesRef = React.useRef(0);
-
-  const handleAddImage = React.useCallback(
-    async (file: File) => {
-      if (images.length + pendingImagesRef.current >= MAX_IMAGES) {
-        setImageError(`Max ${MAX_IMAGES} uploads at a time`);
-        return;
-      }
-      setImageError(null);
-      pendingImagesRef.current += 1;
-      try {
-        file[IS_PASTED_IMAGE] = true;
-        await addImage(file);
-      } finally {
-        pendingImagesRef.current -= 1;
-      }
-    },
-    [addImage, images, setImageError],
-  );
-
-  return (
-    <div
-      className={cn("flex-1", className)}
-      data-slot="message-input-textarea"
-      {...props}
-    >
-      <TextEditor
-        ref={editorRef as React.RefObject<TamboEditor>}
-        value={value}
-        onChange={setValue}
-        onResourceNamesChange={setResourceNames}
-        onSubmit={handleSubmit}
-        onAddImage={handleAddImage}
-        placeholder={placeholder}
-        disabled={!isIdle || isUpdatingToken}
-        className="bg-background text-foreground"
-        onSearchResources={setResourceSearch}
-        resources={resourceItems}
-        onSearchPrompts={setPromptSearch}
-        prompts={promptItems}
-        onResourceSelect={onResourceSelect ?? (() => {})}
-        onPromptSelect={handlePromptSelect}
-      />
-    </div>
-  );
+  return null;
 };
-MessageInputTextarea.displayName = "MessageInput.Textarea";
 
 /**
  * Props for the legacy plain textarea message input component.
@@ -427,78 +416,82 @@ const MessageInputPlainTextarea = ({
   placeholder = "What do you want to do?",
   ...props
 }: MessageInputPlainTextareaProps) => {
-  const {
-    value,
-    setValue,
-    handleSubmit,
-    setImageError,
-    isIdle,
-    addImage,
-    images,
-    isUpdatingToken,
-  } = useMessageInputContext();
-  const isPending = !isIdle;
-  const textareaRef = React.useRef<HTMLTextAreaElement | null>(null);
-
-  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setValue(e.target.value);
-  };
-
-  const handleKeyDown = async (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      if (value.trim()) {
-        await handleSubmit(e as unknown as React.FormEvent);
-      }
-    }
-  };
-
-  const handlePaste = async (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
-    const { imageItems, hasText } = getImageItems(e.clipboardData);
-
-    if (imageItems.length === 0) {
-      return; // Allow default text paste
-    }
-
-    if (!hasText) {
-      e.preventDefault(); // Only prevent when image-only paste
-    }
-
-    const totalImages = images.length + imageItems.length;
-    if (totalImages > MAX_IMAGES) {
-      setImageError(`Max ${MAX_IMAGES} uploads at a time`);
-      return;
-    }
-    setImageError(null);
-
-    for (const item of imageItems) {
-      try {
-        // Mark this image as pasted so we can show "Image 1", "Image 2", etc.
-        item[IS_PASTED_IMAGE] = true;
-        await addImage(item);
-      } catch (error) {
-        console.error("Failed to add pasted image:", error);
-      }
-    }
-  };
-
   return (
-    <textarea
-      ref={textareaRef}
-      value={value}
-      onChange={handleChange}
-      onKeyDown={handleKeyDown}
-      onPaste={handlePaste}
-      className={cn(
-        "flex-1 p-3 rounded-t-lg bg-background text-foreground resize-none text-sm min-h-[82px] max-h-[40vh] focus:outline-none placeholder:text-muted-foreground/50",
-        className,
-      )}
-      disabled={isPending || isUpdatingToken}
-      placeholder={placeholder}
-      aria-label="Chat Message Input"
-      data-slot="message-input-textarea"
-      {...props}
-    />
+    <MessageInputBase.Textarea placeholder={placeholder} asChild>
+      {({
+        value,
+        setValue,
+        handleSubmit,
+        disabled,
+        addImage,
+        images,
+        setImageError,
+      }) => {
+        const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+          setValue(e.target.value);
+        };
+
+        const handleKeyDown = async (
+          e: React.KeyboardEvent<HTMLTextAreaElement>,
+        ) => {
+          if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            if (value.trim()) {
+              await handleSubmit(e as unknown as React.FormEvent);
+            }
+          }
+        };
+
+        const handlePaste = async (
+          e: React.ClipboardEvent<HTMLTextAreaElement>,
+        ) => {
+          const { imageItems, hasText } = getImageItems(e.clipboardData);
+
+          if (imageItems.length === 0) {
+            return; // Allow default text paste
+          }
+
+          if (!hasText) {
+            e.preventDefault(); // Only prevent when image-only paste
+          }
+
+          const totalImages = images.length + imageItems.length;
+          if (totalImages > MAX_IMAGES) {
+            setImageError(`Max ${MAX_IMAGES} uploads at a time`);
+            return;
+          }
+          setImageError(null);
+
+          for (const item of imageItems) {
+            try {
+              // Mark this image as pasted so we can show "Image 1", "Image 2", etc.
+              item[IS_PASTED_IMAGE] = true;
+              await addImage(item);
+            } catch (error) {
+              console.error("Failed to add pasted image:", error);
+            }
+          }
+        };
+
+        return (
+          <textarea
+            value={value}
+            onChange={handleChange}
+            onKeyDown={handleKeyDown}
+            onPaste={handlePaste}
+            className={cn(
+              "flex-1 p-3 rounded-t-lg bg-background text-foreground resize-none text-sm min-h-[82px] max-h-[40vh] focus:outline-none placeholder:text-muted-foreground/50",
+              className,
+            )}
+            disabled={disabled}
+            placeholder={placeholder}
+            aria-label="Chat Message Input"
+            data-slot="message-input-textarea"
+            {...props}
+          />
+        );
+      }}
+    </MessageInputBase.Textarea>
   );
 };
 MessageInputPlainTextarea.displayName = "MessageInput.PlainTextarea";
@@ -740,14 +733,17 @@ const MessageInputMcpPromptButton = React.forwardRef<
   HTMLButtonElement,
   MessageInputMcpPromptButtonProps
 >(({ ...props }, ref) => {
-  const { setValue, value } = useMessageInputContext();
   return (
-    <McpPromptButton
-      ref={ref}
-      {...props}
-      value={value}
-      onInsertText={setValue}
-    />
+    <MessageInputBase.ValueAccess>
+      {({ value, setValue }) => (
+        <McpPromptButton
+          ref={ref}
+          {...props}
+          value={value}
+          onInsertText={setValue}
+        />
+      )}
+    </MessageInputBase.ValueAccess>
   );
 });
 MessageInputMcpPromptButton.displayName = "MessageInput.McpPromptButton";
@@ -779,30 +775,31 @@ const MessageInputMcpResourceButton = React.forwardRef<
   HTMLButtonElement,
   MessageInputMcpResourceButtonProps
 >(({ ...props }, ref) => {
-  const { setValue, value, editorRef } = useMessageInputContext();
-
-  const insertResourceReference = React.useCallback(
-    (id: string, label: string) => {
-      const editor = editorRef.current;
-      if (editor) {
-        editor.insertMention(id, label);
-        setValue(editor.getTextWithResourceURIs().text);
-        return;
-      }
-      // Fallback: append to end of plain text value
-      const newValue = value ? `${value} ${id}` : id;
-      setValue(newValue);
-    },
-    [editorRef, setValue, value],
-  );
-
   return (
-    <McpResourceButton
-      ref={ref}
-      {...props}
-      value={value}
-      onInsertResource={insertResourceReference}
-    />
+    <MessageInputBase.ValueAccess>
+      {({ value, setValue, editorRef }) => {
+        const insertResourceReference = (id: string, label: string) => {
+          const editor = editorRef.current;
+          if (editor) {
+            editor.insertMention(id, label);
+            setValue(editor.getTextWithResourceURIs().text);
+            return;
+          }
+          // Fallback: append to end of plain text value
+          const newValue = value ? `${value} ${id}` : id;
+          setValue(newValue);
+        };
+
+        return (
+          <McpResourceButton
+            ref={ref}
+            {...props}
+            value={value}
+            onInsertResource={insertResourceReference}
+          />
+        );
+      }}
+    </MessageInputBase.ValueAccess>
   );
 });
 MessageInputMcpResourceButton.displayName = "MessageInput.McpResourceButton";

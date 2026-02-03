@@ -12,13 +12,11 @@ import {
 } from "@tambo-ai/react/mcp";
 import * as React from "react";
 import {
+  MAX_IMAGES,
   MessageInputContext,
   type MessageInputContextValue,
   type TamboEditor,
 } from "./message-input-context";
-
-/** Maximum number of images that can be staged at once */
-const MAX_IMAGES = 10;
 
 const STORAGE_KEY = "tambo.components.messageInput.draft";
 
@@ -81,7 +79,7 @@ export const MessageInputRoot = React.forwardRef<
   const [imageError, setImageError] = React.useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [isDragging, setIsDragging] = React.useState(false);
-  const editorRef = React.useRef<TamboEditor>(null!);
+  const editorRef = React.useRef<TamboEditor | null>(null);
   const dragCounter = React.useRef(0);
   const isUpdatingToken = useIsTamboTokenUpdating();
 
@@ -242,13 +240,19 @@ export const MessageInputRoot = React.forwardRef<
     [resolveElicitation],
   );
 
+  // Memoize setValue wrapper to prevent context value recreation on every render
+  const handleSetValue = React.useCallback(
+    (newValue: string) => {
+      setValue(newValue);
+      setDisplayValue(newValue);
+    },
+    [setValue],
+  );
+
   const contextValue = React.useMemo<MessageInputContextValue>(
     () => ({
       value: displayValue,
-      setValue: (newValue: string) => {
-        setValue(newValue);
-        setDisplayValue(newValue);
-      },
+      setValue: handleSetValue,
       submit,
       handleSubmit,
       isPending: isPending ?? isSubmitting,
@@ -271,7 +275,7 @@ export const MessageInputRoot = React.forwardRef<
     }),
     [
       displayValue,
-      setValue,
+      handleSetValue,
       submit,
       handleSubmit,
       isPending,

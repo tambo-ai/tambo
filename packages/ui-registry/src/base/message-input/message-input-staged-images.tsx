@@ -3,26 +3,10 @@
 import { Slot } from "@radix-ui/react-slot";
 import * as React from "react";
 import {
+  IS_PASTED_IMAGE,
   useMessageInputContext,
   type StagedImage,
 } from "./message-input-context";
-
-/**
- * Symbol for marking pasted images.
- * Uses a unique well-known symbol to detect if an image was pasted vs uploaded.
- */
-const IS_PASTED_IMAGE: unique symbol = Symbol.for(
-  "tambo-is-pasted-image",
-) as typeof IS_PASTED_IMAGE;
-
-/**
- * Extend the File interface to include IS_PASTED_IMAGE symbol.
- */
-declare global {
-  interface File {
-    [IS_PASTED_IMAGE]?: boolean;
-  }
-}
 
 /**
  * Render props for a single staged image.
@@ -84,7 +68,20 @@ export const MessageInputStagedImages = React.forwardRef<
     null,
   );
 
-  // Pre-compute image props array - more performant than getImageProps(index) calls
+  // Stable toggle callback using functional update to avoid dep on expandedImageId
+  const toggleImage = React.useCallback((id: string) => {
+    setExpandedImageId((current) => (current === id ? null : id));
+  }, []);
+
+  // Stable remove callback
+  const handleRemove = React.useCallback(
+    (id: string) => {
+      removeImage(id);
+    },
+    [removeImage],
+  );
+
+  // Pre-compute image props array - only depends on rawImages and expandedImageId for isExpanded
   const images = React.useMemo<StagedImageRenderProps[]>(
     () =>
       rawImages.map((image, index) => ({
@@ -94,19 +91,21 @@ export const MessageInputStagedImages = React.forwardRef<
           : image.name,
         index,
         isExpanded: expandedImageId === image.id,
-        onToggle: () =>
-          setExpandedImageId(expandedImageId === image.id ? null : image.id),
-        onRemove: () => removeImage(image.id),
+        onToggle: () => toggleImage(image.id),
+        onRemove: () => handleRemove(image.id),
       })),
-    [rawImages, expandedImageId, removeImage],
+    [rawImages, expandedImageId, toggleImage, handleRemove],
   );
 
-  const renderProps: MessageInputStagedImagesRenderProps = {
-    images,
-    removeImage,
-    expandedImageId,
-    setExpandedImageId,
-  };
+  const renderProps = React.useMemo<MessageInputStagedImagesRenderProps>(
+    () => ({
+      images,
+      removeImage,
+      expandedImageId,
+      setExpandedImageId,
+    }),
+    [images, removeImage, expandedImageId],
+  );
 
   // Don't render if no images and children is not a function
   if (rawImages.length === 0 && typeof children !== "function") {

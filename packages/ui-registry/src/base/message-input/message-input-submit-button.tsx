@@ -47,19 +47,25 @@ export const MessageInputSubmitButton = React.forwardRef<
   // 2. Thread is stuck in a processing state
   const showCancelButton = isPending || !isIdle;
 
-  const handleCancel = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    await cancel();
-  };
+  const handleCancel = React.useCallback(
+    async (e: React.MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      await cancel();
+    },
+    [cancel],
+  );
 
   const disabled = isUpdatingToken;
 
-  const renderProps: MessageInputSubmitButtonRenderProps = {
-    showCancelButton,
-    disabled,
-    handleCancel,
-  };
+  const renderProps = React.useMemo<MessageInputSubmitButtonRenderProps>(
+    () => ({
+      showCancelButton,
+      disabled,
+      handleCancel,
+    }),
+    [showCancelButton, disabled, handleCancel],
+  );
 
   const Comp = asChild ? Slot : "button";
 
