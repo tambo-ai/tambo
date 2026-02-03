@@ -23,7 +23,7 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.25.1",
-    "commander": "^14.0.2",
+    "commander": "^14.0.3",
     "express": "^5.1.0"
   },
   "devDependencies": {
