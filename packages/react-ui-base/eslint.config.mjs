@@ -17,7 +17,7 @@ export default defineConfig([
     languageOptions: {
       parserOptions: {
         projectService: {
-          allowDefaultProject: ["*.mjs"],
+          allowDefaultProject: ["*.mjs", "vite.config.ts"],
         },
       },
     },
