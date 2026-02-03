@@ -207,3 +207,6 @@ export type {
   SuggestionGenerateResponse,
   SuggestionListResponse,
 } from "@tambo-ai/typescript-sdk/resources/beta/threads/suggestions";
+
+// V1 extended content types with computed state
+export type { V1ToolUseContent, TamboToolDisplayProps } from "./types/message";

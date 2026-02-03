@@ -21,7 +21,12 @@ import {
   useThreadManagement,
   type ThreadManagement,
 } from "../providers/tambo-v1-stream-context";
-import type { Content, TamboV1Message } from "../types/message";
+import type {
+  Content,
+  TamboToolDisplayProps,
+  TamboV1Message,
+  V1ToolUseContent,
+} from "../types/message";
 import type { StreamingState } from "../types/thread";
 import type { ThreadState } from "../utils/event-accumulator";
 
@@ -179,9 +184,66 @@ export function useTamboV1(): UseTamboV1Return {
       status: "idle" as const,
     };
 
-    // Transform messages to add renderedComponent to component content blocks
+    // Build a set of tool_use IDs that have completed (have a matching tool_result)
+    // We need to look across all messages since tool_result might be in a different message
+    const completedToolIds = new Set<string>();
+    for (const msg of rawMessages) {
+      for (const content of msg.content) {
+        if (content.type === "tool_result") {
+          completedToolIds.add(content.toolUseId);
+        }
+      }
+    }
+
+    // Transform messages to add computed properties to content blocks
     const messages = rawMessages.map((message): TamboV1Message => {
       const transformedContent = message.content.map((content): Content => {
+        // Transform tool_use content to add computed state
+        if (content.type === "tool_use") {
+          const hasCompleted = completedToolIds.has(content.id);
+          const input = content.input ?? {};
+
+          // Extract Tambo display props from input
+          const tamboDisplayProps: TamboToolDisplayProps = {
+            _tambo_displayMessage:
+              typeof input._tambo_displayMessage === "string"
+                ? input._tambo_displayMessage
+                : undefined,
+            _tambo_statusMessage:
+              typeof input._tambo_statusMessage === "string"
+                ? input._tambo_statusMessage
+                : undefined,
+            _tambo_completionStatusMessage:
+              typeof input._tambo_completionStatusMessage === "string"
+                ? input._tambo_completionStatusMessage
+                : undefined,
+          };
+
+          // Compute status message based on completion state
+          const statusMessage = hasCompleted
+            ? (tamboDisplayProps._tambo_completionStatusMessage ??
+              `Called ${content.name}`)
+            : (tamboDisplayProps._tambo_statusMessage ??
+              `Calling ${content.name}`);
+
+          // Filter out _tambo_* properties from input - consumers only see actual tool params
+          const cleanInput: Record<string, unknown> = {};
+          for (const [key, value] of Object.entries(input)) {
+            if (!key.startsWith("_tambo_")) {
+              cleanInput[key] = value;
+            }
+          }
+
+          const v1Content: V1ToolUseContent = {
+            ...content,
+            input: cleanInput,
+            hasCompleted,
+            statusMessage,
+            tamboDisplayProps,
+          };
+          return v1Content;
+        }
+
         if (content.type !== "component") {
           return content;
         }
