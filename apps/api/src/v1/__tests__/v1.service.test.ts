@@ -954,6 +954,35 @@ describe("V1Service", () => {
       expect((toolUseBlock as any).input._tambo_displayMessage).toBeUndefined();
     });
 
+    it("should NOT include tool_use block for show_component_* UI tools", async () => {
+      // UI tool calls (show_component_*) should not generate tool_use blocks
+      // as they're internal implementation details
+      const messageWithUiToolCall = {
+        ...mockMessage,
+        role: "assistant",
+        content: [{ type: "text", text: "Here's the weather" }],
+        toolCallRequest: {
+          toolName: "show_component_WeatherCard",
+          parameters: [{ parameterName: "temperature", parameterValue: 72 }],
+        },
+        toolCallId: "call_ui_123",
+        componentDecision: {
+          componentName: "WeatherCard",
+          props: { temperature: 72 },
+        },
+      };
+      mockOperations.getMessageByIdInThread.mockResolvedValue(
+        messageWithUiToolCall as any,
+      );
+
+      const result = await service.getMessage("thr_123", "msg_123");
+
+      // Should have text and component blocks, but NO tool_use block
+      expect(result.content.find((c) => c.type === "text")).toBeDefined();
+      expect(result.content.find((c) => c.type === "component")).toBeDefined();
+      expect(result.content.find((c) => c.type === "tool_use")).toBeUndefined();
+    });
+
     it("should skip unknown content types without error", async () => {
       const warnSpy = jest
         .spyOn(Logger.prototype, "warn")

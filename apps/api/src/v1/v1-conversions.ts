@@ -1,6 +1,7 @@
 import {
   ContentPartType,
   ChatCompletionContentPart,
+  isUiToolName,
   MessageRole,
 } from "@tambo-ai-cloud/core";
 import { MessageRequest } from "../threads/dto/message.dto";
@@ -233,7 +234,12 @@ export function contentToV1Blocks(
   }
 
   // Add tool_use content block if present (assistant messages with tool calls)
-  if (message.toolCallRequest && message.toolCallId) {
+  // Skip UI tools (show_component_*) - they're internal implementation details
+  if (
+    message.toolCallRequest &&
+    message.toolCallId &&
+    !isUiToolName(message.toolCallRequest.toolName)
+  ) {
     const toolCallRequest = message.toolCallRequest;
     // Convert parameters array to input object
     const input: Record<string, unknown> = {};
@@ -246,7 +252,10 @@ export function contentToV1Blocks(
     // but not typed in ComponentDecisionV2, so we access them with type assertions.
     // The SDK uses these to display status messages during tool execution.
     if (message.componentDecision) {
-      const decision = message.componentDecision as Record<string, unknown>;
+      const decision = message.componentDecision as unknown as Record<
+        string,
+        unknown
+      >;
       if (typeof decision.statusMessage === "string") {
         input._tambo_statusMessage = decision.statusMessage;
       }
