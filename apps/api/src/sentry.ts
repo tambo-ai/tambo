@@ -61,21 +61,21 @@ if (process.env.SENTRY_DSN) {
 
   console.log(`Sentry initialized for ${environment} environment`);
 
-  // Try to add profiling integration after init (non-blocking)
-  // This is fine to do async since profiling doesn't require module patching
-  import("@sentry/profiling-node")
-    .then(({ nodeProfilingIntegration }) => {
-      Sentry.addIntegration(nodeProfilingIntegration());
-      console.log("Sentry profiling integration loaded");
-    })
-    .catch((error) => {
-      console.warn(
-        "Could not load Sentry profiling integration (native module issue). Profiling will be disabled.",
-        error instanceof Error ? error.message : error,
-      );
-    });
-} else {
-  console.log(
-    "Sentry DSN not provided, skipping Sentry initialization, if you want to use Sentry, please contact us at support@tambo.co",
-  );
+  //   // Try to add profiling integration after init (non-blocking)
+  //   // This is fine to do async since profiling doesn't require module patching
+  //   import("@sentry/profiling-node")
+  //     .then(({ nodeProfilingIntegration }) => {
+  //       Sentry.addIntegration(nodeProfilingIntegration());
+  //       console.log("Sentry profiling integration loaded");
+  //     })
+  //     .catch((error) => {
+  //       console.warn(
+  //         "Could not load Sentry profiling integration (native module issue). Profiling will be disabled.",
+  //         error instanceof Error ? error.message : error,
+  //       );
+  //     });
+  // } else {
+  //   console.log(
+  //     "Sentry DSN not provided, skipping Sentry initialization, if you want to use Sentry, please contact us at support@tambo.co",
+  //   );
 }
