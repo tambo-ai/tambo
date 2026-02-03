@@ -225,10 +225,11 @@ function ThreadSyncManager(): null {
 
   // Determine if we need to fetch thread messages
   // Only fetch for non-placeholder threads that haven't been synced and have no messages
-  const shouldFetch =
-    !isPlaceholderThreadId(currentThreadId) &&
-    currentThreadId !== lastSyncedThreadRef.current &&
-    (!threadState || threadState.thread.messages.length === 0);
+  const isNotPlaceholder = !isPlaceholderThreadId(currentThreadId);
+  const isNotSynced = currentThreadId !== lastSyncedThreadRef.current;
+  const hasNoMessages =
+    !threadState || threadState.thread.messages.length === 0;
+  const shouldFetch = isNotPlaceholder && isNotSynced && hasNoMessages;
 
   // Fetch messages from the messages endpoint (not the thread endpoint)
   const { data: messagesData, isSuccess } = useQuery({
