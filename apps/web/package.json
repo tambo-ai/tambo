@@ -38,7 +38,7 @@
     "@radix-ui/react-toast": "^1.2.15",
     "@radix-ui/react-tooltip": "^1.1.8",
     "@rehype-pretty/transformers": "^0.13.2",
-    "@sentry/nextjs": "^10.36.0",
+    "@sentry/nextjs": "^10.38.0",
     "@splinetool/react-spline": "^4.1.0",
     "@splinetool/runtime": "^1.12.39",
     "@svgr/webpack": "^8.1.0",
