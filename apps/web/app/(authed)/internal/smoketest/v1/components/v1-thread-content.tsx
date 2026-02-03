@@ -6,6 +6,11 @@ import { useTamboV1 } from "@tambo-ai/react/v1";
 import type { TamboV1Message } from "@tambo-ai/react/v1/types/message";
 import { Check, ChevronDown, Loader2, X } from "lucide-react";
 import { FC, useState } from "react";
+import {
+  extractTamboDisplayProps,
+  filterTamboProps,
+  formatToolResultContent,
+} from "./tool-display-utils";
 
 interface V1ThreadContentProps {
   className?: string;
@@ -132,51 +137,6 @@ const V1ContentPart: FC<V1ContentPartProps> = ({ content, isLoading }) => {
   }
 };
 
-// Keys for special Tambo display properties that should be shown as status messages
-const TAMBO_DISPLAY_KEYS = [
-  "_tambo_displayMessage",
-  "_tambo_statusMessage",
-  "_tambo_completionStatusMessage",
-] as const;
-
-type TamboDisplayKey = (typeof TAMBO_DISPLAY_KEYS)[number];
-
-interface TamboDisplayProps {
-  _tambo_displayMessage?: string;
-  _tambo_statusMessage?: string;
-  _tambo_completionStatusMessage?: string;
-}
-
-/**
- * Extracts Tambo display properties from tool input.
- */
-function extractTamboDisplayProps(
-  input: Record<string, unknown>,
-): TamboDisplayProps {
-  const props: TamboDisplayProps = {};
-  for (const key of TAMBO_DISPLAY_KEYS) {
-    if (key in input && typeof input[key] === "string") {
-      props[key] = input[key];
-    }
-  }
-  return props;
-}
-
-/**
- * Filters out Tambo display properties from tool input for parameter display.
- */
-function filterTamboProps(
-  input: Record<string, unknown>,
-): Record<string, unknown> {
-  const filtered: Record<string, unknown> = {};
-  for (const [key, value] of Object.entries(input)) {
-    if (!TAMBO_DISPLAY_KEYS.includes(key as TamboDisplayKey)) {
-      filtered[key] = value;
-    }
-  }
-  return filtered;
-}
-
 interface ToolUseInfoProps {
   content: Extract<TamboV1Message["content"][number], { type: "tool_use" }>;
   isLoading?: boolean;
@@ -302,29 +262,3 @@ const ToolStatusIcon: FC<ToolStatusIconProps> = ({ isLoading, isError }) => {
   }
   return <Check className="h-3 w-3 text-green-500" />;
 };
-
-function formatToolResultContent(
-  resultContent: ToolResultInfoProps["content"]["content"],
-): string {
-  if (typeof resultContent === "string") {
-    try {
-      return JSON.stringify(JSON.parse(resultContent), null, 2);
-    } catch {
-      return resultContent;
-    }
-  }
-  if (Array.isArray(resultContent)) {
-    const textParts = resultContent
-      .filter(
-        (item): item is { type: "text"; text: string } => item.type === "text",
-      )
-      .map((item) => item.text);
-    const combined = textParts.join("");
-    try {
-      return JSON.stringify(JSON.parse(combined), null, 2);
-    } catch {
-      return combined;
-    }
-  }
-  return JSON.stringify(resultContent, null, 2);
-}
