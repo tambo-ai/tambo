@@ -9,11 +9,11 @@
 import type { ReactElement } from "react";
 
 // Re-export content block types from TypeScript SDK
+// Note: ToolUseContent and ComponentContent are NOT re-exported - use V1ToolUseContent
+// and V1ComponentContent instead, which include computed state properties.
 export type {
   TextContent,
-  ToolUseContent,
   ToolResultContent,
-  ComponentContent,
   ResourceContent,
 } from "@tambo-ai/typescript-sdk/resources/threads/threads";
 
