@@ -71,13 +71,7 @@ const DictationButton = () => {
 // Re-export provider interfaces from base
 export type { PromptProvider, ResourceProvider };
 
-/**
- * CSS variants for the message input container
- * @typedef {Object} MessageInputVariants
- * @property {string} default - Default styling
- * @property {string} solid - Solid styling with shadow effects
- * @property {string} bordered - Bordered styling with border emphasis
- */
+/** CSS variants for the message input container */
 const messageInputVariants = cva("w-full", {
   variants: {
     variant: {
@@ -146,14 +140,14 @@ const MessageInput = React.forwardRef<HTMLFormElement, MessageInputProps>(
             className={cn(
               "group relative flex flex-col rounded-xl bg-background shadow-md p-2 px-3 border",
               // Styling via data attributes - no render prop needed for drag state
-              "border-border data-[dragging]:border-dashed data-[dragging]:border-emerald-400",
+              "border-border data-dragging:border-dashed data-dragging:border-emerald-400",
             )}
           >
             {/* Render props ONLY for behavior change (elicitation vs normal content) */}
             {({ elicitation, resolveElicitation }) => (
               <>
                 {/* Drop overlay styled with CSS, shown via group-data-[dragging] */}
-                <div className="absolute inset-0 rounded-xl bg-emerald-50/90 dark:bg-emerald-950/30 items-center justify-center pointer-events-none z-20 hidden group-data-[dragging]:flex">
+                <div className="absolute inset-0 rounded-xl bg-emerald-50/90 dark:bg-emerald-950/30 items-center justify-center pointer-events-none z-20 hidden group-data-dragging:flex">
                   <p className="text-emerald-700 dark:text-emerald-300 font-medium">
                     Drop files here to add to conversation
                   </p>
@@ -354,7 +348,9 @@ MessageInputTextarea.displayName = "MessageInput.Textarea";
  */
 interface McpPromptEffectProps {
   selectedMcpPromptName: string | null;
-  selectedMcpPromptData: { messages?: Array<{ content?: { type: string; text?: string } }> } | undefined;
+  selectedMcpPromptData:
+    | { messages?: Array<{ content?: { type: string; text?: string } }> }
+    | undefined;
   editorRef: React.RefObject<TamboEditor | null>;
   setValue: (value: string) => void;
   onComplete: () => void;
@@ -390,7 +386,13 @@ const McpPromptEffect: React.FC<McpPromptEffectProps> = ({
       }
       onComplete();
     }
-  }, [selectedMcpPromptData, selectedMcpPromptName, editorRef, setValue, onComplete]);
+  }, [
+    selectedMcpPromptData,
+    selectedMcpPromptName,
+    editorRef,
+    setValue,
+    onComplete,
+  ]);
 
   return null;
 };
@@ -437,7 +439,7 @@ const MessageInputPlainTextarea = ({
           if (e.key === "Enter" && !e.shiftKey) {
             e.preventDefault();
             if (value.trim()) {
-              await handleSubmit(e as unknown as React.FormEvent);
+              await handleSubmit(e);
             }
           }
         };
@@ -480,7 +482,7 @@ const MessageInputPlainTextarea = ({
             onKeyDown={handleKeyDown}
             onPaste={handlePaste}
             className={cn(
-              "flex-1 p-3 rounded-t-lg bg-background text-foreground resize-none text-sm min-h-[82px] max-h-[40vh] focus:outline-none placeholder:text-muted-foreground/50",
+              "flex-1 p-3 rounded-t-lg bg-background text-foreground resize-none text-sm min-h-20.5 max-h-[40vh] focus:outline-none placeholder:text-muted-foreground/50",
               className,
             )}
             disabled={disabled}
@@ -827,7 +829,7 @@ const ImageContextBadge: React.FC<StagedImageRenderProps> = ({
   onToggle,
   onRemove,
 }) => (
-  <div className="relative group flex-shrink-0">
+  <div className="relative group shrink-0">
     <button
       type="button"
       onClick={onToggle}
@@ -854,7 +856,7 @@ const ImageContextBadge: React.FC<StagedImageRenderProps> = ({
               decoding="async"
               className="absolute inset-0 w-full h-full object-cover"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+            <div className="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent" />
             <div className="absolute bottom-1 left-2 right-2 text-white text-xs font-medium truncate">
               {displayName}
             </div>
@@ -867,7 +869,7 @@ const ImageContextBadge: React.FC<StagedImageRenderProps> = ({
           isExpanded ? "opacity-0" : "opacity-100 delay-100",
         )}
       >
-        <ImageIcon className="w-3.5 h-3.5 flex-shrink-0" />
+        <ImageIcon className="w-3.5 h-3.5 shrink-0" />
         <span className="truncate">{displayName}</span>
       </span>
     </button>
