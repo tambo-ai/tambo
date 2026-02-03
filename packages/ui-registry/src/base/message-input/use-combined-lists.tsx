@@ -72,7 +72,7 @@ export interface ResourceFormatOptions {
 /**
  * Hook to get a combined resource list that merges MCP resources with an external provider.
  * Returns the combined, filtered resource items.
- *
+ * @internal -- for use within message input only
  * @param externalProvider - Optional external resource provider
  * @param search - Search string to filter resources. For MCP servers, results are filtered locally.
  *                 For registry dynamic sources, the search is passed to listResources(search).
@@ -151,7 +151,7 @@ export interface PromptFormatOptions {
 /**
  * Hook to get a combined prompt list that merges MCP prompts with an external provider.
  * Returns the combined, filtered prompt items.
- *
+ * @internal -- for use within message input only
  * @param externalProvider - Optional external prompt provider
  * @param search - Search string to filter prompts by name. MCP prompts are filtered via the hook.
  * @param options - Optional formatting options
