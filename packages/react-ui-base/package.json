@@ -1,0 +1,43 @@
+{
+  "name": "@tambo-ai/react-ui-base",
+  "version": "0.0.1",
+  "private": true,
+  "license": "Apache-2.0",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": "./src/index.ts",
+    "./message": "./src/message/index.tsx",
+    "./reasoning-info": "./src/reasoning-info/index.tsx",
+    "./toolcall-info": "./src/toolcall-info/index.tsx",
+    "./types": "./src/types/component-render-or-children.ts",
+    "./use-render": "./src/use-render/use-render.ts"
+  },
+  "scripts": {
+    "lint": "eslint",
+    "lint:fix": "eslint --fix",
+    "check-types": "tsc --noEmit",
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest"
+  },
+  "peerDependencies": {
+    "@tambo-ai/react": "*",
+    "react": "^18.0.0 || ^19.0.0",
+    "react-dom": "^18.0.0 || ^19.0.0"
+  },
+  "devDependencies": {
+    "@radix-ui/react-slot": "^1.2.3",
+    "@tambo-ai/eslint-config": "*",
+    "@tambo-ai/react": "*",
+    "@tambo-ai/typescript-config": "*",
+    "@tambo-ai/typescript-sdk": "^0.88.0",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.3.2",
+    "@types/jest": "^30.0.0",
+    "jest": "^30.2.0",
+    "jest-environment-jsdom": "^30.0.2",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "ts-jest": "^29.4.6",
+    "typescript": "^5.9.3"
+  }
+}

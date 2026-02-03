@@ -5,7 +5,6 @@
   "license": "Apache-2.0",
   "type": "module",
   "exports": {
-    "./base/*": "./src/base/*/index.tsx",
     "./styles/globals-v3.css": "./src/styles/globals-v3.css",
     "./styles/globals-v4.css": "./src/styles/globals-v4.css",
     "./styles.css": "./src/styles/internal.css",
@@ -47,6 +46,7 @@
   "devDependencies": {
     "@tambo-ai/eslint-config": "*",
     "@tambo-ai/react": "*",
+    "@tambo-ai/react-ui-base": "*",
     "@tambo-ai/typescript-config": "*",
     "@tambo-ai/typescript-sdk": "^0.89.0",
     "@testing-library/jest-dom": "^6.6.3",

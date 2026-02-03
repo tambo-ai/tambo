@@ -1,7 +1,8 @@
 import { Slot } from "@radix-ui/react-slot";
 import { TamboThreadMessage } from "@tambo-ai/react";
-import { checkHasContent } from "@tambo-ai/ui-registry/lib/thread-hooks";
 import * as React from "react";
+import { useOptionalMessageRootContext } from "../../message/root/message-root-context";
+import { checkHasContent } from "../../utils/check-has-content";
 import { ReasoningInfoRootContext } from "./reasoning-info-context";
 
 /**
@@ -44,8 +45,11 @@ export interface ReasoningInfoRootProps extends React.HTMLAttributes<HTMLDivElem
   defaultExpanded?: boolean;
   /** Whether to auto-collapse when content arrives. Defaults to true. */
   autoCollapse?: boolean;
-  /** The full Tambo thread message object. */
-  message: TamboThreadMessage;
+  /**
+   * The full Tambo thread message object.
+   * If not provided, will be read from the parent Message.Root context.
+   */
+  message?: TamboThreadMessage;
   /** Optional flag to indicate if the reasoning info is in a loading state. */
   isLoading?: boolean;
 }
@@ -53,6 +57,7 @@ export interface ReasoningInfoRootProps extends React.HTMLAttributes<HTMLDivElem
 /**
  * Root primitive for reasoning info.
  * Provides context for child components. Returns null if no reasoning data.
+ * When used inside a Message.Root, the message and isLoading props are automatically inherited.
  */
 export const ReasoningInfoRoot = React.forwardRef<
   HTMLDivElement,
@@ -61,8 +66,8 @@ export const ReasoningInfoRoot = React.forwardRef<
   (
     {
       asChild,
-      message,
-      isLoading,
+      message: messageProp,
+      isLoading: isLoadingProp,
       defaultExpanded = true,
       autoCollapse = true,
       children,
@@ -70,6 +75,15 @@ export const ReasoningInfoRoot = React.forwardRef<
     },
     ref,
   ) => {
+    const messageContext = useOptionalMessageRootContext();
+    const message = messageProp ?? messageContext?.message;
+    const isLoading = isLoadingProp ?? messageContext?.isLoading;
+
+    if (!message) {
+      throw new Error(
+        "ReasoningInfo.Root requires a message prop or must be used within a Message.Root component",
+      );
+    }
     const [isExpanded, setIsExpanded] = React.useState(defaultExpanded);
     const detailsId = React.useId();
     const scrollContainerRef = React.useRef<HTMLDivElement>(null);

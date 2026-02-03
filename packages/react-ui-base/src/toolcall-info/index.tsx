@@ -23,7 +23,10 @@ const ToolcallInfo = {
   Result: ToolcallInfoResult,
 };
 
-export type { ToolcallInfoContentProps } from "./content/toolcall-info-content";
+export type {
+  ToolcallInfoContentProps,
+  ToolcallInfoContentRenderProps,
+} from "./content/toolcall-info-content";
 export type {
   ToolcallInfoParametersProps,
   ToolcallInfoParametersRenderProps,
