@@ -13,6 +13,7 @@ import {
   V1TextContentDto,
   V1ResourceContentDto,
   V1ToolUseContentDto,
+  V1ToolResultContentDto,
 } from "./dto/content.dto";
 import { V1MessageDto, V1MessageRole } from "./dto/message.dto";
 import { V1ThreadDto } from "./dto/thread.dto";
@@ -166,6 +167,7 @@ export function contentPartToV1Block(
  * Convert internal message content to V1 content blocks.
  * Handles OpenAI-style content parts + component decision to V1 unified format.
  *
+ * For tool role messages, wraps content in a tool_result block.
  * If componentDecision exists but has no componentName, logs a warning and
  * skips the component block (data integrity issue from legacy data).
  */
@@ -175,7 +177,28 @@ export function contentToV1Blocks(
 ): V1ContentBlock[] {
   const blocks: V1ContentBlock[] = [];
 
-  // Convert standard content parts
+  // For tool role messages, wrap content in a tool_result block
+  if (message.role === "tool" && message.toolCallId) {
+    const resultContent: (V1TextContentDto | V1ResourceContentDto)[] = [];
+    if (Array.isArray(message.content)) {
+      for (const part of message.content) {
+        const block = contentPartToV1Block(part, options);
+        if (block && (block.type === "text" || block.type === "resource")) {
+          resultContent.push(block);
+        }
+      }
+    }
+    const toolResultBlock: V1ToolResultContentDto = {
+      type: "tool_result",
+      toolUseId: message.toolCallId,
+      content: resultContent,
+      isError: message.error ? true : undefined,
+    };
+    blocks.push(toolResultBlock);
+    return blocks; // Tool messages don't have other content types
+  }
+
+  // Convert standard content parts (non-tool messages)
   if (Array.isArray(message.content)) {
     for (const part of message.content) {
       const block = contentPartToV1Block(part, options);

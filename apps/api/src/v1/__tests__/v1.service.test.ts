@@ -754,6 +754,33 @@ describe("V1Service", () => {
       expect(result.content).toEqual([]);
     });
 
+    it("should convert tool role messages to tool_result content blocks", async () => {
+      const toolMessage = {
+        ...mockMessage,
+        role: "tool",
+        content: [{ type: "text", text: '{"temperature": 72, "unit": "F"}' }],
+        toolCallId: "call_xyz789",
+      };
+      mockOperations.getMessageByIdInThread.mockResolvedValue(
+        toolMessage as any,
+      );
+
+      const result = await service.getMessage("thr_123", "msg_123");
+
+      // Role should be mapped to assistant
+      expect(result.role).toBe("assistant");
+      // Content should be a single tool_result block
+      expect(result.content).toHaveLength(1);
+      expect(result.content[0].type).toBe("tool_result");
+      const toolResultBlock = result.content[0] as any;
+      expect(toolResultBlock.toolUseId).toBe("call_xyz789");
+      expect(toolResultBlock.content).toHaveLength(1);
+      expect(toolResultBlock.content[0]).toEqual({
+        type: "text",
+        text: '{"temperature": 72, "unit": "F"}',
+      });
+    });
+
     it("should not include component block for tool role messages", async () => {
       // Tool messages may have componentDecision copied from the assistant message,
       // but the component block should only appear on the assistant message
@@ -773,10 +800,11 @@ describe("V1Service", () => {
 
       const result = await service.getMessage("thr_123", "msg_123");
 
-      // Role should be mapped to assistant, but no component block
+      // Role should be mapped to assistant
       expect(result.role).toBe("assistant");
+      // Content should be a tool_result block, not text or component
       expect(result.content).toHaveLength(1);
-      expect(result.content[0].type).toBe("text");
+      expect(result.content[0].type).toBe("tool_result");
       expect(
         result.content.find((c) => c.type === "component"),
       ).toBeUndefined();
