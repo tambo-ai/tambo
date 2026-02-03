@@ -43,7 +43,7 @@ BASH_EOF
 export COREPACK_ENABLE_NETWORK=1
 EXPECTED_NPM_VERSION="11.7.0"
 
-# Trust and install tools from mise.toml and .node-version
+# Trust and install tools from .config/mise.toml and .node-version
 mise trust
 mise install
 

@@ -1,0 +1,27 @@
+{
+  "$schema": "https://raw.githubusercontent.com/oxc-project/oxc/main/npm/oxlint/configuration_schema.json",
+  "extends": [
+    "./packages/oxlint-config/core/.oxlintrc.jsonc",
+    "./packages/oxlint-config/react/.oxlintrc.jsonc",
+    "./packages/oxlint-config/next/.oxlintrc.jsonc"
+  ],
+  "ignorePatterns": [
+    // Unique projects
+    "community/templates/**",
+    "examples/**",
+    // Build folders
+    "**/.source/**",
+    "**/.next/**",
+    "next-env.d.ts",
+    "**/dist/**",
+    "**/esm/**",
+    // Dependencies
+    "**/vendor/**",
+    // Testing
+    "**/coverage/**",
+    "**/snapshots/**",
+    // IDE settings
+    ".vscode/extensions.json",
+    ".vscode/settings.json"
+  ]
+}

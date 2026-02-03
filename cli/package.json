@@ -36,23 +36,10 @@
     "dev:esm": "tsc --watch",
     "check-types": "tsc --noEmit",
     "test": "NODE_OPTIONS=--experimental-vm-modules jest",
-    "format": "prettier --write .",
-    "lint": "eslint",
-    "lint:fix": "eslint --fix",
-    "format:lint": "npm run format && npm run lint:fix",
     "clean": "rimraf dist esm coverage"
   },
   "engines": {
     "node": ">=22"
-  },
-  "lint-staged": {
-    "*.{js,jsx,ts,tsx}": [
-      "prettier --write",
-      "eslint --fix"
-    ],
-    "*.{json,md,yml,yaml}": [
-      "prettier --write"
-    ]
   },
   "dependencies": {
     "@tambo-ai/react": "*",

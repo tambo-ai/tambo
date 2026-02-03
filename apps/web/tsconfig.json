@@ -1,11 +1,6 @@
 {
   "extends": "@tambo-ai/typescript-config/nextjs.json",
   "compilerOptions": {
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ],
     "paths": {
       "@/*": ["./*"],
       "@tambo-ai-cloud/testing": ["../../packages/testing/src"],

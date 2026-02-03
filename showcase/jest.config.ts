@@ -1,15 +1,7 @@
-import type { Config } from "jest";
+import { type Config } from "jest";
 
 const config: Config = {
-  preset: "ts-jest",
-  testEnvironment: "jsdom",
-  moduleNameMapper: {
-    "^@/(.*)$": "<rootDir>/src/$1",
-    "\\.(css|less|sass|scss)$": "identity-obj-proxy",
-    "\\.(png|jpg|jpeg|gif|webp|avif|svg|ico)$":
-      "<rootDir>/__mocks__/fileMock.cjs",
-  },
-  testMatch: ["<rootDir>/src/**/*.test.ts?(x)"],
+  clearMocks: true,
   collectCoverageFrom: [
     "<rootDir>/src/**/*.{js,jsx,ts,tsx}",
     "!<rootDir>/src/**/*.test.{js,jsx,ts,tsx}",
@@ -19,6 +11,25 @@ const config: Config = {
     "!<rootDir>/.next/**",
     "!<rootDir>/dist/**",
   ],
+  coverageThreshold: {
+    global: {
+      branches: 5,
+      lines: 8,
+    },
+  },
+  moduleFileExtensions: ["ts", "tsx", "js", "jsx", "json", "node"],
+  moduleNameMapper: {
+    "^@/(.*)$": "<rootDir>/src/$1",
+    "\\.(css|less|sass|scss)$": "identity-obj-proxy",
+    "\\.(png|jpg|jpeg|gif|webp|avif|svg|ico)$":
+      "<rootDir>/__mocks__/fileMock.cjs",
+  },
+  preset: "ts-jest",
+  resetMocks: true,
+  setupFilesAfterEnv: ["<rootDir>/src/setupTests.ts"],
+  testEnvironment: "jsdom",
+  testMatch: ["<rootDir>/src/**/*.test.ts?(x)"],
+  testPathIgnorePatterns: ["/node_modules/", "/.next/", "/dist/"],
   transform: {
     "^.+\\.tsx?$": [
       "ts-jest",
@@ -28,17 +39,6 @@ const config: Config = {
         },
       },
     ],
-  },
-  moduleFileExtensions: ["ts", "tsx", "js", "jsx", "json", "node"],
-  setupFilesAfterEnv: ["<rootDir>/src/setupTests.ts"],
-  clearMocks: true,
-  resetMocks: true,
-  testPathIgnorePatterns: ["/node_modules/", "/.next/", "/dist/"],
-  coverageThreshold: {
-    global: {
-      branches: 5,
-      lines: 8,
-    },
   },
 };
 

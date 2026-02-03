@@ -1,32 +1,17 @@
 {
   "extends": "@tambo-ai/typescript-config/base.json",
   "compilerOptions": {
-    "target": "ES2022",
-    "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "inlineSources": true,
     "jsx": "react",
     "module": "ESNext",
     "moduleResolution": "bundler",
-    "declaration": true,
-    "sourceMap": true,
-    "inlineSources": true,
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
-    "strict": true,
-    "skipLibCheck": true,
-    "baseUrl": ".",
-    "typeRoots": [
-      "./node_modules/@types",
-      "../node_modules/@types",
-      "./src/types"
-    ],
-    "types": ["node", "jest"],
     "paths": {
-      "@/*": ["src/*"],
+      "@/*": ["./src/*"],
       "@tambo-ai/react": ["../react-sdk/src"],
       "@tambo-ai/react/mcp": ["../react-sdk/src/mcp"]
-    },
-    "outDir": "./dist"
+    }
   },
   "include": [
     "src/**/*.ts",

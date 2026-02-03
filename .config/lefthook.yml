@@ -1,0 +1,13 @@
+pre-commit:
+  jobs:
+    - run: npx ultracite fix
+      glob:
+        - "*.js"
+        - "*.jsx"
+        - "*.ts"
+        - "*.tsx"
+        - "*.json"
+        - "*.jsonc"
+        - "*.json5"
+        - "*.css"
+      stage_fixed: false

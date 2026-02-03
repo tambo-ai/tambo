@@ -1,9 +1,7 @@
 {
-  "extends": "@tambo-ai/typescript-config/base",
+  "extends": "@tambo-ai/typescript-config/bundler.json",
   "compilerOptions": {
-    "outDir": "./dist",
-    "module": "ESNext",
-    "moduleResolution": "Bundler",
+    "noEmit": true,
     "paths": {
       "@tambo-ai-cloud/core": ["../core/src"],
       "@tambo-ai-cloud/db": ["../db/src"]

@@ -93,6 +93,4 @@ __tests__/
 
 # Development tools
 .cursorrules
-.eslintrc*
-.prettierrc*
 jest.config.* 

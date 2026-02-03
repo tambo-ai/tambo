@@ -1,0 +1,10 @@
+{
+  "$schema": "https://raw.githubusercontent.com/oxc-project/oxc/main/npm/oxlint/configuration_schema.json",
+  // Node.js environment config - extends core
+  // Use with: "extends": ["../core/.oxlintrc.jsonc", "../node/.oxlintrc.jsonc"]
+  "plugins": ["node"],
+  "env": {
+    "node": true,
+    "browser": false
+  }
+}

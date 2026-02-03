@@ -1,6 +1,8 @@
 {
   "$schema": "https://json.schemastore.org/tsconfig",
   "compilerOptions": {
+    "outDir": "${configDir}/dist",
+    "rootDir": "${configDir}",
     "declaration": true,
     "declarationMap": true,
     "esModuleInterop": true,
@@ -11,11 +13,13 @@
     "module": "NodeNext",
     "moduleDetection": "force",
     "moduleResolution": "NodeNext",
+    "noImplicitAny": true,
     "noUncheckedIndexedAccess": false,
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "sourceMap": true,
     "strict": true,
-    "target": "ES2024"
+    "strictNullChecks": true,
+    "target": "ESNext"
   }
 }

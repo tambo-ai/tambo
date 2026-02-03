@@ -64,7 +64,7 @@ It is OK to use `crypto.randomUUID()` without a fallback in runtime and test cod
 
 Tool versions are managed via mise. Source of truth files:
 
-- **Most tools**: `mise.toml`
+- **Most tools**: `.config/mise.toml`
 - **Node.js**: `.node-version` (`.nvmrc` kept in sync for nvm compatibility)
 
 These files are kept up to date by Renovate.

@@ -1,8 +1,6 @@
 {
-  "$schema": "https://json.schemastore.org/tsconfig",
-  "extends": "../../packages/typescript-config/nextjs.json",
+  "extends": "@tambo-ai/typescript-config/nextjs.json",
   "compilerOptions": {
-    "strict": true,
     "noEmit": true
   },
   "include": [
