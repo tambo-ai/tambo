@@ -2,8 +2,8 @@ import { act, renderHook, waitFor } from "@testing-library/react";
 import React from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useReactMediaRecorder } from "react-media-recorder";
-import { useTamboVoice } from "./use-tambo-voice";
-import { TamboClientContext } from "../providers/tambo-client-provider";
+import { useTamboVoice } from "./use-tambo-voice.js";
+import { TamboClientContext } from "../providers/tambo-client-provider.js";
 import TamboAI from "@tambo-ai/typescript-sdk";
 
 // Override the global mock from setupTests.ts with a controllable version
@@ -17,7 +17,7 @@ jest.mock("../providers/tambo-client-provider", () => ({
   useTamboClient: jest.fn(),
 }));
 
-import { useTamboClient } from "../providers/tambo-client-provider";
+import { useTamboClient } from "../providers/tambo-client-provider.js";
 
 // Mock fetch globally
 const mockFetch = jest.fn();

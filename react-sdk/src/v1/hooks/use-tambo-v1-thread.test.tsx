@@ -2,8 +2,8 @@ import TamboAI from "@tambo-ai/typescript-sdk";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { renderHook, waitFor } from "@testing-library/react";
 import React from "react";
-import { useTamboClient } from "../../providers/tambo-client-provider";
-import { useTamboV1Thread } from "./use-tambo-v1-thread";
+import { useTamboClient } from "../../providers/tambo-client-provider.js";
+import { useTamboV1Thread } from "./use-tambo-v1-thread.js";
 
 jest.mock("../../providers/tambo-client-provider", () => ({
   useTamboClient: jest.fn(),

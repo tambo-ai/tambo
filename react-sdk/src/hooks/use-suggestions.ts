@@ -1,27 +1,27 @@
 "use client";
 import TamboAI from "@tambo-ai/typescript-sdk";
 import { useEffect, useState } from "react";
-import { isIdleStage } from "../model/generate-component-response";
-import { validateInput } from "../model/validate-input";
-import { useTamboClient } from "../providers/tambo-client-provider";
-import { useTambo } from "../providers/tambo-provider";
-import { useTamboRegistry } from "../providers/tambo-registry-provider";
+import { isIdleStage } from "../model/generate-component-response.js";
+import { validateInput } from "../model/validate-input.js";
+import { useTamboClient } from "../providers/tambo-client-provider.js";
+import { useTambo } from "../providers/tambo-provider.js";
+import { useTamboRegistry } from "../providers/tambo-registry-provider.js";
 import {
   INPUT_ERROR_MESSAGES,
   useTamboThreadInput,
-} from "../providers/tambo-thread-input-provider";
-import { useTamboThread } from "../providers/tambo-thread-provider";
+} from "../providers/tambo-thread-input-provider.js";
+import { useTamboThread } from "../providers/tambo-thread-provider.js";
 import {
   CombinedMutationResult,
   combineMutationResults,
-} from "../util/query-utils";
-import { getAvailableComponents } from "../util/registry";
+} from "../util/query-utils.js";
+import { getAvailableComponents } from "../util/registry.js";
 import {
   UseTamboMutationResult,
   UseTamboQueryResult,
   useTamboMutation,
   useTamboQuery,
-} from "./react-query-hooks";
+} from "./react-query-hooks.js";
 
 /**
  * Configuration options for the useTamboSuggestions hook

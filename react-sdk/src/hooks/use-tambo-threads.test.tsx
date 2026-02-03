@@ -1,13 +1,13 @@
 import TamboAI from "@tambo-ai/typescript-sdk";
 import { QueryClient } from "@tanstack/react-query";
 import { renderHook, waitFor } from "@testing-library/react";
-import { useTamboThread } from "../providers";
+import { useTamboThread } from "../providers/index.js";
 import {
   useTamboClient,
   useTamboQueryClient,
-} from "../providers/tambo-client-provider";
-import { PartialTamboAI } from "../testing/types";
-import { useTamboThreadList } from "./use-tambo-threads";
+} from "../providers/tambo-client-provider.js";
+import { PartialTamboAI } from "../testing/types.js";
+import { useTamboThreadList } from "./use-tambo-threads.js";
 
 jest.mock("../providers/tambo-client-provider", () => ({
   useTamboClient: jest.fn(),

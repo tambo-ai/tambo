@@ -4,6 +4,8 @@ const config: Config = {
   preset: "ts-jest",
   testEnvironment: "jsdom",
   moduleNameMapper: {
+    // Strip .js extensions from relative imports for Jest to resolve TypeScript files
+    "^(\\.{1,2}/.*)\\.js$": "$1",
     "^@/(.*)$": "<rootDir>/src/$1",
     // pkce-challenge's browser build is ESM-only; force the CJS Node.js version
     "^pkce-challenge$":

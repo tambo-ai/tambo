@@ -4,15 +4,15 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { renderHook, waitFor, act } from "@testing-library/react";
 import React from "react";
 import { z } from "zod";
-import type { TamboTool } from "../../model/component-metadata";
-import { useTamboClient } from "../../providers/tambo-client-provider";
-import { TamboRegistryContext } from "../../providers/tambo-registry-provider";
-import { useTamboV1Config } from "../providers/tambo-v1-provider";
-import { TamboV1StreamProvider } from "../providers/tambo-v1-stream-context";
+import type { TamboTool } from "../../model/component-metadata.js";
+import { useTamboClient } from "../../providers/tambo-client-provider.js";
+import { TamboRegistryContext } from "../../providers/tambo-registry-provider.js";
+import { useTamboV1Config } from "../providers/tambo-v1-provider.js";
+import { TamboV1StreamProvider } from "../providers/tambo-v1-stream-context.js";
 import {
   createRunStream,
   useTamboV1SendMessage,
-} from "./use-tambo-v1-send-message";
+} from "./use-tambo-v1-send-message.js";
 
 jest.mock("../../providers/tambo-client-provider", () => ({
   useTamboClient: jest.fn(),

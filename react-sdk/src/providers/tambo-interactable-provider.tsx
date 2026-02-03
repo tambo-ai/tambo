@@ -12,15 +12,15 @@ import React, {
   useState,
 } from "react";
 import { z } from "zod/v3";
-import { createInteractablesContextHelper } from "../context-helpers/current-interactables-context-helper";
+import { createInteractablesContextHelper } from "../context-helpers/current-interactables-context-helper.js";
 import {
   TamboInteractableComponent,
   type TamboInteractableContext,
-} from "../model/tambo-interactable";
-import { makeJsonSchemaPartial, schemaToJsonSchema } from "../schema";
-import { assertValidName } from "../util/validate-component-name";
-import { useTamboComponent } from "./tambo-component-provider";
-import { useTamboContextHelpers } from "./tambo-context-helpers-provider";
+} from "../model/tambo-interactable.js";
+import { makeJsonSchemaPartial, schemaToJsonSchema } from "../schema/index.js";
+import { assertValidName } from "../util/validate-component-name.js";
+import { useTamboComponent } from "./tambo-component-provider.js";
+import { useTamboContextHelpers } from "./tambo-context-helpers-provider.js";
 
 const TamboInteractableContext = createContext<TamboInteractableContext>({
   interactableComponents: [],

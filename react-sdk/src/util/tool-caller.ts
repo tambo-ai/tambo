@@ -3,8 +3,8 @@ import {
   ComponentContextTool,
   TamboTool,
   TamboToolRegistry,
-} from "../model/component-metadata";
-import { mapTamboToolToContextTool } from "./registry";
+} from "../model/component-metadata.js";
+import { mapTamboToolToContextTool } from "./registry.js";
 
 /**
  * Process a message from the thread, invoking the appropriate tool and returning the result.

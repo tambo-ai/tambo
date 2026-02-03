@@ -11,7 +11,7 @@ import {
   UseQueryOptions,
   UseQueryResult,
 } from "@tanstack/react-query";
-import { useTamboQueryClient } from "../providers/tambo-client-provider";
+import { useTamboQueryClient } from "../providers/tambo-client-provider.js";
 
 /**
  * Wrapper around useQuery that uses the internal tambo query client.

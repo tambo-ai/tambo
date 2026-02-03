@@ -1,6 +1,6 @@
 import type { JSONSchema7 } from "json-schema";
-import { schemaToJsonSchema } from "./schema";
-import { isStandardSchema } from "./standard-schema";
+import { schemaToJsonSchema } from "./schema.js";
+import { isStandardSchema } from "./standard-schema.js";
 
 /*
  * Check if a JSON Schema represents a record type (map with dynamic keys).

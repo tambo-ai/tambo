@@ -1,7 +1,10 @@
 import type { ReadResourceResult } from "@modelcontextprotocol/sdk/types.js";
-import { REGISTRY_SERVER_KEY, ServerType } from "../mcp/mcp-constants";
-import type { ConnectedMcpServer, McpServer } from "../mcp/tambo-mcp-provider";
-import type { ResourceSource } from "../model/resource-info";
+import { REGISTRY_SERVER_KEY, ServerType } from "../mcp/mcp-constants.js";
+import type {
+  ConnectedMcpServer,
+  McpServer,
+} from "../mcp/tambo-mcp-provider.js";
+import type { ResourceSource } from "../model/resource-info.js";
 
 /**
  * Type guard for narrowing McpServer to a connected server.

@@ -5,7 +5,7 @@
  * requests them via `tambo.run.awaiting_input` events.
  */
 
-import type { TamboTool } from "../../model/component-metadata";
+import type { TamboTool } from "../../model/component-metadata.js";
 import type {
   ToolResultContent,
   TextContent,

@@ -2,8 +2,8 @@ import { renderHook } from "@testing-library/react";
 import {
   GenerationStage,
   TamboThreadMessage,
-} from "../model/generate-component-response";
-import { useTamboStreamStatus } from "./use-tambo-stream-status";
+} from "../model/generate-component-response.js";
+import { useTamboStreamStatus } from "./use-tambo-stream-status.js";
 
 // Mock the required providers
 jest.mock("../providers/tambo-thread-provider", () => ({
@@ -15,8 +15,8 @@ jest.mock("./use-current-message", () => ({
 }));
 
 // Import the mocked functions
-import { useTamboGenerationStage } from "../providers/tambo-thread-provider";
-import { useTamboCurrentMessage } from "./use-current-message";
+import { useTamboGenerationStage } from "../providers/tambo-thread-provider.js";
+import { useTamboCurrentMessage } from "./use-current-message.js";
 
 // Mock window for SSR tests
 const originalWindow = global.window;

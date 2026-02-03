@@ -9,21 +9,21 @@
 
 import type TamboAI from "@tambo-ai/typescript-sdk";
 import React, { useContext, useMemo, useRef, type ReactElement } from "react";
-import { useTamboClient } from "../../providers/tambo-client-provider";
+import { useTamboClient } from "../../providers/tambo-client-provider.js";
 import {
   TamboRegistryContext,
   type TamboRegistryContext as TamboRegistryContextType,
-} from "../../providers/tambo-registry-provider";
-import { V1ComponentRenderer } from "../components/v1-component-renderer";
+} from "../../providers/tambo-registry-provider.js";
+import { V1ComponentRenderer } from "../components/v1-component-renderer.js";
 import {
   useStreamDispatch,
   useStreamState,
   useThreadManagement,
   type ThreadManagement,
-} from "../providers/tambo-v1-stream-context";
-import type { Content, TamboV1Message } from "../types/message";
-import type { StreamingState } from "../types/thread";
-import type { ThreadState } from "../utils/event-accumulator";
+} from "../providers/tambo-v1-stream-context.js";
+import type { Content, TamboV1Message } from "../types/message.js";
+import type { StreamingState } from "../types/thread.js";
+import type { ThreadState } from "../utils/event-accumulator.js";
 
 /**
  * Return type for useTamboV1 hook

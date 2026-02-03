@@ -1,10 +1,10 @@
 import { z } from "zod/v3";
-import type { TamboComponent, TamboTool } from "../model/component-metadata";
+import type { TamboComponent, TamboTool } from "../model/component-metadata.js";
 import {
   validateAndPrepareComponent,
   validateTool,
   validateToolAssociation,
-} from "./registry-validators";
+} from "./registry-validators.js";
 
 describe("validateTool", () => {
   it("should validate tool with valid name", () => {

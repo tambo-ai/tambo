@@ -5,7 +5,7 @@ import {
   JSONSchema7Extended,
   looksLikeJSONSchema,
   makeJsonSchemaPartial,
-} from "./json-schema";
+} from "./json-schema.js";
 
 describe("looksLikeJSONSchema", () => {
   it("should return true for a valid object schema", () => {

@@ -4,10 +4,10 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   TamboV1ThreadInputProvider,
   useTamboV1ThreadInput,
-} from "../providers/tambo-v1-thread-input-provider";
-import { TamboV1StreamProvider } from "../providers/tambo-v1-stream-context";
-import { useTamboV1SendMessage } from "./use-tambo-v1-send-message";
-import type { StreamAction, StreamState } from "../utils/event-accumulator";
+} from "../providers/tambo-v1-thread-input-provider.js";
+import { TamboV1StreamProvider } from "../providers/tambo-v1-stream-context.js";
+import { useTamboV1SendMessage } from "./use-tambo-v1-send-message.js";
+import type { StreamAction, StreamState } from "../utils/event-accumulator.js";
 
 // Mock useTamboV1SendMessage
 jest.mock("./use-tambo-v1-send-message", () => ({

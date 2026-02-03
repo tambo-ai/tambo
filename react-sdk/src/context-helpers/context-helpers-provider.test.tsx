@@ -17,13 +17,13 @@ import React, { PropsWithChildren } from "react";
 import {
   TamboContextHelpersProvider,
   useTamboContextHelpers,
-} from "../providers/tambo-context-helpers-provider";
+} from "../providers/tambo-context-helpers-provider.js";
 import {
   type AdditionalContext,
   type ContextHelperFn,
   currentPageContextHelper,
   currentTimeContextHelper,
-} from "./index";
+} from "./index.js";
 
 /**
  * Test wrapper to provide the TamboContextHelpersProvider for hooks.

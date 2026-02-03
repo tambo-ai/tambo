@@ -11,12 +11,12 @@ import type { JSONSchema7 } from "json-schema";
 import React from "react";
 import * as z3 from "zod/v3";
 import * as z4 from "zod/v4";
-import { TamboComponent } from "../model/component-metadata";
-import { defineTool } from "../util/registry";
+import { TamboComponent } from "../model/component-metadata.js";
+import { defineTool } from "../util/registry.js";
 import {
   TamboRegistryProvider,
   useTamboRegistry,
-} from "./tambo-registry-provider";
+} from "./tambo-registry-provider.js";
 
 // Test component for registration tests
 const TestComponent: React.FC<{ message: string }> = ({ message }) => (

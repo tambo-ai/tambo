@@ -1,5 +1,5 @@
 import { act, renderHook } from "@testing-library/react";
-import { useMessageImages } from "./use-message-images";
+import { useMessageImages } from "./use-message-images.js";
 
 // Mock crypto.randomUUID
 global.crypto = {

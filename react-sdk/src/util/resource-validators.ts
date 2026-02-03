@@ -1,4 +1,7 @@
-import type { ListResourceItem, ResourceSource } from "../model/resource-info";
+import type {
+  ListResourceItem,
+  ResourceSource,
+} from "../model/resource-info.js";
 
 /**
  * Validates that a ResourceSource has both listResources and getResource defined,

@@ -1,12 +1,12 @@
 import TamboAI from "@tambo-ai/typescript-sdk";
 import { parse } from "partial-json";
 import React from "react";
-import { wrapWithTamboMessageProvider } from "../hooks/use-current-message";
-import { ComponentRegistry } from "../model/component-metadata";
-import { TamboThreadMessage } from "../model/generate-component-response";
-import { isStandardSchema } from "../schema";
-import { isPromise } from "../util/is-promise";
-import { getComponentFromRegistry } from "../util/registry";
+import { wrapWithTamboMessageProvider } from "../hooks/use-current-message.js";
+import { ComponentRegistry } from "../model/component-metadata.js";
+import { TamboThreadMessage } from "../model/generate-component-response.js";
+import { isStandardSchema } from "../schema/index.js";
+import { isPromise } from "../util/is-promise.js";
+import { getComponentFromRegistry } from "../util/registry.js";
 
 /**
  * Generate a message that has a component rendered into it, if the message

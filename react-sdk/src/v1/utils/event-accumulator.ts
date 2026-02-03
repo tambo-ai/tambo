@@ -27,10 +27,10 @@ import {
   type ComponentStartEvent,
   type ComponentStateDeltaEvent,
   type RunAwaitingInputEvent,
-} from "../types/event";
-import type { Content, TamboV1Message } from "../types/message";
-import type { StreamingState, TamboV1Thread } from "../types/thread";
-import { applyJsonPatch } from "./json-patch";
+} from "../types/event.js";
+import type { Content, TamboV1Message } from "../types/message.js";
+import type { StreamingState, TamboV1Thread } from "../types/thread.js";
+import { applyJsonPatch } from "./json-patch.js";
 
 /**
  * Error thrown when an unreachable case is reached in a switch statement.

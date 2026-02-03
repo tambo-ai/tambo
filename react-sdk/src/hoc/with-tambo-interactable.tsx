@@ -1,9 +1,9 @@
 "use client";
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { TamboMessageProvider } from "../hooks/use-current-message";
-import { TamboThreadMessage } from "../model/generate-component-response";
-import { useTamboInteractable } from "../providers/tambo-interactable-provider";
-import { SupportedSchema } from "../schema";
+import { TamboMessageProvider } from "../hooks/use-current-message.js";
+import { TamboThreadMessage } from "../model/generate-component-response.js";
+import { useTamboInteractable } from "../providers/tambo-interactable-provider.js";
+import { SupportedSchema } from "../schema/index.js";
 
 export interface InteractableConfig<
   Props = Record<string, unknown>,

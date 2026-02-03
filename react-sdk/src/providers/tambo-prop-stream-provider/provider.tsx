@@ -7,12 +7,12 @@ import React, {
   useContext,
   useMemo,
 } from "react";
-import { useTamboStreamStatus } from "../../hooks/use-tambo-stream-status";
+import { useTamboStreamStatus } from "../../hooks/use-tambo-stream-status.js";
 import {
   DEFAULT_STREAM_KEY,
   StreamStatus,
   TamboPropStreamContextValue,
-} from "./types";
+} from "./types.js";
 
 const TamboPropStreamContext =
   createContext<TamboPropStreamContextValue | null>(null);

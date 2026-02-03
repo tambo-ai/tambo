@@ -6,7 +6,7 @@ import {
   useStreamState,
   useStreamDispatch,
   useThreadManagement,
-} from "./tambo-v1-stream-context";
+} from "./tambo-v1-stream-context.js";
 
 describe("TamboV1StreamProvider", () => {
   describe("useStreamState", () => {

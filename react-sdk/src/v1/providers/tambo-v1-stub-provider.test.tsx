@@ -1,11 +1,11 @@
 import { renderHook } from "@testing-library/react";
 import React from "react";
-import { TamboV1StubProvider } from "./tambo-v1-stub-provider";
-import { useTamboV1 } from "../hooks/use-tambo-v1";
-import { useTamboV1ThreadInput } from "../hooks/use-tambo-v1-thread-input";
-import { useTamboRegistry } from "../../providers/tambo-registry-provider";
-import { useTamboClient } from "../../providers/tambo-client-provider";
-import type { TamboV1Thread } from "../types/thread";
+import { TamboV1StubProvider } from "./tambo-v1-stub-provider.js";
+import { useTamboV1 } from "../hooks/use-tambo-v1.js";
+import { useTamboV1ThreadInput } from "../hooks/use-tambo-v1-thread-input.js";
+import { useTamboRegistry } from "../../providers/tambo-registry-provider.js";
+import { useTamboClient } from "../../providers/tambo-client-provider.js";
+import type { TamboV1Thread } from "../types/thread.js";
 
 describe("TamboV1StubProvider", () => {
   const mockThread: TamboV1Thread = {

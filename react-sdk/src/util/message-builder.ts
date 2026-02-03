@@ -1,6 +1,6 @@
 import type { ReadResourceResult } from "@modelcontextprotocol/sdk/types.js";
 import type TamboAI from "@tambo-ai/typescript-sdk";
-import { StagedImage } from "../hooks/use-message-images";
+import { StagedImage } from "../hooks/use-message-images.js";
 
 /**
  * Regular expression to match MCP resource references in the format: \@serverKey:uri

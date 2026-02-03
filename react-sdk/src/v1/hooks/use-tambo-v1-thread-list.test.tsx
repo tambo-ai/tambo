@@ -2,9 +2,9 @@ import TamboAI from "@tambo-ai/typescript-sdk";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { renderHook, waitFor } from "@testing-library/react";
 import React from "react";
-import { useTamboClient } from "../../providers/tambo-client-provider";
-import { useTamboV1Config } from "../providers/tambo-v1-provider";
-import { useTamboV1ThreadList } from "./use-tambo-v1-thread-list";
+import { useTamboClient } from "../../providers/tambo-client-provider.js";
+import { useTamboV1Config } from "../providers/tambo-v1-provider.js";
+import { useTamboV1ThreadList } from "./use-tambo-v1-thread-list.js";
 
 jest.mock("../../providers/tambo-client-provider", () => ({
   useTamboClient: jest.fn(),

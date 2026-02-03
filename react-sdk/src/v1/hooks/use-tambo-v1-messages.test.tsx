@@ -9,8 +9,8 @@ import React from "react";
 import {
   TamboV1StreamProvider,
   useStreamDispatch,
-} from "../providers/tambo-v1-stream-context";
-import { useTamboV1Messages } from "./use-tambo-v1-messages";
+} from "../providers/tambo-v1-stream-context.js";
+import { useTamboV1Messages } from "./use-tambo-v1-messages.js";
 
 describe("useTamboV1Messages", () => {
   function TestWrapper({ children }: { children: React.ReactNode }) {

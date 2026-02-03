@@ -1,8 +1,8 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
-import { GenerationStage } from "../model/generate-component-response";
-import { useTamboGenerationStage } from "../providers/tambo-thread-provider";
-import { useTamboCurrentMessage } from "./use-current-message";
+import { GenerationStage } from "../model/generate-component-response.js";
+import { useTamboGenerationStage } from "../providers/tambo-thread-provider.js";
+import { useTamboCurrentMessage } from "./use-current-message.js";
 
 /**
  * Global stream status flags for a specific component in a message.

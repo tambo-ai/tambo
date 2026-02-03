@@ -3,21 +3,24 @@ import { QueryClient } from "@tanstack/react-query";
 import { act, renderHook } from "@testing-library/react";
 import React from "react";
 import { z } from "zod/v4";
-import { TamboComponent } from "../model/component-metadata";
+import { TamboComponent } from "../model/component-metadata.js";
 import {
   GenerationStage,
   TamboThreadMessage,
-} from "../model/generate-component-response";
-import { serializeRegistry } from "../testing/tools";
+} from "../model/generate-component-response.js";
+import { serializeRegistry } from "../testing/tools.js";
 import {
   TamboClientContext,
   useTamboClient,
   useTamboQueryClient,
-} from "./tambo-client-provider";
-import { TamboContextHelpersProvider } from "./tambo-context-helpers-provider";
-import { TamboMcpTokenProvider } from "./tambo-mcp-token-provider";
-import { TamboRegistryProvider } from "./tambo-registry-provider";
-import { TamboThreadProvider, useTamboThread } from "./tambo-thread-provider";
+} from "./tambo-client-provider.js";
+import { TamboContextHelpersProvider } from "./tambo-context-helpers-provider.js";
+import { TamboMcpTokenProvider } from "./tambo-mcp-token-provider.js";
+import { TamboRegistryProvider } from "./tambo-registry-provider.js";
+import {
+  TamboThreadProvider,
+  useTamboThread,
+} from "./tambo-thread-provider.js";
 
 // Mock crypto.randomUUID
 Object.defineProperty(global, "crypto", {

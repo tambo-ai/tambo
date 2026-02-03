@@ -13,10 +13,10 @@
 import { useCallback, useEffect, useState, useRef } from "react";
 import { useDebouncedCallback } from "use-debounce";
 import { deepEqual } from "fast-equals";
-import { useTamboClient } from "../../providers/tambo-client-provider";
-import { useV1ComponentContent } from "../utils/component-renderer";
-import { useStreamState } from "../providers/tambo-v1-stream-context";
-import type { V1ComponentContent } from "../types/message";
+import { useTamboClient } from "../../providers/tambo-client-provider.js";
+import { useV1ComponentContent } from "../utils/component-renderer.js";
+import { useStreamState } from "../providers/tambo-v1-stream-context.js";
+import type { V1ComponentContent } from "../types/message.js";
 
 /**
  * Return type for useTamboV1ComponentState hook.

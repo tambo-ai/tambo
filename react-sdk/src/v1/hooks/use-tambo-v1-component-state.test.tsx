@@ -1,5 +1,5 @@
 import { act, renderHook } from "@testing-library/react";
-import { useTamboV1ComponentState } from "./use-tambo-v1-component-state";
+import { useTamboV1ComponentState } from "./use-tambo-v1-component-state.js";
 
 // Mock the required modules
 jest.mock("../../providers/tambo-client-provider", () => ({
@@ -35,12 +35,12 @@ jest.mock("use-debounce", () => ({
 }));
 
 // Import the mocked modules
-import { useTamboClient } from "../../providers/tambo-client-provider";
-import { useStreamState } from "../providers/tambo-v1-stream-context";
-import { useV1ComponentContent } from "../utils/component-renderer";
+import { useTamboClient } from "../../providers/tambo-client-provider.js";
+import { useStreamState } from "../providers/tambo-v1-stream-context.js";
+import { useV1ComponentContent } from "../utils/component-renderer.js";
 import { useDebouncedCallback } from "use-debounce";
-import type { StreamState } from "../utils/event-accumulator";
-import type { V1ComponentContent } from "../types/message";
+import type { StreamState } from "../utils/event-accumulator.js";
+import type { V1ComponentContent } from "../types/message.js";
 
 describe("useTamboV1ComponentState", () => {
   const mockUpdateState = jest.fn();

@@ -15,15 +15,15 @@ import {
   TamboTool,
   TamboToolAssociations,
   TamboToolRegistry,
-} from "../model/component-metadata";
-import { createMockTool } from "../testing/tools";
+} from "../model/component-metadata.js";
+import { createMockTool } from "../testing/tools.js";
 import {
   convertPropsToJsonSchema,
   getAvailableComponents,
   getComponentFromRegistry,
   getUnassociatedTools,
   mapTamboToolToContextTool,
-} from "./registry";
+} from "./registry.js";
 
 describe("getParametersFromToolSchema (via mapTamboToolToContextTool)", () => {
   describe("inputSchema interface (object schemas)", () => {

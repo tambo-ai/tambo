@@ -1,7 +1,7 @@
-import { Pending } from "./pending";
-import { TamboPropStreamProviderComponent } from "./provider";
-import { Streaming } from "./streaming";
-import { Success } from "./success";
+import { Pending } from "./pending.js";
+import { TamboPropStreamProviderComponent } from "./provider.js";
+import { Streaming } from "./streaming.js";
+import { Success } from "./success.js";
 
 /**
  * The TamboPropStreamProvider provides a context for managing stream states
@@ -19,8 +19,8 @@ export const TamboPropStreamProvider = Object.assign(
 );
 
 // Re-export components for individual use
-export { Pending } from "./pending";
-export { useTamboStream } from "./provider";
-export { Streaming } from "./streaming";
-export { Success } from "./success";
-export * from "./types";
+export { Pending } from "./pending.js";
+export { useTamboStream } from "./provider.js";
+export { Streaming } from "./streaming.js";
+export { Success } from "./success.js";
+export * from "./types.js";

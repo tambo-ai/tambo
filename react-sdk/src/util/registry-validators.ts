@@ -1,12 +1,12 @@
 import type { JSONSchema7 } from "json-schema";
-import type { TamboComponent, TamboTool } from "../model/component-metadata";
+import type { TamboComponent, TamboTool } from "../model/component-metadata.js";
 import {
   assertNoRecordSchema,
   isStandardSchema,
   looksLikeJSONSchema,
   schemaToJsonSchema,
-} from "../schema";
-import { assertValidName } from "./validate-component-name";
+} from "../schema/index.js";
+import { assertValidName } from "./validate-component-name.js";
 
 /**
  * Checks if a JSON Schema represents an object type.

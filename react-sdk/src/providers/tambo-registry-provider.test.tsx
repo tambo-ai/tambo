@@ -1,12 +1,12 @@
 import { act, renderHook } from "@testing-library/react";
 import React from "react";
 import { z } from "zod/v4";
-import { TamboComponent, TamboTool } from "../model/component-metadata";
-import { defineTool } from "../util/registry";
+import { TamboComponent, TamboTool } from "../model/component-metadata.js";
+import { defineTool } from "../util/registry.js";
 import {
   TamboRegistryProvider,
   useTamboRegistry,
-} from "./tambo-registry-provider";
+} from "./tambo-registry-provider.js";
 
 // Shared tool registry for all tests
 const createMockTools = (): TamboTool[] => [

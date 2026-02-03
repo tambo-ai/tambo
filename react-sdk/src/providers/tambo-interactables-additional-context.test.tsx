@@ -1,16 +1,16 @@
 import { render, waitFor } from "@testing-library/react";
 import React from "react";
 import { z } from "zod/v4";
-import { withTamboInteractable } from "../hoc/with-tambo-interactable";
+import { withTamboInteractable } from "../hoc/with-tambo-interactable.js";
 import {
   TamboContextHelpersProvider,
   useTamboContextHelpers,
-} from "./tambo-context-helpers-provider";
+} from "./tambo-context-helpers-provider.js";
 import {
   TamboInteractableProvider,
   useCurrentInteractablesSnapshot,
-} from "./tambo-interactable-provider";
-import { TamboStubProvider } from "./tambo-stubs";
+} from "./tambo-interactable-provider.js";
+import { TamboStubProvider } from "./tambo-stubs.js";
 
 function wrapperWithProviders(children: React.ReactNode) {
   const thread = {

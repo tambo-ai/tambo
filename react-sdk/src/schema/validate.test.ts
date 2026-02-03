@@ -1,6 +1,6 @@
 import type { JSONSchema7 } from "json-schema";
 import { z } from "zod/v4";
-import { assertNoRecordSchema } from "./validate";
+import { assertNoRecordSchema } from "./validate.js";
 
 describe("assertNoRecordSchema", () => {
   describe("falsy inputs", () => {

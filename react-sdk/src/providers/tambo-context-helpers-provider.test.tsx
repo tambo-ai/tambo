@@ -3,11 +3,11 @@ import React from "react";
 import {
   currentPageContextHelper,
   currentTimeContextHelper,
-} from "../context-helpers";
+} from "../context-helpers/index.js";
 import {
   TamboContextHelpersProvider,
   useTamboContextHelpers,
-} from "./tambo-context-helpers-provider";
+} from "./tambo-context-helpers-provider.js";
 
 /**
  * Test suite for TamboContextHelpersProvider (simplified API, registry-backed)

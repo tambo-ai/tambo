@@ -9,19 +9,19 @@ import React, {
 import {
   useTamboMutation,
   UseTamboMutationResult,
-} from "../hooks/react-query-hooks";
-import { StagedImage, useMessageImages } from "../hooks/use-message-images";
-import { useTamboMcpServers } from "../mcp/tambo-mcp-provider";
-import { ThreadInputError } from "../model/thread-input-error";
-import { validateInput } from "../model/validate-input";
-import { buildMessageContent } from "../util/message-builder";
+} from "../hooks/react-query-hooks.js";
+import { StagedImage, useMessageImages } from "../hooks/use-message-images.js";
+import { useTamboMcpServers } from "../mcp/tambo-mcp-provider.js";
+import { ThreadInputError } from "../model/thread-input-error.js";
+import { validateInput } from "../model/validate-input.js";
+import { buildMessageContent } from "../util/message-builder.js";
 import {
   extractResourceUris,
   resolveResourceContents,
-} from "../util/resource-content-resolver";
-import { useTamboInteractable } from "./tambo-interactable-provider";
-import { useTamboRegistry } from "./tambo-registry-provider";
-import { useTamboThread } from "./tambo-thread-provider";
+} from "../util/resource-content-resolver.js";
+import { useTamboInteractable } from "./tambo-interactable-provider.js";
+import { useTamboRegistry } from "./tambo-registry-provider.js";
+import { useTamboThread } from "./tambo-thread-provider.js";
 
 /**
  * Error messages for various input-related error scenarios

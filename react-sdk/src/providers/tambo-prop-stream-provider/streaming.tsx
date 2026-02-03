@@ -1,6 +1,6 @@
 import React from "react";
-import { useTamboStream } from "./provider";
-import { DEFAULT_STREAM_KEY, StreamStateComponentProps } from "./types";
+import { useTamboStream } from "./provider.js";
+import { DEFAULT_STREAM_KEY, StreamStateComponentProps } from "./types.js";
 
 /**
  * Streaming component that renders children when the stream is in a streaming state

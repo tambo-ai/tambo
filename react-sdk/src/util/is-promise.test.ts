@@ -1,4 +1,4 @@
-import { isPromise } from "../util/is-promise";
+import { isPromise } from "../util/is-promise.js";
 
 describe("isPromise", () => {
   it("should return true for real Promise instances", () => {

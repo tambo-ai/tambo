@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useReactMediaRecorder } from "react-media-recorder";
-import { useTamboClient } from "../providers/tambo-client-provider";
-import { useTamboMutation } from "./react-query-hooks";
+import { useTamboClient } from "../providers/tambo-client-provider.js";
+import { useTamboMutation } from "./react-query-hooks.js";
 
 /**
  * Exposes functionality to record speech and transcribe it using the Tambo API.

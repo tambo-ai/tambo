@@ -19,12 +19,12 @@ import type {
   SuggestionListResponse,
 } from "@tambo-ai/typescript-sdk/resources/threads/suggestions";
 import type { Suggestion } from "@tambo-ai/typescript-sdk/resources/beta/threads/suggestions";
-import { useTamboClient } from "../../providers/tambo-client-provider";
-import { useTamboRegistry } from "../../providers/tambo-registry-provider";
-import { useTamboV1Config } from "../providers/tambo-v1-provider";
-import { useTamboV1 } from "./use-tambo-v1";
-import { useTamboV1ThreadInput } from "./use-tambo-v1-thread-input";
-import { toAvailableComponents } from "../utils/registry-conversion";
+import { useTamboClient } from "../../providers/tambo-client-provider.js";
+import { useTamboRegistry } from "../../providers/tambo-registry-provider.js";
+import { useTamboV1Config } from "../providers/tambo-v1-provider.js";
+import { useTamboV1 } from "./use-tambo-v1.js";
+import { useTamboV1ThreadInput } from "./use-tambo-v1-thread-input.js";
+import { toAvailableComponents } from "../utils/registry-conversion.js";
 
 /**
  * Response type for suggestions queries (union of list and create responses)

@@ -1,46 +1,46 @@
 "use client";
 import React, { PropsWithChildren, createContext, useContext } from "react";
-import { TamboMcpProvider } from "../mcp/tambo-mcp-provider";
-import { TamboInteractableContext } from "../model/tambo-interactable";
+import { TamboMcpProvider } from "../mcp/tambo-mcp-provider.js";
+import { TamboInteractableContext } from "../model/tambo-interactable.js";
 import {
   TamboClientContext,
   TamboClientContextProps,
   TamboClientProvider,
   TamboClientProviderProps,
-} from "./tambo-client-provider";
+} from "./tambo-client-provider.js";
 import {
   TamboComponentContextProps,
   TamboComponentProvider,
   useTamboComponent,
-} from "./tambo-component-provider";
+} from "./tambo-component-provider.js";
 import {
   ContextAttachmentState,
   TamboContextAttachmentProvider,
   useTamboContextAttachment,
-} from "./tambo-context-attachment-provider";
+} from "./tambo-context-attachment-provider.js";
 import {
   TamboContextHelpersContextProps,
   TamboContextHelpersProvider,
   TamboContextHelpersProviderProps,
   useTamboContextHelpers,
-} from "./tambo-context-helpers-provider";
+} from "./tambo-context-helpers-provider.js";
 import {
   TamboInteractableProvider,
   useTamboInteractable,
-} from "./tambo-interactable-provider";
-import { TamboMcpTokenProvider } from "./tambo-mcp-token-provider";
+} from "./tambo-interactable-provider.js";
+import { TamboMcpTokenProvider } from "./tambo-mcp-token-provider.js";
 import {
   TamboRegistryProvider,
   TamboRegistryProviderProps,
-} from "./tambo-registry-provider";
-import { TamboThreadInputProvider } from "./tambo-thread-input-provider";
+} from "./tambo-registry-provider.js";
+import { TamboThreadInputProvider } from "./tambo-thread-input-provider.js";
 import {
   TamboGenerationStageContextProps,
   TamboThreadContextProps,
   TamboThreadProvider,
   TamboThreadProviderProps,
   useTamboThread,
-} from "./tambo-thread-provider";
+} from "./tambo-thread-provider.js";
 
 /**
  * The TamboProvider gives full access to the whole Tambo API. This includes the

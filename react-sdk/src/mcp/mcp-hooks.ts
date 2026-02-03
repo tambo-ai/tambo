@@ -6,14 +6,14 @@ import {
 } from "@modelcontextprotocol/sdk/types.js";
 import { UseQueryResult } from "@tanstack/react-query";
 import * as React from "react";
-import { useTamboQueries, useTamboQuery } from "../hooks";
-import { useTamboRegistry } from "../providers/tambo-registry-provider";
-import { REGISTRY_SERVER_KEY } from "./mcp-constants";
+import { useTamboQueries, useTamboQuery } from "../hooks/index.js";
+import { useTamboRegistry } from "../providers/tambo-registry-provider.js";
+import { REGISTRY_SERVER_KEY } from "./mcp-constants.js";
 import {
   type ConnectedMcpServer,
   type McpServer,
   useTamboMcpServers,
-} from "./tambo-mcp-provider";
+} from "./tambo-mcp-provider.js";
 
 export type ListPromptItem = ListPromptsResult["prompts"][number];
 export interface ListPromptEntry {

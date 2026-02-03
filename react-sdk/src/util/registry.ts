@@ -7,12 +7,12 @@ import {
   TamboTool,
   TamboToolAssociations,
   TamboToolRegistry,
-} from "../model/component-metadata";
+} from "../model/component-metadata.js";
 import {
   getParametersFromToolSchema,
   isStandardSchema,
   schemaToJsonSchema,
-} from "../schema";
+} from "../schema/index.js";
 
 /**
  * Get all the available components from the component registry

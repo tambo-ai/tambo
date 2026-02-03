@@ -5,7 +5,7 @@
  * React-specific extensions for streaming state management.
  */
 
-import type { TamboV1Message } from "./message";
+import type { TamboV1Message } from "./message.js";
 
 // Re-export thread types from TypeScript SDK
 export type {

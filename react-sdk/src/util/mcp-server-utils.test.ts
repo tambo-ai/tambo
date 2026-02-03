@@ -1,13 +1,13 @@
 import type {
   McpServerInfo,
   NormalizedMcpServerInfo,
-} from "../model/mcp-server-info";
-import { MCPTransport } from "../model/mcp-server-info";
+} from "../model/mcp-server-info.js";
+import { MCPTransport } from "../model/mcp-server-info.js";
 import {
   deduplicateMcpServers,
   deriveServerKey,
   normalizeServerInfo,
-} from "./mcp-server-utils";
+} from "./mcp-server-utils.js";
 
 describe("deriveServerKey", () => {
   it("should extract key from simple domain", () => {

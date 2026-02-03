@@ -2,13 +2,13 @@ import { z } from "zod";
 import type {
   RegisteredComponent,
   TamboTool,
-} from "../../model/component-metadata";
+} from "../../model/component-metadata.js";
 import {
   toAvailableComponent,
   toAvailableComponents,
   toAvailableTool,
   toAvailableTools,
-} from "./registry-conversion";
+} from "./registry-conversion.js";
 
 describe("registry-conversion", () => {
   describe("toAvailableComponent", () => {

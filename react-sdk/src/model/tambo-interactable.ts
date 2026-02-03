@@ -1,4 +1,4 @@
-import { SupportedSchema, TamboComponent } from "./component-metadata";
+import { SupportedSchema, TamboComponent } from "./component-metadata.js";
 
 export interface TamboInteractableComponent<
   Props = Record<string, unknown>,

@@ -1,8 +1,8 @@
 import TamboAI from "@tambo-ai/typescript-sdk";
 import { QueryClient } from "@tanstack/react-query";
 import { act, renderHook } from "@testing-library/react";
-import { useTamboSessionToken } from "./use-tambo-session-token";
-import type { PartialTamboAI } from "../../testing/types";
+import { useTamboSessionToken } from "./use-tambo-session-token.js";
+import type { PartialTamboAI } from "../../testing/types.js";
 
 describe("useTamboSessionToken", () => {
   const mockTokenResponse = {

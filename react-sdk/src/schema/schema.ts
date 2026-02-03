@@ -17,9 +17,9 @@ import {
   ParameterSpec,
   SupportedSchema,
   TamboTool,
-} from "../model/component-metadata";
-import { looksLikeJSONSchema } from "./json-schema";
-import { isStandardSchema } from "./standard-schema";
+} from "../model/component-metadata.js";
+import { looksLikeJSONSchema } from "./json-schema.js";
+import { isStandardSchema } from "./standard-schema.js";
 
 /**
  * Register the zod vendor handler for synchronous JSON Schema conversion.

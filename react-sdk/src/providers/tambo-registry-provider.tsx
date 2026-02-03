@@ -16,25 +16,28 @@ import type {
   TamboComponent,
   TamboTool,
   TamboToolRegistry,
-} from "../model/component-metadata";
+} from "../model/component-metadata.js";
 import type {
   McpServerInfo,
   NormalizedMcpServerInfo,
-} from "../model/mcp-server-info";
-import type { ListResourceItem, ResourceSource } from "../model/resource-info";
+} from "../model/mcp-server-info.js";
+import type {
+  ListResourceItem,
+  ResourceSource,
+} from "../model/resource-info.js";
 import {
   deduplicateMcpServers,
   normalizeServerInfo,
-} from "../util/mcp-server-utils";
+} from "../util/mcp-server-utils.js";
 import {
   validateAndPrepareComponent,
   validateTool,
   validateToolAssociation,
-} from "../util/registry-validators";
+} from "../util/registry-validators.js";
 import {
   validateResource,
   validateResourceSource,
-} from "../util/resource-validators";
+} from "../util/resource-validators.js";
 
 export interface TamboRegistryContext {
   componentList: ComponentRegistry;

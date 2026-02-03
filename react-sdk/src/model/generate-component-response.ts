@@ -1,6 +1,6 @@
 import TamboAI from "@tambo-ai/typescript-sdk";
 import { ReactElement } from "react";
-import type { InteractableConfig } from "../hoc/with-tambo-interactable";
+import type { InteractableConfig } from "../hoc/with-tambo-interactable.js";
 
 /**
  * Metadata for interactable components.

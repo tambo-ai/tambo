@@ -1,10 +1,10 @@
 import React from "react";
 import { render, screen } from "@testing-library/react";
 import { z } from "zod";
-import { V1ComponentRenderer } from "./v1-component-renderer";
-import { TamboRegistryContext } from "../../providers/tambo-registry-provider";
-import type { TamboRegistryContext as TamboRegistryContextType } from "../../providers/tambo-registry-provider";
-import type { V1ComponentContent } from "../types/message";
+import { V1ComponentRenderer } from "./v1-component-renderer.js";
+import { TamboRegistryContext } from "../../providers/tambo-registry-provider.js";
+import type { TamboRegistryContext as TamboRegistryContextType } from "../../providers/tambo-registry-provider.js";
+import type { V1ComponentContent } from "../types/message.js";
 
 // Simple test component
 const TestComponent: React.FC<{ title: string; count?: number }> = ({

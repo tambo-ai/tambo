@@ -20,8 +20,8 @@ import {
   streamReducer,
   type StreamState,
   type ThreadState,
-} from "./event-accumulator";
-import type { Content, V1ComponentContent } from "../types/message";
+} from "./event-accumulator.js";
+import type { Content, V1ComponentContent } from "../types/message.js";
 
 /**
  * Helper to extract a ToolUseContent from a message content array.

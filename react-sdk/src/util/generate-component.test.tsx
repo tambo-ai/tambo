@@ -1,8 +1,8 @@
 import TamboAI from "@tambo-ai/typescript-sdk";
 import React from "react";
-import { ComponentRegistry } from "../model/component-metadata";
-import * as useCurrentMessage from "../hooks/use-current-message";
-import { renderComponentIntoMessage } from "./generate-component";
+import { ComponentRegistry } from "../model/component-metadata.js";
+import * as useCurrentMessage from "../hooks/use-current-message.js";
+import { renderComponentIntoMessage } from "./generate-component.js";
 
 // Track calls to wrapWithTamboMessageProvider
 let wrapWithTamboMessageProviderSpy: jest.SpyInstance;

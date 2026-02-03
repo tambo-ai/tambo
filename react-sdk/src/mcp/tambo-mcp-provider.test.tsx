@@ -8,20 +8,20 @@ import React, { useEffect } from "react";
 import {
   TamboClientContext,
   useTamboClient,
-} from "../providers/tambo-client-provider";
-import { TamboMcpTokenProvider } from "../providers/tambo-mcp-token-provider";
+} from "../providers/tambo-client-provider.js";
+import { TamboMcpTokenProvider } from "../providers/tambo-mcp-token-provider.js";
 import {
   TamboRegistryProvider,
   useTamboRegistry,
-} from "../providers/tambo-registry-provider";
-import { MCPClient, MCPTransport } from "./mcp-client";
+} from "../providers/tambo-registry-provider.js";
+import { MCPClient, MCPTransport } from "./mcp-client.js";
 import {
   extractErrorMessage,
   TamboMcpProvider,
   useTamboMcpServers,
   type McpServer,
   type ProviderMCPHandlers,
-} from "./tambo-mcp-provider";
+} from "./tambo-mcp-provider.js";
 
 // Import the private function for testing by re-exporting it for tests only
 // We'll need to export it temporarily or test it through public API

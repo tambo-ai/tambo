@@ -7,25 +7,25 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { ServerType } from "./mcp-constants";
+import { ServerType } from "./mcp-constants.js";
 import {
   getMcpServerUniqueKey,
   type NormalizedMcpServerInfo,
-} from "../model/mcp-server-info";
-import { useTamboMcpToken } from "../providers/tambo-mcp-token-provider";
+} from "../model/mcp-server-info.js";
+import { useTamboMcpToken } from "../providers/tambo-mcp-token-provider.js";
 import {
   useTamboMcpServerInfos,
   useTamboRegistry,
-} from "../providers/tambo-registry-provider";
-import { isContentPartArray, toText } from "../util/content-parts";
-import { type ElicitationContextState, useElicitation } from "./elicitation";
+} from "../providers/tambo-registry-provider.js";
+import { isContentPartArray, toText } from "../util/content-parts.js";
+import { type ElicitationContextState, useElicitation } from "./elicitation.js";
 import {
   MCPClient,
   MCPElicitationHandler,
   MCPHandlers,
   MCPSamplingHandler,
   MCPTransport,
-} from "./mcp-client";
+} from "./mcp-client.js";
 
 /**
  * Extracts error message from MCP tool result content.

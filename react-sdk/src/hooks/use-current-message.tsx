@@ -3,7 +3,7 @@ import React, { createContext, useContext } from "react";
 import {
   InteractableMetadata,
   TamboThreadMessage,
-} from "../model/generate-component-response";
+} from "../model/generate-component-response.js";
 
 export const TamboMessageContext = createContext<TamboThreadMessage | null>(
   null,

@@ -12,8 +12,8 @@ import {
   AdditionalContext,
   ContextHelperFn,
   ContextHelpers,
-} from "../context-helpers";
-import { resolveAdditionalContext } from "../context-helpers/registry";
+} from "../context-helpers/index.js";
+import { resolveAdditionalContext } from "../context-helpers/registry.js";
 
 export interface TamboContextHelpersProviderProps {
   /**

@@ -8,7 +8,7 @@ import React, {
   useMemo,
   useState,
 } from "react";
-import { useTamboContextHelpers } from "./tambo-context-helpers-provider";
+import { useTamboContextHelpers } from "./tambo-context-helpers-provider.js";
 
 /**
  * Represents a context attachment that will be sent with the next user message.

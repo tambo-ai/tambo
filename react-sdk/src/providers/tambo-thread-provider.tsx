@@ -11,24 +11,27 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { TamboTool } from "../model/component-metadata";
+import { TamboTool } from "../model/component-metadata.js";
 import {
   GenerationStage,
   isIdleStage,
   TamboThreadMessage,
-} from "../model/generate-component-response";
-import { TamboThread } from "../model/tambo-thread";
-import { toText } from "../util/content-parts";
-import { renderComponentIntoMessage } from "../util/generate-component";
+} from "../model/generate-component-response.js";
+import { TamboThread } from "../model/tambo-thread.js";
+import { toText } from "../util/content-parts.js";
+import { renderComponentIntoMessage } from "../util/generate-component.js";
 import {
   getAvailableComponents,
   getUnassociatedTools,
   mapTamboToolToContextTool,
-} from "../util/registry";
-import { handleToolCall } from "../util/tool-caller";
-import { useTamboClient, useTamboQueryClient } from "./tambo-client-provider";
-import { useTamboContextHelpers } from "./tambo-context-helpers-provider";
-import { useTamboRegistry } from "./tambo-registry-provider";
+} from "../util/registry.js";
+import { handleToolCall } from "../util/tool-caller.js";
+import {
+  useTamboClient,
+  useTamboQueryClient,
+} from "./tambo-client-provider.js";
+import { useTamboContextHelpers } from "./tambo-context-helpers-provider.js";
+import { useTamboRegistry } from "./tambo-registry-provider.js";
 
 // Generation Stage Context - separate from thread context to prevent re-renders
 export interface TamboGenerationStageContextProps {

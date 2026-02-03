@@ -1,4 +1,4 @@
-import { currentPageContextHelper, currentTimeContextHelper } from "./index";
+import { currentPageContextHelper, currentTimeContextHelper } from "./index.js";
 
 /**
  * Tests for prebuilt context helper functions.

@@ -23,20 +23,20 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   TamboClientProvider,
   type TamboClientProviderProps,
-} from "../../providers/tambo-client-provider";
+} from "../../providers/tambo-client-provider.js";
 import {
   TamboRegistryProvider,
   type TamboRegistryProviderProps,
-} from "../../providers/tambo-registry-provider";
-import { TamboContextHelpersProvider } from "../../providers/tambo-context-helpers-provider";
-import type { ContextHelpers } from "../../context-helpers";
-import type { McpServerInfo } from "../../model/mcp-server-info";
+} from "../../providers/tambo-registry-provider.js";
+import { TamboContextHelpersProvider } from "../../providers/tambo-context-helpers-provider.js";
+import type { ContextHelpers } from "../../context-helpers/index.js";
+import type { McpServerInfo } from "../../model/mcp-server-info.js";
 import type {
   ListResourceItem,
   ResourceSource,
-} from "../../model/resource-info";
-import { TamboV1StreamProvider } from "./tambo-v1-stream-context";
-import { TamboV1ThreadInputProvider } from "./tambo-v1-thread-input-provider";
+} from "../../model/resource-info.js";
+import { TamboV1StreamProvider } from "./tambo-v1-stream-context.js";
+import { TamboV1ThreadInputProvider } from "./tambo-v1-thread-input-provider.js";
 
 /**
  * Configuration values for v1 SDK.

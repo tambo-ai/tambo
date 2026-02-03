@@ -6,30 +6,30 @@ import {
   TamboComponent,
   TamboTool,
   TamboToolRegistry,
-} from "../model/component-metadata";
-import { GenerationStage } from "../model/generate-component-response";
-import { TamboThread } from "../model/tambo-thread";
-import { TamboClientContext } from "./tambo-client-provider";
+} from "../model/component-metadata.js";
+import { GenerationStage } from "../model/generate-component-response.js";
+import { TamboThread } from "../model/tambo-thread.js";
+import { TamboClientContext } from "./tambo-client-provider.js";
 import {
   TamboComponentContextProps,
   TamboComponentProvider,
-} from "./tambo-component-provider";
-import { TamboContextAttachmentProvider } from "./tambo-context-attachment-provider";
+} from "./tambo-component-provider.js";
+import { TamboContextAttachmentProvider } from "./tambo-context-attachment-provider.js";
 import {
   TamboContextHelpersProvider,
   TamboContextHelpersProviderProps,
-} from "./tambo-context-helpers-provider";
-import { TamboInteractableProvider } from "./tambo-interactable-provider";
+} from "./tambo-context-helpers-provider.js";
+import { TamboInteractableProvider } from "./tambo-interactable-provider.js";
 import {
   TamboCompositeProvider,
   type TamboContextProps,
-} from "./tambo-provider";
-import { TamboRegistryContext } from "./tambo-registry-provider";
+} from "./tambo-provider.js";
+import { TamboRegistryContext } from "./tambo-registry-provider.js";
 import {
   TamboGenerationStageProvider,
   TamboThreadContext,
   TamboThreadContextProps,
-} from "./tambo-thread-provider";
+} from "./tambo-thread-provider.js";
 
 /**
  * TamboStubProvider props - includes all the data that would normally be inferred

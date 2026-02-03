@@ -1,10 +1,10 @@
 import { z } from "zod";
-import type { TamboTool } from "../../model/component-metadata";
+import type { TamboTool } from "../../model/component-metadata.js";
 import {
   executeClientTool,
   executeAllPendingTools,
   type PendingToolCall,
-} from "./tool-executor";
+} from "./tool-executor.js";
 
 describe("tool-executor", () => {
   describe("executeClientTool", () => {

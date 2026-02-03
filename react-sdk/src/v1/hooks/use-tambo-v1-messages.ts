@@ -8,8 +8,8 @@
  */
 
 import { useMemo } from "react";
-import { useStreamState } from "../providers/tambo-v1-stream-context";
-import type { TamboV1Message } from "../types/message";
+import { useStreamState } from "../providers/tambo-v1-stream-context.js";
+import type { TamboV1Message } from "../types/message.js";
 
 /**
  * Return type for useTamboV1Messages hook

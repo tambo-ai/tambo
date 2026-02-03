@@ -2,9 +2,13 @@
 import { deepEqual } from "fast-equals";
 import { useCallback, useContext, useEffect, useState } from "react";
 import { useDebouncedCallback } from "use-debounce";
-import { TamboThreadMessage, useTamboClient, useTamboThread } from "..";
-import { useTamboInteractable } from "../providers/tambo-interactable-provider";
-import { TamboMessageContext } from "./use-current-message";
+import {
+  TamboThreadMessage,
+  useTamboClient,
+  useTamboThread,
+} from "../index.js";
+import { useTamboInteractable } from "../providers/tambo-interactable-provider.js";
+import { TamboMessageContext } from "./use-current-message.js";
 
 type StateUpdateResult<T> = [currentState: T, setState: (newState: T) => void];
 

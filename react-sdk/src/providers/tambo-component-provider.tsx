@@ -5,9 +5,9 @@ import {
   RegisterToolsFn,
   TamboComponent,
   TamboTool,
-} from "../model/component-metadata";
-import { useTamboClient } from "./tambo-client-provider";
-import { useTamboRegistry } from "./tambo-registry-provider";
+} from "../model/component-metadata.js";
+import { useTamboClient } from "./tambo-client-provider.js";
+import { useTamboRegistry } from "./tambo-registry-provider.js";
 
 export interface TamboComponentContextProps {
   registerComponent: (options: TamboComponent) => void;

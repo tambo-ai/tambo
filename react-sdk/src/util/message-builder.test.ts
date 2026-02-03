@@ -1,6 +1,6 @@
 import type TamboAI from "@tambo-ai/typescript-sdk";
-import { StagedImage } from "../hooks/use-message-images";
-import { buildMessageContent } from "./message-builder";
+import { StagedImage } from "../hooks/use-message-images.js";
+import { buildMessageContent } from "./message-builder.js";
 
 describe("buildMessageContent", () => {
   const createMockStagedImage = (

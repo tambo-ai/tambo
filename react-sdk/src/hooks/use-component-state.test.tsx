@@ -1,15 +1,15 @@
 import { act, renderHook } from "@testing-library/react";
 import React from "react";
-import { TamboThreadMessage } from "../model/generate-component-response";
-import { useTamboClient } from "../providers/tambo-client-provider";
-import { useTamboInteractable } from "../providers/tambo-interactable-provider";
-import { useTamboThread } from "../providers/tambo-thread-provider";
-import { PartialTamboAI } from "../testing/types";
-import { useTamboComponentState } from "./use-component-state";
+import { TamboThreadMessage } from "../model/generate-component-response.js";
+import { useTamboClient } from "../providers/tambo-client-provider.js";
+import { useTamboInteractable } from "../providers/tambo-interactable-provider.js";
+import { useTamboThread } from "../providers/tambo-thread-provider.js";
+import { PartialTamboAI } from "../testing/types.js";
+import { useTamboComponentState } from "./use-component-state.js";
 import {
   TamboMessageContext,
   useTamboCurrentMessage,
-} from "./use-current-message";
+} from "./use-current-message.js";
 
 // Mock the required providers
 jest.mock("../providers/tambo-client-provider", () => ({

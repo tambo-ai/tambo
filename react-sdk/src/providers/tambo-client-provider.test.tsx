@@ -6,14 +6,14 @@ import {
   useIsTamboTokenUpdating,
   useTamboClient,
   useTamboQueryClient,
-} from "./tambo-client-provider";
+} from "./tambo-client-provider.js";
 
 // Mock the session token hook to control token fetching state
 jest.mock("./hooks/use-tambo-session-token", () => ({
   useTamboSessionToken: jest.fn(),
 }));
 
-import { useTamboSessionToken } from "./hooks/use-tambo-session-token";
+import { useTamboSessionToken } from "./hooks/use-tambo-session-token.js";
 
 // Add fetch polyfill for jsdom environment (TamboAI SDK requires it)
 const mockFetch = jest.fn();

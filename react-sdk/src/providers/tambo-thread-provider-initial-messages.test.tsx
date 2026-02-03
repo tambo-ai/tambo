@@ -1,21 +1,24 @@
 import { advanceStream } from "@tambo-ai/typescript-sdk";
 import { act, renderHook } from "@testing-library/react";
 import React from "react";
-import { TamboTool } from "..";
+import { TamboTool } from "../index.js";
 import {
   GenerationStage,
   TamboThreadMessage,
-} from "../model/generate-component-response";
+} from "../model/generate-component-response.js";
 import {
   TamboClientContext,
   useTamboClient,
   useTamboQueryClient,
-} from "./tambo-client-provider";
-import { TamboContextHelpersProvider } from "./tambo-context-helpers-provider";
-import { TamboMcpTokenProvider } from "./tambo-mcp-token-provider";
-import { TamboRegistryProvider } from "./tambo-registry-provider";
-import { TamboThreadProvider, useTamboThread } from "./tambo-thread-provider";
-import type { PartialTamboAI } from "../testing/types";
+} from "./tambo-client-provider.js";
+import { TamboContextHelpersProvider } from "./tambo-context-helpers-provider.js";
+import { TamboMcpTokenProvider } from "./tambo-mcp-token-provider.js";
+import { TamboRegistryProvider } from "./tambo-registry-provider.js";
+import {
+  TamboThreadProvider,
+  useTamboThread,
+} from "./tambo-thread-provider.js";
+import type { PartialTamboAI } from "../testing/types.js";
 
 // Mock crypto.randomUUID
 Object.defineProperty(global, "crypto", {

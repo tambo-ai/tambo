@@ -1,6 +1,6 @@
 import * as z3 from "zod/v3";
 import * as z4 from "zod/v4";
-import { isStandardSchema } from "./standard-schema";
+import { isStandardSchema } from "./standard-schema.js";
 
 describe("isStandardSchema", () => {
   describe("returns true for valid Standard Schema implementations", () => {

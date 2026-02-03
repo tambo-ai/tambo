@@ -14,12 +14,12 @@
 
 import { parse } from "partial-json";
 import React, { type FC, useMemo, useContext } from "react";
-import { TamboRegistryContext } from "../../providers/tambo-registry-provider";
-import { isStandardSchema } from "../../schema";
-import { isPromise } from "../../util/is-promise";
-import { getComponentFromRegistry } from "../../util/registry";
-import type { V1ComponentContent } from "../types/message";
-import { V1ComponentContentProvider } from "../utils/component-renderer";
+import { TamboRegistryContext } from "../../providers/tambo-registry-provider.js";
+import { isStandardSchema } from "../../schema/index.js";
+import { isPromise } from "../../util/is-promise.js";
+import { getComponentFromRegistry } from "../../util/registry.js";
+import type { V1ComponentContent } from "../types/message.js";
+import { V1ComponentContentProvider } from "../utils/component-renderer.js";
 
 export interface V1ComponentRendererProps {
   /**

@@ -3,7 +3,7 @@ import TamboAI, { ClientOptions } from "@tambo-ai/typescript-sdk";
 import { QueryClient } from "@tanstack/react-query";
 import React, { createContext, PropsWithChildren, useMemo } from "react";
 import packageJson from "../../package.json";
-import { useTamboSessionToken } from "./hooks/use-tambo-session-token";
+import { useTamboSessionToken } from "./hooks/use-tambo-session-token.js";
 
 export interface TamboClientProviderProps {
   /**

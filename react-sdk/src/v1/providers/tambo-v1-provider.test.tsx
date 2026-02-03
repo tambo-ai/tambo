@@ -3,11 +3,14 @@ import { QueryClient, useQueryClient } from "@tanstack/react-query";
 import { renderHook, act } from "@testing-library/react";
 import React from "react";
 import { z } from "zod";
-import { useTamboClient } from "../../providers/tambo-client-provider";
-import { useTamboRegistry } from "../../providers/tambo-registry-provider";
-import { useTamboContextHelpers } from "../../providers/tambo-context-helpers-provider";
-import { useStreamState, useThreadManagement } from "./tambo-v1-stream-context";
-import { TamboV1Provider, useTamboV1Config } from "./tambo-v1-provider";
+import { useTamboClient } from "../../providers/tambo-client-provider.js";
+import { useTamboRegistry } from "../../providers/tambo-registry-provider.js";
+import { useTamboContextHelpers } from "../../providers/tambo-context-helpers-provider.js";
+import {
+  useStreamState,
+  useThreadManagement,
+} from "./tambo-v1-stream-context.js";
+import { TamboV1Provider, useTamboV1Config } from "./tambo-v1-provider.js";
 
 // Mock the client provider to capture the apiKey
 jest.mock("../../providers/tambo-client-provider", () => ({

@@ -1,5 +1,5 @@
 import { UseMutationResult, UseQueryResult } from "@tanstack/react-query";
-import { combineMutationResults, combineQueryResults } from "./query-utils";
+import { combineMutationResults, combineQueryResults } from "./query-utils.js";
 
 type MutationStatus = "idle" | "pending" | "success" | "error";
 type QueryStatus = "pending" | "success" | "error";

@@ -3,12 +3,12 @@ import React from "react";
 import {
   InteractableMetadata,
   TamboThreadMessage,
-} from "../model/generate-component-response";
+} from "../model/generate-component-response.js";
 import {
   TamboMessageProvider,
   useTamboCurrentComponent,
   useTamboCurrentMessage,
-} from "./use-current-message";
+} from "./use-current-message.js";
 
 describe("TamboMessageProvider", () => {
   const createMockMessage = (

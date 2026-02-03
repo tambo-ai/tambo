@@ -1,6 +1,6 @@
-import { TamboComponent, TamboTool } from "../providers";
-import { isStandardSchema, safeSchemaToJsonSchema } from "../schema";
-import { mapTamboToolToContextTool } from "../util/registry";
+import { TamboComponent, TamboTool } from "../providers/index.js";
+import { isStandardSchema, safeSchemaToJsonSchema } from "../schema/index.js";
+import { mapTamboToolToContextTool } from "../util/registry.js";
 
 /**
  * Serializes the registry for testing purposes.

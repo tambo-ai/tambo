@@ -4,24 +4,24 @@ import { act, renderHook } from "@testing-library/react";
 import {
   GenerationStage,
   TamboThreadMessage,
-} from "../model/generate-component-response";
-import { TamboThread } from "../model/tambo-thread";
+} from "../model/generate-component-response.js";
+import { TamboThread } from "../model/tambo-thread.js";
 import {
   useTamboClient,
   useTamboQueryClient,
-} from "../providers/tambo-client-provider";
-import { TamboContextProps, useTambo } from "../providers/tambo-provider";
+} from "../providers/tambo-client-provider.js";
+import { TamboContextProps, useTambo } from "../providers/tambo-provider.js";
 import {
   TamboThreadInputContextProps,
   useTamboThreadInput,
-} from "../providers/tambo-thread-input-provider";
+} from "../providers/tambo-thread-input-provider.js";
 import {
   CombinedTamboThreadContextProps,
   useTamboThread,
-} from "../providers/tambo-thread-provider";
-import { PartialTamboAI } from "../testing/types";
-import { useTamboMutation, useTamboQuery } from "./react-query-hooks";
-import { useTamboSuggestions } from "./use-suggestions";
+} from "../providers/tambo-thread-provider.js";
+import { PartialTamboAI } from "../testing/types.js";
+import { useTamboMutation, useTamboQuery } from "./react-query-hooks.js";
+import { useTamboSuggestions } from "./use-suggestions.js";
 
 // Mock the required providers
 jest.mock("../providers/tambo-client-provider", () => ({

@@ -19,15 +19,18 @@ import React, {
 import {
   useMessageImages,
   type StagedImage,
-} from "../../hooks/use-message-images";
+} from "../../hooks/use-message-images.js";
 import {
   useTamboMutation,
   type UseTamboMutationResult,
-} from "../../hooks/react-query-hooks";
-import { useTamboV1SendMessage } from "../hooks/use-tambo-v1-send-message";
-import type { InputMessage } from "../types/message";
-import { isPlaceholderThreadId } from "../utils/event-accumulator";
-import { useStreamDispatch, useStreamState } from "./tambo-v1-stream-context";
+} from "../../hooks/react-query-hooks.js";
+import { useTamboV1SendMessage } from "../hooks/use-tambo-v1-send-message.js";
+import type { InputMessage } from "../types/message.js";
+import { isPlaceholderThreadId } from "../utils/event-accumulator.js";
+import {
+  useStreamDispatch,
+  useStreamState,
+} from "./tambo-v1-stream-context.js";
 
 // Error messages for various input-related error scenarios.
 // TODO: Reintroduce explicit `NETWORK` and `SERVER` keys once `submit()` maps

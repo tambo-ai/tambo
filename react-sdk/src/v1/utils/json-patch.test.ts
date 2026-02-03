@@ -1,5 +1,5 @@
 import type { Operation } from "fast-json-patch";
-import { applyJsonPatch } from "./json-patch";
+import { applyJsonPatch } from "./json-patch.js";
 
 describe("applyJsonPatch error handling", () => {
   it("includes operation summary in error message", () => {

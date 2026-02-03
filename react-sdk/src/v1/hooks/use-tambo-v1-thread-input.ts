@@ -14,4 +14,4 @@ export {
   useTamboV1ThreadInput,
   type TamboV1ThreadInputContextProps,
   type SubmitOptions,
-} from "../providers/tambo-v1-thread-input-provider";
+} from "../providers/tambo-v1-thread-input-provider.js";

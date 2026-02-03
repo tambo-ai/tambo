@@ -76,35 +76,35 @@ export {
   type TamboV1ProviderProps,
   useTamboV1Config,
   type TamboV1Config,
-} from "./providers/tambo-v1-provider";
+} from "./providers/tambo-v1-provider.js";
 
 // Re-export registry provider from beta SDK (works with v1)
-export { TamboRegistryProvider } from "../providers/tambo-registry-provider";
+export { TamboRegistryProvider } from "../providers/tambo-registry-provider.js";
 
 // Re-export client provider from beta SDK (works with v1)
 export {
   TamboClientProvider,
   useIsTamboTokenUpdating,
-} from "../providers/tambo-client-provider";
+} from "../providers/tambo-client-provider.js";
 
 // Re-export context helpers from beta SDK (works with v1)
 export {
   TamboContextHelpersProvider,
   useTamboContextHelpers,
-} from "../providers/tambo-context-helpers-provider";
+} from "../providers/tambo-context-helpers-provider.js";
 
 // Export v1 thread input provider for advanced composition
 export {
   TamboV1ThreadInputProvider,
   type TamboV1ThreadInputContextProps,
   type SubmitOptions,
-} from "./providers/tambo-v1-thread-input-provider";
+} from "./providers/tambo-v1-thread-input-provider.js";
 
 // Export v1 stub provider for testing
 export {
   TamboV1StubProvider,
   type TamboV1StubProviderProps,
-} from "./providers/tambo-v1-stub-provider";
+} from "./providers/tambo-v1-stub-provider.js";
 
 // =============================================================================
 // Components
@@ -113,60 +113,60 @@ export {
 export {
   V1ComponentRenderer,
   type V1ComponentRendererProps,
-} from "./components/v1-component-renderer";
+} from "./components/v1-component-renderer.js";
 
 // =============================================================================
 // Hooks
 // =============================================================================
 
-export { useTamboV1 } from "./hooks/use-tambo-v1";
+export { useTamboV1 } from "./hooks/use-tambo-v1.js";
 
-export { useTamboV1ThreadInput } from "./hooks/use-tambo-v1-thread-input";
+export { useTamboV1ThreadInput } from "./hooks/use-tambo-v1-thread-input.js";
 
-export { useTamboV1Thread } from "./hooks/use-tambo-v1-thread";
+export { useTamboV1Thread } from "./hooks/use-tambo-v1-thread.js";
 
-export { useTamboV1ThreadList } from "./hooks/use-tambo-v1-thread-list";
+export { useTamboV1ThreadList } from "./hooks/use-tambo-v1-thread-list.js";
 
-export { useTamboV1ComponentState } from "./hooks/use-tambo-v1-component-state";
+export { useTamboV1ComponentState } from "./hooks/use-tambo-v1-component-state.js";
 
 export {
   useTamboV1Suggestions,
   type UseTamboV1SuggestionsOptions,
   type UseTamboV1SuggestionsReturn,
   type AcceptSuggestionOptions,
-} from "./hooks/use-tambo-v1-suggestions";
+} from "./hooks/use-tambo-v1-suggestions.js";
 
 // Re-export client hook from beta SDK (works with v1)
-export { useTamboClient } from "../providers/tambo-client-provider";
+export { useTamboClient } from "../providers/tambo-client-provider.js";
 
 // Re-export image handling hook (pure React, API-agnostic)
 export {
   useMessageImages,
   type StagedImage,
-} from "../hooks/use-message-images";
+} from "../hooks/use-message-images.js";
 
 // Re-export voice input hook (uses standalone transcription API)
-export { useTamboVoice } from "../hooks/use-tambo-voice";
+export { useTamboVoice } from "../hooks/use-tambo-voice.js";
 
 // =============================================================================
 // Re-exports from Beta SDK (compatible with v1)
 // =============================================================================
 
 // Tool definition helper
-export { defineTool } from "../util/registry";
+export { defineTool } from "../util/registry.js";
 
 // Built-in context helpers
 export {
   currentPageContextHelper,
   currentTimeContextHelper,
-} from "../context-helpers";
+} from "../context-helpers/index.js";
 
 // Context helper types
 export type {
   AdditionalContext,
   ContextHelperFn,
   ContextHelpers,
-} from "../context-helpers";
+} from "../context-helpers/index.js";
 
 // Component and tool types
 export type {
@@ -177,21 +177,21 @@ export type {
   TamboComponent,
   TamboTool,
   ToolAnnotations,
-} from "../model/component-metadata";
+} from "../model/component-metadata.js";
 
 // MCP server types
-export { MCPTransport } from "../model/mcp-server-info";
+export { MCPTransport } from "../model/mcp-server-info.js";
 export type {
   McpServerInfo,
   NormalizedMcpServerInfo,
-} from "../model/mcp-server-info";
+} from "../model/mcp-server-info.js";
 
 // Resource types
 export type {
   ListResourceItem,
   ReadResourceResult,
   ResourceSource,
-} from "../model/resource-info";
+} from "../model/resource-info.js";
 
 // Error types from Tambo TypeScript SDK
 export type {

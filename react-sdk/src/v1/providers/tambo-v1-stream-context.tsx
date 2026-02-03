@@ -15,7 +15,7 @@ import React, {
   useMemo,
   useReducer,
 } from "react";
-import type { TamboV1Thread } from "../types/thread";
+import type { TamboV1Thread } from "../types/thread.js";
 import {
   createInitialState,
   createInitialThreadState,
@@ -23,7 +23,7 @@ import {
   streamReducer,
   type StreamAction,
   type StreamState,
-} from "../utils/event-accumulator";
+} from "../utils/event-accumulator.js";
 
 /**
  * Thread management functions exposed by the stream context.

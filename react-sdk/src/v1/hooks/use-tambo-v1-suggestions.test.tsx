@@ -2,12 +2,12 @@ import { renderHook, act, waitFor } from "@testing-library/react";
 import React from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { Suggestion } from "@tambo-ai/typescript-sdk/resources/beta/threads/suggestions";
-import { useTamboV1Suggestions } from "./use-tambo-v1-suggestions";
-import { useTamboV1ThreadInput } from "./use-tambo-v1-thread-input";
-import { useTamboV1 } from "./use-tambo-v1";
-import { useTamboClient } from "../../providers/tambo-client-provider";
-import { useTamboRegistry } from "../../providers/tambo-registry-provider";
-import { useTamboV1Config } from "../providers/tambo-v1-provider";
+import { useTamboV1Suggestions } from "./use-tambo-v1-suggestions.js";
+import { useTamboV1ThreadInput } from "./use-tambo-v1-thread-input.js";
+import { useTamboV1 } from "./use-tambo-v1.js";
+import { useTamboClient } from "../../providers/tambo-client-provider.js";
+import { useTamboRegistry } from "../../providers/tambo-registry-provider.js";
+import { useTamboV1Config } from "../providers/tambo-v1-provider.js";
 
 // Mock dependencies
 jest.mock("./use-tambo-v1-thread-input", () => ({

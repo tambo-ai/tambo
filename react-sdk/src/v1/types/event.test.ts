@@ -1,5 +1,5 @@
 import { EventType } from "@ag-ui/core";
-import { isTamboCustomEvent } from "./event";
+import { isTamboCustomEvent } from "./event.js";
 
 describe("isTamboCustomEvent", () => {
   it("returns true for tambo.component.start event", () => {

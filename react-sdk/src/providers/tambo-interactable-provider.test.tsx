@@ -1,11 +1,11 @@
 import { act, renderHook } from "@testing-library/react";
 import React from "react";
 import { z } from "zod";
-import { TamboInteractableComponent } from "../model/tambo-interactable";
+import { TamboInteractableComponent } from "../model/tambo-interactable.js";
 import {
   TamboInteractableProvider,
   useTamboInteractable,
-} from "./tambo-interactable-provider";
+} from "./tambo-interactable-provider.js";
 
 // Mock the context helpers
 const mockAddContextHelper = jest.fn();

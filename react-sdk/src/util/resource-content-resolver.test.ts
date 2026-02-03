@@ -1,13 +1,13 @@
 import type { ReadResourceResult } from "@modelcontextprotocol/sdk/types.js";
-import { ServerType } from "../mcp/mcp-constants";
-import type { McpServer } from "../mcp/tambo-mcp-provider";
-import type { ResourceSource } from "../model/resource-info";
-import { MCPTransport } from "../mcp/mcp-client";
+import { ServerType } from "../mcp/mcp-constants.js";
+import type { McpServer } from "../mcp/tambo-mcp-provider.js";
+import type { ResourceSource } from "../model/resource-info.js";
+import { MCPTransport } from "../mcp/mcp-client.js";
 
 import {
   resolveResourceContents,
   extractResourceUris,
-} from "./resource-content-resolver";
+} from "./resource-content-resolver.js";
 
 describe("extractResourceUris", () => {
   it("should extract a single resource URI", () => {

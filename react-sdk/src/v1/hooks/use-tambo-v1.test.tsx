@@ -1,15 +1,15 @@
 import TamboAI from "@tambo-ai/typescript-sdk";
 import { renderHook, act } from "@testing-library/react";
 import React from "react";
-import { useTamboClient } from "../../providers/tambo-client-provider";
+import { useTamboClient } from "../../providers/tambo-client-provider.js";
 import {
   TamboRegistryContext,
   type TamboRegistryContext as TamboRegistryContextType,
-} from "../../providers/tambo-registry-provider";
-import { TamboV1StreamProvider } from "../providers/tambo-v1-stream-context";
-import type { StreamState, StreamAction } from "../utils/event-accumulator";
-import type { V1ComponentContent } from "../types/message";
-import { useTamboV1 } from "./use-tambo-v1";
+} from "../../providers/tambo-registry-provider.js";
+import { TamboV1StreamProvider } from "../providers/tambo-v1-stream-context.js";
+import type { StreamState, StreamAction } from "../utils/event-accumulator.js";
+import type { V1ComponentContent } from "../types/message.js";
+import { useTamboV1 } from "./use-tambo-v1.js";
 
 jest.mock("../../providers/tambo-client-provider", () => ({
   useTamboClient: jest.fn(),

@@ -1,14 +1,14 @@
 import type { JSONSchema7 } from "json-schema";
 import * as z3 from "zod/v3";
 import * as z4 from "zod/v4";
-import { TamboTool } from "../model/component-metadata";
-import { looksLikeJSONSchema } from "./json-schema";
+import { TamboTool } from "../model/component-metadata.js";
+import { looksLikeJSONSchema } from "./json-schema.js";
 import {
   getParametersFromToolSchema,
   safeSchemaToJsonSchema,
   schemaToJsonSchema,
-} from "./schema";
-import { isStandardSchema } from "./standard-schema";
+} from "./schema.js";
+import { isStandardSchema } from "./standard-schema.js";
 
 describe("schema utilities", () => {
   describe("looksLikeJSONSchema", () => {

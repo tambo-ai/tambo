@@ -2,10 +2,10 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, renderHook } from "@testing-library/react";
 import React from "react";
 import type TamboAI from "@tambo-ai/typescript-sdk";
-import { ServerType } from "../../mcp/mcp-constants";
-import type { McpServer } from "../../mcp/tambo-mcp-provider";
-import { TamboProvider } from "../tambo-provider";
-import { useTamboThreadInput } from "../tambo-thread-input-provider";
+import { ServerType } from "../../mcp/mcp-constants.js";
+import type { McpServer } from "../../mcp/tambo-mcp-provider.js";
+import { TamboProvider } from "../tambo-provider.js";
+import { useTamboThreadInput } from "../tambo-thread-input-provider.js";
 
 // Mock the Tambo client provider to avoid needing real API credentials
 

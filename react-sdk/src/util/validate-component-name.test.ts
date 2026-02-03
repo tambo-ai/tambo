@@ -1,4 +1,4 @@
-import { assertValidName } from "./validate-component-name";
+import { assertValidName } from "./validate-component-name.js";
 describe("assertValidName", () => {
   // Valid names
   it("should not throw an error for a valid name with letters only", () => {

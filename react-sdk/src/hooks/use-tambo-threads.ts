@@ -1,8 +1,8 @@
 import type TamboAI from "@tambo-ai/typescript-sdk";
 import { UseQueryOptions } from "@tanstack/react-query";
-import { useTamboThread } from "../providers";
-import { useTamboClient } from "../providers/tambo-client-provider";
-import { useTamboQuery } from "./react-query-hooks";
+import { useTamboThread } from "../providers/index.js";
+import { useTamboClient } from "../providers/tambo-client-provider.js";
+import { useTamboQuery } from "./react-query-hooks.js";
 
 interface UseTamboThreadListConfig {
   /**

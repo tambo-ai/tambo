@@ -9,7 +9,7 @@ import {
   useElicitation,
   type TamboElicitationRequest,
   type TamboElicitationResponse,
-} from "./elicitation";
+} from "./elicitation.js";
 
 // Create a mock RequestHandlerExtra for testing
 function createMockExtra(): RequestHandlerExtra<

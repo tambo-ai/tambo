@@ -10,7 +10,7 @@ import type {
   ElicitResult,
 } from "@modelcontextprotocol/sdk/types.js";
 import { useCallback, useState } from "react";
-import { MCPElicitationHandler } from "./mcp-client";
+import { MCPElicitationHandler } from "./mcp-client.js";
 
 /**
  * Schema type for elicitation request fields

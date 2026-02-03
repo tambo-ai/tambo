@@ -1,11 +1,11 @@
 import { render, waitFor } from "@testing-library/react";
 import { QueryClient } from "@tanstack/react-query";
 import React, { useEffect } from "react";
-import { TamboClientContext } from "../providers/tambo-client-provider";
-import { TamboMcpTokenProvider } from "../providers/tambo-mcp-token-provider";
-import { TamboRegistryProvider } from "../providers/tambo-registry-provider";
-import { MCPTransport } from "./mcp-client";
-import { TamboMcpProvider, useTamboMcpServers } from "./tambo-mcp-provider";
+import { TamboClientContext } from "../providers/tambo-client-provider.js";
+import { TamboMcpTokenProvider } from "../providers/tambo-mcp-token-provider.js";
+import { TamboRegistryProvider } from "../providers/tambo-registry-provider.js";
+import { MCPTransport } from "./mcp-client.js";
+import { TamboMcpProvider, useTamboMcpServers } from "./tambo-mcp-provider.js";
 import {
   useTamboMcpPromptList,
   useTamboMcpResourceList,
@@ -13,7 +13,7 @@ import {
   isMcpResourceEntry,
   type ListPromptEntry,
   type ListResourceEntry,
-} from "./mcp-hooks";
+} from "./mcp-hooks.js";
 
 // Mock the MCP client to avoid ES module issues
 let createImpl: jest.Mock = jest.fn();

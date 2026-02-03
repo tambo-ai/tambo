@@ -9,28 +9,31 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useContext } from "react";
 import { EventType, type RunErrorEvent } from "@ag-ui/core";
-import { asTamboCustomEvent, type RunAwaitingInputEvent } from "../types/event";
+import {
+  asTamboCustomEvent,
+  type RunAwaitingInputEvent,
+} from "../types/event.js";
 import type TamboAI from "@tambo-ai/typescript-sdk";
 import type { Stream } from "@tambo-ai/typescript-sdk/core/streaming";
-import { useTamboClient } from "../../providers/tambo-client-provider";
+import { useTamboClient } from "../../providers/tambo-client-provider.js";
 import {
   TamboRegistryContext,
   type TamboRegistryContext as TamboRegistry,
-} from "../../providers/tambo-registry-provider";
+} from "../../providers/tambo-registry-provider.js";
 import {
   useStreamDispatch,
   useStreamState,
-} from "../providers/tambo-v1-stream-context";
-import { useTamboV1Config } from "../providers/tambo-v1-provider";
-import type { InputMessage } from "../types/message";
-import { isPlaceholderThreadId } from "../utils/event-accumulator";
+} from "../providers/tambo-v1-stream-context.js";
+import { useTamboV1Config } from "../providers/tambo-v1-provider.js";
+import type { InputMessage } from "../types/message.js";
+import { isPlaceholderThreadId } from "../utils/event-accumulator.js";
 import {
   toAvailableComponents,
   toAvailableTools,
-} from "../utils/registry-conversion";
-import { handleEventStream } from "../utils/stream-handler";
-import { executeAllPendingTools } from "../utils/tool-executor";
-import { ToolCallTracker } from "../utils/tool-call-tracker";
+} from "../utils/registry-conversion.js";
+import { handleEventStream } from "../utils/stream-handler.js";
+import { executeAllPendingTools } from "../utils/tool-executor.js";
+import { ToolCallTracker } from "../utils/tool-call-tracker.js";
 
 /**
  * Options for sending a message

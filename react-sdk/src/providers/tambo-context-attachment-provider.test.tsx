@@ -3,8 +3,8 @@ import React from "react";
 import {
   TamboContextAttachmentProvider,
   useTamboContextAttachment,
-} from "./tambo-context-attachment-provider";
-import { useTamboContextHelpers } from "./tambo-context-helpers-provider";
+} from "./tambo-context-attachment-provider.js";
+import { useTamboContextHelpers } from "./tambo-context-helpers-provider.js";
 
 // Mock the context helpers provider
 jest.mock("./tambo-context-helpers-provider");

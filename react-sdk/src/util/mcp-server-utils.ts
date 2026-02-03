@@ -1,8 +1,11 @@
 import type {
   McpServerInfo,
   NormalizedMcpServerInfo,
-} from "../model/mcp-server-info";
-import { getMcpServerUniqueKey, MCPTransport } from "../model/mcp-server-info";
+} from "../model/mcp-server-info.js";
+import {
+  getMcpServerUniqueKey,
+  MCPTransport,
+} from "../model/mcp-server-info.js";
 
 /**
  * Derives a short, meaningful key from a server URL.

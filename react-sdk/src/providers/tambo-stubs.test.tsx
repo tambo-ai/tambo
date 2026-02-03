@@ -1,9 +1,9 @@
 import TamboAI from "@tambo-ai/typescript-sdk";
 import { renderHook } from "@testing-library/react";
 import React, { act } from "react";
-import { useTamboThreadList } from "../hooks/use-tambo-threads";
-import { TamboThread } from "../model/tambo-thread";
-import { TamboStubProvider } from "./tambo-stubs";
+import { useTamboThreadList } from "../hooks/use-tambo-threads.js";
+import { TamboThread } from "../model/tambo-thread.js";
+import { TamboStubProvider } from "./tambo-stubs.js";
 
 describe("TamboStubProvider threads functionality", () => {
   const mockThread: TamboThread = {

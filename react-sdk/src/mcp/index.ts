@@ -6,31 +6,31 @@
  * you'll need to install `zod` and `zod-to-json-schema` as optional peer dependencies.
  * See the React SDK README for the recommended version ranges.
  */
-export { MCPTransport } from "./mcp-client";
+export { MCPTransport } from "./mcp-client.js";
 export type {
   MCPElicitationHandler,
   MCPHandlers,
   MCPSamplingHandler,
-} from "./mcp-client";
+} from "./mcp-client.js";
 export type {
   ElicitationRequestedSchema,
   PrimitiveSchemaDefinition,
   TamboElicitationRequest,
   TamboElicitationResponse,
-} from "./elicitation";
+} from "./elicitation.js";
 export {
   useTamboMcpPrompt,
   useTamboMcpPromptList,
   useTamboMcpResource,
   useTamboMcpResourceList,
   isMcpResourceEntry,
-} from "./mcp-hooks";
+} from "./mcp-hooks.js";
 export type {
   ListPromptEntry,
   ListPromptItem,
   ListResourceEntry,
   ListResourceItem,
-} from "./mcp-hooks";
+} from "./mcp-hooks.js";
 export {
   TamboMcpProvider,
   useTamboMcpElicitation,
@@ -40,10 +40,10 @@ export {
   type FailedMcpServer,
   type McpServer,
   type ProviderMCPHandlers,
-} from "./tambo-mcp-provider";
+} from "./tambo-mcp-provider.js";
 
 // Public MCP server metadata types
 export type {
   McpServerInfo,
   NormalizedMcpServerInfo,
-} from "../model/mcp-server-info";
+} from "../model/mcp-server-info.js";

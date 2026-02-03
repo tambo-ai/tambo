@@ -14,7 +14,7 @@ import {
   ElicitResult,
 } from "@modelcontextprotocol/sdk/types.js";
 import { JSONSchema7 } from "json-schema";
-import { MCPTransport } from "../model/mcp-server-info";
+import { MCPTransport } from "../model/mcp-server-info.js";
 
 // Re-export for backwards compatibility
 export { MCPTransport };

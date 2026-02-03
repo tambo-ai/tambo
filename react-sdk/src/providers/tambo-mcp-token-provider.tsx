@@ -8,12 +8,12 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { TamboThread } from "../model/tambo-thread";
-import { TamboClientContext } from "./tambo-client-provider";
+import { TamboThread } from "../model/tambo-thread.js";
+import { TamboClientContext } from "./tambo-client-provider.js";
 import {
   PLACEHOLDER_THREAD,
   TamboThreadContext,
-} from "./tambo-thread-provider";
+} from "./tambo-thread-provider.js";
 
 export interface TamboMcpTokenContextProps {
   /**

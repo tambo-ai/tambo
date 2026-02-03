@@ -35,25 +35,28 @@ import type {
   TamboComponent,
   TamboTool,
   TamboToolRegistry,
-} from "../../model/component-metadata";
-import { TamboClientContext } from "../../providers/tambo-client-provider";
-import { TamboRegistryContext } from "../../providers/tambo-registry-provider";
-import type { TamboV1Message } from "../types/message";
-import type { TamboV1Thread } from "../types/thread";
+} from "../../model/component-metadata.js";
+import { TamboClientContext } from "../../providers/tambo-client-provider.js";
+import { TamboRegistryContext } from "../../providers/tambo-registry-provider.js";
+import type { TamboV1Message } from "../types/message.js";
+import type { TamboV1Thread } from "../types/thread.js";
 import type {
   StreamAction,
   StreamState,
   ThreadState,
-} from "../utils/event-accumulator";
-import { TamboV1ConfigContext, type TamboV1Config } from "./tambo-v1-provider";
+} from "../utils/event-accumulator.js";
+import {
+  TamboV1ConfigContext,
+  type TamboV1Config,
+} from "./tambo-v1-provider.js";
 import {
   TamboV1StreamProvider,
   type ThreadManagement,
-} from "./tambo-v1-stream-context";
+} from "./tambo-v1-stream-context.js";
 import {
   TamboV1ThreadInputContext,
   type TamboV1ThreadInputContextProps,
-} from "./tambo-v1-thread-input-provider";
+} from "./tambo-v1-thread-input-provider.js";
 
 /**
  * Props for TamboV1StubProvider

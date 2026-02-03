@@ -1,5 +1,5 @@
 import TamboAI from "@tambo-ai/typescript-sdk";
-import { TamboThreadMessage } from "./generate-component-response";
+import { TamboThreadMessage } from "./generate-component-response.js";
 
 /**
  * An extension of the TamboAI.Beta.Thread type that includes

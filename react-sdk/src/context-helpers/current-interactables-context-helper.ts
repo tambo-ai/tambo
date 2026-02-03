@@ -1,4 +1,4 @@
-import { ContextHelperFn } from "./types";
+import { ContextHelperFn } from "./types.js";
 
 /**
  * Prebuilt context helper that provides information about all interactable components currently on the page.

@@ -1,14 +1,14 @@
 import { render, waitFor } from "@testing-library/react";
 import React, { useEffect } from "react";
-import { TamboMcpTokenProvider } from "../providers/tambo-mcp-token-provider";
-import { TamboRegistryProvider } from "../providers/tambo-registry-provider";
-import { TamboClientContext } from "../providers/tambo-client-provider";
+import { TamboMcpTokenProvider } from "../providers/tambo-mcp-token-provider.js";
+import { TamboRegistryProvider } from "../providers/tambo-registry-provider.js";
+import { TamboClientContext } from "../providers/tambo-client-provider.js";
 import { QueryClient } from "@tanstack/react-query";
 import {
   TamboMcpProvider,
   useTamboMcpServers,
   type McpServer,
-} from "./tambo-mcp-provider";
+} from "./tambo-mcp-provider.js";
 
 // Mock the registry to provide a no-op registerTool
 // Do not mock the registry; use the real provider in render

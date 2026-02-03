@@ -1,19 +1,19 @@
 import { render, screen } from "@testing-library/react";
 import React from "react";
-import { useTamboCurrentMessage } from "../hooks/use-current-message";
+import { useTamboCurrentMessage } from "../hooks/use-current-message.js";
 import {
   GenerationStage,
   TamboThreadMessage,
-} from "../model/generate-component-response";
+} from "../model/generate-component-response.js";
 import {
   CombinedTamboThreadContextProps,
   useTamboGenerationStage,
   useTamboThread,
-} from "../providers/tambo-thread-provider";
+} from "../providers/tambo-thread-provider.js";
 import {
   TamboPropStreamProvider,
   useTamboStream,
-} from "./tambo-prop-stream-provider";
+} from "./tambo-prop-stream-provider/index.js";
 
 // Mock the required providers
 jest.mock("../providers/tambo-thread-provider", () => ({

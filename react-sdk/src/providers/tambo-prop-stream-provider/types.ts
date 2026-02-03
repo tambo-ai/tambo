@@ -1,5 +1,5 @@
 import React from "react";
-import { StreamStatus as HookStreamStatus } from "../../hooks/use-tambo-stream-status";
+import { StreamStatus as HookStreamStatus } from "../../hooks/use-tambo-stream-status.js";
 
 // Constants
 export const DEFAULT_STREAM_KEY = "default";

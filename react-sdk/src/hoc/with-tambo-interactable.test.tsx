@@ -1,9 +1,9 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import React from "react";
 import { z } from "zod/v3";
-import { useTamboCurrentComponent } from "../hooks/use-current-message";
-import { TamboInteractableProvider } from "../providers/tambo-interactable-provider";
-import { withTamboInteractable } from "./with-tambo-interactable";
+import { useTamboCurrentComponent } from "../hooks/use-current-message.js";
+import { TamboInteractableProvider } from "../providers/tambo-interactable-provider.js";
+import { withTamboInteractable } from "./with-tambo-interactable.js";
 
 // Create a consistent mock implementation
 const mockAddInteractableComponent = jest.fn(() => "mock-id-123");

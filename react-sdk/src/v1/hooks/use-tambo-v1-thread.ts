@@ -8,7 +8,7 @@
 
 import { useQuery, type UseQueryOptions } from "@tanstack/react-query";
 import type { ThreadRetrieveResponse } from "@tambo-ai/typescript-sdk/resources/threads/threads";
-import { useTamboClient } from "../../providers/tambo-client-provider";
+import { useTamboClient } from "../../providers/tambo-client-provider.js";
 
 /**
  * Hook to fetch a single thread by ID.

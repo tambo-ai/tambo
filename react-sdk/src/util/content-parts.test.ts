@@ -1,4 +1,4 @@
-import { isContentPartArray, isContentPart, toText } from "./content-parts";
+import { isContentPartArray, isContentPart, toText } from "./content-parts.js";
 
 describe("content-parts type guards", () => {
   it("returns true for a valid text content part array", () => {

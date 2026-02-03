@@ -3,7 +3,7 @@ import { render, screen } from "@testing-library/react";
 import {
   useV1ComponentContent,
   V1ComponentContentProvider,
-} from "./component-renderer";
+} from "./component-renderer.js";
 
 // Test component that uses the content context
 const ContextAwareComponent: React.FC = () => {

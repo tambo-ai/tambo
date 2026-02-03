@@ -6,7 +6,7 @@
  */
 
 import { EventType, type AGUIEvent } from "@ag-ui/core";
-import type { PendingToolCall } from "./tool-executor";
+import type { PendingToolCall } from "./tool-executor.js";
 
 /**
  * Tracks tool calls during streaming, accumulating arguments until complete.

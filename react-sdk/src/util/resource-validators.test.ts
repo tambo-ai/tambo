@@ -1,8 +1,8 @@
-import type { ListResourceItem } from "../model/resource-info";
+import type { ListResourceItem } from "../model/resource-info.js";
 import {
   validateResource,
   validateResourceSource,
-} from "./resource-validators";
+} from "./resource-validators.js";
 
 describe("validateResourceSource", () => {
   it("should throw when has listResources but not getResource", () => {

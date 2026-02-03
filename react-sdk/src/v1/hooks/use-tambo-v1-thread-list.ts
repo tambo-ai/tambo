@@ -8,8 +8,8 @@
 
 import { useQuery, type UseQueryOptions } from "@tanstack/react-query";
 import type { ThreadListResponse } from "@tambo-ai/typescript-sdk/resources/threads/threads";
-import { useTamboClient } from "../../providers/tambo-client-provider";
-import { useTamboV1Config } from "../providers/tambo-v1-provider";
+import { useTamboClient } from "../../providers/tambo-client-provider.js";
+import { useTamboV1Config } from "../providers/tambo-v1-provider.js";
 
 /**
  * Options for fetching thread list
