@@ -350,7 +350,7 @@ npm run db:migrate   # Apply migrations
 npm run db:studio    # Open Drizzle Studio
 ```
 
-Docker workflow lives in `scripts/cloud/`. See [README.DOCKER.md](./README.DOCKER.md) for details.
+Docker workflow lives in `scripts/cloud/`. See [OPERATORS.md](./OPERATORS.md) for details.
 
 [Contributing Guide](./CONTRIBUTING.md)
 
