@@ -7,7 +7,6 @@ import {
 import { MessageRequest } from "../threads/dto/message.dto";
 import { V1InputContent } from "./dto/message.dto";
 import { schema } from "@tambo-ai-cloud/db";
-import { Logger } from "@nestjs/common";
 import {
   V1ContentBlock,
   V1ComponentContentDto,
@@ -18,8 +17,6 @@ import {
 } from "./dto/content.dto";
 import { V1MessageDto, V1MessageRole } from "./dto/message.dto";
 import { V1ThreadDto } from "./dto/thread.dto";
-
-const logger = new Logger("V1Conversions");
 
 /**
  * Database thread type alias for cleaner function signatures.
@@ -169,8 +166,10 @@ export function contentPartToV1Block(
  * Handles OpenAI-style content parts + component decision to V1 unified format.
  *
  * For tool role messages, wraps content in a tool_result block.
- * If componentDecision exists but has no componentName, logs a warning and
- * skips the component block (data integrity issue from legacy data).
+ *
+ * @throws Error if componentDecision exists with no componentName and no toolCallRequest
+ *         (data integrity issue - componentDecision without componentName is only valid
+ *         for tool call messages where it stores _tambo_* status messages)
  */
 export function contentToV1Blocks(
   message: DbMessage,
@@ -215,13 +214,7 @@ export function contentToV1Blocks(
   // assistant message that decided to render it.
   if (message.componentDecision && message.role !== "tool") {
     const component = message.componentDecision;
-    if (!component.componentName) {
-      // Log warning for data integrity issue but don't break the response
-      logger.warn(
-        `Component decision in message ${message.id} has no componentName. ` +
-          `Skipping component block. This indicates a data integrity issue.`,
-      );
-    } else {
+    if (component.componentName) {
       const componentBlock: V1ComponentContentDto = {
         type: "component",
         id: `comp_${message.id}`, // Generate stable ID from message ID
@@ -230,7 +223,17 @@ export function contentToV1Blocks(
         state: message.componentState ?? undefined,
       };
       blocks.push(componentBlock);
+    } else if (!message.toolCallRequest) {
+      // componentDecision without componentName is only valid for tool call messages
+      // (where it stores _tambo_* status messages). For non-tool-call messages,
+      // this indicates a data integrity issue.
+      throw new Error(
+        `Component decision in message ${message.id} has no componentName. ` +
+          `This indicates a data integrity issue.`,
+      );
     }
+    // If componentName is null but toolCallRequest exists, the componentDecision
+    // is being used for _tambo_* status messages, not for rendering a component.
   }
 
   // Add tool_use content block if present (assistant messages with tool calls)

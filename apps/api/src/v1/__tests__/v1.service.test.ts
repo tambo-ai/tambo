@@ -519,10 +519,11 @@ describe("V1Service", () => {
 
       const result = await service.listMessages("thr_123", {});
 
+      // fetchLimit = (effectiveLimit + 1) * 2 = (50 + 1) * 2 = 102
       expect(mockOperations.listMessagesPaginated).toHaveBeenCalledWith(
         mockDb,
         "thr_123",
-        { cursor: undefined, limit: 51, order: "asc" },
+        { cursor: undefined, limit: 102, order: "asc" },
       );
       expect(result.messages).toHaveLength(1);
       expect(result.messages[0].role).toBe("user");
@@ -566,6 +567,7 @@ describe("V1Service", () => {
         limit: 10,
       });
 
+      // fetchLimit = (limit + 1) * 2 = (10 + 1) * 2 = 22
       expect(mockOperations.listMessagesPaginated).toHaveBeenCalledWith(
         mockDb,
         "thr_123",
@@ -574,7 +576,7 @@ describe("V1Service", () => {
             createdAt: new Date("2024-01-01T00:00:00Z"),
             id: "msg_000",
           },
-          limit: 11,
+          limit: 22,
           order: "asc",
         },
       );
@@ -1013,9 +1015,7 @@ describe("V1Service", () => {
       warnSpy.mockRestore();
     });
 
-    it("should log warning and skip component block when componentDecision has no componentName", async () => {
-      const warnSpy = jest.spyOn(Logger.prototype, "warn").mockImplementation();
-
+    it("should throw error when componentDecision has no componentName and no toolCallRequest", async () => {
       const messageWithBadComponent = {
         ...mockMessage,
         content: [{ type: "text", text: "Hello" }],
@@ -1023,23 +1023,15 @@ describe("V1Service", () => {
           componentName: null,
           props: { foo: "bar" },
         },
+        toolCallRequest: null, // No tool call - this is a data integrity issue
       };
       mockOperations.getMessageByIdInThread.mockResolvedValue(
         messageWithBadComponent as any,
       );
 
-      const result = await service.getMessage("thr_123", "msg_123");
-
-      // Should succeed but with warning logged
-      expect(result.content).toHaveLength(1);
-      expect(result.content[0]).toEqual({ type: "text", text: "Hello" });
-      expect(warnSpy).toHaveBeenCalledWith(
-        expect.stringContaining(
-          "Component decision in message msg_123 has no componentName",
-        ),
+      await expect(service.getMessage("thr_123", "msg_123")).rejects.toThrow(
+        /Component decision in message msg_123 has no componentName/,
       );
-
-      warnSpy.mockRestore();
     });
   });
 
@@ -1168,6 +1160,132 @@ describe("V1Service", () => {
       // Should NOT throw - componentName is null, so this is visible
       const result = await service.getMessage("thr_123", "msg_tool_no_name");
       expect(result.id).toBe("msg_tool_no_name");
+    });
+
+    it("should correctly determine hasMore when many hidden messages exist", async () => {
+      // Create a scenario where user requests limit=3, but many hidden messages exist
+      // This tests that we fetch enough messages and correctly set hasMore
+      const visibleMessage1 = {
+        ...mockMessage,
+        id: "msg_visible_1",
+        role: "assistant",
+        content: [{ type: "text", text: "Hello 1" }],
+        createdAt: new Date("2024-01-01T00:00:01Z"),
+      };
+      const hiddenMessage1 = {
+        ...mockMessage,
+        id: "msg_hidden_1",
+        role: "tool",
+        content: [{ type: "text", text: "Component rendered" }],
+        toolCallId: "call_ui_1",
+        componentDecision: { componentName: "Card", props: {} },
+        createdAt: new Date("2024-01-01T00:00:02Z"),
+      };
+      const hiddenMessage2 = {
+        ...mockMessage,
+        id: "msg_hidden_2",
+        role: "tool",
+        content: [{ type: "text", text: "Component rendered" }],
+        toolCallId: "call_ui_2",
+        componentDecision: { componentName: "Card", props: {} },
+        createdAt: new Date("2024-01-01T00:00:03Z"),
+      };
+      const visibleMessage2 = {
+        ...mockMessage,
+        id: "msg_visible_2",
+        role: "assistant",
+        content: [{ type: "text", text: "Hello 2" }],
+        createdAt: new Date("2024-01-01T00:00:04Z"),
+      };
+      const hiddenMessage3 = {
+        ...mockMessage,
+        id: "msg_hidden_3",
+        role: "tool",
+        content: [{ type: "text", text: "Component rendered" }],
+        toolCallId: "call_ui_3",
+        componentDecision: { componentName: "Card", props: {} },
+        createdAt: new Date("2024-01-01T00:00:05Z"),
+      };
+      const visibleMessage3 = {
+        ...mockMessage,
+        id: "msg_visible_3",
+        role: "assistant",
+        content: [{ type: "text", text: "Hello 3" }],
+        createdAt: new Date("2024-01-01T00:00:06Z"),
+      };
+      const visibleMessage4 = {
+        ...mockMessage,
+        id: "msg_visible_4",
+        role: "assistant",
+        content: [{ type: "text", text: "Hello 4" }],
+        createdAt: new Date("2024-01-01T00:00:07Z"),
+      };
+
+      // Mock returns 7 messages (3 hidden, 4 visible)
+      mockOperations.listMessagesPaginated.mockResolvedValue([
+        visibleMessage1,
+        hiddenMessage1,
+        hiddenMessage2,
+        visibleMessage2,
+        hiddenMessage3,
+        visibleMessage3,
+        visibleMessage4,
+      ] as any);
+
+      // Request limit=3
+      const result = await service.listMessages("thr_123", { limit: 3 });
+
+      // Should return exactly 3 visible messages
+      expect(result.messages).toHaveLength(3);
+      expect(result.messages.map((m) => m.id)).toEqual([
+        "msg_visible_1",
+        "msg_visible_2",
+        "msg_visible_3",
+      ]);
+
+      // hasMore should be true because there's a 4th visible message
+      expect(result.hasMore).toBe(true);
+      expect(result.nextCursor).toBeDefined();
+    });
+
+    it("should set hasMore=false when all visible messages fit in limit", async () => {
+      const visibleMessage1 = {
+        ...mockMessage,
+        id: "msg_visible_1",
+        role: "assistant",
+        content: [{ type: "text", text: "Hello 1" }],
+      };
+      const hiddenMessage1 = {
+        ...mockMessage,
+        id: "msg_hidden_1",
+        role: "tool",
+        content: [{ type: "text", text: "Component rendered" }],
+        toolCallId: "call_ui_1",
+        componentDecision: { componentName: "Card", props: {} },
+      };
+      const visibleMessage2 = {
+        ...mockMessage,
+        id: "msg_visible_2",
+        role: "assistant",
+        content: [{ type: "text", text: "Hello 2" }],
+      };
+
+      // Mock returns 3 messages (1 hidden, 2 visible)
+      mockOperations.listMessagesPaginated.mockResolvedValue([
+        visibleMessage1,
+        hiddenMessage1,
+        visibleMessage2,
+      ] as any);
+
+      // Request limit=3 (more than visible count)
+      const result = await service.listMessages("thr_123", { limit: 3 });
+
+      // Should return 2 visible messages
+      expect(result.messages).toHaveLength(2);
+
+      // hasMore should be false - we have fewer visible messages than the limit
+      expect(result.hasMore).toBe(false);
+      expect(result.nextCursor).toBeUndefined();
     });
   });
 

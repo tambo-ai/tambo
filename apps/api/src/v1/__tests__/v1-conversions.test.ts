@@ -294,7 +294,7 @@ describe("v1-conversions", () => {
       });
     });
 
-    it("should skip component block when componentDecision has no componentName", () => {
+    it("should throw error when componentDecision has no componentName and no toolCallRequest", () => {
       const message = {
         ...baseMessage,
         componentDecision: {
@@ -303,11 +303,40 @@ describe("v1-conversions", () => {
           message: "",
           componentState: null,
         },
+        toolCallRequest: null, // No tool call - this is a data integrity issue
       } as unknown as DbMessage;
 
-      // Should not throw, just skip the invalid component block
+      expect(() => contentToV1Blocks(message)).toThrow(
+        /has no componentName.*data integrity issue/,
+      );
+    });
+
+    it("should NOT throw when componentDecision has no componentName but has toolCallRequest", () => {
+      // componentDecision without componentName is valid for tool call messages
+      // because it stores _tambo_* status messages
+      const message = {
+        ...baseMessage,
+        role: "assistant",
+        componentDecision: {
+          componentName: null,
+          props: {},
+          message: "Fetching data...",
+          statusMessage: "Working...",
+          componentState: null,
+        },
+        toolCallRequest: {
+          toolName: "getData",
+          parameters: [{ parameterName: "id", parameterValue: "123" }],
+        },
+        toolCallId: "call_123",
+      } as unknown as DbMessage;
+
+      // Should not throw
       const result = contentToV1Blocks(message);
-      expect(result).toEqual([]);
+
+      // Should have a tool_use block but no component block
+      expect(result).toHaveLength(1);
+      expect(result[0].type).toBe("tool_use");
     });
 
     it("should handle component with null props", () => {
