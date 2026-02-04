@@ -82,22 +82,8 @@ export interface PropStatus {
 }
 
 /**
- * SSR Guard - throws during server-side rendering.
- * Ensures the hook is only used in browser contexts.
- * @throws {Error} When called during server-side rendering
- */
-function assertClientSide() {
-  if (typeof window === "undefined") {
-    throw new Error(
-      "useTamboV1StreamStatus can only be used in browser contexts. " +
-        "This hook is not compatible with SSR/SSG. " +
-        "Consider wrapping it in useEffect or using dynamic imports.",
-    );
-  }
-}
-
-/**
  * Find a component content block by ID in a specific thread.
+ * Searches from most recent messages first since active components are likely near the tail.
  * @param streamState - The current stream state
  * @param threadId - The thread ID to search in
  * @param componentId - The component ID to find
@@ -113,10 +99,14 @@ function findComponentContent(
     return undefined;
   }
 
-  for (const message of threadState.thread.messages) {
-    for (const content of message.content) {
-      if (content.type === "component" && content.id === componentId) {
-        return content;
+  // Search from most recent messages first for better performance
+  const messages = threadState.thread.messages;
+  for (let i = messages.length - 1; i >= 0; i--) {
+    const content = messages[i].content;
+    for (let j = content.length - 1; j >= 0; j--) {
+      const block = content[j];
+      if (block.type === "component" && block.id === componentId) {
+        return block;
       }
     }
   }
@@ -287,32 +277,33 @@ function deriveGlobalStreamStatus(
   streamError?: Error,
 ): StreamStatus {
   const propStatuses: PropStatus[] = Object.values(propStatus);
+  const isStreamError = !!streamError;
 
   // If all props are already successful, the component is complete regardless of streaming state
   const allPropsSuccessful =
     propStatuses.length > 0 && propStatuses.every((p) => p.isSuccess);
 
-  // Only consider streaming state if not all props are complete
-  const isComponentStreaming =
-    !allPropsSuccessful && componentStreamingState === "streaming";
-  const isStreamError = !!streamError;
+  // Component is streaming if streamingState is "streaming" (even before props start)
+  const isComponentStreaming = componentStreamingState === "streaming";
+  const anyPropStreaming = propStatuses.some((p) => p.isStreaming);
 
   /** Find first error from stream or any prop */
   const firstError = streamError ?? propStatuses.find((p) => p.error)?.error;
 
   return {
-    /** isPending: no component yet OR (has component but no props have started) */
+    /** isPending: no component yet OR (not streaming, not error, not success, and all props pending) */
     isPending:
       !hasComponent ||
-      (!isComponentStreaming &&
+      (!isStreamError &&
+        !isComponentStreaming &&
         !allPropsSuccessful &&
         propStatuses.every((p) => p.isPending)),
 
-    /** isStreaming: any prop is streaming (component streaming state doesn't matter if props are complete) */
-    isStreaming: propStatuses.some((p) => p.isStreaming),
+    /** isStreaming: component is streaming OR any prop is streaming (but not if error) */
+    isStreaming: !isStreamError && (isComponentStreaming || anyPropStreaming),
 
-    /** isSuccess: all props successful (component is stable once all props complete) */
-    isSuccess: allPropsSuccessful,
+    /** isSuccess: all props successful and no error */
+    isSuccess: allPropsSuccessful && !isStreamError,
 
     /** isError: stream error OR any prop error */
     isError: isStreamError || propStatuses.some((p) => p.error),
@@ -331,7 +322,6 @@ function deriveGlobalStreamStatus(
  * @see {@link https://docs.tambo.co/concepts/generative-interfaces/component-state}
  * @template Props - Component props type
  * @returns `streamStatus` (overall) and `propStatus` (per-prop) flags
- * @throws {Error} When used during SSR/SSG
  * @throws {Error} When used outside a rendered component
  * @example
  * ```tsx
@@ -355,9 +345,6 @@ export function useTamboV1StreamStatus<
   streamStatus: StreamStatus;
   propStatus: Record<keyof Props, PropStatus>;
 } {
-  /** SSR Guard - ensure client-side only execution */
-  assertClientSide();
-
   const { componentId, threadId } = useV1ComponentContent();
   const streamState = useStreamState();
 

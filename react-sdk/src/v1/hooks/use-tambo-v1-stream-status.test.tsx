@@ -157,6 +157,29 @@ describe("useTamboV1StreamStatus", () => {
   });
 
   describe("Streaming State Transitions", () => {
+    it("should show isStreaming when component is streaming even before props receive content", () => {
+      // Component is streaming but props are still empty
+      const componentContent = createComponentContent({
+        props: { title: "", body: "" },
+        streamingState: "streaming",
+      });
+      const message = createMessage(componentContent);
+      const threadState = createThreadState([message]);
+      mockUseStreamState.mockReturnValue(createStreamState(threadState));
+
+      const { result } = renderHook(() =>
+        useTamboV1StreamStatus<{ title: string; body: string }>(),
+      );
+
+      // Global should be streaming even though no props have content yet
+      expect(result.current.streamStatus.isStreaming).toBe(true);
+      expect(result.current.streamStatus.isPending).toBe(false);
+
+      // Individual props should still be pending
+      expect(result.current.propStatus.title.isPending).toBe(true);
+      expect(result.current.propStatus.title.isStreaming).toBe(false);
+    });
+
     it("should show prop streaming when props receive content during streaming", () => {
       const componentContent = createComponentContent({
         props: { title: "Hello", body: "" },
@@ -252,7 +275,8 @@ describe("useTamboV1StreamStatus", () => {
         useTamboV1StreamStatus<{ title: string; body: string }>(),
       );
 
-      expect(result.current.streamStatus.isPending).toBe(true);
+      // Error state: isPending=false (error overrides pending), isStreaming=false (error stops streaming)
+      expect(result.current.streamStatus.isPending).toBe(false);
       expect(result.current.streamStatus.isStreaming).toBe(false);
       expect(result.current.streamStatus.isSuccess).toBe(false);
       expect(result.current.streamStatus.isError).toBe(true);
