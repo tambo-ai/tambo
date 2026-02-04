@@ -73,6 +73,7 @@ import {
 import {
   threadToDto,
   messageToDto,
+  isHiddenUiToolResponse,
   ContentConversionOptions,
   convertV1InputMessageToInternal,
 } from "./v1-conversions";
@@ -187,9 +188,14 @@ export class V1Service {
       throw new NotFoundException(`Thread ${threadId} not found`);
     }
 
+    // Filter out hidden UI tool response messages
+    const visibleMessages = thread.messages.filter(
+      (m) => !isHiddenUiToolResponse(m),
+    );
+
     return {
       ...threadToDto(thread),
-      messages: thread.messages.map((m) =>
+      messages: visibleMessages.map((m) =>
         messageToDto(m, this.contentConversionOptions),
       ),
     };
@@ -237,6 +243,14 @@ export class V1Service {
 
   /**
    * List messages in a thread with cursor-based pagination.
+   *
+   * Filters out hidden UI tool response messages (show_component_* tool results)
+   * which are internal implementation details.
+   *
+   * To handle pagination correctly with filtered messages, we fetch more messages
+   * than requested (2x limit) to ensure we have enough visible messages after
+   * filtering. This prevents incorrect hasMore values when hidden messages fall
+   * on page boundaries.
    */
   async listMessages(
     threadId: string,
@@ -253,33 +267,45 @@ export class V1Service {
       ? parseV1CompoundCursor(query.cursor)
       : undefined;
 
+    // Fetch more messages than needed to account for hidden messages that will
+    // be filtered out. We fetch 2x the limit (plus 1 for hasMore detection) to
+    // ensure we have enough visible messages after filtering.
+    const fetchLimit = Math.min((effectiveLimit + 1) * 2, 200);
     const messages = await operations.listMessagesPaginated(this.db, threadId, {
       cursor,
-      limit: effectiveLimit + 1,
+      limit: fetchLimit,
       order,
     });
 
-    const hasMore = messages.length > effectiveLimit;
+    // Filter out hidden UI tool response messages
+    const visibleMessages = messages.filter((m) => !isHiddenUiToolResponse(m));
+
+    // Determine hasMore based on whether we have more visible messages than requested
+    const hasMore = visibleMessages.length > effectiveLimit;
     const resultMessages = hasMore
-      ? messages.slice(0, effectiveLimit)
-      : messages;
+      ? visibleMessages.slice(0, effectiveLimit)
+      : visibleMessages;
 
     return {
       messages: resultMessages.map((m) =>
         messageToDto(m, this.contentConversionOptions),
       ),
-      nextCursor: hasMore
-        ? encodeV1CompoundCursor({
-            createdAt: resultMessages[resultMessages.length - 1].createdAt,
-            id: resultMessages[resultMessages.length - 1].id,
-          })
-        : undefined,
+      nextCursor:
+        hasMore && resultMessages.length > 0
+          ? encodeV1CompoundCursor({
+              createdAt: resultMessages[resultMessages.length - 1].createdAt,
+              id: resultMessages[resultMessages.length - 1].id,
+            })
+          : undefined,
       hasMore,
     };
   }
 
   /**
    * Get a single message by ID.
+   *
+   * Returns 404 for hidden UI tool response messages (show_component_* tool results)
+   * as they are internal implementation details.
    */
   async getMessage(
     threadId: string,
@@ -292,6 +318,13 @@ export class V1Service {
     );
 
     if (!message) {
+      throw new NotFoundException(
+        `Message ${messageId} not found in thread ${threadId}`,
+      );
+    }
+
+    // Treat hidden UI tool responses as not found
+    if (isHiddenUiToolResponse(message)) {
       throw new NotFoundException(
         `Message ${messageId} not found in thread ${threadId}`,
       );

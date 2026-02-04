@@ -1022,23 +1022,45 @@ export class ThreadsService {
       }
 
       // Ensure only one request per thread adds its user message and continues
-      const userMessage = await addUserMessage(
-        db,
-        thread.id,
-        advanceRequestDto.messageToAppend,
-        this.logger,
-      );
+      // Skip adding empty messages (V1 API sends empty content when only tool_results are provided)
+      const hasMessageContent =
+        advanceRequestDto.messageToAppend.content.length > 0;
 
-      // Track user messages (not tool responses)
-      // Use contextKey (user identifier) if available, otherwise use TAMBO_ANON_CONTEXT_KEY
-      if (advanceRequestDto.messageToAppend.role === MessageRole.User) {
-        this.analytics.capture(
-          contextKey ?? TAMBO_ANON_CONTEXT_KEY,
-          "message_sent",
-          {
-            projectId,
-            threadId: thread.id,
-          },
+      let userMessage: ThreadMessage;
+      if (hasMessageContent) {
+        userMessage = await addUserMessage(
+          db,
+          thread.id,
+          advanceRequestDto.messageToAppend,
+          this.logger,
+        );
+
+        // Track user messages (not tool responses)
+        // Use contextKey (user identifier) if available, otherwise use TAMBO_ANON_CONTEXT_KEY
+        if (advanceRequestDto.messageToAppend.role === MessageRole.User) {
+          this.analytics.capture(
+            contextKey ?? TAMBO_ANON_CONTEXT_KEY,
+            "message_sent",
+            {
+              projectId,
+              threadId: thread.id,
+            },
+          );
+        }
+      } else {
+        // No message content to add - get the latest message from the thread
+        // This happens in V1 API when only tool_result blocks are provided
+        // (tool results are saved separately in startRun before executeRun is called)
+        const existingMessages = await operations.getMessages(db, thread.id);
+        const latestMessage = existingMessages[existingMessages.length - 1];
+        if (!latestMessage) {
+          throw new Error(
+            `Cannot continue thread ${thread.id} with empty message: no existing messages found`,
+          );
+        }
+        userMessage = dbMessageToThreadMessage(latestMessage);
+        this.logger.log(
+          `Skipping empty message insertion for thread ${thread.id}, using latest message ${latestMessage.id}`,
         );
       }
 

@@ -1,6 +1,7 @@
 import {
   ContentPartType,
   ChatCompletionContentPart,
+  isUiToolName,
   MessageRole,
 } from "@tambo-ai-cloud/core";
 import { MessageRequest } from "../threads/dto/message.dto";
@@ -11,6 +12,8 @@ import {
   V1ComponentContentDto,
   V1TextContentDto,
   V1ResourceContentDto,
+  V1ToolUseContentDto,
+  V1ToolResultContentDto,
 } from "./dto/content.dto";
 import { V1MessageDto, V1MessageRole } from "./dto/message.dto";
 import { V1ThreadDto } from "./dto/thread.dto";
@@ -162,7 +165,11 @@ export function contentPartToV1Block(
  * Convert internal message content to V1 content blocks.
  * Handles OpenAI-style content parts + component decision to V1 unified format.
  *
- * @throws Error if componentDecision exists but has no componentName
+ * For tool role messages, wraps content in a tool_result block.
+ *
+ * @throws Error if componentDecision exists with no componentName and no toolCallRequest
+ *         (data integrity issue - componentDecision without componentName is only valid
+ *         for tool call messages where it stores _tambo_* status messages)
  */
 export function contentToV1Blocks(
   message: DbMessage,
@@ -170,7 +177,28 @@ export function contentToV1Blocks(
 ): V1ContentBlock[] {
   const blocks: V1ContentBlock[] = [];
 
-  // Convert standard content parts
+  // For tool role messages, wrap content in a tool_result block
+  if (message.role === "tool" && message.toolCallId) {
+    const resultContent: (V1TextContentDto | V1ResourceContentDto)[] = [];
+    if (Array.isArray(message.content)) {
+      for (const part of message.content) {
+        const block = contentPartToV1Block(part, options);
+        if (block && (block.type === "text" || block.type === "resource")) {
+          resultContent.push(block);
+        }
+      }
+    }
+    const toolResultBlock: V1ToolResultContentDto = {
+      type: "tool_result",
+      toolUseId: message.toolCallId,
+      content: resultContent,
+      isError: message.error ? true : undefined,
+    };
+    blocks.push(toolResultBlock);
+    return blocks; // Tool messages don't have other content types
+  }
+
+  // Convert standard content parts (non-tool messages)
   if (Array.isArray(message.content)) {
     for (const part of message.content) {
       const block = contentPartToV1Block(part, options);
@@ -180,32 +208,102 @@ export function contentToV1Blocks(
     }
   }
 
-  // Add component content block if present
-  if (message.componentDecision) {
+  // Add component content block if present (only for assistant messages)
+  // Tool messages may have componentDecision copied from the assistant message,
+  // but we don't want to duplicate the component block - it belongs on the
+  // assistant message that decided to render it.
+  if (message.componentDecision && message.role !== "tool") {
     const component = message.componentDecision;
-    if (!component.componentName) {
+    if (component.componentName) {
+      const componentBlock: V1ComponentContentDto = {
+        type: "component",
+        id: `comp_${message.id}`, // Generate stable ID from message ID
+        name: component.componentName,
+        props: component.props ?? {},
+        state: message.componentState ?? undefined,
+      };
+      blocks.push(componentBlock);
+    } else if (!message.toolCallRequest) {
+      // componentDecision without componentName is only valid for tool call messages
+      // (where it stores _tambo_* status messages). For non-tool-call messages,
+      // this indicates a data integrity issue.
       throw new Error(
         `Component decision in message ${message.id} has no componentName. ` +
           `This indicates a data integrity issue.`,
       );
     }
-    const componentBlock: V1ComponentContentDto = {
-      type: "component",
-      id: `comp_${message.id}`, // Generate stable ID from message ID
-      name: component.componentName,
-      props: component.props ?? {},
-      state: message.componentState ?? undefined,
+    // If componentName is null but toolCallRequest exists, the componentDecision
+    // is being used for _tambo_* status messages, not for rendering a component.
+  }
+
+  // Add tool_use content block if present (assistant messages with tool calls)
+  // Skip UI tools (show_component_*) - they're internal implementation details
+  if (
+    message.toolCallRequest &&
+    message.toolCallId &&
+    !isUiToolName(message.toolCallRequest.toolName)
+  ) {
+    const toolCallRequest = message.toolCallRequest;
+    // Convert parameters array to input object
+    const input: Record<string, unknown> = {};
+    for (const param of toolCallRequest.parameters) {
+      input[param.parameterName] = param.parameterValue;
+    }
+
+    // Add _tambo_* display properties from componentDecision if present.
+    // These are stored in componentDecision (via LegacyComponentDecision spread)
+    // but not typed in ComponentDecisionV2, so we access them with type assertions.
+    // The SDK uses these to display status messages during tool execution.
+    if (message.componentDecision) {
+      const decision = message.componentDecision as unknown as Record<
+        string,
+        unknown
+      >;
+      if (typeof decision.statusMessage === "string") {
+        input._tambo_statusMessage = decision.statusMessage;
+      }
+      if (typeof decision.completionStatusMessage === "string") {
+        input._tambo_completionStatusMessage = decision.completionStatusMessage;
+      }
+      // The display message is stored as 'message' in componentDecision
+      if (typeof decision.message === "string" && decision.message.trim()) {
+        input._tambo_displayMessage = decision.message;
+      }
+    }
+
+    const toolUseBlock: V1ToolUseContentDto = {
+      type: "tool_use",
+      id: message.toolCallId,
+      name: toolCallRequest.toolName,
+      input,
     };
-    blocks.push(componentBlock);
+    blocks.push(toolUseBlock);
   }
 
   return blocks;
 }
 
 /**
+ * Check if a message is a UI tool response that should be hidden from the V1 API.
+ *
+ * UI tool responses are automatically generated "Component was rendered" messages
+ * for show_component_* tools. They're identified by:
+ * - role: "tool"
+ * - componentDecision.componentName is present (non-null)
+ *
+ * These messages are internal implementation details and shouldn't be exposed
+ * to API consumers.
+ *
+ * @returns true if the message should be filtered out
+ */
+export function isHiddenUiToolResponse(message: DbMessage): boolean {
+  return message.role === "tool" && !!message.componentDecision?.componentName;
+}
+
+/**
  * Convert a database message to V1MessageDto.
  *
- * @throws Error if role is not recognized or componentDecision has no componentName
+ * @throws Error if role is not recognized
  */
 export function messageToDto(
   message: DbMessage,

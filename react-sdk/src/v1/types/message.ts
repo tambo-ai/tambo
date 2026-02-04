@@ -50,8 +50,10 @@ export interface V1ComponentContent extends ComponentContent {
    * - 'started': Component block created, awaiting props
    * - 'streaming': Props are being streamed
    * - 'done': Props streaming complete
+   *
+   * Optional for historical messages loaded from API (defaults to "done").
    */
-  streamingState: ComponentStreamingState;
+  streamingState?: ComponentStreamingState;
 
   /**
    * The rendered React element for this component.
@@ -110,8 +112,9 @@ export interface V1ToolUseContent extends Omit<ToolUseContent, "input"> {
 
 /**
  * Message role (from SDK)
+ * Includes 'system' to accommodate messages loaded from API.
  */
-export type MessageRole = "user" | "assistant";
+export type MessageRole = "user" | "assistant" | "system";
 
 /**
  * Union type of all content block types.
@@ -137,8 +140,8 @@ export interface TamboV1Message {
   /** Content blocks in the message */
   content: Content[];
 
-  /** When the message was created */
-  createdAt: string;
+  /** When the message was created (optional for historical messages loaded from API) */
+  createdAt?: string;
 
   /** Message metadata */
   metadata?: Record<string, unknown>;

@@ -1,4 +1,5 @@
 import TamboAI from "@tambo-ai/typescript-sdk";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { renderHook, act } from "@testing-library/react";
 import React from "react";
 import { useTamboClient } from "../../providers/tambo-client-provider";
@@ -16,9 +17,15 @@ jest.mock("../../providers/tambo-client-provider", () => ({
 }));
 
 describe("useTamboV1", () => {
+  let queryClient: QueryClient;
+
   const mockTamboClient = {
     apiKey: "",
-    threads: {},
+    threads: {
+      messages: {
+        list: jest.fn().mockResolvedValue({ messages: [], hasMore: false }),
+      },
+    },
   } as unknown as TamboAI;
 
   const mockRegistry: TamboRegistryContextType = {
@@ -41,9 +48,11 @@ describe("useTamboV1", () => {
 
   function TestWrapper({ children }: { children: React.ReactNode }) {
     return (
-      <TamboRegistryContext.Provider value={mockRegistry}>
-        <TamboV1StreamProvider>{children}</TamboV1StreamProvider>
-      </TamboRegistryContext.Provider>
+      <QueryClientProvider client={queryClient}>
+        <TamboRegistryContext.Provider value={mockRegistry}>
+          <TamboV1StreamProvider>{children}</TamboV1StreamProvider>
+        </TamboRegistryContext.Provider>
+      </QueryClientProvider>
     );
   }
 
@@ -58,16 +67,23 @@ describe("useTamboV1", () => {
       children: React.ReactNode;
     }) {
       return (
-        <TamboRegistryContext.Provider value={registry}>
-          <TamboV1StreamProvider state={state} dispatch={noopDispatch}>
-            {children}
-          </TamboV1StreamProvider>
-        </TamboRegistryContext.Provider>
+        <QueryClientProvider client={queryClient}>
+          <TamboRegistryContext.Provider value={registry}>
+            <TamboV1StreamProvider state={state} dispatch={noopDispatch}>
+              {children}
+            </TamboV1StreamProvider>
+          </TamboRegistryContext.Provider>
+        </QueryClientProvider>
       );
     };
   }
 
   beforeEach(() => {
+    queryClient = new QueryClient({
+      defaultOptions: {
+        queries: { retry: false },
+      },
+    });
     jest.mocked(useTamboClient).mockReturnValue(mockTamboClient);
     jest.clearAllMocks();
   });
