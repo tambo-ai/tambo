@@ -17,6 +17,7 @@ const MessageRootContext = React.createContext<MessageRootContextValue | null>(
 /**
  * Hook to optionally access the message context.
  * Returns null if not within a Message.Root component.
+ * @internal This hook is for internal use by base components only.
  * @returns The message context value or null
  */
 function useOptionalMessageRootContext(): MessageRootContextValue | null {

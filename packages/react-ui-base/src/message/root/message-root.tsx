@@ -1,3 +1,5 @@
+"use client";
+
 import { Slot } from "@radix-ui/react-slot";
 import { TamboThreadMessage } from "@tambo-ai/react";
 import * as React from "react";

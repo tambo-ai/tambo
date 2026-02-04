@@ -1,0 +1,47 @@
+{
+  "name": "@tambo-ai/vite-config",
+  "version": "0.0.1",
+  "license": "MIT",
+  "preferGlobal": false,
+  "sideEffects": false,
+  "private": true,
+  "scripts": {
+    "format": "prettier --write .",
+    "lint": "eslint",
+    "lint:fix": "eslint --fix",
+    "build": "tsdown"
+  },
+  "type": "module",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "dependencies": {
+    "rollup-plugin-preserve-directives": "0.4.0",
+    "vite-plugin-dts": "^4.5.4",
+    "vite-plugin-externalize-deps": "^0.10.0",
+    "vite-tsconfig-paths": "^6.0.5"
+  },
+  "devDependencies": {
+    "@tambo-ai/eslint-config": "*",
+    "vite": "^7.3.1",
+    "tsdown": "^0.12.0",
+    "typescript": "^5.9.3"
+  },
+  "peerDependencies": {
+    "vite": "^6.0.0 || ^7.0.0",
+    "typescript": "^5.0.0"
+  },
+  "publishConfig": {
+    "exports": {
+      ".": "./dist/index.js",
+      "./package.json": "./package.json"
+    }
+  },
+  "main": "./dist/index.js"
+}

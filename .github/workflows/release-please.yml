@@ -47,7 +47,7 @@ jobs:
       contents: read
       id-token: write # Required for OIDC publishing to NPM
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -55,7 +55,7 @@ jobs:
         uses: ./.github/actions/setup-tools
 
       - name: Setup npm registry
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v4
         with:
           registry-url: "https://registry.npmjs.org"
 
@@ -75,7 +75,7 @@ jobs:
       contents: read
       id-token: write # Required for OIDC publishing to NPM
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -83,7 +83,7 @@ jobs:
         uses: ./.github/actions/setup-tools
 
       - name: Setup npm registry
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v4
         with:
           registry-url: "https://registry.npmjs.org"
 
@@ -103,7 +103,7 @@ jobs:
       contents: read
       id-token: write # Required for OIDC publishing to NPM
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -111,7 +111,7 @@ jobs:
         uses: ./.github/actions/setup-tools
 
       - name: Setup npm registry
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v4
         with:
           registry-url: "https://registry.npmjs.org"
 
@@ -156,7 +156,7 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ needs.release-please.outputs['apps/web--release_created'] == 'true' }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
@@ -178,7 +178,7 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ needs.release-please.outputs['apps/api--release_created'] == 'true' }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
@@ -200,7 +200,7 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ needs.release-please.outputs.docs--release_created == 'true' }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
@@ -222,7 +222,7 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ needs.release-please.outputs.showcase--release_created == 'true' }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
@@ -246,7 +246,7 @@ jobs:
         run: |
           curl -sL https://sentry.io/get-cli/ | bash
 
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 100
           token: ${{ secrets.RELEASE_PLEASE_TOKEN }}

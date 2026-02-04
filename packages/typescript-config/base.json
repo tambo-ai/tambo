@@ -8,6 +8,7 @@
     "incremental": false,
     "isolatedModules": true,
     "lib": ["es2024", "DOM", "DOM.Iterable"],
+    "libReplacement": false,
     "module": "NodeNext",
     "moduleDetection": "force",
     "moduleResolution": "NodeNext",
