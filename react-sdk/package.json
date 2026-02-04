@@ -93,7 +93,7 @@
     "react-fast-compare": "^3.2.2",
     "react-media-recorder": "^1.7.2",
     "ts-node": "^10.9.2",
-    "type-fest": "^5.4.1",
+    "type-fest": "^5.4.3",
     "use-debounce": "^10.0.6"
   },
   "devDependencies": {
