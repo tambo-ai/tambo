@@ -345,13 +345,13 @@ describe("V1Controller", () => {
         } as any);
 
         await controller.listMessages("thr_123", {
-          limit: "10",
+          limit: 10,
           cursor: "2024-01-01T00:00:00Z",
           order: "desc",
         });
 
         expect(mockV1Service.listMessages).toHaveBeenCalledWith("thr_123", {
-          limit: "10",
+          limit: 10,
           cursor: "2024-01-01T00:00:00Z",
           order: "desc",
         });

@@ -14,9 +14,6 @@ import { generateOpenAPIConfig } from "./common/openapi";
 import { registerHandler } from "./mcp-server/server";
 
 async function bootstrap() {
-  // Initialize OpenTelemetry (works alongside Sentry)
-  // const sdk = initializeOpenTelemetry();
-
   const app = await NestFactory.create(AppModule, { cors: true });
 
   const { httpAdapter } = app.get(HttpAdapterHost);
@@ -40,8 +37,8 @@ async function bootstrap() {
       if (process.env.NODE_ENV === "production") {
         console.log("SIGTERM received, shutting down...");
 
-        // Flush Sentry and shutdown OpenTelemetry in parallel
-        // await Promise.all([Sentry.close(2000), shutdownOpenTelemetry(sdk)]);
+        // Flush Sentry
+        await Sentry.close(2000);
       }
       process.exit(0);
     } catch (error) {

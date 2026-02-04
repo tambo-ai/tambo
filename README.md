@@ -1,8 +1,8 @@
 <div align="center">
   <img src="assets/octo-white-background-rounded.png" width="150">
   <h1>Tambo AI</h1>
-  <h3>Generative UI for React</h3>
-  <p>Build apps that adapt to your users.</p>
+  <h3>Build agents that speak your UI</h3>
+  <p>The open-source generative UI toolkit for React. Connect your components—Tambo handles streaming, state management, and MCP.</p>
 </div>
 
 <p align="center">
@@ -18,34 +18,56 @@
 </p>
 
 <p align="center">
-  <a href="https://docs.tambo.co">Documentation</a> •
+<a href="https://tambo.link/yXkF0hQ">Start For Free</a> •
+  <a href="https://docs.tambo.co">Docs</a> •
   <a href="https://discord.gg/dJNvPEHth6">Discord</a>
 </p>
 
 ---
 
+## Table of Contents
+
+- [Table of Contents](#table-of-contents)
+- [What is Tambo?](#what-is-tambo)
+  - [What's Included](#whats-included)
+- [Get Started](#get-started)
+- [How It Works](#how-it-works)
+  - [Registering Components](#registering-components)
+  - [The Provider](#the-provider)
+  - [Hooks](#hooks)
+- [Features](#features)
+  - [MCP Integrations](#mcp-integrations)
+  - [Local Tools](#local-tools)
+  - [Context, Auth, and Suggestions](#context-auth-and-suggestions)
+  - [Supported LLM Providers](#supported-llm-providers)
+- [How Tambo Compares](#how-tambo-compares)
+- [Repository Structure](#repository-structure)
+- [Development](#development)
+- [Community](#community)
+  - [Built with Tambo](#built-with-tambo)
+- [License](#license)
+
 ## What is Tambo?
 
-Tambo is a generative UI SDK for React. Register your components, and the AI decides which ones to render based on natural language conversations.
+Tambo is a React toolkit for building agents that render UI (also known as generative UI).
+
+Register your components with Zod schemas. The agent picks the right one and streams the props so users can interact with them. "Show me sales by region" renders your `<Chart>`. "Add a task" updates your `<TaskBoard>`.
+
+**[Get started in 5 minutes →](#get-started)**
 
 https://github.com/user-attachments/assets/8381d607-b878-4823-8b24-ecb8053bef23
 
-## Why We Built This
+### What's Included
 
-Most software is built around a one-size-fits-all mental model that doesn't fit every user.
+Tambo is a fullstack solution for adding agents and chatbots to your app. You get a React SDK plus a backend that handles conversation state and agent execution.
 
-**Users shouldn't have to learn your app.** Generative UI shows the right components based on what someone is trying to do. First-time users and power users see different things.
+**1. Agent included** — Tambo runs the LLM conversation loop for you. Bring your own API key (OpenAI, Anthropic, Gemini, Mistral, or any OpenAI-compatible provider). Works with agent frameworks like LangChain and Mastra, but they're not required.
 
-**Users shouldn't have to click through your workflows.** "Show me sales from last quarter grouped by region" should just work. The AI translates what users want into the right interface.
+**2. Streaming infrastructure** — Props stream to your components as the LLM generates them. Cancellation, error recovery, and reconnection are handled for you.
 
-```tsx
-const components: TamboComponent[] = [{
-  name: "Graph",
-  description: "Displays data as charts",
-  component: Graph,
-  propsSchema: z.object({ data: z.array(...), type: z.enum(["line", "bar", "pie"]) })
-}];
-```
+**3. Tambo Cloud or self-host** — Cloud is a hosted backend that manages conversation state and agent orchestration. Self-hosted runs the same backend on your infrastructure via Docker.
+
+Most software is built around a one-size-fits-all mental model. We built Tambo to help developers build software that adapts to users.
 
 ## Get Started
 
@@ -56,9 +78,9 @@ npx tambo init      # choose cloud or self-hosted
 npm run dev
 ```
 
-**Tambo Cloud** is a free hosted backend. **Self-hosted** runs on your own infrastructure.
+[**Tambo Cloud**](https://tambo.link/yXkF0hQ) is a hosted backend, free to get started with plenty of credits to start building. **Self-hosted** runs on your own infrastructure.
 
-Check out the [pre-built component library](https://ui.tambo.co) for ready-made primitives, or fork a template:
+Check out the [pre-built component library](https://ui.tambo.co) for chatbot and agent primitives, or fork a template:
 
 | Template                                                                 | Description                                       |
 | ------------------------------------------------------------------------ | ------------------------------------------------- |
@@ -75,13 +97,15 @@ Tambo supports two kinds of components.
 
 https://github.com/user-attachments/assets/3bd340e7-e226-4151-ae40-aab9b3660d8b
 
-**Interactable components** persist and update as users refine requests. Shopping carts, spreadsheets, task boards.
-
 https://github.com/user-attachments/assets/12d957cd-97f1-488e-911f-0ff900ef4062
 
 ### Registering Components
 
-Tell the AI which components it can use. Zod schemas define the props.
+Tell the AI which components it can use. Zod schemas define the props. These schemas become LLM tool definitions—the agent calls them like functions and Tambo renders the result.
+
+Tambo supports two kinds of components.
+
+**Generative components** render once in response to a message. Charts, summaries, data visualizations:
 
 ```tsx
 // Generative: AI creates on-demand
@@ -96,6 +120,8 @@ const components: TamboComponent[] = [
     }),
   },
 ];
+
+**Interactable components** persist and update as users refine requests. Shopping carts, spreadsheets, task boards:
 
 // Interactable: persists and updates by ID
 const InteractableNote = withInteractable(Note, {
@@ -286,27 +312,6 @@ OpenAI, Anthropic, Cerebras, Google Gemini, Mistral, and any OpenAI-compatible p
 
 ---
 
-## Pricing
-
-### Self-Hosted
-
-Free forever. MIT licensed. 5-minute Docker setup.
-
-```bash
-npx tambo init
-# Select "Self-hosted"
-```
-
-### Tambo Cloud
-
-Free tier, then pay as you grow.
-
-- **Free**: 10,000 messages/month
-- **Growth**: $25/mo for 200k messages + email support
-- **Enterprise**: Custom volume, SLA, SOC 2, HIPAA
-
-[Pricing details](https://tambo.co/pricing)
-
 ## Repository Structure
 
 This Turborepo hosts the React SDK ecosystem and Tambo Cloud platform.
@@ -345,7 +350,7 @@ npm run db:migrate   # Apply migrations
 npm run db:studio    # Open Drizzle Studio
 ```
 
-Docker workflow lives in `scripts/cloud/`. See [README.DOCKER.md](./README.DOCKER.md) for details.
+Docker workflow lives in `scripts/cloud/`. See [OPERATORS.md](./OPERATORS.md) for details.
 
 [Contributing Guide](./CONTRIBUTING.md)
 

@@ -172,7 +172,7 @@ describe("V1Service - Suggestions", () => {
         projectId,
         userKey,
         {
-          limit: "1",
+          limit: 1,
         },
       );
 
@@ -226,7 +226,7 @@ describe("V1Service - Suggestions", () => {
         projectId,
         userKey,
         {
-          limit: "1",
+          limit: 1,
         },
       );
 
@@ -270,39 +270,9 @@ describe("V1Service - Suggestions", () => {
       );
     });
 
-    it("throws BadRequestException for empty limit string", async () => {
-      (operations.getThreadForProjectId as jest.Mock).mockResolvedValue({
-        id: threadId,
-      });
-      (operations.getMessageByIdInThread as jest.Mock).mockResolvedValue({
-        id: messageId,
-        threadId,
-      });
+    // Note: Invalid limit validation (empty string, non-integer) is now handled at the DTO layer via class-validator
 
-      await expect(
-        service.listSuggestions(threadId, messageId, projectId, userKey, {
-          limit: "",
-        }),
-      ).rejects.toThrow("Invalid limit");
-    });
-
-    it("throws BadRequestException for non-integer limit", async () => {
-      (operations.getThreadForProjectId as jest.Mock).mockResolvedValue({
-        id: threadId,
-      });
-      (operations.getMessageByIdInThread as jest.Mock).mockResolvedValue({
-        id: messageId,
-        threadId,
-      });
-
-      await expect(
-        service.listSuggestions(threadId, messageId, projectId, userKey, {
-          limit: "abc",
-        }),
-      ).rejects.toThrow("Invalid limit");
-    });
-
-    it("clamps limit to max of 100", async () => {
+    it("accepts max limit of 100", async () => {
       (operations.getThreadForProjectId as jest.Mock).mockResolvedValue({
         id: threadId,
       });
@@ -313,7 +283,7 @@ describe("V1Service - Suggestions", () => {
       (operations.listSuggestionsPaginated as jest.Mock).mockResolvedValue([]);
 
       await service.listSuggestions(threadId, messageId, projectId, userKey, {
-        limit: "500",
+        limit: 100,
       });
 
       expect(operations.listSuggestionsPaginated).toHaveBeenCalledWith(
@@ -321,7 +291,7 @@ describe("V1Service - Suggestions", () => {
         messageId,
         {
           cursor: undefined,
-          limit: 101, // clamped to 100 + 1
+          limit: 101, // max 100 + 1
         },
       );
     });
@@ -391,7 +361,7 @@ describe("V1Service - Suggestions", () => {
         projectId,
         userKey,
         {
-          limit: "1",
+          limit: 1,
         },
       );
 

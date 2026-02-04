@@ -27,7 +27,7 @@ jobs:
       release-info: ${{ steps.detect.outputs.release-info }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Setup tools
         uses: ./.github/actions/setup-tools
@@ -52,7 +52,7 @@ jobs:
       fail-fast: false
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Setup Node.js
         uses: actions/setup-node@v6

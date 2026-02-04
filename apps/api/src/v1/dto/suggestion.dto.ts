@@ -9,6 +9,7 @@ import {
   ValidateNested,
   Min,
   Max,
+  IsInt,
 } from "class-validator";
 import { Type } from "class-transformer";
 import { V1AvailableComponentDto } from "./tool.dto";
@@ -146,10 +147,14 @@ export class V1ListSuggestionsQueryDto {
     description: "Maximum number of suggestions to return",
     required: false,
     default: 10,
+    type: Number,
   })
   @IsOptional()
-  @IsString()
-  limit?: string;
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(100)
+  limit?: number;
 
   @ApiProperty({
     description: "Cursor for pagination",

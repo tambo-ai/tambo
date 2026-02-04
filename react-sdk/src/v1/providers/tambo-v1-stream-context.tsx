@@ -8,17 +8,23 @@
  * following the split-context pattern for optimal re-render performance.
  */
 
+import { useQuery } from "@tanstack/react-query";
 import React, {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useReducer,
+  useRef,
 } from "react";
+import { useTamboClient } from "../../providers/tambo-client-provider";
+import type { TamboV1Message } from "../types/message";
 import type { TamboV1Thread } from "../types/thread";
 import {
   createInitialState,
   createInitialThreadState,
+  isPlaceholderThreadId,
   PLACEHOLDER_THREAD_ID,
   streamReducer,
   type StreamAction,
@@ -192,11 +198,64 @@ export function TamboV1StreamProvider(props: TamboV1StreamProviderProps) {
     <StreamStateContext.Provider value={activeState}>
       <StreamDispatchContext.Provider value={activeDispatch}>
         <ThreadManagementContext.Provider value={threadManagement}>
+          <ThreadSyncManager />
           {children}
         </ThreadManagementContext.Provider>
       </StreamDispatchContext.Provider>
     </StreamStateContext.Provider>
   );
+}
+
+/**
+ * Internal component that handles automatic thread message syncing.
+ * Fetches thread messages when switching to a non-placeholder thread.
+ * Must be used within StreamStateContext, StreamDispatchContext, and TamboClientProvider.
+ * @internal
+ * @returns null - this component renders nothing
+ */
+function ThreadSyncManager(): null {
+  const client = useTamboClient();
+  const state = useContext(StreamStateContext);
+  const dispatch = useContext(StreamDispatchContext);
+
+  // Track which threads have been synced to avoid redundant fetches
+  const lastSyncedThreadRef = useRef<string | null>(null);
+  const currentThreadId = state?.currentThreadId ?? PLACEHOLDER_THREAD_ID;
+  const threadState = state?.threadMap[currentThreadId];
+
+  // Determine if we need to fetch thread messages
+  // Only fetch for non-placeholder threads that haven't been synced and have no messages
+  const isNotPlaceholder = !isPlaceholderThreadId(currentThreadId);
+  const isNotSynced = currentThreadId !== lastSyncedThreadRef.current;
+  const hasNoMessages =
+    !threadState || threadState.thread.messages.length === 0;
+  const shouldFetch = isNotPlaceholder && isNotSynced && hasNoMessages;
+
+  // Fetch messages from the messages endpoint (not the thread endpoint)
+  const { data: messagesData, isSuccess } = useQuery({
+    queryKey: ["v1-thread-messages", currentThreadId],
+    queryFn: async () => await client.threads.messages.list(currentThreadId),
+    enabled: shouldFetch,
+    staleTime: 1000,
+    refetchOnWindowFocus: false,
+  });
+
+  // Sync fetched messages to stream state
+  useEffect(() => {
+    if (!isSuccess || !messagesData || !dispatch) return;
+    if (lastSyncedThreadRef.current === currentThreadId) return;
+
+    dispatch({
+      type: "LOAD_THREAD_MESSAGES",
+      threadId: currentThreadId,
+      messages: messagesData.messages as TamboV1Message[],
+      skipIfStreaming: true,
+    });
+
+    lastSyncedThreadRef.current = currentThreadId;
+  }, [isSuccess, messagesData, currentThreadId, dispatch]);
+
+  return null;
 }
 
 /**

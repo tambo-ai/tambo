@@ -30,6 +30,7 @@ import {
 } from "../utils/registry-conversion";
 import { handleEventStream } from "../utils/stream-handler";
 import { executeAllPendingTools } from "../utils/tool-executor";
+import type { ToolResultContent } from "@tambo-ai/typescript-sdk/resources/threads/threads";
 import { ToolCallTracker } from "../utils/tool-call-tracker";
 
 /**
@@ -98,17 +99,25 @@ interface ExecuteToolsParams {
 }
 
 /**
+ * Result from executing tools and continuing the run
+ */
+interface ExecuteToolsResult {
+  stream: RunStream;
+  toolResults: ToolResultContent[];
+}
+
+/**
  * Executes pending tools and returns a continuation stream.
  *
  * This function does NOT process the continuation stream - it just executes
  * the tools and returns the new stream for the caller to process. This enables
  * the flat loop pattern that correctly handles multi-round tool execution.
  * @param params - The parameters for tool execution
- * @returns The continuation stream to process
+ * @returns The continuation stream and tool results for optimistic local state updates
  */
 async function executeToolsAndContinue(
   params: ExecuteToolsParams,
-): Promise<RunStream> {
+): Promise<ExecuteToolsResult> {
   const { event, toolTracker, registry, client, threadId, runId, userKey } =
     params;
 
@@ -126,8 +135,8 @@ async function executeToolsAndContinue(
   // Clear executed tool calls before continuing
   toolTracker.clearToolCalls(pendingToolCallIds);
 
-  // Return the continuation stream (caller will process it)
-  return await client.threads.runs.run(threadId, {
+  // Return the continuation stream and tool results
+  const stream = await client.threads.runs.run(threadId, {
     message: {
       role: "user",
       content: toolResults,
@@ -137,6 +146,8 @@ async function executeToolsAndContinue(
     tools: toAvailableTools(registry.toolRegistry),
     userKey,
   });
+
+  return { stream, toolResults };
 }
 
 /**
@@ -370,15 +381,65 @@ export function useTamboV1SendMessage(threadId?: string) {
             );
           }
 
-          currentStream = await executeToolsAndContinue({
-            event: pendingAwaitingInput,
-            toolTracker,
-            registry,
-            client,
-            threadId: actualThreadId,
-            runId,
-            userKey,
-          });
+          const { stream: continuationStream, toolResults } =
+            await executeToolsAndContinue({
+              event: pendingAwaitingInput,
+              toolTracker,
+              registry,
+              client,
+              threadId: actualThreadId,
+              runId,
+              userKey,
+            });
+
+          // Dispatch synthetic events for optimistic local state
+          // The server doesn't echo these back for client-side tools
+          // Tool results go in a new user message, similar to how user text is handled
+          if (toolResults.length > 0) {
+            const toolResultMessageId = `msg_tool_result_${Date.now()}`;
+
+            // Create a new user message for tool results
+            dispatch({
+              type: "EVENT",
+              threadId: actualThreadId,
+              event: {
+                type: EventType.TEXT_MESSAGE_START,
+                messageId: toolResultMessageId,
+                role: "user" as const,
+              },
+            });
+
+            // Add tool results to the new message
+            for (const result of toolResults) {
+              dispatch({
+                type: "EVENT",
+                threadId: actualThreadId,
+                event: {
+                  type: EventType.TOOL_CALL_RESULT,
+                  toolCallId: result.toolUseId,
+                  messageId: toolResultMessageId,
+                  // Extract text content from the result
+                  content:
+                    result.content
+                      .filter((c) => c.type === "text")
+                      .map((c) => (c as { type: "text"; text: string }).text)
+                      .join("") || JSON.stringify(result.content),
+                },
+              });
+            }
+
+            // Mark the message as complete
+            dispatch({
+              type: "EVENT",
+              threadId: actualThreadId,
+              event: {
+                type: EventType.TEXT_MESSAGE_END,
+                messageId: toolResultMessageId,
+              },
+            });
+          }
+
+          currentStream = continuationStream;
         }
 
         return { threadId: actualThreadId };

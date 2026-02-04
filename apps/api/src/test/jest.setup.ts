@@ -68,8 +68,8 @@ jest.mock("@sentry/nestjs", () => ({
       setContext: jest.fn(),
       setFingerprint: jest.fn(),
     }),
-  startSpan: (_cfg: any, fn: any) =>
-    typeof fn === "function" ? fn() : undefined,
+  startSpan: async (_cfg: any, fn: any) =>
+    typeof fn === "function" ? await fn() : undefined,
   startInactiveSpan: (_cfg: any) => ({ end: jest.fn() }),
   httpIntegration: jest.fn(() => ({})),
   flush: jest.fn(async () => undefined),

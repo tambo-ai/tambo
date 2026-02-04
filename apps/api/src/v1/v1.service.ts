@@ -18,8 +18,6 @@ import {
 } from "@ag-ui/core";
 import {
   AsyncQueue,
-  ContentPartType,
-  MessageRole,
   V1RunStatus,
   type UnsavedThreadToolMessage,
 } from "@tambo-ai-cloud/core";
@@ -59,7 +57,6 @@ import {
 } from "./v1-tool-results";
 import type { StreamQueueItem } from "../threads/dto/stream-queue-item";
 import { ThreadsService } from "../threads/threads.service";
-import type { MessageRequest } from "../threads/dto/message.dto";
 import { DATABASE } from "../common/middleware/db-transaction-middleware";
 import {
   V1GetMessageResponseDto,
@@ -76,7 +73,9 @@ import {
 import {
   threadToDto,
   messageToDto,
+  isHiddenUiToolResponse,
   ContentConversionOptions,
+  convertV1InputMessageToInternal,
 } from "./v1-conversions";
 import { encodeV1CompoundCursor, parseV1CompoundCursor } from "./v1-pagination";
 import {
@@ -122,17 +121,12 @@ export class V1Service {
     private readonly threadsService: ThreadsService,
   ) {}
 
-  private parseLimit(raw: string | undefined, fallback: number): number {
-    if (raw !== undefined && raw.trim() === "") {
+  private parseLimit(raw: number | undefined, fallback: number): number {
+    const value = raw ?? fallback;
+    if (!Number.isFinite(value) || !Number.isInteger(value)) {
       throw new BadRequestException("Invalid limit");
     }
-
-    const parsed = raw === undefined ? fallback : Number(raw);
-    if (!Number.isInteger(parsed)) {
-      throw new BadRequestException("Invalid limit");
-    }
-
-    return Math.min(Math.max(1, parsed), 100);
+    return Math.min(Math.max(1, value), 100);
   }
 
   /**
@@ -194,9 +188,14 @@ export class V1Service {
       throw new NotFoundException(`Thread ${threadId} not found`);
     }
 
+    // Filter out hidden UI tool response messages
+    const visibleMessages = thread.messages.filter(
+      (m) => !isHiddenUiToolResponse(m),
+    );
+
     return {
       ...threadToDto(thread),
-      messages: thread.messages.map((m) =>
+      messages: visibleMessages.map((m) =>
         messageToDto(m, this.contentConversionOptions),
       ),
     };
@@ -244,6 +243,14 @@ export class V1Service {
 
   /**
    * List messages in a thread with cursor-based pagination.
+   *
+   * Filters out hidden UI tool response messages (show_component_* tool results)
+   * which are internal implementation details.
+   *
+   * To handle pagination correctly with filtered messages, we fetch more messages
+   * than requested (2x limit) to ensure we have enough visible messages after
+   * filtering. This prevents incorrect hasMore values when hidden messages fall
+   * on page boundaries.
    */
   async listMessages(
     threadId: string,
@@ -260,33 +267,45 @@ export class V1Service {
       ? parseV1CompoundCursor(query.cursor)
       : undefined;
 
+    // Fetch more messages than needed to account for hidden messages that will
+    // be filtered out. We fetch 2x the limit (plus 1 for hasMore detection) to
+    // ensure we have enough visible messages after filtering.
+    const fetchLimit = Math.min((effectiveLimit + 1) * 2, 200);
     const messages = await operations.listMessagesPaginated(this.db, threadId, {
       cursor,
-      limit: effectiveLimit + 1,
+      limit: fetchLimit,
       order,
     });
 
-    const hasMore = messages.length > effectiveLimit;
+    // Filter out hidden UI tool response messages
+    const visibleMessages = messages.filter((m) => !isHiddenUiToolResponse(m));
+
+    // Determine hasMore based on whether we have more visible messages than requested
+    const hasMore = visibleMessages.length > effectiveLimit;
     const resultMessages = hasMore
-      ? messages.slice(0, effectiveLimit)
-      : messages;
+      ? visibleMessages.slice(0, effectiveLimit)
+      : visibleMessages;
 
     return {
       messages: resultMessages.map((m) =>
         messageToDto(m, this.contentConversionOptions),
       ),
-      nextCursor: hasMore
-        ? encodeV1CompoundCursor({
-            createdAt: resultMessages[resultMessages.length - 1].createdAt,
-            id: resultMessages[resultMessages.length - 1].id,
-          })
-        : undefined,
+      nextCursor:
+        hasMore && resultMessages.length > 0
+          ? encodeV1CompoundCursor({
+              createdAt: resultMessages[resultMessages.length - 1].createdAt,
+              id: resultMessages[resultMessages.length - 1].id,
+            })
+          : undefined,
       hasMore,
     };
   }
 
   /**
    * Get a single message by ID.
+   *
+   * Returns 404 for hidden UI tool response messages (show_component_* tool results)
+   * as they are internal implementation details.
    */
   async getMessage(
     threadId: string,
@@ -299,6 +318,13 @@ export class V1Service {
     );
 
     if (!message) {
+      throw new NotFoundException(
+        `Message ${messageId} not found in thread ${threadId}`,
+      );
+    }
+
+    // Treat hidden UI tool responses as not found
+    if (isHiddenUiToolResponse(message)) {
       throw new NotFoundException(
         `Message ${messageId} not found in thread ${threadId}`,
       );
@@ -618,7 +644,7 @@ export class V1Service {
 
         try {
           // 2. Convert V1 message to internal format
-          const messageToAppend = this.convertV1MessageToInternal(dto.message);
+          const messageToAppend = convertV1InputMessageToInternal(dto.message);
 
           // 3. Create streaming infrastructure
           const queue = new AsyncQueue<StreamQueueItem>();
@@ -783,44 +809,6 @@ export class V1Service {
   private emitEvent(response: Response, event: BaseEvent): void {
     const sanitized = sanitizeEvent(event);
     response.write(`data: ${JSON.stringify(sanitized)}\n\n`);
-  }
-
-  /**
-   * Convert V1 input message to internal MessageRequest format.
-   *
-   * Note: tool_result blocks are filtered out because they are processed
-   * separately in startRun and saved as Tool role messages before this
-   * conversion happens.
-   */
-  private convertV1MessageToInternal(
-    message: V1CreateRunDto["message"],
-  ): MessageRequest {
-    // Filter out tool_result blocks - they're already saved as separate Tool messages
-    const nonToolResultContent = message.content.filter(
-      (block) => block.type !== "tool_result",
-    );
-
-    return {
-      role: MessageRole.User,
-      content: nonToolResultContent.map((block) => {
-        switch (block.type) {
-          case "text":
-            return {
-              type: ContentPartType.Text,
-              text: block.text,
-            };
-          case "resource":
-            return {
-              type: ContentPartType.Resource,
-              resource: block.resource,
-            };
-          default:
-            throw new Error(
-              `Unknown content type: ${(block as { type: string }).type}`,
-            );
-        }
-      }),
-    };
   }
 
   // ==========================================
