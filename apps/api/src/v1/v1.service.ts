@@ -124,6 +124,9 @@ export class V1Service {
 
   private parseLimit(raw: number | undefined, fallback: number): number {
     const value = raw ?? fallback;
+    if (!Number.isFinite(value) || !Number.isInteger(value)) {
+      throw new BadRequestException("Invalid limit");
+    }
     return Math.min(Math.max(1, value), 100);
   }
 

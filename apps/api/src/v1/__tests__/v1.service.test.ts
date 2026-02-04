@@ -17,6 +17,17 @@ import {
   parseV1CompoundCursor,
 } from "../v1-pagination";
 
+jest.mock("@sentry/nestjs", () => ({
+  startSpan: (_ctx: unknown, callback: unknown) => {
+    if (typeof callback !== "function") {
+      throw new Error("startSpan mock expects a callback");
+    }
+    return callback();
+  },
+  setContext: jest.fn(),
+  captureException: jest.fn(),
+}));
+
 // Mock the database operations module
 jest.mock("@tambo-ai-cloud/db", () => ({
   operations: {
@@ -949,17 +960,46 @@ describe("V1Service", () => {
       expect(mockOperations.createRun).toHaveBeenCalledTimes(1);
       expect(mockOperations.setCurrentRunId).toHaveBeenCalledTimes(1);
     });
+  });
 
-    it("should pass additionalContext through to internal message", async () => {
-      mockOperations.getThreadForRunStart.mockResolvedValue({
-        thread: {
-          ...mockThread,
-          runStatus: V1RunStatus.IDLE,
+  describe("executeRun", () => {
+    const createMockResponse = () => ({
+      write: jest.fn(),
+    });
+
+    let lastAdvanceRequest: {
+      messageToAppend: { additionalContext?: unknown };
+    };
+
+    const setupAdvanceThreadMock = () => {
+      lastAdvanceRequest = { messageToAppend: {} };
+      mockThreadsService.advanceThread.mockImplementation(
+        async (
+          _projectId,
+          advanceRequest,
+          _threadId,
+          _toolCallCounts,
+          _cached,
+          queue,
+        ) => {
+          lastAdvanceRequest = advanceRequest;
+          queue.finish();
         },
-        hasMessages: false,
-      });
-      mockOperations.acquireRunLock.mockResolvedValue(true);
-      mockOperations.createRun.mockResolvedValue({ id: "run_new" });
+      );
+      mockOperations.releaseRunLockIfCurrent.mockResolvedValue(true);
+    };
+
+    const mockRunDtoBase = {
+      message: {
+        role: "user",
+        content: [{ type: "text" as const, text: "Hi" }],
+      },
+      tools: [],
+      availableComponents: [],
+    };
+
+    it("should pass additionalContext through to threadsService.advanceThread", async () => {
+      setupAdvanceThreadMock();
 
       const additionalContext = {
         currentPage: "/dashboard",
@@ -967,41 +1007,43 @@ describe("V1Service", () => {
         nestedObject: { deeply: { nested: { value: 123 } } },
       };
 
-      const result = await service.startRun("thr_123", {
-        message: {
-          role: "user",
-          content: [{ type: "text", text: "Hi" }],
-          additionalContext,
-        },
-      });
+      await service.executeRun(
+        createMockResponse() as any,
+        "thr_123",
+        "run_123",
+        {
+          ...mockRunDtoBase,
+          message: {
+            ...mockRunDtoBase.message,
+            additionalContext,
+          },
+        } as any,
+        "prj_123",
+        "user_456",
+      );
 
-      expect(result.success).toBe(true);
-      // The message conversion happens inside advanceThread which we mock,
-      // so we verify the run was started successfully with the message
-      expect(mockOperations.createRun).toHaveBeenCalledTimes(1);
+      expect(mockThreadsService.advanceThread).toHaveBeenCalledTimes(1);
+      expect(lastAdvanceRequest.messageToAppend.additionalContext).toEqual(
+        additionalContext,
+      );
     });
 
-    it("should work without additionalContext (backward compatible)", async () => {
-      mockOperations.getThreadForRunStart.mockResolvedValue({
-        thread: {
-          ...mockThread,
-          runStatus: V1RunStatus.IDLE,
-        },
-        hasMessages: false,
-      });
-      mockOperations.acquireRunLock.mockResolvedValue(true);
-      mockOperations.createRun.mockResolvedValue({ id: "run_new" });
+    it("should work without additionalContext", async () => {
+      setupAdvanceThreadMock();
 
-      const result = await service.startRun("thr_123", {
-        message: {
-          role: "user",
-          content: [{ type: "text", text: "Hi" }],
-          // No additionalContext - should still work
-        },
-      });
+      await service.executeRun(
+        createMockResponse() as any,
+        "thr_123",
+        "run_123",
+        mockRunDtoBase as any,
+        "prj_123",
+        "user_456",
+      );
 
-      expect(result.success).toBe(true);
-      expect(mockOperations.createRun).toHaveBeenCalledTimes(1);
+      expect(mockThreadsService.advanceThread).toHaveBeenCalledTimes(1);
+      expect(
+        lastAdvanceRequest.messageToAppend.additionalContext,
+      ).toBeUndefined();
     });
   });
 
