@@ -6,7 +6,7 @@ Build agents that speak your UI.
 
 ```bash
 # Add the marketplace and install (one time)
-/plugin marketplace add tambo-ai/tambo/claude-plugin
+/plugin marketplace add https://github.com/tambo-ai/tambo
 /plugin install tambo
 ```
 
