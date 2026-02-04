@@ -1,7 +1,10 @@
 import {
   ContentPartType,
   ChatCompletionContentPart,
+  MessageRole,
 } from "@tambo-ai-cloud/core";
+import { MessageRequest } from "../threads/dto/message.dto";
+import { V1InputContent } from "./dto/message.dto";
 import { schema } from "@tambo-ai-cloud/db";
 import {
   V1ContentBlock,
@@ -216,5 +219,58 @@ export function messageToDto(
     content,
     createdAt: message.createdAt.toISOString(),
     metadata: message.metadata ?? undefined,
+  };
+}
+
+/**
+ * Input message shape for V1 API conversion.
+ * Matches the shape from V1CreateRunDto["message"].
+ */
+export interface V1InputMessage {
+  role: "user";
+  content: V1InputContent[];
+  metadata?: Record<string, unknown>;
+  additionalContext?: Record<string, unknown>;
+}
+
+/**
+ * Convert V1 input message to internal MessageRequest format.
+ *
+ * Note: tool_result blocks are filtered out because they are processed
+ * separately in startRun and saved as Tool role messages before this
+ * conversion happens.
+ *
+ * @param message - The V1 input message from the API request
+ * @returns Internal MessageRequest format for advanceThread
+ */
+export function convertV1InputMessageToInternal(
+  message: V1InputMessage,
+): MessageRequest {
+  // Filter out tool_result blocks - they're already saved as separate Tool messages
+  const nonToolResultContent = message.content.filter(
+    (block) => block.type !== "tool_result",
+  );
+
+  return {
+    role: MessageRole.User,
+    content: nonToolResultContent.map((block) => {
+      switch (block.type) {
+        case "text":
+          return {
+            type: ContentPartType.Text,
+            text: block.text,
+          };
+        case "resource":
+          return {
+            type: ContentPartType.Resource,
+            resource: block.resource,
+          };
+        default:
+          throw new Error(
+            `Unknown content type: ${(block as { type: string }).type}`,
+          );
+      }
+    }),
+    additionalContext: message.additionalContext,
   };
 }

@@ -18,8 +18,6 @@ import {
 } from "@ag-ui/core";
 import {
   AsyncQueue,
-  ContentPartType,
-  MessageRole,
   V1RunStatus,
   type UnsavedThreadToolMessage,
 } from "@tambo-ai-cloud/core";
@@ -59,7 +57,6 @@ import {
 } from "./v1-tool-results";
 import type { StreamQueueItem } from "../threads/dto/stream-queue-item";
 import { ThreadsService } from "../threads/threads.service";
-import type { MessageRequest } from "../threads/dto/message.dto";
 import { DATABASE } from "../common/middleware/db-transaction-middleware";
 import {
   V1GetMessageResponseDto,
@@ -77,6 +74,7 @@ import {
   threadToDto,
   messageToDto,
   ContentConversionOptions,
+  convertV1InputMessageToInternal,
 } from "./v1-conversions";
 import { encodeV1CompoundCursor, parseV1CompoundCursor } from "./v1-pagination";
 import {
@@ -613,7 +611,7 @@ export class V1Service {
 
         try {
           // 2. Convert V1 message to internal format
-          const messageToAppend = this.convertV1MessageToInternal(dto.message);
+          const messageToAppend = convertV1InputMessageToInternal(dto.message);
 
           // 3. Create streaming infrastructure
           const queue = new AsyncQueue<StreamQueueItem>();
@@ -778,45 +776,6 @@ export class V1Service {
   private emitEvent(response: Response, event: BaseEvent): void {
     const sanitized = sanitizeEvent(event);
     response.write(`data: ${JSON.stringify(sanitized)}\n\n`);
-  }
-
-  /**
-   * Convert V1 input message to internal MessageRequest format.
-   *
-   * Note: tool_result blocks are filtered out because they are processed
-   * separately in startRun and saved as Tool role messages before this
-   * conversion happens.
-   */
-  private convertV1MessageToInternal(
-    message: V1CreateRunDto["message"],
-  ): MessageRequest {
-    // Filter out tool_result blocks - they're already saved as separate Tool messages
-    const nonToolResultContent = message.content.filter(
-      (block) => block.type !== "tool_result",
-    );
-
-    return {
-      role: MessageRole.User,
-      content: nonToolResultContent.map((block) => {
-        switch (block.type) {
-          case "text":
-            return {
-              type: ContentPartType.Text,
-              text: block.text,
-            };
-          case "resource":
-            return {
-              type: ContentPartType.Resource,
-              resource: block.resource,
-            };
-          default:
-            throw new Error(
-              `Unknown content type: ${(block as { type: string }).type}`,
-            );
-        }
-      }),
-      additionalContext: message.additionalContext,
-    };
   }
 
   // ==========================================
