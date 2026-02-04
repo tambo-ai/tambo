@@ -41,7 +41,7 @@
   "scripts": {
     "build": "npm run build:cjs && npm run build:esm",
     "build:cjs": "tsc -p tsconfig.cjs.json",
-    "build:esm": "tsc -p tsconfig.esm.json",
+    "build:esm": "tsc -p tsconfig.esm.json && tsc-esm-fix --target=esm",
     "check-types": "tsc --noEmit",
     "dev": "concurrently \"npm run dev:cjs\" \"npm run dev:esm\"",
     "dev:cjs": "tsc -p tsconfig.cjs.json --watch",
@@ -122,6 +122,7 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "ts-jest": "^29.4.6",
+    "tsc-esm-fix": "^3.1.2",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.54.0",
     "zod": "^3.25.76 || ^4",
