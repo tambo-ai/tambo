@@ -205,11 +205,15 @@ export function updateThreadMessageFromLegacyDecision(
     },
   ];
 
-  // Add component content block if componentId is present (V1 API support)
+  // Add component content block for V1 API support (legacy API filters these out).
+  // We use the computed ID format (comp_${messageId}) instead of the streaming
+  // chunk.componentId because v1-conversions.ts returns this computed format in
+  // API responses. The V1 state update endpoint looks up components by ID in the
+  // content array, so the stored ID must match what the API returns to clients.
   if (chunk.componentId && chunk.componentName && chunk.props) {
     const componentContent: ChatCompletionContentPartComponent = {
       type: "component",
-      id: chunk.componentId,
+      id: `comp_${initialMessage.id}`,
       name: chunk.componentName,
       props: chunk.props,
       state: chunk.componentState ?? {},

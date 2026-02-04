@@ -577,6 +577,50 @@ describe("Thread State", () => {
       );
     });
 
+    it("should use computed component ID format in content block and preserve all fields", () => {
+      const mockDecision: LegacyComponentDecision = {
+        message: "Here's a weather card",
+        componentName: "WeatherCard",
+        componentId: "message-temp-id-123", // Temporary streaming ID (ignored)
+        props: { temperature: 72, location: "San Francisco" },
+        componentState: { expanded: true, lastUpdated: "2024-01-01" },
+        reasoning: [],
+      };
+
+      const mockInProgressMessage: ThreadMessage = {
+        id: "msg_abc123", // Database message ID
+        threadId: "thread-1",
+        role: MessageRole.Assistant,
+        content: [],
+        createdAt: new Date(),
+        componentState: {},
+      };
+
+      const result = updateThreadMessageFromLegacyDecision(
+        mockInProgressMessage,
+        mockDecision,
+      );
+
+      // Find the component content block (V1 API support)
+      const componentBlock = result.content.find((c) => c.type === "component");
+
+      expect(componentBlock).toBeDefined();
+      // The stored ID should be the computed format (comp_${messageId}),
+      // not the temp streaming ID, to match what v1-conversions.ts returns.
+      // This ensures V1 API state updates can find the component by ID.
+      expect(componentBlock?.id).toBe("comp_msg_abc123");
+      // Verify all other component fields are preserved correctly
+      expect(componentBlock?.name).toBe("WeatherCard");
+      expect(componentBlock?.props).toEqual({
+        temperature: 72,
+        location: "San Francisco",
+      });
+      expect(componentBlock?.state).toEqual({
+        expanded: true,
+        lastUpdated: "2024-01-01",
+      });
+    });
+
     it("should handle Tool role messages and preserve tool_call_id", () => {
       const mockDecision: LegacyComponentDecision = {
         message: "Tool response content",
