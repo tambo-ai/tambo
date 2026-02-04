@@ -12,8 +12,6 @@ Claude models are known for their strong reasoning abilities, excellent coding c
 - **Claude 4.5 Family**: Latest generation with exceptional coding and reasoning
 - **Claude 4.1 Family**: Most powerful models with highest intelligence
 - **Claude 4 Family**: High-performance models with exceptional reasoning
-- **Claude 3.7 Family**: Fast or step-by-step thinking for complex tasks
-- **Claude 3.5 Family**: Fast and affordable for real-time tasks
 
 All Claude models support a 200,000 token context window, allowing for extensive conversations and document processing.
 
@@ -158,67 +156,6 @@ Claude 4 Sonnet is Anthropic's high-performance model with exceptional reasoning
 - Good choice for production deployments
 - Strong performance across multiple domains
 
-### Claude 3.7 Family
-
-#### claude-3-7-sonnet
-
-**Status:** Tested
-**API Name:** `claude-3-7-sonnet-20250219`
-**Context Window:** 200,000 tokens
-**Provider Docs:** [Anthropic Model Overview](https://docs.anthropic.com/en/docs/about-claude/models/overview)
-
-Claude 3.7 Sonnet is Anthropic's smartest model yet, with fast or step-by-step thinking capabilities. Great for coding and front-end development tasks.
-
-**Best for:**
-
-- Front-end development
-- UI/UX implementation
-- Web application development
-- Tasks requiring iterative refinement
-
-**Notes:**
-
-- Supports both fast and deliberate thinking modes
-- Excellent for web development workflows
-- Strong understanding of modern frameworks
-
-### Claude 3.5 Family
-
-#### claude-3-5-haiku
-
-**Status:** Known Issues
-**API Name:** `claude-3-5-haiku-20241022`
-**Context Window:** 200,000 tokens
-**Provider Docs:** [Anthropic Model Overview](https://docs.anthropic.com/en/docs/about-claude/models/overview)
-
-Claude 3.5 Haiku is Anthropic's fastest and most affordable model. Great for real-time tasks like chatbots, coding, and data extraction.
-
-**Best for:**
-
-- Real-time chatbots
-- Data extraction and parsing
-- Quick coding assistance
-- High-volume, cost-sensitive applications
-
-**Known Issues:**
-
-- May fail to fully render components, even when receiving the correct data
-- Example: When rendering a graph component, it may leave it in a loading state without streaming the data into props
-- Use with caution for complex component rendering tasks
-
-**Notes:**
-
-- Most cost-effective Claude model
-- Optimized for speed and throughput
-- Best for simpler tasks where the known issues don't impact functionality
-
-<Callout type="warning" title="Component Rendering Issues">
-  Claude 3.5 Haiku has known issues with component rendering. It may fail to
-  fully render components or leave them in loading states. For production
-  applications requiring reliable component rendering, consider using [Claude
-  4.5 Haiku](#claude-haiku-4-5) or higher models.
-</Callout>
-
 ## Configuration
 
 All Claude models are configured through your project settings in the Tambo dashboard:
@@ -242,9 +179,8 @@ Anthropic models support the standard LLM parameters available in Tambo. For det
 
 **For conversational AI:**
 
-- **High-quality**: [Claude Sonnet 4.5](#claude-sonnet-4-5) or [Claude 3.7 Sonnet](#claude-3-7-sonnet)
+- **High-quality**: [Claude Sonnet 4.5](#claude-sonnet-4-5) or [Claude Sonnet 4](#claude-sonnet-4)
 - **Real-time**: [Claude Haiku 4.5](#claude-haiku-4-5)
-- **Cost-effective**: [Claude 3.5 Haiku](#claude-3-5-haiku) (with [known issue caveats](#claude-3-5-haiku))
 
 **For complex analysis:**
 
