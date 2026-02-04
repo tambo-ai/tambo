@@ -103,24 +103,26 @@ function Chat() {
 
 The V1 SDK introduces several changes from the current (`@tambo-ai/react`) SDK:
 
-| Aspect           | Current SDK                | V1 SDK                                            |
-| ---------------- | -------------------------- | ------------------------------------------------- |
-| Import path      | `@tambo-ai/react`          | `@tambo-ai/react/v1`                              |
-| Main hook        | `useTambo()`               | `useTamboV1()`                                    |
-| User scoping     | `contextKey` prop          | `userKey` prop                                    |
-| Thread input     | `useTamboThreadInput()`    | `useTamboV1ThreadInput()`                         |
-| Message format   | Simple structure           | Content blocks (text, component, tool_use, etc.)  |
-| Component state  | `useTamboComponentState()` | `useTamboV1ComponentState()` (bidirectional sync) |
-| Generation stage | `GenerationStage` enum     | `streamingState.status` string                    |
-| Data fetching    | Context-based              | React Query hooks                                 |
+| Aspect           | Current SDK                | V1 SDK                                                                           |
+| ---------------- | -------------------------- | -------------------------------------------------------------------------------- |
+| Import path      | `@tambo-ai/react`          | `@tambo-ai/react/v1`                                                             |
+| Main hook        | `useTambo()`               | `useTamboV1()`                                                                   |
+| User scoping     | `contextKey` prop          | `userKey` prop                                                                   |
+| Thread input     | `useTamboThreadInput()`    | `useTamboV1ThreadInput()`                                                        |
+| Message format   | Simple structure           | Content blocks (text, component, tool_use, etc.)                                 |
+| Component state  | `useTamboComponentState()` | `useTamboV1ComponentState()` (bidirectional sync)                                |
+| Generation stage | `GenerationStage` enum     | `streamingState.status` ([`RunStatus`](/reference/react-sdk-v1/types#runstatus)) |
+| Data fetching    | Context-based              | React Query hooks                                                                |
 
 ## What's Not Yet Supported
 
 <Callout type="error" title="Not Yet Available">
   The following features from the current SDK are not yet available in V1:
 
-- **Interactable Components** - The `withTamboInteractable` HOC and related hooks are not yet implemented in V1.
-  </Callout>
+Interactable components are not yet available in V1 (including the
+`withTamboInteractable` HOC and related hooks).
+
+</Callout>
 
 ## Migration
 

@@ -45,8 +45,8 @@ function App() {
 
 | Prop                     | Type                                             | Required | Description                            |
 | ------------------------ | ------------------------------------------------ | -------- | -------------------------------------- |
-| `apiKey`                 | `string`                                         | Yes\*    | Your Tambo API key                     |
-| `userToken`              | `string`                                         | No       | OAuth token for user authentication    |
+| `apiKey`                 | `string`                                         | Yes      | Your Tambo API key                     |
+| `userToken`              | `string`                                         | Yes\*    | OAuth token for user authentication    |
 | `userKey`                | `string`                                         | Yes\*    | Unique identifier for the current user |
 | `tamboUrl`               | `string`                                         | No       | Custom Tambo API URL                   |
 | `environment`            | `string`                                         | No       | Environment name                       |
@@ -60,12 +60,13 @@ function App() {
 | `getResource`            | `(uri: string) => Promise<ReadResourceResult>`   | No       | Resource content resolver              |
 | `queryClient`            | `QueryClient`                                    | No       | Custom React Query client              |
 
-\*Either `apiKey` or `userToken` is required for authentication. `userKey` is required for thread scoping.
+\*Exactly one of `userToken` or `userKey` is required to identify the current user.
 
 <Callout type="info" title="userKey vs contextKey">
-  In V1, threads are scoped per user using `userKey`. This replaces `contextKey`
-  from the current SDK. The `userKey` is a unique identifier for the user, such
-  as a user ID from your authentication system.
+  In V1, threads are scoped per user using `userKey` (or the user identified by
+  `userToken`). This replaces `contextKey` from the current SDK. The `userKey`
+  is a unique identifier for the user, such as a user ID from your
+  authentication system.
 </Callout>
 
 ### Example with All Options

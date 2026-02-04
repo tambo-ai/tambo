@@ -1,4 +1,4 @@
 {
   "title": "React SDK 1.0 (Coming Soon)",
-  "pages": ["index", "hooks", "types", "providers"]
+  "pages": ["index", "hooks", "types", "providers", "migration"]
 }
