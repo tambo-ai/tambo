@@ -251,7 +251,7 @@ describe("V1Service", () => {
 
       const result = await service.listThreads("prj_123", "user_456", {
         cursor,
-        limit: "10",
+        limit: 10,
       });
 
       expect(mockOperations.listThreadsPaginated).toHaveBeenCalledWith(
@@ -275,17 +275,7 @@ describe("V1Service", () => {
       ).rejects.toThrow(BadRequestException);
     });
 
-    it("should reject an invalid limit", async () => {
-      await expect(
-        service.listThreads("prj_123", "user_456", { limit: "not-a-number" }),
-      ).rejects.toThrow(BadRequestException);
-    });
-
-    it("should reject an empty limit", async () => {
-      await expect(
-        service.listThreads("prj_123", "user_456", { limit: "" }),
-      ).rejects.toThrow(BadRequestException);
-    });
+    // Note: Invalid limit validation is now handled at the DTO layer via class-validator
 
     it("should indicate hasMore when more results exist", async () => {
       // Return 21 results when limit is 20 (default)
@@ -327,7 +317,7 @@ describe("V1Service", () => {
       mockOperations.listThreadsPaginated.mockResolvedValue([t1, t2]);
 
       const result = await service.listThreads("prj_123", "user_456", {
-        limit: "1",
+        limit: 1,
       });
 
       expect(result.hasMore).toBe(true);
@@ -514,7 +504,7 @@ describe("V1Service", () => {
 
       await service.listMessages("thr_123", {
         cursor,
-        limit: "10",
+        limit: 10,
       });
 
       expect(mockOperations.listMessagesPaginated).toHaveBeenCalledWith(
@@ -537,17 +527,7 @@ describe("V1Service", () => {
       ).rejects.toThrow(BadRequestException);
     });
 
-    it("should reject an invalid limit", async () => {
-      await expect(
-        service.listMessages("thr_123", { limit: "not-a-number" }),
-      ).rejects.toThrow(BadRequestException);
-    });
-
-    it("should reject an empty limit", async () => {
-      await expect(
-        service.listMessages("thr_123", { limit: "" }),
-      ).rejects.toThrow(BadRequestException);
-    });
+    // Note: Invalid limit validation is now handled at the DTO layer via class-validator
 
     it("should set nextCursor for both asc and desc", async () => {
       const msg1 = {
@@ -572,7 +552,7 @@ describe("V1Service", () => {
         msg3,
       ]);
       const ascPage = await service.listMessages("thr_123", {
-        limit: "2",
+        limit: 2,
         order: "asc",
       });
       expect(ascPage.hasMore).toBe(true);
@@ -585,7 +565,7 @@ describe("V1Service", () => {
         msg1,
       ]);
       const descPage = await service.listMessages("thr_123", {
-        limit: "2",
+        limit: 2,
         order: "desc",
       });
       expect(descPage.hasMore).toBe(true);

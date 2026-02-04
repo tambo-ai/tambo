@@ -122,17 +122,9 @@ export class V1Service {
     private readonly threadsService: ThreadsService,
   ) {}
 
-  private parseLimit(raw: string | undefined, fallback: number): number {
-    if (raw !== undefined && raw.trim() === "") {
-      throw new BadRequestException("Invalid limit");
-    }
-
-    const parsed = raw === undefined ? fallback : Number(raw);
-    if (!Number.isInteger(parsed)) {
-      throw new BadRequestException("Invalid limit");
-    }
-
-    return Math.min(Math.max(1, parsed), 100);
+  private parseLimit(raw: number | undefined, fallback: number): number {
+    const value = raw ?? fallback;
+    return Math.min(Math.max(1, value), 100);
   }
 
   /**

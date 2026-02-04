@@ -7,6 +7,9 @@ import {
   IsObject,
   IsBoolean,
   ValidateNested,
+  IsInt,
+  Min,
+  Max,
 } from "class-validator";
 import { Type } from "class-transformer";
 import { V1InputMessageDto, V1MessageDto } from "./message.dto";
@@ -233,10 +236,14 @@ export class V1ListThreadsQueryDto {
     description: "Maximum number of threads to return",
     required: false,
     default: 20,
+    type: Number,
   })
   @IsOptional()
-  @IsString()
-  limit?: string;
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(100)
+  limit?: number;
 
   @ApiProperty({
     description: "Cursor for pagination",
