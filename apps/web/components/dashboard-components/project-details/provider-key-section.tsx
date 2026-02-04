@@ -73,7 +73,7 @@ export const InteractableProviderKeySectionProps = z.object({
         .string()
         .optional()
         .describe(
-          "The model API name (e.g., 'gpt-4o', 'claude-3-5-sonnet-20241022'). Use 'custom' or omit for custom providers.",
+          "The model API name (e.g., 'gpt-5.2', 'claude-sonnet-4-5-20250929'). Use 'custom' or omit for custom providers.",
         ),
     })
     .optional()
