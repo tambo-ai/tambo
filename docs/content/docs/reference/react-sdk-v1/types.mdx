@@ -1,0 +1,390 @@
+---
+title: React SDK 1.0 Types
+description: TypeScript interfaces and types exported by @tambo-ai/react/v1
+---
+
+import { Callout } from "fumadocs-ui/components/callout";
+
+<Callout type="warn" title="Preview Documentation">
+  This documents the upcoming React SDK 1.0, currently in preview. The API may change before the stable release.
+</Callout>
+
+The `@tambo-ai/react/v1` package exports TypeScript types and interfaces for building type-safe AI applications.
+
+## Thread Types
+
+### TamboV1Thread
+
+Represents a conversation thread with messages and metadata.
+
+```typescript
+interface TamboV1Thread {
+  id: string;
+  title?: string;
+  messages: TamboV1Message[];
+  status: RunStatus;
+  metadata?: Record<string, unknown>;
+  createdAt: string;
+  updatedAt: string;
+}
+```
+
+### RunStatus
+
+The status of the current run in a thread.
+
+```typescript
+type RunStatus = "idle" | "waiting" | "streaming" | "complete" | "error";
+```
+
+| Status | Description |
+|--------|-------------|
+| `idle` | No generation in progress |
+| `waiting` | Waiting for server response |
+| `streaming` | Actively receiving streamed response |
+| `complete` | Generation finished successfully |
+| `error` | An error occurred |
+
+### StreamingState
+
+Detailed streaming state returned by `useTamboV1()`.
+
+```typescript
+interface StreamingState {
+  status: RunStatus;
+  runId?: string;
+  messageId?: string;
+  startTime?: number;
+  error?: {
+    message: string;
+    code?: string;
+  };
+}
+```
+
+## Message Types
+
+### TamboV1Message
+
+A message in a V1 thread, containing an array of content blocks.
+
+```typescript
+interface TamboV1Message {
+  id: string;
+  role: MessageRole;
+  content: Content[];
+  createdAt?: string;
+  metadata?: Record<string, unknown>;
+}
+```
+
+### MessageRole
+
+The role of a message sender.
+
+```typescript
+type MessageRole = "user" | "assistant" | "system";
+```
+
+### Content Types
+
+Messages contain an array of typed content blocks:
+
+```typescript
+type Content =
+  | TextContent
+  | V1ComponentContent
+  | V1ToolUseContent
+  | ToolResultContent
+  | ResourceContent;
+```
+
+#### TextContent
+
+Plain text content.
+
+```typescript
+interface TextContent {
+  type: "text";
+  text: string;
+}
+```
+
+#### V1ComponentContent
+
+A rendered component with streaming state.
+
+```typescript
+interface V1ComponentContent {
+  type: "component";
+  id: string;
+  name: string;
+  props: Record<string, unknown>;
+  streamingState?: "started" | "streaming" | "done";
+  renderedComponent?: ReactElement | null;
+}
+```
+
+The `renderedComponent` property contains the pre-rendered React element for the component, looked up from the registry.
+
+#### V1ToolUseContent
+
+A tool invocation with display metadata.
+
+```typescript
+interface V1ToolUseContent {
+  type: "tool_use";
+  id: string;
+  name: string;
+  input: Record<string, unknown>;
+  hasCompleted?: boolean;
+  statusMessage?: string;
+  tamboDisplayProps?: TamboToolDisplayProps;
+}
+```
+
+<Callout type="info">
+  The `input` object has internal `_tambo_*` properties automatically stripped. Display messages are available via `tamboDisplayProps`.
+</Callout>
+
+#### TamboToolDisplayProps
+
+Display properties extracted from tool inputs.
+
+```typescript
+interface TamboToolDisplayProps {
+  _tambo_displayMessage?: string;
+  _tambo_statusMessage?: string;
+  _tambo_completionStatusMessage?: string;
+}
+```
+
+#### ToolResultContent
+
+The result of a tool execution.
+
+```typescript
+interface ToolResultContent {
+  type: "tool_result";
+  tool_use_id: string;
+  content: string | ContentPart[];
+}
+```
+
+#### ResourceContent
+
+An MCP resource reference.
+
+```typescript
+interface ResourceContent {
+  type: "resource";
+  uri: string;
+  name?: string;
+  mimeType?: string;
+  text?: string;
+}
+```
+
+## Component Types
+
+### TamboV1Component
+
+Configuration for registering a component with Tambo V1.
+
+```typescript
+interface TamboV1Component {
+  name: string;
+  description: string;
+  component: ComponentType<any>;
+  propsSchema: Record<string, unknown>;
+  stateSchema?: Record<string, unknown>;
+  initialState?: () => Record<string, unknown>;
+}
+```
+
+### Properties
+
+| Property | Type | Required | Description |
+|----------|------|----------|-------------|
+| `name` | `string` | Yes | Unique identifier for the component |
+| `description` | `string` | Yes | Description for AI understanding |
+| `component` | `ComponentType` | Yes | The React component to render |
+| `propsSchema` | `object` | Yes | JSON Schema for component props |
+| `stateSchema` | `object` | No | JSON Schema for component state |
+| `initialState` | `() => object` | No | Factory function for initial state |
+
+### Example Registration
+
+```typescript
+import { z } from "zod";
+import { zodToJsonSchema } from "zod-to-json-schema";
+
+const WeatherCardSchema = z.object({
+  city: z.string().describe("The city name"),
+  temperature: z.number().describe("Temperature in Fahrenheit"),
+  condition: z.string().describe("Weather condition"),
+});
+
+const components: TamboV1Component[] = [
+  {
+    name: "WeatherCard",
+    description: "Displays current weather for a city",
+    component: WeatherCard,
+    propsSchema: zodToJsonSchema(WeatherCardSchema),
+  },
+];
+```
+
+### TamboComponentProps
+
+Props interface for components receiving Tambo data.
+
+```typescript
+interface TamboComponentProps<TProps, TState> {
+  props: TProps;
+  state?: TState;
+  componentId: string;
+  isStreaming?: boolean;
+}
+```
+
+## Tool Types
+
+### TamboTool
+
+The same `TamboTool` interface from the base SDK is used in V1.
+
+```typescript
+interface TamboTool {
+  name: string;
+  description: string;
+  tool: (params: Record<string, unknown>) => unknown;
+  inputSchema: SupportedSchema;
+  outputSchema: SupportedSchema;
+  transformToContent?: (result: any) => Promise<ContentPart[]> | ContentPart[];
+  maxCalls?: number;
+  annotations?: ToolAnnotations;
+}
+```
+
+See the [base SDK types reference](/reference/react-sdk/types#tambotool) for detailed documentation.
+
+## Event Types
+
+### TamboCustomEvent
+
+Custom events emitted during streaming.
+
+```typescript
+type TamboCustomEvent =
+  | ComponentStartEvent
+  | ComponentPropsDeltaEvent
+  | ComponentStateDeltaEvent
+  | ComponentEndEvent
+  | RunAwaitingInputEvent;
+```
+
+#### ComponentStartEvent
+
+Emitted when component rendering begins.
+
+```typescript
+interface ComponentStartEvent {
+  name: "tambo.component.start";
+  componentId: string;
+  componentName: string;
+}
+```
+
+#### ComponentPropsDeltaEvent
+
+Emitted when component props are updated (JSON Patch format).
+
+```typescript
+interface ComponentPropsDeltaEvent {
+  name: "tambo.component.props_delta";
+  componentId: string;
+  delta: JsonPatchOperation[];
+}
+```
+
+#### ComponentStateDeltaEvent
+
+Emitted when component state is updated (JSON Patch format).
+
+```typescript
+interface ComponentStateDeltaEvent {
+  name: "tambo.component.state_delta";
+  componentId: string;
+  delta: JsonPatchOperation[];
+}
+```
+
+#### ComponentEndEvent
+
+Emitted when component rendering completes.
+
+```typescript
+interface ComponentEndEvent {
+  name: "tambo.component.end";
+  componentId: string;
+}
+```
+
+#### RunAwaitingInputEvent
+
+Emitted when the run is waiting for tool execution.
+
+```typescript
+interface RunAwaitingInputEvent {
+  name: "tambo.run.awaiting_input";
+  toolCalls: ToolCall[];
+}
+```
+
+### Type Guards
+
+Helper functions for working with events:
+
+```typescript
+function isTamboCustomEvent(event: { name?: string }): event is TamboCustomEvent;
+function asTamboCustomEvent(event: CustomEvent): TamboCustomEvent | undefined;
+```
+
+## Re-exported Types
+
+The following types are re-exported from the base SDK for convenience:
+
+### Component & Tool Types
+
+- `TamboComponent` - Base component registration interface
+- `TamboTool` - Tool definition interface
+- `ComponentRegistry` - Map of registered components
+- `ParameterSpec` - Parameter specification
+
+### Context Types
+
+- `ContextHelpers` - Collection of context helpers
+- `ContextHelperFn` - Context helper function signature
+- `AdditionalContext` - Additional context interface
+
+### MCP Types
+
+- `MCPTransport` - Transport type enum
+- `McpServerInfo` - MCP server configuration
+- `NormalizedMcpServerInfo` - Processed server info
+- `ReadResourceResult` - Resource read result
+- `ListResourceItem` - Resource list item
+- `ResourceSource` - Resource source interface
+
+### SDK Types
+
+- `Suggestion` - AI-generated suggestion
+- `SuggestionGenerateParams` - Suggestion generation parameters
+- `SuggestionGenerateResponse` - Suggestion generation response
+
+### Error Types
+
+- `TamboAIError` - Base error class
+- `APIError` - API error
+- `RateLimitError` - Rate limit error
