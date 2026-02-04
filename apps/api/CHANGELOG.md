@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.136.0](https://github.com/tambo-ai/tambo/compare/api-v0.135.0...api-v0.136.0) (2026-02-04)
+
+
+### Features
+
+* **api,react-sdk:** V1 API message loading improvements ([#2190](https://github.com/tambo-ai/tambo/issues/2190)) ([53eb5ad](https://github.com/tambo-ai/tambo/commit/53eb5ad852c7c4b02845af8c326c1e4007eca521))
+* **api:** add additionalContext to V1 API and fix limit type ([#2193](https://github.com/tambo-ai/tambo/issues/2193)) ([f6707d7](https://github.com/tambo-ai/tambo/commit/f6707d7d96f970add58dface84d721cdf20b959a))
+
+
+### Bug Fixes
+
+* **api:** use DEFAULT_OPENAI_MODEL constant in threads service tests ([#2173](https://github.com/tambo-ai/tambo/issues/2173)) ([e401583](https://github.com/tambo-ai/tambo/commit/e401583e93fbbbec8134757abd71e451db0f2c08))
+* update sentry config for db spans ([#2166](https://github.com/tambo-ai/tambo/issues/2166)) ([c6c212a](https://github.com/tambo-ai/tambo/commit/c6c212acde1c76e16a1dc9ed62d9a726e9fc1025))
+
 ## [0.135.0](https://github.com/tambo-ai/tambo/compare/api-v0.134.0...api-v0.135.0) (2026-02-03)
 
 
