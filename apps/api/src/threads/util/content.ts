@@ -1,8 +1,20 @@
 import {
   ChatCompletionContentPart,
+  ChatCompletionContentPartComponent,
   ContentPartType,
 } from "@tambo-ai-cloud/core";
 import { ChatCompletionContentPartDto } from "../dto/message.dto";
+
+/**
+ * V1 API-specific content types that should be filtered from legacy API responses
+ * but preserved when storing to the database.
+ */
+const V1_CONTENT_TYPES = ["component", "tool_use", "tool_result"] as const;
+type V1ContentType = (typeof V1_CONTENT_TYPES)[number];
+
+function isV1ContentType(type: string): type is V1ContentType {
+  return V1_CONTENT_TYPES.includes(type as V1ContentType);
+}
 
 /**
  * Convert a serialized content part to a content part that can be consumed by
@@ -69,6 +81,11 @@ export function convertContentDtoToContentPart(
           };
         }
         default:
+          // Pass through V1-specific content types (component, tool_use, tool_result)
+          // These are stored in the DB and used by V1 API but filtered from legacy responses
+          if (isV1ContentType(part.type)) {
+            return part as unknown as ChatCompletionContentPart;
+          }
           console.log("Unknown content part type:", part);
           throw new Error(`Unknown content part type: ${part.type}`);
       }
@@ -77,11 +94,12 @@ export function convertContentDtoToContentPart(
 }
 
 /**
- * Convert a string or array of LLM content parts to a serialized content part.
+ * Convert a string or array of LLM content parts to a serialized content part
+ * for legacy (pre-V1) API responses.
  *
- * Filters out component content parts (type: "component") which are V1 API-specific
- * and should not be exposed in legacy API responses. Components are stored in the
- * content array for V1 API state updates but legacy clients expect only standard
+ * Filters out V1 API-specific content types (component, tool_use, tool_result)
+ * which should not be exposed in legacy API responses. These types are stored in
+ * the database for V1 API support but legacy clients expect only standard
  * content types (text, image_url, input_audio, resource).
  */
 export function convertContentPartToDto(
@@ -90,10 +108,38 @@ export function convertContentPartToDto(
   if (typeof part === "string") {
     return [{ type: ContentPartType.Text, text: part }];
   }
-  // Filter out component content parts - they're V1 API-specific
+  // Filter out V1 API-specific content types
   return part.filter(
-    (p) => p.type !== "component",
+    (p) => !isV1ContentType(p.type),
   ) as ChatCompletionContentPartDto[];
+}
+
+/**
+ * Prepare content for database storage.
+ *
+ * Unlike convertContentPartToDto, this function preserves ALL content types
+ * including V1-specific types (component, tool_use, tool_result). These types
+ * need to be stored in the database so the V1 API can look them up for
+ * operations like component state updates.
+ *
+ * @returns The content array unchanged, preserving all content types
+ */
+export function contentPartToDbFormat(
+  content: ChatCompletionContentPart[] | string,
+): ChatCompletionContentPart[] {
+  if (typeof content === "string") {
+    return [{ type: ContentPartType.Text, text: content }];
+  }
+  return content;
+}
+
+/**
+ * Type guard to check if a content part is a component content block.
+ */
+export function isComponentContentPart(
+  part: ChatCompletionContentPart,
+): part is ChatCompletionContentPartComponent {
+  return part.type === "component";
 }
 
 /**

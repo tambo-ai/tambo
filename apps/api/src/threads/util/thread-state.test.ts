@@ -577,11 +577,11 @@ describe("Thread State", () => {
       );
     });
 
-    it("should use computed component ID format in content block and preserve all fields", () => {
+    it("should preserve streaming componentId in content block for V1 API lookups", () => {
       const mockDecision: LegacyComponentDecision = {
         message: "Here's a weather card",
         componentName: "WeatherCard",
-        componentId: "message-temp-id-123", // Temporary streaming ID (ignored)
+        componentId: "message-EIWjfCzPpeuGNir9dG8ZL", // Streaming ID from AG-UI events
         props: { temperature: 72, location: "San Francisco" },
         componentState: { expanded: true, lastUpdated: "2024-01-01" },
         reasoning: [],
@@ -605,10 +605,9 @@ describe("Thread State", () => {
       const componentBlock = result.content.find((c) => c.type === "component");
 
       expect(componentBlock).toBeDefined();
-      // The stored ID should be the computed format (comp_${messageId}),
-      // not the temp streaming ID, to match what v1-conversions.ts returns.
-      // This ensures V1 API state updates can find the component by ID.
-      expect(componentBlock?.id).toBe("comp_msg_abc123");
+      // The stored ID should be the streaming componentId from AG-UI events.
+      // This ID is used by V1 API to look up components for state updates.
+      expect(componentBlock?.id).toBe("message-EIWjfCzPpeuGNir9dG8ZL");
       // Verify all other component fields are preserved correctly
       expect(componentBlock?.name).toBe("WeatherCard");
       expect(componentBlock?.props).toEqual({

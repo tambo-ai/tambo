@@ -1,6 +1,7 @@
 import {
-  ContentPartType,
   ChatCompletionContentPart,
+  ChatCompletionContentPartComponent,
+  ContentPartType,
   isUiToolName,
   MessageRole,
 } from "@tambo-ai-cloud/core";
@@ -154,6 +155,20 @@ export function contentPartToV1Block(
       };
       return resourceBlock;
     }
+    case "component": {
+      // Component blocks are stored in the content array and passed through to V1 API.
+      // The component state is merged from the message's componentState field.
+      // Type narrowing works since we're in the "component" case
+      const componentPart =
+        part as unknown as ChatCompletionContentPartComponent;
+      return {
+        type: "component",
+        id: componentPart.id,
+        name: componentPart.name,
+        props: componentPart.props,
+        state: componentPart.state,
+      };
+    }
     default:
       // Notify caller of unknown content type
       onUnknownContentType({ type: getContentPartType(part) });
@@ -176,6 +191,7 @@ export function contentToV1Blocks(
   options?: ContentConversionOptions,
 ): V1ContentBlock[] {
   const blocks: V1ContentBlock[] = [];
+  let foundComponentInContent = false;
 
   // For tool role messages, wrap content in a tool_result block
   if (message.role === "tool" && message.toolCallId) {
@@ -199,20 +215,35 @@ export function contentToV1Blocks(
   }
 
   // Convert standard content parts (non-tool messages)
+  // Including component blocks stored in the content array
   if (Array.isArray(message.content)) {
     for (const part of message.content) {
       const block = contentPartToV1Block(part, options);
       if (block) {
+        // For component blocks, merge the message's componentState which may be
+        // more up-to-date than what's stored in the content array
+        if (block.type === "component") {
+          foundComponentInContent = true;
+          if (message.componentState) {
+            block.state = message.componentState;
+          }
+        }
         blocks.push(block);
       }
     }
   }
 
-  // Add component content block if present (only for assistant messages)
+  // Backwards compatibility: If no component was found in the content array but
+  // componentDecision exists, generate a component block from it. This handles
+  // messages created before component blocks were stored in the content array.
   // Tool messages may have componentDecision copied from the assistant message,
   // but we don't want to duplicate the component block - it belongs on the
   // assistant message that decided to render it.
-  if (message.componentDecision && message.role !== "tool") {
+  if (
+    !foundComponentInContent &&
+    message.componentDecision &&
+    message.role !== "tool"
+  ) {
     const component = message.componentDecision;
     if (component.componentName) {
       const componentBlock: V1ComponentContentDto = {
