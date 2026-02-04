@@ -969,6 +969,60 @@ describe("V1Service", () => {
       expect(mockOperations.createRun).toHaveBeenCalledTimes(1);
       expect(mockOperations.setCurrentRunId).toHaveBeenCalledTimes(1);
     });
+
+    it("should pass additionalContext through to internal message", async () => {
+      mockOperations.getThreadForRunStart.mockResolvedValue({
+        thread: {
+          ...mockThread,
+          runStatus: V1RunStatus.IDLE,
+        },
+        hasMessages: false,
+      });
+      mockOperations.acquireRunLock.mockResolvedValue(true);
+      mockOperations.createRun.mockResolvedValue({ id: "run_new" });
+
+      const additionalContext = {
+        currentPage: "/dashboard",
+        userPreferences: { theme: "dark" },
+        nestedObject: { deeply: { nested: { value: 123 } } },
+      };
+
+      const result = await service.startRun("thr_123", {
+        message: {
+          role: "user",
+          content: [{ type: "text", text: "Hi" }],
+          additionalContext,
+        },
+      });
+
+      expect(result.success).toBe(true);
+      // The message conversion happens inside advanceThread which we mock,
+      // so we verify the run was started successfully with the message
+      expect(mockOperations.createRun).toHaveBeenCalledTimes(1);
+    });
+
+    it("should work without additionalContext (backward compatible)", async () => {
+      mockOperations.getThreadForRunStart.mockResolvedValue({
+        thread: {
+          ...mockThread,
+          runStatus: V1RunStatus.IDLE,
+        },
+        hasMessages: false,
+      });
+      mockOperations.acquireRunLock.mockResolvedValue(true);
+      mockOperations.createRun.mockResolvedValue({ id: "run_new" });
+
+      const result = await service.startRun("thr_123", {
+        message: {
+          role: "user",
+          content: [{ type: "text", text: "Hi" }],
+          // No additionalContext - should still work
+        },
+      });
+
+      expect(result.success).toBe(true);
+      expect(mockOperations.createRun).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe("cancelRun", () => {

@@ -127,6 +127,15 @@ export class V1InputMessageDto {
   @IsOptional()
   @IsObject()
   metadata?: Record<string, unknown>;
+
+  @ApiProperty({
+    description:
+      "Additional context to provide to the AI beyond the user query, such as current page URL or application state",
+    required: false,
+  })
+  @IsOptional()
+  @IsObject()
+  additionalContext?: Record<string, unknown>;
 }
 
 /**

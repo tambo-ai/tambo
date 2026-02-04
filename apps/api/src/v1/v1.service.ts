@@ -820,6 +820,7 @@ export class V1Service {
             );
         }
       }),
+      additionalContext: message.additionalContext,
     };
   }
 
