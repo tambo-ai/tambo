@@ -432,15 +432,16 @@ describe("useTamboV1StreamStatus", () => {
       expect(result.current.propStatus).toEqual({});
     });
 
-    it("should reset prop tracking when component ID changes", () => {
-      // Step 1: Start streaming the first component
-      const streamingComponent = createComponentContent({
+    it("should warn when component ID changes unexpectedly", () => {
+      const consoleSpy = jest.spyOn(console, "warn").mockImplementation();
+
+      const componentContent = createComponentContent({
         id: "first-component",
-        props: { title: "First Title" },
+        props: { title: "Title" },
         streamingState: "streaming",
       });
-      const streamingMessage = createMessage(streamingComponent);
-      let threadState = createThreadState([streamingMessage]);
+      const message = createMessage(componentContent);
+      const threadState = createThreadState([message]);
       mockUseStreamState.mockReturnValue(createStreamState(threadState));
 
       mockUseV1ComponentContent.mockReturnValue({
@@ -450,37 +451,14 @@ describe("useTamboV1StreamStatus", () => {
         componentName: "TestComponent",
       });
 
-      const { result, rerender } = renderHook(() =>
+      const { rerender } = renderHook(() =>
         useTamboV1StreamStatus<{ title: string }>(),
       );
 
-      // Should be streaming initially
-      expect(result.current.propStatus.title.isStreaming).toBe(true);
+      // No warning initially
+      expect(consoleSpy).not.toHaveBeenCalled();
 
-      // Step 2: Complete the first component
-      const doneComponent = createComponentContent({
-        id: "first-component",
-        props: { title: "First Title" },
-        streamingState: "done",
-      });
-      const doneMessage = createMessage(doneComponent);
-      threadState = createThreadState([doneMessage]);
-      mockUseStreamState.mockReturnValue(createStreamState(threadState));
-      rerender();
-
-      // Should be successful after done
-      expect(result.current.propStatus.title.isSuccess).toBe(true);
-
-      // Step 3: Switch to a new component with empty props
-      const secondComponent = createComponentContent({
-        id: "second-component",
-        props: { title: "" },
-        streamingState: "started",
-      });
-      const secondMessage = createMessage(secondComponent);
-      threadState = createThreadState([doneMessage, secondMessage]);
-      mockUseStreamState.mockReturnValue(createStreamState(threadState));
-
+      // Change componentId (this should not happen in practice)
       mockUseV1ComponentContent.mockReturnValue({
         componentId: "second-component",
         threadId: "test-thread",
@@ -490,9 +468,12 @@ describe("useTamboV1StreamStatus", () => {
 
       rerender();
 
-      // Should reset to pending for new component
-      expect(result.current.propStatus.title.isPending).toBe(true);
-      expect(result.current.propStatus.title.isSuccess).toBe(false);
+      // Should log a warning
+      expect(consoleSpy).toHaveBeenCalledWith(
+        expect.stringContaining("componentId changed"),
+      );
+
+      consoleSpy.mockRestore();
     });
   });
 });

@@ -9,7 +9,7 @@
  * Must be used within a component rendered via the component renderer.
  */
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useV1ComponentContent } from "../utils/component-renderer";
 import { useStreamState } from "../providers/tambo-v1-stream-context";
 import type { V1ComponentContent } from "../types/message";
@@ -116,148 +116,60 @@ function findComponentContent(
 /**
  * Track streaming status for individual props by monitoring their values.
  * Monitors when props receive their first token and when they complete streaming.
- * Maintains stable state per component - once props complete, they stay complete.
  * @template Props - The type of the component props being tracked
  * @param props - The current component props object
  * @param componentStreamingState - The current streaming state of the component
- * @param componentId - The ID of the current component to track component-specific state
  * @returns A record mapping each prop key to its PropStatus
  */
 function usePropsStreamingStatus<Props extends object>(
   props: Props | undefined,
   componentStreamingState: V1ComponentContent["streamingState"] | undefined,
-  componentId: string,
 ): Record<keyof Props, PropStatus> {
-  const [propTracking, setPropTracking] = useState<
-    Record<
-      string,
-      {
-        hasStarted: boolean;
-        isComplete: boolean;
-        error?: Error;
-        componentId: string;
-      }
-    >
-  >({});
+  /** Track which props have received content */
+  const [startedProps, setStartedProps] = useState<Set<string>>(new Set());
 
-  /** Reset tracking only when the component changes */
-  useEffect(() => {
-    setPropTracking((prev) => {
-      // If we have tracking data for a different component, reset
-      const hasOldComponentData = Object.values(prev).some(
-        (track) => track.componentId && track.componentId !== componentId,
-      );
-      return hasOldComponentData ? {} : prev;
-    });
-  }, [componentId]);
-
-  /** Track when props start streaming (receive first token) and when they complete */
+  /** Update started props when content arrives */
   useEffect(() => {
     if (!props) return;
 
-    setPropTracking((prev) => {
-      const updated = { ...prev };
-      let hasChanges = false;
+    setStartedProps((prev) => {
+      let changed = false;
+      const newStarted = new Set(prev);
 
-      // First pass: identify which props are starting now
-      const propsStartingNow: string[] = [];
-      Object.entries(props).forEach(([key, value]) => {
-        const current = prev[key] || {
-          hasStarted: false,
-          isComplete: false,
-        };
-
-        /** A prop starts streaming when it has a non-empty value for the first time */
+      for (const [key, value] of Object.entries(props)) {
         const hasContent =
           value !== undefined && value !== null && value !== "";
-        const justStarted = hasContent && !current.hasStarted;
-
-        if (justStarted) {
-          propsStartingNow.push(key);
+        if (hasContent && !newStarted.has(key)) {
+          newStarted.add(key);
+          changed = true;
         }
-      });
+      }
 
-      // Second pass: update tracking and mark previous props as complete
-      Object.entries(props).forEach(([key, value]) => {
-        const current = prev[key] || {
-          hasStarted: false,
-          isComplete: false,
-        };
-
-        /** A prop starts streaming when it has a non-empty value for the first time */
-        const hasContent =
-          value !== undefined && value !== null && value !== "";
-        const justStarted = hasContent && !current.hasStarted;
-
-        /**
-         * A prop is complete when it has started and either:
-         * 1. A following prop has started, OR
-         * 2. Component streaming is done (for the final prop)
-         */
-        const hasFollowingPropStarted = propsStartingNow.some(
-          (startingKey) => startingKey !== key,
-        );
-        const isComponentStreamingDone = componentStreamingState === "done";
-        const isComplete =
-          current.hasStarted &&
-          (hasFollowingPropStarted || isComponentStreamingDone) &&
-          !current.isComplete;
-
-        // Once a prop is complete for this component, it stays complete
-        if (current.isComplete && current.componentId === componentId) {
-          // Skip - already complete for this component
-          return;
-        }
-
-        if (justStarted || isComplete) {
-          updated[key] = {
-            ...current,
-            hasStarted: justStarted ? true : current.hasStarted,
-            isComplete: isComplete ? true : current.isComplete,
-            componentId,
-          };
-          hasChanges = true;
-        }
-      });
-
-      return hasChanges ? updated : prev;
+      return changed ? newStarted : prev;
     });
-  }, [props, componentStreamingState, componentId]);
+  }, [props]);
 
-  /** Convert tracking state to PropStatus objects */
+  /** Derive prop statuses from started props and streaming state */
   return useMemo(() => {
     if (!props) return {} as Record<keyof Props, PropStatus>;
 
+    const isStreamingDone = componentStreamingState === "done";
+    const isComponentStreaming = componentStreamingState === "streaming";
+
     const result = {} as Record<keyof Props, PropStatus>;
-
-    Object.keys(props).forEach((key) => {
-      const tracking = propTracking[key] || {
-        hasStarted: false,
-        isComplete: false,
-        componentId: "",
-      };
-
-      // If this prop is complete for this component, it stays complete
-      const isCompleteForThisComponent =
-        tracking.isComplete && tracking.componentId === componentId;
-
-      // Only consider streaming state if this prop isn't already complete for this component
-      const isComponentStreaming =
-        !isCompleteForThisComponent && componentStreamingState === "streaming";
+    for (const key of Object.keys(props)) {
+      const hasStarted = startedProps.has(key);
+      const isComplete = hasStarted && isStreamingDone;
 
       result[key as keyof Props] = {
-        isPending: !tracking.hasStarted && !isCompleteForThisComponent,
-        isStreaming:
-          tracking.hasStarted &&
-          !isCompleteForThisComponent &&
-          isComponentStreaming,
-        isSuccess: isCompleteForThisComponent,
-        error: tracking.error,
+        isPending: !hasStarted && !isComplete,
+        isStreaming: hasStarted && !isComplete && isComponentStreaming,
+        isSuccess: isComplete,
+        error: undefined,
       };
-    });
-
+    }
     return result;
-  }, [props, propTracking, componentStreamingState, componentId]);
+  }, [props, startedProps, componentStreamingState]);
 }
 
 /**
@@ -348,6 +260,18 @@ export function useTamboV1StreamStatus<
   const { componentId, threadId } = useV1ComponentContent();
   const streamState = useStreamState();
 
+  /** Warn if componentId changes unexpectedly (it should remain stable) */
+  const initialComponentIdRef = useRef(componentId);
+  useEffect(() => {
+    if (componentId !== initialComponentIdRef.current) {
+      console.warn(
+        `useTamboV1StreamStatus: componentId changed from "${initialComponentIdRef.current}" to "${componentId}". ` +
+          "This is unexpected and may indicate a bug in the component tree.",
+      );
+      initialComponentIdRef.current = componentId;
+    }
+  }, [componentId]);
+
   /** Get the current thread state */
   const threadState = streamState.threadMap[threadId];
 
@@ -375,7 +299,6 @@ export function useTamboV1StreamStatus<
   const propStatus = usePropsStreamingStatus(
     componentProps,
     componentStreamingState,
-    componentId,
   );
 
   /** Derive global stream status from prop statuses and component streaming state */
