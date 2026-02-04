@@ -6,7 +6,16 @@ description: Reference for TamboV1Provider and other provider components used to
 import { Callout } from "fumadocs-ui/components/callout";
 
 <Callout type="warn" title="Preview Documentation">
-  This documents the upcoming React SDK 1.0, currently in preview. The API may change before the stable release.
+  This documents the upcoming React SDK 1.0, currently in preview. The API may
+  change before the stable release.
+</Callout>
+
+<Callout type="info" title="About the V1 Naming">
+  The "V1" suffix in provider names (e.g., `TamboV1Provider`,
+  `TamboV1StubProvider`) is temporary during the preview period. Before the
+  stable 1.0 release, these will be renamed to their final forms
+  (`TamboProvider`, `TamboStubProvider`, etc.) and will become the primary
+  exports from `@tambo-ai/react`.
 </Callout>
 
 Provider components configure Tambo V1 functionality and make hooks available throughout your component tree.
@@ -34,27 +43,29 @@ function App() {
 
 ### Props
 
-| Prop | Type | Required | Description |
-|------|------|----------|-------------|
-| `apiKey` | `string` | Yes* | Your Tambo API key |
-| `userToken` | `string` | No | OAuth token for user authentication |
-| `userKey` | `string` | Yes* | Unique identifier for the current user |
-| `tamboUrl` | `string` | No | Custom Tambo API URL |
-| `environment` | `string` | No | Environment name |
-| `components` | `TamboV1Component[]` | No | Components to register |
-| `tools` | `TamboTool[]` | No | Tools to register |
-| `mcpServers` | `(McpServerInfo \| string)[]` | No | MCP servers to connect |
-| `contextHelpers` | `ContextHelpers` | No | Context helper functions |
-| `onCallUnregisteredTool` | `(toolName: string) => void` | No | Callback for unregistered tool calls |
-| `resources` | `ListResourceItem[]` | No | Static resources for MCP |
-| `listResources` | `(query: string) => Promise<ListResourceItem[]>` | No | Dynamic resource listing |
-| `getResource` | `(uri: string) => Promise<ReadResourceResult>` | No | Resource content resolver |
-| `queryClient` | `QueryClient` | No | Custom React Query client |
+| Prop                     | Type                                             | Required | Description                            |
+| ------------------------ | ------------------------------------------------ | -------- | -------------------------------------- |
+| `apiKey`                 | `string`                                         | Yes\*    | Your Tambo API key                     |
+| `userToken`              | `string`                                         | No       | OAuth token for user authentication    |
+| `userKey`                | `string`                                         | Yes\*    | Unique identifier for the current user |
+| `tamboUrl`               | `string`                                         | No       | Custom Tambo API URL                   |
+| `environment`            | `string`                                         | No       | Environment name                       |
+| `components`             | `TamboV1Component[]`                             | No       | Components to register                 |
+| `tools`                  | `TamboTool[]`                                    | No       | Tools to register                      |
+| `mcpServers`             | `(McpServerInfo \| string)[]`                    | No       | MCP servers to connect                 |
+| `contextHelpers`         | `ContextHelpers`                                 | No       | Context helper functions               |
+| `onCallUnregisteredTool` | `(toolName: string) => void`                     | No       | Callback for unregistered tool calls   |
+| `resources`              | `ListResourceItem[]`                             | No       | Static resources for MCP               |
+| `listResources`          | `(query: string) => Promise<ListResourceItem[]>` | No       | Dynamic resource listing               |
+| `getResource`            | `(uri: string) => Promise<ReadResourceResult>`   | No       | Resource content resolver              |
+| `queryClient`            | `QueryClient`                                    | No       | Custom React Query client              |
 
-*Either `apiKey` or `userToken` is required for authentication. `userKey` is required for thread scoping.
+\*Either `apiKey` or `userToken` is required for authentication. `userKey` is required for thread scoping.
 
 <Callout type="info" title="userKey vs contextKey">
-  In V1, threads are scoped per user using `userKey`. This replaces `contextKey` from the current SDK. The `userKey` is a unique identifier for the user, such as a user ID from your authentication system.
+  In V1, threads are scoped per user using `userKey`. This replaces `contextKey`
+  from the current SDK. The `userKey` is a unique identifier for the user, such
+  as a user ID from your authentication system.
 </Callout>
 
 ### Example with All Options
@@ -147,11 +158,11 @@ function TestApp() {
 
 ### Props
 
-| Prop | Type | Description |
-|------|------|-------------|
-| `initialMessages` | `TamboV1Message[]` | Pre-configured messages |
-| `components` | `TamboV1Component[]` | Components to register |
-| `tools` | `TamboTool[]` | Tools to register |
+| Prop              | Type                 | Description             |
+| ----------------- | -------------------- | ----------------------- |
+| `initialMessages` | `TamboV1Message[]`   | Pre-configured messages |
+| `components`      | `TamboV1Component[]` | Components to register  |
+| `tools`           | `TamboTool[]`        | Tools to register       |
 
 ## TamboV1ThreadInputProvider
 
@@ -237,6 +248,6 @@ function MyComponent() {
 
 ### Return Values
 
-| Value | Type | Description |
-|-------|------|-------------|
+| Value     | Type     | Description                    |
+| --------- | -------- | ------------------------------ |
 | `userKey` | `string` | The user key from the provider |

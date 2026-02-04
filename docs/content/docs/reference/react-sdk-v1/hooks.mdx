@@ -6,7 +6,15 @@ description: Complete reference for @tambo-ai/react/v1 hooks - thread management
 import { Callout } from "fumadocs-ui/components/callout";
 
 <Callout type="warn" title="Preview Documentation">
-  This documents the upcoming React SDK 1.0, currently in preview. The API may change before the stable release.
+  This documents the upcoming React SDK 1.0, currently in preview. The API may
+  change before the stable release.
+</Callout>
+
+<Callout type="info" title="About the V1 Naming">
+  The "V1" suffix in hook names (e.g., `useTamboV1`, `useTamboV1ThreadInput`) is
+  temporary during the preview period. Before the stable 1.0 release, these will
+  be renamed to their final forms (`useTambo`, `useTamboThreadInput`, etc.) and
+  will become the primary exports from `@tambo-ai/react`.
 </Callout>
 
 The `@tambo-ai/react/v1` package provides hooks for building AI-powered applications with explicit thread management and React Query integration.
@@ -54,38 +62,38 @@ function Chat() {
 
 #### Thread State
 
-| Value | Type | Description |
-|-------|------|-------------|
-| `thread` | `ThreadState \| undefined` | Current thread state including messages and metadata |
-| `messages` | `TamboV1Message[]` | Array of messages in the current thread with computed properties |
-| `currentThreadId` | `string` | ID of the currently active thread |
+| Value             | Type                       | Description                                                      |
+| ----------------- | -------------------------- | ---------------------------------------------------------------- |
+| `thread`          | `ThreadState \| undefined` | Current thread state including messages and metadata             |
+| `messages`        | `TamboV1Message[]`         | Array of messages in the current thread with computed properties |
+| `currentThreadId` | `string`                   | ID of the currently active thread                                |
 
 #### Streaming Status
 
-| Value | Type | Description |
-|-------|------|-------------|
+| Value            | Type             | Description                                             |
+| ---------------- | ---------------- | ------------------------------------------------------- |
 | `streamingState` | `StreamingState` | Detailed streaming state including status, runId, error |
-| `isStreaming` | `boolean` | `true` when actively streaming a response |
-| `isWaiting` | `boolean` | `true` when waiting for server response |
-| `isIdle` | `boolean` | `true` when no generation is in progress |
+| `isStreaming`    | `boolean`        | `true` when actively streaming a response               |
+| `isWaiting`      | `boolean`        | `true` when waiting for server response                 |
+| `isIdle`         | `boolean`        | `true` when no generation is in progress                |
 
 #### Thread Management
 
-| Value | Type | Description |
-|-------|------|-------------|
-| `initThread` | `(threadId: string, initialThread?: Partial<TamboV1Thread>) => void` | Initialize a thread with optional initial state |
-| `switchThread` | `(threadId: string) => void` | Switch to a different thread by ID |
-| `startNewThread` | `() => string` | Create a new thread and return its ID |
+| Value            | Type                                                                 | Description                                     |
+| ---------------- | -------------------------------------------------------------------- | ----------------------------------------------- |
+| `initThread`     | `(threadId: string, initialThread?: Partial<TamboV1Thread>) => void` | Initialize a thread with optional initial state |
+| `switchThread`   | `(threadId: string) => void`                                         | Switch to a different thread by ID              |
+| `startNewThread` | `() => string`                                                       | Create a new thread and return its ID           |
 
 #### Registry
 
-| Value | Type | Description |
-|-------|------|-------------|
+| Value               | Type                                    | Description                      |
+| ------------------- | --------------------------------------- | -------------------------------- |
 | `registerComponent` | `(component: TamboV1Component) => void` | Register a component dynamically |
-| `registerTool` | `(tool: TamboTool) => void` | Register a single tool |
-| `registerTools` | `(tools: TamboTool[]) => void` | Register multiple tools |
-| `componentList` | `ComponentRegistry` | Map of registered components |
-| `toolRegistry` | `Map<string, TamboTool>` | Map of registered tools |
+| `registerTool`      | `(tool: TamboTool) => void`             | Register a single tool           |
+| `registerTools`     | `(tools: TamboTool[]) => void`          | Register multiple tools          |
+| `componentList`     | `ComponentRegistry`                     | Map of registered components     |
+| `toolRegistry`      | `Map<string, TamboTool>`                | Map of registered tools          |
 
 ### Example: Basic Chat
 
@@ -145,20 +153,20 @@ function MessageInput() {
 
 ### Return Values
 
-| Value | Type | Description |
-|-------|------|-------------|
-| `value` | `string` | Current input value |
-| `setValue` | `Dispatch<SetStateAction<string>>` | Update the input value |
-| `submit` | `(options?: SubmitOptions) => Promise<{ threadId: string \| undefined }>` | Submit the current input |
-| `images` | `StagedImage[]` | Array of staged images |
-| `addImage` | `(file: File) => Promise<void>` | Add a single image |
-| `addImages` | `(files: File[]) => Promise<void>` | Add multiple images |
-| `removeImage` | `(id: string) => void` | Remove a staged image |
-| `clearImages` | `() => void` | Clear all staged images |
-| `threadId` | `string \| undefined` | Current thread ID |
-| `isPending` | `boolean` | `true` while submission is in progress |
-| `isError` | `boolean` | `true` if submission failed |
-| `error` | `Error \| null` | Error details if submission failed |
+| Value         | Type                                                                      | Description                            |
+| ------------- | ------------------------------------------------------------------------- | -------------------------------------- |
+| `value`       | `string`                                                                  | Current input value                    |
+| `setValue`    | `Dispatch<SetStateAction<string>>`                                        | Update the input value                 |
+| `submit`      | `(options?: SubmitOptions) => Promise<{ threadId: string \| undefined }>` | Submit the current input               |
+| `images`      | `StagedImage[]`                                                           | Array of staged images                 |
+| `addImage`    | `(file: File) => Promise<void>`                                           | Add a single image                     |
+| `addImages`   | `(files: File[]) => Promise<void>`                                        | Add multiple images                    |
+| `removeImage` | `(id: string) => void`                                                    | Remove a staged image                  |
+| `clearImages` | `() => void`                                                              | Clear all staged images                |
+| `threadId`    | `string \| undefined`                                                     | Current thread ID                      |
+| `isPending`   | `boolean`                                                                 | `true` while submission is in progress |
+| `isError`     | `boolean`                                                                 | `true` if submission failed            |
+| `error`       | `Error \| null`                                                           | Error details if submission failed     |
 
 ### Example: Input with Images
 
@@ -220,10 +228,10 @@ function ThreadLoader({ threadId }: { threadId: string }) {
 
 ### Parameters
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `threadId` | `string` | The thread ID to fetch |
-| `options` | `UseQueryOptions` | Optional React Query options |
+| Parameter  | Type              | Description                  |
+| ---------- | ----------------- | ---------------------------- |
+| `threadId` | `string`          | The thread ID to fetch       |
+| `options`  | `UseQueryOptions` | Optional React Query options |
 
 ### Return Values
 
@@ -255,18 +263,18 @@ function ThreadSidebar() {
 
 ### Parameters
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `listOptions` | `ThreadListOptions` | Optional filtering options |
-| `queryOptions` | `UseQueryOptions` | Optional React Query options |
+| Parameter      | Type                | Description                  |
+| -------------- | ------------------- | ---------------------------- |
+| `listOptions`  | `ThreadListOptions` | Optional filtering options   |
+| `queryOptions` | `UseQueryOptions`   | Optional React Query options |
 
 #### ThreadListOptions
 
-| Property | Type | Description |
-|----------|------|-------------|
+| Property  | Type     | Description                             |
+| --------- | -------- | --------------------------------------- |
 | `userKey` | `string` | User key (defaults to provider context) |
-| `limit` | `string` | Maximum threads to return |
-| `cursor` | `string` | Pagination cursor |
+| `limit`   | `string` | Maximum threads to return               |
+| `cursor`  | `string` | Pagination cursor                       |
 
 ### Return Values
 
@@ -298,26 +306,27 @@ function Counter() {
 
 ### Parameters
 
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `keyName` | `string` | Required | Unique key identifying this state |
-| `initialValue` | `S` | Required | Initial state value |
-| `debounceTime` | `number` | `500` | Milliseconds to debounce server updates |
+| Parameter      | Type     | Default  | Description                             |
+| -------------- | -------- | -------- | --------------------------------------- |
+| `keyName`      | `string` | Required | Unique key identifying this state       |
+| `initialValue` | `S`      | Required | Initial state value                     |
+| `debounceTime` | `number` | `500`    | Milliseconds to debounce server updates |
 
 ### Return Values
 
 Returns a tuple: `[currentState, setState, meta]`
 
-| Value | Type | Description |
-|-------|------|-------------|
-| `currentState` | `S` | Current state value |
-| `setState` | `(newState: S \| ((prev: S) => S)) => void` | State setter (supports functional updates) |
-| `meta.isPending` | `boolean` | `true` while syncing with server |
-| `meta.error` | `Error \| null` | Error if sync failed |
-| `meta.flush` | `() => void` | Immediately flush pending updates |
+| Value            | Type                                        | Description                                |
+| ---------------- | ------------------------------------------- | ------------------------------------------ |
+| `currentState`   | `S`                                         | Current state value                        |
+| `setState`       | `(newState: S \| ((prev: S) => S)) => void` | State setter (supports functional updates) |
+| `meta.isPending` | `boolean`                                   | `true` while syncing with server           |
+| `meta.error`     | `Error \| null`                             | Error if sync failed                       |
+| `meta.flush`     | `() => void`                                | Immediately flush pending updates          |
 
 <Callout type="info">
-  This hook only works within components rendered via `V1ComponentRenderer` or components that are part of the V1 message rendering pipeline.
+  This hook only works within components rendered via `V1ComponentRenderer` or
+  components that are part of the V1 message rendering pipeline.
 </Callout>
 
 ### Example: Editable Card
@@ -392,29 +401,29 @@ const result = useTamboV1Suggestions({
 
 ### Return Values
 
-| Value | Type | Description |
-|-------|------|-------------|
-| `data` | `SuggestionsQueryResponse \| undefined` | Raw query response |
-| `suggestions` | `Suggestion[]` | Array of suggestion objects |
-| `isLoading` | `boolean` | Initial loading state |
-| `isSuccess` | `boolean` | Query succeeded |
-| `isError` | `boolean` | Query failed |
-| `error` | `Error \| null` | Query error |
-| `isFetching` | `boolean` | Fetching (includes background refetch) |
-| `generate` | `() => Promise<SuggestionCreateResponse \| undefined>` | Generate new suggestions |
-| `isGenerating` | `boolean` | Generation in progress |
-| `generateError` | `Error \| null` | Generation error |
-| `accept` | `(options: AcceptSuggestionOptions) => Promise<void>` | Accept a suggestion |
-| `isAccepting` | `boolean` | Accept in progress |
-| `acceptError` | `Error \| null` | Accept error |
-| `selectedSuggestionId` | `string \| null` | Currently selected suggestion |
+| Value                  | Type                                                   | Description                            |
+| ---------------------- | ------------------------------------------------------ | -------------------------------------- |
+| `data`                 | `SuggestionsQueryResponse \| undefined`                | Raw query response                     |
+| `suggestions`          | `Suggestion[]`                                         | Array of suggestion objects            |
+| `isLoading`            | `boolean`                                              | Initial loading state                  |
+| `isSuccess`            | `boolean`                                              | Query succeeded                        |
+| `isError`              | `boolean`                                              | Query failed                           |
+| `error`                | `Error \| null`                                        | Query error                            |
+| `isFetching`           | `boolean`                                              | Fetching (includes background refetch) |
+| `generate`             | `() => Promise<SuggestionCreateResponse \| undefined>` | Generate new suggestions               |
+| `isGenerating`         | `boolean`                                              | Generation in progress                 |
+| `generateError`        | `Error \| null`                                        | Generation error                       |
+| `accept`               | `(options: AcceptSuggestionOptions) => Promise<void>`  | Accept a suggestion                    |
+| `isAccepting`          | `boolean`                                              | Accept in progress                     |
+| `acceptError`          | `Error \| null`                                        | Accept error                           |
+| `selectedSuggestionId` | `string \| null`                                       | Currently selected suggestion          |
 
 ### AcceptSuggestionOptions
 
-| Property | Type | Description |
-|----------|------|-------------|
-| `suggestion` | `Suggestion` | The suggestion to accept |
-| `shouldSubmit` | `boolean` | Submit immediately after accepting |
+| Property       | Type         | Description                        |
+| -------------- | ------------ | ---------------------------------- |
+| `suggestion`   | `Suggestion` | The suggestion to accept           |
+| `shouldSubmit` | `boolean`    | Submit immediately after accepting |
 
 ## useTamboV1SendMessage
 
@@ -446,8 +455,8 @@ function CustomSendButton({ threadId }: { threadId: string }) {
 
 ### Parameters
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
+| Parameter  | Type                  | Description                                  |
+| ---------- | --------------------- | -------------------------------------------- |
 | `threadId` | `string \| undefined` | Thread to send to (creates new if undefined) |
 
 ### Return Values
