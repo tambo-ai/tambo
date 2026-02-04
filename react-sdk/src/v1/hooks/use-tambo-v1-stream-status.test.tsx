@@ -432,8 +432,8 @@ describe("useTamboV1StreamStatus", () => {
       expect(result.current.propStatus).toEqual({});
     });
 
-    it("should warn when component ID changes unexpectedly", () => {
-      const consoleSpy = jest.spyOn(console, "warn").mockImplementation();
+    it("should error when component ID changes unexpectedly", () => {
+      const consoleSpy = jest.spyOn(console, "error").mockImplementation();
 
       const componentContent = createComponentContent({
         id: "first-component",
@@ -455,7 +455,7 @@ describe("useTamboV1StreamStatus", () => {
         useTamboV1StreamStatus<{ title: string }>(),
       );
 
-      // No warning initially
+      // No error initially
       expect(consoleSpy).not.toHaveBeenCalled();
 
       // Change componentId (this should not happen in practice)
@@ -468,7 +468,7 @@ describe("useTamboV1StreamStatus", () => {
 
       rerender();
 
-      // Should log a warning
+      // Should log an error indicating incorrect provider usage
       expect(consoleSpy).toHaveBeenCalledWith(
         expect.stringContaining("componentId changed"),
       );

@@ -16,7 +16,7 @@ import { deepEqual } from "fast-equals";
 import { useTamboClient } from "../../providers/tambo-client-provider";
 import { useV1ComponentContent } from "../utils/component-renderer";
 import { useStreamState } from "../providers/tambo-v1-stream-context";
-import type { V1ComponentContent } from "../types/message";
+import { findComponentContent } from "../utils/thread-utils";
 
 /**
  * Return type for useTamboV1ComponentState hook.
@@ -31,36 +31,6 @@ export type UseTamboV1ComponentStateReturn<S> = [
     flush: () => void;
   },
 ];
-
-/**
- * Find a component content block by ID in a specific thread.
- * Only searches the specified thread to prevent cross-thread data access
- * and improve performance (O(m*k) instead of O(n*m*k)).
- * @param streamState - The current stream state
- * @param threadId - The thread ID to search in
- * @param componentId - The component ID to find
- * @returns The component content block, or undefined if not found
- */
-function findComponentContent(
-  streamState: ReturnType<typeof useStreamState>,
-  threadId: string,
-  componentId: string,
-): V1ComponentContent | undefined {
-  // Only search the specified thread (not all threads)
-  const threadState = streamState.threadMap[threadId];
-  if (!threadState) {
-    return undefined;
-  }
-
-  for (const message of threadState.thread.messages) {
-    for (const content of message.content) {
-      if (content.type === "component" && content.id === componentId) {
-        return content;
-      }
-    }
-  }
-  return undefined;
-}
 
 /**
  * Hook for managing component state with bidirectional server sync.

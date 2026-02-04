@@ -12,6 +12,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useV1ComponentContent } from "../utils/component-renderer";
 import { useStreamState } from "../providers/tambo-v1-stream-context";
+import { findComponentContent } from "../utils/thread-utils";
 import type { V1ComponentContent } from "../types/message";
 
 /**
@@ -79,38 +80,6 @@ export interface PropStatus {
    * Will be undefined if no error occurred for this prop.
    */
   error?: Error;
-}
-
-/**
- * Find a component content block by ID in a specific thread.
- * Searches from most recent messages first since active components are likely near the tail.
- * @param streamState - The current stream state
- * @param threadId - The thread ID to search in
- * @param componentId - The component ID to find
- * @returns The component content block, or undefined if not found
- */
-function findComponentContent(
-  streamState: ReturnType<typeof useStreamState>,
-  threadId: string,
-  componentId: string,
-): V1ComponentContent | undefined {
-  const threadState = streamState.threadMap[threadId];
-  if (!threadState) {
-    return undefined;
-  }
-
-  // Search from most recent messages first for better performance
-  const messages = threadState.thread.messages;
-  for (let i = messages.length - 1; i >= 0; i--) {
-    const content = messages[i].content;
-    for (let j = content.length - 1; j >= 0; j--) {
-      const block = content[j];
-      if (block.type === "component" && block.id === componentId) {
-        return block;
-      }
-    }
-  }
-  return undefined;
 }
 
 /**
@@ -260,13 +229,20 @@ export function useTamboV1StreamStatus<
   const { componentId, threadId } = useV1ComponentContent();
   const streamState = useStreamState();
 
-  /** Warn if componentId changes unexpectedly (it should remain stable) */
+  /**
+   * Error if componentId changes - this indicates the provider hierarchy is broken.
+   * The componentId should remain stable for the lifetime of the component.
+   * If this fires, the TamboV1ComponentRenderer is likely being used incorrectly,
+   * or the component tree is being remounted in unexpected ways.
+   */
   const initialComponentIdRef = useRef(componentId);
   useEffect(() => {
     if (componentId !== initialComponentIdRef.current) {
-      console.warn(
+      console.error(
         `useTamboV1StreamStatus: componentId changed from "${initialComponentIdRef.current}" to "${componentId}". ` +
-          "This is unexpected and may indicate a bug in the component tree.",
+          "This indicates a bug in the component tree or incorrect provider usage. " +
+          "The componentId must remain stable for the component's lifetime. " +
+          "Check that TamboV1ComponentRenderer is not being remounted unexpectedly.",
       );
       initialComponentIdRef.current = componentId;
     }
