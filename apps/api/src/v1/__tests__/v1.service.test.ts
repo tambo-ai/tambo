@@ -17,6 +17,18 @@ import {
   parseV1CompoundCursor,
 } from "../v1-pagination";
 
+// Minimal mock for the subset of Sentry APIs exercised by `V1Service`.
+jest.mock("@sentry/nestjs", () => ({
+  startSpan: (_ctx: unknown, maybeCallback?: unknown, ..._rest: unknown[]) => {
+    if (typeof maybeCallback === "function") {
+      return maybeCallback();
+    }
+    return undefined;
+  },
+  setContext: jest.fn(),
+  captureException: jest.fn(),
+}));
+
 // Mock the database operations module
 jest.mock("@tambo-ai-cloud/db", () => ({
   operations: {
@@ -226,6 +238,53 @@ describe("V1Service", () => {
       expect(result.hasMore).toBe(false);
     });
 
+    it("should clamp negative limits", async () => {
+      mockOperations.listThreadsPaginated.mockResolvedValue([]);
+
+      await service.listThreads("prj_123", "user_456", { limit: -5 } as any);
+
+      const normalizedLimit = 1;
+
+      expect(mockOperations.listThreadsPaginated).toHaveBeenCalledWith(
+        mockDb,
+        "prj_123",
+        "user_456",
+        { cursor: undefined, limit: normalizedLimit + 1 },
+      );
+    });
+
+    it("should clamp large limits to 100", async () => {
+      mockOperations.listThreadsPaginated.mockResolvedValue([]);
+
+      await service.listThreads("prj_123", "user_456", { limit: 1000 } as any);
+
+      const normalizedLimit = 100;
+
+      expect(mockOperations.listThreadsPaginated).toHaveBeenCalledWith(
+        mockDb,
+        "prj_123",
+        "user_456",
+        { cursor: undefined, limit: normalizedLimit + 1 },
+      );
+    });
+
+    it("should throw for non-finite limits", async () => {
+      await expect(
+        service.listThreads("prj_123", "user_456", { limit: NaN } as any),
+      ).rejects.toThrow(BadRequestException);
+      await expect(
+        service.listThreads("prj_123", "user_456", {
+          limit: Number.POSITIVE_INFINITY,
+        } as any),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it("should throw for non-integer limits", async () => {
+      await expect(
+        service.listThreads("prj_123", "user_456", { limit: 2.5 } as any),
+      ).rejects.toThrow(BadRequestException);
+    });
+
     it("should filter by context key", async () => {
       mockOperations.listThreadsPaginated.mockResolvedValue([mockThread]);
 
@@ -251,7 +310,7 @@ describe("V1Service", () => {
 
       const result = await service.listThreads("prj_123", "user_456", {
         cursor,
-        limit: "10",
+        limit: 10,
       });
 
       expect(mockOperations.listThreadsPaginated).toHaveBeenCalledWith(
@@ -275,17 +334,7 @@ describe("V1Service", () => {
       ).rejects.toThrow(BadRequestException);
     });
 
-    it("should reject an invalid limit", async () => {
-      await expect(
-        service.listThreads("prj_123", "user_456", { limit: "not-a-number" }),
-      ).rejects.toThrow(BadRequestException);
-    });
-
-    it("should reject an empty limit", async () => {
-      await expect(
-        service.listThreads("prj_123", "user_456", { limit: "" }),
-      ).rejects.toThrow(BadRequestException);
-    });
+    // Note: Invalid limit validation is now handled at the DTO layer via class-validator
 
     it("should indicate hasMore when more results exist", async () => {
       // Return 21 results when limit is 20 (default)
@@ -327,7 +376,7 @@ describe("V1Service", () => {
       mockOperations.listThreadsPaginated.mockResolvedValue([t1, t2]);
 
       const result = await service.listThreads("prj_123", "user_456", {
-        limit: "1",
+        limit: 1,
       });
 
       expect(result.hasMore).toBe(true);
@@ -514,7 +563,7 @@ describe("V1Service", () => {
 
       await service.listMessages("thr_123", {
         cursor,
-        limit: "10",
+        limit: 10,
       });
 
       expect(mockOperations.listMessagesPaginated).toHaveBeenCalledWith(
@@ -537,17 +586,7 @@ describe("V1Service", () => {
       ).rejects.toThrow(BadRequestException);
     });
 
-    it("should reject an invalid limit", async () => {
-      await expect(
-        service.listMessages("thr_123", { limit: "not-a-number" }),
-      ).rejects.toThrow(BadRequestException);
-    });
-
-    it("should reject an empty limit", async () => {
-      await expect(
-        service.listMessages("thr_123", { limit: "" }),
-      ).rejects.toThrow(BadRequestException);
-    });
+    // Note: Invalid limit validation is now handled at the DTO layer via class-validator
 
     it("should set nextCursor for both asc and desc", async () => {
       const msg1 = {
@@ -572,7 +611,7 @@ describe("V1Service", () => {
         msg3,
       ]);
       const ascPage = await service.listMessages("thr_123", {
-        limit: "2",
+        limit: 2,
         order: "asc",
       });
       expect(ascPage.hasMore).toBe(true);
@@ -585,7 +624,7 @@ describe("V1Service", () => {
         msg1,
       ]);
       const descPage = await service.listMessages("thr_123", {
-        limit: "2",
+        limit: 2,
         order: "desc",
       });
       expect(descPage.hasMore).toBe(true);
@@ -968,6 +1007,156 @@ describe("V1Service", () => {
       expect(mockOperations.acquireRunLock).toHaveBeenCalledTimes(1);
       expect(mockOperations.createRun).toHaveBeenCalledTimes(1);
       expect(mockOperations.setCurrentRunId).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe("executeRun", () => {
+    const createMockResponse = () => ({
+      write: jest.fn(),
+    });
+
+    const setupAdvanceThreadMock = () => {
+      mockThreadsService.advanceThread.mockImplementation(
+        async (
+          _projectId,
+          _advanceRequest,
+          _threadId,
+          _toolCallCounts,
+          _cached,
+          queue,
+        ) => {
+          queue.finish();
+        },
+      );
+      mockOperations.releaseRunLockIfCurrent.mockResolvedValue(true);
+    };
+
+    const mockRunDtoBase = {
+      message: {
+        role: "user",
+        content: [{ type: "text" as const, text: "Hi" }],
+      },
+      tools: [],
+      availableComponents: [],
+    };
+
+    it("should pass additionalContext through to threadsService.advanceThread", async () => {
+      setupAdvanceThreadMock();
+
+      const response = createMockResponse();
+
+      const additionalContext = {
+        currentPage: "/dashboard",
+        userPreferences: { theme: "dark" },
+        nestedObject: { deeply: { nested: { value: 123 } } },
+      };
+
+      await service.executeRun(
+        response as any,
+        "thr_123",
+        "run_123",
+        {
+          ...mockRunDtoBase,
+          message: {
+            ...mockRunDtoBase.message,
+            additionalContext,
+          },
+        } as any,
+        "prj_123",
+        "user_456",
+      );
+
+      expect(mockThreadsService.advanceThread).toHaveBeenCalledTimes(1);
+      const advanceRequest = mockThreadsService.advanceThread.mock.calls[0][1];
+      expect(advanceRequest.messageToAppend.additionalContext).toEqual(
+        additionalContext,
+      );
+      expect(response.write).toHaveBeenCalled();
+    });
+
+    it("should work without additionalContext", async () => {
+      setupAdvanceThreadMock();
+
+      const response = createMockResponse();
+
+      await service.executeRun(
+        response as any,
+        "thr_123",
+        "run_123",
+        mockRunDtoBase as any,
+        "prj_123",
+        "user_456",
+      );
+
+      expect(mockThreadsService.advanceThread).toHaveBeenCalledTimes(1);
+      const advanceRequest = mockThreadsService.advanceThread.mock.calls[0][1];
+      expect(advanceRequest.messageToAppend.additionalContext).toBeUndefined();
+      expect(response.write).toHaveBeenCalled();
+    });
+
+    it("should write a RUN_ERROR event when streaming fails", async () => {
+      mockOperations.releaseRunLockIfCurrent.mockResolvedValue(true);
+      mockThreadsService.advanceThread.mockImplementation(
+        async (
+          _projectId,
+          _advanceRequest,
+          _threadId,
+          _toolCallCounts,
+          _cached,
+          queue,
+        ) => {
+          queue.finish();
+          throw new Error("boom");
+        },
+      );
+
+      const response = createMockResponse();
+
+      await expect(
+        service.executeRun(
+          response as any,
+          "thr_123",
+          "run_123",
+          mockRunDtoBase as any,
+          "prj_123",
+          "user_456",
+        ),
+      ).rejects.toThrow("boom");
+
+      const writes = response.write.mock.calls.map(([value]) => `${value}`);
+      expect(writes.some((w) => w.includes('"type":"RUN_ERROR"'))).toBe(true);
+    });
+
+    it("should write a RUN_ERROR event when the queue fails", async () => {
+      mockOperations.releaseRunLockIfCurrent.mockResolvedValue(true);
+      mockThreadsService.advanceThread.mockImplementation(
+        async (
+          _projectId,
+          _advanceRequest,
+          _threadId,
+          _toolCallCounts,
+          _cached,
+          queue,
+        ) => {
+          queue.fail(new Error("boom-early"));
+        },
+      );
+
+      const response = createMockResponse();
+
+      await expect(
+        service.executeRun(
+          response as any,
+          "thr_123",
+          "run_123",
+          mockRunDtoBase as any,
+          "prj_123",
+          "user_456",
+        ),
+      ).rejects.toThrow("boom-early");
+
+      const writes = response.write.mock.calls.map(([value]) => `${value}`);
+      expect(writes.some((w) => w.includes('"type":"RUN_ERROR"'))).toBe(true);
     });
   });
 
