@@ -34,7 +34,7 @@
     "zod-to-json-schema": "^3.25.1"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.25.1",
+    "@modelcontextprotocol/sdk": "^1.26.0",
     "jose": "^5.10.0",
     "openai": "^6.16.0",
     "resend": "^6.9.1"
