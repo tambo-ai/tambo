@@ -130,6 +130,12 @@ export { useTamboV1ThreadList } from "./hooks/use-tambo-v1-thread-list";
 export { useTamboV1ComponentState } from "./hooks/use-tambo-v1-component-state";
 
 export {
+  useTamboV1StreamStatus,
+  type StreamStatus,
+  type PropStatus,
+} from "./hooks/use-tambo-v1-stream-status";
+
+export {
   useTamboV1Suggestions,
   type UseTamboV1SuggestionsOptions,
   type UseTamboV1SuggestionsReturn,
