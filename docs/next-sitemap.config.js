@@ -109,16 +109,35 @@ const enumerated = enumerateRoutes();
 module.exports = {
   siteUrl,
   generateRobotsTxt: false,
-  exclude: ["/_next/*", "/api/*"],
+  // Exclude non-page routes and duplicates
+  exclude: [
+    "/_next/*",
+    "/api/*",
+    "/llms.txt",
+    "/llms-full.txt",
+    "/robots.txt",
+    "/llms.mdx",
+    "/llms.mdx/*",
+  ],
   changefreq: "weekly",
   priority: 0.8,
   transform: async (config, path) => {
+    // Skip paths that shouldn't be in sitemap
+    if (
+      path.includes("/llms.mdx") ||
+      path === "/llms.txt" ||
+      path === "/llms-full.txt" ||
+      path === "/robots.txt"
+    ) {
+      return null;
+    }
     const found = enumerated.find((e) => e.url === path);
     return {
       loc: `${siteUrl}${path}`,
       changefreq: "weekly",
       priority: path === "/" ? 1.0 : 0.8,
-      lastmod: found?.lastmod ?? new Date(0).toISOString(),
+      // Use current date as fallback instead of epoch
+      lastmod: found?.lastmod ?? new Date().toISOString(),
       alternateRefs: [],
     };
   },
