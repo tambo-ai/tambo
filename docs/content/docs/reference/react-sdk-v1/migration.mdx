@@ -17,9 +17,10 @@ import { Callout } from "fumadocs-ui/components/callout";
   `TamboProvider`, etc.) and become the primary exports from `@tambo-ai/react`.
   The current SDK will then move to a `/legacy` subpath.
 
-  **This guide uses the preview-period names.** We'll update it at stable release
-  to reflect the final names. Everywhere you see `V1` in a name, imagine that
-  suffix removed — that's what the final API will look like.
+**This guide uses the preview-period names.** We'll update it at stable release
+to reflect the final names. Everywhere you see `V1` in a name, imagine that
+suffix removed — that's what the final API will look like.
+
 </Callout>
 
 This guide walks you through migrating from the current React SDK (`@tambo-ai/react`) to the v1 SDK (`@tambo-ai/react/v1`). Follow the steps in order — each one builds on the previous.
@@ -107,18 +108,18 @@ Replace `TamboProvider` with `TamboV1Provider`. The main change is that `context
 
 ### What changed
 
-| Pre-v1 prop | V1 equivalent | Notes |
-| --- | --- | --- |
-| `contextKey` | `userKey` | Now identifies the user, not the context. Threads are scoped to the user. |
-| `userToken` | `userToken` | Still supported — provide either `userKey` or `userToken`, not both. |
-| `streaming` | *removed* | Streaming is always on in v1. |
-| `autoGenerateThreadName` | *removed* | Thread naming is no longer a provider concern. |
-| `autoGenerateNameThreshold` | *removed* | Same as above. |
-| `initialMessages` | *removed* | Pre-populated messages are no longer supported at the provider level. |
-| `components` | `components` | Same format. |
-| `tools` | `tools` | Same format. |
-| `mcpServers` | `mcpServers` | Same format. |
-| `contextHelpers` | `contextHelpers` | Same format. |
+| Pre-v1 prop                 | V1 equivalent    | Notes                                                                     |
+| --------------------------- | ---------------- | ------------------------------------------------------------------------- |
+| `contextKey`                | `userKey`        | Now identifies the user, not the context. Threads are scoped to the user. |
+| `userToken`                 | `userToken`      | Still supported — provide either `userKey` or `userToken`, not both.      |
+| `streaming`                 | _removed_        | Streaming is always on in v1.                                             |
+| `autoGenerateThreadName`    | _removed_        | Thread naming is no longer a provider concern.                            |
+| `autoGenerateNameThreshold` | _removed_        | Same as above.                                                            |
+| `initialMessages`           | _removed_        | Pre-populated messages are no longer supported at the provider level.     |
+| `components`                | `components`     | Same format.                                                              |
+| `tools`                     | `tools`          | Same format.                                                              |
+| `mcpServers`                | `mcpServers`     | Same format.                                                              |
+| `contextHelpers`            | `contextHelpers` | Same format.                                                              |
 
 ## Step 3: Update the main hook
 
@@ -126,15 +127,11 @@ Replace `useTambo()` with `useTamboV1()`. The return shape is different:
 
 ```tsx title="Before"
 function Chat() {
-  const {
-    thread,
-    messages,
-    generationStage,
-    isStreaming,
-  } = useTambo();
+  const { thread, messages, generationStage, isStreaming } = useTambo();
 
-  const isIdle = generationStage === GenerationStage.IDLE
-    || generationStage === GenerationStage.COMPLETE;
+  const isIdle =
+    generationStage === GenerationStage.IDLE ||
+    generationStage === GenerationStage.COMPLETE;
 
   return (
     <div>
@@ -175,15 +172,15 @@ function Chat() {
 
 ### Key differences
 
-| Pre-v1 | V1 | Notes |
-| --- | --- | --- |
-| `generationStage` (enum) | `streamingState.status` | A string union: `"idle"` \| `"waiting"` \| `"streaming"` \| `"complete"` \| `"error"` |
-| `isStreaming` | `isStreaming` | Same, but v1 also gives `isWaiting` and `isIdle` |
-| `isCancelling` | `streamingState.status === "error"` | Check `streamingState.error?.code === "CANCELLED"` for cancel-specific handling |
-| *n/a* | `cancelRun()` | New — cancels the active run |
-| *n/a* | `startNewThread()` | New — creates a new thread and returns its ID |
-| *n/a* | `switchThread(id)` | New — switches to an existing thread |
-| `sendThreadMessage()` | *removed* | Use `useTamboV1ThreadInput().submit()` instead |
+| Pre-v1                   | V1                                  | Notes                                                                                 |
+| ------------------------ | ----------------------------------- | ------------------------------------------------------------------------------------- |
+| `generationStage` (enum) | `streamingState.status`             | A string union: `"idle"` \| `"waiting"` \| `"streaming"` \| `"complete"` \| `"error"` |
+| `isStreaming`            | `isStreaming`                       | Same, but v1 also gives `isWaiting` and `isIdle`                                      |
+| `isCancelling`           | `streamingState.status === "error"` | Check `streamingState.error?.code === "CANCELLED"` for cancel-specific handling       |
+| _n/a_                    | `cancelRun()`                       | New — cancels the active run                                                          |
+| _n/a_                    | `startNewThread()`                  | New — creates a new thread and returns its ID                                         |
+| _n/a_                    | `switchThread(id)`                  | New — switches to an existing thread                                                  |
+| `sendThreadMessage()`    | _removed_                           | Use `useTamboV1ThreadInput().submit()` instead                                        |
 
 ## Step 4: Update thread input
 
@@ -250,7 +247,10 @@ function Message({ message }: { message: TamboThreadMessage }) {
 ```tsx title="After"
 import { V1ComponentRenderer, type TamboV1Message } from "@tambo-ai/react/v1";
 
-function Message({ message, threadId }: {
+function Message({
+  message,
+  threadId,
+}: {
   message: TamboV1Message;
   threadId: string;
 }) {
@@ -273,11 +273,7 @@ function Message({ message, threadId }: {
             );
 
           case "tool_use":
-            return (
-              <div key={block.id}>
-                {block.statusMessage}
-              </div>
-            );
+            return <div key={block.id}>{block.statusMessage}</div>;
 
           case "tool_result":
             // Usually hidden — the tool_use block shows status
@@ -294,25 +290,26 @@ function Message({ message, threadId }: {
 
 ### Content block types
 
-| Type | Description |
-| --- | --- |
-| `text` | Plain text content. Has a `text` field. |
-| `component` | An AI-generated component. Use `V1ComponentRenderer` to render it, or access `block.renderedComponent` directly. |
-| `tool_use` | A tool call. Includes `name`, `input` (cleaned of internal `_tambo_*` props), `hasCompleted`, and `statusMessage`. |
-| `tool_result` | The result of a tool call. Usually you don't render these directly. |
-| `resource` | An attached resource (e.g., an image). |
+| Type          | Description                                                                                                        |
+| ------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `text`        | Plain text content. Has a `text` field.                                                                            |
+| `component`   | An AI-generated component. Use `V1ComponentRenderer` to render it, or access `block.renderedComponent` directly.   |
+| `tool_use`    | A tool call. Includes `name`, `input` (cleaned of internal `_tambo_*` props), `hasCompleted`, and `statusMessage`. |
+| `tool_result` | The result of a tool call. Usually you don't render these directly.                                                |
+| `resource`    | An attached resource (e.g., an image).                                                                             |
 
 <Callout type="info" title="Rendered Components on Content Blocks">
   For convenience, `useTamboV1()` pre-renders component content blocks and
   attaches the result as `block.renderedComponent`. You can use this directly
   instead of `V1ComponentRenderer` if you prefer:
 
-  ```tsx
-  case "component":
-    return block.renderedComponent ?? (
-      <div>Unknown component: {block.name}</div>
-    );
-  ```
+```tsx
+case "component":
+  return block.renderedComponent ?? (
+    <div>Unknown component: {block.name}</div>
+  );
+```
+
 </Callout>
 
 ## Step 6: Update component state
@@ -345,7 +342,8 @@ const { isPending, isStreaming, propStatus } = useTamboStreamStatus();
 ```
 
 ```tsx title="After"
-const { isPending, isStreaming, isSuccess, isError, propStatus } = useTamboV1StreamStatus();
+const { isPending, isStreaming, isSuccess, isError, propStatus } =
+  useTamboV1StreamStatus();
 ```
 
 Like component state, this hook only works inside components rendered via `V1ComponentRenderer`.
@@ -376,17 +374,11 @@ const { suggestions, isLoading } = useTamboSuggestions();
 ```
 
 ```tsx title="After"
-const {
-  suggestions,
-  accept,
-  generate,
-  isLoading,
-  isGenerating,
-  isAccepting,
-} = useTamboV1Suggestions({
-  maxSuggestions: 3,
-  autoGenerate: true,
-});
+const { suggestions, accept, generate, isLoading, isGenerating, isAccepting } =
+  useTamboV1Suggestions({
+    maxSuggestions: 3,
+    autoGenerate: true,
+  });
 ```
 
 The v1 version adds `accept()` for directly accepting a suggestion into the input and `generate()` for manually triggering generation.
@@ -400,7 +392,7 @@ import { TamboStubProvider } from "@tambo-ai/react";
 
 <TamboStubProvider>
   <ComponentUnderTest />
-</TamboStubProvider>
+</TamboStubProvider>;
 ```
 
 ```tsx title="After"
@@ -415,7 +407,7 @@ import { TamboV1StubProvider } from "@tambo-ai/react/v1";
   onSubmit={async () => "thread_123"}
 >
   <ComponentUnderTest />
-</TamboV1StubProvider>
+</TamboV1StubProvider>;
 ```
 
 `TamboV1StubProvider` provides all v1 contexts without making API calls. It's more explicit about what state it provides.
@@ -433,19 +425,19 @@ If your application depends on interactable components, you'll need to wait for 
 
 ## Quick reference: API name mapping
 
-| Pre-v1 (`@tambo-ai/react`) | V1 preview (`@tambo-ai/react/v1`) | V1 stable (future `@tambo-ai/react`) |
-| --- | --- | --- |
-| `TamboProvider` | `TamboV1Provider` | `TamboProvider` |
-| `TamboStubProvider` | `TamboV1StubProvider` | `TamboStubProvider` |
-| `useTambo()` | `useTamboV1()` | `useTambo()` |
-| `useTamboThreadInput()` | `useTamboV1ThreadInput()` | `useTamboThreadInput()` |
-| `useTamboComponentState()` | `useTamboV1ComponentState()` | `useTamboComponentState()` |
-| `useTamboStreamStatus()` | `useTamboV1StreamStatus()` | `useTamboStreamStatus()` |
-| `useTamboThreadList()` | `useTamboV1ThreadList()` | `useTamboThreadList()` |
-| `useTamboSuggestions()` | `useTamboV1Suggestions()` | `useTamboSuggestions()` |
-| `TamboThreadMessage` | `TamboV1Message` | `TamboMessage` |
-| `GenerationStage` | `streamingState.status` (`RunStatus`) | `streamingState.status` (`RunStatus`) |
-| *n/a* | `V1ComponentRenderer` | `ComponentRenderer` |
-| *n/a* | `cancelRun()` | `cancelRun()` |
-| *n/a* | `startNewThread()` | `startNewThread()` |
-| *n/a* | `switchThread()` | `switchThread()` |
+| Pre-v1 (`@tambo-ai/react`) | V1 preview (`@tambo-ai/react/v1`)     | V1 stable (future `@tambo-ai/react`)  |
+| -------------------------- | ------------------------------------- | ------------------------------------- |
+| `TamboProvider`            | `TamboV1Provider`                     | `TamboProvider`                       |
+| `TamboStubProvider`        | `TamboV1StubProvider`                 | `TamboStubProvider`                   |
+| `useTambo()`               | `useTamboV1()`                        | `useTambo()`                          |
+| `useTamboThreadInput()`    | `useTamboV1ThreadInput()`             | `useTamboThreadInput()`               |
+| `useTamboComponentState()` | `useTamboV1ComponentState()`          | `useTamboComponentState()`            |
+| `useTamboStreamStatus()`   | `useTamboV1StreamStatus()`            | `useTamboStreamStatus()`              |
+| `useTamboThreadList()`     | `useTamboV1ThreadList()`              | `useTamboThreadList()`                |
+| `useTamboSuggestions()`    | `useTamboV1Suggestions()`             | `useTamboSuggestions()`               |
+| `TamboThreadMessage`       | `TamboV1Message`                      | `TamboMessage`                        |
+| `GenerationStage`          | `streamingState.status` (`RunStatus`) | `streamingState.status` (`RunStatus`) |
+| _n/a_                      | `V1ComponentRenderer`                 | `ComponentRenderer`                   |
+| _n/a_                      | `cancelRun()`                         | `cancelRun()`                         |
+| _n/a_                      | `startNewThread()`                    | `startNewThread()`                    |
+| _n/a_                      | `switchThread()`                      | `switchThread()`                      |
