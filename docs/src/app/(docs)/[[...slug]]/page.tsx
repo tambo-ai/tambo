@@ -11,10 +11,21 @@ import {
   DocsPage,
   DocsTitle,
 } from "fumadocs-ui/page";
+import { statSync } from "node:fs";
+import { join } from "node:path";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://docs.tambo.co";
+
+const getDocPageLastModified = (contentPath: string): string | undefined => {
+  try {
+    const filePath = join(process.cwd(), "content", "docs", contentPath);
+    return statSync(filePath).mtime.toISOString();
+  } catch {
+    return;
+  }
+};
 
 export default async function Page(props: {
   params: Promise<{ slug?: string[] }>;
@@ -31,6 +42,7 @@ export default async function Page(props: {
     title: page.data.title,
     description: page.data.description ?? "",
     url: `${siteUrl}${page.url}`,
+    dateModified: getDocPageLastModified(page.path),
   });
 
   return (
@@ -81,7 +93,7 @@ export async function generateMetadata(props: {
     title: page.data.title,
     description: page.data.description,
     alternates: {
-      canonical: page.url,
+      canonical: pageUrl,
     },
     openGraph: {
       title: page.data.title,

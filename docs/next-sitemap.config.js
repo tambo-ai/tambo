@@ -60,7 +60,7 @@ function getLastModForFile(filePath) {
     const stats = statSync(filePath);
     return stats.mtime.toISOString();
   } catch {
-    return new Date().toISOString();
+    return;
   }
 }
 
@@ -104,7 +104,14 @@ function enumerateRoutes() {
     .map(([url, lastmod]) => ({ url, lastmod }));
 }
 
+const excludedPaths = new Set(["/llms.txt", "/llms-full.txt", "/robots.txt"]);
+const isExcludedSitemapPath = (path) =>
+  excludedPaths.has(path) ||
+  path === "/llms.mdx" ||
+  path.startsWith("/llms.mdx/");
+
 const enumerated = enumerateRoutes();
+const enumeratedByUrl = new Map(enumerated.map((e) => [e.url, e.lastmod]));
 
 module.exports = {
   siteUrl,
@@ -121,29 +128,30 @@ module.exports = {
   ],
   changefreq: "weekly",
   priority: 0.8,
-  transform: async (config, path) => {
+  transform: async (_config, path) => {
     // Skip paths that shouldn't be in sitemap
-    if (
-      path.includes("/llms.mdx") ||
-      path === "/llms.txt" ||
-      path === "/llms-full.txt" ||
-      path === "/robots.txt"
-    ) {
+    if (isExcludedSitemapPath(path)) {
       return null;
     }
-    const found = enumerated.find((e) => e.url === path);
+    const lastmod = enumeratedByUrl.get(path);
     return {
       loc: `${siteUrl}${path}`,
       changefreq: "weekly",
       priority: path === "/" ? 1.0 : 0.8,
-      // Use current date as fallback instead of epoch
-      lastmod: found?.lastmod ?? new Date().toISOString(),
+      ...(lastmod ? { lastmod } : {}),
       alternateRefs: [],
     };
   },
   // explicitly include all enumerated paths for determinism
   additionalPaths: async () =>
-    enumerated.map((e) => ({ loc: `${siteUrl}${e.url}`, lastmod: e.lastmod })),
+    enumerated
+      .filter((e) => !isExcludedSitemapPath(e.url))
+      .map((e) => ({
+        loc: `${siteUrl}${e.url}`,
+        ...(e.lastmod ? { lastmod: e.lastmod } : {}),
+      })),
   // include ensures index and known root routes are emitted
-  include: enumerated.map((e) => e.url),
+  include: enumerated
+    .filter((e) => !isExcludedSitemapPath(e.url))
+    .map((e) => e.url),
 };

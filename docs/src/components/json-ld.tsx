@@ -1,7 +1,20 @@
-import Script from "next/script";
-
 const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://docs.tambo.co";
 const mainSiteUrl = "https://tambo.co";
+
+type JsonLdProps = {
+  readonly id: string;
+  readonly schema: unknown;
+};
+
+export function JsonLd({ id, schema }: JsonLdProps) {
+  return (
+    <script
+      id={id}
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+    />
+  );
+}
 
 /**
  * Organization schema for Tambo AI brand identity.
@@ -110,7 +123,7 @@ export function createDocPageSchema({
     headline: title,
     description,
     url,
-    dateModified: dateModified ?? new Date().toISOString(),
+    ...(dateModified ? { dateModified } : {}),
     author: {
       "@type": "Organization",
       name: "Tambo AI",
@@ -186,30 +199,12 @@ export function createHowToSchema({
 export function GlobalJsonLd() {
   const schemas = [organizationSchema, softwareSchema, websiteSchema];
 
-  return (
-    <Script
-      id="global-json-ld"
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{
-        __html: JSON.stringify(schemas),
-      }}
-      strategy="afterInteractive"
-    />
-  );
+  return <JsonLd id="global-json-ld" schema={schemas} />;
 }
 
 /**
  * Renders page-specific JSON-LD schema.
  */
-export function PageJsonLd({ schema }: { schema: object | object[] }) {
-  return (
-    <Script
-      id="page-json-ld"
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{
-        __html: JSON.stringify(schema),
-      }}
-      strategy="afterInteractive"
-    />
-  );
+export function PageJsonLd({ schema }: { schema: unknown }) {
+  return <JsonLd id="page-json-ld" schema={schema} />;
 }
