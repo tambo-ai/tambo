@@ -681,6 +681,9 @@ export class V1Service {
           );
           const clientTools = convertV1ToolsToInternal(dto.tools);
 
+          // Create abort controller to stop LLM stream on cancellation
+          const abortController = new AbortController();
+
           const streamingPromise = this.threadsService.advanceThread(
             projectId,
             {
@@ -693,7 +696,17 @@ export class V1Service {
             undefined, // cachedSystemTools
             queue,
             contextKey,
+            abortController.signal,
           );
+
+          // Handle expected abort rejection when we cancel the stream
+          void streamingPromise.catch((error: unknown) => {
+            if (error instanceof Error && error.message === "Aborted by SDK") {
+              this.logger.log(`LLM stream aborted for cancelled run ${runId}`);
+              return;
+            }
+            this.logger.error(`Streaming error for run ${runId}: ${error}`);
+          });
 
           // 5. Consume queue and emit AG-UI events, tracking tool calls
           const clientToolNames = new Set(dto.tools?.map((t) => t.name) ?? []);
@@ -719,6 +732,7 @@ export class V1Service {
               lastCancelCheckTime = now;
               const run = await operations.getRun(this.db, threadId, runId);
               if (run?.isCancelled) {
+                abortController.abort();
                 // Mark the specific message we know is being streamed
                 if (currentMessageId) {
                   await operations.markMessageCancelled(
