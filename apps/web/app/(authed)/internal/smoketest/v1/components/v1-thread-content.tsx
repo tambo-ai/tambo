@@ -8,7 +8,7 @@ import type {
   V1ToolUseContent,
 } from "@tambo-ai/react/v1/types/message";
 import { Check, ChevronDown, Loader2, X } from "lucide-react";
-import { FC, useState } from "react";
+import { FC, useEffect, useRef, useState } from "react";
 import { formatToolResultContent } from "./tool-display-utils";
 
 interface V1ThreadContentProps {
@@ -58,6 +58,7 @@ interface V1MessageItemProps {
  */
 const V1MessageItem: FC<V1MessageItemProps> = ({ message, isLoading }) => {
   const isAssistant = message.role === "assistant";
+  const hasReasoning = !!message.reasoning?.length;
 
   // Separate tool content from other content
   // Non-tool content (text, component, resource) renders in order
@@ -69,8 +70,23 @@ const V1MessageItem: FC<V1MessageItemProps> = ({ message, isLoading }) => {
     (c) => c.type === "tool_use" || c.type === "tool_result",
   );
 
+  // Determine if we're still in the reasoning phase (reasoning exists but no text content yet)
+  const isReasoning = isLoading && hasReasoning && nonToolContent.length === 0;
+
   return (
     <div className="flex flex-col gap-2">
+      {/* Reasoning info - shown for assistant messages with reasoning data */}
+      {isAssistant && hasReasoning && (
+        <div className="flex w-full justify-start">
+          <V1ReasoningInfo
+            reasoning={message.reasoning ?? []}
+            reasoningDurationMS={message.reasoningDurationMS}
+            isLoading={isReasoning}
+            hasContent={nonToolContent.length > 0}
+          />
+        </div>
+      )}
+
       {/* Non-tool content (text, component, resource) in order */}
       {nonToolContent.length > 0 && (
         <div
@@ -254,4 +270,130 @@ const ToolStatusIcon: FC<ToolStatusIconProps> = ({ isLoading, isError }) => {
     return <X className="h-3 w-3 text-red-500" />;
   }
   return <Check className="h-3 w-3 text-green-500" />;
+};
+
+// ============================================================================
+// V1 Reasoning Info Component
+// ============================================================================
+
+interface V1ReasoningInfoProps {
+  reasoning: string[];
+  reasoningDurationMS?: number;
+  isLoading?: boolean;
+  hasContent?: boolean;
+}
+
+/**
+ * Formats the reasoning duration in a human-readable format.
+ */
+function formatReasoningDuration(durationMS: number): string {
+  const seconds = Math.floor(Math.max(0, durationMS) / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const hours = Math.floor(minutes / 60);
+
+  if (seconds < 1) return "Thought for less than 1 second";
+  if (seconds < 60)
+    return `Thought for ${seconds} ${seconds === 1 ? "second" : "seconds"}`;
+  if (minutes < 60)
+    return `Thought for ${minutes} ${minutes === 1 ? "minute" : "minutes"}`;
+  return `Thought for ${hours} ${hours === 1 ? "hour" : "hours"}`;
+}
+
+/**
+ * Displays reasoning information in a collapsible dropdown.
+ * Auto-expands while reasoning, auto-collapses when content arrives.
+ */
+const V1ReasoningInfo: FC<V1ReasoningInfoProps> = ({
+  reasoning,
+  reasoningDurationMS,
+  isLoading,
+  hasContent,
+}) => {
+  const [isExpanded, setIsExpanded] = useState(true);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  // Auto-collapse when content arrives and reasoning is not loading
+  useEffect(() => {
+    if (hasContent && !isLoading) {
+      setIsExpanded(false);
+    }
+  }, [hasContent, isLoading]);
+
+  // Auto-scroll to bottom when reasoning content changes
+  useEffect(() => {
+    if (scrollContainerRef.current && isExpanded && reasoning.length > 0) {
+      const scroll = () => {
+        if (scrollContainerRef.current) {
+          scrollContainerRef.current.scrollTo({
+            top: scrollContainerRef.current.scrollHeight,
+            behavior: "smooth",
+          });
+        }
+      };
+
+      if (isLoading) {
+        requestAnimationFrame(scroll);
+      } else {
+        const timeoutId = setTimeout(scroll, 50);
+        return () => clearTimeout(timeoutId);
+      }
+    }
+  }, [reasoning, isExpanded, isLoading]);
+
+  const statusText = isLoading
+    ? "Thinking"
+    : reasoningDurationMS
+      ? formatReasoningDuration(reasoningDurationMS)
+      : "Done thinking";
+
+  const showStepNumbers = reasoning.length > 1;
+
+  return (
+    <div className="flex flex-col items-start text-xs opacity-50 max-w-3xl">
+      <button
+        type="button"
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="group flex items-center gap-1 cursor-pointer hover:bg-muted-foreground/10 rounded-md px-3 py-1 select-none"
+      >
+        <span
+          className={cn(isLoading && "data-loading:animate-thinking-gradient")}
+          data-loading={isLoading || undefined}
+        >
+          {statusText}
+        </span>
+        <ChevronDown
+          className={cn(
+            "h-3 w-3 transition-transform duration-200",
+            !isExpanded && "-rotate-90",
+          )}
+        />
+      </button>
+      <div
+        ref={scrollContainerRef}
+        className={cn(
+          "flex flex-col gap-1 px-3 py-3 overflow-auto transition-[max-height,opacity,padding] duration-300 w-full",
+          isExpanded
+            ? "max-h-96 opacity-100"
+            : "max-h-0 opacity-0 p-0 overflow-hidden",
+        )}
+      >
+        <div className="space-y-4">
+          {reasoning.map((step, index) => (
+            <div key={index} className="flex flex-col gap-1">
+              {showStepNumbers && (
+                <span className="text-muted-foreground text-xs font-medium">
+                  Step {index + 1}:
+                </span>
+              )}
+              {step && (
+                <div className="bg-muted/50 rounded-md p-3 text-xs overflow-x-auto overflow-y-auto max-w-full">
+                  <div className="whitespace-pre-wrap break-words">{step}</div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
 };

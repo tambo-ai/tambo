@@ -145,4 +145,18 @@ export interface TamboV1Message {
 
   /** Message metadata */
   metadata?: Record<string, unknown>;
+
+  /**
+   * Reasoning content from the model (transient - only during streaming).
+   * Each element is a reasoning "chunk" - models may emit multiple reasoning blocks.
+   * This data is not persisted to the database and will not be present in
+   * messages loaded from the API.
+   */
+  reasoning?: string[];
+
+  /**
+   * Duration of the reasoning phase in milliseconds (for display purposes).
+   * Populated when reasoning completes.
+   */
+  reasoningDurationMS?: number;
 }
