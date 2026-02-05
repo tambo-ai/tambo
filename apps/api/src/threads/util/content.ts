@@ -77,7 +77,12 @@ export function convertContentDtoToContentPart(
 }
 
 /**
- * Convert a string or array of LLM content parts to a serialized content part
+ * Convert a string or array of LLM content parts to a serialized content part.
+ *
+ * Filters out component content parts (type: "component") which are V1 API-specific
+ * and should not be exposed in legacy API responses. Components are stored in the
+ * content array for V1 API state updates but legacy clients expect only standard
+ * content types (text, image_url, input_audio, resource).
  */
 export function convertContentPartToDto(
   part: ChatCompletionContentPart[] | string,
@@ -85,7 +90,10 @@ export function convertContentPartToDto(
   if (typeof part === "string") {
     return [{ type: ContentPartType.Text, text: part }];
   }
-  return part as ChatCompletionContentPartDto[];
+  // Filter out component content parts - they're V1 API-specific
+  return part.filter(
+    (p) => p.type !== "component",
+  ) as ChatCompletionContentPartDto[];
 }
 
 /**

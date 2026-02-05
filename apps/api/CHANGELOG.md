@@ -1,5 +1,47 @@
 # Changelog
 
+## [0.136.0](https://github.com/tambo-ai/tambo/compare/api-v0.135.0...api-v0.136.0) (2026-02-04)
+
+
+### Features
+
+* **api,react-sdk:** V1 API message loading improvements ([#2190](https://github.com/tambo-ai/tambo/issues/2190)) ([53eb5ad](https://github.com/tambo-ai/tambo/commit/53eb5ad852c7c4b02845af8c326c1e4007eca521))
+* **api:** add additionalContext to V1 API and fix limit type ([#2193](https://github.com/tambo-ai/tambo/issues/2193)) ([f6707d7](https://github.com/tambo-ai/tambo/commit/f6707d7d96f970add58dface84d721cdf20b959a))
+
+
+### Bug Fixes
+
+* **api:** use DEFAULT_OPENAI_MODEL constant in threads service tests ([#2173](https://github.com/tambo-ai/tambo/issues/2173)) ([e401583](https://github.com/tambo-ai/tambo/commit/e401583e93fbbbec8134757abd71e451db0f2c08))
+* update sentry config for db spans ([#2166](https://github.com/tambo-ai/tambo/issues/2166)) ([c6c212a](https://github.com/tambo-ai/tambo/commit/c6c212acde1c76e16a1dc9ed62d9a726e9fc1025))
+
+## [0.135.0](https://github.com/tambo-ai/tambo/compare/api-v0.134.0...api-v0.135.0) (2026-02-03)
+
+
+### Features
+
+* **backend:** V1 streaming API improvements for component rendering ([#2133](https://github.com/tambo-ai/tambo/issues/2133)) ([b84de33](https://github.com/tambo-ai/tambo/commit/b84de33d40d06e41c75b7479b70627d3eba0ed08))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump the sentry group with 3 updates ([#2162](https://github.com/tambo-ai/tambo/issues/2162)) ([78c36d2](https://github.com/tambo-ai/tambo/commit/78c36d26ccbb1c9e92b53293345be2fcb2bd4acd))
+* **test:** bump coverage thresholds (2026-02-02) ([#2139](https://github.com/tambo-ai/tambo/issues/2139)) ([0f16ec3](https://github.com/tambo-ai/tambo/commit/0f16ec33bb8cfcbd598dbb847589b0c44a423232))
+
+## [0.134.0](https://github.com/tambo-ai/tambo/compare/api-v0.133.4...api-v0.134.0) (2026-01-30)
+
+
+### Features
+
+* **api:** add V1 suggestions API endpoints ([#2092](https://github.com/tambo-ai/tambo/issues/2092)) ([e80b99d](https://github.com/tambo-ai/tambo/commit/e80b99d3db9fda166e49dcb83274c898efa8cdae))
+* **ci:** split CI into parallel jobs with Codecov ([#1908](https://github.com/tambo-ai/tambo/issues/1908)) ([9ba2ea8](https://github.com/tambo-ai/tambo/commit/9ba2ea876e014e95fe7e00543cd63595c3cd73ca))
+
+## [0.133.4](https://github.com/tambo-ai/tambo/compare/api-v0.133.3...api-v0.133.4) (2026-01-30)
+
+
+### Bug Fixes
+
+* **api:** remove langfuse span processing ([#2052](https://github.com/tambo-ai/tambo/issues/2052)) ([4a715ad](https://github.com/tambo-ai/tambo/commit/4a715ad16d707d0110e861258de08bd6367f809c))
+
 ## [0.133.3](https://github.com/tambo-ai/tambo/compare/api-v0.133.2...api-v0.133.3) (2026-01-29)
 
 

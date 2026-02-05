@@ -3,30 +3,10 @@ import * as Sentry from "@sentry/nestjs";
 const environment =
   process.env.SENTRY_ENVIRONMENT || process.env.NODE_ENV || "development";
 
-async function initSentry() {
-  // Only initialize if DSN is provided
-  if (!process.env.SENTRY_DSN) {
-    console.log(
-      "Sentry DSN not provided, skipping Sentry initialization, if you want to use Sentry, please contact us at support@tambo.co",
-    );
-    return;
-  }
-
-  // Try to load profiling integration, but gracefully handle failures
-  // (e.g., incompatible Node.js version, missing native module)
-  let profilingIntegration:
-    | (typeof import("@sentry/profiling-node"))["nodeProfilingIntegration"]
-    | undefined;
-  try {
-    const { nodeProfilingIntegration } = await import("@sentry/profiling-node");
-    profilingIntegration = nodeProfilingIntegration;
-  } catch (error) {
-    console.warn(
-      "Could not load Sentry profiling integration (native module issue). Profiling will be disabled.",
-      error instanceof Error ? error.message : error,
-    );
-  }
-
+// Sentry MUST be initialized synchronously before any other imports
+// so that auto-instrumentation (Postgres, HTTP, etc.) can patch modules
+// before they're loaded by the app.
+if (process.env.SENTRY_DSN) {
   Sentry.init({
     dsn: process.env.SENTRY_DSN,
     environment,
@@ -34,8 +14,8 @@ async function initSentry() {
     // Performance Monitoring
     tracesSampleRate: 1,
 
-    // Profiling (requires tracing to be enabled)
-    profilesSampleRate: profilingIntegration ? 1 : 0,
+    // Profiling will be added after init if available
+    profilesSampleRate: 1,
 
     // Integrations
     integrations: (defaults) => [
@@ -50,8 +30,6 @@ async function initSentry() {
       Sentry.httpIntegration({
         maxIncomingRequestBodySize: "always",
       }),
-      // Add profiling integration if available
-      ...(profilingIntegration ? [profilingIntegration()] : []),
     ],
 
     // Configure error filtering
@@ -61,7 +39,7 @@ async function initSentry() {
         const error = hint.originalException as Error;
 
         // Don't send health check errors
-        if (error.message.includes("/health")) {
+        if (error.message?.includes("/health")) {
           return null;
         }
       }
@@ -82,6 +60,22 @@ async function initSentry() {
   });
 
   console.log(`Sentry initialized for ${environment} environment`);
-}
 
-void initSentry();
+  // Try to add profiling integration after init (non-blocking)
+  // This is fine to do async since profiling doesn't require module patching
+  import("@sentry/profiling-node")
+    .then(({ nodeProfilingIntegration }) => {
+      Sentry.addIntegration(nodeProfilingIntegration());
+      console.log("Sentry profiling integration loaded");
+    })
+    .catch((error) => {
+      console.warn(
+        "Could not load Sentry profiling integration (native module issue). Profiling will be disabled.",
+        error instanceof Error ? error.message : error,
+      );
+    });
+} else {
+  console.log(
+    "Sentry DSN not provided, skipping Sentry initialization, if you want to use Sentry, please contact us at support@tambo.co",
+  );
+}

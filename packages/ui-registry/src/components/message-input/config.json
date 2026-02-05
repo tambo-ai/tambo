@@ -21,7 +21,12 @@
     "use-debounce"
   ],
   "devDependencies": [],
-  "requires": ["elicitation-ui", "mcp-components"],
+  "requires": [
+    "elicitation-ui",
+    "mcp-components",
+    "message",
+    "message-suggestions"
+  ],
   "files": [
     {
       "name": "message-input.tsx",

@@ -176,6 +176,87 @@ npx tambo add message-thread-full form graph
 npx tambo upgrade
 ```
 
+## CI/CD Workflows
+
+The Tambo CLI automatically detects non-interactive environments (CI/CD, piped input/output) and provides helpful guidance. Use these patterns for automated pipelines.
+
+### GitHub Actions Setup
+
+```yaml
+name: Setup Tambo
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Initialize Tambo
+        run: npx tambo init --api-key="${{ secrets.TAMBO_API_KEY }}"
+
+      - name: Add components
+        run: npx tambo add message-thread-full form --yes
+```
+
+### Docker Build
+
+```dockerfile
+# Pass API key as build argument
+ARG TAMBO_API_KEY
+
+RUN npx tambo init --api-key="$TAMBO_API_KEY"
+RUN npx tambo add message-thread-full --yes
+```
+
+Build with:
+
+```bash
+docker build --build-arg TAMBO_API_KEY="$TAMBO_API_KEY" .
+```
+
+### Non-Interactive Flags
+
+In CI/CD, always provide these flags to avoid prompts:
+
+```bash
+# Initialize with direct API key
+npx tambo init --api-key="$TAMBO_API_KEY"
+
+# Add components without prompts
+npx tambo add form graph --yes --prefix=src/components/tambo
+
+# Upgrade without prompts (required in CI)
+npx tambo upgrade --yes
+```
+
+### Handling Exit Codes
+
+The CLI uses exit code 2 when user action is required:
+
+```bash
+npx tambo init --api-key="$TAMBO_API_KEY"
+status=$?
+if [ $status -eq 2 ]; then
+  echo "Missing required arguments"
+  exit 1
+elif [ $status -ne 0 ]; then
+  echo "Command failed"
+  exit 1
+fi
+```
+
+For more details on non-interactive mode and exit codes, see [Global Options](/reference/cli/global-options#non-interactive-mode).
+
 ## Quick Reference
 
 ### Most Common Commands

@@ -13,14 +13,14 @@
 | Phase 6: Tool Execution      | ✅ Complete    | Auto-execution with continuation         |
 | Phase 7: Provider & Hooks    | ✅ Complete    | TamboV1Provider, all hooks               |
 | Phase 8: Component Rendering | ✅ Complete    | Renderer, state sync, props sanitization |
-| Phase 9: Context Helpers     | ✅ Partial     | Infrastructure ready, API blocked by SDK |
+| Phase 9: Context Helpers     | ✅ Complete    | userKey integrated, API calls working    |
 | Phase 9b: Documentation      | 🔄 In Progress | JSDoc done, examples needed              |
-| Phase 10: Testing & Polish   | 🔄 In Progress | 938 tests passing                        |
+| Phase 10: Testing & Polish   | 🔄 In Progress | 943 tests passing                        |
 
 **Known Blockers:**
 
-- TypeScript SDK doesn't support `additionalContext` or `contextKey` parameters yet
-- Context helpers infrastructure is ready but can't send to API until SDK is updated
+- TypeScript SDK doesn't support `additionalContext` parameter yet
+- Context helpers infrastructure is ready but can't send additionalContext to API until SDK is updated
 
 ## Overview
 
@@ -552,15 +552,19 @@ import type { BaseEvent } from '@ag-ui/core';
 import { streamReducer, type StreamState } from '../utils/event-accumulator';
 
 const StreamStateContext = createContext<StreamState | null>(null);
-const StreamDispatchContext = createContext<Dispatch<BaseEvent> | null>(null);
+const StreamDispatchContext = createContext<Dispatch<StreamAction> | null>(null);
 
-export function TamboV1StreamProvider({ children }: PropsWithChildren) {
-  const [state, dispatch] = useReducer(streamReducer, {
-    thread: { id: '', messages: [], runStatus: 'idle', /* ... */ },
-    streamingState: { status: 'idle' },
-    pendingToolCalls: new Map(),
-    accumulatingComponents: new Map(),
-  });
+export function TamboV1StreamProvider({ children, userKey }: { children: ReactNode; userKey?: string }) {
+  // Lazy initializer - userKey stored in state, threads managed via dispatch
+  const [state, dispatch] = useReducer(
+    streamReducer,
+    userKey,
+    (initialUserKey) => ({
+      threadMap: {},
+      currentThreadId: null,
+      userKey: initialUserKey,
+    }),
+  );
 
   return (
     <StreamStateContext.Provider value={state}>
@@ -610,8 +614,9 @@ Created complete streaming infrastructure in v1/:
   - Split-context pattern (separate StreamStateContext and StreamDispatchContext)
   - TamboV1StreamProvider with useReducer(streamReducer)
   - useStreamState() and useStreamDispatch() hooks with error checking
-  - Flexible initialization (accepts threadId, projectId, or full initialThread)
-  - Memoized initial state to prevent unnecessary reducer resets
+  - useThreadManagement() hook for initThread/switchThread/startNewThread
+  - userKey stored in StreamState (not a prop-controlled threadId)
+  - Lazy initializer for stable initial state
   - "use client" directive for Next.js compatibility
 
 - **providers/index.ts**: Barrel export for providers module
@@ -836,7 +841,7 @@ Created React Query hooks in v1/hooks/:
   - Stale time: 1s for real-time data
 
 - **use-tambo-v1-thread-list.ts**: Query hook for fetching thread list
-  - Supports pagination via cursor, limit, contextKey
+  - Supports pagination via cursor, limit, userKey
   - Returns ThreadListResponse directly from SDK
   - Stale time: 5s for list data
 
@@ -1267,44 +1272,61 @@ export function useTamboV1ComponentState<S>(
 - Component state syncs bidirectionally
 - Conflicts handled gracefully
 
-#### Phase 9: Context Helpers & ContextKey (Est: 1-2 days)
+#### Phase 9: Context Helpers & UserKey (Est: 1-2 days)
 
-**Status: ✅ COMPLETED (Partial - API integration blocked by SDK)**
+**Status: ✅ COMPLETED**
 
 **Goals:**
 
 - Integrate context helpers with v1 API
-- Support contextKey for thread scoping/isolation
+- Support userKey for thread ownership and scoping
 - Align API exports with beta SDK
 
 **Tasks:**
 
 - [x] Add `contextHelpers` prop for context helper configuration - ✅ Via TamboContextHelpersProvider
-- [x] Add `contextKey` prop for thread scoping/isolation - ✅ Via ContextKeyContext
-- [x] Export useContextKey() hook - ✅ Returns contextKey from provider
+- [x] Add `userKey` prop for thread ownership - ✅ Stored in StreamState, passed to API calls
 - [x] Re-export context helpers from beta SDK - ✅ TamboContextHelpersProvider, useTamboContextHelpers
 - [x] Re-export built-in context helpers - ✅ currentPageContextHelper, currentTimeContextHelper
 - [x] Export context helper types - ✅ AdditionalContext, ContextHelperFn, ContextHelpers
+- [x] Send userKey to thread creation - ✅ Passed to runs.create() and runs.run() API calls
 - [ ] Send additionalContext to API calls - ⚠️ Blocked: TypeScript SDK doesn't support additionalContext parameter
-- [ ] Send contextKey to thread creation - ⚠️ Blocked: TypeScript SDK doesn't support contextKey parameter
 
 **Actual Implementation:**
 
-Context helpers and contextKey infrastructure is complete:
+Context helpers and userKey are fully integrated:
 
-- **providers/tambo-v1-provider.tsx**: Provider supports contextHelpers and contextKey props
+- **providers/tambo-v1-provider.tsx**: Provider supports contextHelpers and userKey props
   - TamboContextHelpersProvider wraps children for context helper registration
-  - ContextKeyContext provides contextKey to descendant components
-  - useContextKey() hook returns contextKey value
+  - userKey passed to TamboV1StreamProvider for storage in StreamState
+
+- **providers/tambo-v1-stream-context.tsx**: Stream context manages userKey
+  - userKey stored directly in StreamState (not a separate context)
+  - Accessed via useStreamState().userKey
+  - Thread management via initThread/switchThread/startNewThread (threadId is internal state, not a prop)
+
+- **hooks/use-tambo-v1-send-message.ts**: userKey passed to API calls
+  - runs.create() receives userKey in thread parameter for new threads
+  - runs.run() receives userKey for existing threads
 
 - **v1/index.ts**: Full exports for context helpers
   - TamboContextHelpersProvider and useTamboContextHelpers from beta SDK
   - currentPageContextHelper and currentTimeContextHelper built-ins
   - AdditionalContext, ContextHelperFn, ContextHelpers types
 
-**Note:** The context helpers infrastructure is ready, but actually sending additionalContext
-and contextKey to the API is blocked pending TypeScript SDK updates. The SDK's RunCreateParams
-and RunRunParams interfaces don't include these parameters yet.
+**Architecture Decisions:**
+
+1. **userKey is required** - Either userKey prop OR userToken (containing userKey) must be provided.
+   All thread operations are scoped to the userKey - users only see their own threads.
+
+2. **No separate UserKeyContext** - userKey is stored in StreamState for simplicity.
+   Access via useStreamState().userKey rather than a separate hook.
+
+3. **Thread management is internal** - Removed threadId prop from TamboV1StreamProvider.
+   Threads managed via initThread/switchThread/startNewThread to prevent state loss on thread switching.
+
+**Note:** additionalContext integration is blocked pending TypeScript SDK updates.
+The SDK's RunCreateParams and RunRunParams interfaces don't include this parameter yet.
 
 #### Phase 9b: Documentation & Examples (Est: 2-3 days)
 
@@ -1754,11 +1776,12 @@ Use this checklist during implementation:
 - [x] State synchronization working
 - [ ] Error boundaries tested - Deferred
 
-**Context Helpers:**
+**Context Helpers & UserKey:**
 - [x] Context helpers provider integrated
-- [x] useContextKey() hook implemented
+- [x] userKey stored in StreamState and passed to API calls
 - [x] Built-in helpers re-exported
-- [ ] API integration - Blocked by SDK
+- [x] userKey sent to thread creation/run APIs
+- [ ] additionalContext API integration - Blocked by SDK
 
 **Documentation:**
 - [ ] README complete

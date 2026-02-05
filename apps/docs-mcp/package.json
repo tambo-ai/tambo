@@ -14,9 +14,9 @@
     "clean": "rm -rf .next dist coverage"
   },
   "dependencies": {
-    "@sentry/nextjs": "^10.36.0",
+    "@sentry/nextjs": "^10.38.0",
     "mcp-handler": "^1.0.7",
-    "next": "^15.5.9",
+    "next": "^15.5.11",
     "openai": "^6.16.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
@@ -25,7 +25,7 @@
   "devDependencies": {
     "@tambo-ai/eslint-config": "*",
     "@tambo-ai/typescript-config": "*",
-    "@types/node": "^22.19.5",
+    "@types/node": "^22.19.7",
     "typescript": "^5.9.3"
   }
 }

@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.36.0](https://github.com/tambo-ai/tambo/compare/showcase-v0.35.0...showcase-v0.36.0) (2026-02-02)
+
+
+### Features
+
+* **react-sdk:** implement v1 API Phase 9-10 with userKey and API cleanup ([#2032](https://github.com/tambo-ai/tambo/issues/2032)) ([9e055ab](https://github.com/tambo-ai/tambo/commit/9e055abddab6390498e5f2c6cb1224efbb556dfc))
+* **react-sdk:** implement v1 API Phases 6-7 with code review fixes ([#1954](https://github.com/tambo-ai/tambo/issues/1954)) ([9a7e098](https://github.com/tambo-ai/tambo/commit/9a7e098e0f969ec1512d6705c020dc46f625ac95))
+* **react-sdk:** update useTamboV1Suggestions to use v1 API endpoints ([#2096](https://github.com/tambo-ai/tambo/issues/2096)) ([afa26c3](https://github.com/tambo-ai/tambo/commit/afa26c36335ad235ef0fb04675b2713e380d8354))
+
+
+### Bug Fixes
+
+* **docs:** update broken documentation links  ([#2131](https://github.com/tambo-ai/tambo/issues/2131)) ([f919263](https://github.com/tambo-ai/tambo/commit/f9192636eb670e606a79714a1e59e16bfdc25e07))
+
 ## [0.35.0](https://github.com/tambo-ai/tambo/compare/showcase-v0.34.1...showcase-v0.35.0) (2026-01-21)
 
 

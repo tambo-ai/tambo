@@ -29,7 +29,7 @@ runs:
   using: "composite"
   steps:
     - name: Setup Mise
-      uses: jdx/mise-action@v3.5.1
+      uses: jdx/mise-action@v3.6.1
 
     - name: Setup Node Cache
       if: ${{ inputs.cache == 'true' }}

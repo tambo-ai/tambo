@@ -29,7 +29,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -76,7 +76,7 @@ jobs:
       - name: Build and push mcp-everything image
         uses: docker/build-push-action@v6
         with:
-          context: tambo-cloud
+          context: ./apps/mcp-everything
           file: ./apps/mcp-everything/Dockerfile
           push: ${{ steps.should_push.outputs.should_push }}
           load: ${{ steps.should_push.outputs.should_push == 'false' }}

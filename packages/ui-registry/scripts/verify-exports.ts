@@ -1,104 +1,102 @@
 #!/usr/bin/env npx tsx
 /**
- * Verifies that package.json exports match the actual filesystem.
- *
- * This script ensures:
- * 1. All exports in package.json point to files that exist
- * 2. All component directories have a corresponding export
- *
- * Run this in CI to prevent drift between exports and filesystem.
+ * CLI entrypoint for verifying the component registry integrity.
  */
 
 import fs from "node:fs";
-import path from "node:path";
 
-const PACKAGE_ROOT = path.resolve(import.meta.dirname, "..");
-const SRC_DIR = path.join(PACKAGE_ROOT, "src");
+import {
+  COMPONENTS_DIR,
+  type MissingRequiresError,
+  type UnresolvedImportError,
+  getComponentDirectories,
+  getComponentNames,
+  getPackageExports,
+  validateComponentRequires,
+  validateRelativeImports,
+  verifyComponentsHaveExports,
+  verifyExportsPointToFiles,
+} from "./verify-exports.lib.js";
 
-// Note: This interface only covers the exports field we need.
-// The actual package.json has many more fields that we ignore here.
-interface PackageJson {
-  exports?: Record<string, string>;
-}
-
-function getPackageExports(): Map<string, string> {
-  const packageJsonPath = path.join(PACKAGE_ROOT, "package.json");
-  const packageJson: PackageJson = JSON.parse(
-    fs.readFileSync(packageJsonPath, "utf-8"),
+if (process.platform === "win32") {
+  console.error(
+    "verify-exports is not supported on Windows. Run this check in a Linux/macOS environment.",
   );
-
-  if (!packageJson.exports) {
-    throw new Error("No exports field found in package.json");
-  }
-
-  return new Map(Object.entries(packageJson.exports));
-}
-
-function getComponentDirectories(): string[] {
-  const componentsDir = path.join(SRC_DIR, "components");
-  if (!fs.existsSync(componentsDir)) {
-    return [];
-  }
-
-  return fs
-    .readdirSync(componentsDir, { withFileTypes: true })
-    .filter((dirent) => dirent.isDirectory())
-    .map((dirent) => dirent.name);
-}
-
-function verifyExportsPointToFiles(exports: Map<string, string>): string[] {
-  const errors: string[] = [];
-
-  for (const [exportPath, filePath] of exports) {
-    const fullPath = path.join(PACKAGE_ROOT, filePath);
-    if (!fs.existsSync(fullPath)) {
-      errors.push(
-        `Export "${exportPath}" points to non-existent file: ${filePath}`,
-      );
-    }
-  }
-
-  return errors;
-}
-
-function verifyComponentsHaveExports(
-  exports: Map<string, string>,
-  components: string[],
-): string[] {
-  const errors: string[] = [];
-
-  for (const component of components) {
-    const expectedExport = `./components/${component}`;
-    if (!exports.has(expectedExport)) {
-      errors.push(
-        `Component directory "${component}" has no corresponding export "${expectedExport}"`,
-      );
-    }
-  }
-
-  return errors;
+  process.exit(1);
 }
 
 function main(): void {
-  console.log("Verifying package.json exports match filesystem...\n");
+  console.log("Verifying component registry...\n");
+
+  if (!fs.existsSync(COMPONENTS_DIR)) {
+    console.error(`Components directory not found: ${COMPONENTS_DIR}`);
+    process.exit(1);
+  }
 
   const exports = getPackageExports();
   const componentDirs = getComponentDirectories();
+  const knownComponents = getComponentNames();
 
-  const errors: string[] = [
+  const exportErrors: string[] = [
     ...verifyExportsPointToFiles(exports),
     ...verifyComponentsHaveExports(exports, componentDirs),
   ];
 
-  if (errors.length > 0) {
-    console.error("Verification failed:\n");
-    errors.forEach((error) => console.error(`  - ${error}`));
+  const requiresErrors: MissingRequiresError[] = [];
+  const importErrors: UnresolvedImportError[] = [];
+
+  for (const componentName of knownComponents) {
+    requiresErrors.push(
+      ...validateComponentRequires(componentName, knownComponents),
+    );
+    importErrors.push(...validateRelativeImports(componentName));
+  }
+
+  let hasErrors = false;
+
+  if (exportErrors.length > 0) {
+    hasErrors = true;
+    console.error("Export verification failed:\n");
+    exportErrors.forEach((error) => console.error(`  - ${error}`));
     console.error("\n");
+  }
+
+  if (requiresErrors.length > 0) {
+    hasErrors = true;
+    console.error("Missing requires entries:\n");
+    for (const error of requiresErrors) {
+      console.error(
+        `  ${error.component}/config.json: Missing "${error.referencedComponent}" in requires`,
+      );
+      console.error(
+        `    File "${error.file}" references ${error.referencedComponent}\n`,
+      );
+    }
+    console.error(
+      `To fix: Add the missing component names to the "requires" array in each config.json\n`,
+    );
+  }
+
+  if (importErrors.length > 0) {
+    hasErrors = true;
+    console.error("Unresolved relative imports:\n");
+    for (const error of importErrors) {
+      console.error(
+        `  ${error.component}/${error.file}: Cannot resolve import '${error.importPath}'`,
+      );
+    }
+    console.error(
+      `\nTo fix: Ensure the imported files exist in the component directory\n`,
+    );
+  }
+
+  if (hasErrors) {
     process.exit(1);
   }
 
   console.log(`All ${exports.size} exports verified`);
   console.log(`All ${componentDirs.length} components have exports`);
+  console.log(`All ${knownComponents.size} components have valid requires`);
   console.log("\nVerification passed!");
 }
 

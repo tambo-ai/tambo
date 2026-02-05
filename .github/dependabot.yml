@@ -1,20 +1,25 @@
 version: 2
 updates:
   - package-ecosystem: "github-actions"
-    directory: "/"
+    directories:
+      - "/"
+      - "/.github/actions/*"
     schedule:
       interval: "weekly"
       day: "monday"
+      time: "07:00"
+      timezone: "America/New_York"
     open-pull-requests-limit: 10
     commit-message:
       prefix: "chore"
       prefix-development: "chore"
       include: "scope"
-    labels: [] # automation-labels.yml handles labeling
-    ignore:
-      - dependency-name: "actions/setup-node"
-      - dependency-name: "actions/checkout"
-      - dependency-name: "actions/upload-artifact"
+    labels: ["area: github actions", "status: ready"]
+    groups:
+      composite-actions:
+        patterns:
+          # Dependency names for actions all contain the path to the action
+          - ".github/actions/*"
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
@@ -25,7 +30,7 @@ updates:
       prefix: "chore"
       prefix-development: "chore"
       include: "scope"
-    labels: [] # automation-labels.yml handles labeling
+    labels: ["area: dependencies", "status: ready"]
     # Let package releases bake for a bit before updating,
     # in case there is a bad release. However, always update
     # the latest version of the Tambo packages.
@@ -119,7 +124,7 @@ updates:
         patterns:
           - "@ag-ui/*"
           - "@mastra/*"
-      nexstra:
+      nextra:
         patterns:
           - "nextra"
           - "nextra-*"

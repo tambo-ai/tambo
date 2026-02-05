@@ -1,0 +1,44 @@
+name: check
+
+permissions: {}
+
+on:
+  workflow_call:
+    inputs:
+      json-needs:
+        type: string
+        description: "A JSON string representing the needs of the workflow"
+        required: true
+      error-message:
+        type: string
+        description: "The error message to display if the condition fails"
+        required: false
+        default: "The specified condition for the workflow has failed. Please check the previous jobs for details."
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    env:
+      JSON_NEEDS: ${{ inputs.json-needs }}
+      ERROR_MESSAGE: ${{ inputs.error-message }}
+    steps:
+      - name: Job Result
+        id: result
+        shell: bash
+        run: | # shell
+          # Job Result
+          # `jq` is pre-installed on GitHub-hosted runners   
+          JOBS=$(jq -c '.[]' <<< "$JSON_NEEDS")
+
+          while read -r job; do
+            JOB_RESULT=$(jq -r '.result' <<< "$job")
+            
+            # Fail immediately if any job is not 'success' or 'skipped'
+            if [[ $JOB_RESULT != 'success' && $JOB_RESULT != 'skipped' ]]; then
+              echo "::error title=Condition Failed::${ERROR_MESSAGE}"
+              exit 1
+            fi
+          done <<< "$JOBS"
+
+          # All jobs passed
+          exit 0

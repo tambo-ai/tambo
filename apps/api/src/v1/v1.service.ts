@@ -18,14 +18,16 @@ import {
 } from "@ag-ui/core";
 import {
   AsyncQueue,
-  ContentPartType,
-  MessageRole,
   V1RunStatus,
   type UnsavedThreadToolMessage,
 } from "@tambo-ai-cloud/core";
 import { sanitizeEvent } from "@tambo-ai-cloud/backend";
 import type { HydraDatabase, HydraDb } from "@tambo-ai-cloud/db";
-import { operations, schema } from "@tambo-ai-cloud/db";
+import {
+  dbMessageToThreadMessage,
+  operations,
+  schema,
+} from "@tambo-ai-cloud/db";
 import { and, eq, sql } from "drizzle-orm";
 import type { Response } from "express";
 import {
@@ -55,7 +57,6 @@ import {
 } from "./v1-tool-results";
 import type { StreamQueueItem } from "../threads/dto/stream-queue-item";
 import { ThreadsService } from "../threads/threads.service";
-import type { MessageRequest } from "../threads/dto/message.dto";
 import { DATABASE } from "../common/middleware/db-transaction-middleware";
 import {
   V1GetMessageResponseDto,
@@ -72,9 +73,18 @@ import {
 import {
   threadToDto,
   messageToDto,
+  isHiddenUiToolResponse,
   ContentConversionOptions,
+  convertV1InputMessageToInternal,
 } from "./v1-conversions";
 import { encodeV1CompoundCursor, parseV1CompoundCursor } from "./v1-pagination";
+import {
+  V1GenerateSuggestionsDto,
+  V1GenerateSuggestionsResponseDto,
+  V1ListSuggestionsQueryDto,
+  V1ListSuggestionsResponseDto,
+  V1SuggestionDto,
+} from "./dto/suggestion.dto";
 
 /**
  * Result type for startRun - either success with runId or failure with HttpException
@@ -111,17 +121,12 @@ export class V1Service {
     private readonly threadsService: ThreadsService,
   ) {}
 
-  private parseLimit(raw: string | undefined, fallback: number): number {
-    if (raw !== undefined && raw.trim() === "") {
+  private parseLimit(raw: number | undefined, fallback: number): number {
+    const value = raw ?? fallback;
+    if (!Number.isFinite(value) || !Number.isInteger(value)) {
       throw new BadRequestException("Invalid limit");
     }
-
-    const parsed = raw === undefined ? fallback : Number(raw);
-    if (!Number.isInteger(parsed)) {
-      throw new BadRequestException("Invalid limit");
-    }
-
-    return Math.min(Math.max(1, parsed), 100);
+    return Math.min(Math.max(1, value), 100);
   }
 
   /**
@@ -183,9 +188,14 @@ export class V1Service {
       throw new NotFoundException(`Thread ${threadId} not found`);
     }
 
+    // Filter out hidden UI tool response messages
+    const visibleMessages = thread.messages.filter(
+      (m) => !isHiddenUiToolResponse(m),
+    );
+
     return {
       ...threadToDto(thread),
-      messages: thread.messages.map((m) =>
+      messages: visibleMessages.map((m) =>
         messageToDto(m, this.contentConversionOptions),
       ),
     };
@@ -233,6 +243,14 @@ export class V1Service {
 
   /**
    * List messages in a thread with cursor-based pagination.
+   *
+   * Filters out hidden UI tool response messages (show_component_* tool results)
+   * which are internal implementation details.
+   *
+   * To handle pagination correctly with filtered messages, we fetch more messages
+   * than requested (2x limit) to ensure we have enough visible messages after
+   * filtering. This prevents incorrect hasMore values when hidden messages fall
+   * on page boundaries.
    */
   async listMessages(
     threadId: string,
@@ -249,33 +267,45 @@ export class V1Service {
       ? parseV1CompoundCursor(query.cursor)
       : undefined;
 
+    // Fetch more messages than needed to account for hidden messages that will
+    // be filtered out. We fetch 2x the limit (plus 1 for hasMore detection) to
+    // ensure we have enough visible messages after filtering.
+    const fetchLimit = Math.min((effectiveLimit + 1) * 2, 200);
     const messages = await operations.listMessagesPaginated(this.db, threadId, {
       cursor,
-      limit: effectiveLimit + 1,
+      limit: fetchLimit,
       order,
     });
 
-    const hasMore = messages.length > effectiveLimit;
+    // Filter out hidden UI tool response messages
+    const visibleMessages = messages.filter((m) => !isHiddenUiToolResponse(m));
+
+    // Determine hasMore based on whether we have more visible messages than requested
+    const hasMore = visibleMessages.length > effectiveLimit;
     const resultMessages = hasMore
-      ? messages.slice(0, effectiveLimit)
-      : messages;
+      ? visibleMessages.slice(0, effectiveLimit)
+      : visibleMessages;
 
     return {
       messages: resultMessages.map((m) =>
         messageToDto(m, this.contentConversionOptions),
       ),
-      nextCursor: hasMore
-        ? encodeV1CompoundCursor({
-            createdAt: resultMessages[resultMessages.length - 1].createdAt,
-            id: resultMessages[resultMessages.length - 1].id,
-          })
-        : undefined,
+      nextCursor:
+        hasMore && resultMessages.length > 0
+          ? encodeV1CompoundCursor({
+              createdAt: resultMessages[resultMessages.length - 1].createdAt,
+              id: resultMessages[resultMessages.length - 1].id,
+            })
+          : undefined,
       hasMore,
     };
   }
 
   /**
    * Get a single message by ID.
+   *
+   * Returns 404 for hidden UI tool response messages (show_component_* tool results)
+   * as they are internal implementation details.
    */
   async getMessage(
     threadId: string,
@@ -288,6 +318,13 @@ export class V1Service {
     );
 
     if (!message) {
+      throw new NotFoundException(
+        `Message ${messageId} not found in thread ${threadId}`,
+      );
+    }
+
+    // Treat hidden UI tool responses as not found
+    if (isHiddenUiToolResponse(message)) {
       throw new NotFoundException(
         `Message ${messageId} not found in thread ${threadId}`,
       );
@@ -607,7 +644,7 @@ export class V1Service {
 
         try {
           // 2. Convert V1 message to internal format
-          const messageToAppend = this.convertV1MessageToInternal(dto.message);
+          const messageToAppend = convertV1InputMessageToInternal(dto.message);
 
           // 3. Create streaming infrastructure
           const queue = new AsyncQueue<StreamQueueItem>();
@@ -642,13 +679,28 @@ export class V1Service {
           const clientToolNames = new Set(dto.tools?.map((t) => t.name) ?? []);
           const toolCallTracker = new ClientToolCallTracker(clientToolNames);
 
+          // Track temp→real message ID mapping. The LLM client generates temporary
+          // IDs (e.g., "message-xyz") because it doesn't have DB access. advanceThread
+          // creates the real message in DB with IDs like "msg_abc123". We map temp IDs
+          // to real IDs so the client SDK can reference messages correctly.
+          const messageIdMapping = new Map<string, string>();
+
           for await (const item of queue) {
-            // Emit all AG-UI events from this stream item
+            // Extract real message ID from the response (persisted by advanceThread)
+            const realMessageId = item.response?.responseMessageDto?.id;
+
             if (item.aguiEvents) {
               for (const event of item.aguiEvents) {
+                // Transform temp IDs to real DB IDs
+                const transformedEvent = transformEventMessageIds(
+                  event,
+                  realMessageId,
+                  messageIdMapping,
+                );
+
                 // Track tool calls to detect pending client-side tools
-                toolCallTracker.processEvent(event);
-                this.emitEvent(response, event);
+                toolCallTracker.processEvent(transformedEvent);
+                this.emitEvent(response, transformedEvent);
               }
             }
           }
@@ -757,44 +809,6 @@ export class V1Service {
   private emitEvent(response: Response, event: BaseEvent): void {
     const sanitized = sanitizeEvent(event);
     response.write(`data: ${JSON.stringify(sanitized)}\n\n`);
-  }
-
-  /**
-   * Convert V1 input message to internal MessageRequest format.
-   *
-   * Note: tool_result blocks are filtered out because they are processed
-   * separately in startRun and saved as Tool role messages before this
-   * conversion happens.
-   */
-  private convertV1MessageToInternal(
-    message: V1CreateRunDto["message"],
-  ): MessageRequest {
-    // Filter out tool_result blocks - they're already saved as separate Tool messages
-    const nonToolResultContent = message.content.filter(
-      (block) => block.type !== "tool_result",
-    );
-
-    return {
-      role: MessageRole.User,
-      content: nonToolResultContent.map((block) => {
-        switch (block.type) {
-          case "text":
-            return {
-              type: ContentPartType.Text,
-              text: block.text,
-            };
-          case "resource":
-            return {
-              type: ContentPartType.Resource,
-              resource: block.resource,
-            };
-          default:
-            throw new Error(
-              `Unknown content type: ${(block as { type: string }).type}`,
-            );
-        }
-      }),
-    };
   }
 
   // ==========================================
@@ -1076,4 +1090,322 @@ export class V1Service {
       componentState: newState,
     });
   }
+
+  // ==========================================
+  // Suggestion operations
+  // ==========================================
+
+  /**
+   * List suggestions for a message with cursor-based pagination.
+   *
+   * Unlike the beta API which returns 404 for no suggestions,
+   * V1 returns an empty array for consistency with other list endpoints.
+   *
+   * @param threadId - Thread containing the message
+   * @param messageId - Message to get suggestions for
+   * @param projectId - Project ID for access validation
+   * @param userKey - User key for access validation
+   * @param query - Pagination parameters
+   * @returns Paginated list of suggestions
+   */
+  async listSuggestions(
+    threadId: string,
+    messageId: string,
+    projectId: string,
+    userKey: string,
+    query: V1ListSuggestionsQueryDto,
+  ): Promise<V1ListSuggestionsResponseDto> {
+    // Verify thread belongs to project and user
+    const thread = await operations.getThreadForProjectId(
+      this.db,
+      threadId,
+      projectId,
+      userKey,
+    );
+
+    if (!thread) {
+      throw new NotFoundException(`Thread ${threadId} not found`);
+    }
+
+    // Verify message exists in thread
+    const message = await operations.getMessageByIdInThread(
+      this.db,
+      threadId,
+      messageId,
+    );
+
+    if (!message) {
+      throw new NotFoundException(
+        `Message ${messageId} not found in thread ${threadId}`,
+      );
+    }
+
+    const effectiveLimit = this.parseLimit(query.limit, 10);
+
+    // Parse and validate cursor
+    let cursor: ReturnType<typeof parseV1CompoundCursor> | undefined;
+    if (query.cursor) {
+      try {
+        cursor = parseV1CompoundCursor(query.cursor);
+      } catch {
+        throw new BadRequestException(
+          createProblemDetail(
+            V1ErrorCodes.INVALID_CURSOR,
+            "Invalid pagination cursor",
+          ),
+        );
+      }
+
+      // Validate cursor is scoped to this message
+      if (cursor.messageId && cursor.messageId !== messageId) {
+        throw new BadRequestException(
+          createProblemDetail(
+            V1ErrorCodes.INVALID_CURSOR,
+            "Cursor does not belong to this message",
+          ),
+        );
+      }
+    }
+
+    const suggestions = await operations.listSuggestionsPaginated(
+      this.db,
+      messageId,
+      {
+        cursor,
+        limit: effectiveLimit + 1,
+      },
+    );
+
+    const hasMore = suggestions.length > effectiveLimit;
+    const resultSuggestions = hasMore
+      ? suggestions.slice(0, effectiveLimit)
+      : suggestions;
+
+    return {
+      suggestions: resultSuggestions.map((s) => this.suggestionToDto(s)),
+      nextCursor: hasMore
+        ? encodeV1CompoundCursor({
+            createdAt:
+              resultSuggestions[resultSuggestions.length - 1].createdAt,
+            id: resultSuggestions[resultSuggestions.length - 1].id,
+            messageId, // Include messageId for cursor scoping validation
+          })
+        : undefined,
+      hasMore,
+    };
+  }
+
+  /**
+   * Maximum number of messages to use as context for suggestion generation.
+   * Limits DB read size and token usage for long threads.
+   */
+  private static readonly SUGGESTION_CONTEXT_MESSAGE_LIMIT = 5;
+
+  /**
+   * Generate suggestions for a message.
+   *
+   * Calls the AI to analyze the thread and generate suggested next actions.
+   * Suggestions are persisted and returned. Any existing suggestions for the
+   * message are replaced (delete-before-insert semantics).
+   *
+   * @param threadId - Thread containing the message
+   * @param messageId - Message to generate suggestions for
+   * @param projectId - Project ID for access validation
+   * @param userKey - User key for access validation
+   * @param dto - Generation parameters
+   * @returns Generated suggestions
+   */
+  async generateSuggestions(
+    threadId: string,
+    messageId: string,
+    projectId: string,
+    userKey: string,
+    dto: V1GenerateSuggestionsDto,
+  ): Promise<V1GenerateSuggestionsResponseDto> {
+    return await Sentry.startSpan(
+      {
+        op: "v1.generateSuggestions",
+        name: `V1 Generate Suggestions`,
+        attributes: { threadId, messageId, maxSuggestions: dto.maxSuggestions },
+      },
+      async () => {
+        // Verify thread belongs to project and user
+        const thread = await operations.getThreadForProjectId(
+          this.db,
+          threadId,
+          projectId,
+          userKey,
+        );
+
+        if (!thread) {
+          throw new NotFoundException(`Thread ${threadId} not found`);
+        }
+
+        // Verify message exists in thread
+        const message = await operations.getMessageByIdInThread(
+          this.db,
+          threadId,
+          messageId,
+        );
+
+        if (!message) {
+          throw new NotFoundException(
+            `Message ${messageId} not found in thread ${threadId}`,
+          );
+        }
+
+        // Get recent thread messages for context (limited to avoid performance issues)
+        // and convert to ThreadMessage format
+        const dbMessages = await operations.getMessages(this.db, threadId);
+        const recentMessages = dbMessages.slice(
+          -V1Service.SUGGESTION_CONTEXT_MESSAGE_LIMIT,
+        );
+        const threadMessages = recentMessages.map((m) =>
+          dbMessageToThreadMessage(m),
+        );
+
+        // Create TamboBackend and generate suggestions
+        const tamboBackend =
+          await this.threadsService.createTamboBackendForThread(
+            threadId,
+            userKey,
+          );
+
+        // Convert V1 available components to internal format
+        const availableComponents = dto.availableComponents ?? [];
+
+        const result = await tamboBackend.generateSuggestions(
+          threadMessages,
+          dto.maxSuggestions ?? 3,
+          availableComponents.map((c) => ({
+            name: c.name,
+            description: c.description,
+            props: c.propsSchema as Record<string, unknown>,
+            contextTools: [],
+          })),
+          threadId,
+          false, // includeTokenCount
+        );
+
+        // Delete existing suggestions before creating new ones (replace semantics)
+        const deletedCount = await operations.deleteSuggestionsForMessage(
+          this.db,
+          messageId,
+        );
+        if (deletedCount > 0) {
+          this.logger.log(
+            `Deleted ${deletedCount} existing suggestions for message ${messageId}`,
+          );
+        }
+
+        if (!result.suggestions?.length) {
+          this.logger.warn(
+            `No suggestions generated for message ${messageId} in thread ${threadId}`,
+          );
+          return {
+            suggestions: [],
+            hasMore: false,
+          };
+        }
+
+        // Persist new suggestions
+        const savedSuggestions = await operations.createSuggestions(
+          this.db,
+          result.suggestions.map((suggestion) => ({
+            messageId,
+            title: suggestion.title,
+            detailedSuggestion: suggestion.detailedSuggestion,
+          })),
+        );
+
+        this.logger.log(
+          `Generated ${savedSuggestions.length} suggestions for message ${messageId}`,
+        );
+
+        return {
+          suggestions: savedSuggestions.map((s) => this.suggestionToDto(s)),
+          hasMore: false,
+        };
+      },
+    );
+  }
+
+  /**
+   * Convert a database suggestion to V1 DTO.
+   */
+  private suggestionToDto(suggestion: schema.DBSuggestion): V1SuggestionDto {
+    return {
+      id: suggestion.id,
+      messageId: suggestion.messageId,
+      title: suggestion.title,
+      description: suggestion.detailedSuggestion,
+      createdAt: suggestion.createdAt.toISOString(),
+    };
+  }
+}
+
+/**
+ * Transform temporary message IDs in AG-UI events to real database IDs.
+ *
+ * The LLM client (ai-sdk-client) generates temporary IDs like "message-xyz"
+ * because it doesn't have database access. advanceThread creates real messages
+ * in the DB with IDs like "msg_abc123". This function maps temp IDs to real IDs
+ * so the client SDK can correctly reference messages for operations like
+ * component state updates.
+ *
+ * @param event - The AG-UI event to transform
+ * @param realMessageId - The real DB message ID from advanceThread
+ * @param mapping - Map tracking temp→real ID associations
+ * @returns The event with real message IDs
+ */
+function transformEventMessageIds(
+  event: BaseEvent,
+  realMessageId: string | undefined,
+  mapping: Map<string, string>,
+): BaseEvent {
+  if (!realMessageId) {
+    return event;
+  }
+
+  // Handle TEXT_MESSAGE_* events (messageId at top level)
+  if ("messageId" in event && typeof event.messageId === "string") {
+    const tempId = event.messageId;
+
+    // Record mapping on first encounter
+    if (!mapping.has(tempId)) {
+      mapping.set(tempId, realMessageId);
+    }
+
+    return { ...event, messageId: mapping.get(tempId) ?? tempId };
+  }
+
+  // Handle tambo.component.start custom event (messageId in value)
+  if (event.type === EventType.CUSTOM) {
+    const customEvent = event as BaseEvent & {
+      name?: string;
+      value?: { messageId?: string };
+    };
+
+    if (
+      customEvent.name === "tambo.component.start" &&
+      customEvent.value?.messageId
+    ) {
+      const tempId = customEvent.value.messageId;
+
+      // Record mapping on first encounter
+      if (!mapping.has(tempId)) {
+        mapping.set(tempId, realMessageId);
+      }
+
+      return {
+        ...event,
+        value: {
+          ...customEvent.value,
+          messageId: mapping.get(tempId) ?? tempId,
+        },
+      };
+    }
+  }
+
+  return event;
 }

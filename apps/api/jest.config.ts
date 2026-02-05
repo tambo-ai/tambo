@@ -31,7 +31,7 @@ const config: Config = {
   ],
 
   // The directory where Jest should output its coverage files
-  coverageDirectory: "<rootDir>/../coverage",
+  coverageDirectory: "<rootDir>/coverage",
 
   // An array of regexp pattern strings used to skip coverage collection
   // coveragePathIgnorePatterns: [
@@ -52,8 +52,8 @@ const config: Config = {
   // An object that configures minimum threshold enforcement for coverage results
   coverageThreshold: {
     global: {
-      branches: 64,
-      lines: 52,
+      branches: 66,
+      lines: 53,
     },
   },
 

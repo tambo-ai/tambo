@@ -4,6 +4,7 @@ import {
   type TextMessageContentEvent,
   type TextMessageEndEvent,
 } from "@ag-ui/core";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { renderHook, act } from "@testing-library/react";
 import React from "react";
 import {
@@ -12,26 +13,56 @@ import {
 } from "../providers/tambo-v1-stream-context";
 import { useTamboV1Messages } from "./use-tambo-v1-messages";
 
+// Mock useTamboClient to avoid TamboClientProvider dependency
+jest.mock("../../providers/tambo-client-provider", () => ({
+  useTamboClient: jest.fn(() => ({
+    threads: {
+      messages: {
+        list: jest.fn().mockResolvedValue({ messages: [], hasMore: false }),
+      },
+    },
+  })),
+}));
+
 describe("useTamboV1Messages", () => {
+  let queryClient: QueryClient;
+
+  beforeEach(() => {
+    queryClient = new QueryClient({
+      defaultOptions: {
+        queries: { retry: false },
+      },
+    });
+  });
+
   function TestWrapper({ children }: { children: React.ReactNode }) {
     return (
-      <TamboV1StreamProvider threadId="thread_123">
-        {children}
-      </TamboV1StreamProvider>
+      <QueryClientProvider client={queryClient}>
+        <TamboV1StreamProvider>{children}</TamboV1StreamProvider>
+      </QueryClientProvider>
     );
   }
 
   it("returns empty messages when thread has no messages", () => {
-    const { result } = renderHook(() => useTamboV1Messages("thread_123"), {
-      wrapper: TestWrapper,
+    const { result } = renderHook(
+      () => ({
+        messages: useTamboV1Messages("thread_123"),
+        dispatch: useStreamDispatch(),
+      }),
+      { wrapper: TestWrapper },
+    );
+
+    // Initialize thread first
+    act(() => {
+      result.current.dispatch({ type: "INIT_THREAD", threadId: "thread_123" });
     });
 
-    expect(result.current.messages).toEqual([]);
-    expect(result.current.hasMessages).toBe(false);
-    expect(result.current.messageCount).toBe(0);
-    expect(result.current.lastMessage).toBeUndefined();
-    expect(result.current.userMessages).toEqual([]);
-    expect(result.current.assistantMessages).toEqual([]);
+    expect(result.current.messages.messages).toEqual([]);
+    expect(result.current.messages.hasMessages).toBe(false);
+    expect(result.current.messages.messageCount).toBe(0);
+    expect(result.current.messages.lastMessage).toBeUndefined();
+    expect(result.current.messages.userMessages).toEqual([]);
+    expect(result.current.messages.assistantMessages).toEqual([]);
   });
 
   it("returns messages after events are dispatched", () => {
@@ -42,6 +73,11 @@ describe("useTamboV1Messages", () => {
       }),
       { wrapper: TestWrapper },
     );
+
+    // Initialize thread first
+    act(() => {
+      result.current.dispatch({ type: "INIT_THREAD", threadId: "thread_123" });
+    });
 
     // Simulate a text message being received
     act(() => {
@@ -96,6 +132,11 @@ describe("useTamboV1Messages", () => {
       }),
       { wrapper: TestWrapper },
     );
+
+    // Initialize thread first
+    act(() => {
+      result.current.dispatch({ type: "INIT_THREAD", threadId: "thread_123" });
+    });
 
     // Add user message
     act(() => {
