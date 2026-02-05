@@ -1040,14 +1040,23 @@ export class ThreadsService {
         );
 
         // Track user messages (not tool responses)
-        // Use contextKey (user identifier) if available, otherwise use TAMBO_ANON_CONTEXT_KEY
         if (advanceRequestDto.messageToAppend.role === MessageRole.User) {
+          // Look up the project owner for proper user identification in analytics
+          const projectForAnalytics = await operations.getProjectMembers(
+            db,
+            projectId,
+          );
+          const projectOwner = projectForAnalytics?.members[0]?.user;
+
           this.analytics.capture(
-            contextKey ?? TAMBO_ANON_CONTEXT_KEY,
+            projectOwner?.id ?? TAMBO_ANON_CONTEXT_KEY,
             "message_sent",
             {
               projectId,
               threadId: thread.id,
+              userId: projectOwner?.id,
+              userEmail: projectOwner?.email,
+              contextKey,
             },
           );
         }
