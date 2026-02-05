@@ -49,11 +49,12 @@ export default function RootLayout({
 <Callout type="info" title="API key setup">
   Create a `.env.local` file in your project root:
 
-  ```bash
-  NEXT_PUBLIC_TAMBO_API_KEY=your_api_key_here
-  ```
+```bash
+NEXT_PUBLIC_TAMBO_API_KEY=your_api_key_here
+```
 
-  Don't commit this file to version control.
+Don't commit this file to version control.
+
 </Callout>
 
 The `TamboProvider` only works in the browser. On Next.js, add `"use client"` at the top of the file.
