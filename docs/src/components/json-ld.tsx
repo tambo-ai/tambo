@@ -1,11 +1,20 @@
 const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://docs.tambo.co";
 const mainSiteUrl = "https://tambo.co";
 
+type JsonLdSchema =
+  | Record<string, unknown>
+  | readonly Record<string, unknown>[];
+
 type JsonLdProps = {
   readonly id: string;
-  readonly schema: unknown;
+  readonly schema: JsonLdSchema;
 };
 
+/**
+ * Render JSON-LD as an inline script tag.
+ *
+ * Intended for use in server components so crawlers can see it in initial HTML.
+ */
 export function JsonLd({ id, schema }: JsonLdProps) {
   return (
     <script
@@ -123,6 +132,7 @@ export function createDocPageSchema({
     headline: title,
     description,
     url,
+    // Omit `dateModified` when unknown to avoid implying freshness.
     ...(dateModified ? { dateModified } : {}),
     author: {
       "@type": "Organization",
@@ -210,7 +220,7 @@ export function PageJsonLd({
   schema,
 }: {
   id?: string;
-  schema: unknown;
+  schema: JsonLdSchema;
 }) {
   return <JsonLd id={id} schema={schema} />;
 }

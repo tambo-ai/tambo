@@ -20,6 +20,8 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://docs.tambo.co";
 
 export const runtime = "nodejs";
 
+// Best-effort cache (per Node.js process) to avoid re-statting the same MDX file.
+// This is used only for structured data metadata and doesn't need to be real-time.
 const docLastModifiedCache = new Map<string, string>();
 
 const getDocPageLastModified = (contentPath: string): string | undefined => {

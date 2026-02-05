@@ -60,6 +60,7 @@ function getLastModForFile(filePath) {
     const stats = statSync(filePath);
     return stats.mtime.toISOString();
   } catch {
+    // Intentionally omit `lastmod` when we can't determine a stable value.
     return undefined;
   }
 }
@@ -144,7 +145,7 @@ module.exports = {
       loc: `${siteUrl}${path}`,
       changefreq: "weekly",
       priority: path === "/" ? 1.0 : 0.8,
-      ...(lastmod ? { lastmod } : {}),
+      ...(lastmod != null ? { lastmod } : {}),
       alternateRefs: [],
     };
   },
@@ -154,7 +155,7 @@ module.exports = {
       .filter((e) => !isExcludedSitemapPath(e.url))
       .map((e) => ({
         loc: `${siteUrl}${e.url}`,
-        ...(e.lastmod ? { lastmod: e.lastmod } : {}),
+        ...(e.lastmod != null ? { lastmod: e.lastmod } : {}),
       })),
   // include ensures index and known root routes are emitted
   include: enumerated
