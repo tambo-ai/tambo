@@ -25,6 +25,7 @@ import {
   useStreamState,
 } from "../providers/tambo-v1-stream-context";
 import { useTamboV1Config } from "../providers/tambo-v1-provider";
+import { useTamboContextHelpers } from "../../providers/tambo-context-helpers-provider";
 import type { InputMessage } from "../types/message";
 import { isPlaceholderThreadId } from "../utils/event-accumulator";
 import {
@@ -72,6 +73,11 @@ export interface CreateRunStreamParams {
    * Required when threadId is provided and the thread has previous runs.
    */
   previousRunId: string | undefined;
+  /**
+   * Additional context gathered from context helpers (including interactables).
+   * Merged into the message's additionalContext before sending.
+   */
+  additionalContext?: Record<string, unknown>;
 }
 
 /**
@@ -99,6 +105,7 @@ interface ExecuteToolsParams {
   threadId: string;
   runId: string;
   userKey: string | undefined;
+  additionalContext?: Record<string, unknown>;
 }
 
 /**
@@ -121,8 +128,16 @@ interface ExecuteToolsResult {
 async function executeToolsAndContinue(
   params: ExecuteToolsParams,
 ): Promise<ExecuteToolsResult> {
-  const { event, toolTracker, registry, client, threadId, runId, userKey } =
-    params;
+  const {
+    event,
+    toolTracker,
+    registry,
+    client,
+    threadId,
+    runId,
+    userKey,
+    additionalContext,
+  } = params;
 
   const pendingToolCallIds = event.value.pendingToolCalls.map(
     (tc) => tc.toolCallId,
@@ -143,6 +158,7 @@ async function executeToolsAndContinue(
     message: {
       role: "user",
       content: toolResults,
+      additionalContext,
     },
     previousRunId: runId,
     availableComponents: toAvailableComponents(registry.componentList),
@@ -164,8 +180,27 @@ async function executeToolsAndContinue(
 export async function createRunStream(
   params: CreateRunStreamParams,
 ): Promise<CreateRunStreamResult> {
-  const { client, threadId, message, registry, userKey, previousRunId } =
-    params;
+  const {
+    client,
+    threadId,
+    message,
+    registry,
+    userKey,
+    previousRunId,
+    additionalContext,
+  } = params;
+
+  // Merge helper context with any caller-provided additionalContext on the message
+  const mergedContext =
+    additionalContext || message.additionalContext
+      ? {
+          ...((message.additionalContext as Record<string, unknown>) ?? {}),
+          ...additionalContext,
+        }
+      : undefined;
+  const messageWithContext: InputMessage = mergedContext
+    ? { ...message, additionalContext: mergedContext }
+    : message;
 
   // Convert registry components/tools to v1 API format
   const availableComponents = toAvailableComponents(registry.componentList);
@@ -174,7 +209,7 @@ export async function createRunStream(
   if (threadId) {
     // Run on existing thread
     const stream = await client.threads.runs.run(threadId, {
-      message,
+      message: messageWithContext,
       availableComponents,
       tools: availableTools,
       userKey,
@@ -184,7 +219,7 @@ export async function createRunStream(
   } else {
     // Create new thread
     const stream = await client.threads.runs.create({
-      message,
+      message: messageWithContext,
       availableComponents,
       tools: availableTools,
       thread: userKey ? { userKey } : undefined,
@@ -245,6 +280,7 @@ export function useTamboV1SendMessage(threadId?: string) {
   const { userKey } = useTamboV1Config();
   const registry = useContext(TamboRegistryContext);
   const queryClient = useTamboQueryClient();
+  const { getAdditionalContext } = useTamboContextHelpers();
 
   if (!registry) {
     throw new Error(
@@ -316,6 +352,17 @@ export function useTamboV1SendMessage(threadId?: string) {
         dispatchUserMessage(threadId);
       }
 
+      // Gather additional context from all registered context helpers.
+      // TODO: This snapshot is captured once and reused for the entire multi-round
+      // tool loop. If interactables change during streaming (e.g. user interactions),
+      // continuations will send stale context. Re-gather before each continuation
+      // if freshness matters.
+      const helperContexts = await getAdditionalContext();
+      const additionalContext: Record<string, unknown> = {};
+      for (const helperContext of helperContexts) {
+        additionalContext[helperContext.name] = helperContext.context;
+      }
+
       // Create the run stream
       const { stream, initialThreadId } = await createRunStream({
         client,
@@ -324,6 +371,7 @@ export function useTamboV1SendMessage(threadId?: string) {
         registry,
         userKey,
         previousRunId,
+        additionalContext,
       });
 
       let actualThreadId = initialThreadId;
@@ -393,6 +441,7 @@ export function useTamboV1SendMessage(threadId?: string) {
               threadId: actualThreadId,
               runId,
               userKey,
+              additionalContext,
             });
 
           // Dispatch synthetic events for optimistic local state

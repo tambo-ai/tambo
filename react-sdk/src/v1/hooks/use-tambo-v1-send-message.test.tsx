@@ -26,6 +26,12 @@ jest.mock("../providers/tambo-v1-provider", () => ({
   useTamboV1Config: jest.fn(),
 }));
 
+jest.mock("../../providers/tambo-context-helpers-provider", () => ({
+  useTamboContextHelpers: () => ({
+    getAdditionalContext: jest.fn().mockResolvedValue([]),
+  }),
+}));
+
 describe("useTamboV1SendMessage", () => {
   const mockThreadsRunsApi = {
     run: jest.fn(),

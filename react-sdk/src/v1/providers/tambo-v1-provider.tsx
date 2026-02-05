@@ -7,6 +7,7 @@
  * - TamboClientProvider: API client and authentication
  * - TamboRegistryProvider: Component and tool registration
  * - TamboContextHelpersProvider: Context helper functions
+ * - TamboInteractableProvider: Interactive component tracking
  * - TamboV1StreamProvider: Streaming state management
  *
  * This provider should wrap your entire application or the portion
@@ -27,6 +28,7 @@ import {
   type TamboRegistryProviderProps,
 } from "../../providers/tambo-registry-provider";
 import { TamboContextHelpersProvider } from "../../providers/tambo-context-helpers-provider";
+import { TamboInteractableProvider } from "../../providers/tambo-interactable-provider";
 import type { ContextHelpers } from "../../context-helpers";
 import type { McpServerInfo } from "../../model/mcp-server-info";
 import type {
@@ -218,13 +220,15 @@ export function TamboV1Provider({
         getResource={getResource}
       >
         <TamboContextHelpersProvider contextHelpers={contextHelpers}>
-          <TamboV1ConfigContext.Provider value={config}>
-            <TamboV1StreamProvider>
-              <TamboV1ThreadInputProvider>
-                {children}
-              </TamboV1ThreadInputProvider>
-            </TamboV1StreamProvider>
-          </TamboV1ConfigContext.Provider>
+          <TamboInteractableProvider>
+            <TamboV1ConfigContext.Provider value={config}>
+              <TamboV1StreamProvider>
+                <TamboV1ThreadInputProvider>
+                  {children}
+                </TamboV1ThreadInputProvider>
+              </TamboV1StreamProvider>
+            </TamboV1ConfigContext.Provider>
+          </TamboInteractableProvider>
         </TamboContextHelpersProvider>
       </TamboRegistryProvider>
     </TamboClientProvider>

@@ -23,11 +23,11 @@ jest.mock("./tambo-context-helpers-provider", () => ({
   }),
 }));
 
-// Mock the component provider
+// Mock the registry provider
 const mockRegisterTool = jest.fn();
 
-jest.mock("./tambo-component-provider", () => ({
-  useTamboComponent: () => ({
+jest.mock("./tambo-registry-provider", () => ({
+  useTamboRegistry: () => ({
     registerTool: mockRegisterTool,
   }),
 }));
