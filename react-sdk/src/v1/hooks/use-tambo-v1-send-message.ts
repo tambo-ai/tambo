@@ -6,7 +6,7 @@
  * React Query mutation hook for sending messages and handling streaming responses.
  */
 
-import { useContext } from "react";
+import React, { useContext } from "react";
 import { EventType, type RunErrorEvent } from "@ag-ui/core";
 import { asTamboCustomEvent, type RunAwaitingInputEvent } from "../types/event";
 import type TamboAI from "@tambo-ai/typescript-sdk";
@@ -27,7 +27,10 @@ import {
 import { useTamboV1Config } from "../providers/tambo-v1-provider";
 import { useTamboContextHelpers } from "../../providers/tambo-context-helpers-provider";
 import type { InputMessage } from "../types/message";
-import { isPlaceholderThreadId } from "../utils/event-accumulator";
+import {
+  isPlaceholderThreadId,
+  type StreamAction,
+} from "../utils/event-accumulator";
 import {
   toAvailableComponents,
   toAvailableTools,
@@ -36,6 +39,160 @@ import { handleEventStream } from "../utils/stream-handler";
 import { executeAllPendingTools } from "../utils/tool-executor";
 import type { ToolResultContent } from "@tambo-ai/typescript-sdk/resources/threads/threads";
 import { ToolCallTracker } from "../utils/tool-call-tracker";
+
+/**
+ * Dispatches synthetic AG-UI events to show a user message in the thread.
+ * @param dispatch - Stream state dispatcher
+ * @param targetThreadId - Thread to add the message to
+ * @param messageId - Stable ID for the user message
+ * @param messageText - Text content of the message
+ */
+function dispatchUserMessage(
+  dispatch: React.Dispatch<StreamAction>,
+  targetThreadId: string,
+  messageId: string,
+  messageText: string,
+): void {
+  dispatch({
+    type: "EVENT",
+    threadId: targetThreadId,
+    event: {
+      type: EventType.TEXT_MESSAGE_START,
+      messageId,
+      role: "user" as const,
+    },
+  });
+
+  dispatch({
+    type: "EVENT",
+    threadId: targetThreadId,
+    event: {
+      type: EventType.TEXT_MESSAGE_CONTENT,
+      messageId,
+      delta: messageText,
+    },
+  });
+
+  dispatch({
+    type: "EVENT",
+    threadId: targetThreadId,
+    event: {
+      type: EventType.TEXT_MESSAGE_END,
+      messageId,
+    },
+  });
+}
+
+/**
+ * Dispatches synthetic events for tool results as optimistic local state.
+ * The server doesn't echo these back for client-side tools.
+ * @param dispatch - Stream state dispatcher
+ * @param targetThreadId - Thread to add results to
+ * @param toolResults - Tool execution results to dispatch
+ */
+function dispatchToolResults(
+  dispatch: React.Dispatch<StreamAction>,
+  targetThreadId: string,
+  toolResults: ToolResultContent[],
+): void {
+  if (toolResults.length === 0) return;
+
+  const toolResultMessageId = `msg_tool_result_${Date.now()}`;
+
+  dispatch({
+    type: "EVENT",
+    threadId: targetThreadId,
+    event: {
+      type: EventType.TEXT_MESSAGE_START,
+      messageId: toolResultMessageId,
+      role: "user" as const,
+    },
+  });
+
+  for (const result of toolResults) {
+    dispatch({
+      type: "EVENT",
+      threadId: targetThreadId,
+      event: {
+        type: EventType.TOOL_CALL_RESULT,
+        toolCallId: result.toolUseId,
+        messageId: toolResultMessageId,
+        content:
+          result.content
+            .filter((c) => c.type === "text")
+            .map((c) => (c as { type: "text"; text: string }).text)
+            .join("") || JSON.stringify(result.content),
+      },
+    });
+  }
+
+  dispatch({
+    type: "EVENT",
+    threadId: targetThreadId,
+    event: {
+      type: EventType.TEXT_MESSAGE_END,
+      messageId: toolResultMessageId,
+    },
+  });
+}
+
+/**
+ * Checks whether a thread name should be auto-generated based on config
+ * and the current thread state.
+ * @param threadId - The thread ID (undefined or placeholder means no)
+ * @param threadAlreadyHasTitle - Whether the thread already has a title
+ * @param preMutationMessageCount - Message count before the current mutation
+ * @param autoGenerateNameThreshold - Minimum message count to trigger generation
+ * @returns Whether to generate a thread name
+ */
+function shouldGenerateThreadName(
+  threadId: string | undefined,
+  threadAlreadyHasTitle: boolean,
+  preMutationMessageCount: number,
+  autoGenerateNameThreshold: number,
+): threadId is string {
+  return (
+    !threadAlreadyHasTitle &&
+    !!threadId &&
+    !isPlaceholderThreadId(threadId) &&
+    // +2 accounts for the user message and assistant response just added
+    preMutationMessageCount + 2 >= autoGenerateNameThreshold
+  );
+}
+
+/**
+ * Generates a thread name via the beta API, dispatches the title update,
+ * and invalidates the thread list cache. Errors are logged, never thrown.
+ * @param client - The Tambo API client
+ * @param dispatch - Stream state dispatcher
+ * @param queryClient - React Query client for cache invalidation
+ * @param threadId - The thread to generate a name for
+ */
+async function generateThreadName(
+  client: TamboAI,
+  dispatch: React.Dispatch<StreamAction>,
+  queryClient: ReturnType<typeof useTamboQueryClient>,
+  threadId: string,
+): Promise<void> {
+  try {
+    const threadWithName = await client.beta.threads.generateName(threadId);
+    if (threadWithName.name) {
+      dispatch({
+        type: "UPDATE_THREAD_TITLE",
+        threadId,
+        title: threadWithName.name,
+      });
+      await queryClient.invalidateQueries({
+        queryKey: ["v1-threads", "list"],
+      });
+    }
+  } catch (error) {
+    console.error(
+      "[useTamboV1SendMessage] Failed to auto-generate thread name:",
+      error,
+    );
+  }
+}
 
 /**
  * Options for sending a message
@@ -277,7 +434,11 @@ export function useTamboV1SendMessage(threadId?: string) {
   const client = useTamboClient();
   const dispatch = useStreamDispatch();
   const streamState = useStreamState();
-  const { userKey } = useTamboV1Config();
+  const {
+    userKey,
+    autoGenerateThreadName = true,
+    autoGenerateNameThreshold = 3,
+  } = useTamboV1Config();
   const registry = useContext(TamboRegistryContext);
   const queryClient = useTamboQueryClient();
   const { getAdditionalContext } = useTamboContextHelpers();
@@ -302,6 +463,12 @@ export function useTamboV1SendMessage(threadId?: string) {
     mutationFn: async (options: SendMessageOptions) => {
       const { message, userMessageText, debug = false } = options;
 
+      // Capture pre-mutation state for auto thread name generation
+      const existingThread = streamState.threadMap[apiThreadId ?? ""];
+      const preMutationMessageCount =
+        existingThread?.thread.messages.length ?? 0;
+      const threadAlreadyHasTitle = !!existingThread?.thread.title;
+
       const toolTracker = new ToolCallTracker();
 
       // Generate a stable message ID for the user message
@@ -309,47 +476,10 @@ export function useTamboV1SendMessage(threadId?: string) {
         ? `user_msg_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`
         : undefined;
 
-      // Helper to add user message via synthetic AG-UI events
-      const dispatchUserMessage = (targetThreadId: string) => {
-        if (!userMessageText || !userMessageId) return;
-
-        // TEXT_MESSAGE_START - creates the message
-        dispatch({
-          type: "EVENT",
-          threadId: targetThreadId,
-          event: {
-            type: EventType.TEXT_MESSAGE_START,
-            messageId: userMessageId,
-            role: "user" as const,
-          },
-        });
-
-        // TEXT_MESSAGE_CONTENT - adds the text content
-        dispatch({
-          type: "EVENT",
-          threadId: targetThreadId,
-          event: {
-            type: EventType.TEXT_MESSAGE_CONTENT,
-            messageId: userMessageId,
-            delta: userMessageText,
-          },
-        });
-
-        // TEXT_MESSAGE_END - marks the message as complete
-        dispatch({
-          type: "EVENT",
-          threadId: targetThreadId,
-          event: {
-            type: EventType.TEXT_MESSAGE_END,
-            messageId: userMessageId,
-          },
-        });
-      };
-
       // Add user message immediately for instant feedback
       // Use threadId (which could be temp_xxx for new threads) for display
-      if (threadId) {
-        dispatchUserMessage(threadId);
+      if (threadId && userMessageText && userMessageId) {
+        dispatchUserMessage(dispatch, threadId, userMessageId, userMessageText);
       }
 
       // Gather additional context from all registered context helpers.
@@ -397,8 +527,13 @@ export function useTamboV1SendMessage(threadId?: string) {
               // For threads with no ID at all: add user message now that we have the real threadId
               // Note: temp thread migration (temp_xxx -> real ID) is handled automatically
               // by the reducer when it sees RUN_STARTED with a different threadId
-              if (!threadId) {
-                dispatchUserMessage(actualThreadId);
+              if (!threadId && userMessageText && userMessageId) {
+                dispatchUserMessage(
+                  dispatch,
+                  actualThreadId,
+                  userMessageId,
+                  userMessageText,
+                );
               }
             } else if (!actualThreadId) {
               throw new Error(
@@ -444,57 +579,16 @@ export function useTamboV1SendMessage(threadId?: string) {
               additionalContext,
             });
 
-          // Dispatch synthetic events for optimistic local state
-          // The server doesn't echo these back for client-side tools
-          // Tool results go in a new user message, similar to how user text is handled
-          if (toolResults.length > 0) {
-            const toolResultMessageId = `msg_tool_result_${Date.now()}`;
-
-            // Create a new user message for tool results
-            dispatch({
-              type: "EVENT",
-              threadId: actualThreadId,
-              event: {
-                type: EventType.TEXT_MESSAGE_START,
-                messageId: toolResultMessageId,
-                role: "user" as const,
-              },
-            });
-
-            // Add tool results to the new message
-            for (const result of toolResults) {
-              dispatch({
-                type: "EVENT",
-                threadId: actualThreadId,
-                event: {
-                  type: EventType.TOOL_CALL_RESULT,
-                  toolCallId: result.toolUseId,
-                  messageId: toolResultMessageId,
-                  // Extract text content from the result
-                  content:
-                    result.content
-                      .filter((c) => c.type === "text")
-                      .map((c) => (c as { type: "text"; text: string }).text)
-                      .join("") || JSON.stringify(result.content),
-                },
-              });
-            }
-
-            // Mark the message as complete
-            dispatch({
-              type: "EVENT",
-              threadId: actualThreadId,
-              event: {
-                type: EventType.TEXT_MESSAGE_END,
-                messageId: toolResultMessageId,
-              },
-            });
-          }
+          dispatchToolResults(dispatch, actualThreadId, toolResults);
 
           currentStream = continuationStream;
         }
 
-        return { threadId: actualThreadId };
+        return {
+          threadId: actualThreadId,
+          preMutationMessageCount,
+          threadAlreadyHasTitle,
+        };
       } catch (error) {
         // Dispatch a synthetic RUN_ERROR event to clean up thread state
         // This ensures the thread doesn't stay stuck in "streaming" status
@@ -515,10 +609,26 @@ export function useTamboV1SendMessage(threadId?: string) {
       }
     },
     onSuccess: async (result) => {
-      // Invalidate thread queries to refetch updated state
       await queryClient.invalidateQueries({
         queryKey: ["v1-threads", result.threadId],
       });
+
+      if (
+        autoGenerateThreadName &&
+        shouldGenerateThreadName(
+          result.threadId,
+          result.threadAlreadyHasTitle,
+          result.preMutationMessageCount,
+          autoGenerateNameThreshold,
+        )
+      ) {
+        await generateThreadName(
+          client,
+          dispatch,
+          queryClient,
+          result.threadId,
+        );
+      }
     },
     onError: (error) => {
       console.error("[useTamboV1SendMessage] Mutation failed:", error);

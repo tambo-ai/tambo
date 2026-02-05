@@ -2391,4 +2391,52 @@ describe("streamReducer", () => {
       expect(result.threadMap.thread_1.thread.messages[1].role).toBe("user");
     });
   });
+
+  describe("UPDATE_THREAD_TITLE action", () => {
+    it("updates the title on an existing thread", () => {
+      const state = createTestStreamState("thread_1");
+
+      const result = streamReducer(state, {
+        type: "UPDATE_THREAD_TITLE",
+        threadId: "thread_1",
+        title: "My Chat Thread",
+      });
+
+      expect(result.threadMap.thread_1.thread.title).toBe("My Chat Thread");
+    });
+
+    it("returns unchanged state when thread does not exist", () => {
+      const state = createTestStreamState("thread_1");
+
+      const result = streamReducer(state, {
+        type: "UPDATE_THREAD_TITLE",
+        threadId: "nonexistent_thread",
+        title: "My Chat Thread",
+      });
+
+      expect(result).toBe(state);
+    });
+
+    it("preserves other thread properties when updating title", () => {
+      const state = createTestStreamState("thread_1");
+      state.threadMap.thread_1.thread.messages = [
+        {
+          id: "msg_1",
+          role: "user",
+          content: [{ type: "text", text: "Hello" }],
+          createdAt: "2024-01-01T00:00:00.000Z",
+        },
+      ];
+
+      const result = streamReducer(state, {
+        type: "UPDATE_THREAD_TITLE",
+        threadId: "thread_1",
+        title: "My Chat Thread",
+      });
+
+      expect(result.threadMap.thread_1.thread.title).toBe("My Chat Thread");
+      expect(result.threadMap.thread_1.thread.messages).toHaveLength(1);
+      expect(result.threadMap.thread_1.thread.id).toBe("thread_1");
+    });
+  });
 });
