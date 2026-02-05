@@ -185,18 +185,15 @@ npx tambo init --api-key=sk_...
 
 ## Environment Variables
 
-Create or update `.env.local`:
+`npx tambo init --api-key=sk_...` automatically creates `.env.local` with the correct env var for your framework.
 
-```bash
-# Next.js
-NEXT_PUBLIC_TAMBO_API_KEY=sk_...
+If manual setup is needed (monorepo, read-only filesystem), add the appropriate variable:
 
-# Vite
-VITE_TAMBO_API_KEY=sk_...
-
-# CRA
-REACT_APP_TAMBO_API_KEY=sk_...
-```
+| Framework | Variable                    |
+| --------- | --------------------------- |
+| Next.js   | `NEXT_PUBLIC_TAMBO_API_KEY` |
+| Vite      | `VITE_TAMBO_API_KEY`        |
+| CRA       | `REACT_APP_TAMBO_API_KEY`   |
 
 ## Verification
 
