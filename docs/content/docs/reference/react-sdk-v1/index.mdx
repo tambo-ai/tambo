@@ -1,0 +1,130 @@
+---
+title: React SDK 1.0 Reference (Coming Soon)
+description: API reference for @tambo-ai/react/v1 - the next generation of Tambo's React SDK with streaming-first architecture and explicit thread management.
+---
+
+import { Callout } from "fumadocs-ui/components/callout";
+
+<Callout type="warn" title="Preview Documentation">
+  This documents the upcoming React SDK 1.0, currently in preview. The API may
+  change before the stable release. For production applications, use the
+  [current React SDK](/reference/react-sdk).
+</Callout>
+
+<Callout type="info" title="About the V1 Naming">
+  The "V1" suffix in hook and provider names (e.g., `useTamboV1`,
+  `TamboV1Provider`) is temporary during the preview period. Before the stable
+  1.0 release, these will be renamed to their final forms (`useTambo`,
+  `TamboProvider`, etc.) and will become the primary exports from
+  `@tambo-ai/react`. The current SDK will then be available under a `/legacy`
+  subpath for migration purposes.
+</Callout>
+
+The `@tambo-ai/react/v1` package is the next generation of Tambo's React SDK, featuring a streaming-first architecture, explicit thread management, and React Query integration.
+
+## Installation
+
+```bash
+npm install @tambo-ai/react
+```
+
+## Import Path
+
+V1 APIs are imported from the `/v1` subpath:
+
+```tsx
+import {
+  TamboV1Provider,
+  useTamboV1,
+  useTamboV1ThreadInput,
+} from "@tambo-ai/react/v1";
+```
+
+## Quick Links
+
+- [Hooks](/reference/react-sdk-v1/hooks) - React hooks for thread management, messaging, suggestions, and component state
+- [Types](/reference/react-sdk-v1/types) - TypeScript interfaces and types for V1
+- [Providers](/reference/react-sdk-v1/providers) - Provider components for configuring Tambo V1
+
+## Overview
+
+The V1 SDK is organized around a simplified provider hierarchy with React Query for data fetching:
+
+```tsx
+import { TamboV1Provider } from "@tambo-ai/react/v1";
+
+function App() {
+  return (
+    <TamboV1Provider
+      apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY}
+      userKey={userId}
+      components={
+        [
+          /* your components */
+        ]
+      }
+      tools={
+        [
+          /* your tools */
+        ]
+      }
+    >
+      <YourApp />
+    </TamboV1Provider>
+  );
+}
+```
+
+Inside the provider, use hooks to access Tambo functionality:
+
+```tsx
+import { useTamboV1, useTamboV1ThreadInput } from "@tambo-ai/react/v1";
+
+function Chat() {
+  const { messages, isStreaming, startNewThread } = useTamboV1();
+  const { value, setValue, submit } = useTamboV1ThreadInput();
+
+  return (
+    <div>
+      {messages.map((msg) => (
+        <Message key={msg.id} message={msg} />
+      ))}
+      <input
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        onKeyDown={(e) => e.key === "Enter" && submit()}
+      />
+    </div>
+  );
+}
+```
+
+## Key Differences from Current SDK
+
+The V1 SDK introduces several changes from the current (`@tambo-ai/react`) SDK:
+
+| Aspect           | Current SDK                | V1 SDK                                                                                    |
+| ---------------- | -------------------------- | ----------------------------------------------------------------------------------------- |
+| Import path      | `@tambo-ai/react`          | `@tambo-ai/react/v1`                                                                      |
+| Main hook        | `useTambo()`               | `useTamboV1()`                                                                            |
+| User scoping     | `contextKey` prop          | `userKey` prop                                                                            |
+| Thread input     | `useTamboThreadInput()`    | `useTamboV1ThreadInput()`                                                                 |
+| Message format   | Simple structure           | Content blocks (text, component, tool_use, etc.)                                          |
+| Component state  | `useTamboComponentState()` | `useTamboV1ComponentState()` (bidirectional sync)                                         |
+| Generation stage | `GenerationStage` enum     | `streamingState.status` (typed as [`RunStatus`](/reference/react-sdk-v1/types#runstatus)) |
+| Data fetching    | Context-based              | React Query hooks                                                                         |
+
+## What's Not Yet Supported
+
+<Callout type="error" title="Not Yet Available">
+  The following features from the current SDK are not yet available in V1:
+
+Interactable components are not yet available in V1.
+
+This includes the `withTamboInteractable` HOC and all related hooks.
+
+</Callout>
+
+## Migration
+
+For guidance on migrating from the current SDK to V1, see [TAM-1094 Migration Guide](/reference/react-sdk-v1/migration) (coming soon).

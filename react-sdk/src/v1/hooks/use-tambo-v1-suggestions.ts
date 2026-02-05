@@ -8,18 +8,17 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import {
-  useQuery,
-  useMutation,
-  useQueryClient,
-  type UseQueryOptions,
-} from "@tanstack/react-query";
+import type { UseQueryOptions } from "@tanstack/react-query";
 import type {
   SuggestionCreateResponse,
   SuggestionListResponse,
 } from "@tambo-ai/typescript-sdk/resources/threads/suggestions";
 import type { Suggestion } from "@tambo-ai/typescript-sdk/resources/beta/threads/suggestions";
-import { useTamboClient } from "../../providers/tambo-client-provider";
+import {
+  useTamboClient,
+  useTamboQueryClient,
+} from "../../providers/tambo-client-provider";
+import { useTamboQuery, useTamboMutation } from "../../hooks/react-query-hooks";
 import { useTamboRegistry } from "../../providers/tambo-registry-provider";
 import { useTamboV1Config } from "../providers/tambo-v1-provider";
 import { useTamboV1 } from "./use-tambo-v1";
@@ -185,7 +184,7 @@ export function useTamboV1Suggestions(
   const client = useTamboClient();
   const { userKey } = useTamboV1Config();
   const { componentList } = useTamboRegistry();
-  const queryClient = useQueryClient();
+  const queryClient = useTamboQueryClient();
 
   const { messages, isIdle, currentThreadId } = useTamboV1();
   const { setValue: setInputValue, submit } = useTamboV1ThreadInput();
@@ -219,7 +218,7 @@ export function useTamboV1Suggestions(
   ] as const;
 
   // Query to list existing suggestions
-  const suggestionsQuery = useQuery({
+  const suggestionsQuery = useTamboQuery({
     queryKey: suggestionsQueryKey,
     queryFn: async (): Promise<SuggestionsQueryResponse> => {
       if (!shouldFetchSuggestions || !latestMessageId || !currentThreadId) {
@@ -239,7 +238,7 @@ export function useTamboV1Suggestions(
   });
 
   // Mutation to manually generate suggestions
-  const generateMutation = useMutation({
+  const generateMutation = useTamboMutation({
     mutationFn: async () => {
       if (!currentThreadId || !latestMessageId || !isLatestFromAssistant) {
         return undefined;
@@ -311,7 +310,7 @@ export function useTamboV1Suggestions(
   ]);
 
   // Mutation to accept a suggestion
-  const acceptMutation = useMutation({
+  const acceptMutation = useTamboMutation({
     mutationFn: async ({
       suggestion,
       shouldSubmit = false,

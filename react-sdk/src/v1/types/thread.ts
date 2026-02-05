@@ -44,6 +44,9 @@ export interface TamboV1Thread {
 
   /** When the thread was last updated */
   updatedAt: string;
+
+  /** Whether the last run was cancelled (resets to false when a new run starts) */
+  lastRunCancelled: boolean;
 }
 
 /**
@@ -62,6 +65,9 @@ export interface StreamingState {
 
   /** When the current run started */
   startTime?: number;
+
+  /** When reasoning started (for duration calculation) */
+  reasoningStartTime?: number;
 
   /** Error information if status is 'error' */
   error?: {

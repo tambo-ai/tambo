@@ -53,7 +53,11 @@ import { ProjectsService } from "../projects/projects.service";
 import { AdvanceThreadDto } from "./dto/advance-thread.dto";
 import type { StreamQueueItem } from "./dto/stream-queue-item";
 import { ComponentDecisionV2Dto } from "./dto/component-decision.dto";
-import { MessageRequest, ThreadMessageDto } from "./dto/message.dto";
+import {
+  ChatCompletionContentPartDto,
+  MessageRequest,
+  ThreadMessageDto,
+} from "./dto/message.dto";
 import { SuggestionDto } from "./dto/suggestion.dto";
 import { SuggestionsGenerateDto } from "./dto/suggestions-generate.dto";
 import { Thread, ThreadRequest, ThreadWithMessagesDto } from "./dto/thread.dto";
@@ -64,7 +68,7 @@ import {
   SuggestionGenerationError,
   SuggestionNotFoundException,
 } from "./types/errors";
-import { convertContentPartToDto } from "./util/content";
+import { contentPartToDbFormat, convertContentPartToDto } from "./util/content";
 import { addMessage, threadMessageToDto, updateMessage } from "./util/messages";
 import { mapSuggestionToDto } from "./util/suggestions";
 import { createMcpHandlers } from "./util/thread-mcp-handlers";
@@ -1034,19 +1038,6 @@ export class ThreadsService {
           advanceRequestDto.messageToAppend,
           this.logger,
         );
-
-        // Track user messages (not tool responses)
-        // Use contextKey (user identifier) if available, otherwise use TAMBO_ANON_CONTEXT_KEY
-        if (advanceRequestDto.messageToAppend.role === MessageRole.User) {
-          this.analytics.capture(
-            contextKey ?? TAMBO_ANON_CONTEXT_KEY,
-            "message_sent",
-            {
-              projectId,
-              threadId: thread.id,
-            },
-          );
-        }
       } else {
         // No message content to add - get the latest message from the thread
         // This happens in V1 API when only tool_result blocks are provided
@@ -1075,6 +1066,21 @@ export class ThreadsService {
         includeSystem: true,
       });
       const project = await operations.getProject(db, projectId);
+
+      // Track user messages (not tool responses) using already-fetched project data
+      if (advanceRequestDto.messageToAppend.role === MessageRole.User) {
+        const projectOwnerUserId = project?.members[0]?.userId;
+        this.analytics.capture(
+          projectOwnerUserId ?? contextKey ?? TAMBO_ANON_CONTEXT_KEY,
+          "message_sent",
+          {
+            projectId,
+            threadId: thread.id,
+            userId: projectOwnerUserId,
+            contextKey,
+          },
+        );
+      }
 
       if (messages.length === 0) {
         throw new Error("No messages found");
@@ -1655,7 +1661,10 @@ export class ThreadsService {
           if (currentThreadMessage) {
             await updateMessage(db, currentThreadMessage.id, {
               ...currentThreadMessage,
-              content: convertContentPartToDto(currentThreadMessage.content),
+              // Preserve all content types for DB storage (V1 types like component are needed)
+              content: contentPartToDbFormat(
+                currentThreadMessage.content,
+              ) as ChatCompletionContentPartDto[],
               toolCallRequest: currentThreadMessage.toolCallRequest,
               tool_call_id: currentThreadMessage.tool_call_id,
               actionType: currentThreadMessage.toolCallRequest
@@ -2285,7 +2294,10 @@ async function syncThreadStatus(
 
       await updateMessage(db, messageId, {
         ...currentThreadMessage,
-        content: convertContentPartToDto(currentThreadMessage.content),
+        // Preserve all content types for DB storage (V1 types like component are needed)
+        content: contentPartToDbFormat(
+          currentThreadMessage.content,
+        ) as ChatCompletionContentPartDto[],
         component: currentThreadMessage.component as ComponentDecisionV2Dto,
       });
     },

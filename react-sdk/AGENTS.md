@@ -171,6 +171,15 @@ Model Context Protocol support enables extending AI capabilities:
 
 ## Development Patterns
 
+### React Query Hooks
+
+Do NOT use `useQuery`, `useMutation`, or `useQueryClient` from `@tanstack/react-query`. Use the SDK's internal wrappers instead:
+
+- `useTamboQuery()`, `useTamboMutation()`, `useTamboQueries()` from `src/hooks/react-query-hooks.ts`
+- `useTamboQueryClient()` from `src/providers/tambo-client-provider.tsx`
+
+This ensures all SDK code shares the same internal `QueryClient` and avoids conflicts with user applications.
+
 ### Important Development Rules
 
 - All components must be SSR compatible

@@ -234,6 +234,7 @@ export const TamboThreadInputProvider: React.FC<PropsWithChildren> = ({
     mutate: _unusedSubmit,
     ...mutationState
   } = useTamboMutation({
+    mutationKey: ["thread-input", thread.id],
     mutationFn: submit,
   });
 

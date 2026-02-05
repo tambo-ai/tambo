@@ -137,6 +137,7 @@ function normalizeThread(
       status: "idle",
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
+      lastRunCancelled: false,
     };
   }
 
@@ -150,6 +151,7 @@ function normalizeThread(
     status: "idle",
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
+    lastRunCancelled: false,
   };
 }
 

@@ -1,21 +1,30 @@
 import TamboAI from "@tambo-ai/typescript-sdk";
-import { QueryClient, useQueryClient } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { renderHook, act } from "@testing-library/react";
 import React from "react";
 import { z } from "zod";
-import { useTamboClient } from "../../providers/tambo-client-provider";
+import {
+  useTamboClient,
+  useTamboQueryClient,
+} from "../../providers/tambo-client-provider";
 import { useTamboRegistry } from "../../providers/tambo-registry-provider";
 import { useTamboContextHelpers } from "../../providers/tambo-context-helpers-provider";
 import { useStreamState, useThreadManagement } from "./tambo-v1-stream-context";
 import { TamboV1Provider, useTamboV1Config } from "./tambo-v1-provider";
 
+// Module-level QueryClient for tests - created lazily
+let testQueryClient: QueryClient | null = null;
+
 // Mock the client provider to capture the apiKey
-jest.mock("../../providers/tambo-client-provider", () => ({
-  useTamboClient: jest.fn(),
-  useTamboQueryClient: jest.fn(() => new QueryClient()),
-  TamboClientProvider: ({ children }: { children: React.ReactNode }) =>
-    children,
-}));
+jest.mock("../../providers/tambo-client-provider", () => {
+  return {
+    useTamboClient: jest.fn(),
+    useTamboQueryClient: jest.fn(),
+    TamboClientProvider: jest.fn(
+      ({ children }: { children: React.ReactNode }) => children,
+    ),
+  };
+});
 
 // Mock useTamboV1SendMessage to avoid complex dependencies
 jest.mock("../hooks/use-tambo-v1-send-message", () => ({
@@ -41,7 +50,28 @@ describe("TamboV1Provider", () => {
   });
 
   beforeEach(() => {
+    // Create a fresh QueryClient for each test
+    testQueryClient = new QueryClient({
+      defaultOptions: {
+        queries: { retry: false },
+        mutations: { retry: false },
+      },
+    });
+
     jest.mocked(useTamboClient).mockReturnValue(mockClient);
+    jest.mocked(useTamboQueryClient).mockReturnValue(testQueryClient);
+
+    // Mock TamboClientProvider to wrap children with QueryClientProvider
+    const { TamboClientProvider } = jest.requireMock(
+      "../../providers/tambo-client-provider",
+    );
+    jest
+      .mocked(TamboClientProvider)
+      .mockImplementation(({ children }: { children: React.ReactNode }) => (
+        <QueryClientProvider client={testQueryClient!}>
+          {children}
+        </QueryClientProvider>
+      ));
   });
 
   it("provides access to registry context", () => {
@@ -96,27 +126,14 @@ describe("TamboV1Provider", () => {
     expect(result.current.state.threadMap.thread_123).toBeDefined();
   });
 
-  it("provides access to query client", () => {
+  it("provides access to query client via useTamboQueryClient", () => {
     const wrapper = ({ children }: { children: React.ReactNode }) => (
       <TamboV1Provider apiKey="test-api-key">{children}</TamboV1Provider>
     );
 
-    const { result } = renderHook(() => useQueryClient(), { wrapper });
+    const { result } = renderHook(() => useTamboQueryClient(), { wrapper });
 
     expect(result.current).toBeInstanceOf(QueryClient);
-  });
-
-  it("uses custom query client when provided", () => {
-    const customClient = new QueryClient();
-    const wrapper = ({ children }: { children: React.ReactNode }) => (
-      <TamboV1Provider apiKey="test-api-key" queryClient={customClient}>
-        {children}
-      </TamboV1Provider>
-    );
-
-    const { result } = renderHook(() => useQueryClient(), { wrapper });
-
-    expect(result.current).toBe(customClient);
   });
 
   it("registers components when provided", () => {

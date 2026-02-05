@@ -19,8 +19,11 @@ import {
 import { HydraDb, operations, schema } from "@tambo-ai-cloud/db";
 import { eq } from "drizzle-orm";
 import { ComponentDecisionV2Dto } from "../dto/component-decision.dto";
-import { MessageRequest } from "../dto/message.dto";
-import { convertContentPartToDto } from "./content";
+import {
+  ChatCompletionContentPartDto,
+  MessageRequest,
+} from "../dto/message.dto";
+import { contentPartToDbFormat } from "./content";
 import {
   addMessage,
   updateMessage,
@@ -205,7 +208,10 @@ export function updateThreadMessageFromLegacyDecision(
     },
   ];
 
-  // Add component content block if componentId is present (V1 API support)
+  // Add component content block for V1 API support (legacy API filters these out).
+  // The componentId comes from streaming events (e.g., "message-xxxx") and is used
+  // by the V1 API to look up components for state updates. This ID is preserved
+  // in the DB content array so findMessageWithComponent can find it.
   if (chunk.componentId && chunk.componentName && chunk.props) {
     const componentContent: ChatCompletionContentPartComponent = {
       type: "component",
@@ -366,7 +372,11 @@ export async function finishInProgressMessage(
         await updateMessage(tx, inProgressMessageId, {
           ...finalThreadMessage,
           component: finalThreadMessage.component as ComponentDecisionV2Dto,
-          content: convertContentPartToDto(finalThreadMessage.content),
+          // Preserve all content types (including V1 types like component) for DB storage.
+          // convertContentDtoToContentPart handles V1 types, so we can pass them through.
+          content: contentPartToDbFormat(
+            finalThreadMessage.content,
+          ) as ChatCompletionContentPartDto[],
         });
 
         const resultingGenerationStage = finalThreadMessage.toolCallRequest

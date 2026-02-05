@@ -8,6 +8,7 @@ import {
   ImageDetail,
 } from "../dto/message.dto";
 import {
+  contentPartToDbFormat,
   convertContentDtoToContentPart,
   convertContentPartToDto,
   tryParseJson,
@@ -169,6 +170,31 @@ describe("content utilities", () => {
         "resource is required for resource type",
       );
     });
+
+    it("should pass through V1-specific content types (component)", () => {
+      const input = [
+        { type: "text", text: "hello" },
+        {
+          type: "component",
+          id: "message-abc123",
+          name: "WeatherCard",
+          props: { temp: 72 },
+          state: { expanded: true },
+        },
+      ] as ChatCompletionContentPartDto[];
+
+      const result = convertContentDtoToContentPart(input);
+      expect(result).toHaveLength(2);
+      expect(result[0]).toEqual({ type: ContentPartType.Text, text: "hello" });
+      // Component should be passed through unchanged
+      expect(result[1]).toEqual({
+        type: "component",
+        id: "message-abc123",
+        name: "WeatherCard",
+        props: { temp: 72 },
+        state: { expanded: true },
+      });
+    });
   });
 
   describe("convertContentPartToDto", () => {
@@ -221,6 +247,64 @@ describe("content utilities", () => {
       ];
       const result = convertContentPartToDto(input);
       expect(result).toEqual([]);
+    });
+  });
+
+  describe("contentPartToDbFormat", () => {
+    it("should convert string to text content part array", () => {
+      const result = contentPartToDbFormat("test message");
+      expect(result).toEqual([
+        { type: ContentPartType.Text, text: "test message" },
+      ]);
+    });
+
+    it("should preserve all content types including V1 types", () => {
+      const input: ChatCompletionContentPart[] = [
+        { type: ContentPartType.Text, text: "some text" },
+        {
+          type: "component",
+          id: "message-abc123",
+          name: "WeatherCard",
+          props: { temp: 72 },
+          state: { expanded: true },
+        } as ChatCompletionContentPart,
+      ];
+      const result = contentPartToDbFormat(input);
+      // Should return the same array without filtering
+      expect(result).toBe(input);
+      expect(result).toHaveLength(2);
+      expect(result[1]).toEqual({
+        type: "component",
+        id: "message-abc123",
+        name: "WeatherCard",
+        props: { temp: 72 },
+        state: { expanded: true },
+      });
+    });
+
+    it("should preserve component blocks unlike convertContentPartToDto", () => {
+      const input: ChatCompletionContentPart[] = [
+        { type: ContentPartType.Text, text: "before" },
+        {
+          type: "component",
+          id: "comp-123",
+          name: "TestComponent",
+          props: {},
+        } as ChatCompletionContentPart,
+        { type: ContentPartType.Text, text: "after" },
+      ];
+
+      // contentPartToDbFormat preserves everything
+      const dbResult = contentPartToDbFormat(input);
+      expect(dbResult).toHaveLength(3);
+      expect(dbResult[1].type).toBe("component");
+
+      // convertContentPartToDto filters out component
+      const dtoResult = convertContentPartToDto(input);
+      expect(dtoResult).toHaveLength(2);
+      expect(dtoResult.every((p) => (p.type as string) !== "component")).toBe(
+        true,
+      );
     });
   });
 
