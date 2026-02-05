@@ -795,6 +795,7 @@ describe("useTamboV1SendMessage mutation", () => {
     expect(continueCall[1].message.content[0]).toEqual({
       type: "tool_result",
       toolUseId: "call_1",
+      isError: true,
       content: [
         { type: "text", text: 'Tool "unknown_tool" not found in registry' },
       ],

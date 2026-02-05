@@ -355,6 +355,26 @@ describe("v1-tool-results", () => {
       expect(messages[0].content[1].type).toBe(ContentPartType.Resource);
     });
 
+    it("persists isError as error field on the message", () => {
+      const toolResults = [
+        {
+          toolUseId: "call_err",
+          content: [{ type: "text" as const, text: "Something went wrong" }],
+          isError: true,
+        },
+        {
+          toolUseId: "call_ok",
+          content: [{ type: "text" as const, text: "All good" }],
+          isError: false,
+        },
+      ];
+
+      const messages = convertToolResultsToMessages(toolResults);
+
+      expect(messages[0].error).toBe("Tool execution failed");
+      expect(messages[1].error).toBeUndefined();
+    });
+
     it("returns empty array for empty input", () => {
       const messages = convertToolResultsToMessages([]);
 
