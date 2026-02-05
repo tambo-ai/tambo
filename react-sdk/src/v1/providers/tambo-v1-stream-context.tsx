@@ -8,7 +8,6 @@
  * following the split-context pattern for optimal re-render performance.
  */
 
-import { useQuery } from "@tanstack/react-query";
 import React, {
   createContext,
   useCallback,
@@ -19,6 +18,7 @@ import React, {
   useRef,
 } from "react";
 import { useTamboClient } from "../../providers/tambo-client-provider";
+import { useTamboQuery } from "../../hooks/react-query-hooks";
 import type { TamboV1Message } from "../types/message";
 import type { TamboV1Thread } from "../types/thread";
 import {
@@ -232,7 +232,7 @@ function ThreadSyncManager(): null {
   const shouldFetch = isNotPlaceholder && isNotSynced && hasNoMessages;
 
   // Fetch messages from the messages endpoint (not the thread endpoint)
-  const { data: messagesData, isSuccess } = useQuery({
+  const { data: messagesData, isSuccess } = useTamboQuery({
     queryKey: ["v1-thread-messages", currentThreadId],
     queryFn: async () => await client.threads.messages.list(currentThreadId),
     enabled: shouldFetch,

@@ -6,12 +6,13 @@
  * React Query hook for fetching a list of threads.
  */
 
-import { useQuery, type UseQueryOptions } from "@tanstack/react-query";
+import type { UseQueryOptions } from "@tanstack/react-query";
 import type {
   ThreadListParams,
   ThreadListResponse,
 } from "@tambo-ai/typescript-sdk/resources/threads/threads";
 import { useTamboClient } from "../../providers/tambo-client-provider";
+import { useTamboQuery } from "../../hooks/react-query-hooks";
 import { useTamboV1Config } from "../providers/tambo-v1-provider";
 
 /**
@@ -72,7 +73,7 @@ export function useTamboV1ThreadList(
       ? { ...listOptions, userKey: listOptions?.userKey ?? contextUserKey }
       : listOptions;
 
-  return useQuery({
+  return useTamboQuery({
     queryKey: ["v1-threads", "list", effectiveOptions],
     queryFn: async () => await client.threads.list(effectiveOptions),
     staleTime: 5000, // Consider stale after 5s

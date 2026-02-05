@@ -6,13 +6,16 @@
  * React Query mutation hook for sending messages and handling streaming responses.
  */
 
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useContext } from "react";
 import { EventType, type RunErrorEvent } from "@ag-ui/core";
 import { asTamboCustomEvent, type RunAwaitingInputEvent } from "../types/event";
 import type TamboAI from "@tambo-ai/typescript-sdk";
 import type { Stream } from "@tambo-ai/typescript-sdk/core/streaming";
-import { useTamboClient } from "../../providers/tambo-client-provider";
+import {
+  useTamboClient,
+  useTamboQueryClient,
+} from "../../providers/tambo-client-provider";
+import { useTamboMutation } from "../../hooks/react-query-hooks";
 import {
   TamboRegistryContext,
   type TamboRegistryContext as TamboRegistry,
@@ -241,7 +244,7 @@ export function useTamboV1SendMessage(threadId?: string) {
   const streamState = useStreamState();
   const { userKey } = useTamboV1Config();
   const registry = useContext(TamboRegistryContext);
-  const queryClient = useQueryClient();
+  const queryClient = useTamboQueryClient();
 
   if (!registry) {
     throw new Error(
@@ -259,7 +262,7 @@ export function useTamboV1SendMessage(threadId?: string) {
     : undefined;
   const previousRunId = threadState?.streaming.runId;
 
-  return useMutation({
+  return useTamboMutation({
     mutationFn: async (options: SendMessageOptions) => {
       const { message, userMessageText, debug = false } = options;
 

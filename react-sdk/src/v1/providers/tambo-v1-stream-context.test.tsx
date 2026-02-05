@@ -9,7 +9,7 @@ import {
   useThreadManagement,
 } from "./tambo-v1-stream-context";
 
-// Mock useTamboClient to avoid TamboClientProvider dependency
+// Mock useTamboClient and useTamboQueryClient to avoid TamboClientProvider dependency
 jest.mock("../../providers/tambo-client-provider", () => ({
   useTamboClient: jest.fn(() => ({
     threads: {
@@ -18,7 +18,11 @@ jest.mock("../../providers/tambo-client-provider", () => ({
       },
     },
   })),
+  useTamboQueryClient: jest.fn(),
 }));
+
+// Import for mocking
+import { useTamboQueryClient } from "../../providers/tambo-client-provider";
 
 describe("TamboV1StreamProvider", () => {
   let queryClient: QueryClient;
@@ -29,6 +33,8 @@ describe("TamboV1StreamProvider", () => {
         queries: { retry: false },
       },
     });
+    // Configure mock to return the test's queryClient
+    jest.mocked(useTamboQueryClient).mockReturnValue(queryClient);
   });
 
   const createWrapper = () => {

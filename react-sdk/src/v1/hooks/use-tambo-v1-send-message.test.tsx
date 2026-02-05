@@ -5,7 +5,10 @@ import { renderHook, waitFor, act } from "@testing-library/react";
 import React from "react";
 import { z } from "zod";
 import type { TamboTool } from "../../model/component-metadata";
-import { useTamboClient } from "../../providers/tambo-client-provider";
+import {
+  useTamboClient,
+  useTamboQueryClient,
+} from "../../providers/tambo-client-provider";
 import { TamboRegistryContext } from "../../providers/tambo-registry-provider";
 import { useTamboV1Config } from "../providers/tambo-v1-provider";
 import { TamboV1StreamProvider } from "../providers/tambo-v1-stream-context";
@@ -16,6 +19,7 @@ import {
 
 jest.mock("../../providers/tambo-client-provider", () => ({
   useTamboClient: jest.fn(),
+  useTamboQueryClient: jest.fn(),
 }));
 
 jest.mock("../providers/tambo-v1-provider", () => ({
@@ -60,6 +64,7 @@ describe("useTamboV1SendMessage", () => {
       },
     });
     jest.mocked(useTamboClient).mockReturnValue(mockTamboAI);
+    jest.mocked(useTamboQueryClient).mockReturnValue(queryClient);
     jest.mocked(useTamboV1Config).mockReturnValue({ userKey: undefined });
     mockThreadsRunsApi.run.mockReset();
     mockThreadsRunsApi.create.mockReset();
@@ -313,6 +318,7 @@ describe("useTamboV1SendMessage mutation", () => {
       },
     });
     jest.mocked(useTamboClient).mockReturnValue(mockTamboAI);
+    jest.mocked(useTamboQueryClient).mockReturnValue(queryClient);
     jest.mocked(useTamboV1Config).mockReturnValue({ userKey: undefined });
     mockThreadsRunsApi.run.mockReset();
     mockThreadsRunsApi.create.mockReset();
