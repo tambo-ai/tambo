@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.0-alpha.1](https://github.com/tambo-ai/tambo/compare/@tambo-ai/react-ui-base-v0.1.0-alpha.0...@tambo-ai/react-ui-base-v0.1.0-alpha.1) (2026-02-05)
+
+
+### Miscellaneous Chores
+
+* **react-ui-base:** minor update to trigger versioning ([#2233](https://github.com/tambo-ai/tambo/issues/2233)) ([996a6b3](https://github.com/tambo-ai/tambo/commit/996a6b3408e7f314b4a8e0d466a68d26dec5fb2f))
+
 ## 0.1.0-alpha.0 (2026-02-05)
 
 
