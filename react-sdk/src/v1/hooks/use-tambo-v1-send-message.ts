@@ -136,6 +136,64 @@ function dispatchToolResults(
 }
 
 /**
+ * Checks whether a thread name should be auto-generated based on config
+ * and the current thread state.
+ * @param threadId - The thread ID (undefined or placeholder means no)
+ * @param threadAlreadyHasTitle - Whether the thread already has a title
+ * @param preMutationMessageCount - Message count before the current mutation
+ * @param autoGenerateNameThreshold - Minimum message count to trigger generation
+ * @returns Whether to generate a thread name
+ */
+function shouldGenerateThreadName(
+  threadId: string | undefined,
+  threadAlreadyHasTitle: boolean,
+  preMutationMessageCount: number,
+  autoGenerateNameThreshold: number,
+): threadId is string {
+  return (
+    !threadAlreadyHasTitle &&
+    !!threadId &&
+    !isPlaceholderThreadId(threadId) &&
+    // +2 accounts for the user message and assistant response just added
+    preMutationMessageCount + 2 >= autoGenerateNameThreshold
+  );
+}
+
+/**
+ * Generates a thread name via the beta API, dispatches the title update,
+ * and invalidates the thread list cache. Errors are logged, never thrown.
+ * @param client - The Tambo API client
+ * @param dispatch - Stream state dispatcher
+ * @param queryClient - React Query client for cache invalidation
+ * @param threadId - The thread to generate a name for
+ */
+async function generateThreadName(
+  client: TamboAI,
+  dispatch: React.Dispatch<StreamAction>,
+  queryClient: ReturnType<typeof useTamboQueryClient>,
+  threadId: string,
+): Promise<void> {
+  try {
+    const threadWithName = await client.beta.threads.generateName(threadId);
+    if (threadWithName.name) {
+      dispatch({
+        type: "UPDATE_THREAD_TITLE",
+        threadId,
+        title: threadWithName.name,
+      });
+      await queryClient.invalidateQueries({
+        queryKey: ["v1-threads", "list"],
+      });
+    }
+  } catch (error) {
+    console.error(
+      "[useTamboV1SendMessage] Failed to auto-generate thread name:",
+      error,
+    );
+  }
+}
+
+/**
  * Options for sending a message
  */
 export interface SendMessageOptions {
@@ -502,41 +560,25 @@ export function useTamboV1SendMessage(threadId?: string) {
       }
     },
     onSuccess: async (result) => {
-      // Invalidate thread queries to refetch updated state
       await queryClient.invalidateQueries({
         queryKey: ["v1-threads", result.threadId],
       });
 
-      // Auto-generate thread name if conditions are met
-      const shouldGenerateName =
+      if (
         autoGenerateThreadName &&
-        !result.threadAlreadyHasTitle &&
-        result.threadId &&
-        !isPlaceholderThreadId(result.threadId) &&
-        // +2 accounts for the user message and assistant response just added
-        result.preMutationMessageCount + 2 >= autoGenerateNameThreshold;
-
-      if (shouldGenerateName) {
-        try {
-          const threadWithName = await client.beta.threads.generateName(
-            result.threadId!,
-          );
-          if (threadWithName.name) {
-            dispatch({
-              type: "UPDATE_THREAD_TITLE",
-              threadId: result.threadId!,
-              title: threadWithName.name,
-            });
-            await queryClient.invalidateQueries({
-              queryKey: ["v1-threads", "list"],
-            });
-          }
-        } catch (error) {
-          console.error(
-            "[useTamboV1SendMessage] Failed to auto-generate thread name:",
-            error,
-          );
-        }
+        shouldGenerateThreadName(
+          result.threadId,
+          result.threadAlreadyHasTitle,
+          result.preMutationMessageCount,
+          autoGenerateNameThreshold,
+        )
+      ) {
+        await generateThreadName(
+          client,
+          dispatch,
+          queryClient,
+          result.threadId,
+        );
       }
     },
     onError: (error) => {
