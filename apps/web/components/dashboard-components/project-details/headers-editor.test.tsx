@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { HeadersEditor, type HeaderKV } from "./headers-editor";
 
@@ -70,7 +70,10 @@ describe("HeadersEditor", () => {
     // Delete the first header
     await user.click(deleteButtons[0]);
 
-    // onSave should be called with only the second header
+    // onSave should be called exactly once with only the second header
+    await waitFor(() => {
+      expect(onSave).toHaveBeenCalledTimes(1);
+    });
     expect(onSave).toHaveBeenCalledWith([{ header: "X-Custom", value: "foo" }]);
   });
 });

@@ -168,6 +168,8 @@ export function HeadersEditor({
   const handleDeleteRow = (rowIndex: number) => {
     const updated = working.filter((_, i) => i !== rowIndex);
     setWorking(updated);
+    // Reset activeEditIndex to avoid stale index references after array shifts
+    setActiveEditIndex(null);
     onSave(updated);
   };
 
