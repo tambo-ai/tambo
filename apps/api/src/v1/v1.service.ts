@@ -8,6 +8,12 @@ import {
   Logger,
   NotFoundException,
 } from "@nestjs/common";
+
+/**
+ * Interval in milliseconds for checking run cancellation status during streaming.
+ * Set to 500ms as a balance between responsiveness and database load.
+ */
+const CANCEL_CHECK_INTERVAL_MS = 500;
 import * as Sentry from "@sentry/nestjs";
 import {
   EventType,
@@ -685,7 +691,30 @@ export class V1Service {
           // to real IDs so the client SDK can reference messages correctly.
           const messageIdMapping = new Map<string, string>();
 
+          // Throttled cancellation check - poll database for run cancellation status
+          // at most once per CANCEL_CHECK_INTERVAL_MS to balance responsiveness vs DB load
+          let lastCancelCheckTime = Date.now();
+
           for await (const item of queue) {
+            // Check for cancellation periodically (throttled to avoid excessive DB queries)
+            const now = Date.now();
+            if (now - lastCancelCheckTime >= CANCEL_CHECK_INTERVAL_MS) {
+              lastCancelCheckTime = now;
+              const run = await operations.getRun(this.db, threadId, runId);
+              if (run?.isCancelled) {
+                const cancelErrorEvent: RunErrorEvent = {
+                  type: EventType.RUN_ERROR,
+                  message: "Run cancelled",
+                  code: "CANCELLED",
+                  timestamp: Date.now(),
+                };
+                this.emitEvent(response, cancelErrorEvent);
+                this.logger.log(
+                  `Run ${runId} cancelled during streaming on thread ${threadId}`,
+                );
+                return;
+              }
+            }
             // Extract real message ID from the response (persisted by advanceThread)
             const realMessageId = item.response?.responseMessageDto?.id;
 
