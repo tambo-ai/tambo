@@ -1,16 +1,15 @@
 ---
-title: Tambo generative UI for React
-description: Build generative UI apps in React with Tambo's MCP-native React SDK, components, hooks, and tools.
+title: Generative UI toolkit for React
+description: Register components the Tambo agent renders based on user messages.
 icon: GraduationCap
 ---
 
 import LearnMore from "@/components/learn-more";
+import { MessageCircleMore, Box } from "lucide-react";
 
-Tambo is a generative UI SDK for React. The AI dynamically decides which components to render and what props to pass based on natural language conversations.
+Tambo is an open-source toolkit for building AI-powered React apps. Register your components, and the agent decides which one to render based on user messages.
 
-Register your components once. The AI agent renders and controls them based on user messages and context.
-
-**MCP-native** from the ground up — integrates the Model Context Protocol (MCP), a standardized protocol that lets AI models connect to external systems (databases, APIs, files) the same way.
+"Show me sales by region" renders your `<Chart>`. "Add a task" updates your `<TaskBoard>`. The agent picks the component and streams the props.
 
 <video
   src="https://github.com/user-attachments/assets/8381d607-b878-4823-8b24-ecb8053bef23"
@@ -21,55 +20,22 @@ Register your components once. The AI agent renders and controls them based on u
   style={{ width: "100%", borderRadius: "8px", marginTop: "16px" }}
 />
 
-## Why Tambo?
+## What's included
 
-You don't want to write 200 lines of boilerplate to show a chart.
+- **React SDK** — Hooks and providers for thread management, streaming, and component rendering
+- **Built-in agent** — No external framework required. Drop it into your app and go.
+- **Streaming and state** — Progressive prop updates, message history, error handling
+- **MCP support** — Connect to databases, APIs, and external systems via Model Context Protocol
 
-Tambo handles:
+Self-host the backend or use Tambo Cloud for fast deployment.
 
-- ✅ AI orchestration (which component to render)
-- ✅ Streaming (progressive prop updates)
-- ✅ State management (persistence across conversation)
-- ✅ Error handling (retries, fallbacks)
-- ✅ Tool coordination (MCP servers, local functions)
+## How Tambo works
 
-You write:
+Two component patterns, one toolkit.
 
-- Your existing React components
-- Zod schemas for props
-- React hooks for advanced AI features
+### Generative components
 
-That's the entire API.
-
-```tsx
-// Register your chart component once
-const components: TamboComponent[] = [{
-  name: "Graph",
-  description: "Displays data as charts",
-  component: Graph,
-  propsSchema: z.object({ data: z.array(...), type: z.enum(["line", "bar", "pie"]) })
-}];
-
-// 10 lines of registration → infinite use cases
-```
-
-## Key Benefits
-
-- **No AI Expertise Needed** - If you can write React, you can build generative UIs. Use your existing design system and components.
-- **MCP-Native** - Built-in support for Model Context Protocol means plug-and-play integrations with any MCP server. Your own, or external servers with Linear, Slack.
-- **Pre-built UI Primitives** - Copy/paste production-ready components for forms, charts, maps, messaging, and more. Customize everything.
-- **Bring Your Own LLM** - Works with OpenAI, Anthropic, Cerebras, Google, Mistral, or any OpenAI-compatible provider. Not locked into one vendor.
-- **Truly Open Source** - MIT licensed React SDK and backend. Self-host with full control, or use Tambo Cloud for zero-config deployment.
-
-## How Tambo Works
-
-Tambo supports two component workflows:
-
-**Generative components** (like charts) **or persistent components** (like shopping carts that update across the conversation).
-
-### Generative Components
-
-AI renders these once in response to user messages. Best for charts, data visualizations, and summary cards.
+Rendered once in response to a message. Use these for charts, data visualizations, summary cards—anything that displays a result.
 
 <video
   src="https://github.com/user-attachments/assets/3bd340e7-e226-4151-ae40-aab9b3660d8b"
@@ -100,9 +66,9 @@ const components: TamboComponent[] = [
   href="/concepts/generative-interfaces/generative-components"
 />
 
-### Interactable Components
+### Interactable components
 
-Components that persist on the page and update by ID across conversations. Perfect for shopping carts, spreadsheets, task boards, or dashboards. Pre-place them in your code, or let AI generate them dynamically.
+Persist on the page and update by ID across conversations. Use these for shopping carts, task boards, spreadsheets, dashboards. Anything users interact with over time.
 
 <video
   src="https://github.com/user-attachments/assets/12d957cd-97f1-488e-911f-0ff900ef4062"
@@ -131,11 +97,11 @@ const InteractableNote = withInteractable(Note, {
   href="/concepts/generative-interfaces/interactable-components"
 />
 
-## Core Workflow
+## Core workflow
 
-### 1. Register Your Components
+### 1. Register your components
 
-Tell the AI which components it can use:
+Tell the agent which components it can use:
 
 ```tsx
 import { TamboProvider } from "@tambo-ai/react";
@@ -153,7 +119,7 @@ export function Home() {
 }
 ```
 
-For apps with signed-in users, pass a per-user `userToken` (OAuth access token) to `TamboProvider` to enable per-user auth and connect Tambo to your app's end-user identity. See [User Authentication](/concepts/user-authentication) for details.
+For apps with signed-in users, pass a `userToken` to enable per-user auth. See [User Authentication](/concepts/user-authentication) for details.
 
 <LearnMore
   title="Component registration"
@@ -161,9 +127,9 @@ For apps with signed-in users, pass a per-user `userToken` (OAuth access token) 
   href="/concepts/generative-interfaces"
 />
 
-### 2. Use Tambo Hooks
+### 2. Use Tambo hooks
 
-Send messages and render AI responses with dynamic components:
+Send messages and render responses:
 
 ```tsx
 const { thread } = useTamboThread();
@@ -186,8 +152,6 @@ const { value, setValue, submit, isPending } = useTamboThreadInput();
 }
 ```
 
-import { MessageCircleMore } from "lucide-react";
-
 <LearnMore
   title="Send messages"
   description="Learn how to send user messages and handle responses"
@@ -195,9 +159,9 @@ import { MessageCircleMore } from "lucide-react";
   icon={MessageCircleMore}
 />
 
-### 3. Add MCP Integrations
+### 3. Add MCP integrations
 
-Connect pre-built integrations (Linear, Slack, databases) or your own custom MCP servers:
+Connect pre-built integrations or your own MCP servers:
 
 ```tsx
 import { MCPTransport } from "@tambo-ai/react/mcp";
@@ -225,43 +189,32 @@ const mcpServers = [
 />
 
 <LearnMore
-  title="MCP Integration"
+  title="MCP integration"
   description="Connect to external systems with Model Context Protocol"
   href="/concepts/model-context-protocol"
 />
 
-## Key Features
+## Pre-built components
 
-- **Generative UI Components** - Render dynamic React components in response to user messages
-- **Interactable Components** - Pre-place components and let AI update them across conversations
-- **MCP-Native** - Built-in Model Context Protocol support for seamless integrations
-- **Local Tools** - Write JavaScript functions that execute in your React app
-- **Streaming Support** - Real-time streaming for all AI-generated content with UX-enhancing hooks
-- **Message History** - Automatic conversation storage and management
-- **State Management** - AI-integrated state hooks to persist user input and component state
-- **Suggested Actions** - Generate contextual suggestions to guide users
-- **Tool Orchestration** - Automatic tool call coordination during response generation
-- **Model Flexibility** - Works with OpenAI, Anthropic, Cerebras, Google, Mistral, and custom providers
-
-## Pre-built UI Components
-
-Ready-to-use components integrated with Tambo, installable via CLI:
-
-import { Box } from "lucide-react";
+Production-ready components you can install via CLI:
 
 <LearnMore
-  title="Component Library"
-  description="Explore production-ready components for every generative UI pattern"
+  title="Component library"
+  description="Explore components for forms, charts, messaging, and more"
   href="https://ui.tambo.co"
   icon={Box}
 />
 
-## Get Started
-
-Ready to build? Follow our quickstart guide:
+## Get started
 
 <LearnMore
-  title="Quickstart Guide"
-  description="Get up and running with Tambo in minutes"
+  title="Quickstart"
+  description="Get up and running in minutes"
   href="/getting-started/quickstart"
+/>
+
+<LearnMore
+  title="GitHub"
+  description="Star the repo, open issues, contribute"
+  href="https://github.com/tambo-ai/tambo"
 />
