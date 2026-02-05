@@ -1002,6 +1002,84 @@ describe("streamReducer", () => {
       expect(toolContent.input).toEqual({ city: "NYC" });
     });
 
+    it("optimistically parses partial tool args during streaming", () => {
+      const state = createTestStreamState("thread_1");
+      state.threadMap.thread_1.thread.messages = [
+        {
+          id: "msg_1",
+          role: "assistant",
+          content: [
+            { type: "tool_use", id: "tool_1", name: "test", input: {} },
+          ],
+          createdAt: "2024-01-01T00:00:00.000Z",
+        },
+      ];
+
+      // First chunk: partial key — partial-json can parse this into { city: "" }
+      let result = streamReducer(state, {
+        type: "EVENT",
+        event: {
+          type: EventType.TOOL_CALL_ARGS,
+          toolCallId: "tool_1",
+          delta: '{"city": "N',
+        } satisfies ToolCallArgsEvent,
+        threadId: "thread_1",
+      });
+
+      let toolContent = asToolUseContent(
+        result.threadMap.thread_1.thread.messages[0].content,
+        0,
+      );
+      // partial-json parses incomplete string values
+      expect(toolContent.input).toEqual({ city: "N" });
+
+      // Second chunk: complete city, start of units
+      result = streamReducer(result, {
+        type: "EVENT",
+        event: {
+          type: EventType.TOOL_CALL_ARGS,
+          toolCallId: "tool_1",
+          delta: 'YC", "units": "fahr',
+        } satisfies ToolCallArgsEvent,
+        threadId: "thread_1",
+      });
+
+      toolContent = asToolUseContent(
+        result.threadMap.thread_1.thread.messages[0].content,
+        0,
+      );
+      expect(toolContent.input).toEqual({ city: "NYC", units: "fahr" });
+
+      // Final chunk + TOOL_CALL_END
+      result = streamReducer(result, {
+        type: "EVENT",
+        event: {
+          type: EventType.TOOL_CALL_ARGS,
+          toolCallId: "tool_1",
+          delta: 'enheit"}',
+        } satisfies ToolCallArgsEvent,
+        threadId: "thread_1",
+      });
+
+      result = streamReducer(result, {
+        type: "EVENT",
+        event: {
+          type: EventType.TOOL_CALL_END,
+          toolCallId: "tool_1",
+        } satisfies ToolCallEndEvent,
+        threadId: "thread_1",
+      });
+
+      toolContent = asToolUseContent(
+        result.threadMap.thread_1.thread.messages[0].content,
+        0,
+      );
+      expect(toolContent.input).toEqual({
+        city: "NYC",
+        units: "fahrenheit",
+      });
+    });
+
     it("throws when tool arguments JSON is invalid", () => {
       const state = createTestStreamState("thread_1");
       state.threadMap.thread_1.thread.messages = [

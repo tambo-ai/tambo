@@ -33,6 +33,7 @@ import {
 } from "../types/event";
 import type { Content, TamboV1Message } from "../types/message";
 import type { StreamingState, TamboV1Thread } from "../types/thread";
+import { parse as parsePartialJson } from "partial-json";
 import { applyJsonPatch } from "./json-patch";
 
 /**
@@ -887,8 +888,9 @@ function handleToolCallStart(
 
 /**
  * Handle TOOL_CALL_ARGS event.
- * Accumulates JSON string deltas for tool call arguments.
- * The accumulated string will be parsed at TOOL_CALL_END.
+ * Accumulates JSON string deltas for tool call arguments and optimistically
+ * parses the partial JSON to update the tool_use content block in real-time.
+ * The final authoritative parse still happens at TOOL_CALL_END.
  * @param threadState - Current thread state
  * @param event - Tool call args event
  * @returns Updated thread state
@@ -902,11 +904,69 @@ function handleToolCallArgs(
   // Accumulate the JSON string delta
   const accumulatedArgs = threadState.accumulatingToolArgs;
   const existingArgs = accumulatedArgs.get(toolCallId) ?? "";
+  const newAccumulatedJson = existingArgs + event.delta;
   const newAccumulatedArgs = new Map(accumulatedArgs);
-  newAccumulatedArgs.set(toolCallId, existingArgs + event.delta);
+  newAccumulatedArgs.set(toolCallId, newAccumulatedJson);
+
+  // Optimistically parse partial JSON to update the tool_use content block
+  let parsedInput: Record<string, unknown> | undefined;
+  try {
+    const parsed: unknown = parsePartialJson(newAccumulatedJson);
+    if (
+      typeof parsed === "object" &&
+      parsed !== null &&
+      !Array.isArray(parsed)
+    ) {
+      parsedInput = parsed as Record<string, unknown>;
+    }
+  } catch {
+    // Partial JSON not parseable yet — leave input unchanged
+  }
+
+  if (!parsedInput) {
+    return {
+      ...threadState,
+      accumulatingToolArgs: newAccumulatedArgs,
+    };
+  }
+
+  // Update the tool_use content block with partially parsed input
+  const messages = threadState.thread.messages;
+  const { messageIndex, contentIndex } = findContentById(
+    messages,
+    "tool_use",
+    toolCallId,
+    "TOOL_CALL_ARGS event",
+  );
+
+  const message = messages[messageIndex];
+  const toolUseContent = message.content[contentIndex];
+
+  if (toolUseContent.type !== "tool_use") {
+    throw new Error(
+      `Content at index ${contentIndex} is not a tool_use block for TOOL_CALL_ARGS event`,
+    );
+  }
+
+  const updatedContent: Content = {
+    ...toolUseContent,
+    input: parsedInput,
+  };
+
+  const updatedMessage: TamboV1Message = {
+    ...message,
+    content: updateContentAtIndex(
+      message.content,
+      contentIndex,
+      updatedContent,
+    ),
+  };
 
   return {
-    ...threadState,
+    ...updateThreadMessages(
+      threadState,
+      updateMessageAtIndex(messages, messageIndex, updatedMessage),
+    ),
     accumulatingToolArgs: newAccumulatedArgs,
   };
 }
