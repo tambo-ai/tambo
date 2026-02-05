@@ -1208,8 +1208,9 @@ function generateEphemeralMessageId(): string {
 }
 
 /**
- * Find or create a message for reasoning events.
- * If no message exists, creates an ephemeral assistant message.
+ * Find or create an assistant message for reasoning events.
+ * Reasoning should only be attached to assistant messages.
+ * If no suitable assistant message exists, creates an ephemeral one.
  * @param threadState - Current thread state
  * @returns Object with messageIndex, messages array, and updated threadState
  */
@@ -1221,37 +1222,49 @@ function findOrCreateMessageForReasoning(threadState: ThreadState): {
   const messageId = threadState.streaming.messageId;
   let messages = threadState.thread.messages;
 
-  // Find existing message
-  let messageIndex = messageId
-    ? messages.findIndex((m) => m.id === messageId)
-    : messages.length - 1;
-
-  if (messageIndex === -1) {
-    // No message exists - create an ephemeral assistant message
-    const ephemeralId = generateEphemeralMessageId();
-    const newMessage: TamboV1Message = {
-      id: ephemeralId,
-      role: "assistant",
-      content: [],
-      createdAt: new Date().toISOString(),
-    };
-    messages = [...messages, newMessage];
-    messageIndex = messages.length - 1;
-
-    // Update thread state with new message
-    threadState = {
-      ...threadState,
-      thread: {
-        ...threadState.thread,
-        messages,
-        updatedAt: new Date().toISOString(),
-      },
-      streaming: {
-        ...threadState.streaming,
-        messageId: ephemeralId,
-      },
-    };
+  // If we have an active streaming messageId, try to find it
+  if (messageId) {
+    const messageIndex = messages.findIndex((m) => m.id === messageId);
+    if (messageIndex !== -1 && messages[messageIndex].role === "assistant") {
+      return { messageIndex, messages, threadState };
+    }
   }
+
+  // Look for the last assistant message
+  const lastAssistantIndex = messages.findLastIndex(
+    (m) => m.role === "assistant",
+  );
+
+  // If there's an assistant message and it's the most recent message, use it
+  // (Don't attach reasoning to an old assistant message if user message came after)
+  if (lastAssistantIndex !== -1 && lastAssistantIndex === messages.length - 1) {
+    return { messageIndex: lastAssistantIndex, messages, threadState };
+  }
+
+  // No suitable assistant message - create an ephemeral one
+  const ephemeralId = generateEphemeralMessageId();
+  const newMessage: TamboV1Message = {
+    id: ephemeralId,
+    role: "assistant",
+    content: [],
+    createdAt: new Date().toISOString(),
+  };
+  messages = [...messages, newMessage];
+  const messageIndex = messages.length - 1;
+
+  // Update thread state with new message
+  threadState = {
+    ...threadState,
+    thread: {
+      ...threadState.thread,
+      messages,
+      updatedAt: new Date().toISOString(),
+    },
+    streaming: {
+      ...threadState.streaming,
+      messageId: ephemeralId,
+    },
+  };
 
   return { messageIndex, messages, threadState };
 }
