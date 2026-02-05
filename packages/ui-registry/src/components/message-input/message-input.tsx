@@ -39,7 +39,7 @@ import {
   type PromptProvider,
   type ResourceProvider,
   type StagedImageRenderProps,
-} from "../../base/message-input";
+} from "@tambo-ai/react-ui-base/message-input";
 
 // Lazy load DictationButton for code splitting (framework-agnostic alternative to next/dynamic)
 // eslint-disable-next-line @typescript-eslint/promise-function-async
@@ -350,6 +350,7 @@ interface McpPromptEffectProps {
   selectedMcpPromptName: string | null;
   selectedMcpPromptData:
     | { messages?: Array<{ content?: { type: string; text?: string } }> }
+    | null
     | undefined;
   editorRef: React.RefObject<TamboEditor | null>;
   setValue: (value: string) => void;

@@ -15,7 +15,7 @@ import { MessageInputValueAccess } from "./message-input-value-access";
  *
  * @example
  * ```tsx
- * import { MessageInput } from "@tambo-ai/ui-registry/base/message-input";
+ * import { MessageInput } from "@tambo-ai/react-ui-base/message-input";
  *
  * function MyMessageInput() {
  *   return (
