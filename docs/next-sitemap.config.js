@@ -60,7 +60,7 @@ function getLastModForFile(filePath) {
     const stats = statSync(filePath);
     return stats.mtime.toISOString();
   } catch {
-    return;
+    return undefined;
   }
 }
 
@@ -104,22 +104,21 @@ function enumerateRoutes() {
     .map(([url, lastmod]) => ({ url, lastmod }));
 }
 
-const excludedSitemapGlobs = [
-  "/_next/*",
-  "/api/*",
+const excludedSitemapExactPathList = [
   "/llms.txt",
   "/llms-full.txt",
   "/robots.txt",
   "/llms.mdx",
-  "/llms.mdx/*",
 ];
 
-const excludedSitemapExactPaths = new Set([
-  "/llms.txt",
-  "/llms-full.txt",
-  "/robots.txt",
-  "/llms.mdx",
-]);
+const excludedSitemapGlobPatterns = ["/_next/*", "/api/*", "/llms.mdx/*"];
+
+const excludedSitemapGlobs = [
+  ...excludedSitemapGlobPatterns,
+  ...excludedSitemapExactPathList,
+];
+
+const excludedSitemapExactPaths = new Set(excludedSitemapExactPathList);
 
 const isExcludedSitemapPath = (path) =>
   excludedSitemapExactPaths.has(path) || path.startsWith("/llms.mdx/");

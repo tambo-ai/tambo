@@ -18,12 +18,13 @@ import { Suspense } from "react";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://docs.tambo.co";
 
-const docLastModifiedCache = new Map<string, string | undefined>();
+export const runtime = "nodejs";
+
+const docLastModifiedCache = new Map<string, string>();
 
 const getDocPageLastModified = (contentPath: string): string | undefined => {
-  if (docLastModifiedCache.has(contentPath)) {
-    return docLastModifiedCache.get(contentPath);
-  }
+  const cached = docLastModifiedCache.get(contentPath);
+  if (cached) return cached;
 
   try {
     const filePath = join(process.cwd(), "content", "docs", contentPath);
@@ -31,7 +32,6 @@ const getDocPageLastModified = (contentPath: string): string | undefined => {
     docLastModifiedCache.set(contentPath, lastModified);
     return lastModified;
   } catch {
-    docLastModifiedCache.set(contentPath, undefined);
     return;
   }
 };
