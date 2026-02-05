@@ -1,6 +1,10 @@
 {
   "name": "@tambo-ai/react-ui-base",
   "version": "0.1.0-alpha.0",
+  "author": {
+    "name": "Tambo AI",
+    "url": "https://tambo.co"
+  },
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
