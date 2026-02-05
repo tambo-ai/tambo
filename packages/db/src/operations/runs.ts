@@ -286,11 +286,26 @@ export async function completeRun(
 }
 
 /**
+ * Mark a specific message as cancelled.
+ * Use this when you know the exact message ID being interrupted.
+ */
+export async function markMessageCancelled(
+  db: HydraDb,
+  messageId: string,
+): Promise<void> {
+  await db
+    .update(messages)
+    .set({ isCancelled: true })
+    .where(eq(messages.id, messageId));
+}
+
+/**
  * Mark the most recent assistant message in a thread as cancelled.
- * Used when a run is cancelled to indicate which message was interrupted.
+ * Used as a fallback when the specific message ID is not known (e.g., connection close).
  *
- * This finds the latest assistant message by timestamp rather than tracking
- * a specific message ID. This is safe because:
+ * Prefer markMessageCancelled() when you have the message ID available.
+ *
+ * This finds the latest assistant message by timestamp. This is safe because:
  * 1. acquireRunLock() ensures only one run executes per thread at a time
  * 2. This is only called within cancelRun() after releaseRunLockIfCurrent()
  *    confirms this run is still the current run
@@ -320,11 +335,6 @@ export async function markLatestAssistantMessageCancelled(
     return null;
   }
 
-  // Mark it as cancelled
-  await db
-    .update(messages)
-    .set({ isCancelled: true })
-    .where(eq(messages.id, latestAssistantMessage.id));
-
+  await markMessageCancelled(db, latestAssistantMessage.id);
   return latestAssistantMessage.id;
 }

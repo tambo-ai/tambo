@@ -41,6 +41,7 @@ jest.mock("@tambo-ai-cloud/db", () => ({
     setCurrentRunId: jest.fn(),
     getRun: jest.fn(),
     markRunCancelled: jest.fn(),
+    markMessageCancelled: jest.fn(),
     markLatestAssistantMessageCancelled: jest.fn(),
     releaseRunLockIfCurrent: jest.fn(),
     updateRunStatus: jest.fn(),
@@ -1656,7 +1657,7 @@ describe("V1Service", () => {
     });
 
     describe("periodic cancellation check", () => {
-      it("should emit RUN_ERROR with CANCELLED code when run is cancelled during streaming", async () => {
+      it("should emit RUN_ERROR with CANCELLED code and mark specific message when run is cancelled during streaming", async () => {
         const response = createMockResponse();
 
         // Mock Date.now to simulate time passing
@@ -1680,8 +1681,9 @@ describe("V1Service", () => {
           } as any;
         });
         mockOperations.releaseRunLockIfCurrent.mockResolvedValue(true);
+        mockOperations.markMessageCancelled.mockResolvedValue(undefined);
 
-        // Mock advanceThread to push multiple items
+        // Mock advanceThread to push multiple items with responseMessageDto
         mockThreadsService.advanceThread.mockImplementation(
           async (
             _projectId,
@@ -1691,9 +1693,10 @@ describe("V1Service", () => {
             _cached,
             queue,
           ) => {
-            // Push first item - first cancellation check will pass
+            // Push first item with responseMessageDto - first cancellation check will pass
             queue.push({
               aguiEvents: [{ type: "TEXT_MESSAGE_START", messageId: "msg_1" }],
+              response: { responseMessageDto: { id: "msg_real_123" } },
             });
 
             // Push second item - second cancellation check will detect isCancelled: true
@@ -1741,6 +1744,12 @@ describe("V1Service", () => {
 
         // Verify getRun was called at least twice (for the cancellation checks)
         expect(getRunCallCount).toBeGreaterThanOrEqual(2);
+
+        // Verify markMessageCancelled was called with the specific message ID
+        expect(mockOperations.markMessageCancelled).toHaveBeenCalledWith(
+          expect.anything(),
+          "msg_real_123",
+        );
       });
 
       it("should stop emitting events after cancellation is detected", async () => {

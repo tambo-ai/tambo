@@ -574,9 +574,10 @@ export class V1Service {
 
       await operations.markRunCancelled(tx, runId);
 
-      // Mark the latest assistant message as cancelled. Safe to use "latest" here
-      // because releaseRunLockIfCurrent above confirmed this is still the active run,
-      // and only one run can be active per thread at a time.
+      // Use the "latest message" fallback here since we don't have access to the
+      // streaming context's message ID. This is called from connection close handlers
+      // and the DELETE endpoint. The streaming loop uses markMessageCancelled()
+      // directly when it detects cancellation since it knows the exact message ID.
       const cancelledMessageId =
         await operations.markLatestAssistantMessageCancelled(tx, threadId);
       if (cancelledMessageId) {
@@ -708,6 +709,9 @@ export class V1Service {
           // at most once per CANCEL_CHECK_INTERVAL_MS to balance responsiveness vs DB load
           let lastCancelCheckTime = Date.now();
 
+          // Track current message ID for precise cancellation marking
+          let currentMessageId: string | undefined;
+
           for await (const item of queue) {
             // Check for cancellation periodically (throttled to avoid excessive DB queries)
             const now = Date.now();
@@ -715,6 +719,16 @@ export class V1Service {
               lastCancelCheckTime = now;
               const run = await operations.getRun(this.db, threadId, runId);
               if (run?.isCancelled) {
+                // Mark the specific message we know is being streamed
+                if (currentMessageId) {
+                  await operations.markMessageCancelled(
+                    this.db,
+                    currentMessageId,
+                  );
+                  this.logger.log(
+                    `Marked message ${currentMessageId} as cancelled for run ${runId}`,
+                  );
+                }
                 const cancelErrorEvent: RunErrorEvent = {
                   type: EventType.RUN_ERROR,
                   message: "Run cancelled",
@@ -730,6 +744,9 @@ export class V1Service {
             }
             // Extract real message ID from the response (persisted by advanceThread)
             const realMessageId = item.response?.responseMessageDto?.id;
+            if (realMessageId) {
+              currentMessageId = realMessageId;
+            }
 
             if (item.aguiEvents) {
               for (const event of item.aguiEvents) {
