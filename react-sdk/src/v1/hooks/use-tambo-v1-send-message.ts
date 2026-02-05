@@ -190,9 +190,16 @@ export async function createRunStream(
     additionalContext,
   } = params;
 
-  // Merge additional context into the message
-  const messageWithContext: InputMessage = additionalContext
-    ? { ...message, additionalContext }
+  // Merge helper context with any caller-provided additionalContext on the message
+  const mergedContext =
+    additionalContext || message.additionalContext
+      ? {
+          ...((message.additionalContext as Record<string, unknown>) ?? {}),
+          ...additionalContext,
+        }
+      : undefined;
+  const messageWithContext: InputMessage = mergedContext
+    ? { ...message, additionalContext: mergedContext }
     : message;
 
   // Convert registry components/tools to v1 API format
@@ -345,7 +352,11 @@ export function useTamboV1SendMessage(threadId?: string) {
         dispatchUserMessage(threadId);
       }
 
-      // Gather additional context from all registered context helpers
+      // Gather additional context from all registered context helpers.
+      // TODO: This snapshot is captured once and reused for the entire multi-round
+      // tool loop. If interactables change during streaming (e.g. user interactions),
+      // continuations will send stale context. Re-gather before each continuation
+      // if freshness matters.
       const helperContexts = await getAdditionalContext();
       const additionalContext: Record<string, unknown> = {};
       for (const helperContext of helperContexts) {
