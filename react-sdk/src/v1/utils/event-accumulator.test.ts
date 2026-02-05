@@ -8,6 +8,9 @@ import {
   type TextMessageContentEvent,
   type TextMessageEndEvent,
   type TextMessageStartEvent,
+  type ThinkingTextMessageContentEvent,
+  type ThinkingTextMessageEndEvent,
+  type ThinkingTextMessageStartEvent,
   type ToolCallArgsEvent,
   type ToolCallEndEvent,
   type ToolCallResultEvent,
@@ -1665,6 +1668,434 @@ describe("streamReducer", () => {
               })),
               createdAt: "[TIMESTAMP]",
               updatedAt: "[TIMESTAMP]",
+            },
+          },
+        },
+      };
+
+      expect(snapshot).toMatchSnapshot();
+    });
+  });
+
+  describe("thinking events", () => {
+    it("handles THINKING_TEXT_MESSAGE_START event", () => {
+      const state = createTestStreamState("thread_1");
+      state.threadMap.thread_1.thread.messages = [
+        {
+          id: "msg_1",
+          role: "assistant",
+          content: [],
+          createdAt: "2024-01-01T00:00:00.000Z",
+        },
+      ];
+      state.threadMap.thread_1.streaming.messageId = "msg_1";
+
+      const event: ThinkingTextMessageStartEvent = {
+        type: EventType.THINKING_TEXT_MESSAGE_START,
+        timestamp: 1704067200000,
+      };
+
+      const result = streamReducer(state, {
+        type: "EVENT",
+        event,
+        threadId: "thread_1",
+      });
+
+      const message = result.threadMap.thread_1.thread.messages[0];
+      expect(message.reasoning).toEqual([""]);
+      expect(
+        result.threadMap.thread_1.streaming.reasoningStartTime,
+      ).toBeDefined();
+    });
+
+    it("handles THINKING_TEXT_MESSAGE_CONTENT event", () => {
+      const state = createTestStreamState("thread_1");
+      state.threadMap.thread_1.thread.messages = [
+        {
+          id: "msg_1",
+          role: "assistant",
+          content: [],
+          createdAt: "2024-01-01T00:00:00.000Z",
+          reasoning: [""],
+        },
+      ];
+      state.threadMap.thread_1.streaming.messageId = "msg_1";
+      state.threadMap.thread_1.streaming.reasoningStartTime = 1704067200000;
+
+      const event: ThinkingTextMessageContentEvent = {
+        type: EventType.THINKING_TEXT_MESSAGE_CONTENT,
+        delta: "Let me think about this...",
+      };
+
+      const result = streamReducer(state, {
+        type: "EVENT",
+        event,
+        threadId: "thread_1",
+      });
+
+      const message = result.threadMap.thread_1.thread.messages[0];
+      expect(message.reasoning).toEqual(["Let me think about this..."]);
+    });
+
+    it("accumulates multiple thinking content deltas", () => {
+      const state = createTestStreamState("thread_1");
+      state.threadMap.thread_1.thread.messages = [
+        {
+          id: "msg_1",
+          role: "assistant",
+          content: [],
+          createdAt: "2024-01-01T00:00:00.000Z",
+          reasoning: ["First part "],
+        },
+      ];
+      state.threadMap.thread_1.streaming.messageId = "msg_1";
+
+      const event: ThinkingTextMessageContentEvent = {
+        type: EventType.THINKING_TEXT_MESSAGE_CONTENT,
+        delta: "second part",
+      };
+
+      const result = streamReducer(state, {
+        type: "EVENT",
+        event,
+        threadId: "thread_1",
+      });
+
+      const message = result.threadMap.thread_1.thread.messages[0];
+      expect(message.reasoning).toEqual(["First part second part"]);
+    });
+
+    it("handles THINKING_TEXT_MESSAGE_END event and calculates duration", () => {
+      const startTime = 1704067200000; // Fixed start time
+      const endTime = 1704067205000; // 5 seconds later
+      const state = createTestStreamState("thread_1");
+      state.threadMap.thread_1.thread.messages = [
+        {
+          id: "msg_1",
+          role: "assistant",
+          content: [],
+          createdAt: "2024-01-01T00:00:00.000Z",
+          reasoning: ["Some thinking content"],
+        },
+      ];
+      state.threadMap.thread_1.streaming.messageId = "msg_1";
+      state.threadMap.thread_1.streaming.reasoningStartTime = startTime;
+
+      const event: ThinkingTextMessageEndEvent = {
+        type: EventType.THINKING_TEXT_MESSAGE_END,
+        timestamp: endTime,
+      };
+
+      const result = streamReducer(state, {
+        type: "EVENT",
+        event,
+        threadId: "thread_1",
+      });
+
+      const message = result.threadMap.thread_1.thread.messages[0];
+      expect(message.reasoningDurationMS).toBe(5000);
+    });
+
+    it("handles multiple thinking chunks", () => {
+      let state = createTestStreamState("thread_1");
+      state.threadMap.thread_1.thread.messages = [
+        {
+          id: "msg_1",
+          role: "assistant",
+          content: [],
+          createdAt: "2024-01-01T00:00:00.000Z",
+        },
+      ];
+      state.threadMap.thread_1.streaming.messageId = "msg_1";
+
+      // First thinking chunk
+      const start1: ThinkingTextMessageStartEvent = {
+        type: EventType.THINKING_TEXT_MESSAGE_START,
+      };
+      state = streamReducer(state, {
+        type: "EVENT",
+        event: start1,
+        threadId: "thread_1",
+      });
+
+      const content1: ThinkingTextMessageContentEvent = {
+        type: EventType.THINKING_TEXT_MESSAGE_CONTENT,
+        delta: "First thought",
+      };
+      state = streamReducer(state, {
+        type: "EVENT",
+        event: content1,
+        threadId: "thread_1",
+      });
+
+      const end1: ThinkingTextMessageEndEvent = {
+        type: EventType.THINKING_TEXT_MESSAGE_END,
+      };
+      state = streamReducer(state, {
+        type: "EVENT",
+        event: end1,
+        threadId: "thread_1",
+      });
+
+      // Second thinking chunk
+      const start2: ThinkingTextMessageStartEvent = {
+        type: EventType.THINKING_TEXT_MESSAGE_START,
+      };
+      state = streamReducer(state, {
+        type: "EVENT",
+        event: start2,
+        threadId: "thread_1",
+      });
+
+      const content2: ThinkingTextMessageContentEvent = {
+        type: EventType.THINKING_TEXT_MESSAGE_CONTENT,
+        delta: "Second thought",
+      };
+      state = streamReducer(state, {
+        type: "EVENT",
+        event: content2,
+        threadId: "thread_1",
+      });
+
+      const end2: ThinkingTextMessageEndEvent = {
+        type: EventType.THINKING_TEXT_MESSAGE_END,
+      };
+      state = streamReducer(state, {
+        type: "EVENT",
+        event: end2,
+        threadId: "thread_1",
+      });
+
+      const message = state.threadMap.thread_1.thread.messages[0];
+      expect(message.reasoning).toEqual(["First thought", "Second thought"]);
+    });
+
+    it("handles thinking content without explicit start event", () => {
+      const state = createTestStreamState("thread_1");
+      state.threadMap.thread_1.thread.messages = [
+        {
+          id: "msg_1",
+          role: "assistant",
+          content: [],
+          createdAt: "2024-01-01T00:00:00.000Z",
+          // No thinking array yet
+        },
+      ];
+      state.threadMap.thread_1.streaming.messageId = "msg_1";
+
+      const event: ThinkingTextMessageContentEvent = {
+        type: EventType.THINKING_TEXT_MESSAGE_CONTENT,
+        delta: "Implicit start",
+      };
+
+      const result = streamReducer(state, {
+        type: "EVENT",
+        event,
+        threadId: "thread_1",
+      });
+
+      const message = result.threadMap.thread_1.thread.messages[0];
+      expect(message.reasoning).toEqual(["Implicit start"]);
+      expect(
+        result.threadMap.thread_1.streaming.reasoningStartTime,
+      ).toBeDefined();
+    });
+
+    it("creates ephemeral message when no message exists", () => {
+      const state = createTestStreamState("thread_1");
+      state.threadMap.thread_1.thread.messages = [];
+      // No messageId set
+
+      const event: ThinkingTextMessageStartEvent = {
+        type: EventType.THINKING_TEXT_MESSAGE_START,
+        timestamp: 1704067200000,
+      };
+
+      const result = streamReducer(state, {
+        type: "EVENT",
+        event,
+        threadId: "thread_1",
+      });
+
+      // Should have created an ephemeral assistant message with reasoning
+      expect(result.threadMap.thread_1.thread.messages).toHaveLength(1);
+      const message = result.threadMap.thread_1.thread.messages[0];
+      expect(message.id).toMatch(/^ephemeral_/);
+      expect(message.role).toBe("assistant");
+      expect(message.reasoning).toEqual([""]);
+      expect(result.threadMap.thread_1.streaming.reasoningStartTime).toBe(
+        1704067200000,
+      );
+      expect(result.threadMap.thread_1.streaming.messageId).toBe(message.id);
+    });
+
+    it("uses last message when no messageId in streaming state", () => {
+      const state = createTestStreamState("thread_1");
+      state.threadMap.thread_1.thread.messages = [
+        {
+          id: "msg_1",
+          role: "assistant",
+          content: [],
+          createdAt: "2024-01-01T00:00:00.000Z",
+        },
+      ];
+      // No messageId set in streaming state
+
+      const event: ThinkingTextMessageStartEvent = {
+        type: EventType.THINKING_TEXT_MESSAGE_START,
+      };
+
+      const result = streamReducer(state, {
+        type: "EVENT",
+        event,
+        threadId: "thread_1",
+      });
+
+      const message = result.threadMap.thread_1.thread.messages[0];
+      expect(message.reasoning).toEqual([""]);
+    });
+
+    it("merges ephemeral reasoning message with subsequent TEXT_MESSAGE_START", () => {
+      let state = createTestStreamState("thread_1");
+      state.threadMap.thread_1.thread.messages = [];
+
+      // Simulate reasoning events arriving before text message
+      const thinkingStart: ThinkingTextMessageStartEvent = {
+        type: EventType.THINKING_TEXT_MESSAGE_START,
+        timestamp: 1704067200000,
+      };
+      state = streamReducer(state, {
+        type: "EVENT",
+        event: thinkingStart,
+        threadId: "thread_1",
+      });
+
+      const thinkingContent: ThinkingTextMessageContentEvent = {
+        type: EventType.THINKING_TEXT_MESSAGE_CONTENT,
+        delta: "Let me think about this...",
+      };
+      state = streamReducer(state, {
+        type: "EVENT",
+        event: thinkingContent,
+        threadId: "thread_1",
+      });
+
+      // Verify ephemeral message was created
+      expect(state.threadMap.thread_1.thread.messages).toHaveLength(1);
+      const ephemeralMessage = state.threadMap.thread_1.thread.messages[0];
+      expect(ephemeralMessage.id).toMatch(/^ephemeral_/);
+      expect(ephemeralMessage.reasoning).toEqual([
+        "Let me think about this...",
+      ]);
+
+      // Now TEXT_MESSAGE_START arrives - should merge with ephemeral message
+      const textStart: TextMessageStartEvent = {
+        type: EventType.TEXT_MESSAGE_START,
+        messageId: "msg_real_123",
+        role: "assistant",
+      };
+      state = streamReducer(state, {
+        type: "EVENT",
+        event: textStart,
+        threadId: "thread_1",
+      });
+
+      // Should still have only one message (merged)
+      expect(state.threadMap.thread_1.thread.messages).toHaveLength(1);
+      const mergedMessage = state.threadMap.thread_1.thread.messages[0];
+
+      // The message should have the real ID now
+      expect(mergedMessage.id).toBe("msg_real_123");
+      // But should preserve the reasoning
+      expect(mergedMessage.reasoning).toEqual(["Let me think about this..."]);
+      expect(mergedMessage.role).toBe("assistant");
+      // Streaming state should track the new message ID
+      expect(state.threadMap.thread_1.streaming.messageId).toBe("msg_real_123");
+    });
+
+    it("matches snapshot for full thinking flow", () => {
+      let state = createTestStreamState("thread_1");
+
+      // Add an assistant message
+      state.threadMap.thread_1.thread.messages = [
+        {
+          id: "msg_1",
+          role: "assistant",
+          content: [],
+          createdAt: "2024-01-01T00:00:00.000Z",
+        },
+      ];
+      state.threadMap.thread_1.streaming.messageId = "msg_1";
+
+      // THINKING_TEXT_MESSAGE_START
+      const thinkingStart: ThinkingTextMessageStartEvent = {
+        type: EventType.THINKING_TEXT_MESSAGE_START,
+        timestamp: 1704067200000,
+      };
+      state = streamReducer(state, {
+        type: "EVENT",
+        event: thinkingStart,
+        threadId: "thread_1",
+      });
+
+      // THINKING_TEXT_MESSAGE_CONTENT
+      const thinkingContent: ThinkingTextMessageContentEvent = {
+        type: EventType.THINKING_TEXT_MESSAGE_CONTENT,
+        delta: "Let me analyze this step by step...",
+      };
+      state = streamReducer(state, {
+        type: "EVENT",
+        event: thinkingContent,
+        threadId: "thread_1",
+      });
+
+      // THINKING_TEXT_MESSAGE_END
+      const thinkingEnd: ThinkingTextMessageEndEvent = {
+        type: EventType.THINKING_TEXT_MESSAGE_END,
+      };
+      state = streamReducer(state, {
+        type: "EVENT",
+        event: thinkingEnd,
+        threadId: "thread_1",
+      });
+
+      // TEXT_MESSAGE_CONTENT (actual response after thinking)
+      const msgContent: TextMessageContentEvent = {
+        type: EventType.TEXT_MESSAGE_CONTENT,
+        messageId: "msg_1",
+        delta: "Based on my analysis, here's what I think...",
+      };
+      state = streamReducer(state, {
+        type: "EVENT",
+        event: msgContent,
+        threadId: "thread_1",
+      });
+
+      // Normalize for snapshot stability
+      const snapshot = {
+        ...state,
+        threadMap: {
+          thread_1: {
+            ...state.threadMap.thread_1,
+            thread: {
+              ...state.threadMap.thread_1.thread,
+              messages: state.threadMap.thread_1.thread.messages.map((m) => ({
+                ...m,
+                createdAt: "[TIMESTAMP]",
+                // Keep reasoningDurationMS but normalize it for snapshot
+                reasoningDurationMS: m.reasoningDurationMS
+                  ? "[DURATION]"
+                  : undefined,
+              })),
+              createdAt: "[TIMESTAMP]",
+              updatedAt: "[TIMESTAMP]",
+            },
+            streaming: {
+              ...state.threadMap.thread_1.streaming,
+              reasoningStartTime: state.threadMap.thread_1.streaming
+                .reasoningStartTime
+                ? "[TIMESTAMP]"
+                : undefined,
             },
           },
         },
