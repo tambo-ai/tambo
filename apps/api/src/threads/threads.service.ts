@@ -1038,19 +1038,6 @@ export class ThreadsService {
           advanceRequestDto.messageToAppend,
           this.logger,
         );
-
-        // Track user messages (not tool responses)
-        // Use contextKey (user identifier) if available, otherwise use TAMBO_ANON_CONTEXT_KEY
-        if (advanceRequestDto.messageToAppend.role === MessageRole.User) {
-          this.analytics.capture(
-            contextKey ?? TAMBO_ANON_CONTEXT_KEY,
-            "message_sent",
-            {
-              projectId,
-              threadId: thread.id,
-            },
-          );
-        }
       } else {
         // No message content to add - get the latest message from the thread
         // This happens in V1 API when only tool_result blocks are provided
@@ -1079,6 +1066,21 @@ export class ThreadsService {
         includeSystem: true,
       });
       const project = await operations.getProject(db, projectId);
+
+      // Track user messages (not tool responses) using already-fetched project data
+      if (advanceRequestDto.messageToAppend.role === MessageRole.User) {
+        const projectOwnerUserId = project?.members[0]?.userId;
+        this.analytics.capture(
+          projectOwnerUserId ?? contextKey ?? TAMBO_ANON_CONTEXT_KEY,
+          "message_sent",
+          {
+            projectId,
+            threadId: thread.id,
+            userId: projectOwnerUserId,
+            contextKey,
+          },
+        );
+      }
 
       if (messages.length === 0) {
         throw new Error("No messages found");
