@@ -216,3 +216,26 @@ export type {
 
 // V1 extended content types with computed state
 export type { V1ToolUseContent, TamboToolDisplayProps } from "./types/message";
+
+// =============================================================================
+// Interactable Components
+// =============================================================================
+
+// HOC for making components interactable by the AI
+export {
+  withTamboInteractable as withInteractable,
+  type InteractableConfig,
+  type WithTamboInteractableProps,
+} from "../hoc/with-tambo-interactable";
+
+// Interactable provider hooks
+export {
+  useTamboInteractable,
+  useCurrentInteractablesSnapshot,
+} from "../providers/tambo-interactable-provider";
+
+// Interactable types
+export type {
+  TamboInteractableComponent as InteractableComponent,
+  TamboInteractableContext,
+} from "../model/tambo-interactable";
