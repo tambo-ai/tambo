@@ -1492,8 +1492,30 @@ function handleLoadThreadMessages(
   // Build a set of existing message IDs for fast lookup
   const existingIds = new Set(existingMessages.map((m) => m.id));
 
-  // Filter out messages that already exist (keep existing, add new)
-  const newMessages = messages.filter((m) => !existingIds.has(m.id));
+  // Filter out messages that already exist (keep existing, add new).
+  // API-loaded messages are by definition fully complete, so stamp
+  // streamingState: "done" on all component content blocks. This is
+  // required by downstream hooks (usePropsStreamingStatus) which check
+  // streamingState === "done" to report isSuccess: true.
+  const newMessages = messages
+    .filter((m) => !existingIds.has(m.id))
+    .map((m) => ({
+      ...m,
+      content: m.content.map((block): Content => {
+        if (block.type !== "component") return block;
+        if (
+          block.streamingState !== undefined &&
+          block.streamingState !== "done"
+        ) {
+          console.warn(
+            `LOAD_THREAD_MESSAGES: component "${block.id}" has unexpected ` +
+              `streamingState "${block.streamingState}". API-loaded messages ` +
+              `should not have in-flight streaming state.`,
+          );
+        }
+        return { ...block, streamingState: "done" as const };
+      }),
+    }));
 
   // Merge and sort by createdAt
   const mergedMessages = [...existingMessages, ...newMessages].toSorted(
