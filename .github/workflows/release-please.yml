@@ -27,7 +27,7 @@ jobs:
       showcase--release_created: ${{ steps.release.outputs.showcase--release_created }}
       apps/web--release_created: ${{ steps.release.outputs['apps/web--release_created'] }}
       apps/api--release_created: ${{ steps.release.outputs['apps/api--release_created'] }}
-      react-ui-base--release_created: ${{ steps.release.outputs['react-ui-base--release_created'] }}
+      packages/react-ui-base--release_created: ${{ steps.release.outputs['packages/react-ui-base--release_created'] }}
       tag_name: ${{ steps.release.outputs.tag_name }}
     steps:
       - name: Release Please
@@ -126,7 +126,7 @@ jobs:
   publish-react-ui-base:
     needs: release-please
     runs-on: ubuntu-latest
-    if: ${{ needs.release-please.outputs.react-ui-base--release_created == 'true' }}
+    if: ${{ needs.release-please.outputs['packages/react-ui-base--release_created'] == 'true' }}
     permissions:
       contents: read
       id-token: write # Required for OIDC publishing to NPM
