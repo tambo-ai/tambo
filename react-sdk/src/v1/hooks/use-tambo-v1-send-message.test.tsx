@@ -1219,10 +1219,8 @@ describe("useTamboV1SendMessage auto thread name generation", () => {
       });
     });
 
-    // Give time for any async operations
-    await waitFor(() => {
-      expect(mockGenerateName).not.toHaveBeenCalled();
-    });
+    // mutateAsync resolves after onSuccess, so all async work has settled
+    expect(mockGenerateName).not.toHaveBeenCalled();
   });
 
   it("does not call generateName when message count is below threshold", async () => {
@@ -1250,10 +1248,7 @@ describe("useTamboV1SendMessage auto thread name generation", () => {
       });
     });
 
-    // Give time for any async operations
-    await waitFor(() => {
-      expect(mockGenerateName).not.toHaveBeenCalled();
-    });
+    expect(mockGenerateName).not.toHaveBeenCalled();
   });
 
   it("logs error when generateName fails (does not throw)", async () => {
@@ -1320,8 +1315,6 @@ describe("useTamboV1SendMessage auto thread name generation", () => {
     });
 
     // Default threshold=3, preMutation=0 messages, 0 + 2 = 2 < 3 → should NOT fire
-    await waitFor(() => {
-      expect(mockGenerateName).not.toHaveBeenCalled();
-    });
+    expect(mockGenerateName).not.toHaveBeenCalled();
   });
 });

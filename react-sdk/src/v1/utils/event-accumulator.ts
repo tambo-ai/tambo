@@ -406,7 +406,6 @@ export function streamReducer(
             thread: {
               ...threadState.thread,
               title: action.title,
-              updatedAt: new Date().toISOString(),
             },
           },
         },
