@@ -574,7 +574,9 @@ export class V1Service {
 
       await operations.markRunCancelled(tx, runId);
 
-      // Mark the latest assistant message as cancelled (the one that was being generated)
+      // Mark the latest assistant message as cancelled. Safe to use "latest" here
+      // because releaseRunLockIfCurrent above confirmed this is still the active run,
+      // and only one run can be active per thread at a time.
       const cancelledMessageId =
         await operations.markLatestAssistantMessageCancelled(tx, threadId);
       if (cancelledMessageId) {
