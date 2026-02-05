@@ -64,7 +64,7 @@ jobs:
               "CharlieHelps"
             ]
         run: | # shell
-          AUTHOR="community"
+          AUTHOR="external"
 
           if jq -e ". | index(\"${AUTHOR_LOGIN}\")" <<< "${TAMBO_TEAM_MEMBERS}" > /dev/null; then
             AUTHOR="tambo-team"
@@ -81,8 +81,13 @@ jobs:
         if: github.event_name == 'pull_request_target' || github.event_name == 'issues'
         env:
           EXISTING_LABELS: ${{ toJson(github.event.issue.labels || github.event.pull_request.labels || '[]') }}
+          AUTHOR: ${{ steps.author.outputs.author }}
         run: | # shell
-          ISSUE_STATUS="triage"
+          ISSUE_STATUS="in progress"
+
+          if [[ "${AUTHOR}" != "tambo-team" ]]; then
+            ISSUE_STATUS="triage"
+          fi
 
           # Only apply one status label
           if jq -e '.[] | select(.name | startswith("status: "))' <<< "${EXISTING_LABELS}" > /dev/null; then
@@ -109,9 +114,9 @@ jobs:
       - name: Determine Areas via GitHub API
         id: files_changed
         if: github.event_name == 'pull_request_target' || github.event_name == 'push'
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
         with:
-          script: |
+          script: | # javascript
             // For push events, we need to get the files from the commit
             // For pull_request_target events, we get files from the PR
             const changedPathSet = new Set();
@@ -182,7 +187,8 @@ jobs:
               web: [/^apps\/web\//],
               showcase: [/^showcase\//],
               cli: [/^cli\//],
-              community: [/^community\//],
+              community: [/^community\/(?!templates)/],
+              templates: [/^community\/templates\//],
               db: [/^packages\/db\//],
               core: [/^packages\/core\//],
               backend: [/^packages\/backend\//],
@@ -211,7 +217,7 @@ jobs:
               labels: [
                 /^\.github\/labels\.yml$/,
                 /^\.github\/workflows\/automation-labels\.yml$/
-              ]
+              ],
             };
 
             const areas = [];
@@ -235,7 +241,7 @@ jobs:
     steps:
       # Checkout base branch only (safe with pull_request_target - no fork code)
       - name: Checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@v6
 
       - name: Update Labels
         uses: crazy-max/ghaction-github-labeler@24d110aa46a59976b8a7f35518cb7f14f434c916 # v5.3.0
@@ -248,7 +254,7 @@ jobs:
 
       - name: Comment on PR about label updates
         if: github.event_name == 'pull_request_target' && contains(fromJson(needs.meta.outputs.areas || '[]'), 'labels')
-        uses: marocchino/sticky-pull-request-comment@331f8f5b4215f0445d3c07b4967662a32a2d3e31 # v2.9.0
+        uses: marocchino/sticky-pull-request-comment@773744901bac0e8cbb5a0dc842800d45e9b2b405 # v2.9.4
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           header: "## :label: Repository Labels Updated"
@@ -259,7 +265,7 @@ jobs:
 
       - name: Delete Comment on PR if no label updates
         if: github.event_name == 'pull_request_target' && !contains(fromJson(needs.meta.outputs.areas || '[]'), 'labels')
-        uses: marocchino/sticky-pull-request-comment@331f8f5b4215f0445d3c07b4967662a32a2d3e31 # v2.9.0
+        uses: marocchino/sticky-pull-request-comment@773744901bac0e8cbb5a0dc842800d45e9b2b405 # v2.9.4
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           header: "## :label: Repository Labels Updated"
@@ -378,20 +384,42 @@ jobs:
         env:
           PR_OR_ISSUE_NUMBER: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.number || github.event.issue.number }}
           GH_SUBCOMMAND: ${{ github.event_name == 'pull_request_target' && 'pr' || 'issue' }}
+          GH_REPO: ${{ github.repository }}
           LABEL_CHANGES: |-
             ${{ steps.determine_labels.outputs.added_labels || '{}' }}
         run: | # shell
-          # Apply Label Changes
-          set +e;
+          # Apply Label Changes - batch all labels into a single gh command
 
-          while IFS= read -r LABEL; do
-            SHOULD_ADD=$(jq -r --arg key "$LABEL" '.[$key]' <<< "${LABEL_CHANGES}")
-            ACTION=$([[ "${SHOULD_ADD}" == "true" ]] && echo "--add-label" || echo "--remove-label")
+          LABELS_TO_ADD=$(jq -r '[to_entries[] | select(.value == true) | .key] | join(",")' <<< "${LABEL_CHANGES}")
+          LABELS_TO_REMOVE=$(jq -r '[to_entries[] | select(.value == false) | .key] | join(",")' <<< "${LABEL_CHANGES}")
 
-            echo "$([[ "${SHOULD_ADD}" == "true" ]] && echo "Adding" || echo "Removing") '$LABEL' to $GH_SUBCOMMAND: #$PR_OR_ISSUE_NUMBER"
+          echo "Adding labels:"
+          if [[ -n "${LABELS_TO_ADD}" ]]; then
+            jq -r 'to_entries[] | select(.value == true) | "- \(.key)"' <<< "${LABEL_CHANGES}"
+          else
+            echo "- none"
+          fi
 
-            RESULT=$(gh $GH_SUBCOMMAND edit "$PR_OR_ISSUE_NUMBER" $ACTION "$LABEL"  2>&1)
+          echo "Removing labels:"
+          if [[ -n "${LABELS_TO_REMOVE}" ]]; then
+            jq -r 'to_entries[] | select(.value == false) | "- \(.key)"' <<< "${LABEL_CHANGES}"
+          else
+            echo "- none"
+          fi
+
+          CMD_ARGS=()
+          if [[ -n "${LABELS_TO_ADD}" ]]; then
+            CMD_ARGS+=(--add-label "${LABELS_TO_ADD}")
+          fi
+          if [[ -n "${LABELS_TO_REMOVE}" ]]; then
+            CMD_ARGS+=(--remove-label "${LABELS_TO_REMOVE}")
+          fi
+
+          if [[ ${#CMD_ARGS[@]} -gt 0 ]]; then
+            RESULT=$(gh "${GH_SUBCOMMAND}" edit "${PR_OR_ISSUE_NUMBER}" -R "${GH_REPO}" "${CMD_ARGS[@]}" 2>&1)
             if [[ $? -ne 0 ]]; then
-              echo "::error title=Failed to sync labels: labels::Failed to sync label '$LABEL'. Error: $RESULT"
+              echo "::error title=Failed to sync labels::Failed to sync labels. Error: ${RESULT}"
             fi
-          done < <(jq -r 'keys[]' <<< "${LABEL_CHANGES}")
+          else
+            echo "No label changes to apply"
+          fi

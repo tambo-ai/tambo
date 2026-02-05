@@ -6,31 +6,21 @@
  * React Query hook for fetching a list of threads.
  */
 
-import { useQuery, type UseQueryOptions } from "@tanstack/react-query";
-import type { ThreadListResponse } from "@tambo-ai/typescript-sdk/resources/threads/threads";
+import type { UseQueryOptions } from "@tanstack/react-query";
+import type {
+  ThreadListParams,
+  ThreadListResponse,
+} from "@tambo-ai/typescript-sdk/resources/threads/threads";
 import { useTamboClient } from "../../providers/tambo-client-provider";
+import { useTamboQuery } from "../../hooks/react-query-hooks";
+import { useTamboV1Config } from "../providers/tambo-v1-provider";
 
 /**
- * Options for fetching thread list
+ * Options for fetching thread list.
+ * Re-exported from SDK for convenience.
+ * Note: userKey can also be provided via TamboV1Provider context.
  */
-export interface ThreadListOptions {
-  /**
-   * User key to scope thread list.
-   * Only threads owned by this userKey will be returned.
-   * If not provided here, uses the userKey from TamboV1Provider context.
-   */
-  userKey?: string;
-
-  /**
-   * Maximum number of threads to return (as string per SDK)
-   */
-  limit?: string;
-
-  /**
-   * Pagination cursor for fetching next page
-   */
-  cursor?: string;
-}
+export type { ThreadListParams as ThreadListOptions };
 
 /**
  * Hook to fetch a list of threads.
@@ -48,7 +38,7 @@ export interface ThreadListOptions {
  * function ThreadList({ userKey }: { userKey?: string }) {
  *   const { data, isLoading, isError } = useTamboV1ThreadList({
  *     userKey,
- *     limit: "20",
+ *     limit: 20,
  *   });
  *
  *   if (isLoading) return <Spinner />;
@@ -68,17 +58,24 @@ export interface ThreadListOptions {
  * ```
  */
 export function useTamboV1ThreadList(
-  listOptions?: ThreadListOptions,
+  listOptions?: ThreadListParams,
   queryOptions?: Omit<
     UseQueryOptions<ThreadListResponse>,
     "queryKey" | "queryFn"
   >,
 ) {
   const client = useTamboClient();
+  const { userKey: contextUserKey } = useTamboV1Config();
 
-  return useQuery({
-    queryKey: ["v1-threads", "list", listOptions],
-    queryFn: async () => await client.threads.list(listOptions),
+  // Merge userKey from context with provided options (explicit option takes precedence)
+  const effectiveOptions: ThreadListParams | undefined =
+    (listOptions?.userKey ?? contextUserKey)
+      ? { ...listOptions, userKey: listOptions?.userKey ?? contextUserKey }
+      : listOptions;
+
+  return useTamboQuery({
+    queryKey: ["v1-threads", "list", effectiveOptions],
+    queryFn: async () => await client.threads.list(effectiveOptions),
     staleTime: 5000, // Consider stale after 5s
     ...queryOptions,
   });

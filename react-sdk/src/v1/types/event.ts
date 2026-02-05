@@ -63,13 +63,22 @@ export type ComponentEndEvent = TamboCustomEventEnvelope<
 >;
 
 /**
+ * Pending tool call information from awaiting_input event
+ */
+export interface PendingToolCall {
+  toolCallId: string;
+  toolName: string;
+  arguments: string;
+}
+
+/**
  * Run awaiting input event (custom: tambo.run.awaiting_input)
  * Signals that the run is paused waiting for client-side tool execution
  */
 export type RunAwaitingInputEvent = TamboCustomEventEnvelope<
   "tambo.run.awaiting_input",
   {
-    pendingToolCallIds: string[];
+    pendingToolCalls: PendingToolCall[];
   }
 >;
 

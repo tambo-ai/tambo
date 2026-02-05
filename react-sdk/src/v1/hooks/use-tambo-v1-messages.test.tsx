@@ -4,6 +4,7 @@ import {
   type TextMessageContentEvent,
   type TextMessageEndEvent,
 } from "@ag-ui/core";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { renderHook, act } from "@testing-library/react";
 import React from "react";
 import {
@@ -12,9 +13,39 @@ import {
 } from "../providers/tambo-v1-stream-context";
 import { useTamboV1Messages } from "./use-tambo-v1-messages";
 
+// Mock useTamboClient and useTamboQueryClient to avoid TamboClientProvider dependency
+jest.mock("../../providers/tambo-client-provider", () => ({
+  useTamboClient: jest.fn(() => ({
+    threads: {
+      messages: {
+        list: jest.fn().mockResolvedValue({ messages: [], hasMore: false }),
+      },
+    },
+  })),
+  useTamboQueryClient: jest.fn(),
+}));
+
+import { useTamboQueryClient } from "../../providers/tambo-client-provider";
+
 describe("useTamboV1Messages", () => {
+  let queryClient: QueryClient;
+
+  beforeEach(() => {
+    queryClient = new QueryClient({
+      defaultOptions: {
+        queries: { retry: false },
+      },
+    });
+    // Configure mock to return the test's queryClient
+    jest.mocked(useTamboQueryClient).mockReturnValue(queryClient);
+  });
+
   function TestWrapper({ children }: { children: React.ReactNode }) {
-    return <TamboV1StreamProvider>{children}</TamboV1StreamProvider>;
+    return (
+      <QueryClientProvider client={queryClient}>
+        <TamboV1StreamProvider>{children}</TamboV1StreamProvider>
+      </QueryClientProvider>
+    );
   }
 
   it("returns empty messages when thread has no messages", () => {

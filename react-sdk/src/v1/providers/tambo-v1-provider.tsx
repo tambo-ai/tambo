@@ -17,9 +17,7 @@ import React, {
   createContext,
   useContext,
   type PropsWithChildren,
-  useState,
 } from "react";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   TamboClientProvider,
   type TamboClientProviderProps,
@@ -136,12 +134,6 @@ export interface TamboV1ProviderProps extends Pick<
   userKey?: string;
 
   /**
-   * Optional custom QueryClient instance.
-   * If not provided, a default client will be created.
-   */
-  queryClient?: QueryClient;
-
-  /**
    * Children components
    */
   children: React.ReactNode;
@@ -171,7 +163,6 @@ export interface TamboV1ProviderProps extends Pick<
  * @param props.getResource - Dynamic resource fetch function (must be paired with listResources)
  * @param props.contextHelpers - Configuration for context helper functions
  * @param props.userKey - User key for thread ownership (required if not using userToken)
- * @param props.queryClient - Optional custom React Query client
  * @param props.children - Child components
  * @returns Provider component tree
  * @example
@@ -205,56 +196,37 @@ export function TamboV1Provider({
   getResource,
   contextHelpers,
   userKey,
-  queryClient,
   children,
 }: PropsWithChildren<TamboV1ProviderProps>) {
-  // Create a stable default QueryClient if none provided.
-  // Using useState to avoid SSR issues with module-level singletons.
-  const [defaultQueryClient] = useState(
-    () =>
-      new QueryClient({
-        defaultOptions: {
-          queries: {
-            staleTime: 1000,
-            retry: 1,
-          },
-        },
-      }),
-  );
-
-  const client = queryClient ?? defaultQueryClient;
-
   // Config is static - created once and never changes
   const config: TamboV1Config = { userKey };
 
   return (
-    <QueryClientProvider client={client}>
-      <TamboClientProvider
-        apiKey={apiKey}
-        tamboUrl={tamboUrl}
-        environment={environment}
-        userToken={userToken}
+    <TamboClientProvider
+      apiKey={apiKey}
+      tamboUrl={tamboUrl}
+      environment={environment}
+      userToken={userToken}
+    >
+      <TamboRegistryProvider
+        components={components}
+        tools={tools}
+        mcpServers={mcpServers}
+        onCallUnregisteredTool={onCallUnregisteredTool}
+        resources={resources}
+        listResources={listResources}
+        getResource={getResource}
       >
-        <TamboRegistryProvider
-          components={components}
-          tools={tools}
-          mcpServers={mcpServers}
-          onCallUnregisteredTool={onCallUnregisteredTool}
-          resources={resources}
-          listResources={listResources}
-          getResource={getResource}
-        >
-          <TamboContextHelpersProvider contextHelpers={contextHelpers}>
-            <TamboV1ConfigContext.Provider value={config}>
-              <TamboV1StreamProvider>
-                <TamboV1ThreadInputProvider>
-                  {children}
-                </TamboV1ThreadInputProvider>
-              </TamboV1StreamProvider>
-            </TamboV1ConfigContext.Provider>
-          </TamboContextHelpersProvider>
-        </TamboRegistryProvider>
-      </TamboClientProvider>
-    </QueryClientProvider>
+        <TamboContextHelpersProvider contextHelpers={contextHelpers}>
+          <TamboV1ConfigContext.Provider value={config}>
+            <TamboV1StreamProvider>
+              <TamboV1ThreadInputProvider>
+                {children}
+              </TamboV1ThreadInputProvider>
+            </TamboV1StreamProvider>
+          </TamboV1ConfigContext.Provider>
+        </TamboContextHelpersProvider>
+      </TamboRegistryProvider>
+    </TamboClientProvider>
   );
 }

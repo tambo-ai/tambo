@@ -5,7 +5,11 @@ import {
   IsNotEmpty,
   IsIn,
   IsObject,
+  IsInt,
+  Min,
+  Max,
 } from "class-validator";
+import { Type } from "class-transformer";
 import {
   V1ContentBlock,
   V1TextContentDto,
@@ -127,6 +131,15 @@ export class V1InputMessageDto {
   @IsOptional()
   @IsObject()
   metadata?: Record<string, unknown>;
+
+  @ApiProperty({
+    description:
+      "Additional context to provide to the AI beyond the user query, such as current page URL or application state",
+    required: false,
+  })
+  @IsOptional()
+  @IsObject()
+  additionalContext?: Record<string, unknown>;
 }
 
 /**
@@ -163,10 +176,14 @@ export class V1ListMessagesQueryDto {
     description: "Maximum number of messages to return",
     required: false,
     default: 50,
+    type: Number,
   })
   @IsOptional()
-  @IsString()
-  limit?: string;
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(100)
+  limit?: number;
 
   @ApiProperty({
     description: "Cursor for pagination",

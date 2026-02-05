@@ -1,7 +1,15 @@
 import { parse } from "partial-json";
-import { EventType, type BaseEvent } from "@ag-ui/core";
 import deepEqual from "fast-deep-equal";
 import { escapePathComponent, type Operation } from "fast-json-patch";
+import {
+  createComponentStartEvent,
+  createComponentPropsDeltaEvent,
+  createComponentEndEvent,
+  type ComponentStartEvent,
+  type ComponentPropsDeltaEvent,
+  type ComponentEndEvent,
+  type PropStreamingStatus,
+} from "./tambo-custom-events";
 
 /** Maximum size for accumulated JSON (10MB) */
 const MAX_JSON_SIZE = 10 * 1024 * 1024;
@@ -26,12 +34,13 @@ const COMPONENT_TOOL_PREFIX = "show_component_";
  * paths.
  */
 
-/**
- * Streaming status for component properties.
- */
-export type PropStreamingStatus = "started" | "streaming" | "done";
-
 type JsonPatchOperation = Operation;
+
+/** Union type of component streaming events */
+type ComponentStreamEvent =
+  | ComponentStartEvent
+  | ComponentPropsDeltaEvent
+  | ComponentEndEvent;
 
 /**
  * Build a single-segment JSON Pointer path for a top-level prop key.
@@ -64,6 +73,7 @@ function createJsonPatchPath(key: string): string {
  * those values as immutable snapshots.
  */
 export class ComponentStreamTracker {
+  private messageId: string;
   private componentId: string;
   private componentName: string;
   private accumulatedJson: string = "";
@@ -79,7 +89,8 @@ export class ComponentStreamTracker {
   /** Properties that were seen in the last parse, used to detect new properties */
   private previousPropertyKeys: Set<string> = new Set();
 
-  constructor(componentId: string, componentName: string) {
+  constructor(messageId: string, componentId: string, componentName: string) {
+    this.messageId = messageId;
     this.componentId = componentId;
     this.componentName = componentName;
   }
@@ -87,8 +98,8 @@ export class ComponentStreamTracker {
   /**
    * Process a JSON delta and return any events to emit.
    */
-  processJsonDelta(delta: string): BaseEvent[] {
-    const events: BaseEvent[] = [];
+  processJsonDelta(delta: string): ComponentStreamEvent[] {
+    const events: ComponentStreamEvent[] = [];
 
     // Emit start event if this is the first delta
     if (!this.isStarted) {
@@ -169,8 +180,8 @@ export class ComponentStreamTracker {
   /**
    * Finalize the component and return the end event.
    */
-  finalize(): BaseEvent[] {
-    const events: BaseEvent[] = [];
+  finalize(): ComponentStreamEvent[] {
+    const events: ComponentStreamEvent[] = [];
 
     // Parse final JSON - fail fast if unparseable
     let finalProps: Record<string, unknown>;
@@ -262,48 +273,38 @@ export class ComponentStreamTracker {
   /**
    * Create the component start event.
    */
-  private createStartEvent(): BaseEvent {
-    return {
-      type: EventType.CUSTOM,
-      name: "tambo.component.start",
-      value: {
-        componentId: this.componentId,
-        name: this.componentName,
-      },
-      timestamp: Date.now(),
-    } as BaseEvent;
+  private createStartEvent(): ComponentStartEvent {
+    return createComponentStartEvent({
+      messageId: this.messageId,
+      componentId: this.componentId,
+      componentName: this.componentName,
+    });
   }
 
   /**
    * Create the props delta event.
    */
-  private createPropsDeltaEvent(patches: JsonPatchOperation[]): BaseEvent {
-    return {
-      type: EventType.CUSTOM,
-      name: "tambo.component.props_delta",
-      value: {
-        componentId: this.componentId,
-        patch: patches,
-        streamingStatus: { ...this.streamingStatus },
-      },
-      timestamp: Date.now(),
-    } as BaseEvent;
+  private createPropsDeltaEvent(
+    patches: JsonPatchOperation[],
+  ): ComponentPropsDeltaEvent {
+    return createComponentPropsDeltaEvent({
+      componentId: this.componentId,
+      operations: patches,
+      streamingStatus: { ...this.streamingStatus },
+    });
   }
 
   /**
    * Create the component end event.
    */
-  private createEndEvent(finalProps: Record<string, unknown>): BaseEvent {
-    return {
-      type: EventType.CUSTOM,
-      name: "tambo.component.end",
-      value: {
-        componentId: this.componentId,
-        finalProps,
-        finalState: undefined, // State is not part of tool call args
-      },
-      timestamp: Date.now(),
-    } as BaseEvent;
+  private createEndEvent(
+    finalProps: Record<string, unknown>,
+  ): ComponentEndEvent {
+    return createComponentEndEvent({
+      componentId: this.componentId,
+      finalProps,
+      finalState: undefined, // State is not part of tool call args
+    });
   }
 }
 

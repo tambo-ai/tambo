@@ -21,7 +21,7 @@ jobs:
       TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
 
     steps:
-      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
+      - uses: actions/checkout@v6
 
       - name: Setup tools
         uses: ./.github/actions/setup-tools
@@ -47,7 +47,7 @@ jobs:
       contents: read
 
     steps:
-      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
+      - uses: actions/checkout@v6
 
       - name: Setup tools
         uses: ./.github/actions/setup-tools
@@ -68,7 +68,7 @@ jobs:
       TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
 
     steps:
-      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
+      - uses: actions/checkout@v6
 
       - name: Setup tools
         uses: ./.github/actions/setup-tools
@@ -83,7 +83,7 @@ jobs:
       TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
 
     steps:
-      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
+      - uses: actions/checkout@v6
 
       - name: Setup tools
         uses: ./.github/actions/setup-tools
@@ -103,5 +103,5 @@ jobs:
     if: ${{ always() }}
     uses: ./.github/workflows/workflow-check.yml
     with:
-      pass-condition: ${{ contains(needs.*.result, 'failure') == false }}
+      json-needs: ${{ toJSON(needs) }}
       error-message: "One or more of the CI jobs have failed. Please view the jobs for this workflow run for more details."

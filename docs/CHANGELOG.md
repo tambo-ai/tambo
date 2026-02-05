@@ -1,5 +1,32 @@
 # Changelog
 
+## [1.25.0](https://github.com/tambo-ai/tambo/compare/docs-v1.24.0...docs-v1.25.0) (2026-02-05)
+
+
+### Features
+
+* **skills:** add skills.sh integration and new integration skills ([#2214](https://github.com/tambo-ai/tambo/issues/2214)) ([640ea08](https://github.com/tambo-ai/tambo/commit/640ea0817fc8b0f2095559f26dd49feb1bd619e3))
+
+
+### Bug Fixes
+
+* **api:** remove deprecated claude models ([#2197](https://github.com/tambo-ai/tambo/issues/2197)) ([fa37182](https://github.com/tambo-ai/tambo/commit/fa37182eb0b7e7cdd7acc3a76fa7c9a0273bb877))
+* **docs:** keep chat close button on-screen ([#2083](https://github.com/tambo-ai/tambo/issues/2083)) ([15929cc](https://github.com/tambo-ai/tambo/commit/15929cc49b9b50db5769110ce5fd3f2b6a8787aa))
+* **docs:** remove extra border from code blocks ([#2164](https://github.com/tambo-ai/tambo/issues/2164)) ([4fa5448](https://github.com/tambo-ai/tambo/commit/4fa54480307da4e64edae3371739c329f0fa1b75))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump @types/node from 22.19.5 to 22.19.7 ([#2181](https://github.com/tambo-ai/tambo/issues/2181)) ([2dbb652](https://github.com/tambo-ai/tambo/commit/2dbb652293255c5f1baf370a87c0760567eb441e))
+* **deps:** bump the small-safe-packages group with 4 updates ([#2161](https://github.com/tambo-ai/tambo/issues/2161)) ([5e4022e](https://github.com/tambo-ai/tambo/commit/5e4022e5697e8607abc0b85a9b28f96f4260ba31))
+* **deps:** bump typescript sdk to 0.89 ([#2203](https://github.com/tambo-ai/tambo/issues/2203)) ([22130d4](https://github.com/tambo-ai/tambo/commit/22130d4cfe7951343bea660e8f64f2a2161fd38a))
+
+
+### Documentation
+
+* **cli:** add agent-friendly and non-interactive mode documentation ([#2102](https://github.com/tambo-ai/tambo/issues/2102)) ([8327a63](https://github.com/tambo-ai/tambo/commit/8327a637207818022cdc0ffb0ad51c62b02dc9d9))
+* **react-sdk:** add React SDK 1.0 (coming soon) reference section ([#2192](https://github.com/tambo-ai/tambo/issues/2192)) ([3471f2c](https://github.com/tambo-ai/tambo/commit/3471f2c943822e67104cb546c4a88eacc272492b))
+
 ## [1.24.0](https://github.com/tambo-ai/tambo/compare/docs-v1.23.1...docs-v1.24.0) (2026-01-30)
 
 

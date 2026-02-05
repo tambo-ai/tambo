@@ -63,6 +63,9 @@ export interface StreamingState {
   /** When the current run started */
   startTime?: number;
 
+  /** When reasoning started (for duration calculation) */
+  reasoningStartTime?: number;
+
   /** Error information if status is 'error' */
   error?: {
     message: string;

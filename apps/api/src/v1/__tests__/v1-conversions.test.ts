@@ -1,12 +1,19 @@
-import { V1RunStatus, GenerationStage } from "@tambo-ai-cloud/core";
+import {
+  V1RunStatus,
+  GenerationStage,
+  MessageRole,
+  ContentPartType,
+} from "@tambo-ai-cloud/core";
 import {
   roleToV1,
   threadToDto,
   messageToDto,
   contentToV1Blocks,
   contentPartToV1Block,
+  convertV1InputMessageToInternal,
   DbThread,
   DbMessage,
+  V1InputMessage,
 } from "../v1-conversions";
 
 describe("v1-conversions", () => {
@@ -287,7 +294,9 @@ describe("v1-conversions", () => {
       });
     });
 
-    it("should throw error when componentDecision has no componentName", () => {
+    it("should warn when componentDecision has no componentName and no toolCallRequest", () => {
+      const warnSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
+
       const message = {
         ...baseMessage,
         componentDecision: {
@@ -296,11 +305,45 @@ describe("v1-conversions", () => {
           message: "",
           componentState: null,
         },
+        toolCallRequest: null, // No tool call - this is a data integrity issue
       } as unknown as DbMessage;
 
-      expect(() => contentToV1Blocks(message)).toThrow(
-        /Component decision in message msg_123 has no componentName/,
+      // Should not throw, but should warn
+      const result = contentToV1Blocks(message);
+      expect(result).toEqual([]); // No blocks generated
+      expect(warnSpy).toHaveBeenCalledWith(
+        expect.stringMatching(/has no componentName.*data integrity issue/),
       );
+
+      warnSpy.mockRestore();
+    });
+
+    it("should NOT throw when componentDecision has no componentName but has toolCallRequest", () => {
+      // componentDecision without componentName is valid for tool call messages
+      // because it stores _tambo_* status messages
+      const message = {
+        ...baseMessage,
+        role: "assistant",
+        componentDecision: {
+          componentName: null,
+          props: {},
+          message: "Fetching data...",
+          statusMessage: "Working...",
+          componentState: null,
+        },
+        toolCallRequest: {
+          toolName: "getData",
+          parameters: [{ parameterName: "id", parameterValue: "123" }],
+        },
+        toolCallId: "call_123",
+      } as unknown as DbMessage;
+
+      // Should not throw
+      const result = contentToV1Blocks(message);
+
+      // Should have a tool_use block but no component block
+      expect(result).toHaveLength(1);
+      expect(result[0].type).toBe("tool_use");
     });
 
     it("should handle component with null props", () => {
@@ -395,6 +438,166 @@ describe("v1-conversions", () => {
       const result = messageToDto(message);
 
       expect(result.metadata).toBeUndefined();
+    });
+  });
+
+  describe("convertV1InputMessageToInternal", () => {
+    it("should convert text content to internal format", () => {
+      const input: V1InputMessage = {
+        role: "user",
+        content: [{ type: "text", text: "Hello world" }],
+      };
+
+      const result = convertV1InputMessageToInternal(input);
+
+      expect(result.role).toBe(MessageRole.User);
+      expect(result.content).toHaveLength(1);
+      expect(result.content[0]).toEqual({
+        type: ContentPartType.Text,
+        text: "Hello world",
+      });
+      expect(result.additionalContext).toBeUndefined();
+    });
+
+    it("should convert resource content to internal format", () => {
+      const input: V1InputMessage = {
+        role: "user",
+        content: [
+          {
+            type: "resource",
+            resource: {
+              uri: "https://example.com/file.pdf",
+              mimeType: "application/pdf",
+            },
+          },
+        ],
+      };
+
+      const result = convertV1InputMessageToInternal(input);
+
+      expect(result.content).toHaveLength(1);
+      expect(result.content[0]).toEqual({
+        type: ContentPartType.Resource,
+        resource: {
+          uri: "https://example.com/file.pdf",
+          mimeType: "application/pdf",
+        },
+      });
+    });
+
+    it("should pass additionalContext through to internal message", () => {
+      const additionalContext = {
+        currentPage: "/dashboard",
+        userPreferences: { theme: "dark" },
+        nestedObject: { deeply: { nested: { value: 123 } } },
+      };
+
+      const input: V1InputMessage = {
+        role: "user",
+        content: [{ type: "text", text: "Hi" }],
+        additionalContext,
+      };
+
+      const result = convertV1InputMessageToInternal(input);
+
+      expect(result.additionalContext).toEqual(additionalContext);
+      expect(result.additionalContext?.currentPage).toBe("/dashboard");
+      expect(result.additionalContext?.userPreferences).toEqual({
+        theme: "dark",
+      });
+      expect(result.additionalContext?.nestedObject).toEqual({
+        deeply: { nested: { value: 123 } },
+      });
+    });
+
+    it("should work without additionalContext (backward compatible)", () => {
+      const input: V1InputMessage = {
+        role: "user",
+        content: [{ type: "text", text: "Hi" }],
+      };
+
+      const result = convertV1InputMessageToInternal(input);
+
+      expect(result.additionalContext).toBeUndefined();
+      expect(result.role).toBe(MessageRole.User);
+      expect(result.content).toHaveLength(1);
+    });
+
+    it("should filter out tool_result blocks", () => {
+      const input: V1InputMessage = {
+        role: "user",
+        content: [
+          { type: "text", text: "Hello" },
+          {
+            type: "tool_result",
+            toolCallId: "call_123",
+            result: { data: "result" },
+          } as unknown as V1InputMessage["content"][0],
+          { type: "text", text: "World" },
+        ],
+      };
+
+      const result = convertV1InputMessageToInternal(input);
+
+      expect(result.content).toHaveLength(2);
+      expect(result.content[0]).toEqual({
+        type: ContentPartType.Text,
+        text: "Hello",
+      });
+      expect(result.content[1]).toEqual({
+        type: ContentPartType.Text,
+        text: "World",
+      });
+    });
+
+    it("should convert multiple content blocks", () => {
+      const input: V1InputMessage = {
+        role: "user",
+        content: [
+          { type: "text", text: "Check this file:" },
+          {
+            type: "resource",
+            resource: {
+              uri: "https://example.com/doc.pdf",
+              mimeType: "application/pdf",
+            },
+          },
+        ],
+      };
+
+      const result = convertV1InputMessageToInternal(input);
+
+      expect(result.content).toHaveLength(2);
+      expect(result.content[0].type).toBe(ContentPartType.Text);
+      expect(result.content[1].type).toBe(ContentPartType.Resource);
+    });
+
+    it("should throw for unknown content types", () => {
+      const input: V1InputMessage = {
+        role: "user",
+        content: [
+          {
+            type: "unknown_type",
+            data: "something",
+          } as unknown as V1InputMessage["content"][0],
+        ],
+      };
+
+      expect(() => convertV1InputMessageToInternal(input)).toThrow(
+        /Unknown content type: unknown_type/,
+      );
+    });
+
+    it("should handle empty additionalContext object", () => {
+      const input: V1InputMessage = {
+        role: "user",
+        content: [{ type: "text", text: "Hi" }],
+        additionalContext: {},
+      };
+
+      const result = convertV1InputMessageToInternal(input);
+
+      expect(result.additionalContext).toEqual({});
     });
   });
 });

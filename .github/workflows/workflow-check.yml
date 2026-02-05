@@ -5,9 +5,9 @@ permissions: {}
 on:
   workflow_call:
     inputs:
-      pass-condition:
-        type: boolean
-        description: "The condition to check"
+      json-needs:
+        type: string
+        description: "A JSON string representing the needs of the workflow"
         required: true
       error-message:
         type: string
@@ -19,7 +19,7 @@ jobs:
   check:
     runs-on: ubuntu-latest
     env:
-      RESULT: ${{ inputs.pass-condition == true && 'success' || 'failure' }}
+      JSON_NEEDS: ${{ inputs.json-needs }}
       ERROR_MESSAGE: ${{ inputs.error-message }}
     steps:
       - name: Job Result
@@ -27,10 +27,18 @@ jobs:
         shell: bash
         run: | # shell
           # Job Result
+          # `jq` is pre-installed on GitHub-hosted runners   
+          JOBS=$(jq -c '.[]' <<< "$JSON_NEEDS")
 
-          if [[ $RESULT == 'failure' ]]; then
-            echo "::error title=Condition Failed::${ERROR_MESSAGE}"
-            exit 1
-          else
-            exit 0
-          fi
+          while read -r job; do
+            JOB_RESULT=$(jq -r '.result' <<< "$job")
+            
+            # Fail immediately if any job is not 'success' or 'skipped'
+            if [[ $JOB_RESULT != 'success' && $JOB_RESULT != 'skipped' ]]; then
+              echo "::error title=Condition Failed::${ERROR_MESSAGE}"
+              exit 1
+            fi
+          done <<< "$JOBS"
+
+          # All jobs passed
+          exit 0

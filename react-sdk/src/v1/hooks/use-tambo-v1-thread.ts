@@ -6,9 +6,10 @@
  * React Query hook for fetching a single thread.
  */
 
-import { useQuery, type UseQueryOptions } from "@tanstack/react-query";
+import type { UseQueryOptions } from "@tanstack/react-query";
 import type { ThreadRetrieveResponse } from "@tambo-ai/typescript-sdk/resources/threads/threads";
 import { useTamboClient } from "../../providers/tambo-client-provider";
+import { useTamboQuery } from "../../hooks/react-query-hooks";
 
 /**
  * Hook to fetch a single thread by ID.
@@ -47,7 +48,7 @@ export function useTamboV1Thread(
 ) {
   const client = useTamboClient();
 
-  return useQuery({
+  return useTamboQuery({
     queryKey: ["v1-threads", threadId],
     queryFn: async () => await client.threads.retrieve(threadId),
     staleTime: 1000, // Consider stale after 1s (real-time data)

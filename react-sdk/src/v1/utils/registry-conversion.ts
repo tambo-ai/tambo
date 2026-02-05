@@ -8,7 +8,7 @@
 
 import type { JSONSchema7 } from "json-schema";
 import type {
-  TamboComponent,
+  RegisteredComponent,
   TamboTool,
   UnsupportedSchemaTamboTool,
 } from "../../model/component-metadata";
@@ -22,28 +22,26 @@ type Tool = RunCreateParams.Tool;
 /**
  * Convert a registered component to v1 API format.
  *
- * Transforms TamboComponent (beta SDK format with Standard Schema support)
- * to AvailableComponent (v1 API format requiring JSON Schema).
- * @param component - Component from beta SDK registry
+ * Transforms RegisteredComponent (from the registry, with props already converted
+ * to JSON Schema) to AvailableComponent (v1 API format).
+ * @param component - Component from beta SDK registry (already has props as JSON Schema)
  * @returns Component metadata in v1 API format
- * @throws {Error} if propsSchema conversion fails
+ * @throws {Error} if props is missing
  */
 export function toAvailableComponent(
-  component: TamboComponent,
+  component: RegisteredComponent,
 ): AvailableComponent {
-  // Convert propsSchema (required for v1)
-  if (!component.propsSchema) {
+  // props is the JSON Schema that was converted from propsSchema during registration
+  if (!component.props) {
     throw new Error(
-      `Component "${component.name}" missing propsSchema - required for v1 API`,
+      `Component "${component.name}" missing props - required for v1 API`,
     );
   }
-
-  const propsSchema: JSONSchema7 = schemaToJsonSchema(component.propsSchema);
 
   return {
     name: component.name,
     description: component.description,
-    propsSchema: propsSchema as Record<string, unknown>,
+    propsSchema: component.props as Record<string, unknown>,
     // stateSchema is v1-specific and not available in beta SDK components
     // Components can still have state, but schema must be defined separately
   };
@@ -52,13 +50,15 @@ export function toAvailableComponent(
 /**
  * Convert multiple registered components to v1 API format.
  *
- * Transforms a Record/Map of TamboComponents to an array of AvailableComponents.
- * Components without propsSchema will be logged as warnings and skipped.
+ * Transforms a Record/Map of RegisteredComponents to an array of AvailableComponents.
+ * Components without props will be logged as warnings and skipped.
  * @param components - Record or Map of components from beta SDK registry
  * @returns Array of component metadata in v1 API format
  */
 export function toAvailableComponents(
-  components: Record<string, TamboComponent> | Map<string, TamboComponent>,
+  components:
+    | Record<string, RegisteredComponent>
+    | Map<string, RegisteredComponent>,
 ): AvailableComponent[] {
   const results: AvailableComponent[] = [];
 

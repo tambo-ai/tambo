@@ -1,5 +1,47 @@
 # Changelog
 
+## [0.136.1](https://github.com/tambo-ai/tambo/compare/api-v0.136.0...api-v0.136.1) (2026-02-05)
+
+
+### Bug Fixes
+
+* **api:** use computed component ID in content block for V1 API ([#2191](https://github.com/tambo-ai/tambo/issues/2191)) ([6d0a007](https://github.com/tambo-ai/tambo/commit/6d0a0074c74af79ad6d3f2cd18142f7cebe62715))
+* **api:** use real user ID for PostHog message_sent analytics ([#2212](https://github.com/tambo-ai/tambo/issues/2212)) ([2bea1e1](https://github.com/tambo-ai/tambo/commit/2bea1e1b4ea0f5e08ed0f06d92bf0902f7d565ae))
+* **api:** warn instead of throw for invalid componentDecision ([#2209](https://github.com/tambo-ai/tambo/issues/2209)) ([d7b5406](https://github.com/tambo-ai/tambo/commit/d7b5406703fefa7d62da70b5d4d826d1360ca750))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump @types/node from 22.19.5 to 22.19.7 ([#2181](https://github.com/tambo-ai/tambo/issues/2181)) ([2dbb652](https://github.com/tambo-ai/tambo/commit/2dbb652293255c5f1baf370a87c0760567eb441e))
+* **deps:** bump resend from 6.8.0 to 6.9.1 ([#2186](https://github.com/tambo-ai/tambo/issues/2186)) ([9c2268f](https://github.com/tambo-ai/tambo/commit/9c2268f7b6cf6c6aa2c9d5b340154f87f50c55d1))
+
+## [0.136.0](https://github.com/tambo-ai/tambo/compare/api-v0.135.0...api-v0.136.0) (2026-02-04)
+
+
+### Features
+
+* **api,react-sdk:** V1 API message loading improvements ([#2190](https://github.com/tambo-ai/tambo/issues/2190)) ([53eb5ad](https://github.com/tambo-ai/tambo/commit/53eb5ad852c7c4b02845af8c326c1e4007eca521))
+* **api:** add additionalContext to V1 API and fix limit type ([#2193](https://github.com/tambo-ai/tambo/issues/2193)) ([f6707d7](https://github.com/tambo-ai/tambo/commit/f6707d7d96f970add58dface84d721cdf20b959a))
+
+
+### Bug Fixes
+
+* **api:** use DEFAULT_OPENAI_MODEL constant in threads service tests ([#2173](https://github.com/tambo-ai/tambo/issues/2173)) ([e401583](https://github.com/tambo-ai/tambo/commit/e401583e93fbbbec8134757abd71e451db0f2c08))
+* update sentry config for db spans ([#2166](https://github.com/tambo-ai/tambo/issues/2166)) ([c6c212a](https://github.com/tambo-ai/tambo/commit/c6c212acde1c76e16a1dc9ed62d9a726e9fc1025))
+
+## [0.135.0](https://github.com/tambo-ai/tambo/compare/api-v0.134.0...api-v0.135.0) (2026-02-03)
+
+
+### Features
+
+* **backend:** V1 streaming API improvements for component rendering ([#2133](https://github.com/tambo-ai/tambo/issues/2133)) ([b84de33](https://github.com/tambo-ai/tambo/commit/b84de33d40d06e41c75b7479b70627d3eba0ed08))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump the sentry group with 3 updates ([#2162](https://github.com/tambo-ai/tambo/issues/2162)) ([78c36d2](https://github.com/tambo-ai/tambo/commit/78c36d26ccbb1c9e92b53293345be2fcb2bd4acd))
+* **test:** bump coverage thresholds (2026-02-02) ([#2139](https://github.com/tambo-ai/tambo/issues/2139)) ([0f16ec3](https://github.com/tambo-ai/tambo/commit/0f16ec33bb8cfcbd598dbb847589b0c44a423232))
+
 ## [0.134.0](https://github.com/tambo-ai/tambo/compare/api-v0.133.4...api-v0.134.0) (2026-01-30)
 
 

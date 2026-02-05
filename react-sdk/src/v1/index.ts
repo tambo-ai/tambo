@@ -107,6 +107,15 @@ export {
 } from "./providers/tambo-v1-stub-provider";
 
 // =============================================================================
+// Components
+// =============================================================================
+
+export {
+  V1ComponentRenderer,
+  type V1ComponentRendererProps,
+} from "./components/v1-component-renderer";
+
+// =============================================================================
 // Hooks
 // =============================================================================
 
@@ -121,8 +130,16 @@ export { useTamboV1ThreadList } from "./hooks/use-tambo-v1-thread-list";
 export { useTamboV1ComponentState } from "./hooks/use-tambo-v1-component-state";
 
 export {
+  useTamboV1StreamStatus,
+  type StreamStatus,
+  type PropStatus,
+} from "./hooks/use-tambo-v1-stream-status";
+
+export {
   useTamboV1Suggestions,
   type UseTamboV1SuggestionsOptions,
+  type UseTamboV1SuggestionsReturn,
+  type AcceptSuggestionOptions,
 } from "./hooks/use-tambo-v1-suggestions";
 
 // Re-export client hook from beta SDK (works with v1)
@@ -196,3 +213,6 @@ export type {
   SuggestionGenerateResponse,
   SuggestionListResponse,
 } from "@tambo-ai/typescript-sdk/resources/beta/threads/suggestions";
+
+// V1 extended content types with computed state
+export type { V1ToolUseContent, TamboToolDisplayProps } from "./types/message";

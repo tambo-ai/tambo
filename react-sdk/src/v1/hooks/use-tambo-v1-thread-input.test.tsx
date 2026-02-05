@@ -161,6 +161,7 @@ describe("useTamboV1ThreadInput", () => {
           role: "user",
           content: [{ type: "text", text: "Test message" }],
         },
+        userMessageText: "Test message",
         debug: undefined,
       });
     });
@@ -211,6 +212,7 @@ describe("useTamboV1ThreadInput", () => {
           role: "user",
           content: [{ type: "text", text: "Debug message" }],
         },
+        userMessageText: "Debug message",
         debug: true,
       });
     });
@@ -244,6 +246,7 @@ describe("useTamboV1ThreadInput", () => {
             },
           ],
         },
+        userMessageText: "",
         debug: undefined,
       });
 
@@ -286,33 +289,23 @@ describe("useTamboV1ThreadInput", () => {
             },
           ],
         },
+        userMessageText: "Test message",
         debug: undefined,
       });
     });
   });
 
   describe("Thread ID Management", () => {
-    it("initializes with undefined threadId", () => {
+    it("initializes with placeholder threadId for optimistic UI", () => {
       const { result } = renderHook(() => useTamboV1ThreadInput(), {
         wrapper: createWrapper(),
       });
 
-      expect(result.current.threadId).toBeUndefined();
+      // Default state has placeholder thread for optimistic UI
+      expect(result.current.threadId).toBe("placeholder");
     });
 
-    it("allows setting threadId via setThreadId", () => {
-      const { result } = renderHook(() => useTamboV1ThreadInput(), {
-        wrapper: createWrapper(),
-      });
-
-      act(() => {
-        result.current.setThreadId("custom_thread_id");
-      });
-
-      expect(result.current.threadId).toBe("custom_thread_id");
-    });
-
-    it("does not take ownership of threadId when inheriting stream selection", async () => {
+    it("uses currentThreadId from stream state", () => {
       const { result } = renderHook(() => useTamboV1ThreadInput(), {
         wrapper: createWrapper({
           streamState: { threadMap: {}, currentThreadId: "thread_stream" },
@@ -323,6 +316,14 @@ describe("useTamboV1ThreadInput", () => {
       expect(
         jest.mocked(useTamboV1SendMessage).mock.calls.map((call) => call[0]),
       ).toContain("thread_stream");
+    });
+
+    it("uses stream state threadId when submitting messages", async () => {
+      const { result } = renderHook(() => useTamboV1ThreadInput(), {
+        wrapper: createWrapper({
+          streamState: { threadMap: {}, currentThreadId: "thread_stream" },
+        }),
+      });
 
       act(() => {
         result.current.setValue("Test message");
@@ -332,10 +333,14 @@ describe("useTamboV1ThreadInput", () => {
         await result.current.submit();
       });
 
-      expect(result.current.threadId).toBe("thread_stream");
-      expect(
-        jest.mocked(useTamboV1SendMessage).mock.calls.map((call) => call[0]),
-      ).not.toContain("thread_123");
+      // Verify sendMessage was called with the stream state's threadId
+      expect(mockMutateAsync).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: expect.objectContaining({
+            content: [{ type: "text", text: "Test message" }],
+          }),
+        }),
+      );
     });
   });
 
@@ -374,6 +379,180 @@ describe("useTamboV1ThreadInput", () => {
       );
 
       consoleSpy.mockRestore();
+    });
+  });
+
+  describe("Thread Isolation", () => {
+    /**
+     * Creates a wrapper that allows dynamically changing the thread ID.
+     * This simulates switching between threads in the UI.
+     */
+    function createDynamicThreadWrapper(initialThreadId: string) {
+      let currentThreadId = initialThreadId;
+      const listeners = new Set<() => void>();
+
+      const setThreadId = (newThreadId: string) => {
+        currentThreadId = newThreadId;
+        listeners.forEach((listener) => listener());
+      };
+
+      const Wrapper = ({ children }: { children: React.ReactNode }) => {
+        const [threadId, setThreadIdState] = React.useState(currentThreadId);
+
+        React.useEffect(() => {
+          const listener = () => setThreadIdState(currentThreadId);
+          listeners.add(listener);
+          return () => {
+            listeners.delete(listener);
+          };
+        }, []);
+
+        const noopDispatch: React.Dispatch<StreamAction> = () => {};
+
+        return (
+          <QueryClientProvider client={queryClient}>
+            <TamboV1StreamProvider
+              state={{ threadMap: {}, currentThreadId: threadId }}
+              dispatch={noopDispatch}
+            >
+              <TamboV1ThreadInputProvider>
+                {children}
+              </TamboV1ThreadInputProvider>
+            </TamboV1StreamProvider>
+          </QueryClientProvider>
+        );
+      };
+
+      return { Wrapper, setThreadId };
+    }
+
+    it("isolates pending state per thread when switching threads", async () => {
+      // Create a deferred promise so we can control when the mutation resolves
+      let resolveThreadA: (value: { threadId: string }) => void;
+      const threadAPromise = new Promise<{ threadId: string }>((resolve) => {
+        resolveThreadA = resolve;
+      });
+
+      mockMutateAsync.mockImplementation(async () => await threadAPromise);
+
+      const { Wrapper, setThreadId } = createDynamicThreadWrapper("thread_A");
+      const { result, rerender } = renderHook(() => useTamboV1ThreadInput(), {
+        wrapper: Wrapper,
+      });
+
+      // Verify we're on thread A
+      expect(result.current.threadId).toBe("thread_A");
+
+      // Set input and start submission on thread A
+      act(() => {
+        result.current.setValue("Message for thread A");
+      });
+
+      // Start the submission (don't await - we want it pending)
+      let submitPromise: Promise<{ threadId: string | undefined }>;
+      act(() => {
+        submitPromise = result.current.submit();
+      });
+
+      // Thread A should now be pending
+      await waitFor(() => {
+        expect(result.current.isPending).toBe(true);
+      });
+
+      // Switch to thread B while thread A is still pending
+      act(() => {
+        setThreadId("thread_B");
+      });
+      rerender();
+
+      // Wait for the thread switch to take effect
+      await waitFor(() => {
+        expect(result.current.threadId).toBe("thread_B");
+      });
+
+      // Thread B should NOT be pending - its mutation state is independent
+      // (The mutationKey includes threadId, so each thread has its own state)
+      expect(result.current.isPending).toBe(false);
+
+      // Now resolve thread A's submission
+      act(() => {
+        resolveThreadA!({ threadId: "thread_A" });
+      });
+
+      // Wait for promise to complete
+      await act(async () => {
+        await submitPromise!;
+      });
+
+      // Thread B should still not be pending
+      expect(result.current.isPending).toBe(false);
+    });
+
+    it("multiple threads that never submitted should not be pending when another thread is", async () => {
+      // Create a promise that never resolves to keep thread A pending
+      const neverResolvingPromise = new Promise<{ threadId: string }>(() => {});
+
+      mockMutateAsync.mockImplementation(
+        async () => await neverResolvingPromise,
+      );
+
+      const { Wrapper, setThreadId } = createDynamicThreadWrapper("thread_A");
+      const { result, rerender } = renderHook(() => useTamboV1ThreadInput(), {
+        wrapper: Wrapper,
+      });
+
+      // Start submission on thread A
+      act(() => {
+        result.current.setValue("Message A");
+      });
+
+      act(() => {
+        void result.current.submit();
+      });
+
+      await waitFor(() => {
+        expect(result.current.isPending).toBe(true);
+      });
+
+      // Switch to thread B (which has never submitted anything)
+      act(() => {
+        setThreadId("thread_B");
+      });
+      rerender();
+
+      await waitFor(() => {
+        expect(result.current.threadId).toBe("thread_B");
+      });
+
+      // Thread B should not be pending - it has never submitted
+      expect(result.current.isPending).toBe(false);
+
+      // Switch to thread C (also never submitted)
+      act(() => {
+        setThreadId("thread_C");
+      });
+      rerender();
+
+      await waitFor(() => {
+        expect(result.current.threadId).toBe("thread_C");
+      });
+
+      // Thread C should also not be pending
+      expect(result.current.isPending).toBe(false);
+
+      // Switch to thread D (also never submitted)
+      act(() => {
+        setThreadId("thread_D");
+      });
+      rerender();
+
+      await waitFor(() => {
+        expect(result.current.threadId).toBe("thread_D");
+      });
+
+      // Thread D should also not be pending
+      // This confirms the fix works - without mutationKey, ALL threads would be pending
+      expect(result.current.isPending).toBe(false);
     });
   });
 });

@@ -2,6 +2,8 @@ import { Logger } from "@nestjs/common";
 import type { DecisionStreamItem } from "@tambo-ai-cloud/backend";
 import {
   ActionType,
+  type ChatCompletionContentPart,
+  type ChatCompletionContentPartComponent,
   ContentPartType,
   GenerationStage,
   isUiToolName,
@@ -17,8 +19,11 @@ import {
 import { HydraDb, operations, schema } from "@tambo-ai-cloud/db";
 import { eq } from "drizzle-orm";
 import { ComponentDecisionV2Dto } from "../dto/component-decision.dto";
-import { MessageRequest } from "../dto/message.dto";
-import { convertContentPartToDto } from "./content";
+import {
+  ChatCompletionContentPartDto,
+  MessageRequest,
+} from "../dto/message.dto";
+import { contentPartToDbFormat } from "./content";
 import {
   addMessage,
   updateMessage,
@@ -192,6 +197,32 @@ export function updateThreadMessageFromLegacyDecision(
     component = componentWithoutToolCall;
   }
 
+  // Build content array: text content + optional component content block.
+  // Component content blocks are stored in the content array so V1 API can
+  // reference them by componentId for state updates. Legacy API should filter
+  // these out if needed.
+  const content: ChatCompletionContentPart[] = [
+    {
+      type: ContentPartType.Text as const,
+      text: chunk.message,
+    },
+  ];
+
+  // Add component content block for V1 API support (legacy API filters these out).
+  // The componentId comes from streaming events (e.g., "message-xxxx") and is used
+  // by the V1 API to look up components for state updates. This ID is preserved
+  // in the DB content array so findMessageWithComponent can find it.
+  if (chunk.componentId && chunk.componentName && chunk.props) {
+    const componentContent: ChatCompletionContentPartComponent = {
+      type: "component",
+      id: chunk.componentId,
+      name: chunk.componentName,
+      props: chunk.props,
+      state: chunk.componentState ?? {},
+    };
+    content.push(componentContent);
+  }
+
   const commonFields = {
     id: initialMessage.id,
     threadId: initialMessage.threadId,
@@ -203,12 +234,7 @@ export function updateThreadMessageFromLegacyDecision(
     additionalContext: initialMessage.additionalContext,
     actionType: initialMessage.actionType,
     componentState: chunk.componentState ?? {},
-    content: [
-      {
-        type: ContentPartType.Text as const,
-        text: chunk.message,
-      },
-    ],
+    content,
     component,
   };
 
@@ -346,7 +372,11 @@ export async function finishInProgressMessage(
         await updateMessage(tx, inProgressMessageId, {
           ...finalThreadMessage,
           component: finalThreadMessage.component as ComponentDecisionV2Dto,
-          content: convertContentPartToDto(finalThreadMessage.content),
+          // Preserve all content types (including V1 types like component) for DB storage.
+          // convertContentDtoToContentPart handles V1 types, so we can pass them through.
+          content: contentPartToDbFormat(
+            finalThreadMessage.content,
+          ) as ChatCompletionContentPartDto[],
         });
 
         const resultingGenerationStage = finalThreadMessage.toolCallRequest

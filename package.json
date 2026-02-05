@@ -31,14 +31,14 @@
   "author": "",
   "license": "MIT",
   "devDependencies": {
-    "@types/node": "^22.19.5",
+    "@types/node": "^22.19.7",
     "chokidar": "^5.0.0",
     "husky": "^9.1.7",
     "lint-staged": "^16.2.7",
     "prettier": "^3.8.1",
     "tsx": "^4.21.0",
-    "turbo": "^2.7.6",
-    "type-fest": "^5.4.1",
+    "turbo": "^2.8.1",
+    "type-fest": "^5.4.3",
     "typescript": "^5.9.3"
   },
   "packageManager": "npm@11.7.0+sha512.c22099a6fff8d5b2286c2a09df5352b4858a7c0c716320f58989d60ad8b29ecf2ce6fdfe97ccb41c23ffb1272e1fa079f868487dd6b81d02a2a9e199c095a117",
@@ -64,7 +64,7 @@
     }
   },
   "volta": {
-    "node": "22.21.1",
+    "node": "22.22.0",
     "npm": "11.7.0"
   }
 }

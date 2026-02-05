@@ -5,7 +5,10 @@ import { renderHook, waitFor, act } from "@testing-library/react";
 import React from "react";
 import { z } from "zod";
 import type { TamboTool } from "../../model/component-metadata";
-import { useTamboClient } from "../../providers/tambo-client-provider";
+import {
+  useTamboClient,
+  useTamboQueryClient,
+} from "../../providers/tambo-client-provider";
 import { TamboRegistryContext } from "../../providers/tambo-registry-provider";
 import { useTamboV1Config } from "../providers/tambo-v1-provider";
 import { TamboV1StreamProvider } from "../providers/tambo-v1-stream-context";
@@ -16,6 +19,7 @@ import {
 
 jest.mock("../../providers/tambo-client-provider", () => ({
   useTamboClient: jest.fn(),
+  useTamboQueryClient: jest.fn(),
 }));
 
 jest.mock("../providers/tambo-v1-provider", () => ({
@@ -60,6 +64,7 @@ describe("useTamboV1SendMessage", () => {
       },
     });
     jest.mocked(useTamboClient).mockReturnValue(mockTamboAI);
+    jest.mocked(useTamboQueryClient).mockReturnValue(queryClient);
     jest.mocked(useTamboV1Config).mockReturnValue({ userKey: undefined });
     mockThreadsRunsApi.run.mockReset();
     mockThreadsRunsApi.create.mockReset();
@@ -111,7 +116,13 @@ describe("createRunStream", () => {
           name: "TestComponent",
           description: "A test component",
           component: () => null,
-          propsSchema: z.object({ title: z.string() }),
+          // RegisteredComponent has props as JSON Schema (already converted from propsSchema)
+          props: {
+            type: "object",
+            properties: { title: { type: "string" } },
+            required: ["title"],
+          },
+          contextTools: [],
         },
       ],
     ]),
@@ -147,6 +158,7 @@ describe("createRunStream", () => {
       message: testMessage,
       registry: mockRegistry as any,
       userKey: undefined,
+      previousRunId: undefined,
     });
 
     expect(mockThreadsRunsApi.run).toHaveBeenCalledWith("thread_123", {
@@ -154,8 +166,32 @@ describe("createRunStream", () => {
       availableComponents: expect.any(Array),
       tools: expect.any(Array),
       userKey: undefined,
+      previousRunId: undefined,
     });
     expect(mockThreadsRunsApi.create).not.toHaveBeenCalled();
+    expect(result.stream).toBe(mockStream);
+    expect(result.initialThreadId).toBe("thread_123");
+  });
+
+  it("calls client.threads.runs.run with previousRunId when provided", async () => {
+    mockThreadsRunsApi.run.mockResolvedValue(mockStream);
+
+    const result = await createRunStream({
+      client: mockClient,
+      threadId: "thread_123",
+      message: testMessage,
+      registry: mockRegistry as any,
+      userKey: undefined,
+      previousRunId: "run_456",
+    });
+
+    expect(mockThreadsRunsApi.run).toHaveBeenCalledWith("thread_123", {
+      message: testMessage,
+      availableComponents: expect.any(Array),
+      tools: expect.any(Array),
+      userKey: undefined,
+      previousRunId: "run_456",
+    });
     expect(result.stream).toBe(mockStream);
     expect(result.initialThreadId).toBe("thread_123");
   });
@@ -169,6 +205,7 @@ describe("createRunStream", () => {
       message: testMessage,
       registry: mockRegistry as any,
       userKey: undefined,
+      previousRunId: undefined,
     });
 
     expect(mockThreadsRunsApi.create).toHaveBeenCalledWith({
@@ -191,6 +228,7 @@ describe("createRunStream", () => {
       message: testMessage,
       registry: mockRegistry as any,
       userKey: undefined,
+      previousRunId: undefined,
     });
 
     const callArgs = mockThreadsRunsApi.run.mock.calls[0][1];
@@ -212,6 +250,7 @@ describe("createRunStream", () => {
       message: testMessage,
       registry: mockRegistry as any,
       userKey: undefined,
+      previousRunId: undefined,
     });
 
     const callArgs = mockThreadsRunsApi.run.mock.calls[0][1];
@@ -237,6 +276,7 @@ describe("createRunStream", () => {
       message: testMessage,
       registry: emptyRegistry as any,
       userKey: undefined,
+      previousRunId: undefined,
     });
 
     const callArgs = mockThreadsRunsApi.run.mock.calls[0][1];
@@ -278,6 +318,7 @@ describe("useTamboV1SendMessage mutation", () => {
       },
     });
     jest.mocked(useTamboClient).mockReturnValue(mockTamboAI);
+    jest.mocked(useTamboQueryClient).mockReturnValue(queryClient);
     jest.mocked(useTamboV1Config).mockReturnValue({ userKey: undefined });
     mockThreadsRunsApi.run.mockReset();
     mockThreadsRunsApi.create.mockReset();
@@ -410,7 +451,11 @@ describe("useTamboV1SendMessage mutation", () => {
       {
         type: EventType.CUSTOM,
         name: "tambo.run.awaiting_input",
-        value: { pendingToolCallIds: ["call_1"] },
+        value: {
+          pendingToolCalls: [
+            { toolCallId: "call_1", toolName: "test", arguments: "{}" },
+          ],
+        },
       },
     ]);
 
@@ -519,7 +564,11 @@ describe("useTamboV1SendMessage mutation", () => {
       {
         type: EventType.CUSTOM,
         name: "tambo.run.awaiting_input",
-        value: { pendingToolCallIds: ["call_1"] },
+        value: {
+          pendingToolCalls: [
+            { toolCallId: "call_1", toolName: "test", arguments: "{}" },
+          ],
+        },
       },
     ]);
 
@@ -605,7 +654,11 @@ describe("useTamboV1SendMessage mutation", () => {
       {
         type: EventType.CUSTOM,
         name: "tambo.run.awaiting_input",
-        value: { pendingToolCallIds: ["call_1"] },
+        value: {
+          pendingToolCalls: [
+            { toolCallId: "call_1", toolName: "test", arguments: "{}" },
+          ],
+        },
       },
     ]);
 
@@ -684,7 +737,11 @@ describe("useTamboV1SendMessage mutation", () => {
       {
         type: EventType.CUSTOM,
         name: "tambo.run.awaiting_input",
-        value: { pendingToolCallIds: ["call_1"] },
+        value: {
+          pendingToolCalls: [
+            { toolCallId: "call_1", toolName: "test", arguments: "{}" },
+          ],
+        },
       },
     ]);
 
@@ -865,7 +922,11 @@ describe("useTamboV1SendMessage mutation", () => {
       {
         type: EventType.CUSTOM,
         name: "tambo.run.awaiting_input",
-        value: { pendingToolCallIds: ["call_1"] },
+        value: {
+          pendingToolCalls: [
+            { toolCallId: "call_1", toolName: "test", arguments: "{}" },
+          ],
+        },
       },
     ]);
 
@@ -896,7 +957,11 @@ describe("useTamboV1SendMessage mutation", () => {
       {
         type: EventType.CUSTOM,
         name: "tambo.run.awaiting_input",
-        value: { pendingToolCallIds: ["call_2"] },
+        value: {
+          pendingToolCalls: [
+            { toolCallId: "call_2", toolName: "test", arguments: "{}" },
+          ],
+        },
       },
     ]);
 
