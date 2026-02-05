@@ -5,7 +5,7 @@ import { useEffect } from "react";
 
 function useRedirectOnUnauthenticated(session: Session | null) {
   const searchParams = useSearchParams();
-  const returnUrl = searchParams.get("returnUrl") || "/dashboard";
+  const returnUrl = searchParams.get("returnUrl") || "/";
   const router = useRouter();
   useEffect(() => {
     // If the user is already authenticated, redirect to the return URL

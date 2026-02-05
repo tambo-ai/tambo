@@ -17,7 +17,7 @@ interface AuthFormProps {
 }
 
 export function NextAuthAuthForm({
-  routeOnSuccess = "/dashboard",
+  routeOnSuccess = "/",
   providers,
 }: AuthFormProps) {
   const [legalAccepted, setLegalAccepted] = useState(false);

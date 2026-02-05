@@ -27,7 +27,7 @@ interface ProviderButtonProps {
 
 export function ProviderButton({
   provider,
-  routeOnSuccess = "/dashboard",
+  routeOnSuccess = "/",
   variant = "default",
   disabled = false,
   trackLegalAcceptance = false,
