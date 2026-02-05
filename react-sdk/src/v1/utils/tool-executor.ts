@@ -70,6 +70,7 @@ export async function executeClientTool(
     return {
       type: "tool_result",
       toolUseId: toolCallId,
+      isError: true,
       content: [
         {
           type: "text" as const,
@@ -109,6 +110,7 @@ export async function executeAllPendingTools(
       results.push({
         type: "tool_result",
         toolUseId: toolCallId,
+        isError: true,
         content: [
           {
             type: "text" as const,

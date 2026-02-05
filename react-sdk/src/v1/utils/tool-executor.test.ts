@@ -113,6 +113,7 @@ describe("tool-executor", () => {
       expect(result).toEqual({
         type: "tool_result",
         toolUseId: "call-5",
+        isError: true,
         content: [{ type: "text", text: "Tool failed!" }],
       });
     });
@@ -133,6 +134,7 @@ describe("tool-executor", () => {
       expect(result).toEqual({
         type: "tool_result",
         toolUseId: "call-6",
+        isError: true,
         content: [{ type: "text", text: "Tool execution failed" }],
       });
     });
@@ -221,6 +223,7 @@ describe("tool-executor", () => {
       expect(results[0]).toEqual({
         type: "tool_result",
         toolUseId: "call-1",
+        isError: true,
         content: [
           { type: "text", text: 'Tool "unknown_tool" not found in registry' },
         ],
@@ -249,7 +252,9 @@ describe("tool-executor", () => {
       const results = await executeAllPendingTools(toolCalls, registry);
 
       expect(results).toHaveLength(2);
+      expect(results[0].isError).toBeUndefined();
       expect(results[0].content[0]).toEqual({ type: "text", text: "success" });
+      expect(results[1].isError).toBe(true);
       expect(results[1].content[0]).toEqual({
         type: "text",
         text: 'Tool "unknown" not found in registry',
