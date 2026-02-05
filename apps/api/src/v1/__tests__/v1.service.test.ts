@@ -1654,6 +1654,180 @@ describe("V1Service", () => {
       const writes = response.write.mock.calls.map(([value]) => `${value}`);
       expect(writes.some((w) => w.includes('"type":"RUN_ERROR"'))).toBe(true);
     });
+
+    describe("periodic cancellation check", () => {
+      it("should emit RUN_ERROR with CANCELLED code when run is cancelled during streaming", async () => {
+        const response = createMockResponse();
+
+        // Mock Date.now to simulate time passing
+        let currentTime = 1000;
+        const originalDateNow = Date.now;
+        Date.now = jest.fn(() => {
+          // Advance time by 600ms on each call to ensure the check interval is triggered
+          currentTime += 600;
+          return currentTime;
+        });
+
+        // Track how many times getRun is called and return isCancelled on second call
+        let getRunCallCount = 0;
+        mockOperations.getRun.mockImplementation(async () => {
+          getRunCallCount++;
+          // First call returns not cancelled, second call returns cancelled
+          return {
+            id: "run_123",
+            threadId: "thr_123",
+            isCancelled: getRunCallCount > 1,
+          } as any;
+        });
+        mockOperations.releaseRunLockIfCurrent.mockResolvedValue(true);
+
+        // Mock advanceThread to push multiple items
+        mockThreadsService.advanceThread.mockImplementation(
+          async (
+            _projectId,
+            _advanceRequest,
+            _threadId,
+            _toolCallCounts,
+            _cached,
+            queue,
+          ) => {
+            // Push first item - first cancellation check will pass
+            queue.push({
+              aguiEvents: [{ type: "TEXT_MESSAGE_START", messageId: "msg_1" }],
+            });
+
+            // Push second item - second cancellation check will detect isCancelled: true
+            queue.push({
+              aguiEvents: [
+                {
+                  type: "TEXT_MESSAGE_CONTENT",
+                  messageId: "msg_1",
+                  delta: "Hello",
+                },
+              ],
+            });
+
+            // Push third item - should never be processed
+            queue.push({
+              aguiEvents: [{ type: "TEXT_MESSAGE_END", messageId: "msg_1" }],
+            });
+
+            queue.finish();
+          },
+        );
+
+        try {
+          await service.executeRun(
+            response as any,
+            "thr_123",
+            "run_123",
+            mockRunDtoBase as any,
+            "prj_123",
+            "user_456",
+          );
+        } finally {
+          Date.now = originalDateNow;
+        }
+
+        const writes = response.write.mock.calls.map(([value]) => `${value}`);
+
+        // Should have emitted a RUN_ERROR event with CANCELLED code
+        const cancelEvent = writes.find(
+          (w) =>
+            w.includes('"type":"RUN_ERROR"') &&
+            w.includes('"code":"CANCELLED"'),
+        );
+        expect(cancelEvent).toBeDefined();
+
+        // Verify getRun was called at least twice (for the cancellation checks)
+        expect(getRunCallCount).toBeGreaterThanOrEqual(2);
+      });
+
+      it("should stop emitting events after cancellation is detected", async () => {
+        const response = createMockResponse();
+
+        // Mock Date.now to simulate time passing past the check interval
+        let currentTime = 1000;
+        const originalDateNow = Date.now;
+        Date.now = jest.fn(() => {
+          currentTime += 600; // Each call advances by 600ms
+          return currentTime;
+        });
+
+        // Return isCancelled: true on the first check
+        mockOperations.getRun.mockResolvedValue({
+          id: "run_123",
+          threadId: "thr_123",
+          isCancelled: true,
+        } as any);
+        mockOperations.releaseRunLockIfCurrent.mockResolvedValue(true);
+
+        mockThreadsService.advanceThread.mockImplementation(
+          async (
+            _projectId,
+            _advanceRequest,
+            _threadId,
+            _toolCallCounts,
+            _cached,
+            queue,
+          ) => {
+            // Push multiple items - only first should be processed before cancellation
+            queue.push({
+              aguiEvents: [{ type: "TEXT_MESSAGE_START", messageId: "msg_1" }],
+            });
+            queue.push({
+              aguiEvents: [
+                {
+                  type: "TEXT_MESSAGE_CONTENT",
+                  messageId: "msg_1",
+                  delta: "Hello",
+                },
+              ],
+            });
+            queue.push({
+              aguiEvents: [
+                {
+                  type: "TEXT_MESSAGE_CONTENT",
+                  messageId: "msg_1",
+                  delta: " World",
+                },
+              ],
+            });
+            queue.push({
+              aguiEvents: [{ type: "TEXT_MESSAGE_END", messageId: "msg_1" }],
+            });
+            queue.finish();
+          },
+        );
+
+        try {
+          await service.executeRun(
+            response as any,
+            "thr_123",
+            "run_123",
+            mockRunDtoBase as any,
+            "prj_123",
+            "user_456",
+          );
+        } finally {
+          Date.now = originalDateNow;
+        }
+
+        const writes = response.write.mock.calls.map(([value]) => `${value}`);
+
+        // Should have the RUN_ERROR CANCELLED event
+        expect(
+          writes.some(
+            (w) =>
+              w.includes('"type":"RUN_ERROR"') &&
+              w.includes('"code":"CANCELLED"'),
+          ),
+        ).toBe(true);
+
+        // Should NOT have TEXT_MESSAGE_END (stream stopped before completion)
+        expect(writes.some((w) => w.includes("TEXT_MESSAGE_END"))).toBe(false);
+      });
+    });
   });
 
   describe("cancelRun", () => {
