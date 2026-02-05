@@ -6,6 +6,7 @@ import {
   IsIn,
   IsObject,
   IsInt,
+  IsBoolean,
   Min,
   Max,
 } from "class-validator";
@@ -82,6 +83,17 @@ export class V1MessageDto {
   @IsOptional()
   @IsObject()
   metadata?: Record<string, unknown>;
+
+  @ApiProperty({
+    description:
+      "Whether this message was interrupted by a run cancellation. " +
+      "When true, the message content may be incomplete.",
+    required: false,
+    example: false,
+  })
+  @IsOptional()
+  @IsBoolean()
+  isCancelled?: boolean;
 }
 
 /**

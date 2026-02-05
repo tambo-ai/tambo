@@ -1,5 +1,5 @@
 import { and, eq, desc } from "drizzle-orm";
-import { V1RunStatus } from "@tambo-ai-cloud/core";
+import { MessageRole, V1RunStatus } from "@tambo-ai-cloud/core";
 import type { HydraDb } from "../types";
 import { threads, runs, messages, type RunRequestParams } from "../schema";
 
@@ -281,4 +281,40 @@ export async function completeRun(
       updatedAt: new Date(),
     })
     .where(eq(runs.id, runId));
+}
+
+/**
+ * Mark the most recent assistant message in a thread as cancelled.
+ * Used when a run is cancelled to indicate which message was interrupted.
+ *
+ * @returns The message ID if an assistant message was found and marked, null otherwise
+ */
+export async function markLatestAssistantMessageCancelled(
+  db: HydraDb,
+  threadId: string,
+): Promise<string | null> {
+  // Find the most recent assistant message in the thread
+  const [latestAssistantMessage] = await db
+    .select({ id: messages.id })
+    .from(messages)
+    .where(
+      and(
+        eq(messages.threadId, threadId),
+        eq(messages.role, MessageRole.Assistant),
+      ),
+    )
+    .orderBy(desc(messages.createdAt))
+    .limit(1);
+
+  if (!latestAssistantMessage) {
+    return null;
+  }
+
+  // Mark it as cancelled
+  await db
+    .update(messages)
+    .set({ isCancelled: true })
+    .where(eq(messages.id, latestAssistantMessage.id));
+
+  return latestAssistantMessage.id;
 }

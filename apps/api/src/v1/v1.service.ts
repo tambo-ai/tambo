@@ -544,7 +544,8 @@ export class V1Service {
   /**
    * Cancel an active run.
    *
-   * Sets the thread status back to IDLE and marks the run as cancelled.
+   * Sets the thread status back to IDLE, marks the run as cancelled,
+   * and marks the latest assistant message as cancelled (if any).
    *
    * @returns The cancelled run info
    */
@@ -572,6 +573,16 @@ export class V1Service {
       }
 
       await operations.markRunCancelled(tx, runId);
+
+      // Mark the latest assistant message as cancelled (the one that was being generated)
+      const cancelledMessageId =
+        await operations.markLatestAssistantMessageCancelled(tx, threadId);
+      if (cancelledMessageId) {
+        this.logger.log(
+          `Marked message ${cancelledMessageId} as cancelled for run ${runId}`,
+        );
+      }
+
       return true;
     });
 
