@@ -23,9 +23,6 @@ export const metadata: Metadata = {
     template: "%s | Tambo Docs",
   },
   description: docsDescription,
-  alternates: {
-    canonical: "/",
-  },
   openGraph: {
     title: "Tambo Docs",
     description: docsDescription,
