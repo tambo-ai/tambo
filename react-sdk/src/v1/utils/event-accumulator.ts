@@ -128,6 +128,16 @@ export interface LoadThreadMessagesAction {
 }
 
 /**
+ * Update thread title action - sets the title on a thread.
+ * Used after auto-generating a thread name via the API.
+ */
+export interface UpdateThreadTitleAction {
+  type: "UPDATE_THREAD_TITLE";
+  threadId: string;
+  title: string;
+}
+
+/**
  * Action type for the stream reducer.
  */
 export type StreamAction =
@@ -135,7 +145,8 @@ export type StreamAction =
   | InitThreadAction
   | SetCurrentThreadAction
   | StartNewThreadAction
-  | LoadThreadMessagesAction;
+  | LoadThreadMessagesAction
+  | UpdateThreadTitleAction;
 
 /**
  * Initial streaming state.
@@ -379,6 +390,27 @@ export function streamReducer(
 
     case "LOAD_THREAD_MESSAGES": {
       return handleLoadThreadMessages(state, action);
+    }
+
+    case "UPDATE_THREAD_TITLE": {
+      const threadState = state.threadMap[action.threadId];
+      if (!threadState) {
+        return state;
+      }
+      return {
+        ...state,
+        threadMap: {
+          ...state.threadMap,
+          [action.threadId]: {
+            ...threadState,
+            thread: {
+              ...threadState.thread,
+              title: action.title,
+              updatedAt: new Date().toISOString(),
+            },
+          },
+        },
+      };
     }
 
     case "EVENT":

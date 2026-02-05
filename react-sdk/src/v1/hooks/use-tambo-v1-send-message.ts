@@ -242,7 +242,11 @@ export function useTamboV1SendMessage(threadId?: string) {
   const client = useTamboClient();
   const dispatch = useStreamDispatch();
   const streamState = useStreamState();
-  const { userKey } = useTamboV1Config();
+  const {
+    userKey,
+    autoGenerateThreadName = true,
+    autoGenerateNameThreshold = 3,
+  } = useTamboV1Config();
   const registry = useContext(TamboRegistryContext);
   const queryClient = useTamboQueryClient();
 
@@ -265,6 +269,12 @@ export function useTamboV1SendMessage(threadId?: string) {
   return useTamboMutation({
     mutationFn: async (options: SendMessageOptions) => {
       const { message, userMessageText, debug = false } = options;
+
+      // Capture pre-mutation state for auto thread name generation
+      const existingThread = streamState.threadMap[apiThreadId ?? ""];
+      const preMutationMessageCount =
+        existingThread?.thread.messages.length ?? 0;
+      const threadAlreadyHasTitle = !!existingThread?.thread.title;
 
       const toolTracker = new ToolCallTracker();
 
@@ -445,7 +455,11 @@ export function useTamboV1SendMessage(threadId?: string) {
           currentStream = continuationStream;
         }
 
-        return { threadId: actualThreadId };
+        return {
+          threadId: actualThreadId,
+          preMutationMessageCount,
+          threadAlreadyHasTitle,
+        };
       } catch (error) {
         // Dispatch a synthetic RUN_ERROR event to clean up thread state
         // This ensures the thread doesn't stay stuck in "streaming" status
@@ -470,6 +484,38 @@ export function useTamboV1SendMessage(threadId?: string) {
       await queryClient.invalidateQueries({
         queryKey: ["v1-threads", result.threadId],
       });
+
+      // Auto-generate thread name if conditions are met
+      const shouldGenerateName =
+        autoGenerateThreadName &&
+        !result.threadAlreadyHasTitle &&
+        result.threadId &&
+        !isPlaceholderThreadId(result.threadId) &&
+        // +2 accounts for the user message and assistant response just added
+        result.preMutationMessageCount + 2 >= autoGenerateNameThreshold;
+
+      if (shouldGenerateName) {
+        try {
+          const threadWithName = await client.beta.threads.generateName(
+            result.threadId!,
+          );
+          if (threadWithName.name) {
+            dispatch({
+              type: "UPDATE_THREAD_TITLE",
+              threadId: result.threadId!,
+              title: threadWithName.name,
+            });
+            await queryClient.invalidateQueries({
+              queryKey: ["v1-threads", "list"],
+            });
+          }
+        } catch (error) {
+          console.error(
+            "[useTamboV1SendMessage] Failed to auto-generate thread name:",
+            error,
+          );
+        }
+      }
     },
     onError: (error) => {
       console.error("[useTamboV1SendMessage] Mutation failed:", error);
