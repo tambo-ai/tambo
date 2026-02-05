@@ -2364,6 +2364,83 @@ describe("streamReducer", () => {
       );
     });
 
+    it("sets streamingState to 'done' on component content blocks without streamingState", () => {
+      const state = createTestStreamState("thread_1");
+
+      const result = streamReducer(state, {
+        type: "LOAD_THREAD_MESSAGES",
+        threadId: "thread_1",
+        messages: [
+          {
+            id: "msg_1",
+            role: "assistant",
+            content: [
+              { type: "text", text: "Here is a component" },
+              {
+                type: "component",
+                id: "comp_1",
+                name: "WeatherCard",
+                props: { city: "SF", temperature: 72 },
+                // No streamingState — simulates API-loaded message
+              },
+            ],
+            createdAt: "2024-01-01T00:00:00.000Z",
+          },
+        ],
+      });
+
+      const messages = result.threadMap.thread_1.thread.messages;
+      expect(messages).toHaveLength(1);
+      const componentBlock = messages[0].content.find(
+        (c) => c.type === "component",
+      );
+      expect(componentBlock).toBeDefined();
+      expect(componentBlock!.type).toBe("component");
+      expect(
+        (componentBlock as { streamingState?: string }).streamingState,
+      ).toBe("done");
+    });
+
+    it("overwrites non-done streamingState and warns", () => {
+      const state = createTestStreamState("thread_1");
+      const warnSpy = jest.spyOn(console, "warn").mockImplementation();
+
+      const result = streamReducer(state, {
+        type: "LOAD_THREAD_MESSAGES",
+        threadId: "thread_1",
+        messages: [
+          {
+            id: "msg_1",
+            role: "assistant",
+            content: [
+              {
+                type: "component",
+                id: "comp_1",
+                name: "WeatherCard",
+                props: { city: "SF" },
+                streamingState: "streaming",
+              },
+            ],
+            createdAt: "2024-01-01T00:00:00.000Z",
+          },
+        ],
+      });
+
+      const messages = result.threadMap.thread_1.thread.messages;
+      const componentBlock = messages[0].content.find(
+        (c) => c.type === "component",
+      );
+      // Always set to "done" for API-loaded messages
+      expect(
+        (componentBlock as { streamingState?: string }).streamingState,
+      ).toBe("done");
+      expect(warnSpy).toHaveBeenCalledWith(
+        expect.stringContaining('unexpected streamingState "streaming"'),
+      );
+
+      warnSpy.mockRestore();
+    });
+
     it("handles system role messages from API", () => {
       const state = createTestStreamState("thread_1");
 
