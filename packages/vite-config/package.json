@@ -12,6 +12,7 @@
     "build": "tsdown"
   },
   "type": "module",
+  "main": "./dist/index.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
@@ -36,12 +37,5 @@
   "peerDependencies": {
     "typescript": "^5.0.0",
     "vite": "^6.0.0 || ^7.0.0"
-  },
-  "publishConfig": {
-    "exports": {
-      ".": "./dist/index.js",
-      "./package.json": "./package.json"
-    }
-  },
-  "main": "./dist/index.js"
+  }
 }

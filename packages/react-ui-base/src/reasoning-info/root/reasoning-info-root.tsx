@@ -57,27 +57,6 @@ export interface ReasoningInfoRootProps extends React.HTMLAttributes<HTMLDivElem
 /**
  * Root primitive for reasoning info.
  * Provides context for child components. Returns null if no reasoning data.
- * When used inside a Message.Root, the message and isLoading props are automatically inherited.
- *
- * ## Design Decision: Runtime Error for Missing Message
- *
- * This component throws at runtime if neither `message` prop nor Message.Root
- * context is present. This is intentional:
- *
- * 1. **Fail-fast principle**: Silent `null` returns would mask configuration errors,
- *    making debugging harder when components mysteriously don't render.
- *
- * 2. **Clear developer feedback**: The error message explicitly tells developers
- *    how to fix the issue (provide `message` prop or wrap in Message.Root).
- *
- * 3. **Distinction from "no data"**: Returning `null` is reserved for the valid
- *    case of "message exists but has no reasoning data". Missing message entirely
- *    is a usage error, not a valid "nothing to show" state.
- *
- * Note: Previously `message` was a required prop (compile-time safety). The
- * trade-off for optional context inheritance is that this specific error moves
- * from compile-time to runtime, but the fail-fast behavior ensures it's caught
- * immediately during development.
  */
 export const ReasoningInfoRoot = React.forwardRef<
   HTMLDivElement,
