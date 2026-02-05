@@ -257,8 +257,9 @@ export function contentToV1Blocks(
     } else if (!message.toolCallRequest) {
       // componentDecision without componentName is only valid for tool call messages
       // (where it stores _tambo_* status messages). For non-tool-call messages,
-      // this indicates a data integrity issue.
-      throw new Error(
+      // this indicates a data integrity issue - but we don't want to fail the
+      // entire request over it.
+      console.warn(
         `Component decision in message ${message.id} has no componentName. ` +
           `This indicates a data integrity issue.`,
       );
