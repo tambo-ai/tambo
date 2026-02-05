@@ -117,7 +117,7 @@ export function LoginPageBody({
         <div className="flex flex-col lg:flex-row items-center w-full max-w-7xl lg:gap-6 xl:gap-12">
           {/* Left side - Auth form (matches hero text side) */}
           <motion.div
-            className="flex flex-col items-center lg:items-start w-full lg:max-w-[50%]"
+            className="flex flex-col items-center w-full lg:max-w-[50%]"
             variants={contentVariants}
           >
             <AnimatePresence mode="wait">
