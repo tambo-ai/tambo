@@ -31,9 +31,9 @@ npm create tambo-app@latest my-tambo-app && cd my-tambo-app
 npx tambo init
 ```
 
-This walks you through creating a project, generates an API key, and adds it to `.env.local` by default.
+This walks you through creating a project, generates an API key, and writes it to your env file.
 
-If `.env.local` doesn't exist but `.env` does, it'll write the key to `.env` instead.
+The CLI prefers `.env.local`, but will update `.env` if that's the only env file present.
 
 ### 3. Run the app
 
