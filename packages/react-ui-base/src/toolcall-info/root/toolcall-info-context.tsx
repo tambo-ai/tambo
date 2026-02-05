@@ -19,6 +19,8 @@ export const ToolcallInfoContext =
 
 /**
  * Hook to access the toolcall info context.
+ * @internal This hook is for internal use by base components only.
+ * Consumers should use render props or children-as-function patterns instead.
  * @returns The toolcall info context value
  * @throws Error if used outside of ToolcallInfo.Root
  */

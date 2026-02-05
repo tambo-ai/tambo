@@ -4,7 +4,7 @@ import React from "react";
 /**
  * Context value shared among Message primitive sub-components.
  */
-interface MessageRootContextValue {
+export interface MessageRootContextValue {
   role: "user" | "assistant";
   message: TamboThreadMessage;
   isLoading?: boolean;
@@ -15,7 +15,18 @@ const MessageRootContext = React.createContext<MessageRootContextValue | null>(
 );
 
 /**
+ * Hook to optionally access the message context.
+ * Returns null if not within a Message.Root component.
+ * @internal This hook is for internal use by base components only.
+ * @returns The message context value or null
+ */
+function useOptionalMessageRootContext(): MessageRootContextValue | null {
+  return React.useContext(MessageRootContext);
+}
+
+/**
  * Hook to access the message context.
+ * @internal This hook is for internal use by base components only.
  * @returns The message context value
  * @throws Error if used outside of Message.Root component
  */
@@ -29,4 +40,8 @@ function useMessageRootContext(): MessageRootContextValue {
   return context;
 }
 
-export { MessageRootContext, useMessageRootContext };
+export {
+  MessageRootContext,
+  useMessageRootContext,
+  useOptionalMessageRootContext,
+};

@@ -1,6 +1,6 @@
 import { Slot } from "@radix-ui/react-slot";
-import { getMessageImages } from "@tambo-ai/ui-registry/lib/thread-hooks";
 import * as React from "react";
+import { getMessageImages } from "../../utils/message-content";
 import { useMessageRootContext } from "../root/message-root-context";
 
 /**

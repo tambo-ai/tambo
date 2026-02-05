@@ -27,6 +27,7 @@ jobs:
       showcase--release_created: ${{ steps.release.outputs.showcase--release_created }}
       apps/web--release_created: ${{ steps.release.outputs['apps/web--release_created'] }}
       apps/api--release_created: ${{ steps.release.outputs['apps/api--release_created'] }}
+      react-ui-base--release_created: ${{ steps.release.outputs['react-ui-base--release_created'] }}
       tag_name: ${{ steps.release.outputs.tag_name }}
     steps:
       - name: Release Please
@@ -119,6 +120,34 @@ jobs:
 
       - name: Publish create-tambo-app to npm
         working-directory: ./create-tambo-app
+        run: npm publish --access public
+
+  # NPM Package Publishing - React UI Base
+  publish-react-ui-base:
+    needs: release-please
+    runs-on: ubuntu-latest
+    if: ${{ needs.release-please.outputs.react-ui-base--release_created == 'true' }}
+    permissions:
+      contents: read
+      id-token: write # Required for OIDC publishing to NPM
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup tools
+        uses: ./.github/actions/setup-tools
+
+      - name: Setup npm registry
+        uses: actions/setup-node@v6
+        with:
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Build
+        run: npx turbo build --filter=@tambo-ai/react-ui-base
+
+      - name: Publish @tambo-ai/react-ui-base to npm
+        working-directory: ./packages/react-ui-base
         run: npm publish --access public
 
   # Web App Deployment

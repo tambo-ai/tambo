@@ -107,7 +107,7 @@
       "inputs": ["package.json", "src/**", "scripts/**"],
       "outputs": []
     },
-    "check-types": { "dependsOn": ["^check-types"] },
+    "check-types": { "dependsOn": ["^build", "^check-types"] },
     "dev": {
       "dependsOn": ["^build"],
       "cache": false,
@@ -125,11 +125,8 @@
     "clean": { "cache": false },
     "start": { "dependsOn": ["^build"] },
     "test": {
-      "dependsOn": ["^test"],
+      "dependsOn": ["^build", "^test"],
       "outputs": ["coverage/**"]
-    },
-    "@tambo-ai-cloud/web#test": {
-      "dependsOn": ["@tambo-ai/react#build", "^test"]
     }
   }
 }

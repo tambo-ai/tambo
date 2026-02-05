@@ -4,6 +4,7 @@ import { Slot } from "@radix-ui/react-slot";
 import type { TamboThreadMessage } from "@tambo-ai/react";
 import { useTambo } from "@tambo-ai/react";
 import * as React from "react";
+import { useOptionalMessageRootContext } from "../../message/root/message-root-context";
 import { BaseProps } from "../../types/component-render-or-children";
 import { getToolCallRequest } from "./get-tool-call-request";
 import { getToolStatusMessage } from "./get-tool-status-message";
@@ -15,8 +16,11 @@ export type ToolcallInfoRootProps = BaseProps<
     defaultExpanded?: boolean;
     /** Whether the tool call is in a loading state. */
     isLoading?: boolean;
-    /** The full Tambo thread message object. */
-    message: TamboThreadMessage;
+    /**
+     * The full Tambo thread message object.
+     * If not provided, will be read from the parent Message.Root context.
+     */
+    message?: TamboThreadMessage;
   }
 >;
 
@@ -31,14 +35,23 @@ export const ToolcallInfoRoot = React.forwardRef<
   (
     {
       asChild,
-      message,
-      isLoading,
+      message: messageProp,
+      isLoading: isLoadingProp,
       defaultExpanded = false,
       children,
       ...props
     },
     ref,
   ) => {
+    const messageContext = useOptionalMessageRootContext();
+    const message = messageProp ?? messageContext?.message;
+    const isLoading = isLoadingProp ?? messageContext?.isLoading;
+
+    if (!message) {
+      throw new Error(
+        "ToolcallInfo.Root requires a message prop or must be used within a Message.Root component",
+      );
+    }
     const [isExpanded, setIsExpanded] = React.useState(defaultExpanded);
     const { thread } = useTambo();
     const detailsId = React.useId();
