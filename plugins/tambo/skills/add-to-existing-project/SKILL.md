@@ -1,6 +1,6 @@
 ---
 name: add-to-existing-project
-description: Integrates Tambo into existing React projects by detecting the tech stack and adapting installation. Use when adding Tambo to an existing app, integrating with current frameworks, or when the user has an existing codebase they want to add AI/generative UI to.
+description: Integrates Tambo into EXISTING React projects by detecting the tech stack and adapting installation. Use when adding Tambo to an existing app, integrating with current frameworks, or when the user has an existing codebase they want to add AI/generative UI to. For starting a NEW project from scratch, use start-from-scratch skill instead. For registering existing components, use add-components-to-registry skill.
 ---
 
 # Add Tambo to Existing Project

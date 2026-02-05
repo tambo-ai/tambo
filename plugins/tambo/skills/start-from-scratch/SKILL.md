@@ -1,6 +1,6 @@
 ---
 name: start-from-scratch
-description: Guides creation of a new Tambo project from scratch with technology recommendations. Use when user wants to start a new project, build a new app with Tambo, create something from nothing, or needs help choosing technologies for a new generative UI application.
+description: Guides creation of a new Tambo project from scratch with technology recommendations. Use when user wants to start a NEW project, build a new app with Tambo, create something from nothing, or needs help choosing technologies for a new generative UI application. For adding Tambo to EXISTING projects, use add-to-existing-project skill instead.
 ---
 
 # Start From Scratch
