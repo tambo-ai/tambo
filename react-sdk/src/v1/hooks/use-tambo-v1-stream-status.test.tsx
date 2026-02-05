@@ -69,6 +69,7 @@ function createThreadState(
       status: "idle",
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
+      lastRunCancelled: false,
     },
     streaming: {
       status: "idle",

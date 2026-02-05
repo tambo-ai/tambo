@@ -58,6 +58,7 @@ function createTestThreadState(threadId: string): ThreadState {
       // Use fixed timestamps for snapshot stability
       createdAt: "2024-01-01T00:00:00.000Z",
       updatedAt: "2024-01-01T00:00:00.000Z",
+      lastRunCancelled: false,
     },
   };
 }
@@ -213,6 +214,28 @@ describe("streamReducer", () => {
       expect(result.threadMap.thread_1.thread.status).toBe("streaming");
       expect(result.threadMap.thread_1.streaming.status).toBe("streaming");
       expect(result.threadMap.thread_1.streaming.runId).toBe("run_123");
+    });
+
+    it("resets lastRunCancelled to false when a new run starts", () => {
+      // Start with a thread that was cancelled
+      const state = createTestStreamState("thread_1");
+      state.threadMap.thread_1.thread.lastRunCancelled = true;
+
+      const event: RunStartedEvent = {
+        type: EventType.RUN_STARTED,
+        runId: "run_123",
+        threadId: "thread_1",
+        timestamp: 1704067200000,
+      };
+
+      const result = streamReducer(state, {
+        type: "EVENT",
+        event,
+        threadId: "thread_1",
+      });
+
+      // lastRunCancelled should be reset to false
+      expect(result.threadMap.thread_1.thread.lastRunCancelled).toBe(false);
     });
 
     it("uses provided timestamp for startTime", () => {
@@ -508,6 +531,29 @@ describe("streamReducer", () => {
         message: "Something went wrong",
         code: "ERR_001",
       });
+    });
+
+    it("sets lastRunCancelled and idle status when code is CANCELLED", () => {
+      const state = createTestStreamState("thread_1");
+      const event: RunErrorEvent = {
+        type: EventType.RUN_ERROR,
+        message: "Run cancelled",
+        code: "CANCELLED",
+      };
+
+      const result = streamReducer(state, {
+        type: "EVENT",
+        event,
+        threadId: "thread_1",
+      });
+
+      // Cancelled runs should show as idle, not error
+      expect(result.threadMap.thread_1.thread.status).toBe("idle");
+      expect(result.threadMap.thread_1.streaming.status).toBe("idle");
+      // lastRunCancelled should be set
+      expect(result.threadMap.thread_1.thread.lastRunCancelled).toBe(true);
+      // No error should be stored for cancelled runs
+      expect(result.threadMap.thread_1.streaming.error).toBeUndefined();
     });
   });
 

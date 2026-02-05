@@ -41,6 +41,7 @@ jest.mock("@tambo-ai-cloud/db", () => ({
     setCurrentRunId: jest.fn(),
     getRun: jest.fn(),
     markRunCancelled: jest.fn(),
+    markLatestAssistantMessageCancelled: jest.fn(),
     releaseRunLockIfCurrent: jest.fn(),
     updateRunStatus: jest.fn(),
     updateThreadRunStatus: jest.fn(),
@@ -1688,6 +1689,9 @@ describe("V1Service", () => {
       } as any);
       mockOperations.releaseRunLockIfCurrent.mockResolvedValue(true);
       mockOperations.markRunCancelled.mockResolvedValue(undefined);
+      mockOperations.markLatestAssistantMessageCancelled.mockResolvedValue(
+        "msg_123",
+      );
 
       const result = await service.cancelRun(
         "thr_123",
