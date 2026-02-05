@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { motion } from "framer-motion";
-import { Check, X } from "lucide-react";
+import { Check, Trash2, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 export interface HeaderKV {
@@ -27,6 +27,7 @@ interface HeaderRowProps {
   onBeginEdit: (rowIndex: number) => void;
   onSaveRow: (rowIndex: number, newItem: HeaderKV) => void;
   onCancelRow: (rowIndex: number) => void;
+  onDeleteRow: (rowIndex: number) => void;
 }
 
 function HeaderRow({
@@ -37,6 +38,7 @@ function HeaderRow({
   onBeginEdit,
   onSaveRow,
   onCancelRow,
+  onDeleteRow,
 }: HeaderRowProps) {
   const [local, setLocal] = useState<HeaderKV>(item);
   const [touched, setTouched] = useState(false);
@@ -86,7 +88,7 @@ function HeaderRow({
             disabled={disabled && !isEditing}
             className="flex-1"
           />
-          {isEditing && (
+          {isEditing ? (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -111,6 +113,18 @@ function HeaderRow({
                 <X className="h-4 w-4" />
               </Button>
             </motion.div>
+          ) : (
+            <Button
+              onClick={() => onDeleteRow(index)}
+              variant="ghost"
+              size="icon"
+              disabled={disabled}
+              aria-label="Delete header"
+              title="Delete"
+              className="text-muted-foreground hover:text-destructive"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
           )}
         </div>
       </div>
@@ -151,6 +165,12 @@ export function HeadersEditor({
     setActiveEditIndex(null);
   };
 
+  const handleDeleteRow = (rowIndex: number) => {
+    const updated = working.filter((_, i) => i !== rowIndex);
+    setWorking(updated);
+    onSave(updated);
+  };
+
   return (
     <div className={className}>
       {title && <div className="mb-2 text-sm font-medium">{title}</div>}
@@ -180,6 +200,7 @@ export function HeadersEditor({
             onBeginEdit={handleBeginEdit}
             onSaveRow={handleSaveRow}
             onCancelRow={handleCancelRow}
+            onDeleteRow={handleDeleteRow}
           />
         ))}
       </div>
