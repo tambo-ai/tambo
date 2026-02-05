@@ -492,7 +492,9 @@ describe("useTamboV1ThreadInput", () => {
       // Create a promise that never resolves to keep thread A pending
       const neverResolvingPromise = new Promise<{ threadId: string }>(() => {});
 
-      mockMutateAsync.mockImplementation(async () => await neverResolvingPromise);
+      mockMutateAsync.mockImplementation(
+        async () => await neverResolvingPromise,
+      );
 
       const { Wrapper, setThreadId } = createDynamicThreadWrapper("thread_A");
       const { result, rerender } = renderHook(() => useTamboV1ThreadInput(), {
