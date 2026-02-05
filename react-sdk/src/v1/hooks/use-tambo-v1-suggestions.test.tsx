@@ -5,7 +5,10 @@ import type { Suggestion } from "@tambo-ai/typescript-sdk/resources/beta/threads
 import { useTamboV1Suggestions } from "./use-tambo-v1-suggestions";
 import { useTamboV1ThreadInput } from "./use-tambo-v1-thread-input";
 import { useTamboV1 } from "./use-tambo-v1";
-import { useTamboClient } from "../../providers/tambo-client-provider";
+import {
+  useTamboClient,
+  useTamboQueryClient,
+} from "../../providers/tambo-client-provider";
 import { useTamboRegistry } from "../../providers/tambo-registry-provider";
 import { useTamboV1Config } from "../providers/tambo-v1-provider";
 
@@ -77,6 +80,9 @@ describe("useTamboV1Suggestions", () => {
         mutations: { retry: false },
       },
     });
+
+    // Mock useTamboQueryClient to return the test's queryClient
+    jest.mocked(useTamboQueryClient).mockReturnValue(queryClient);
 
     // Default mock for v1 config
     jest.mocked(useTamboV1Config).mockReturnValue({ userKey: "user_123" });

@@ -577,6 +577,49 @@ describe("Thread State", () => {
       );
     });
 
+    it("should preserve streaming componentId in content block for V1 API lookups", () => {
+      const mockDecision: LegacyComponentDecision = {
+        message: "Here's a weather card",
+        componentName: "WeatherCard",
+        componentId: "message-EIWjfCzPpeuGNir9dG8ZL", // Streaming ID from AG-UI events
+        props: { temperature: 72, location: "San Francisco" },
+        componentState: { expanded: true, lastUpdated: "2024-01-01" },
+        reasoning: [],
+      };
+
+      const mockInProgressMessage: ThreadMessage = {
+        id: "msg_abc123", // Database message ID
+        threadId: "thread-1",
+        role: MessageRole.Assistant,
+        content: [],
+        createdAt: new Date(),
+        componentState: {},
+      };
+
+      const result = updateThreadMessageFromLegacyDecision(
+        mockInProgressMessage,
+        mockDecision,
+      );
+
+      // Find the component content block (V1 API support)
+      const componentBlock = result.content.find((c) => c.type === "component");
+
+      expect(componentBlock).toBeDefined();
+      // The stored ID should be the streaming componentId from AG-UI events.
+      // This ID is used by V1 API to look up components for state updates.
+      expect(componentBlock?.id).toBe("message-EIWjfCzPpeuGNir9dG8ZL");
+      // Verify all other component fields are preserved correctly
+      expect(componentBlock?.name).toBe("WeatherCard");
+      expect(componentBlock?.props).toEqual({
+        temperature: 72,
+        location: "San Francisco",
+      });
+      expect(componentBlock?.state).toEqual({
+        expanded: true,
+        lastUpdated: "2024-01-01",
+      });
+    });
+
     it("should handle Tool role messages and preserve tool_call_id", () => {
       const mockDecision: LegacyComponentDecision = {
         message: "Tool response content",

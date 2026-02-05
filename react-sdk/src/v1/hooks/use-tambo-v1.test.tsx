@@ -14,7 +14,10 @@ import { useTamboV1 } from "./use-tambo-v1";
 
 jest.mock("../../providers/tambo-client-provider", () => ({
   useTamboClient: jest.fn(),
+  useTamboQueryClient: jest.fn(),
 }));
+
+import { useTamboQueryClient } from "../../providers/tambo-client-provider";
 
 describe("useTamboV1", () => {
   let queryClient: QueryClient;
@@ -85,6 +88,7 @@ describe("useTamboV1", () => {
       },
     });
     jest.mocked(useTamboClient).mockReturnValue(mockTamboClient);
+    jest.mocked(useTamboQueryClient).mockReturnValue(queryClient);
     jest.clearAllMocks();
   });
 

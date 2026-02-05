@@ -213,7 +213,8 @@ export async function* runDecisionLoop(
 
       // Extract componentId from tambo.component.start event if present.
       // This ID is generated during streaming and used by V1 API for component
-      // state updates.
+      // state updates. The start event is only emitted once (on the first delta),
+      // so we preserve the accumulated componentId if we don't have a new one.
       const componentId = extractComponentIdFromEvents(streamItem.aguiEvents);
 
       const parsedChunk: Partial<LegacyComponentDecision> = {
@@ -223,7 +224,9 @@ export async function* runDecisionLoop(
         componentName: isUITool
           ? toolCall.function.name.slice(UI_TOOLNAME_PREFIX.length)
           : "",
-        componentId: isUITool ? componentId : undefined,
+        componentId: isUITool
+          ? (componentId ?? accumulatedDecision.componentId)
+          : undefined,
         props: isUITool ? filteredToolArgs : null,
         toolCallRequest: clientToolRequest,
         toolCallId: toolCall

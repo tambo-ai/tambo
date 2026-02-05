@@ -14,6 +14,9 @@ import type {
   TextMessageContentEvent,
   TextMessageEndEvent,
   TextMessageStartEvent,
+  ThinkingTextMessageContentEvent,
+  ThinkingTextMessageEndEvent,
+  ThinkingTextMessageStartEvent,
   ToolCallArgsEvent,
   ToolCallEndEvent,
   ToolCallResultEvent,
@@ -493,11 +496,20 @@ export function streamReducer(
       updatedThreadState = handleCustomEvent(threadState, event);
       break;
 
+    case EventType.THINKING_TEXT_MESSAGE_START:
+      updatedThreadState = handleThinkingTextMessageStart(threadState, event);
+      break;
+
+    case EventType.THINKING_TEXT_MESSAGE_CONTENT:
+      updatedThreadState = handleThinkingTextMessageContent(threadState, event);
+      break;
+
+    case EventType.THINKING_TEXT_MESSAGE_END:
+      updatedThreadState = handleThinkingTextMessageEnd(threadState, event);
+      break;
+
     // Unsupported AG-UI event types - may be added in future phases
     case EventType.TEXT_MESSAGE_CHUNK:
-    case EventType.THINKING_TEXT_MESSAGE_START:
-    case EventType.THINKING_TEXT_MESSAGE_CONTENT:
-    case EventType.THINKING_TEXT_MESSAGE_END:
     case EventType.TOOL_CALL_CHUNK:
     case EventType.THINKING_START:
     case EventType.THINKING_END:
@@ -614,7 +626,7 @@ function handleRunError(
 
 /**
  * Handle TEXT_MESSAGE_START event.
- * Creates a new message in the thread.
+ * Creates a new message or reuses an ephemeral reasoning message.
  * @param threadState - Current thread state
  * @param event - Text message start event
  * @returns Updated thread state
@@ -623,9 +635,48 @@ function handleTextMessageStart(
   threadState: ThreadState,
   event: TextMessageStartEvent,
 ): ThreadState {
+  const isAssistant = event.role !== "user";
+  const messages = threadState.thread.messages;
+
+  // For assistant messages, check if there's an ephemeral message with reasoning
+  // that we should merge into instead of creating a new message.
+  if (isAssistant) {
+    const ephemeralIndex = messages.findIndex(
+      (m) =>
+        m.role === "assistant" &&
+        m.id.startsWith("ephemeral_") &&
+        m.reasoning &&
+        m.reasoning.length > 0,
+    );
+
+    if (ephemeralIndex !== -1) {
+      // Update the ephemeral message with the real ID
+      const ephemeralMessage = messages[ephemeralIndex];
+      const updatedMessages = [...messages];
+      updatedMessages[ephemeralIndex] = {
+        ...ephemeralMessage,
+        id: event.messageId,
+      };
+
+      return {
+        ...threadState,
+        thread: {
+          ...threadState.thread,
+          messages: updatedMessages,
+          updatedAt: new Date().toISOString(),
+        },
+        streaming: {
+          ...threadState.streaming,
+          messageId: event.messageId,
+        },
+      };
+    }
+  }
+
+  // No ephemeral message to reuse - create a new message
   const newMessage: TamboV1Message = {
     id: event.messageId,
-    role: event.role === "user" ? "user" : "assistant",
+    role: isAssistant ? "assistant" : "user",
     content: [],
     createdAt: new Date().toISOString(),
   };
@@ -634,7 +685,7 @@ function handleTextMessageStart(
     ...threadState,
     thread: {
       ...threadState.thread,
-      messages: [...threadState.thread.messages, newMessage],
+      messages: [...messages, newMessage],
       updatedAt: new Date().toISOString(),
     },
     streaming: {
@@ -1181,6 +1232,222 @@ function handleRunAwaitingInput(
       status: "waiting",
     },
   };
+}
+
+// ============================================================================
+// Reasoning Event Handlers (currently mapped from THINKING_TEXT_MESSAGE_* events)
+// ============================================================================
+
+/**
+ * Generate an ephemeral message ID for reasoning messages that arrive before TEXT_MESSAGE_START.
+ * Uses crypto.randomUUID() which is available in Node.js 19+ and modern browsers.
+ */
+function generateEphemeralMessageId(): string {
+  return `ephemeral_${crypto.randomUUID()}`;
+}
+
+/**
+ * Find or create an assistant message for reasoning events.
+ * Reasoning should only be attached to assistant messages.
+ * If no suitable assistant message exists, creates an ephemeral one.
+ * @param threadState - Current thread state
+ * @returns Object with messageIndex, messages array, and updated threadState
+ */
+function findOrCreateMessageForReasoning(threadState: ThreadState): {
+  messageIndex: number;
+  messages: TamboV1Message[];
+  threadState: ThreadState;
+} {
+  const messageId = threadState.streaming.messageId;
+  let messages = threadState.thread.messages;
+
+  // If we have an active streaming messageId, try to find it
+  if (messageId) {
+    const messageIndex = messages.findIndex((m) => m.id === messageId);
+    if (messageIndex !== -1 && messages[messageIndex].role === "assistant") {
+      return { messageIndex, messages, threadState };
+    }
+  }
+
+  // Look for the last assistant message
+  const lastAssistantIndex = messages.findLastIndex(
+    (m) => m.role === "assistant",
+  );
+
+  // If there's an assistant message and it's the most recent message, use it
+  // (Don't attach reasoning to an old assistant message if user message came after)
+  if (lastAssistantIndex !== -1 && lastAssistantIndex === messages.length - 1) {
+    return { messageIndex: lastAssistantIndex, messages, threadState };
+  }
+
+  // No suitable assistant message - create an ephemeral one
+  const ephemeralId = generateEphemeralMessageId();
+  const newMessage: TamboV1Message = {
+    id: ephemeralId,
+    role: "assistant",
+    content: [],
+    createdAt: new Date().toISOString(),
+  };
+  messages = [...messages, newMessage];
+  const messageIndex = messages.length - 1;
+
+  // Update thread state with new message
+  threadState = {
+    ...threadState,
+    thread: {
+      ...threadState.thread,
+      messages,
+      updatedAt: new Date().toISOString(),
+    },
+    streaming: {
+      ...threadState.streaming,
+      messageId: ephemeralId,
+    },
+  };
+
+  return { messageIndex, messages, threadState };
+}
+
+/**
+ * Handle THINKING_TEXT_MESSAGE_START event (will become REASONING_MESSAGE_START).
+ * Starts a new reasoning chunk by appending an empty string to the message's reasoning array.
+ * Records the start time for duration calculation.
+ * @param threadState - Current thread state
+ * @param event - Thinking text message start event
+ * @returns Updated thread state
+ */
+function handleThinkingTextMessageStart(
+  threadState: ThreadState,
+  event: ThinkingTextMessageStartEvent,
+): ThreadState {
+  const {
+    messageIndex,
+    messages,
+    threadState: updatedThreadState,
+  } = findOrCreateMessageForReasoning(threadState);
+  threadState = updatedThreadState;
+
+  const message = messages[messageIndex];
+  const existingReasoning = message.reasoning ?? [];
+
+  const updatedMessage: TamboV1Message = {
+    ...message,
+    reasoning: [...existingReasoning, ""],
+  };
+
+  // Record reasoning start time if this is the first reasoning chunk
+  const reasoningStartTime =
+    threadState.streaming.reasoningStartTime ?? event.timestamp ?? Date.now();
+
+  return {
+    ...updateThreadMessages(
+      threadState,
+      updateMessageAtIndex(messages, messageIndex, updatedMessage),
+    ),
+    streaming: {
+      ...threadState.streaming,
+      reasoningStartTime,
+    },
+  };
+}
+
+/**
+ * Handle THINKING_TEXT_MESSAGE_CONTENT event (will become REASONING_MESSAGE_CONTENT).
+ * Appends delta text to the last reasoning chunk.
+ * @param threadState - Current thread state
+ * @param event - Thinking text message content event
+ * @returns Updated thread state
+ */
+function handleThinkingTextMessageContent(
+  threadState: ThreadState,
+  event: ThinkingTextMessageContentEvent,
+): ThreadState {
+  const {
+    messageIndex,
+    messages,
+    threadState: updatedThreadState,
+  } = findOrCreateMessageForReasoning(threadState);
+  threadState = updatedThreadState;
+
+  const message = messages[messageIndex];
+  const existingReasoning = message.reasoning ?? [];
+
+  if (existingReasoning.length === 0) {
+    // No reasoning chunk started - start one implicitly
+    const updatedMessage: TamboV1Message = {
+      ...message,
+      reasoning: [event.delta],
+    };
+
+    return {
+      ...updateThreadMessages(
+        threadState,
+        updateMessageAtIndex(messages, messageIndex, updatedMessage),
+      ),
+      streaming: {
+        ...threadState.streaming,
+        reasoningStartTime:
+          threadState.streaming.reasoningStartTime ??
+          event.timestamp ??
+          Date.now(),
+      },
+    };
+  }
+
+  // Append to the last reasoning chunk
+  const updatedReasoning = [
+    ...existingReasoning.slice(0, -1),
+    existingReasoning[existingReasoning.length - 1] + event.delta,
+  ];
+
+  const updatedMessage: TamboV1Message = {
+    ...message,
+    reasoning: updatedReasoning,
+  };
+
+  return updateThreadMessages(
+    threadState,
+    updateMessageAtIndex(messages, messageIndex, updatedMessage),
+  );
+}
+
+/**
+ * Handle THINKING_TEXT_MESSAGE_END event (will become REASONING_MESSAGE_END).
+ * Calculates and stores the reasoning duration.
+ * @param threadState - Current thread state
+ * @param event - Thinking text message end event
+ * @returns Updated thread state
+ */
+function handleThinkingTextMessageEnd(
+  threadState: ThreadState,
+  event: ThinkingTextMessageEndEvent,
+): ThreadState {
+  const {
+    messageIndex,
+    messages,
+    threadState: updatedThreadState,
+  } = findOrCreateMessageForReasoning(threadState);
+  threadState = updatedThreadState;
+
+  const message = messages[messageIndex];
+
+  // Calculate duration if we have a start time
+  const reasoningStartTime = threadState.streaming.reasoningStartTime;
+  const endTime = event.timestamp ?? Date.now();
+  const reasoningDurationMS = reasoningStartTime
+    ? endTime - reasoningStartTime
+    : undefined;
+
+  const updatedMessage: TamboV1Message = {
+    ...message,
+    reasoningDurationMS:
+      reasoningDurationMS ?? message.reasoningDurationMS ?? undefined,
+  };
+
+  return updateThreadMessages(
+    threadState,
+    updateMessageAtIndex(messages, messageIndex, updatedMessage),
+  );
 }
 
 /**
