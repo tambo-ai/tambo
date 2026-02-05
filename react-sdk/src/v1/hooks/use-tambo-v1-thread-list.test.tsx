@@ -2,12 +2,16 @@ import TamboAI from "@tambo-ai/typescript-sdk";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { renderHook, waitFor } from "@testing-library/react";
 import React from "react";
-import { useTamboClient } from "../../providers/tambo-client-provider";
+import {
+  useTamboClient,
+  useTamboQueryClient,
+} from "../../providers/tambo-client-provider";
 import { useTamboV1Config } from "../providers/tambo-v1-provider";
 import { useTamboV1ThreadList } from "./use-tambo-v1-thread-list";
 
 jest.mock("../../providers/tambo-client-provider", () => ({
   useTamboClient: jest.fn(),
+  useTamboQueryClient: jest.fn(),
 }));
 
 jest.mock("../providers/tambo-v1-provider", () => ({
@@ -51,6 +55,7 @@ describe("useTamboV1ThreadList", () => {
       },
     });
     jest.mocked(useTamboClient).mockReturnValue(mockTamboAI);
+    jest.mocked(useTamboQueryClient).mockReturnValue(queryClient);
     jest.mocked(useTamboV1Config).mockReturnValue({ userKey: undefined });
     mockThreadsApi.list.mockReset();
   });
