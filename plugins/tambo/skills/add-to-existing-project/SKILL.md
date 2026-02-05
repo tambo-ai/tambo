@@ -203,11 +203,11 @@ REACT_APP_TAMBO_API_KEY=sk_...
 After setup, verify by creating a simple test:
 
 ```tsx
-import { useTamboThreads } from "@tambo-ai/react";
+import { useTamboThread } from "@tambo-ai/react";
 
 function TestComponent() {
-  const { threads } = useTamboThreads();
-  console.log("Tambo connected:", threads !== undefined);
+  const { thread } = useTamboThread();
+  console.log("Tambo connected:", thread !== undefined);
   return <div>Tambo is set up!</div>;
 }
 ```

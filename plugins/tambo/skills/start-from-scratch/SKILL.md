@@ -126,8 +126,8 @@ npx tambo init --api-key=sk_...
 npx tambo create-app my-app --template=standard
 cd my-app
 
-# 2. Set environment variable
-echo "NEXT_PUBLIC_TAMBO_API_KEY=sk_..." >> .env.local
+# 2. Initialize with API key
+npx tambo init --api-key=sk_...
 
 # 3. Start development
 npm run dev
@@ -151,13 +151,10 @@ npx tailwindcss init -p
 # 4. Add Tailwind directives to src/index.css
 # @tailwind base; @tailwind components; @tailwind utilities;
 
-# 5. Initialize Tambo
+# 5. Initialize Tambo (sets up .env.local automatically)
 npx tambo init --api-key=sk_...
 
-# 6. Set environment variable
-echo "VITE_TAMBO_API_KEY=sk_..." >> .env.local
-
-# 7. Start development
+# 6. Start development
 npm run dev
 ```
 
@@ -171,13 +168,10 @@ cd my-app
 # 2. Install dependencies
 npm install @tambo-ai/react zod
 
-# 3. Initialize Tambo
+# 3. Initialize Tambo (sets up .env.local automatically)
 npx tambo init --api-key=sk_...
 
-# 4. Set environment variable
-echo "VITE_TAMBO_API_KEY=sk_..." >> .env.local
-
-# 5. Start development
+# 4. Start development
 npm run dev
 ```
 
