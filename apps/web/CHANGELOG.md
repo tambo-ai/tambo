@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.131.0](https://github.com/tambo-ai/tambo/compare/web-v0.130.0...web-v0.131.0) (2026-02-05)
+
+
+### Features
+
+* **react-sdk:** add reasoning message support in v1 SDK ([#2204](https://github.com/tambo-ai/tambo/issues/2204)) ([5cb35fb](https://github.com/tambo-ai/tambo/commit/5cb35fb147aaf2d5060ab431e986365691648100))
+
+
+### Bug Fixes
+
+* **web:** persist MCP server custom headers on save ([#2220](https://github.com/tambo-ai/tambo/issues/2220)) ([e21c081](https://github.com/tambo-ai/tambo/commit/e21c0815291851a3391a9e4aba531066cfcead1b))
+
 ## [0.130.0](https://github.com/tambo-ai/tambo/compare/web-v0.129.0...web-v0.130.0) (2026-02-04)
 
 
