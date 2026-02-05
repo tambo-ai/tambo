@@ -179,6 +179,8 @@ export function McpServerEditor({
     },
   });
 
+  // headersOverride bypasses stale closure when called immediately after setHeaders().
+  // Passing [] is valid and clears all headers intentionally.
   const handleSave = (headersOverride?: HeaderKV[]) => {
     const trimmedUrl = url.trim();
     const trimmedServerKey = serverKey.trim();
