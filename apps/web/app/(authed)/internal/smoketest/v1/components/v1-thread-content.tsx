@@ -70,9 +70,6 @@ const V1MessageItem: FC<V1MessageItemProps> = ({ message, isLoading }) => {
     (c) => c.type === "tool_use" || c.type === "tool_result",
   );
 
-  // Determine if we're still in the reasoning phase (reasoning exists but no text content yet)
-  const isReasoning = isLoading && hasReasoning && nonToolContent.length === 0;
-
   return (
     <div className="flex flex-col gap-2">
       {/* Reasoning info - shown for assistant messages with reasoning data */}
@@ -81,8 +78,6 @@ const V1MessageItem: FC<V1MessageItemProps> = ({ message, isLoading }) => {
           <V1ReasoningInfo
             reasoning={message.reasoning ?? []}
             reasoningDurationMS={message.reasoningDurationMS}
-            isLoading={isReasoning}
-            hasContent={nonToolContent.length > 0}
           />
         </div>
       )}
@@ -279,8 +274,6 @@ const ToolStatusIcon: FC<ToolStatusIconProps> = ({ isLoading, isError }) => {
 interface V1ReasoningInfoProps {
   reasoning: string[];
   reasoningDurationMS?: number;
-  isLoading?: boolean;
-  hasContent?: boolean;
 }
 
 /**
@@ -301,50 +294,47 @@ function formatReasoningDuration(durationMS: number): string {
 
 /**
  * Displays reasoning information in a collapsible dropdown.
- * Auto-expands while reasoning, auto-collapses when content arrives.
+ * Auto-expands while reasoning, auto-collapses when reasoning completes.
  */
 const V1ReasoningInfo: FC<V1ReasoningInfoProps> = ({
   reasoning,
   reasoningDurationMS,
-  isLoading,
-  hasContent,
 }) => {
   const [isExpanded, setIsExpanded] = useState(true);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  // Auto-collapse when content arrives and reasoning is not loading
+  // Reasoning is complete when we have a duration
+  const isComplete = reasoningDurationMS !== undefined;
+
+  // Auto-collapse when reasoning completes
   useEffect(() => {
-    if (hasContent && !isLoading) {
+    if (isComplete) {
       setIsExpanded(false);
     }
-  }, [hasContent, isLoading]);
+  }, [isComplete]);
 
-  // Auto-scroll to bottom when reasoning content changes
+  // Auto-scroll to bottom when reasoning content changes (only while still thinking)
   useEffect(() => {
-    if (scrollContainerRef.current && isExpanded && reasoning.length > 0) {
-      const scroll = () => {
+    if (
+      scrollContainerRef.current &&
+      isExpanded &&
+      reasoning.length > 0 &&
+      !isComplete
+    ) {
+      requestAnimationFrame(() => {
         if (scrollContainerRef.current) {
           scrollContainerRef.current.scrollTo({
             top: scrollContainerRef.current.scrollHeight,
             behavior: "smooth",
           });
         }
-      };
-
-      if (isLoading) {
-        requestAnimationFrame(scroll);
-      } else {
-        const timeoutId = setTimeout(scroll, 50);
-        return () => clearTimeout(timeoutId);
-      }
+      });
     }
-  }, [reasoning, isExpanded, isLoading]);
+  }, [reasoning, isExpanded, isComplete]);
 
-  const statusText = isLoading
-    ? "Thinking"
-    : reasoningDurationMS
-      ? formatReasoningDuration(reasoningDurationMS)
-      : "Done thinking";
+  const statusText = isComplete
+    ? formatReasoningDuration(reasoningDurationMS)
+    : "Thinking";
 
   const showStepNumbers = reasoning.length > 1;
 
@@ -356,8 +346,10 @@ const V1ReasoningInfo: FC<V1ReasoningInfoProps> = ({
         className="group flex items-center gap-1 cursor-pointer hover:bg-muted-foreground/10 rounded-md px-3 py-1 select-none"
       >
         <span
-          className={cn(isLoading && "data-loading:animate-thinking-gradient")}
-          data-loading={isLoading || undefined}
+          className={cn(
+            !isComplete && "data-loading:animate-thinking-gradient",
+          )}
+          data-loading={!isComplete || undefined}
         >
           {statusText}
         </span>
