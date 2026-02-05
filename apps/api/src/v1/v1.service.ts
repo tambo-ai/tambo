@@ -1045,7 +1045,8 @@ export class V1Service {
     | Pick<typeof schema.messages.$inferSelect, "id" | "componentState">
     | undefined
   > {
-    // `content` is expected to be a JSON array of blocks. Non-array content is treated as empty.
+    // `content` is stored in SuperJSON format: {"json": [...], "meta": {...}}
+    // We need to access content->'json' to get the actual content array.
     const messages = await db
       .select({
         id: schema.messages.id,
@@ -1058,7 +1059,7 @@ export class V1Service {
           sql`exists (
             select 1
             from jsonb_array_elements(
-              case when jsonb_typeof(content) = 'array' then content else '[]'::jsonb end
+              case when jsonb_typeof(content->'json') = 'array' then content->'json' else '[]'::jsonb end
             ) as elem
             where elem->>'type' = 'component'
               and elem->>'id' = ${componentId}
