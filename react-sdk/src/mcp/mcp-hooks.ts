@@ -15,6 +15,30 @@ import {
   useTamboMcpServers,
 } from "./tambo-mcp-provider";
 
+/**
+ * Check if an MCP server supports listing prompts.
+ * Returns true if capabilities are unknown (undefined) to maintain backward compatibility,
+ * since some servers don't properly report capabilities.
+ */
+function serverSupportsPrompts(server: ConnectedMcpServer): boolean {
+  const capabilities = server.client.getServerCapabilities?.();
+  // If capabilities are undefined, assume the server supports prompts (optimistic approach)
+  if (capabilities === undefined) return true;
+  return capabilities.prompts != null;
+}
+
+/**
+ * Check if an MCP server supports listing resources.
+ * Returns true if capabilities are unknown (undefined) to maintain backward compatibility,
+ * since some servers don't properly report capabilities.
+ */
+function serverSupportsResources(server: ConnectedMcpServer): boolean {
+  const capabilities = server.client.getServerCapabilities?.();
+  // If capabilities are undefined, assume the server supports resources (optimistic approach)
+  if (capabilities === undefined) return true;
+  return capabilities.resources != null;
+}
+
 export type ListPromptItem = ListPromptsResult["prompts"][number];
 export interface ListPromptEntry {
   // Only connected servers produce prompt entries, so expose the connected type
@@ -93,6 +117,9 @@ export function useTamboMcpPromptList(search?: string) {
       queryFn: async (): Promise<ListPromptEntry[]> => {
         // Fast path: if this server doesn't have a client, skip work
         if (!isConnectedMcpServer(mcpServer)) return [];
+
+        // Skip if server doesn't support prompts capability
+        if (!serverSupportsPrompts(mcpServer)) return [];
 
         const result = await mcpServer.client.client.listPrompts();
         const prompts: ListPromptItem[] = result?.prompts ?? [];
@@ -272,6 +299,9 @@ export function useTamboMcpResourceList(search?: string) {
       queryFn: async (): Promise<McpResourceEntry[]> => {
         // Fast path: if this server doesn't have a client, skip work
         if (!isConnectedMcpServer(mcpServer)) return [];
+
+        // Skip if server doesn't support resources capability
+        if (!serverSupportsResources(mcpServer)) return [];
 
         const result = await mcpServer.client.client.listResources();
         const resources: ListResourceItem[] = result?.resources ?? [];
