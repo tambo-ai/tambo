@@ -73,8 +73,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           <PostHogRootProvider>
             <ThemeProvider
               attribute="class"
-              defaultTheme="light"
-              enableSystem={false}
+              defaultTheme="system"
+              enableSystem
+              disableTransitionOnChange
             >
               <RootProvider>{children}</RootProvider>
             </ThemeProvider>

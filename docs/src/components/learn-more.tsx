@@ -21,7 +21,7 @@ export default function LearnMore({
       style={{ textDecoration: "none" }}
     >
       <div className="flex-shrink-0">
-        <Icon className="bg-gray-200 w-12 h-12 rounded-md p-4" />
+        <Icon className="bg-gray-200 dark:bg-zinc-800 w-12 h-12 rounded-md p-4" />
       </div>
       <div>
         <div className="flex items-center gap-2">
