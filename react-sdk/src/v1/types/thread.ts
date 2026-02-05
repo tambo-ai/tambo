@@ -44,6 +44,9 @@ export interface TamboV1Thread {
 
   /** When the thread was last updated */
   updatedAt: string;
+
+  /** Whether the last run was cancelled (resets to false when a new run starts) */
+  lastRunCancelled: boolean;
 }
 
 /**

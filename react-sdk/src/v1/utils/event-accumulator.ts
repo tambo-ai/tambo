@@ -158,6 +158,7 @@ export function createInitialThreadState(threadId: string): ThreadState {
       status: "idle",
       createdAt: now,
       updatedAt: now,
+      lastRunCancelled: false,
     },
     streaming: initialStreamingState,
     accumulatingToolArgs: new Map(),
@@ -563,6 +564,8 @@ function handleRunStarted(
       ...threadState.thread,
       status: "streaming",
       updatedAt: new Date().toISOString(),
+      // Reset lastRunCancelled when a new run starts
+      lastRunCancelled: false,
     },
     streaming: {
       status: "streaming",
@@ -598,6 +601,7 @@ function handleRunFinished(
 
 /**
  * Handle RUN_ERROR event.
+ * Sets lastRunCancelled if the error code is "CANCELLED".
  * @param threadState - Current thread state
  * @param event - Run error event
  * @returns Updated thread state
@@ -606,20 +610,27 @@ function handleRunError(
   threadState: ThreadState,
   event: RunErrorEvent,
 ): ThreadState {
+  const isCancelled = event.code === "CANCELLED";
+
   return {
     ...threadState,
     thread: {
       ...threadState.thread,
-      status: "error",
+      // Use "idle" status for cancelled runs (not a real error from user perspective)
+      status: isCancelled ? "idle" : "error",
       updatedAt: new Date().toISOString(),
+      lastRunCancelled: isCancelled,
     },
     streaming: {
       ...threadState.streaming,
-      status: "error",
-      error: {
-        message: event.message,
-        code: event.code,
-      },
+      // Use "idle" status for cancelled runs so UI shows as not streaming
+      status: isCancelled ? "idle" : "error",
+      error: isCancelled
+        ? undefined
+        : {
+            message: event.message,
+            code: event.code,
+          },
     },
   };
 }

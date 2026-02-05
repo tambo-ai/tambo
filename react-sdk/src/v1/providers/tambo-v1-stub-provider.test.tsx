@@ -27,6 +27,7 @@ describe("TamboV1StubProvider", () => {
     status: "idle",
     createdAt: "2024-01-01T00:00:00Z",
     updatedAt: "2024-01-01T00:00:01Z",
+    lastRunCancelled: false,
   };
 
   describe("useTamboV1", () => {
