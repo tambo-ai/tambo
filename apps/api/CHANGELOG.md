@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.136.1](https://github.com/tambo-ai/tambo/compare/api-v0.136.0...api-v0.136.1) (2026-02-05)
+
+
+### Bug Fixes
+
+* **api:** use computed component ID in content block for V1 API ([#2191](https://github.com/tambo-ai/tambo/issues/2191)) ([6d0a007](https://github.com/tambo-ai/tambo/commit/6d0a0074c74af79ad6d3f2cd18142f7cebe62715))
+* **api:** use real user ID for PostHog message_sent analytics ([#2212](https://github.com/tambo-ai/tambo/issues/2212)) ([2bea1e1](https://github.com/tambo-ai/tambo/commit/2bea1e1b4ea0f5e08ed0f06d92bf0902f7d565ae))
+* **api:** warn instead of throw for invalid componentDecision ([#2209](https://github.com/tambo-ai/tambo/issues/2209)) ([d7b5406](https://github.com/tambo-ai/tambo/commit/d7b5406703fefa7d62da70b5d4d826d1360ca750))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump @types/node from 22.19.5 to 22.19.7 ([#2181](https://github.com/tambo-ai/tambo/issues/2181)) ([2dbb652](https://github.com/tambo-ai/tambo/commit/2dbb652293255c5f1baf370a87c0760567eb441e))
+* **deps:** bump resend from 6.8.0 to 6.9.1 ([#2186](https://github.com/tambo-ai/tambo/issues/2186)) ([9c2268f](https://github.com/tambo-ai/tambo/commit/9c2268f7b6cf6c6aa2c9d5b340154f87f50c55d1))
+
 ## [0.136.0](https://github.com/tambo-ai/tambo/compare/api-v0.135.0...api-v0.136.0) (2026-02-04)
 
 
