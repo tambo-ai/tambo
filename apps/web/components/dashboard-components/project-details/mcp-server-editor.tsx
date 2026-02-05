@@ -179,11 +179,12 @@ export function McpServerEditor({
     },
   });
 
-  const handleSave = () => {
+  const handleSave = (headersOverride?: HeaderKV[]) => {
     const trimmedUrl = url.trim();
     const trimmedServerKey = serverKey.trim();
+    const headersToSave = headersOverride ?? headers;
     const customHeaders: Record<string, string> = Object.fromEntries(
-      headers
+      headersToSave
         .map(({ header, value }) => [header.trim(), value] as const)
         .filter(([key]) => Boolean(key)),
     );
@@ -431,7 +432,7 @@ export function McpServerEditor({
             setHeaders(updated);
             // When user explicitly saves a row, persist immediately if editable
             if (canEditHeaders) {
-              handleSave();
+              handleSave(updated);
             } else if (hideEditButtons) {
               await debouncedSave();
             }
