@@ -8,6 +8,7 @@
   "packages": {
     "packages/react-ui-base": {
       "component": "@tambo-ai/react-ui-base",
+      "versioning": "prerelease",
       "prerelease": true,
       "prerelease-type": "alpha"
     },
