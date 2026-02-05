@@ -95,7 +95,7 @@ const MessageInputInternal = React.forwardRef<HTMLFormElement, Props>(
 // components/message-input/message-input.tsx (AFTER)
 
 // Import base components
-import { MessageInput as MessageInputBase } from "../../base/message-input";
+import { MessageInput as MessageInputBase } from "@tambo-ai/react-ui-base/message-input";
 
 // No duplicate context - use base
 // No duplicate hooks - handled by base Root

@@ -69,7 +69,7 @@ Import the base namespace:
 
 ```tsx
 // Import base compound components
-import { MessageInput as MessageInputBase } from "../../base/message-input";
+import { MessageInput as MessageInputBase } from "@tambo-ai/react-ui-base/message-input";
 ```
 
 ### Step 3: Wrap with Base Root

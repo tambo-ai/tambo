@@ -32,6 +32,16 @@
         "default": "./dist/cjs/message/index.cjs"
       }
     },
+    "./message-input": {
+      "import": {
+        "types": "./dist/esm/message-input/index.d.ts",
+        "default": "./dist/esm/message-input/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/message-input/index.d.ts",
+        "default": "./dist/cjs/message-input/index.cjs"
+      }
+    },
     "./reasoning-info": {
       "import": {
         "types": "./dist/esm/reasoning-info/index.d.ts",
