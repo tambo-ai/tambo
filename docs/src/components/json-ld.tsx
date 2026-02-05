@@ -205,6 +205,12 @@ export function GlobalJsonLd() {
 /**
  * Renders page-specific JSON-LD schema.
  */
-export function PageJsonLd({ schema }: { schema: unknown }) {
-  return <JsonLd id="page-json-ld" schema={schema} />;
+export function PageJsonLd({
+  id = "page-json-ld",
+  schema,
+}: {
+  id?: string;
+  schema: unknown;
+}) {
+  return <JsonLd id={id} schema={schema} />;
 }

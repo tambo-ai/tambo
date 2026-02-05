@@ -104,12 +104,27 @@ function enumerateRoutes() {
     .map(([url, lastmod]) => ({ url, lastmod }));
 }
 
-const excludedPaths = new Set(["/llms.txt", "/llms-full.txt", "/robots.txt"]);
-const isExcludedSitemapPath = (path) =>
-  excludedPaths.has(path) ||
-  path === "/llms.mdx" ||
-  path.startsWith("/llms.mdx/");
+const excludedSitemapGlobs = [
+  "/_next/*",
+  "/api/*",
+  "/llms.txt",
+  "/llms-full.txt",
+  "/robots.txt",
+  "/llms.mdx",
+  "/llms.mdx/*",
+];
 
+const excludedSitemapExactPaths = new Set([
+  "/llms.txt",
+  "/llms-full.txt",
+  "/robots.txt",
+  "/llms.mdx",
+]);
+
+const isExcludedSitemapPath = (path) =>
+  excludedSitemapExactPaths.has(path) || path.startsWith("/llms.mdx/");
+
+// Enumerate routes once at config load for deterministic, build-time-only sitemap generation
 const enumerated = enumerateRoutes();
 const enumeratedByUrl = new Map(enumerated.map((e) => [e.url, e.lastmod]));
 
@@ -117,15 +132,7 @@ module.exports = {
   siteUrl,
   generateRobotsTxt: false,
   // Exclude non-page routes and duplicates
-  exclude: [
-    "/_next/*",
-    "/api/*",
-    "/llms.txt",
-    "/llms-full.txt",
-    "/robots.txt",
-    "/llms.mdx",
-    "/llms.mdx/*",
-  ],
+  exclude: excludedSitemapGlobs,
   changefreq: "weekly",
   priority: 0.8,
   transform: async (_config, path) => {

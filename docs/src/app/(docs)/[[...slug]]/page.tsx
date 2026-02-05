@@ -18,11 +18,20 @@ import { Suspense } from "react";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://docs.tambo.co";
 
+const docLastModifiedCache = new Map<string, string | undefined>();
+
 const getDocPageLastModified = (contentPath: string): string | undefined => {
+  if (docLastModifiedCache.has(contentPath)) {
+    return docLastModifiedCache.get(contentPath);
+  }
+
   try {
     const filePath = join(process.cwd(), "content", "docs", contentPath);
-    return statSync(filePath).mtime.toISOString();
+    const lastModified = statSync(filePath).mtime.toISOString();
+    docLastModifiedCache.set(contentPath, lastModified);
+    return lastModified;
   } catch {
+    docLastModifiedCache.set(contentPath, undefined);
     return;
   }
 };
