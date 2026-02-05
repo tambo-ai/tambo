@@ -439,6 +439,36 @@ describe("v1-conversions", () => {
 
       expect(result.metadata).toBeUndefined();
     });
+
+    it("should include isCancelled when message is cancelled", () => {
+      const message = {
+        ...baseMessage,
+        isCancelled: true,
+      } as unknown as DbMessage;
+      const result = messageToDto(message);
+
+      expect(result.isCancelled).toBe(true);
+    });
+
+    it("should omit isCancelled when message is not cancelled", () => {
+      const message = {
+        ...baseMessage,
+        isCancelled: false,
+      } as unknown as DbMessage;
+      const result = messageToDto(message);
+
+      expect(result.isCancelled).toBeUndefined();
+    });
+
+    it("should omit isCancelled when field is null/undefined", () => {
+      const message = {
+        ...baseMessage,
+        isCancelled: null,
+      } as unknown as DbMessage;
+      const result = messageToDto(message);
+
+      expect(result.isCancelled).toBeUndefined();
+    });
   });
 
   describe("convertV1InputMessageToInternal", () => {
