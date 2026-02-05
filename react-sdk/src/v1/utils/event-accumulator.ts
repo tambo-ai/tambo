@@ -626,7 +626,7 @@ function handleRunError(
 
 /**
  * Handle TEXT_MESSAGE_START event.
- * Creates a new message in the thread.
+ * Creates a new message or reuses an ephemeral reasoning message.
  * @param threadState - Current thread state
  * @param event - Text message start event
  * @returns Updated thread state
@@ -635,9 +635,48 @@ function handleTextMessageStart(
   threadState: ThreadState,
   event: TextMessageStartEvent,
 ): ThreadState {
+  const isAssistant = event.role !== "user";
+  const messages = threadState.thread.messages;
+
+  // For assistant messages, check if there's an ephemeral message with reasoning
+  // that we should merge into instead of creating a new message.
+  if (isAssistant) {
+    const ephemeralIndex = messages.findIndex(
+      (m) =>
+        m.role === "assistant" &&
+        m.id.startsWith("ephemeral_") &&
+        m.reasoning &&
+        m.reasoning.length > 0,
+    );
+
+    if (ephemeralIndex !== -1) {
+      // Update the ephemeral message with the real ID
+      const ephemeralMessage = messages[ephemeralIndex];
+      const updatedMessages = [...messages];
+      updatedMessages[ephemeralIndex] = {
+        ...ephemeralMessage,
+        id: event.messageId,
+      };
+
+      return {
+        ...threadState,
+        thread: {
+          ...threadState.thread,
+          messages: updatedMessages,
+          updatedAt: new Date().toISOString(),
+        },
+        streaming: {
+          ...threadState.streaming,
+          messageId: event.messageId,
+        },
+      };
+    }
+  }
+
+  // No ephemeral message to reuse - create a new message
   const newMessage: TamboV1Message = {
     id: event.messageId,
-    role: event.role === "user" ? "user" : "assistant",
+    role: isAssistant ? "assistant" : "user",
     content: [],
     createdAt: new Date().toISOString(),
   };
@@ -646,7 +685,7 @@ function handleTextMessageStart(
     ...threadState,
     thread: {
       ...threadState.thread,
-      messages: [...threadState.thread.messages, newMessage],
+      messages: [...messages, newMessage],
       updatedAt: new Date().toISOString(),
     },
     streaming: {

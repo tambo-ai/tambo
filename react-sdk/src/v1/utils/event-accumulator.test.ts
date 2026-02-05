@@ -1955,6 +1955,64 @@ describe("streamReducer", () => {
       expect(message.reasoning).toEqual([""]);
     });
 
+    it("merges ephemeral reasoning message with subsequent TEXT_MESSAGE_START", () => {
+      let state = createTestStreamState("thread_1");
+      state.threadMap.thread_1.thread.messages = [];
+
+      // Simulate reasoning events arriving before text message
+      const thinkingStart: ThinkingTextMessageStartEvent = {
+        type: EventType.THINKING_TEXT_MESSAGE_START,
+        timestamp: 1704067200000,
+      };
+      state = streamReducer(state, {
+        type: "EVENT",
+        event: thinkingStart,
+        threadId: "thread_1",
+      });
+
+      const thinkingContent: ThinkingTextMessageContentEvent = {
+        type: EventType.THINKING_TEXT_MESSAGE_CONTENT,
+        delta: "Let me think about this...",
+      };
+      state = streamReducer(state, {
+        type: "EVENT",
+        event: thinkingContent,
+        threadId: "thread_1",
+      });
+
+      // Verify ephemeral message was created
+      expect(state.threadMap.thread_1.thread.messages).toHaveLength(1);
+      const ephemeralMessage = state.threadMap.thread_1.thread.messages[0];
+      expect(ephemeralMessage.id).toMatch(/^ephemeral_/);
+      expect(ephemeralMessage.reasoning).toEqual([
+        "Let me think about this...",
+      ]);
+
+      // Now TEXT_MESSAGE_START arrives - should merge with ephemeral message
+      const textStart: TextMessageStartEvent = {
+        type: EventType.TEXT_MESSAGE_START,
+        messageId: "msg_real_123",
+        role: "assistant",
+      };
+      state = streamReducer(state, {
+        type: "EVENT",
+        event: textStart,
+        threadId: "thread_1",
+      });
+
+      // Should still have only one message (merged)
+      expect(state.threadMap.thread_1.thread.messages).toHaveLength(1);
+      const mergedMessage = state.threadMap.thread_1.thread.messages[0];
+
+      // The message should have the real ID now
+      expect(mergedMessage.id).toBe("msg_real_123");
+      // But should preserve the reasoning
+      expect(mergedMessage.reasoning).toEqual(["Let me think about this..."]);
+      expect(mergedMessage.role).toBe("assistant");
+      // Streaming state should track the new message ID
+      expect(state.threadMap.thread_1.streaming.messageId).toBe("msg_real_123");
+    });
+
     it("matches snapshot for full thinking flow", () => {
       let state = createTestStreamState("thread_1");
 
