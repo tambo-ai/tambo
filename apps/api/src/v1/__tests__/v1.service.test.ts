@@ -1015,7 +1015,9 @@ describe("V1Service", () => {
       warnSpy.mockRestore();
     });
 
-    it("should throw error when componentDecision has no componentName and no toolCallRequest", async () => {
+    it("should warn when componentDecision has no componentName and no toolCallRequest", async () => {
+      const warnSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
+
       const messageWithBadComponent = {
         ...mockMessage,
         content: [{ type: "text", text: "Hello" }],
@@ -1029,9 +1031,16 @@ describe("V1Service", () => {
         messageWithBadComponent as any,
       );
 
-      await expect(service.getMessage("thr_123", "msg_123")).rejects.toThrow(
-        /Component decision in message msg_123 has no componentName/,
+      // Should succeed but log a warning
+      const result = await service.getMessage("thr_123", "msg_123");
+      expect(result).toBeDefined();
+      expect(warnSpy).toHaveBeenCalledWith(
+        expect.stringMatching(
+          /Component decision in message msg_123 has no componentName/,
+        ),
       );
+
+      warnSpy.mockRestore();
     });
   });
 

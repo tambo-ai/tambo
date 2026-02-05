@@ -294,7 +294,9 @@ describe("v1-conversions", () => {
       });
     });
 
-    it("should throw error when componentDecision has no componentName and no toolCallRequest", () => {
+    it("should warn when componentDecision has no componentName and no toolCallRequest", () => {
+      const warnSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
+
       const message = {
         ...baseMessage,
         componentDecision: {
@@ -306,9 +308,14 @@ describe("v1-conversions", () => {
         toolCallRequest: null, // No tool call - this is a data integrity issue
       } as unknown as DbMessage;
 
-      expect(() => contentToV1Blocks(message)).toThrow(
-        /has no componentName.*data integrity issue/,
+      // Should not throw, but should warn
+      const result = contentToV1Blocks(message);
+      expect(result).toEqual([]); // No blocks generated
+      expect(warnSpy).toHaveBeenCalledWith(
+        expect.stringMatching(/has no componentName.*data integrity issue/),
       );
+
+      warnSpy.mockRestore();
     });
 
     it("should NOT throw when componentDecision has no componentName but has toolCallRequest", () => {
