@@ -31,11 +31,11 @@ install_command: npm install
 
 ### Available preferences
 
-| Key | Default | Description |
-|-----|---------|-------------|
-| `worktree_base` | (see below) | Absolute path where worktrees are created. Must be a fully resolved path — no `~` or `$HOME`. |
-| `linear_prefix` | `TAM` | Linear issue prefix to match (case-insensitive) |
-| `install_command` | `npm install` | Command to install dependencies |
+| Key               | Default       | Description                                                                                   |
+| ----------------- | ------------- | --------------------------------------------------------------------------------------------- |
+| `worktree_base`   | (see below)   | Absolute path where worktrees are created. Must be a fully resolved path — no `~` or `$HOME`. |
+| `linear_prefix`   | `TAM`         | Linear issue prefix to match (case-insensitive)                                               |
+| `install_command` | `npm install` | Command to install dependencies                                                               |
 
 ### Loading preferences
 
@@ -82,6 +82,7 @@ Run `git worktree list` to find:
 - **Worktree base directory**: Use the `worktree_base` preference if set. Otherwise resolve the default: `$HOME/.claude-worktrees/<main-repo-basename>/`.
 
 Derive the **worktree directory name** from the branch name by stripping the `<username>/` prefix:
+
 - Branch `lachieh/tam-1234-add-dark-mode` → directory name `tam-1234-add-dark-mode`
 
 Full worktree path: `<worktree-base>/<directory-name>`
@@ -101,19 +102,39 @@ Check if `<main-repo>/.claude/settings.local.json` exists.
 
 If it exists:
 
+Implementations must ensure `<main-repo>` and `<worktree-path>` are fully resolved absolute paths (e.g., as returned by `git worktree list`). If not, stop and resolve them before continuing. Prefer sourcing these paths directly from `git worktree list` output, but other mechanisms are fine if they produce correct absolute paths.
+
+Run these commands in a Bash-compatible shell.
+
 ```bash
-mkdir -p <worktree-path>/.claude
-ln -s <main-repo>/.claude/settings.local.json <worktree-path>/.claude/settings.local.json
+mkdir -p "<worktree-path>/.claude"
+
+TARGET="<main-repo>/.claude/settings.local.json" # must be absolute
+LINK="<worktree-path>/.claude/settings.local.json" # must be absolute
+
+if [ ! -e "$TARGET" ]; then
+  : # settings file missing; skip silently
+elif [ -e "$LINK" ] && [ ! -L "$LINK" ]; then
+  echo "Warning: $LINK exists and is not a symlink; skipping settings link" >&2
+else
+  ln -sf "$TARGET" "$LINK"
+fi
 ```
 
-If it does not exist, skip silently. Record the result for the summary.
+Behavior:
+
+- If the settings file doesn't exist, skip silently.
+- If a regular file or directory exists at the link path, emit a warning to stderr and do not modify it.
+- Otherwise (including when a symlink already exists at the link path), create (or overwrite) the symlink to point to the main repo settings file (i.e., behave like `ln -sf`).
+
+Record the outcome for the summary's `claude settings:` line as exactly one of: `symlinked`, `skipped (missing settings)`, or `skipped (conflict)`. Implementations must not introduce additional values here or append extra detail. These values are intended to be machine-parseable; treat them as a fixed enum and don't add new variants without updating dependent tooling. Track this in a variable (e.g., `claudeSettingsStatus`) and reuse it when printing the final summary.
 
 ### 6. Install Dependencies
 
-Run the `install_command` preference (default: `npm install`) in the worktree directory:
+Implementations must execute `install_command` (default: `npm install`) as-is with `<worktree-path>` as the current working directory. Include any desired flags in the preference value (no extra arguments are added automatically).
 
 ```bash
-npm install --prefix <worktree-path>
+(cd "<worktree-path>" && <install_command>)
 ```
 
 ### 7. Print Summary
@@ -126,5 +147,7 @@ Workspace ready:
   worktree:        <full-worktree-path>
   branch:          <full-branch-name>
   node modules:    installed
-  claude settings: <symlinked | not found (skipped)>
+  claude settings: <claudeSettingsStatus>
 ```
+
+`<claudeSettingsStatus>` is exactly one of: `symlinked`, `skipped (missing settings)`, or `skipped (conflict)` (see status definition above).
