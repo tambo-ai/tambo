@@ -27,6 +27,9 @@ export interface ThreadListOptions {
 
   /**
    * Maximum number of threads to return
+   *
+   * String values are parsed as numbers; invalid or non-finite values are
+   * ignored.
    */
   limit?: number | string;
 
