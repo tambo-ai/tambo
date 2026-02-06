@@ -1,0 +1,43 @@
+# yaml-language-server: $schema=http://json.schemastore.org/github-action.json
+
+name: "Validate docs.tambo.co links"
+description: Validate docs.tambo.co URLs referenced in the repo against the docs MDX file structure.
+
+runs:
+  using: "composite"
+  steps:
+    - name: Validate docs.tambo.co links
+      shell: bash
+      run: |
+        set -euo pipefail
+
+        broken=0
+
+        while IFS= read -r url; do
+          path="${url#https://docs.tambo.co}"
+          path="${path%%#*}" # strip hash
+          path="${path%/}" # strip trailing slash
+
+          case "$path" in
+            /llms.txt|/llms-full.txt|/sitemap.xml|/sitemap-0.xml) continue ;;
+          esac
+
+          if [ ! -f "docs/content/docs${path}.mdx" ] && [ ! -f "docs/content/docs${path}/index.mdx" ]; then
+            broken=1
+            echo "::error::Broken docs.tambo.co link: $url"
+          fi
+        done < <(
+          (
+            # Stop at quotes/backticks (strings), ')' (Markdown), '}' (JSDoc), '>' (<...>), or whitespace.
+            grep -rhoE 'https://docs\.tambo\.co/[^"'"'"'`)}>[:space:]]+' \
+              --include='*.ts' \
+              --include='*.tsx' \
+              --include='*.md' \
+              --include='*.mdx' \
+              . 2>/dev/null || true
+          ) | sort -u
+        )
+
+        if [ "$broken" -ne 0 ]; then
+          exit 1
+        fi
