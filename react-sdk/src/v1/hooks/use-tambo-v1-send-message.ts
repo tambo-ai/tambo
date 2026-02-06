@@ -36,9 +36,13 @@ import {
   toAvailableTools,
 } from "../utils/registry-conversion";
 import { handleEventStream } from "../utils/stream-handler";
-import { executeAllPendingTools } from "../utils/tool-executor";
+import {
+  executeAllPendingTools,
+  executeStreamableToolCall,
+} from "../utils/tool-executor";
 import type { ToolResultContent } from "@tambo-ai/typescript-sdk/resources/threads/threads";
 import { ToolCallTracker } from "../utils/tool-call-tracker";
+import { parse as parsePartialJson } from "partial-json";
 
 /**
  * Dispatches synthetic AG-UI events to show a user message in the thread.
@@ -542,7 +546,47 @@ export function useTamboV1SendMessage(threadId?: string) {
             }
 
             toolTracker.handleEvent(event);
-            dispatch({ type: "EVENT", event, threadId: actualThreadId });
+
+            // Parse partial JSON once for TOOL_CALL_ARGS — reused by both dispatch and streamable execution
+            let parsedToolArgs: Record<string, unknown> | undefined;
+            if (event.type === EventType.TOOL_CALL_ARGS) {
+              const accToolCall = toolTracker.getAccumulatingToolCall(
+                event.toolCallId,
+              );
+              if (accToolCall) {
+                try {
+                  const parsed: unknown = parsePartialJson(
+                    accToolCall.accumulatedArgs,
+                  );
+                  if (
+                    typeof parsed === "object" &&
+                    parsed !== null &&
+                    !Array.isArray(parsed)
+                  ) {
+                    parsedToolArgs = parsed as Record<string, unknown>;
+                  }
+                } catch {
+                  /* not parseable yet */
+                }
+              }
+            }
+
+            dispatch({
+              type: "EVENT",
+              event,
+              threadId: actualThreadId,
+              parsedToolArgs,
+            });
+
+            // Execute streamable tool with the same pre-parsed args
+            if (parsedToolArgs && event.type === EventType.TOOL_CALL_ARGS) {
+              await executeStreamableToolCall(
+                event.toolCallId,
+                parsedToolArgs,
+                toolTracker,
+                registry.toolRegistry,
+              );
+            }
 
             // Check for awaiting_input - if found, break to execute tools
             if (event.type === EventType.CUSTOM) {
