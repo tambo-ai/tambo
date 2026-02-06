@@ -329,7 +329,10 @@ describe("TamboV1Provider", () => {
     const { result } = renderHook(() => useTamboContextHelpers(), { wrapper });
 
     const helpers = result.current.getContextHelpers();
-    // TamboInteractableProvider registers an "interactables" context helper
-    expect(Object.keys(helpers)).toEqual(["interactables"]);
+    // TamboInteractableProvider registers "interactables" and TamboContextAttachmentProvider registers "contextAttachments"
+    expect(Object.keys(helpers)).toEqual([
+      "interactables",
+      "contextAttachments",
+    ]);
   });
 });
