@@ -42,7 +42,7 @@ jobs:
           }
           found=0
           BASE="tambo"
-          PAT_AI="${BASE}\.ai([^[:alnum:]-]|$)"
+          PAT_AI="${BASE}\.ai"
           PAT_COM="${BASE}\.com([^[:alnum:]-]|$)"
 
           # NOTE: If new file types can contain domains, update this list.
@@ -55,20 +55,20 @@ jobs:
             '*.yaml'
             '*.json'
             '*.html'
-            ':(exclude)node_modules/**'
           )
 
-          # Examples (match): tambo.com/, tambo.com:443
+          # Examples (match): tambo[.]com/, tambo[.]com:443
           # Examples (no match): tambo.component, tambo.company
 
           checkDomain() {
-            local pattern=$1
+            local label=$1
+            local pattern=$2
             local status=0
             git grep -nIE "$pattern" -- "${PATTERNS[@]}" || status=$?
 
             case "$status" in
               0)
-                echo "::error::Found incorrect domain - use ${BASE}.co instead"
+                echo "::error::Found incorrect domain (${label}) - use ${BASE}.co instead"
                 found=1
                 ;;
               1) ;;
@@ -79,8 +79,8 @@ jobs:
             esac
           }
 
-          checkDomain "$PAT_AI" || exit $?
-          checkDomain "$PAT_COM" || exit $?
+          checkDomain "${BASE}.ai" "$PAT_AI" || exit $?
+          checkDomain "${BASE}.com" "$PAT_COM" || exit $?
           exit "$found"
 
       - name: Run Prettier
