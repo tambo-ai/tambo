@@ -626,6 +626,7 @@ export class V1Service {
     dto: V1CreateRunDto,
     projectId: string,
     contextKey: string,
+    sdkVersion?: string,
   ): Promise<void> {
     return await Sentry.startSpan(
       {
@@ -685,7 +686,7 @@ export class V1Service {
           const abortController = new AbortController();
 
           const streamingPromise = this.threadsService.advanceThread(
-            projectId,
+            { projectId, contextKey, sdkVersion },
             {
               messageToAppend,
               availableComponents,
@@ -695,7 +696,6 @@ export class V1Service {
             {}, // toolCallCounts - start fresh for V1 API
             undefined, // cachedSystemTools
             queue,
-            contextKey,
             abortController.signal,
           );
 

@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.138.0](https://github.com/tambo-ai/tambo/compare/api-v0.137.0...api-v0.138.0) (2026-02-06)
+
+
+### Features
+
+* **api:** add SDK version tracking to messages and threads ([#2255](https://github.com/tambo-ai/tambo/issues/2255)) ([36a47bd](https://github.com/tambo-ai/tambo/commit/36a47bdf3cd7b7de8411a6d26ed100ffb5d48f90))
+
+
+### Bug Fixes
+
+* **api,react-sdk:** prevent MCP "Method not found" error when no servers configured ([#2223](https://github.com/tambo-ai/tambo/issues/2223)) ([1363bde](https://github.com/tambo-ai/tambo/commit/1363bde8668012734c5fb83cacbe6792352c2c89))
+
 ## [0.137.0](https://github.com/tambo-ai/tambo/compare/api-v0.136.1...api-v0.137.0) (2026-02-06)
 
 

@@ -1,7 +1,9 @@
 import {
+  ErrorCode,
   GetPromptResult,
   type ListPromptsResult,
   type ListResourcesResult,
+  McpError,
   type ReadResourceResult,
 } from "@modelcontextprotocol/sdk/types.js";
 import { UseQueryResult } from "@tanstack/react-query";
@@ -14,6 +16,38 @@ import {
   type McpServer,
   useTamboMcpServers,
 } from "./tambo-mcp-provider";
+
+/**
+ * Check if an error is an MCP MethodNotFound error (-32601).
+ * This error occurs when a server doesn't support a particular method.
+ */
+function isMethodNotFoundError(error: unknown): boolean {
+  return error instanceof McpError && error.code === ErrorCode.MethodNotFound;
+}
+
+/**
+ * Check if an MCP server supports listing prompts.
+ * Returns true if capabilities are unknown (undefined) to maintain backward compatibility,
+ * since some servers don't properly report capabilities.
+ */
+function serverSupportsPrompts(server: ConnectedMcpServer): boolean {
+  const capabilities = server.client.getServerCapabilities?.();
+  // If capabilities are undefined, assume the server supports prompts (optimistic approach)
+  if (capabilities === undefined) return true;
+  return capabilities.prompts != null;
+}
+
+/**
+ * Check if an MCP server supports listing resources.
+ * Returns true if capabilities are unknown (undefined) to maintain backward compatibility,
+ * since some servers don't properly report capabilities.
+ */
+function serverSupportsResources(server: ConnectedMcpServer): boolean {
+  const capabilities = server.client.getServerCapabilities?.();
+  // If capabilities are undefined, assume the server supports resources (optimistic approach)
+  if (capabilities === undefined) return true;
+  return capabilities.resources != null;
+}
 
 export type ListPromptItem = ListPromptsResult["prompts"][number];
 export interface ListPromptEntry {
@@ -94,14 +128,23 @@ export function useTamboMcpPromptList(search?: string) {
         // Fast path: if this server doesn't have a client, skip work
         if (!isConnectedMcpServer(mcpServer)) return [];
 
-        const result = await mcpServer.client.client.listPrompts();
-        const prompts: ListPromptItem[] = result?.prompts ?? [];
-        // Return prompts without prefixes - we'll apply prefixing in combine
-        const promptsEntries = prompts.map((prompt) => ({
-          server: mcpServer,
-          prompt,
-        }));
-        return promptsEntries;
+        // Skip if server doesn't support prompts capability
+        if (!serverSupportsPrompts(mcpServer)) return [];
+
+        try {
+          const result = await mcpServer.client.client.listPrompts();
+          const prompts: ListPromptItem[] = result?.prompts ?? [];
+          // Return prompts without prefixes - we'll apply prefixing in combine
+          const promptsEntries = prompts.map((prompt) => ({
+            server: mcpServer,
+            prompt,
+          }));
+          return promptsEntries;
+        } catch (error) {
+          // Gracefully handle MethodNotFound - server doesn't support this method
+          if (isMethodNotFoundError(error)) return [];
+          throw error;
+        }
       },
     })),
     combine: (results) => {
@@ -273,16 +316,25 @@ export function useTamboMcpResourceList(search?: string) {
         // Fast path: if this server doesn't have a client, skip work
         if (!isConnectedMcpServer(mcpServer)) return [];
 
-        const result = await mcpServer.client.client.listResources();
-        const resources: ListResourceItem[] = result?.resources ?? [];
-        // Return resources without prefixes - we'll apply prefixing in combine
-        const resourceEntries: McpResourceEntry[] = resources.map(
-          (resource) => ({
-            server: mcpServer,
-            resource,
-          }),
-        );
-        return resourceEntries;
+        // Skip if server doesn't support resources capability
+        if (!serverSupportsResources(mcpServer)) return [];
+
+        try {
+          const result = await mcpServer.client.client.listResources();
+          const resources: ListResourceItem[] = result?.resources ?? [];
+          // Return resources without prefixes - we'll apply prefixing in combine
+          const resourceEntries: McpResourceEntry[] = resources.map(
+            (resource) => ({
+              server: mcpServer,
+              resource,
+            }),
+          );
+          return resourceEntries;
+        } catch (error) {
+          // Gracefully handle MethodNotFound - server doesn't support this method
+          if (isMethodNotFoundError(error)) return [];
+          throw error;
+        }
       },
     })),
     // Dynamic resource source query (if exists) - search IS in queryKey to allow dynamic generation
