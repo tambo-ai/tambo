@@ -1,7 +1,7 @@
 # yaml-language-server: $schema=http://json.schemastore.org/github-action.json
 
 name: "Validate docs.tambo.co links"
-description: Validate docs.tambo.co URLs referenced in the repo against the docs MDX file structure.
+description: Validate docs.tambo.co URLs referenced in tracked repo files against the docs MDX file structure.
 
 runs:
   using: "composite"
