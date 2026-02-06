@@ -27,6 +27,7 @@ import {
 import { useTamboV1Config } from "../providers/tambo-v1-provider";
 import { useTamboContextHelpers } from "../../providers/tambo-context-helpers-provider";
 import type { InputMessage } from "../types/message";
+import type { ToolChoice } from "../types/tool-choice";
 import {
   isPlaceholderThreadId,
   type StreamAction,
@@ -250,6 +251,15 @@ export interface SendMessageOptions {
    * Enable debug logging for the stream
    */
   debug?: boolean;
+
+  /**
+   * How the model should use tools. Defaults to "auto".
+   * - "auto": Model decides whether to use tools
+   * - "required": Model must use at least one tool
+   * - "none": Model cannot use tools
+   * - { name: "toolName" }: Model must use the specified tool
+   */
+  toolChoice?: ToolChoice;
 }
 
 /**
@@ -271,6 +281,10 @@ export interface CreateRunStreamParams {
    * Merged into the message's additionalContext before sending.
    */
   additionalContext?: Record<string, unknown>;
+  /**
+   * How the model should use tools.
+   */
+  toolChoice?: ToolChoice;
 }
 
 /**
@@ -299,6 +313,7 @@ interface ExecuteToolsParams {
   runId: string;
   userKey: string | undefined;
   additionalContext?: Record<string, unknown>;
+  toolChoice?: ToolChoice;
 }
 
 /**
@@ -330,6 +345,7 @@ async function executeToolsAndContinue(
     runId,
     userKey,
     additionalContext,
+    toolChoice,
   } = params;
 
   const pendingToolCallIds = event.value.pendingToolCalls.map(
@@ -357,6 +373,7 @@ async function executeToolsAndContinue(
     availableComponents: toAvailableComponents(registry.componentList),
     tools: toAvailableTools(registry.toolRegistry),
     userKey,
+    toolChoice,
   });
 
   return { stream, toolResults };
@@ -381,6 +398,7 @@ export async function createRunStream(
     userKey,
     previousRunId,
     additionalContext,
+    toolChoice,
   } = params;
 
   // Merge helper context with any caller-provided additionalContext on the message
@@ -407,6 +425,7 @@ export async function createRunStream(
       tools: availableTools,
       userKey,
       previousRunId,
+      toolChoice,
     });
     return { stream, initialThreadId: threadId };
   } else {
@@ -416,6 +435,7 @@ export async function createRunStream(
       availableComponents,
       tools: availableTools,
       thread: userKey ? { userKey } : undefined,
+      toolChoice,
     });
     // threadId will be extracted from first event (RUN_STARTED)
     return { stream, initialThreadId: undefined };
@@ -497,7 +517,7 @@ export function useTamboV1SendMessage(threadId?: string) {
 
   return useTamboMutation({
     mutationFn: async (options: SendMessageOptions) => {
-      const { message, userMessageText, debug = false } = options;
+      const { message, userMessageText, debug = false, toolChoice } = options;
 
       // Capture pre-mutation state for auto thread name generation
       const existingThread = streamState.threadMap[apiThreadId ?? ""];
@@ -542,6 +562,7 @@ export function useTamboV1SendMessage(threadId?: string) {
         userKey,
         previousRunId,
         additionalContext,
+        toolChoice,
       });
 
       let actualThreadId = initialThreadId;
@@ -637,6 +658,7 @@ export function useTamboV1SendMessage(threadId?: string) {
               runId,
               userKey,
               additionalContext,
+              toolChoice,
             });
 
           dispatchToolResults(dispatch, actualThreadId, toolResults);

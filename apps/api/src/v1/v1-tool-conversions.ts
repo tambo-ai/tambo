@@ -5,7 +5,11 @@ import {
   ComponentContextToolMetadataDto,
   ToolParameters,
 } from "../threads/dto/generate-component.dto";
-import type { V1AvailableComponentDto, V1ToolDto } from "./dto/tool.dto";
+import type {
+  V1AvailableComponentDto,
+  V1ToolChoiceDto,
+  V1ToolDto,
+} from "./dto/tool.dto";
 
 const logger = new Logger("V1ToolConversions");
 
@@ -180,4 +184,29 @@ export function convertV1ComponentsToInternal(
   }
 
   return components.map(convertV1ComponentToInternal);
+}
+
+/**
+ * Convert a V1 toolChoice value to the internal forceToolChoice format.
+ *
+ * The internal format is a simple string: "auto", "required", "none" for
+ * keyword choices, or a tool name string for forcing a specific tool.
+ * @param toolChoice - V1 tool choice: "auto", "required", "none", or { name }
+ * @returns The forceToolChoice string, or undefined for default behavior
+ */
+export function convertV1ToolChoiceToInternal(
+  toolChoice: V1ToolChoiceDto | undefined,
+): string | undefined {
+  if (!toolChoice) {
+    return undefined;
+  }
+  if (typeof toolChoice === "string") {
+    // "auto" means default behavior, no override needed
+    if (toolChoice === "auto") {
+      return undefined;
+    }
+    return toolChoice;
+  }
+  // Named tool choice: { name: "toolName" }
+  return toolChoice.name;
 }
