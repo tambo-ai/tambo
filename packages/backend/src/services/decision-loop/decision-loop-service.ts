@@ -50,9 +50,12 @@ export interface DecisionStreamItem {
 
 const TOOL_CHOICE_KEYWORDS = ["auto", "required", "none"] as const;
 type ToolChoiceKeyword = (typeof TOOL_CHOICE_KEYWORDS)[number];
+const TOOL_CHOICE_KEYWORDS_SET: ReadonlySet<string> = new Set(
+  TOOL_CHOICE_KEYWORDS,
+);
 
 function isToolChoiceKeyword(value: string): value is ToolChoiceKeyword {
-  return (TOOL_CHOICE_KEYWORDS as readonly string[]).includes(value);
+  return TOOL_CHOICE_KEYWORDS_SET.has(value);
 }
 
 /**
@@ -70,7 +73,7 @@ function convertToolChoice(
   | "required"
   | "none"
   | { type: "function"; function: { name: string } } {
-  if (!forceToolChoice || forceToolChoice === "auto") {
+  if (!forceToolChoice) {
     return "auto";
   }
   if (isToolChoiceKeyword(forceToolChoice)) {
