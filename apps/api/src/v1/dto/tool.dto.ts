@@ -5,6 +5,8 @@ import {
   IsBoolean,
   IsNotEmpty,
   IsObject,
+  IsInt,
+  Min,
 } from "class-validator";
 
 /**
@@ -58,6 +60,18 @@ export class V1ToolDto {
   @IsOptional()
   @IsBoolean()
   strict?: boolean;
+
+  @ApiProperty({
+    description:
+      "Per-tool call limit. Overrides the project's global maxToolCallLimit for this tool.",
+    required: false,
+    minimum: 1,
+    example: 1,
+  })
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  maxCalls?: number;
 }
 
 /**

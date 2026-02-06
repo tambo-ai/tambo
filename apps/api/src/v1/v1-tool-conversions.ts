@@ -131,7 +131,9 @@ export function convertV1ToolToInternal(
   result.name = tool.name;
   result.description = tool.description;
   result.parameters = jsonSchemaToToolParameters(tool.inputSchema);
-  // V1 doesn't have maxCalls, so we don't set it (undefined = no limit)
+  if (tool.maxCalls !== undefined) {
+    result.maxCalls = tool.maxCalls;
+  }
   return result;
 }
 

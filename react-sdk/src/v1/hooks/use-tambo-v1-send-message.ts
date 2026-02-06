@@ -285,6 +285,11 @@ export interface CreateRunStreamParams {
    * How the model should use tools.
    */
   toolChoice?: ToolChoice;
+  /**
+   * Initial messages to seed the thread with when creating a new thread.
+   * Only used when threadId is undefined (new thread creation).
+   */
+  initialMessages?: InputMessage[];
 }
 
 /**
@@ -399,6 +404,7 @@ export async function createRunStream(
     previousRunId,
     additionalContext,
     toolChoice,
+    initialMessages,
   } = params;
 
   // Merge helper context with any caller-provided additionalContext on the message
@@ -429,12 +435,21 @@ export async function createRunStream(
     });
     return { stream, initialThreadId: threadId };
   } else {
-    // Create new thread
+    // Create new thread - include initialMessages if provided
+    const threadConfig: { userKey?: string; initialMessages?: InputMessage[] } =
+      {};
+    if (userKey) {
+      threadConfig.userKey = userKey;
+    }
+    if (initialMessages?.length) {
+      threadConfig.initialMessages = initialMessages;
+    }
+
     const stream = await client.threads.runs.create({
       message: messageWithContext,
       availableComponents,
       tools: availableTools,
-      thread: userKey ? { userKey } : undefined,
+      thread: Object.keys(threadConfig).length > 0 ? threadConfig : undefined,
       toolChoice,
     });
     // threadId will be extracted from first event (RUN_STARTED)
@@ -494,6 +509,7 @@ export function useTamboV1SendMessage(threadId?: string) {
     userKey,
     autoGenerateThreadName = true,
     autoGenerateNameThreshold = 3,
+    initialMessages,
   } = useTamboV1Config();
   const registry = useContext(TamboRegistryContext);
   const queryClient = useTamboQueryClient();
@@ -554,6 +570,7 @@ export function useTamboV1SendMessage(threadId?: string) {
       }
 
       // Create the run stream
+      // Include initialMessages only on first send (new thread creation)
       const { stream, initialThreadId } = await createRunStream({
         client,
         threadId: apiThreadId,
@@ -563,6 +580,7 @@ export function useTamboV1SendMessage(threadId?: string) {
         previousRunId,
         additionalContext,
         toolChoice,
+        initialMessages: isNewThread ? initialMessages : undefined,
       });
 
       let actualThreadId = initialThreadId;

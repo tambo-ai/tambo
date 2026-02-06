@@ -43,6 +43,7 @@ jest.mock("@tambo-ai-cloud/db", () => ({
     markRunCancelled: jest.fn(),
     markMessageCancelled: jest.fn(),
     markLatestAssistantMessageCancelled: jest.fn(),
+    addMessage: jest.fn(),
     releaseRunLockIfCurrent: jest.fn(),
     updateRunStatus: jest.fn(),
     updateThreadRunStatus: jest.fn(),
@@ -487,15 +488,37 @@ describe("V1Service", () => {
       expect(result.metadata).toEqual({ custom: "data" });
     });
 
-    it("should reject initialMessages for now", async () => {
-      await expect(
-        service.createThread("prj_123", "user_456", {
-          initialMessages: [
-            { role: "user", content: [{ type: "text", text: "Hi" }] },
-          ],
+    it("should save initialMessages when provided", async () => {
+      mockOperations.createThread.mockResolvedValue(mockThread);
+      mockOperations.addMessage.mockResolvedValue(mockMessage);
+
+      const result = await service.createThread("prj_123", "user_456", {
+        initialMessages: [
+          { role: "user", content: [{ type: "text", text: "Hi" }] },
+        ],
+      });
+
+      expect(mockOperations.createThread).toHaveBeenCalled();
+      expect(mockOperations.addMessage).toHaveBeenCalledWith(
+        mockDb,
+        "thr_123",
+        expect.objectContaining({
+          role: "user",
+          content: expect.arrayContaining([
+            expect.objectContaining({ type: "text", text: "Hi" }),
+          ]),
         }),
-      ).rejects.toThrow(BadRequestException);
-      expect(mockOperations.createThread).not.toHaveBeenCalled();
+      );
+      expect(result.id).toBe("thr_123");
+    });
+
+    it("should not call addMessage when no initialMessages provided", async () => {
+      mockOperations.createThread.mockResolvedValue(mockThread);
+
+      await service.createThread("prj_123", "user_456", {});
+
+      expect(mockOperations.createThread).toHaveBeenCalled();
+      expect(mockOperations.addMessage).not.toHaveBeenCalled();
     });
   });
 
