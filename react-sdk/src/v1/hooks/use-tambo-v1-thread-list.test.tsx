@@ -87,7 +87,7 @@ describe("useTamboV1ThreadList", () => {
 
     expect(mockThreadsApi.list).toHaveBeenCalledWith({
       userKey: "test-context",
-      limit: "10",
+      limit: 10,
     });
   });
 

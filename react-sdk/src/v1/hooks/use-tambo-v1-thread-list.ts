@@ -7,7 +7,10 @@
  */
 
 import { useQuery, type UseQueryOptions } from "@tanstack/react-query";
-import type { ThreadListResponse } from "@tambo-ai/typescript-sdk/resources/threads/threads";
+import type {
+  ThreadListParams,
+  ThreadListResponse,
+} from "@tambo-ai/typescript-sdk/resources/threads/threads";
 import { useTamboClient } from "../../providers/tambo-client-provider";
 import { useTamboV1Config } from "../providers/tambo-v1-provider";
 
@@ -23,14 +26,33 @@ export interface ThreadListOptions {
   userKey?: string;
 
   /**
-   * Maximum number of threads to return (as string per SDK)
+   * Maximum number of threads to return
    */
-  limit?: string;
+  limit?: number | string;
 
   /**
    * Pagination cursor for fetching next page
    */
   cursor?: string;
+}
+
+function normalizeThreadListOptions(
+  listOptions: ThreadListOptions | undefined,
+): ThreadListParams | undefined {
+  if (!listOptions) return undefined;
+
+  const rawLimit = listOptions.limit;
+  const limit = typeof rawLimit === "string" ? Number(rawLimit) : rawLimit;
+
+  if (typeof limit === "number" && !Number.isFinite(limit)) {
+    throw new Error(`Invalid thread list limit: ${rawLimit}`);
+  }
+
+  return {
+    userKey: listOptions.userKey,
+    cursor: listOptions.cursor,
+    limit,
+  };
 }
 
 /**
@@ -49,7 +71,7 @@ export interface ThreadListOptions {
  * function ThreadList({ userKey }: { userKey?: string }) {
  *   const { data, isLoading, isError } = useTamboV1ThreadList({
  *     userKey,
- *     limit: "20",
+ *     limit: 20,
  *   });
  *
  *   if (isLoading) return <Spinner />;
@@ -84,9 +106,11 @@ export function useTamboV1ThreadList(
       ? { ...listOptions, userKey: listOptions?.userKey ?? contextUserKey }
       : listOptions;
 
+  const params = normalizeThreadListOptions(effectiveOptions);
+
   return useQuery({
-    queryKey: ["v1-threads", "list", effectiveOptions],
-    queryFn: async () => await client.threads.list(effectiveOptions),
+    queryKey: ["v1-threads", "list", params],
+    queryFn: async () => await client.threads.list(params),
     staleTime: 5000, // Consider stale after 5s
     ...queryOptions,
   });
