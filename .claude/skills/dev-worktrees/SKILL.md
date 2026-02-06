@@ -102,9 +102,11 @@ Check if `<main-repo>/.claude/settings.local.json` exists.
 
 If it exists:
 
-Implementations must ensure `<main-repo>` and `<worktree-path>` are fully resolved absolute paths (e.g., as returned by `git worktree list`). If not, stop and resolve them before continuing. Prefer sourcing these paths directly from `git worktree list` output, but other mechanisms are fine if they produce correct absolute paths.
+Implementations must ensure `<main-repo>` and `<worktree-path>` are fully resolved absolute paths (e.g., as returned by `git worktree list`). If not, stop and resolve them before continuing. Prefer sourcing these paths directly from `git worktree list` output, but other mechanisms are fine if they produce correct absolute paths. If the implementation cannot reliably obtain correct absolute paths, fail fast with a clear error and abort worktree setup.
 
 Run these commands in a Bash-compatible shell.
+
+Example Bash implementation (other implementations are fine if they match the behavior defined below):
 
 ```bash
 mkdir -p "<worktree-path>/.claude"
@@ -113,11 +115,17 @@ TARGET="<main-repo>/.claude/settings.local.json" # must be absolute
 LINK="<worktree-path>/.claude/settings.local.json" # must be absolute
 
 if [ ! -e "$TARGET" ]; then
-  : # settings file missing; skip silently
+  claudeSettingsStatus="skipped (missing settings)"
 elif [ -e "$LINK" ] && [ ! -L "$LINK" ]; then
   echo "Warning: $LINK exists and is not a symlink; skipping settings link" >&2
+  claudeSettingsStatus="skipped (conflict)"
 else
-  ln -sf "$TARGET" "$LINK"
+  if ln -sf "$TARGET" "$LINK"; then
+    claudeSettingsStatus="symlinked"
+  else
+    echo "Failed to create symlink for Claude settings; aborting" >&2
+    exit 1
+  fi
 fi
 ```
 
@@ -126,12 +134,15 @@ Behavior:
 - If the settings file doesn't exist, skip silently.
 - If a regular file or directory exists at the link path, emit a warning to stderr and do not modify it.
 - Otherwise (including when a symlink already exists at the link path), create (or overwrite) the symlink to point to the main repo settings file (i.e., behave like `ln -sf`).
+- If the symlink command fails for any reason (permissions, filesystem error, etc.), surface the error and abort without printing the final summary.
 
-Record the outcome for the summary's `claude settings:` line as exactly one of: `symlinked`, `skipped (missing settings)`, or `skipped (conflict)`. Implementations must not introduce additional values here or append extra detail. These values are intended to be machine-parseable; treat them as a fixed enum and don't add new variants without updating dependent tooling. Track this in a variable (e.g., `claudeSettingsStatus`) and reuse it when printing the final summary.
+Record the outcome for the summary's `claude settings:` line as exactly one of: `symlinked`, `skipped (missing settings)`, or `skipped (conflict)`. Implementations must not introduce additional values here or append extra detail. These values are intended to be machine-parseable; treat them as a fixed enum and don't add new variants without updating dependent tooling. If this step errors, abort (as described above) rather than inventing a new status. Track this in a variable (e.g., `claudeSettingsStatus`) and reuse it when printing the final summary.
 
 ### 6. Install Dependencies
 
 Implementations must execute `install_command` (default: `npm install`) as-is with `<worktree-path>` as the current working directory. Include any desired flags in the preference value (no extra arguments are added automatically).
+
+If you previously relied on `npm install --prefix`, include `--prefix` in your `install_command` value.
 
 ```bash
 (cd "<worktree-path>" && <install_command>)
@@ -150,4 +161,4 @@ Workspace ready:
   claude settings: <claudeSettingsStatus>
 ```
 
-`<claudeSettingsStatus>` is exactly one of: `symlinked`, `skipped (missing settings)`, or `skipped (conflict)` (see status definition above).
+`<claudeSettingsStatus>` is the status value from step 5 (see status definition above).
