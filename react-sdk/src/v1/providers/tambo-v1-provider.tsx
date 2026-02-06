@@ -7,6 +7,7 @@
  * - TamboClientProvider: API client and authentication
  * - TamboRegistryProvider: Component and tool registration
  * - TamboContextHelpersProvider: Context helper functions
+ * - TamboContextAttachmentProvider: Single-message context attachments
  * - TamboInteractableProvider: Interactive component tracking
  * - TamboV1StreamProvider: Streaming state management
  *
@@ -27,6 +28,7 @@ import {
   TamboRegistryProvider,
   type TamboRegistryProviderProps,
 } from "../../providers/tambo-registry-provider";
+import { TamboContextAttachmentProvider } from "../../providers/tambo-context-attachment-provider";
 import { TamboContextHelpersProvider } from "../../providers/tambo-context-helpers-provider";
 import { TamboInteractableProvider } from "../../providers/tambo-interactable-provider";
 import type { ContextHelpers } from "../../context-helpers";
@@ -244,15 +246,17 @@ export function TamboV1Provider({
         getResource={getResource}
       >
         <TamboContextHelpersProvider contextHelpers={contextHelpers}>
-          <TamboInteractableProvider>
-            <TamboV1ConfigContext.Provider value={config}>
-              <TamboV1StreamProvider>
-                <TamboV1ThreadInputProvider>
-                  {children}
-                </TamboV1ThreadInputProvider>
-              </TamboV1StreamProvider>
-            </TamboV1ConfigContext.Provider>
-          </TamboInteractableProvider>
+          <TamboContextAttachmentProvider>
+            <TamboInteractableProvider>
+              <TamboV1ConfigContext.Provider value={config}>
+                <TamboV1StreamProvider>
+                  <TamboV1ThreadInputProvider>
+                    {children}
+                  </TamboV1ThreadInputProvider>
+                </TamboV1StreamProvider>
+              </TamboV1ConfigContext.Provider>
+            </TamboInteractableProvider>
+          </TamboContextAttachmentProvider>
         </TamboContextHelpersProvider>
       </TamboRegistryProvider>
     </TamboClientProvider>
