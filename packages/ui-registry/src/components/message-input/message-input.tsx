@@ -426,7 +426,7 @@ const MessageInputPlainTextarea = ({
       {({
         value,
         setValue,
-        handleSubmit,
+        submitMessage,
         disabled,
         addImage,
         images,
@@ -442,7 +442,7 @@ const MessageInputPlainTextarea = ({
           if (e.key === "Enter" && !e.shiftKey) {
             e.preventDefault();
             if (value.trim()) {
-              await handleSubmit(e);
+              await submitMessage();
             }
           }
         };

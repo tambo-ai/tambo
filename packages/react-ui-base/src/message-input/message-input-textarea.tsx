@@ -26,7 +26,9 @@ export interface MessageInputTextareaRenderProps {
   value: string;
   /** Update the input value */
   setValue: (value: string) => void;
-  /** Handle form submission */
+  /** Submit the current message without requiring a DOM event */
+  submitMessage: () => Promise<void>;
+  /** Handle form submission (thin wrapper around submitMessage) */
   handleSubmit: (e: React.FormEvent) => Promise<void>;
   /** Whether the input is disabled */
   disabled: boolean;
@@ -100,6 +102,7 @@ export const MessageInputTextarea = React.forwardRef<
     const {
       value,
       setValue,
+      submitMessage,
       handleSubmit,
       editorRef,
       isIdle,
@@ -134,6 +137,7 @@ export const MessageInputTextarea = React.forwardRef<
     const renderProps: MessageInputTextareaRenderProps = {
       value,
       setValue,
+      submitMessage,
       handleSubmit,
       disabled,
       placeholder,

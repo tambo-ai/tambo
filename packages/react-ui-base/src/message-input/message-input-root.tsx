@@ -101,72 +101,76 @@ export const MessageInputRoot = React.forwardRef<
     }
   }, [value, thread.id]);
 
+  const submitMessage = React.useCallback(async () => {
+    if ((!value.trim() && images.length === 0) || isSubmitting) return;
+
+    // Clear any previous errors
+    setSubmitError(null);
+    setImageError(null);
+    setDisplayValue("");
+    storeValueInSessionStorage(thread.id);
+    setIsSubmitting(true);
+
+    // Extract resource names directly from editor at submit time to ensure we have the latest
+    let latestResourceNames: Record<string, string> = {};
+    const editor = editorRef.current;
+    if (editor) {
+      const extracted = editor.getTextWithResourceURIs();
+      latestResourceNames = extracted.resourceNames;
+    }
+
+    const imageIdsAtSubmitTime = images.map((image) => image.id);
+
+    try {
+      await submit({
+        streamResponse: true,
+        resourceNames: latestResourceNames,
+      });
+      setValue("");
+      // Clear only the images that were staged when submission started so
+      // any images added while the request was in-flight are preserved.
+      if (imageIdsAtSubmitTime.length > 0) {
+        imageIdsAtSubmitTime.forEach((id) => removeImage(id));
+      }
+      // Refocus the editor after a successful submission
+      setTimeout(() => {
+        editorRef.current?.focus();
+      }, 0);
+    } catch (submitErr) {
+      console.error("Failed to submit message:", submitErr);
+      setDisplayValue(value);
+      // On submit failure, also clear image error
+      setImageError(null);
+      setSubmitError(
+        submitErr instanceof Error
+          ? submitErr.message
+          : "Failed to send message. Please try again.",
+      );
+
+      // Cancel the thread to reset loading state
+      await cancel();
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [
+    value,
+    submit,
+    setValue,
+    setDisplayValue,
+    setSubmitError,
+    cancel,
+    isSubmitting,
+    images,
+    removeImage,
+    thread.id,
+  ]);
+
   const handleSubmit = React.useCallback(
     async (e: React.FormEvent) => {
       e.preventDefault();
-      if ((!value.trim() && images.length === 0) || isSubmitting) return;
-
-      // Clear any previous errors
-      setSubmitError(null);
-      setImageError(null);
-      setDisplayValue("");
-      storeValueInSessionStorage(thread.id);
-      setIsSubmitting(true);
-
-      // Extract resource names directly from editor at submit time to ensure we have the latest
-      let latestResourceNames: Record<string, string> = {};
-      const editor = editorRef.current;
-      if (editor) {
-        const extracted = editor.getTextWithResourceURIs();
-        latestResourceNames = extracted.resourceNames;
-      }
-
-      const imageIdsAtSubmitTime = images.map((image) => image.id);
-
-      try {
-        await submit({
-          streamResponse: true,
-          resourceNames: latestResourceNames,
-        });
-        setValue("");
-        // Clear only the images that were staged when submission started so
-        // any images added while the request was in-flight are preserved.
-        if (imageIdsAtSubmitTime.length > 0) {
-          imageIdsAtSubmitTime.forEach((id) => removeImage(id));
-        }
-        // Refocus the editor after a successful submission
-        setTimeout(() => {
-          editorRef.current?.focus();
-        }, 0);
-      } catch (submitErr) {
-        console.error("Failed to submit message:", submitErr);
-        setDisplayValue(value);
-        // On submit failure, also clear image error
-        setImageError(null);
-        setSubmitError(
-          submitErr instanceof Error
-            ? submitErr.message
-            : "Failed to send message. Please try again.",
-        );
-
-        // Cancel the thread to reset loading state
-        await cancel();
-      } finally {
-        setIsSubmitting(false);
-      }
+      await submitMessage();
     },
-    [
-      value,
-      submit,
-      setValue,
-      setDisplayValue,
-      setSubmitError,
-      cancel,
-      isSubmitting,
-      images,
-      removeImage,
-      thread.id,
-    ],
+    [submitMessage],
   );
 
   const handleDragEnter = React.useCallback((e: React.DragEvent) => {
@@ -253,6 +257,7 @@ export const MessageInputRoot = React.forwardRef<
     () => ({
       value: displayValue,
       setValue: handleSetValue,
+      submitMessage,
       submit,
       handleSubmit,
       isPending: isPending ?? isSubmitting,
@@ -276,6 +281,7 @@ export const MessageInputRoot = React.forwardRef<
     [
       displayValue,
       handleSetValue,
+      submitMessage,
       submit,
       handleSubmit,
       isPending,

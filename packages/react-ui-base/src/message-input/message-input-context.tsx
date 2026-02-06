@@ -110,12 +110,14 @@ export interface MessageInputContextValue {
   value: string;
   /** Update the input value */
   setValue: (value: string) => void;
+  /** Submit the current message without requiring a DOM event */
+  submitMessage: () => Promise<void>;
   /** Submit the message with options */
   submit: (options: {
     streamResponse?: boolean;
     resourceNames: Record<string, string>;
   }) => Promise<void>;
-  /** Handle form submission event */
+  /** Handle form submission event (thin wrapper around submitMessage) */
   handleSubmit: (e: React.FormEvent) => Promise<void>;
   /** Whether a submission is in progress */
   isPending: boolean;
