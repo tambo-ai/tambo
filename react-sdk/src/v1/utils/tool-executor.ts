@@ -11,6 +11,7 @@ import type {
   TextContent,
   ResourceContent,
 } from "@tambo-ai/typescript-sdk/resources/threads/threads";
+import type { ToolCallTracker } from "./tool-call-tracker";
 
 /**
  * Pending tool call from the stream accumulator
@@ -18,6 +19,39 @@ import type {
 export interface PendingToolCall {
   name: string;
   input: Record<string, unknown>;
+}
+
+/**
+ * Execute a streamable tool call during streaming with pre-parsed partial args.
+ *
+ * Called on each TOOL_CALL_ARGS event for tools annotated with
+ * `tamboStreamableHint: true`. Enables incremental UI updates while
+ * the model is still generating arguments.
+ *
+ * Errors are caught silently — streaming tool execution is non-fatal since
+ * the final execution via `awaiting_input` is what matters.
+ * @param toolCallId - The tool call ID being accumulated
+ * @param parsedArgs - Pre-parsed partial JSON args
+ * @param toolTracker - Tracker holding pending tool call state
+ * @param toolRegistry - Record of tool name to tool definition
+ */
+export async function executeStreamableToolCall(
+  toolCallId: string,
+  parsedArgs: Record<string, unknown>,
+  toolTracker: ToolCallTracker,
+  toolRegistry: Record<string, TamboTool>,
+): Promise<void> {
+  const accumulating = toolTracker.getAccumulatingToolCall(toolCallId);
+  if (!accumulating) return;
+
+  const tool = toolRegistry[accumulating.name];
+  if (!tool?.annotations?.tamboStreamableHint) return;
+
+  try {
+    await tool.tool(parsedArgs);
+  } catch {
+    // Tool execution error during streaming is non-fatal
+  }
 }
 
 /**
