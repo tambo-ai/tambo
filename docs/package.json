@@ -41,7 +41,7 @@
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.18",
     "@types/mdx": "^2.0.13",
-    "@types/node": "22.19.7",
+    "@types/node": "22.19.8",
     "@types/react": "^18.3.23",
     "@types/react-dom": "^18.3.7",
     "clsx": "^2.1.1",

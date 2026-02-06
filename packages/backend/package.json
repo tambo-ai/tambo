@@ -60,7 +60,7 @@
     "@types/jest": "^30.0.0",
     "@types/json-schema": "^7.0.15",
     "@types/mime-types": "^3.0.1",
-    "@types/node": "^22.19.7",
+    "@types/node": "^22.19.8",
     "jest": "^30.2.0",
     "prettier-2": "npm:prettier@^2",
     "ts-jest": "^29.4.6",
