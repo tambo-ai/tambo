@@ -121,7 +121,7 @@ export {
 
 export { useTamboV1 } from "./hooks/use-tambo-v1";
 
-export type { ToolChoice } from "./hooks/use-tambo-v1-send-message";
+export type { ToolChoice } from "./types/tool-choice";
 
 export { useTamboV1ThreadInput } from "./hooks/use-tambo-v1-thread-input";
 

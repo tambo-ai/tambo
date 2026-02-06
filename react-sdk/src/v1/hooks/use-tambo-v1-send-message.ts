@@ -27,6 +27,7 @@ import {
 import { useTamboV1Config } from "../providers/tambo-v1-provider";
 import { useTamboContextHelpers } from "../../providers/tambo-context-helpers-provider";
 import type { InputMessage } from "../types/message";
+import type { ToolChoice } from "../types/tool-choice";
 import {
   isPlaceholderThreadId,
   type StreamAction,
@@ -197,16 +198,6 @@ async function generateThreadName(
 /**
  * Options for sending a message
  */
-/**
- * Tool choice type matching the V1 API format.
- * Controls how the model selects tools during generation.
- */
-export type ToolChoice =
-  | "auto" // Model decides (default)
-  | "required" // Must use at least one tool
-  | "none" // Cannot use tools
-  | { name: string }; // Must use specific tool
-
 export interface SendMessageOptions {
   /**
    * The message to send

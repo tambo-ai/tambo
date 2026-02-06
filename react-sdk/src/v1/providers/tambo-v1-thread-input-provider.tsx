@@ -24,11 +24,9 @@ import {
   useTamboMutation,
   type UseTamboMutationResult,
 } from "../../hooks/react-query-hooks";
-import {
-  useTamboV1SendMessage,
-  type ToolChoice,
-} from "../hooks/use-tambo-v1-send-message";
+import { useTamboV1SendMessage } from "../hooks/use-tambo-v1-send-message";
 import type { InputMessage } from "../types/message";
+import type { ToolChoice } from "../types/tool-choice";
 import { isPlaceholderThreadId } from "../utils/event-accumulator";
 import { useStreamDispatch, useStreamState } from "./tambo-v1-stream-context";
 
