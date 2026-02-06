@@ -370,7 +370,7 @@ describe("tool-executor", () => {
       );
     });
 
-    it("catches tool execution errors without throwing", async () => {
+    it("logs and swallows tool execution errors during streaming", async () => {
       const warnSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
       const registry: Record<string, TamboTool> = {
         write_story: {
