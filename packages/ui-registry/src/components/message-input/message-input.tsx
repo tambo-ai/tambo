@@ -68,6 +68,8 @@ const DictationButton = () => {
   );
 };
 
+const noop = () => {};
+
 // Re-export provider interfaces from base
 export type { PromptProvider, ResourceProvider };
 
@@ -331,7 +333,7 @@ const MessageInputTextarea = ({
               resources={resourceItems}
               onSearchPrompts={setPromptSearch}
               prompts={promptItems}
-              onResourceSelect={onResourceSelect ?? (() => {})}
+              onResourceSelect={onResourceSelect ?? noop}
               onPromptSelect={handlePromptSelect}
             />
           </>
