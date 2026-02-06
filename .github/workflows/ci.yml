@@ -40,26 +40,37 @@ jobs:
 
       - name: Validate docs.tambo.co links
         run: |
-          # Extract all docs.tambo.co URLs and validate against MDX file structure
-          broken=""
-          for url in $(grep -rho 'https://docs\.tambo\.co/[^"'"'"'`)\s>]*' --include='*.ts' --include='*.tsx' --include='*.md' --include='*.mdx' . 2>/dev/null | sort -u); do
-            path="${url#https://docs.tambo.co}"
-            path="${path%%#*}"  # strip hash
-            path="${path%/}"    # strip trailing slash
+          set -euo pipefail
 
-            # Skip static files
+          broken=0
+
+          while IFS= read -r url; do
+            path="${url#https://docs.tambo.co}"
+            path="${path%%#*}" # strip hash
+            path="${path%/}" # strip trailing slash
+
             case "$path" in
               /llms.txt|/llms-full.txt|/sitemap.xml|/sitemap-0.xml) continue ;;
             esac
 
-            # Check if MDX file exists
             if [ ! -f "docs/content/docs${path}.mdx" ] && [ ! -f "docs/content/docs${path}/index.mdx" ]; then
-              broken="$broken\n  $url"
+              broken=1
+              echo "::error::Broken docs.tambo.co link: $url"
             fi
-          done
+          done < <(
+            (
+              (
+                grep -rhoE 'https://docs\.tambo\.co/[^"'"'"'`)}\>[:space:]]+' \
+                  --include='*.ts' \
+                  --include='*.tsx' \
+                  --include='*.md' \
+                  --include='*.mdx' \
+                  . 2>/dev/null || true
+              ) | sort -u
+            )
+          )
 
-          if [ -n "$broken" ]; then
-            echo "::error::Broken docs.tambo.co links found:$broken"
+          if [ "$broken" -ne 0 ]; then
             exit 1
           fi
 
