@@ -21,6 +21,45 @@ describe("SdkVersionMiddleware", () => {
     expect(next).toHaveBeenCalled();
   });
 
+  it("should trim whitespace from header value", () => {
+    const request = {
+      get: jest.fn().mockReturnValue("  1.2.3  "),
+    } as unknown as Request;
+    const response = {} as Response;
+    const next = jest.fn();
+
+    middleware.use(request, response, next);
+
+    expect(request[SdkVersion]).toBe("1.2.3");
+    expect(next).toHaveBeenCalled();
+  });
+
+  it("should not set SdkVersion on request when header value is not a valid version", () => {
+    const request = {
+      get: jest.fn().mockReturnValue("not-a-version"),
+    } as unknown as Request;
+    const response = {} as Response;
+    const next = jest.fn();
+
+    middleware.use(request, response, next);
+
+    expect(request[SdkVersion]).toBeUndefined();
+    expect(next).toHaveBeenCalled();
+  });
+
+  it("should not set SdkVersion on request when header value exceeds max length", () => {
+    const request = {
+      get: jest.fn().mockReturnValue(`1.2.3-${"a".repeat(60)}`),
+    } as unknown as Request;
+    const response = {} as Response;
+    const next = jest.fn();
+
+    middleware.use(request, response, next);
+
+    expect(request[SdkVersion]).toBeUndefined();
+    expect(next).toHaveBeenCalled();
+  });
+
   it("should not set SdkVersion on request when header is absent", () => {
     const request = {
       get: jest.fn().mockReturnValue(undefined),
