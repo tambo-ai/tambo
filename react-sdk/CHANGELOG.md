@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.74.1](https://github.com/tambo-ai/tambo/compare/react-v0.74.0...react-v0.74.1) (2026-02-06)
+
+
+### Bug Fixes
+
+* **api,react-sdk:** prevent MCP "Method not found" error when no servers configured ([#2223](https://github.com/tambo-ai/tambo/issues/2223)) ([1363bde](https://github.com/tambo-ai/tambo/commit/1363bde8668012734c5fb83cacbe6792352c2c89))
+
 ## [0.74.0](https://github.com/tambo-ai/tambo/compare/react-v0.73.1...react-v0.74.0) (2026-02-06)
 
 
