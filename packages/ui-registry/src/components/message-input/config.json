@@ -6,7 +6,7 @@
     "class-variance-authority",
     "@radix-ui/react-popover",
     "@tambo-ai/react",
-    "@tambo-ai/react-ui-base",
+    "@tambo-ai/react-ui-base@next",
     "@tiptap/extension-document",
     "@tiptap/extension-hard-break",
     "@tiptap/extension-mention",

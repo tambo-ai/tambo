@@ -28,6 +28,7 @@ jobs:
       apps/web--release_created: ${{ steps.release.outputs['apps/web--release_created'] }}
       apps/api--release_created: ${{ steps.release.outputs['apps/api--release_created'] }}
       packages/react-ui-base--release_created: ${{ steps.release.outputs['packages/react-ui-base--release_created'] }}
+
       tag_name: ${{ steps.release.outputs.tag_name }}
     steps:
       - name: Release Please
@@ -148,7 +149,7 @@ jobs:
 
       - name: Publish @tambo-ai/react-ui-base to npm
         working-directory: ./packages/react-ui-base
-        run: npm publish --access public
+        run: npm publish --access public --tag next
 
   # Web App Deployment
   deploy-web:
