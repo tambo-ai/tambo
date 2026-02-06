@@ -24,7 +24,10 @@ import {
   useTamboMutation,
   type UseTamboMutationResult,
 } from "../../hooks/react-query-hooks";
-import { useTamboV1SendMessage } from "../hooks/use-tambo-v1-send-message";
+import {
+  useTamboV1SendMessage,
+  type ToolChoice,
+} from "../hooks/use-tambo-v1-send-message";
 import type { InputMessage } from "../types/message";
 import { isPlaceholderThreadId } from "../utils/event-accumulator";
 import { useStreamDispatch, useStreamState } from "./tambo-v1-stream-context";
@@ -78,6 +81,15 @@ export interface SubmitOptions {
    * Enable debug logging for the stream
    */
   debug?: boolean;
+
+  /**
+   * How the model should use tools. Defaults to "auto".
+   * - "auto": Model decides whether to use tools
+   * - "required": Model must use at least one tool
+   * - "none": Model cannot use tools
+   * - { name: "toolName" }: Model must use the specified tool
+   */
+  toolChoice?: ToolChoice;
 }
 
 /**
@@ -185,6 +197,7 @@ export function TamboV1ThreadInputProvider({ children }: PropsWithChildren) {
         },
         userMessageText: trimmedValue, // Pass text for optimistic display
         debug: options?.debug,
+        toolChoice: options?.toolChoice,
       });
 
       // Clear input and images after successful submission

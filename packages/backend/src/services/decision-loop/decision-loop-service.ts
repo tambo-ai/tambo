@@ -48,6 +48,32 @@ export interface DecisionStreamItem {
   aguiEvents: BaseEvent[];
 }
 
+const TOOL_CHOICE_KEYWORDS = new Set(["auto", "required", "none"]);
+
+/**
+ * Converts a forceToolChoice string to the OpenAI tool_choice parameter format.
+ *
+ * Supports keyword values ("auto", "required", "none") which pass through
+ * directly, and tool name strings which are wrapped in the function call format.
+ * @param forceToolChoice - "auto", "required", "none", a tool name, or undefined
+ * @returns OpenAI-compatible tool_choice value
+ */
+function convertToolChoice(
+  forceToolChoice: string | undefined,
+):
+  | "auto"
+  | "required"
+  | "none"
+  | { type: "function"; function: { name: string } } {
+  if (!forceToolChoice || forceToolChoice === "auto") {
+    return "auto";
+  }
+  if (forceToolChoice === "required" || forceToolChoice === "none") {
+    return forceToolChoice;
+  }
+  return { type: "function", function: { name: forceToolChoice } };
+}
+
 /**
  * Run the decision loop for processing ThreadMessages and generating component
  * decisions.
@@ -66,7 +92,8 @@ export interface DecisionStreamItem {
  * @param strictTools - Array of available tools in OpenAI format
  * @param customInstructions - Optional custom instructions to add to the system
  *   prompt
- * @param forceToolChoice - Optional tool name to force the LLM to use
+ * @param forceToolChoice - Tool choice override: "auto", "required", "none",
+ *   or a specific tool name
  * @param resourceFetchers - Map of serverKey to resource fetcher functions for
  *   fetching MCP resources
  * @returns Async iterator of component decisions
@@ -91,6 +118,7 @@ export async function* runDecisionLoop(
 
   if (
     forceToolChoice &&
+    !TOOL_CHOICE_KEYWORDS.has(forceToolChoice) &&
     !toolsWithStandardParameters.find(
       (tool) => getToolName(tool) === forceToolChoice,
     )
@@ -139,9 +167,7 @@ export async function* runDecisionLoop(
     promptTemplateName: "decision-loop",
     promptTemplateParams: systemPromptArgs,
     stream: true,
-    tool_choice: forceToolChoice
-      ? { type: "function", function: { name: forceToolChoice } }
-      : "auto",
+    tool_choice: convertToolChoice(forceToolChoice),
     abortSignal,
   });
 

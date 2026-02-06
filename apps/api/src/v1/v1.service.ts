@@ -49,6 +49,7 @@ import {
 import { V1CreateRunDto } from "./dto/run.dto";
 import {
   convertV1ComponentsToInternal,
+  convertV1ToolChoiceToInternal,
   convertV1ToolsToInternal,
 } from "./v1-tool-conversions";
 import {
@@ -685,12 +686,15 @@ export class V1Service {
           // Create abort controller to stop LLM stream on cancellation
           const abortController = new AbortController();
 
+          const forceToolChoice = convertV1ToolChoiceToInternal(dto.toolChoice);
+
           const streamingPromise = this.threadsService.advanceThread(
             { projectId, contextKey, sdkVersion },
             {
               messageToAppend,
               availableComponents,
               clientTools,
+              forceToolChoice,
             },
             threadId,
             {}, // toolCallCounts - start fresh for V1 API
