@@ -1,10 +1,10 @@
 "use client";
 
 /**
-* Thread List Query Hook for v1 API
-*
-* React Query hook for fetching a list of threads.
-*/
+ * Thread List Query Hook for v1 API
+ *
+ * React Query hook for fetching a list of threads.
+ */
 
 import type { UseQueryOptions } from "@tanstack/react-query";
 import type {
@@ -16,10 +16,10 @@ import { useTamboClient } from "../../providers/tambo-client-provider";
 import { useTamboV1Config } from "../providers/tambo-v1-provider";
 
 /**
-* Options for fetching thread list.
-* Extended from the SDK for convenience.
-* Note: userKey can also be provided via TamboV1Provider context.
-*/
+ * Options for fetching thread list.
+ * Extended from the SDK for convenience.
+ * Note: userKey can also be provided via TamboV1Provider context.
+ */
 export type ThreadListOptions = Omit<ThreadListParams, "limit"> & {
   /**
    * Maximum number of threads to return.
@@ -64,40 +64,40 @@ function normalizeThreadListOptions(
 }
 
 /**
-* Hook to fetch a list of threads.
-*
-* Uses React Query for caching and automatic refetching.
-* Threads are considered stale after 5 seconds.
-*
-* Returns the thread list directly from the SDK with no transformation.
-* Each thread includes runStatus, metadata, and all SDK fields.
-* @param listOptions - Filtering and pagination options
-* @param queryOptions - Additional React Query options
-* @returns React Query query object with thread list
-* @example
-* ```tsx
-* function ThreadList({ userKey }: { userKey?: string }) {
-*   const { data, isLoading, isError } = useTamboV1ThreadList({
-*     userKey,
-*     limit: 20,
-*   });
-*
-*   if (isLoading) return <Spinner />;
-*   if (isError) return <Error />;
-*
-*   return (
-*     <ul>
-*       {data.threads.map(thread => (
-*         <li key={thread.id}>
-*           {thread.id} - {thread.runStatus}
-*         </li>
-*       ))}
-*       {data.hasMore && <LoadMoreButton cursor={data.nextCursor} />}
-*     </ul>
-*   );
-* }
-* ```
-*/
+ * Hook to fetch a list of threads.
+ *
+ * Uses React Query for caching and automatic refetching.
+ * Threads are considered stale after 5 seconds.
+ *
+ * Returns the thread list directly from the SDK with no transformation.
+ * Each thread includes runStatus, metadata, and all SDK fields.
+ * @param listOptions - Filtering and pagination options
+ * @param queryOptions - Additional React Query options
+ * @returns React Query query object with thread list
+ * @example
+ * ```tsx
+ * function ThreadList({ userKey }: { userKey?: string }) {
+ *   const { data, isLoading, isError } = useTamboV1ThreadList({
+ *     userKey,
+ *     limit: 20,
+ *   });
+ *
+ *   if (isLoading) return <Spinner />;
+ *   if (isError) return <Error />;
+ *
+ *   return (
+ *     <ul>
+ *       {data.threads.map(thread => (
+ *         <li key={thread.id}>
+ *           {thread.id} - {thread.runStatus}
+ *         </li>
+ *       ))}
+ *       {data.hasMore && <LoadMoreButton cursor={data.nextCursor} />}
+ *     </ul>
+ *   );
+ * }
+ * ```
+ */
 export function useTamboV1ThreadList(
   listOptions?: ThreadListOptions,
   queryOptions?: Omit<
@@ -120,7 +120,9 @@ export function useTamboV1ThreadList(
     queryKey: ["v1-threads", "list", normalized.queryKeyOptions],
     queryFn: async () => {
       if (normalized.invalidLimit !== undefined) {
-        throw new Error(`Invalid thread list limit: ${normalized.invalidLimit}`);
+        throw new Error(
+          `Invalid thread list limit: ${normalized.invalidLimit}`,
+        );
       }
 
       return await client.threads.list(normalized.params);
