@@ -1,11 +1,13 @@
 import { BadRequestException } from "@nestjs/common";
 import { Request } from "express";
+import { SdkVersion } from "../middleware/sdk-version.middleware";
 import { ProjectId } from "../../projects/guards/apikey.guard";
 import { ContextKey } from "../../projects/guards/bearer-token.guard";
 
 export interface ContextInfo {
   projectId: string;
   contextKey?: string;
+  sdkVersion?: string;
 }
 
 /**
@@ -51,5 +53,6 @@ export function extractContextInfo(
   return {
     projectId,
     contextKey,
+    sdkVersion: request[SdkVersion],
   };
 }
