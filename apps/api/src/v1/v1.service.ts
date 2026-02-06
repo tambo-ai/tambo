@@ -701,7 +701,7 @@ export class V1Service {
 
           // Handle expected abort rejection when we cancel the stream
           void streamingPromise.catch((error: unknown) => {
-            if (error instanceof Error && error.message === "Aborted by SDK") {
+            if (abortController.signal.aborted) {
               this.logger.log(`LLM stream aborted for cancelled run ${runId}`);
               return;
             }

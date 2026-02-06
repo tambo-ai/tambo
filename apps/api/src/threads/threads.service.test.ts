@@ -528,16 +528,24 @@ describe("ThreadsService.advanceThread initialization", () => {
         },
       });
 
-    // Capture the abortSignal from the decision loop call
+    // Capture the abortSignal from the decision loop call and verify
+    // linking during execution (before the finally block aborts everything)
     let capturedSignal: AbortSignal | undefined;
+    let wasAbortedBeforeExternalAbort = true;
+    let wasAbortedAfterExternalAbort = false;
+    const externalController = new AbortController();
+
     __testRunDecisionLoop__.mockImplementationOnce(
       (args: { abortSignal?: AbortSignal }) => {
         capturedSignal = args.abortSignal;
+        // Check linking while still inside execution (before finally)
+        wasAbortedBeforeExternalAbort = !!capturedSignal?.aborted;
+        externalController.abort();
+        wasAbortedAfterExternalAbort = !!capturedSignal?.aborted;
         throw new Error("STOP_AFTER_INIT");
       },
     );
 
-    const externalController = new AbortController();
     await expect(
       service.advanceThread(
         projectId,
@@ -555,12 +563,11 @@ describe("ThreadsService.advanceThread initialization", () => {
 
     // An AbortSignal should have been passed to the decision loop
     expect(capturedSignal).toBeInstanceOf(AbortSignal);
-    expect(capturedSignal!.aborted).toBe(false);
 
     // The internal signal should be linked to the external one:
-    // aborting the external controller should also abort the internal signal
-    externalController.abort();
-    expect(capturedSignal!.aborted).toBe(true);
+    // before external abort, internal was not aborted; after, it was
+    expect(wasAbortedBeforeExternalAbort).toBe(false);
+    expect(wasAbortedAfterExternalAbort).toBe(true);
   });
 
   describe("Queue-based streaming behavior", () => {

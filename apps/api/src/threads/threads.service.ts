@@ -1345,15 +1345,14 @@ export class ThreadsService {
     // cancellation detection (handleAdvanceThreadStream) to sever the
     // LLM HTTP connection.
     const abortController = new AbortController();
+    const onExternalAbort = () => abortController.abort(abortSignal?.reason);
     if (abortSignal) {
       if (abortSignal.aborted) {
         abortController.abort(abortSignal.reason);
       } else {
-        abortSignal.addEventListener(
-          "abort",
-          () => abortController.abort(abortSignal.reason),
-          { once: true },
-        );
+        abortSignal.addEventListener("abort", onExternalAbort, {
+          once: true,
+        });
       }
     }
 
@@ -1570,6 +1569,12 @@ export class ThreadsService {
         Sentry.captureException(error);
       });
       throw error;
+    } finally {
+      // Clean up: remove listener to avoid leaks, and ensure the LLM
+      // HTTP connection is severed on all termination paths (success,
+      // error, or cancellation).
+      abortSignal?.removeEventListener("abort", onExternalAbort);
+      abortController.abort();
     }
   }
 
@@ -1587,7 +1592,7 @@ export class ThreadsService {
     mcpAccessToken: string | undefined,
     maxToolCallLimit: number,
     modelOptions: ModelOptions,
-    abortController?: AbortController,
+    abortController: AbortController,
   ): Promise<void> {
     const db = this.getDb();
     const logger = this.logger;
@@ -1759,7 +1764,7 @@ export class ThreadsService {
         );
         if (cancelledMessage) {
           queue.push(cancelledMessage);
-          abortController?.abort();
+          abortController.abort();
           return;
         }
 
