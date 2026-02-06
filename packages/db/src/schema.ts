@@ -608,7 +608,9 @@ export const threads = pgTable(
       // Stand-alone index on created_at for sorting/filtering by creation time.
       index("threads_created_at_idx").on(table.createdAt),
       // SDK version index for analytics/reporting queries
-      index("threads_sdk_version_idx").on(table.sdkVersion),
+      index("threads_sdk_version_idx")
+        .on(table.sdkVersion)
+        .where(sql`${table.sdkVersion} IS NOT NULL`),
       // Note: threads.current_run_id -> runs.id FK is added via migration SQL
       // to avoid circular type inference issues between threads and runs tables
     ];
@@ -756,7 +758,9 @@ export const messages = pgTable(
         table.threadId,
         table.parentMessageId,
       ),
-      index("messages_sdk_version_idx").on(table.sdkVersion),
+      index("messages_sdk_version_idx")
+        .on(table.sdkVersion)
+        .where(sql`${table.sdkVersion} IS NOT NULL`),
       // Ensure a parent belongs to the same thread by:
       // 1) creating a unique constraint on (thread_id, id)
       // 2) adding a composite FK (thread_id, parent_message_id) -> (thread_id, id)

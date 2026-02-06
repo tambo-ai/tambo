@@ -1071,6 +1071,7 @@
             }
           ],
           "isUnique": false,
+          "where": "\"messages\".\"sdk_version\" IS NOT NULL",
           "concurrently": false,
           "method": "btree",
           "with": {}
@@ -2564,6 +2565,7 @@
             }
           ],
           "isUnique": false,
+          "where": "\"threads\".\"sdk_version\" IS NOT NULL",
           "concurrently": false,
           "method": "btree",
           "with": {}
