@@ -106,7 +106,31 @@ describe("useTamboV1ThreadList", () => {
       expect(result.current.data).toEqual(mockThreads);
     });
 
-    expect(mockThreadsApi.list).toHaveBeenCalledWith(undefined);
+    expect(mockThreadsApi.list).toHaveBeenCalledTimes(1);
+    const callArg = mockThreadsApi.list.mock.calls[0]?.[0];
+    expect(callArg).toEqual(expect.any(Object));
+    expect(callArg).not.toHaveProperty("limit");
+  });
+
+  it("ignores non-finite numeric limit values", async () => {
+    mockThreadsApi.list.mockResolvedValue(mockThreads);
+
+    const { result } = renderHook(
+      () =>
+        useTamboV1ThreadList({
+          limit: Number.POSITIVE_INFINITY,
+        }),
+      { wrapper: TestWrapper },
+    );
+
+    await waitFor(() => {
+      expect(result.current.data).toEqual(mockThreads);
+    });
+
+    expect(mockThreadsApi.list).toHaveBeenCalledTimes(1);
+    const callArg = mockThreadsApi.list.mock.calls[0]?.[0];
+    expect(callArg).toEqual(expect.any(Object));
+    expect(callArg).not.toHaveProperty("limit");
   });
 
   it("handles loading state", async () => {

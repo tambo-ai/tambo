@@ -60,7 +60,7 @@ function normalizeThreadListOptions(
   })();
 
   if (userKey === undefined && cursor === undefined && limit === undefined) {
-    return undefined;
+    return {};
   }
 
   return {
