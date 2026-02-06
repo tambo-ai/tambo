@@ -394,6 +394,9 @@ describe("tool-executor", () => {
       );
 
       expect(warnSpy).toHaveBeenCalledTimes(1);
+      const warningMessage = String(warnSpy.mock.calls[0]?.[0]);
+      expect(warningMessage).toContain("write_story");
+      expect(warningMessage).toContain("call_1");
       warnSpy.mockRestore();
     });
 

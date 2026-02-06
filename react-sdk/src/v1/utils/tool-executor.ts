@@ -52,7 +52,9 @@ export async function executeStreamableToolCall(
     await tool.tool(parsedArgs);
   } catch (error) {
     console.warn(
-      `[ToolExecutor] Streamable tool "${accumulating.name}" failed during streaming (toolCallId: ${toolCallId})`,
+      `[ToolExecutor] Non-fatal error in streamable tool "${accumulating.name}" ` +
+        `(toolCallId: ${toolCallId}). This likely indicates a bug in the tool ` +
+        `implementation; fix the tool to avoid repeated warnings.`,
       error,
     );
   }
