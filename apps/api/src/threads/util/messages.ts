@@ -29,6 +29,7 @@ export async function addMessage(
   db: HydraDb,
   threadId: string,
   messageDto: MessageRequest,
+  sdkVersion?: string,
 ): Promise<ThreadMessage> {
   // Build the base message properties
   const baseMessage = {
@@ -78,7 +79,12 @@ export async function addMessage(
     };
   }
 
-  const message = await operations.addMessage(db, threadId, unsavedMessage);
+  const message = await operations.addMessage(
+    db,
+    threadId,
+    unsavedMessage,
+    sdkVersion,
+  );
 
   if (messageDto.role === MessageRole.Tool && messageDto.error) {
     //Update the previous request message with the error
@@ -101,20 +107,26 @@ export async function updateMessage(
   db: HydraDb,
   messageId: string,
   messageDto: MessageRequest,
+  sdkVersion?: string,
 ): Promise<ThreadMessageDto> {
-  const message = await operations.updateMessage(db, messageId, {
-    content: convertContentDtoToContentPart(messageDto.content),
-    componentDecision: messageDto.component ?? undefined,
-    metadata: messageDto.metadata,
-    actionType: messageDto.actionType ?? undefined,
-    toolCallRequest: messageDto.toolCallRequest,
-    toolCallId: messageDto.tool_call_id ?? undefined,
-    error: messageDto.error,
-    isCancelled: messageDto.isCancelled,
-    additionalContext: messageDto.additionalContext ?? {},
-    reasoning: messageDto.reasoning ?? undefined,
-    reasoningDurationMS: messageDto.reasoningDurationMS ?? undefined,
-  });
+  const message = await operations.updateMessage(
+    db,
+    messageId,
+    {
+      content: convertContentDtoToContentPart(messageDto.content),
+      componentDecision: messageDto.component ?? undefined,
+      metadata: messageDto.metadata,
+      actionType: messageDto.actionType ?? undefined,
+      toolCallRequest: messageDto.toolCallRequest,
+      toolCallId: messageDto.tool_call_id ?? undefined,
+      error: messageDto.error,
+      isCancelled: messageDto.isCancelled,
+      additionalContext: messageDto.additionalContext ?? {},
+      reasoning: messageDto.reasoning ?? undefined,
+      reasoningDurationMS: messageDto.reasoningDurationMS ?? undefined,
+    },
+    sdkVersion,
+  );
 
   if (messageDto.role === MessageRole.Tool && messageDto.error) {
     //Update the previous request message with the error
