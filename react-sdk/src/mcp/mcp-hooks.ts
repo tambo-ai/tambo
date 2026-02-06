@@ -1,7 +1,9 @@
 import {
+  ErrorCode,
   GetPromptResult,
   type ListPromptsResult,
   type ListResourcesResult,
+  McpError,
   type ReadResourceResult,
 } from "@modelcontextprotocol/sdk/types.js";
 import { UseQueryResult } from "@tanstack/react-query";
@@ -14,6 +16,14 @@ import {
   type McpServer,
   useTamboMcpServers,
 } from "./tambo-mcp-provider";
+
+/**
+ * Check if an error is an MCP MethodNotFound error (-32601).
+ * This error occurs when a server doesn't support a particular method.
+ */
+function isMethodNotFoundError(error: unknown): boolean {
+  return error instanceof McpError && error.code === ErrorCode.MethodNotFound;
+}
 
 /**
  * Check if an MCP server supports listing prompts.
@@ -121,14 +131,20 @@ export function useTamboMcpPromptList(search?: string) {
         // Skip if server doesn't support prompts capability
         if (!serverSupportsPrompts(mcpServer)) return [];
 
-        const result = await mcpServer.client.client.listPrompts();
-        const prompts: ListPromptItem[] = result?.prompts ?? [];
-        // Return prompts without prefixes - we'll apply prefixing in combine
-        const promptsEntries = prompts.map((prompt) => ({
-          server: mcpServer,
-          prompt,
-        }));
-        return promptsEntries;
+        try {
+          const result = await mcpServer.client.client.listPrompts();
+          const prompts: ListPromptItem[] = result?.prompts ?? [];
+          // Return prompts without prefixes - we'll apply prefixing in combine
+          const promptsEntries = prompts.map((prompt) => ({
+            server: mcpServer,
+            prompt,
+          }));
+          return promptsEntries;
+        } catch (error) {
+          // Gracefully handle MethodNotFound - server doesn't support this method
+          if (isMethodNotFoundError(error)) return [];
+          throw error;
+        }
       },
     })),
     combine: (results) => {
@@ -303,16 +319,22 @@ export function useTamboMcpResourceList(search?: string) {
         // Skip if server doesn't support resources capability
         if (!serverSupportsResources(mcpServer)) return [];
 
-        const result = await mcpServer.client.client.listResources();
-        const resources: ListResourceItem[] = result?.resources ?? [];
-        // Return resources without prefixes - we'll apply prefixing in combine
-        const resourceEntries: McpResourceEntry[] = resources.map(
-          (resource) => ({
-            server: mcpServer,
-            resource,
-          }),
-        );
-        return resourceEntries;
+        try {
+          const result = await mcpServer.client.client.listResources();
+          const resources: ListResourceItem[] = result?.resources ?? [];
+          // Return resources without prefixes - we'll apply prefixing in combine
+          const resourceEntries: McpResourceEntry[] = resources.map(
+            (resource) => ({
+              server: mcpServer,
+              resource,
+            }),
+          );
+          return resourceEntries;
+        } catch (error) {
+          // Gracefully handle MethodNotFound - server doesn't support this method
+          if (isMethodNotFoundError(error)) return [];
+          throw error;
+        }
       },
     })),
     // Dynamic resource source query (if exists) - search IS in queryKey to allow dynamic generation

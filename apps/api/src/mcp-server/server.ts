@@ -51,7 +51,9 @@ export async function createMcpServer(
       version: "1.0.0",
     },
     {
-      capabilities: hasClients ? { prompts: { listChanged: true } } : {},
+      capabilities: hasClients
+        ? { prompts: { listChanged: true }, resources: { listChanged: true } }
+        : {},
       // Enable notification debouncing for specific methods
       debouncedNotificationMethods: [
         "notifications/tools/list_changed",
@@ -109,7 +111,9 @@ export async function createSessionlessMcpServer(
       version: "1.0.0",
     },
     {
-      capabilities: hasClients ? { prompts: { listChanged: true } } : {},
+      capabilities: hasClients
+        ? { prompts: { listChanged: true }, resources: { listChanged: true } }
+        : {},
       // Enable notification debouncing for specific methods
       debouncedNotificationMethods: [
         "notifications/tools/list_changed",
