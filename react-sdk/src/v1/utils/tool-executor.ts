@@ -50,8 +50,11 @@ export async function executeStreamableToolCall(
 
   try {
     await tool.tool(parsedArgs);
-  } catch {
-    // Tool execution error during streaming is non-fatal
+  } catch (error) {
+    console.warn(
+      `[ToolExecutor] Streamable tool "${accumulating.name}" failed during streaming (toolCallId: ${toolCallId})`,
+      error,
+    );
   }
 }
 

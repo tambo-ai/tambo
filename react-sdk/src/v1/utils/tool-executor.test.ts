@@ -371,6 +371,7 @@ describe("tool-executor", () => {
     });
 
     it("catches tool execution errors without throwing", async () => {
+      const warnSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
       const registry: Record<string, TamboTool> = {
         write_story: {
           name: "write_story",
@@ -391,6 +392,9 @@ describe("tool-executor", () => {
         tracker,
         registry,
       );
+
+      expect(warnSpy).toHaveBeenCalledTimes(1);
+      warnSpy.mockRestore();
     });
 
     it("returns early when tool call ID is not being tracked", async () => {
