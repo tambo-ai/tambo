@@ -15,7 +15,28 @@
   "arrowParens": "always",
   "endOfLine": "lf",
   "experimentalSortPackageJson": false,
-  "experimentalSortImports": null,
+  // TODO: Enable and format all files
+  // "experimentalSortImports": {
+  //   "newlinesBetween": false,
+  //   "customGroups": [
+  //     {
+  //       "groupName": "tambo",
+  //       "elementNamePattern": ["@tambo", "@tambo-ai", "@tambo-ai-cloud", "tambo"]
+  //     }
+  //   ],
+  //   "groups": [
+  //     "style",
+  //     "side-effect",
+  //     "type-import",
+  //     ["value-builtin", "value-external"],
+  //     "tambo",
+  //     "type-internal",
+  //     "value-internal",
+  //     ["type-parent", "type-sibling", "type-index"],
+  //     ["value-parent", "value-sibling", "value-index"],
+  //     "unknown"
+  //   ]
+  // },
   "overrides": [
     {
       "files": ["*.json5", "*.jsonc"],

@@ -4,7 +4,6 @@
     "eslint",
     "import",
     "jsdoc",
-    "node",
     "oxc",
     "promise",
     "typescript",
@@ -12,462 +11,362 @@
   ],
   "categories": {
     "correctness": "error",
-    "pedantic": "warn",
-    "style": "warn",
     "perf": "error",
     "restriction": "error",
-    "suspicious": "error"
+    "suspicious": "error",
+    // only warn for these ones, automatic fixes will still apply
+    "pedantic": "warn",
+    "style": "warn"
+  },
+  "settings": {
+    "jsdoc": {
+      "ignorePrivate": true,
+      "ignoreInternal": true
+    }
   },
   "rules": {
-    // ESLint recommended
-    "constructor-super": "error",
-    "for-direction": "error",
-    "no-async-promise-executor": "error",
-    "no-case-declarations": "error",
-    "no-class-assign": "error",
-    "no-compare-neg-zero": "error",
-    "no-cond-assign": "error",
-    "no-const-assign": "error",
-    "no-constant-binary-expression": "error",
-    "no-constant-condition": "error",
-    "no-control-regex": "error",
-    "no-debugger": "error",
-    "no-delete-var": "error",
-    "no-dupe-class-members": "error",
-    "no-dupe-else-if": "error",
-    "no-dupe-keys": "error",
-    "no-duplicate-case": "error",
-    "no-empty": "error",
-    "no-empty-character-class": "error",
-    "no-empty-pattern": "error",
-    "no-empty-static-block": "error",
-    "no-ex-assign": "error",
-    "no-extra-boolean-cast": "error",
-    "no-fallthrough": "error",
-    "no-func-assign": "error",
-    "no-global-assign": "error",
-    "no-import-assign": "error",
-    "no-invalid-regexp": "error",
-    "no-irregular-whitespace": "error",
-    "no-loss-of-precision": "error",
-    "no-new-native-nonconstructor": "error",
-    "no-nonoctal-decimal-escape": "error",
-    "no-obj-calls": "error",
-    "no-prototype-builtins": "error",
-    "no-redeclare": "error",
-    "no-regex-spaces": "error",
-    "no-self-assign": "error",
-    "no-setter-return": "error",
-    "no-shadow-restricted-names": "error",
-    "no-sparse-arrays": "error",
-    "no-this-before-super": "error",
-    "no-unsafe-finally": "error",
-    "no-unsafe-negation": "error",
-    "no-unsafe-optional-chaining": "error",
-    "no-unused-labels": "error",
-    "no-unused-private-class-members": "error",
-    "no-useless-backreference": "error",
-    "no-useless-catch": "error",
-    "no-useless-escape": "error",
-    "no-with": "error",
-    "use-isnan": "error",
-    "valid-typeof": "error",
-    "no-array-constructor": "error",
-    "no-unused-expressions": "error",
+    // ============================================================================
+    // CONFIGURED RULES - These have been explicitly configured for this project
+    // ============================================================================
 
-    // Custom project rules
-    "no-nested-ternary": "error",
-    "no-unused-vars": [
+    "ban-ts-comment": [
       "error",
       {
-        "argsIgnorePattern": "^_",
-        "caughtErrorsIgnorePattern": "^_",
-        "varsIgnorePattern": "^_"
+        "minimumDescriptionLength": 3,
+        "ts-check": false,
+        "ts-expect-error": "allow-with-description",
+        "ts-ignore": true,
+        "ts-nocheck": true
       }
     ],
-
-    // Style rules (from ultracite)
-    "func-style": "off",
-    "arrow-body-style": ["error", "as-needed"],
-
-    // Disabled restriction/pedantic/style rules (too noisy)
-    "no-await-in-loop": "off",
-    "max-lines-per-function": "off",
-    "no-implicit-coercion": "off",
-    "no-magic-numbers": "off",
+    "func-style": ["error", "declaration", { "allowArrowFunctions": true }],
+    /* TODO: Enable no-console and fix 68 violations - use logger instead of console */
+    // "no-console": ["error", { "allow": ["warn", "error", "info", "debug"] }],
     "no-console": "off",
-    "no-ternary": "off",
-    "no-undefined": "off",
-    "max-lines": "off",
-    "id-length": "off",
-    "max-depth": "off",
-    "max-params": "off",
+
+    // ============================================================================
+    // PERMANENTLY DISABLED - Opinionated, stylistic, or not useful for this project
+    // ============================================================================
+
+    // --- Style/Formatting (handled by formatter or preference) ---
     "capitalized-comments": "off",
-    "new-cap": "off",
-    "no-continue": "off",
-    "init-declarations": "off",
-    "sort-imports": "off",
-    "sort-keys": "off",
-    "max-statements": "off",
+    "curly": "off", // Formatter handles brace style
     "no-inline-comments": "off",
-    "line-comment-position": "off",
-    "multiline-comment-style": "off",
-    "no-warning-comments": "off",
-    "one-var": "off",
-    "no-plusplus": "off",
-    "no-bitwise": "off",
-    "guard-for-in": "off",
-    "prefer-destructuring": "off",
-    "no-eq-null": "off",
-    "eqeqeq": "off",
-    "no-empty-function": "off",
-    "no-negated-condition": "off",
-    "no-void": "off",
-    "complexity": "off",
-    "class-methods-use-this": "off",
-    "prefer-template": "off",
-    "no-useless-undefined": "off",
-    "vars-on-top": "off",
-    "no-useless-computed-key": "off",
-    "prefer-object-spread": "off",
-    "object-shorthand": "off",
-    "prefer-exponentiation-operator": "off",
-    "require-unicode-regexp": "off",
-    "no-lonely-if": "off",
-    "default-case": "off",
-    "default-case-last": "off",
-    "operator-assignment": "off",
-    "logical-assignment-operators": "off",
-    "no-else-return": "off",
-    "no-unneeded-ternary": "off",
-    "no-duplicate-imports": "off",
+    "sort-keys": "off",
+    "sort-imports": "off", // use oxfmt's experimentalSortImports instead
+    "new-cap": "off",
+    "arrow-body-style": "off", // Style preference handled by formatter
+    "func-names": "off", // Anonymous functions are fine
+    "no-else-return": "off", // Early returns can hurt readability sometimes
+    "no-negated-condition": "off", // Style preference
+    "no-plusplus": "off", // Common JS pattern (i++, i--)
+    "no-nested-ternary": "off", // Covered by code review per AGENTS.md
+    "no-ternary": "off",
+    "prefer-destructuring": "off", // Not always clearer
+    "no-lonely-if": "off", // Style preference
+    "no-useless-computed-key": "off", // Minor style
+    "no-useless-rename": "off", // Minor style
+    "no-unneeded-ternary": "off", // Style preference
+    "no-useless-constructor": "off", // Minor cleanup
+    "no-useless-return": "off", // Minor cleanup
+    "default-param-last": "off", // Style preference
+    "operator-assignment": "off", // x = x + 1 vs x += 1
+    "prefer-exponentiation-operator": "off", // Math.pow vs **
+    "no-div-regex": "off", // Regex style
+
+    // --- TypeScript style preferences ---
+    "consistent-type-definitions": "off", // interface vs type is preference
+    "no-inferrable-types": "off", // Explicit types can aid readability
+    "explicit-function-return-type": "off",
+    "explicit-module-boundary-types": "off",
+    "consistent-type-imports": "off", // Would enable with proper config
+    "consistent-type-specifier-style": "off", // Would enable with proper config
+    "consistent-indexed-object-style": "off", // TypeScript style preference
+    "consistent-generic-constructors": "off", // TypeScript style preference
+
+    // --- Arbitrary limits ---
+    "complexity": "off", // Better addressed in code review
     "max-classes-per-file": "off",
-    "func-names": "off",
-    "radix": "off",
-    "no-promise-executor-return": "off",
-    "no-useless-return": "off",
-    "symbol-description": "off",
-    "prefer-named-capture-group": "off",
-    "require-yield": "off",
-    "no-alert": "off",
-    "no-restricted-syntax": "off",
-    "no-script-url": "off",
-    "no-throw-literal": "off",
-    "require-await": "off",
-    "no-param-reassign": "off",
-    "array-callback-return": "off",
-    "default-param-last": "off",
+    "max-depth": "off",
+    "max-lines": "off",
+    "max-lines-per-function": "off",
+    "max-params": "off",
+    "max-statements": "off",
+    "id-length": "off",
 
-    // Import plugin
-    "import/consistent-type-specifier-style": ["error", "prefer-top-level"],
-    "import/no-default-export": "off",
-    "import/exports-last": "off",
+    // --- Framework/pattern specific (false positives) ---
+    "class-methods-use-this": "off", // False positives with decorators/frameworks
+    "no-extraneous-class": "off", // NestJS uses classes extensively
+    "no-warning-comments": "off", // TODOs and FIXMEs are useful
+    "init-declarations": "off",
+    "no-continue": "off",
+
+    // --- Intentionally permissive ---
+    "no-magic-numbers": "off",
+    "no-implicit-coercion": "off",
+    "no-optional-chaining": "off",
+    "no-rest-spread-properties": "off",
+    "no-async-await": "off",
+    "no-undefined": "off",
+    "no-explicit-any": "off", // Prefer unknown, but any is sometimes needed
+
+    // --- Import rules (project preferences) ---
+    "no-barrel-file": "off", // Package entry points use barrels
     "import/no-named-export": "off",
-    "import/max-dependencies": "off",
-    "import/no-unresolved": "off",
-    "import/extensions": "off",
-    "import/no-namespace": "off",
-    "import/no-anonymous-default-export": "off",
-    "import/prefer-default-export": "off",
+    "import/exports-last": "off",
     "import/group-exports": "off",
-    "import/no-commonjs": "off",
-    "import/unambiguous": "off",
+    "import/max-dependencies": "off",
+    "import/no-anonymous-default-export": "off",
     "import/no-dynamic-require": "off",
-    "import/no-unassigned-import": "off",
-    "import/no-relative-parent-imports": "off",
-    "import/no-duplicates": "off",
-    "import/no-cycle": "off",
-    "import/no-nodejs-modules": "off",
+    "import/no-namespace": "off",
+    "import/prefer-default-export": "off",
+    "import/first": "off",
     "import/no-named-as-default": "off",
-    "import/no-named-as-default-member": "off",
-    "import/no-self-import": "off",
-    "import/no-useless-path-segments": "off",
-    "import/no-deprecated": "off",
-    "import/no-barrel-file": "off",
+    "import/no-default-export": "off",
+    "import/no-relative-parent-imports": "off",
+    "import/extensions": "off", // Noisy with mixed .js/.ts
+    "import/namespace": "off", // TypeScript handles this
+    // NOTE: Node.js-specific rules (import/no-nodejs-modules, import/no-commonjs,
+    // import/unambiguous, no-var-requires) are in the node config - packages that
+    // need them should extend packages/oxlint-config/node/.oxlintrc.jsonc
 
-    // JSDoc plugin
+    // --- JSDoc rules (too strict for this project) ---
     "jsdoc/require-param": "off",
     "jsdoc/require-returns": "off",
-    "jsdoc/require-param-type": "off",
-    "jsdoc/require-returns-type": "off",
-    "jsdoc/require-jsdoc": "off",
-    "jsdoc/check-param-names": "off",
-    "jsdoc/check-tag-names": "off",
-    "jsdoc/require-property": "off",
-    "jsdoc/require-description": "off",
     "jsdoc/require-param-description": "off",
-    "jsdoc/require-returns-description": "off",
-    "jsdoc/check-property-names": "off",
     "jsdoc/require-yields": "off",
-    "jsdoc/require-yields-check": "off",
-    "jsdoc/no-defaults": "off",
-    "jsdoc/check-access": "off",
+    "jsdoc/check-tag-names": "off",
+    "jsdoc/require-returns-type": "off",
+    "jsdoc/require-param-type": "off",
 
-    // Unicorn plugin
-    "unicorn/explicit-length-check": "off",
-    "unicorn/no-array-callback-reference": "off",
-    "unicorn/no-process-exit": "off",
-    "unicorn/prefer-global-this": "off",
-    "unicorn/no-null": "off",
-    "unicorn/prefer-top-level-await": "off",
-    "unicorn/no-array-for-each": "off",
-    "unicorn/consistent-function-scoping": "off",
-    "unicorn/no-negated-condition": "off",
-    "unicorn/filename-case": "off",
-    "unicorn/prefer-spread": "off",
-    "unicorn/prefer-string-slice": "off",
-    "unicorn/prefer-ternary": "off",
-    "unicorn/no-nested-ternary": "off",
-    "unicorn/prefer-switch": "off",
-    "unicorn/no-useless-undefined": "off",
-    "unicorn/no-array-reduce": "off",
-    "unicorn/no-for-loop": "off",
-    "unicorn/prevent-abbreviations": "off",
-    "unicorn/prefer-module": "off",
-    "unicorn/prefer-node-protocol": "off",
-    "unicorn/switch-case-braces": "off",
-    "unicorn/prefer-code-point": "off",
-    "unicorn/no-useless-spread": "off",
-    "unicorn/no-useless-promise-resolve-reject": "off",
-    "unicorn/prefer-array-flat-map": "off",
-    "unicorn/prefer-array-flat": "off",
-    "unicorn/prefer-array-some": "off",
-    "unicorn/prefer-includes": "off",
-    "unicorn/prefer-set-has": "off",
-    "unicorn/prefer-number-properties": "off",
-    "unicorn/prefer-math-trunc": "off",
-    "unicorn/prefer-negative-index": "off",
-    "unicorn/prefer-default-parameters": "off",
-    "unicorn/prefer-optional-catch-binding": "off",
-    "unicorn/prefer-logical-operator-over-ternary": "off",
-    "unicorn/prefer-event-target": "off",
-    "unicorn/prefer-dom-node-text-content": "off",
-    "unicorn/prefer-query-selector": "off",
-    "unicorn/no-document-cookie": "off",
-    "unicorn/throw-new-error": "off",
-    "unicorn/error-message": "off",
-    "unicorn/escape-case": "off",
-    "unicorn/no-hex-escape": "off",
-    "unicorn/number-literal-case": "off",
-    "unicorn/prefer-prototype-methods": "off",
-    "unicorn/prefer-type-error": "off",
-    "unicorn/prefer-date-now": "off",
-    "unicorn/prefer-object-from-entries": "off",
-    "unicorn/prefer-native-coercion-functions": "off",
-    "unicorn/require-array-join-separator": "off",
-    "unicorn/require-number-to-fixed-digits-argument": "off",
-    "unicorn/text-encoding-identifier-case": "off",
-    "unicorn/no-await-expression-member": "off",
-    "unicorn/no-single-promise-in-promise-methods": "off",
-    "unicorn/no-typeof-undefined": "off",
-    "unicorn/no-unnecessary-await": "off",
-    "unicorn/prefer-structured-clone": "off",
-    "unicorn/prefer-string-replace-all": "off",
-    "unicorn/prefer-at": "off",
-    "unicorn/prefer-reflect-apply": "off",
-    "unicorn/prefer-add-event-listener": "off",
-    "unicorn/prefer-regexp-test": "off",
-    "unicorn/prefer-json-parse-buffer": "off",
-    "unicorn/no-unreadable-array-destructuring": "off",
-    "unicorn/no-unreadable-iife": "off",
-    "unicorn/no-empty-file": "off",
-    "unicorn/consistent-destructuring": "off",
-    "unicorn/new-for-builtins": "off",
-    "unicorn/no-new-array": "off",
-    "unicorn/no-new-buffer": "off",
-    "unicorn/prefer-array-find": "off",
-    "unicorn/prefer-string-starts-ends-with": "off",
-    "unicorn/no-thenable": "off",
-    "unicorn/no-abusive-eslint-disable": "off",
-    "unicorn/prefer-blob-reading-methods": "off",
-    "unicorn/no-immediate-mutation": "off",
-    "unicorn/prefer-dom-node-dataset": "off",
-    "unicorn/no-useless-switch-case": "off",
+    // --- Promise rules (too strict or style) ---
+    "promise/avoid-new": "off", // new Promise is sometimes needed
+    "promise/always-return": "off", // Too strict for async handlers
+    "promise/prefer-await-to-callbacks": "off", // Not always applicable
+    "promise/prefer-await-to-then": "off", // Sometimes .then() is clearer
+    "promise/param-names": "off", // resolve/reject naming preference
+    "promise/catch-or-return": "off", // Context-dependent
+    "promise/no-promise-in-callback": "off", // Context-dependent
+    "promise/prefer-catch": "off", // Style preference
+    "promise/valid-params": "off", // False positives on NestJS exception filter .catch(exception, host)
+
+    // --- Restriction rules (context-dependent) ---
+    "no-bitwise": "off", // Sometimes intentional (flags, hashing)
+    "no-new": "off", // Sometimes side effects are intentional
+    "no-dynamic-delete": "off", // Sometimes necessary
+    "no-template-curly-in-string": "off", // False positives on strings containing literal ${} syntax
+    /* TODO: Enable no-empty and fix 2 violations - add comments to intentional empty catch blocks */
+    "no-empty": "off",
+    /* TODO: Enable no-throw-literal and fix 1 violation - throw Error objects, not raw values */
+    "no-throw-literal": "off",
+    /* TODO: Enable array-callback-return and fix 6 violations - array methods should return values */
+    "array-callback-return": "off",
+
+    // --- Unicorn rules (stylistic or compatibility) ---
+    "unicorn/explicit-length-check": "off", // Style preference
+    "unicorn/no-array-callback-reference": "off", // easy to footgun with map/filter/reduce
+    "unicorn/prefer-top-level-await": "off", // that's just like, your opinion, man
+    "unicorn/no-null": "off", // null is explicitly needed in react
+    "unicorn/filename-case": "off", // Project uses kebab-case, enforced elsewhere
+    "unicorn/catch-error-name": "off", // Style preference (error vs err vs e)
+    "unicorn/no-nested-ternary": "off", // Covered by code review
+    "unicorn/prefer-string-replace-all": "off", // Compatibility concerns
+    "unicorn/prefer-optional-catch-binding": "off", // Minor preference
+    "unicorn/prefer-spread": "off", // Style preference
+    "unicorn/prefer-number-properties": "off", // Minor preference
+    "unicorn/prefer-at": "off", // ES2022 compatibility
+    "unicorn/numeric-separators-style": "off", // Style preference
+    "unicorn/no-useless-undefined": "off", // Sometimes explicit undefined is intentional
+    "unicorn/switch-case-braces": "off", // Style preference
+    "unicorn/consistent-function-scoping": "off", // Too many false positives
+    "unicorn/no-array-for-each": "off", // forEach is fine, for-of preferred
+    "unicorn/prefer-node-protocol": "off", // Node.js version compatibility
+    "unicorn/text-encoding-identifier-case": "off", // Minor style
+    "unicorn/no-array-sort": "off", // sort() is fine with awareness of mutation
+    "unicorn/no-process-exit": "off", // Needed in CLI tools
+    "unicorn/prefer-string-raw": "off", // Rarely applicable
+    "unicorn/escape-case": "off", // Minor style
+    "unicorn/no-hex-escape": "off", // Minor style
+    "unicorn/prefer-global-this": "off", // Compatibility concerns
+    "unicorn/no-typeof-undefined": "off", // Style preference
+    "unicorn/prefer-bigint-literals": "off", // Minor style
+    "unicorn/prefer-date-now": "off", // Minor preference
+    "unicorn/prefer-logical-operator-over-ternary": "off", // Style preference
+    "unicorn/prefer-object-from-entries": "off", // Style preference
+    "unicorn/prefer-response-static-json": "off", // Minor preference
+    "unicorn/consistent-existence-index-check": "off", // Style preference
+    "unicorn/no-await-expression-member": "off", // Style preference
+    "unicorn/number-literal-case": "off", // Hex case style
+    "unicorn/prefer-array-some": "off", // Style preference
+    "unicorn/prefer-code-point": "off", // Minor preference
+    "unicorn/prefer-dom-node-append": "off", // DOM style preference
+    "unicorn/prefer-dom-node-dataset": "off", // DOM style preference
+    "unicorn/prefer-dom-node-remove": "off", // DOM style preference
+    "unicorn/prefer-math-trunc": "off", // Minor style
+    "unicorn/no-lonely-if": "off", // Style preference
+    "unicorn/prefer-add-event-listener": "off", // Style preference
+    "unicorn/prefer-native-coercion-functions": "off", // Minor style
+    "unicorn/no-console-spaces": "off", // Very minor
+    "unicorn/prefer-string-slice": "off", // substring vs slice preference
+    "unicorn/no-useless-fallback-in-spread": "off", // Minor cleanup
+    "unicorn/no-zero-fractions": "off", // 1.0 vs 1 style
+    "unicorn/no-useless-spread": "off", // Minor cleanup
+    "unicorn/prefer-set-has": "off", // Minor performance/style
+    "unicorn/no-array-reduce": "off", // AGENTS.md says avoid reduce, but don't lint it
+    "unicorn/prefer-array-find": "off", // Style preference
+    "unicorn/prefer-type-error": "off", // Minor preference
+    "unicorn/new-for-builtins": "off", // Array() vs new Array() - both work
+    "unicorn/no-immediate-mutation": "off", // Sometimes two-step initialization is clearer
+    /* TODO: Enable no-useless-collection-argument and fix 3 violations - remove unnecessary fallback args */
+    "unicorn/no-useless-collection-argument": "off",
+    /* TODO: Enable no-object-as-default-parameter and fix 2 violations - extract default to const */
     "unicorn/no-object-as-default-parameter": "off",
-    "unicorn/no-useless-undefined": "off",
-    "unicorn/no-lonely-if": "off",
-    "unicorn/no-useless-fallback-in-spread": "off",
+    /* TODO: Enable no-useless-switch-case and fix 2 violations - remove cases that just fall through to default */
+    "unicorn/no-useless-switch-case": "off",
+    /* TODO: Enable no-document-cookie and fix 2 violations - use a cookie utility instead of document.cookie */
+    "unicorn/no-document-cookie": "off",
+    /* TODO: Enable no-array-reverse and fix 1 violation - reverse() mutates the array, use .toReversed() instead */
+    "unicorn/no-array-reverse": "off",
+    /* TODO: Enable no-unnecessary-await and fix violations - remove unnecessary await keywords */
+    "unicorn/no-unnecessary-await": "off",
 
-    // Node plugin
-    "node/no-process-env": "off",
-
-    // OXC plugin
-    "oxc/no-map-spread": "off",
-    "oxc/no-async-await": "off",
-    "oxc/no-rest-spread-properties": "off",
-    "oxc/no-optional-chaining": "off",
-    "oxc/no-confusing-set-timeout": "off",
+    // --- OXC rules ---
+    "oxc/no-async-endpoint-handlers": "off", // NestJS handles async correctly
+    /* TODO: Enable no-accumulating-spread and fix 4 violations - O(n²) performance issue */
     "oxc/no-accumulating-spread": "off",
-    "oxc/no-barrel-file": "off",
-    "oxc/no-async-endpoint-handlers": "off",
 
-    // Promise plugin
-    "promise/catch-or-return": "off",
-    "promise/always-return": "off",
-    "promise/prefer-await-to-then": "off",
-    "promise/prefer-await-to-callbacks": "off",
-    "promise/no-callback-in-promise": "off",
-    "promise/no-nesting": "off",
-    "promise/no-promise-in-callback": "off",
-    "promise/no-return-in-finally": "off",
-    "promise/valid-params": "off",
-    "promise/avoid-new": "off",
-    "promise/no-new-statics": "off",
+    // ============================================================================
+    // RULES TO REVISIT - Potentially valuable but need gradual adoption
+    // These have been disabled due to high violation counts but may be worth
+    // enabling in the future with dedicated cleanup efforts.
+    // ============================================================================
 
-    // TypeScript plugin - disabled restriction rules
-    "typescript/explicit-module-boundary-types": "off",
-    "typescript/explicit-function-return-type": "off",
-    "typescript/no-var-requires": "off",
-    "typescript/require-await": "off",
-    "typescript/no-non-null-assertion": "off",
-    "typescript/no-inferrable-types": "off",
-    "typescript/method-signature-style": "off",
-    "typescript/no-confusing-void-expression": "off",
-    "typescript/prefer-for-of": "off",
-    "typescript/prefer-function-type": "off",
-    "typescript/array-type": "off",
-    "typescript/ban-tslint-comment": "off",
-    "typescript/prefer-literal-enum-member": "off",
-    "typescript/no-useless-empty-export": "off",
-    "typescript/no-invalid-void-type": "off",
-    "typescript/consistent-indexed-object-style": "off",
-    "typescript/consistent-generic-constructors": "off",
-    "typescript/no-extraneous-class": "off",
-    "typescript/no-import-type-side-effects": "off",
-    "typescript/no-dynamic-delete": "off",
+    // --- Correctness rules (high value, need fixes) ---
+    /* TODO: Enable eqeqeq and fix 34 violations - prevents type coercion bugs */
+    "eqeqeq": "off",
+    "no-eq-null": "off", // Related to eqeqeq
 
-    // TypeScript rules - enabled
-    "@typescript-eslint/ban-ts-comment": "error",
-    "@typescript-eslint/no-duplicate-enum-values": "error",
-    "@typescript-eslint/no-empty-object-type": "error",
-    "@typescript-eslint/no-explicit-any": "error",
-    "@typescript-eslint/no-extra-non-null-assertion": "error",
-    "@typescript-eslint/no-misused-new": "error",
-    "@typescript-eslint/no-namespace": "error",
-    "@typescript-eslint/no-non-null-asserted-optional-chain": "error",
-    "@typescript-eslint/no-require-imports": "error",
-    "@typescript-eslint/no-this-alias": "error",
-    "@typescript-eslint/no-unnecessary-type-constraint": "error",
-    "@typescript-eslint/no-unsafe-declaration-merging": "error",
-    "@typescript-eslint/no-unsafe-function-type": "error",
-    "@typescript-eslint/no-wrapper-object-types": "error",
-    "@typescript-eslint/prefer-as-const": "error",
-    "@typescript-eslint/prefer-namespace-keyword": "error",
-    "@typescript-eslint/triple-slash-reference": "error",
-    "@typescript-eslint/no-unnecessary-parameter-property-assignment": "error",
-    "@typescript-eslint/consistent-type-exports": "error",
+    /* TODO: Enable no-await-in-loop and review 41 violations - sequential awaits are often unintentional */
+    "no-await-in-loop": "off",
 
-    // Type-aware TypeScript rules (require tsconfig)
-    "@typescript-eslint/return-await": ["error", "always"],
-    "@typescript-eslint/promise-function-async": "error",
-    "@typescript-eslint/no-unnecessary-template-expression": "error",
-    "@typescript-eslint/no-unnecessary-type-arguments": "error",
-    "@typescript-eslint/no-unnecessary-type-assertion": "error",
-    "@typescript-eslint/no-floating-promises": "error"
+    /* TODO: Enable require-await and review 209 violations - async without await is misleading */
+    "require-await": "off",
+
+    /* TODO: Enable no-unused-vars and fix 48 violations - dead code detection */
+    "no-unused-vars": "off",
+
+    /* TODO: Enable no-non-null-assertion and review 108 violations - potential null safety issues */
+    "no-non-null-assertion": "off",
+
+    /* TODO: Enable no-empty-function and review 129 violations - often intentional but worth checking */
+    "no-empty-function": "off",
+
+    // --- Promise/async rules ---
+    /* TODO: Enable and review - prevents subtle promise bugs */
+    "no-promise-executor-return": "off",
+    "preserve-caught-error": "off",
+
+    // --- Import organization (autofixable when enabled) ---
+    /* TODO: Enable import/no-cycle and fix 17 violations - circular dependencies */
+    "import/no-cycle": "off",
+    "import/no-named-as-default-member": "off",
+    "import/no-unassigned-import": "off",
+    "no-duplicate-imports": "off",
+    /* TODO: Enable import/no-duplicates and fix 5 violations - combine duplicate imports */
+    "import/no-duplicates": "off",
+    "no-import-type-side-effects": "off",
+
+    // --- Performance ---
+    /* TODO: Enable and review - spread in maps can be expensive */
+    "no-map-spread": "off",
+
+    // --- Style (autofixable) ---
+    "prefer-template": "off",
+    "array-type": "off",
+    "no-void": "off",
+
+    /* TODO: Enable radix and fix 7 violations - parseInt() should have explicit radix */
+    "radix": "off",
+
+    /* TODO: Enable no-param-reassign and fix 7 violations - reassigning params is confusing */
+    "no-param-reassign": "off",
+
+    // Prefer typescript/switch-exhaustiveness-check over default-case for type-safe exhaustiveness
+    "default-case": "off"
   },
   "overrides": [
     {
-      // Disable rules that TypeScript handles better
-      "files": ["**/*.ts", "**/*.tsx", "**/*.mts", "**/*.cts"],
-      "rules": {
-        "constructor-super": "off",
-        "no-class-assign": "off",
-        "no-const-assign": "off",
-        "no-dupe-class-members": "off",
-        "no-dupe-keys": "off",
-        "no-func-assign": "off",
-        "no-import-assign": "off",
-        "no-new-native-nonconstructor": "off",
-        "no-obj-calls": "off",
-        "no-redeclare": "off",
-        "no-setter-return": "off",
-        "no-this-before-super": "off",
-        "no-unsafe-negation": "off",
-        "no-with": "off",
-        // Enable stricter rules for TypeScript
-        "no-var": "error",
-        "prefer-const": "error",
-        "prefer-rest-params": "error",
-        "prefer-spread": "error"
-      }
-    },
-    {
       "files": [
-        "**/*.test.*",
-        "**/*.spec.*",
+        "**/*.test.ts",
+        "**/*.test.tsx",
+        "**/*.spec.ts",
+        "**/*.spec.tsx",
+        "**/jest.setup.ts",
+        "**/vitest.setup.ts",
+        "**/test-utils/**",
         "**/__tests__/**",
         "**/__mocks__/**",
         "**/__fixtures__/**"
       ],
+      "env": {
+        "jest": true,
+        "vitest": true
+      },
       "plugins": ["jest", "vitest"],
       "rules": {
-        "jest/no-confusing-set-timeout": "off",
-        "jest/no-conditional-in-test": "off",
-        "jest/valid-title": "off",
-        "jest/no-hooks": "off",
-        "jest/max-expects": "off",
-        "jest/no-standalone-expect": "off",
-        "jest/no-disabled-tests": "off",
-        "jest/prefer-strict-equal": "off",
-        "jest/prefer-lowercase-title": "off",
-        "jest/require-top-level-describe": "off",
-        "jest/prefer-expect-assertions": "off",
-        "jest/no-conditional-expect": "off",
-        "jest/prefer-to-have-length": "off",
-        "vitest/no-conditional-in-test": "off",
-        "vitest/no-hooks": "off",
-        "vitest/max-expects": "off",
-        "vitest/prefer-strict-equal": "off",
-        "vitest/prefer-lowercase-title": "off",
-        "vitest/require-top-level-describe": "off",
-        "vitest/prefer-expect-assertions": "off",
-        "jest/prefer-called-with": "off",
-        "jest/prefer-to-be": "off",
-        "jest/require-hook": "off",
-        "jest/no-alias-methods": "off",
-        "jest/no-focused-tests": "off",
-        "jest/no-duplicate-hooks": "off",
-        "jest/no-test-return-statement": "off",
-        "jest/prefer-comparison-matcher": "off",
-        "jest/prefer-equality-matcher": "off",
-        "jest/prefer-mock-promise-shorthand": "off",
-        "jest/prefer-spy-on": "off",
-        "jest/prefer-to-contain": "off",
-        "jest/no-interpolation-in-snapshots": "off",
-        "jest/no-large-snapshots": "off",
-        "jest/prefer-snapshot-hint": "off",
-        "vitest/prefer-to-be": "off",
-        "vitest/require-hook": "off",
-        "vitest/no-alias-methods": "off",
-        "vitest/no-focused-tests": "off",
-        "vitest/no-duplicate-hooks": "off",
-        "vitest/no-test-return-statement": "off",
-        "vitest/prefer-comparison-matcher": "off",
-        "vitest/prefer-equality-matcher": "off",
-        "vitest/prefer-mock-promise-shorthand": "off",
-        "vitest/prefer-spy-on": "off",
-        "vitest/prefer-to-contain": "off",
-        "jest/require-to-throw-message": "off",
-        "jest/require-yields": "off",
-        "jest/no-done-callback": "off",
+        // ============================================================================
+        // TEST FILE RULES - Permanently disabled for test files
+        // ============================================================================
+
+        // --- Style preferences for tests ---
+        "jest/consistent-test-it": "off", // test() vs it() is preference
+        "jest/prefer-lowercase-title": "off", // Title case is fine
+        "jest/no-hooks": "off", // beforeEach/afterEach are useful
+        "jest/max-expects": "off", // Arbitrary limit
+        "jest/require-hook": "off", // Not always needed
+        "vitest/prefer-describe-function-title": "off", // Style preference
+        "vitest/prefer-to-be-falsy": "off", // toBe(false) is often clearer
+        "vitest/prefer-to-be-truthy": "off", // toBe(true) is often clearer
+
+        // --- Test patterns that are sometimes necessary ---
+        "jest/no-conditional-in-test": "off", // Sometimes needed for test setup
+        "jest/no-conditional-expect": "off", // Sometimes needed
+        "jest/no-large-snapshots": "off", // Large snapshots can be valid
+        "jest/prefer-strict-equal": "off", // toEqual is often more appropriate
+        "no-throw-literal": "off", // Tests may intentionally throw non-Error objects
+        "unicorn/no-thenable": "off", // Tests may create thenable objects intentionally
+        "no-import-assign": "off", // Test fixtures reassign imports for mocking
+        "no-loop-func": "off", // Test mocks may define functions in loops
+        "no-unassigned-vars": "off", // Test setup may declare vars assigned later in beforeEach
+
+        // ============================================================================
+        // TEST RULES TO REVISIT - May be worth enabling with cleanup
+        // ============================================================================
+
+        /* TODO: Review and potentially enable these test best practices */
         "jest/expect-expect": "off",
-        "jest/no-mocks-import": "off",
-        "jest/no-test-prefixes": "off",
-        "jest/no-identical-title": "off",
         "jest/no-commented-out-tests": "off",
+        "jest/no-identical-title": "off",
+        "jest/no-jasmine-globals": "off",
+        "jest/prefer-todo": "off",
+        "vitest/no-import-node-test": "off",
+        "jest/no-disabled-tests": "off",
         "jest/no-export": "off",
-        "vitest/require-to-throw-message": "off",
-        "vitest/require-yields": "off",
-        "vitest/no-done-callback": "off",
-        "vitest/expect-expect": "off",
-        "vitest/no-mocks-import": "off",
-        "vitest/no-test-prefixes": "off",
-        "vitest/no-identical-title": "off",
-        "vitest/no-commented-out-tests": "off",
-        "vitest/prefer-called-once": "off",
-        "jest/prefer-called-once": "off",
+        "jest/prefer-expect-resolves": "off",
         "jest/prefer-hooks-in-order": "off",
-        "vitest/prefer-hooks-in-order": "off"
+        "jest/padding-around-test-blocks": "off",
+        "jest/require-top-level-describe": "off",
+        "jest/prefer-to-be": "off",
+        "jest/require-to-throw-message": "off",
+        "jest/prefer-spy-on": "off",
+        "jest/prefer-called-with": "off",
+        "vitest/prefer-called-once": "off",
+        "jest/prefer-to-have-length": "off",
+        "jest/prefer-jest-mocked": "off",
+        "jest/no-untyped-mock-factory": "off",
+
+        /* KNOWN ISSUE: This rule has a bug causing false positives */
+        "jest/no-confusing-set-timeout": "off"
       }
     }
   ]

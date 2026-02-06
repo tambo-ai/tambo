@@ -1,9 +1,26 @@
 {
   "$schema": "https://raw.githubusercontent.com/oxc-project/oxc/main/npm/oxlint/configuration_schema.json",
   // Next.js app config - extends core and react
-  // Use with: "extends": ["../core/.oxlintrc.jsonc", "../react/.oxlintrc.jsonc", "../next/.oxlintrc.jsonc"]
-  "plugins": ["nextjs"],
+  "plugins": ["nextjs", "node"],
+  "env": {
+    "node": true,
+    "browser": true
+  },
   "rules": {
+    // TODO(lachieh): Enable these individually and fix issues that arise
+    /* NOISY */
+    "@next/next/no-img-element": "off",
+    "@next/next/no-assign-module-variable": "off",
+    /* END NOISY */
+
+    // node.js rules - Next.js apps run on Node.js server-side
+    "no-require-imports": "off",
+    "no-process-env": "off",
+    "import/no-nodejs-modules": "off",
+    "import/no-commonjs": "off",
+    "import/unambiguous": "off",
+    "no-var-requires": "off",
+
     // Next.js recommended rules
     "@next/next/google-font-display": "warn",
     "@next/next/google-font-preconnect": "warn",
@@ -12,7 +29,6 @@
     "@next/next/no-before-interactive-script-outside-document": "warn",
     "@next/next/no-css-tags": "warn",
     "@next/next/no-head-element": "warn",
-    "@next/next/no-img-element": "warn",
     "@next/next/no-page-custom-font": "warn",
     "@next/next/no-styled-jsx-in-document": "warn",
     "@next/next/no-title-in-document-head": "warn",
@@ -23,7 +39,6 @@
     "@next/next/no-html-link-for-pages": "error",
     "@next/next/no-sync-scripts": "error",
     "@next/next/inline-script-id": "error",
-    "@next/next/no-assign-module-variable": "error",
     "@next/next/no-document-import-in-page": "error",
     "@next/next/no-duplicate-head": "error",
     "@next/next/no-head-import-in-document": "error",
@@ -31,9 +46,11 @@
   },
   "overrides": [
     {
-      "files": ["**/next-env.d.ts"],
+      // TypeScript declaration files
+      "files": ["**/*.d.ts"],
       "rules": {
-        "import/no-unassigned-import": "off"
+        "import/no-unassigned-import": "off",
+        "import/unambiguous": "off"
       }
     }
   ]
