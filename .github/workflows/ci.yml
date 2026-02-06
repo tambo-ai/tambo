@@ -59,6 +59,7 @@ jobs:
             fi
           done < <(
             (
+              # Stop at quotes/backticks (strings), ')' (Markdown), '}' (JSDoc), '>' (<...>), or whitespace.
               grep -rhoE 'https://docs\.tambo\.co/[^"'"'"'`)}>[:space:]]+' \
                 --include='*.ts' \
                 --include='*.tsx' \
