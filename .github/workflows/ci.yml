@@ -42,7 +42,7 @@ jobs:
           }
           found=0
           BASE="tambo"
-          PAT_AI="${BASE}\.ai"
+          PAT_AI="${BASE}\.ai([^[:alnum:]-]|$)"
           PAT_COM="${BASE}\.com([^[:alnum:]-]|$)"
 
           # NOTE: If new file types can contain domains, update this list.
@@ -55,16 +55,19 @@ jobs:
             '*.yaml'
             '*.json'
             '*.html'
+            ':(exclude)node_modules/**'
           )
 
-          # Examples (match): tambo[.]com/, tambo[.]com:443
+          # Examples (match): tambo[.]ai/, tambo[.]ai:443, tambo[.]com/, tambo[.]com:443
           # Examples (no match): tambo.component, tambo.company
 
+          # label: human-readable domain for error messages
+          # regex: corresponding git-grep pattern used to detect the domain
           checkDomain() {
             local label=$1
-            local pattern=$2
+            local regex=$2
             local status=0
-            git grep -nIE "$pattern" -- "${PATTERNS[@]}" || status=$?
+            git grep -nIE "$regex" -- "${PATTERNS[@]}" || status=$?
 
             case "$status" in
               0)
