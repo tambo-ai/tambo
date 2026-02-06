@@ -913,7 +913,7 @@ const MessageInputStagedImages = React.forwardRef<
     <MessageInputBase.StagedImages
       ref={ref}
       className={cn(
-        "flex flex-wrap items-center gap-2 pb-2 pt-1 border-b border-border",
+        "flex flex-wrap items-center gap-2 pb-2 pt-1 border-b border-border empty:hidden",
         className,
       )}
       {...props}
