@@ -108,6 +108,7 @@ describe("MessageContent", () => {
     isCancelled: false,
     reasoning: null,
     reasoningDurationMS: null,
+    sdkVersion: null,
   };
 
   it("renders user message content", () => {

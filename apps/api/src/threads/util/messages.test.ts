@@ -79,27 +79,33 @@ describe("messages utilities", () => {
         isCancelled: false,
         reasoning: null,
         reasoningDurationMS: null,
+        sdkVersion: null,
       };
 
       jest.mocked(operations.addMessage).mockResolvedValue(mockResponse);
 
       const result = await addMessage(mockDb, "thread1", message);
 
-      expect(operations.addMessage).toHaveBeenCalledWith(mockDb, "thread1", {
-        role: MessageRole.User,
-        content: [{ type: "text" as ContentPartType.Text, text: "Hello" }],
-        component: undefined,
-        metadata: undefined,
-        actionType: undefined,
-        toolCallRequest: undefined,
-        tool_call_id: undefined,
-        componentState: {},
-        additionalContext: {},
-        error: undefined,
-        isCancelled: false,
-        reasoning: undefined,
-        reasoningDurationMS: undefined,
-      });
+      expect(operations.addMessage).toHaveBeenCalledWith(
+        mockDb,
+        "thread1",
+        {
+          role: MessageRole.User,
+          content: [{ type: "text" as ContentPartType.Text, text: "Hello" }],
+          component: undefined,
+          metadata: undefined,
+          actionType: undefined,
+          toolCallRequest: undefined,
+          tool_call_id: undefined,
+          componentState: {},
+          additionalContext: {},
+          error: undefined,
+          isCancelled: false,
+          reasoning: undefined,
+          reasoningDurationMS: undefined,
+        },
+        undefined,
+      );
 
       expect(result).toEqual({
         id: "msg1",
@@ -147,24 +153,30 @@ describe("messages utilities", () => {
         isCancelled: false,
         reasoning: null,
         reasoningDurationMS: null,
+        sdkVersion: null,
       };
 
       jest.mocked(operations.updateMessage).mockResolvedValue(mockResponse);
 
       const result = await updateMessage(mockDb, "msg1", message);
 
-      expect(operations.updateMessage).toHaveBeenCalledWith(mockDb, "msg1", {
-        content: [
-          { type: "text" as ContentPartType.Text, text: "Updated message" },
-        ],
-        componentDecision: undefined,
-        metadata: undefined,
-        actionType: undefined,
-        toolCallRequest: undefined,
-        toolCallId: undefined,
-        additionalContext: {},
-        error: undefined,
-      });
+      expect(operations.updateMessage).toHaveBeenCalledWith(
+        mockDb,
+        "msg1",
+        {
+          content: [
+            { type: "text" as ContentPartType.Text, text: "Updated message" },
+          ],
+          componentDecision: undefined,
+          metadata: undefined,
+          actionType: undefined,
+          toolCallRequest: undefined,
+          toolCallId: undefined,
+          additionalContext: {},
+          error: undefined,
+        },
+        undefined,
+      );
 
       expect(result).toEqual({
         id: "msg1",
@@ -276,6 +288,7 @@ describe("messages utilities", () => {
         isCancelled: false,
         reasoning: null,
         reasoningDurationMS: null,
+        sdkVersion: null,
       };
 
       const newMessage: ThreadMessage = {

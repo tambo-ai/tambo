@@ -18,6 +18,7 @@ import {
   TransactionProvider,
 } from "./common/middleware/db-transaction-middleware";
 import { RequestLoggerMiddleware } from "./common/middleware/request-logger.middleware";
+import { SdkVersionMiddleware } from "./common/middleware/sdk-version.middleware";
 import { AuthService } from "./common/services/auth.service";
 import { EmailService } from "./common/services/email.service";
 import { StorageConfigService } from "./common/services/storage-config.service";
@@ -66,6 +67,8 @@ export class AppModule implements OnModuleInit {
   }
 
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(RequestLoggerMiddleware).forRoutes("*");
+    consumer
+      .apply(RequestLoggerMiddleware, SdkVersionMiddleware)
+      .forRoutes("*");
   }
 }

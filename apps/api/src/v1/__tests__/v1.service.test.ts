@@ -131,6 +131,7 @@ describe("V1Service", () => {
     pendingToolCallIds: null,
     lastCompletedRunId: null,
     metadata: { key: "value" },
+    sdkVersion: null,
     createdAt: new Date("2024-01-01T00:00:00Z"),
     updatedAt: new Date("2024-01-01T00:00:00Z"),
   };
@@ -156,6 +157,7 @@ describe("V1Service", () => {
     tokenUsage: null,
     llmModel: null,
     suggestions: [],
+    sdkVersion: null,
   };
 
   beforeEach(() => {
@@ -1121,6 +1123,7 @@ describe("V1Service", () => {
         projectId: "proj_123",
         contextKey: "user_123",
         runStatus: "idle",
+        sdkVersion: null,
         createdAt: new Date(),
         updatedAt: new Date(),
         messages: [regularMessage, uiToolResponseMessage],
@@ -1925,6 +1928,7 @@ describe("V1Service", () => {
       updatedAt: new Date(),
       actionType: null,
       toolCallId: null,
+      sdkVersion: null,
     };
 
     describe("updateComponentState", () => {

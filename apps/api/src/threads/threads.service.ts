@@ -39,6 +39,7 @@ import {
 import { eq } from "drizzle-orm";
 import OpenAI from "openai";
 import { DATABASE } from "../common/middleware/db-transaction-middleware";
+import { ContextInfo } from "../common/utils/extract-context-info";
 import { AuthService } from "../common/services/auth.service";
 import { EmailService } from "../common/services/email.service";
 import { AnalyticsService } from "../common/services/analytics.service";
@@ -903,27 +904,24 @@ export class ThreadsService {
    * await p;
    * ```
    *
-   * @param projectId - The project ID.
+   * @param contextInfo - Project ID, context key, and SDK version from the request.
    * @param advanceRequestDto - The advance request DTO, including optional
    *   message to append, context key, and available components.
    * @param unresolvedThreadId - The thread ID, if any
-   * @param stream - Whether to stream the response.
    * @param toolCallCounts - Dictionary mapping tool call signatures to their
    *   counts for loop prevention.
    * @param cachedSystemTools - The system tools loaded from MCP - if included,
    *   it is a cache to avoid re-fetching them.
-   * @param contextKey - The context key, if any
    * @returns The the generated response thread message, generation stage, and
    *   status message.
    */
   async advanceThread(
-    projectId: string,
+    contextInfo: ContextInfo,
     advanceRequestDto: Omit<AdvanceThreadDto, "contextKey">,
     unresolvedThreadId?: string,
     toolCallCounts: Record<string, number> = {},
     cachedSystemTools?: McpToolRegistry,
     queue?: AsyncQueue<StreamQueueItem>,
-    contextKey?: string,
     abortSignal?: AbortSignal,
   ): Promise<void> {
     await Sentry.startSpan(
@@ -931,7 +929,7 @@ export class ThreadsService {
         name: "threads.advance",
         op: "threads.process",
         attributes: {
-          projectId,
+          projectId: contextInfo.projectId,
           threadId: unresolvedThreadId,
           hasMessage: !!advanceRequestDto.messageToAppend,
           toolCallCount: Object.keys(toolCallCounts).length,
@@ -939,28 +937,27 @@ export class ThreadsService {
       },
       async () =>
         await this.advanceThread_(
-          projectId,
+          contextInfo,
           advanceRequestDto,
           unresolvedThreadId,
           toolCallCounts,
           cachedSystemTools,
           queue,
-          contextKey,
           abortSignal,
         ),
     );
   }
 
   private async advanceThread_(
-    projectId: string,
+    contextInfo: ContextInfo,
     advanceRequestDto: Omit<AdvanceThreadDto, "contextKey">,
     unresolvedThreadId?: string,
     toolCallCounts: Record<string, number> = {},
     cachedSystemTools?: McpToolRegistry,
     queue?: AsyncQueue<StreamQueueItem>,
-    contextKey?: string,
     abortSignal?: AbortSignal,
   ): Promise<void> {
+    const { projectId, contextKey, sdkVersion } = contextInfo;
     const db = this.getDb();
     queue = queue ?? new AsyncQueue<StreamQueueItem>();
 
@@ -1040,6 +1037,7 @@ export class ThreadsService {
           thread.id,
           advanceRequestDto.messageToAppend,
           this.logger,
+          sdkVersion,
         );
       } else {
         // No message content to add - get the latest message from the thread
@@ -1130,7 +1128,7 @@ export class ThreadsService {
       const mcpAccessToken = mcpAccessTokenResult?.token;
 
       await this.generateStreamingResponse(
-        projectId,
+        contextInfo,
         thread.id,
         db,
         tamboBackend,
@@ -1171,7 +1169,7 @@ export class ThreadsService {
     allTools: McpToolRegistry,
     componentDecision: LegacyComponentDecision,
     advanceRequestDto: AdvanceThreadDto,
-    projectId: string,
+    contextInfo: ContextInfo,
     threadId: string,
     toolCallCounts: Record<string, number>,
     queue: AsyncQueue<StreamQueueItem>,
@@ -1183,7 +1181,7 @@ export class ThreadsService {
         attributes: {
           toolName: toolCallRequest.toolName,
           toolCallId,
-          projectId,
+          projectId: contextInfo.projectId,
           threadId,
         },
       },
@@ -1195,7 +1193,7 @@ export class ThreadsService {
           allTools,
           componentDecision,
           advanceRequestDto,
-          projectId,
+          contextInfo,
           threadId,
           toolCallCounts,
           queue,
@@ -1210,7 +1208,7 @@ export class ThreadsService {
     allTools: McpToolRegistry,
     componentDecision: LegacyComponentDecision,
     advanceRequestDto: AdvanceThreadDto,
-    projectId: string,
+    contextInfo: ContextInfo,
     threadId: string,
     toolCallCounts: Record<string, number>,
     queue: AsyncQueue<StreamQueueItem>,
@@ -1245,7 +1243,7 @@ export class ThreadsService {
 
       // This effectively recurses back into the decision loop with the tool response
       await this.advanceThread(
-        projectId,
+        contextInfo,
         messageWithToolResponse,
         threadId,
         updatedToolCallCounts,
@@ -1256,7 +1254,7 @@ export class ThreadsService {
       Sentry.captureException(error, {
         tags: {
           toolName: toolCallRequest.toolName,
-          projectId,
+          projectId: contextInfo.projectId,
           threadId,
         },
       });
@@ -1265,7 +1263,7 @@ export class ThreadsService {
   }
 
   private async generateStreamingResponse(
-    projectId: string,
+    contextInfo: ContextInfo,
     threadId: string,
     db: HydraDatabase,
     tamboBackend: ITamboBackend,
@@ -1290,7 +1288,7 @@ export class ThreadsService {
         name: "threads.generateStreamingResponse",
         op: "stream.generate",
         attributes: {
-          projectId,
+          projectId: contextInfo.projectId,
           threadId,
           messageCount: messages.length,
           hasCustomInstructions: messages.some(
@@ -1301,7 +1299,7 @@ export class ThreadsService {
       },
       async () =>
         await this.generateStreamingResponse_(
-          projectId,
+          contextInfo,
           threadId,
           db,
           tamboBackend,
@@ -1320,7 +1318,7 @@ export class ThreadsService {
   }
 
   private async generateStreamingResponse_(
-    projectId: string,
+    contextInfo: ContextInfo,
     threadId: string,
     db: HydraDatabase,
     tamboBackend: ITamboBackend,
@@ -1340,6 +1338,7 @@ export class ThreadsService {
     }>,
     abortSignal?: AbortSignal,
   ): Promise<void> {
+    const { projectId } = contextInfo;
     // Create internal abort controller for this streaming session.
     // This allows both external callers (V1 executeRun) and internal
     // cancellation detection (handleAdvanceThreadStream) to sever the
@@ -1439,7 +1438,7 @@ export class ThreadsService {
         decisionLoopSpan.end();
 
         await this.handleAdvanceThreadStream(
-          projectId,
+          contextInfo,
           threadId,
           messageStream,
           queue,
@@ -1535,7 +1534,7 @@ export class ThreadsService {
       });
 
       await this.handleAdvanceThreadStream(
-        projectId,
+        contextInfo,
         threadId,
         streamedResponseMessages,
         queue,
@@ -1579,7 +1578,7 @@ export class ThreadsService {
   }
 
   private async handleAdvanceThreadStream(
-    projectId: string,
+    contextInfo: ContextInfo,
     threadId: string,
     stream: AsyncIterableIterator<DecisionStreamItem>,
     queue: AsyncQueue<StreamQueueItem>,
@@ -1594,6 +1593,7 @@ export class ThreadsService {
     modelOptions: ModelOptions,
     abortController: AbortController,
   ): Promise<void> {
+    const { projectId, sdkVersion } = contextInfo;
     const db = this.getDb();
     const logger = this.logger;
 
@@ -1718,6 +1718,7 @@ export class ThreadsService {
             legacyDecision.role,
             legacyDecision.message,
             logger,
+            sdkVersion,
           );
 
           currentLegacyDecisionId = legacyDecision.id;
@@ -1908,7 +1909,7 @@ export class ThreadsService {
           allTools,
           componentDecision,
           originalRequest,
-          projectId,
+          contextInfo,
           threadId,
           toolCallCounts,
           queue,
@@ -1985,7 +1986,7 @@ export class ThreadsService {
         };
 
         await this.advanceThread(
-          projectId,
+          contextInfo,
           toolResponseAdvanceDto,
           threadId,
           updatedToolCallCounts,
