@@ -1156,7 +1156,7 @@ export function ProviderKeySectionBase({
                             </a>
                           )}
                           <a
-                            href="https://docs.tambo.co/models/labels"
+                            href="https://docs.tambo.co/reference/llm-providers/labels"
                             target="_blank"
                             rel="noopener noreferrer"
                             className="inline-flex items-center text-link text-xs hover:underline"
