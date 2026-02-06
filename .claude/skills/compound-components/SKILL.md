@@ -7,69 +7,115 @@ description: Creates unstyled compound components that separate business logic f
 
 Create unstyled, composable React components following the Radix UI / Base UI pattern. Components expose behavior via context while consumers control rendering.
 
-## Quick Start
+## Project Rules
+
+These rules are specific to this codebase and override general patterns.
+
+### Hooks Are Internal
+
+Hooks are implementation details, not public API. **Never export hooks from the index.**
 
 ```tsx
-// 1. Create context for shared state
-const StepsContext = React.createContext<StepsContextValue | null>(null);
+// index.tsx - CORRECT
+export const Component = {
+  Root: ComponentRoot,
+  Content: ComponentContent,
+};
+export type { ComponentRootProps, ComponentContentRenderProps };
 
-// 2. Create Root that provides context
-const StepsRoot = ({ children, className, ...props }) => {
-  const [steps] = useState(["Step 1", "Step 2"]);
-  return (
-    <StepsContext.Provider value={{ steps }}>
-      <div className={className} {...props}>
-        {children}
-      </div>
-    </StepsContext.Provider>
-  );
+// index.tsx - WRONG
+export { useComponentContext }; // Don't export hooks
+```
+
+Consumers access state via **render props**, not hooks. When styled wrappers in the **same package** need hook access, import directly from the source file:
+
+```tsx
+import { useComponentContext } from "../base/component/component-context";
+```
+
+### No Custom Data Fetching in Primitives
+
+Base components can use `@tambo-ai/react` SDK hooks (components require Tambo provider anyway). **Custom data fetching logic** (combining sources, external providers) belongs in the styled layer.
+
+```tsx
+// OK - SDK hooks in primitive
+const Root = ({ children }) => {
+  const { value, setValue, submit } = useTamboThreadInput();
+  const { isIdle, cancel } = useTamboThread();
+  return <Context.Provider value={{ value, setValue, isIdle }}>{children}</Context.Provider>;
 };
 
-// 3. Create consumer components
-const StepsItem = ({ children, className, ...props }) => {
-  const { steps } = useStepsContext();
-  return (
-    <div className={className} {...props}>
-      {children}
-    </div>
-  );
-};
-
-// 4. Export as namespace
-export const Steps = {
-  Root: StepsRoot,
-  Item: StepsItem,
+// WRONG - custom data fetching in primitive
+const Textarea = ({ resourceProvider }) => {
+  const { data: mcpResources } = useTamboMcpResourceList(search);
+  const externalResources = useFetchExternal(resourceProvider);
+  const combined = [...mcpResources, ...externalResources];
+  return <div>{combined.map(...)}</div>;
 };
 ```
 
-## Core Pattern
+### Pre-computed Props Arrays for Collections
 
-### File Structure
+When exposing collections via render props, **pre-compute all props in a memoized array** rather than providing a getter function.
+
+```tsx
+// AVOID - getter function pattern
+const Items = ({ children }) => {
+  const { rawItems, selectedId, removeItem } = useContext();
+  const getItemProps = (index: number) => ({
+    /* new object every call */
+  });
+  return children({ items: rawItems, getItemProps });
+};
+
+// PREFERRED - pre-computed array
+const Items = ({ children }) => {
+  const { rawItems, selectedId, removeItem } = useContext();
+
+  const items = React.useMemo<ItemRenderProps[]>(
+    () =>
+      rawItems.map((item, index) => ({
+        item,
+        index,
+        isSelected: selectedId === item.id,
+        onSelect: () => setSelectedId(item.id),
+        onRemove: () => removeItem(item.id),
+      })),
+    [rawItems, selectedId, removeItem],
+  );
+
+  return children({ items });
+};
+```
+
+## Workflow
+
+Copy this checklist and track progress:
+
+```
+Compound Component Progress:
+- [ ] Step 1: Create context file
+- [ ] Step 2: Create Root component
+- [ ] Step 3: Create consumer components
+- [ ] Step 4: Create namespace export (index.tsx)
+- [ ] Step 5: Verify all guidelines met
+```
+
+### Step 1: Create context file
 
 ```
 my-component/
-├── index.tsx              # Namespace export
-├── root/
-│   ├── component-root.tsx
-│   └── component-context.tsx
-├── item/
-│   └── component-item.tsx
-└── content/
-    └── component-content.tsx
+├── index.tsx
+├── component-context.tsx
+├── component-root.tsx
+├── component-item.tsx
+└── component-content.tsx
 ```
 
-### Context Pattern
+Create a context with a null default and a hook that throws on missing provider:
 
 ```tsx
 // component-context.tsx
-import * as React from "react";
-
-interface ComponentContextValue {
-  data: unknown;
-  isOpen: boolean;
-  toggle: () => void;
-}
-
 const ComponentContext = React.createContext<ComponentContextValue | null>(
   null,
 );
@@ -85,19 +131,12 @@ export function useComponentContext() {
 export { ComponentContext };
 ```
 
-### Root Component
+### Step 2: Create Root component
+
+Root manages state and provides context. Use `forwardRef`, support `asChild` via Radix `Slot`, and expose state via data attributes:
 
 ```tsx
 // component-root.tsx
-import { Slot } from "@radix-ui/react-slot";
-import * as React from "react";
-import { ComponentContext } from "./component-context";
-
-interface ComponentRootProps extends React.HTMLAttributes<HTMLDivElement> {
-  asChild?: boolean;
-  defaultOpen?: boolean;
-}
-
 export const ComponentRoot = React.forwardRef<
   HTMLDivElement,
   ComponentRootProps
@@ -118,80 +157,37 @@ export const ComponentRoot = React.forwardRef<
 ComponentRoot.displayName = "Component.Root";
 ```
 
-### Namespace Export
+### Step 3: Create consumer components
+
+Choose the composition pattern based on need:
+
+**Direct children** (simplest, for static content):
 
 ```tsx
-// index.tsx
-import { ComponentRoot } from "./root/component-root";
-import { ComponentTrigger } from "./trigger/component-trigger";
-import { ComponentContent } from "./content/component-content";
-
-export const Component = {
-  Root: ComponentRoot,
-  Trigger: ComponentTrigger,
-  Content: ComponentContent,
-};
-
-// Re-export types
-export type { ComponentRootProps } from "./root/component-root";
-export type { ComponentContentProps } from "./content/component-content";
-```
-
-## Composition Patterns
-
-### Pattern 1: Direct Children (Simplest)
-
-Best for static content. Consumer just adds children.
-
-```tsx
-// Component
 const Content = ({ children, className, ...props }) => {
-  const { data } = useContext();
+  const { data } = useComponentContext();
   return (
     <div className={className} {...props}>
       {children}
     </div>
   );
 };
-
-// Usage
-<Component.Content className="my-styles">
-  <p>Static content here</p>
-</Component.Content>;
 ```
 
-### Pattern 2: Render Prop (State Access)
-
-Best when consumer needs internal state.
+**Render prop** (when consumer needs internal state):
 
 ```tsx
-// Component
-interface ContentProps {
-  render?: (props: { data: string; isLoading: boolean }) => React.ReactNode;
-  children?: React.ReactNode;
-}
-
-const Content = ({ render, children, ...props }) => {
-  const { data, isLoading } = useContext();
-
-  const content = render ? render({ data, isLoading }) : children;
+const Content = ({ children, ...props }) => {
+  const { data, isLoading } = useComponentContext();
+  const content =
+    typeof children === "function" ? children({ data, isLoading }) : children;
   return <div {...props}>{content}</div>;
 };
-
-// Usage
-<Component.Content
-  render={({ data, isLoading }) => (
-    <div className={isLoading ? "opacity-50" : ""}>{data}</div>
-  )}
-/>;
 ```
 
-### Pattern 3: Sub-Context (Maximum Composability)
-
-Best for lists/iterations where each item needs its own context.
+**Sub-context** (for lists where each item needs own context):
 
 ```tsx
-// Parent provides array context
 const Steps = ({ children }) => {
   const { reasoning } = useMessageContext();
   return (
@@ -201,7 +197,6 @@ const Steps = ({ children }) => {
   );
 };
 
-// Item provides individual step context
 const Step = ({ children, index }) => {
   const { steps } = useStepsContext();
   return (
@@ -210,115 +205,37 @@ const Step = ({ children, index }) => {
     </StepContext.Provider>
   );
 };
+```
 
-// Content reads from nearest context
-const StepContent = ({ className }) => {
-  const { step } = useStepContext();
-  return <div className={className}>{step}</div>;
+### Step 4: Create namespace export
+
+```tsx
+// index.tsx
+export const Component = {
+  Root: ComponentRoot,
+  Trigger: ComponentTrigger,
+  Content: ComponentContent,
 };
 
-// Usage - maximum flexibility
-<ReasoningInfo.Steps className="space-y-4">
-  {steps.map((_, i) => (
-    <ReasoningInfo.Step key={i} index={i}>
-      <div className="custom-wrapper">
-        <ReasoningInfo.StepContent className="text-sm" />
-      </div>
-    </ReasoningInfo.Step>
-  ))}
-</ReasoningInfo.Steps>;
+// Re-export types only - never hooks
+export type { ComponentRootProps } from "./component-root";
+export type { ComponentContentProps } from "./component-content";
 ```
 
-## Essential Features
-
-### 1. Data Attributes for CSS Styling
-
-Expose state via data attributes so consumers can style with CSS only:
-
-```tsx
-<div
-  data-state={isOpen ? "open" : "closed"}
-  data-disabled={disabled || undefined}
-  data-loading={isLoading || undefined}
-  data-slot="component-trigger"
-  {...props}
->
-```
-
-CSS targeting:
-
-```css
-[data-state="open"] {
-  /* open styles */
-}
-[data-slot="component-trigger"]:hover {
-  /* hover styles */
-}
-```
-
-### 2. asChild Pattern (Radix Slot)
-
-Allow consumers to replace the default element:
-
-```tsx
-import { Slot } from "@radix-ui/react-slot";
-
-interface Props extends React.HTMLAttributes<HTMLButtonElement> {
-  asChild?: boolean;
-}
-
-const Trigger = ({ asChild, ...props }) => {
-  const Comp = asChild ? Slot : "button";
-  return <Comp {...props} />;
-};
-
-// Usage
-<Component.Trigger asChild>
-  <a href="/link">I'm a link now</a>
-</Component.Trigger>;
-```
-
-### 3. Ref Forwarding
-
-Always forward refs for DOM access:
-
-```tsx
-export const Component = React.forwardRef<HTMLDivElement, Props>(
-  (props, ref) => {
-    return <div ref={ref} {...props} />;
-  },
-);
-Component.displayName = "Component";
-```
-
-### 4. Proper TypeScript
-
-Export prop types for consumers:
-
-```tsx
-export interface ComponentRootProps extends React.HTMLAttributes<HTMLDivElement> {
-  asChild?: boolean;
-  defaultOpen?: boolean;
-}
-
-export interface ComponentContentRenderProps {
-  data: string;
-  isLoading: boolean;
-}
-```
-
-## Guidelines
+### Step 5: Verify guidelines
 
 - **No styles in primitives** - consumers control all styling via className/props
-- **Context for state sharing** - parent manages, children consume
-- **Data attributes for CSS** - expose state like `data-state="open"`
-- **Support asChild** - let consumers swap the underlying element
-- **Forward refs** - always use forwardRef
-- **Display names** - set for React DevTools (`Component.Root`, `Component.Item`)
+- **Data attributes for CSS** - expose state like `data-state="open"`, `data-disabled`, `data-loading`
+- **Support asChild** - let consumers swap the underlying element via Radix `Slot`
+- **Forward refs** - always use `forwardRef`
+- **Display names** - set for DevTools (`Component.Root`, `Component.Item`)
 - **Throw on missing context** - fail fast with clear error messages
-- **Export types** - consumers need `ComponentProps`, `RenderProps` types
+- **Export types** - consumers need `ComponentProps`, `RenderProps` interfaces
+- **Hooks stay internal** - never export from index, expose state via render props
+- **SDK hooks OK, custom fetching not** - `@tambo-ai/react` hooks are fine, combining logic goes in styled layer
+- **Pre-compute collection props** - use `useMemo` arrays, not getter functions
 
-## When to Use Each Pattern
+## Pattern Selection
 
 | Scenario             | Pattern         | Why                             |
 | -------------------- | --------------- | ------------------------------- |
@@ -327,137 +244,6 @@ export interface ComponentContentRenderProps {
 | List/iteration       | Sub-context     | Each item gets own context      |
 | Element polymorphism | asChild         | Change underlying element       |
 | CSS-only styling     | Data attributes | No JS needed for style variants |
-
-## Hooks Are Internal
-
-Hooks are implementation details, not public API. **Never export hooks from the index.**
-
-```tsx
-// index.tsx - WRONG
-export { useComponentContext }; // ❌ Don't export hooks
-
-// index.tsx - CORRECT
-export const Component = {
-  Root: ComponentRoot,
-  Content: ComponentContent,
-};
-// ✅ Only export components and types
-export type { ComponentRootProps, ComponentContentRenderProps };
-```
-
-Consumers access state via **render props**, not hooks:
-
-```tsx
-// Consumer code - using render props (correct)
-<Component.Content>
-  {({ isOpen, toggle }) => (
-    <button onClick={toggle}>{isOpen ? "Close" : "Open"}</button>
-  )}
-</Component.Content>
-```
-
-When styled wrappers in the **same package** need hook access, import directly from the source file:
-
-```tsx
-// ✅ Internal use - import from source file
-import { useComponentContext } from "../base/component/component-context";
-
-// ❌ Wrong - hooks shouldn't be in the public index
-import { useComponentContext } from "../base/component"; // Not exported
-```
-
-This keeps hooks internal while allowing same-package usage.
-
-## No Custom Data Fetching in Primitives
-
-Base components can use `@tambo-ai/react` SDK hooks - they're designed to work within a Tambo provider. However, **custom data fetching logic** (combining sources, external providers, etc.) belongs in the styled layer.
-
-```tsx
-// ✅ OK - using @tambo-ai/react SDK hooks
-const Root = ({ children }) => {
-  const { value, setValue, submit } = useTamboThreadInput();
-  const { isIdle, cancel } = useTamboThread();
-  // SDK hooks are fine - components require Tambo provider anyway
-  return <Context.Provider value={{ value, setValue, isIdle }}>{children}</Context.Provider>;
-};
-
-// ❌ WRONG - custom data fetching in primitive
-const Textarea = ({ resourceProvider }) => {
-  const { data: mcpResources } = useTamboMcpResourceList(search);
-  const externalResources = useFetchExternal(resourceProvider); // Custom fetching
-  const combined = [...mcpResources, ...externalResources]; // Combining logic
-  return <div>{combined.map(...)}</div>;
-};
-
-// ✅ CORRECT - primitive exposes state via render props, styled layer does custom fetching
-const Textarea = ({ children }) => {
-  const { value, setValue, disabled } = useContext();
-  return (
-    <div data-disabled={disabled}>
-      {typeof children === "function"
-        ? children({ value, setValue, disabled })
-        : children}
-    </div>
-  );
-};
-```
-
-Custom data fetching and combining logic belongs in the **styled wrapper layer**.
-
-## Pre-computed Props Arrays for Collections
-
-When exposing collections via render props, **pre-compute all props in a memoized array** rather than providing a getter function. This is more performant (single memoization vs per-item function calls) and simpler for consumers.
-
-```tsx
-// ❌ AVOID - getter function pattern
-export interface ItemsRenderProps {
-  items: RawItem[];
-  getItemProps: (index: number) => ItemRenderProps;
-}
-
-const Items = ({ children }) => {
-  const { rawItems, selectedId, removeItem } = useContext();
-
-  // Getter creates new object on every call
-  const getItemProps = (index: number) => ({
-    item: rawItems[index],
-    isSelected: selectedId === rawItems[index].id,
-    onRemove: () => removeItem(rawItems[index].id),
-  });
-
-  return children({ items: rawItems, getItemProps });
-};
-
-// ✅ PREFERRED - pre-computed array
-export interface ItemsRenderProps {
-  items: ItemRenderProps[];
-}
-
-const Items = ({ children }) => {
-  const { rawItems, selectedId, removeItem } = useContext();
-
-  // Pre-compute all props once, memoized
-  const items = React.useMemo<ItemRenderProps[]>(
-    () =>
-      rawItems.map((item, index) => ({
-        item,
-        index,
-        isSelected: selectedId === item.id,
-        onSelect: () => setSelectedId(item.id),
-        onRemove: () => removeItem(item.id),
-      })),
-    [rawItems, selectedId, removeItem],
-  );
-
-  return children({ items });
-};
-```
-
-This pattern:
-
-- Memoizes computation once per render cycle
-- Gives consumers a simple array to iterate
-- Pre-binds callbacks so consumers don't need to manage indices
 
 ## Anti-Patterns
 
