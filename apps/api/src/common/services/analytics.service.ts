@@ -9,11 +9,15 @@ export class AnalyticsService implements OnModuleDestroy {
   constructor(private readonly configService: ConfigService) {
     const apiKey = this.configService.get<string>("POSTHOG_API_KEY")?.trim();
     if (apiKey) {
-      this.client = new PostHog(apiKey, {
-        host:
-          this.configService.get<string>("POSTHOG_HOST")?.trim() ||
-          "https://app.posthog.com",
-      });
+      const host =
+        this.configService.get<string>("POSTHOG_HOST")?.trim() ||
+        "https://app.posthog.com";
+      this.client = new PostHog(apiKey, { host });
+      console.log(`PostHog initialized with host: ${host}`);
+    } else {
+      console.log(
+        "PostHog API key not provided, skipping PostHog initialization",
+      );
     }
   }
 
