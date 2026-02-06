@@ -152,4 +152,165 @@ describe("ProjectInfo", () => {
     toLocaleDateStringSpy.mockRestore();
     expect(screen.queryByText("Created")).not.toBeInTheDocument();
   });
+
+  it("does not invoke queries when project is missing", () => {
+    render(<ProjectInfo />);
+
+    expect(screen.getByText("No project found")).toBeInTheDocument();
+    expect(getProjectMessageUsageUseQueryMock).not.toHaveBeenCalled();
+    expect(getProviderKeysUseQueryMock).not.toHaveBeenCalled();
+  });
+
+  it("shows starter quota in the full layout when there are no provider keys", () => {
+    const project = makeProject();
+    getProjectMessageUsageUseQueryMock.mockReturnValue({
+      data: { messageCount: 10 },
+      isLoading: false,
+      isError: false,
+    });
+    getProviderKeysUseQueryMock.mockReturnValue({
+      data: [],
+      isLoading: false,
+      isFetching: false,
+      isError: false,
+    });
+
+    render(<ProjectInfo project={project} />);
+
+    expect(screen.getByText("Starter LLM calls remaining")).toBeInTheDocument();
+    expect(screen.getByText("90")).toBeInTheDocument();
+    expect(screen.getByText("Add your LLM API Key")).toBeInTheDocument();
+    expect(screen.queryByText("Provider • Model")).not.toBeInTheDocument();
+  });
+
+  it("shows provider/model summary in the full layout when provider keys exist", () => {
+    const project = makeProject({
+      defaultLlmProviderName: "anthropic",
+      defaultLlmModelName: "claude-3-5-sonnet",
+    });
+    getProviderKeysUseQueryMock.mockReturnValue({
+      data: [{ id: "key_1" }],
+      isLoading: false,
+      isFetching: false,
+      isError: false,
+    });
+
+    render(<ProjectInfo project={project} />);
+
+    expect(screen.getByText("Provider • Model")).toBeInTheDocument();
+    expect(
+      screen.getByText("anthropic • claude-3-5-sonnet"),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText("Starter LLM calls remaining"),
+    ).not.toBeInTheDocument();
+  });
+
+  it("hides starter quota while key status is loading", () => {
+    const project = makeProject({
+      defaultLlmProviderName: "anthropic",
+      defaultLlmModelName: "claude-3-5-sonnet",
+    });
+    getProviderKeysUseQueryMock.mockReturnValue({
+      data: [],
+      isLoading: true,
+      isFetching: false,
+      isError: false,
+    });
+
+    render(<ProjectInfo project={project} />);
+
+    expect(screen.getByText("Provider • Model")).toBeInTheDocument();
+    expect(screen.getByText("Checking key status...")).toBeInTheDocument();
+    expect(
+      screen.queryByText("Starter LLM calls remaining"),
+    ).not.toBeInTheDocument();
+  });
+
+  it("hides starter quota when provider key status errors", () => {
+    const project = makeProject({
+      defaultLlmProviderName: "anthropic",
+      defaultLlmModelName: "claude-3-5-sonnet",
+    });
+    getProviderKeysUseQueryMock.mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      isFetching: false,
+      isError: true,
+    });
+
+    render(<ProjectInfo project={project} />);
+
+    expect(screen.getByText("Provider • Model")).toBeInTheDocument();
+    expect(screen.getByText("Key status unavailable")).toBeInTheDocument();
+    expect(
+      screen.queryByText("Starter LLM calls remaining"),
+    ).not.toBeInTheDocument();
+  });
+
+  it("shows a placeholder starter quota value when usage errors", () => {
+    const project = makeProject();
+    getProjectMessageUsageUseQueryMock.mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      isError: true,
+    });
+    getProviderKeysUseQueryMock.mockReturnValue({
+      data: [],
+      isLoading: false,
+      isFetching: false,
+      isError: false,
+    });
+
+    render(<ProjectInfo project={project} />);
+
+    expect(screen.getByText("Starter LLM calls remaining")).toBeInTheDocument();
+    expect(screen.getByText("—")).toBeInTheDocument();
+    expect(screen.getByText("Add your LLM API Key")).toBeInTheDocument();
+  });
+
+  it("shows compact starter quota as a numeric value when usage is available", () => {
+    const project = makeProject();
+    getProjectMessageUsageUseQueryMock.mockReturnValue({
+      data: { messageCount: 10 },
+      isLoading: false,
+      isError: false,
+    });
+    getProviderKeysUseQueryMock.mockReturnValue({
+      data: [],
+      isLoading: false,
+      isFetching: false,
+      isError: false,
+    });
+
+    render(<ProjectInfo project={project} compact />);
+
+    expect(screen.getByText("90")).toBeInTheDocument();
+    expect(screen.getByText("starter LLM calls left")).toBeInTheDocument();
+    expect(screen.getByText("Add key")).toBeInTheDocument();
+    expect(screen.queryByText("Change")).not.toBeInTheDocument();
+  });
+
+  it("shows compact starter quota as unavailable when usage is loading", () => {
+    const project = makeProject();
+    getProjectMessageUsageUseQueryMock.mockReturnValue({
+      data: undefined,
+      isLoading: true,
+      isError: false,
+    });
+    getProviderKeysUseQueryMock.mockReturnValue({
+      data: [],
+      isLoading: false,
+      isFetching: false,
+      isError: false,
+    });
+
+    render(<ProjectInfo project={project} compact />);
+
+    expect(screen.getByText("Starter usage unavailable")).toBeInTheDocument();
+    expect(
+      screen.queryByText("starter LLM calls left"),
+    ).not.toBeInTheDocument();
+    expect(screen.getByText("Add key")).toBeInTheDocument();
+  });
 });
