@@ -17,7 +17,7 @@ interface AuthFormProps {
 }
 
 export function NextAuthAuthForm({
-  routeOnSuccess = "/dashboard",
+  routeOnSuccess = "/",
   providers,
 }: AuthFormProps) {
   const [legalAccepted, setLegalAccepted] = useState(false);
@@ -43,26 +43,27 @@ export function NextAuthAuthForm({
 
   return (
     <div className="flex flex-col items-center justify-center min-h-20 w-full px-4">
-      <div className="w-full max-w-md space-y-8">
-        <div className="text-center space-y-3">
-          <h1 className="text-3xl md:text-5xl font-medium tracking-tight">
+      <div className="w-full max-w-md mx-auto space-y-10">
+        {/* Header section with Sentient font */}
+        <div className="text-center space-y-4">
+          <h1 className="font-sentient text-4xl md:text-5xl font-light tracking-tight text-foreground">
             {isReturningUser ? "Welcome back" : "Welcome to Tambo"}
           </h1>
-          <p className="text-muted-foreground text-base md:text-lg">
+          <p className="text-muted-foreground text-base md:text-lg font-normal">
             {isReturningUser
               ? "Sign in to continue"
               : "Get started by signing in with your preferred method"}
           </p>
         </div>
 
+        {/* Provider buttons */}
         <div className="space-y-3">
           {providers.length > 0 ? (
-            providers.map((provider, index) => (
+            providers.map((provider) => (
               <ProviderButton
                 key={provider.id}
                 provider={provider}
                 routeOnSuccess={routeOnSuccess}
-                variant={index === 0 ? "default" : "outline"}
                 disabled={isButtonDisabled}
                 trackLegalAcceptance={!isReturningUser}
                 isLastUsed={lastUsedProvider === provider.id}
@@ -75,20 +76,22 @@ export function NextAuthAuthForm({
           )}
         </div>
 
+        {/* Legal acceptance checkbox */}
         {!isReturningUser && (
-          <div className="flex items-start gap-3">
+          <div className="flex items-start gap-3 pt-2">
             <Checkbox
               id="accept-legal"
               checked={legalAccepted}
               onCheckedChange={(v) => setLegalAccepted(v === true)}
+              className="mt-1 shrink-0 border-muted-foreground data-[state=checked]:border-primary data-[state=checked]:bg-primary"
             />
             <label
               htmlFor="accept-legal"
-              className="text-sm text-muted-foreground"
+              className="text-sm text-muted-foreground leading-relaxed cursor-pointer"
             >
               I have read and accept the{" "}
               <Link
-                className="underline hover:text-foreground"
+                className="text-foreground underline underline-offset-2 hover:text-primary transition-colors"
                 href={LEGAL_CONFIG.URLS.TERMS}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -97,7 +100,7 @@ export function NextAuthAuthForm({
               </Link>
               ,{" "}
               <Link
-                className="underline hover:text-foreground"
+                className="text-foreground underline underline-offset-2 hover:text-primary transition-colors"
                 href={LEGAL_CONFIG.URLS.PRIVACY}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -106,7 +109,7 @@ export function NextAuthAuthForm({
               </Link>
               , and{" "}
               <Link
-                className="underline hover:text-foreground"
+                className="text-foreground underline underline-offset-2 hover:text-primary transition-colors"
                 href={LEGAL_CONFIG.URLS.LICENSE}
                 target="_blank"
                 rel="noopener noreferrer"

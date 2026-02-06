@@ -70,7 +70,7 @@ export default function ProjectLayout({
                 <BreadcrumbItem>
                   <BreadcrumbLink asChild>
                     <Link
-                      href="/dashboard"
+                      href="/"
                       className="text-xs sm:text-sm text-muted-foreground"
                     >
                       <span className="hidden sm:inline">All Projects</span>
@@ -101,14 +101,14 @@ export default function ProjectLayout({
                   className="text-xs sm:text-sm rounded-full data-[state=active]:bg-accent data-[state=active]:text-primary data-[state=inactive]:border-transparent data-[state=inactive]:text-foreground px-3 sm:px-4"
                   asChild
                 >
-                  <Link href={`/dashboard/${projectId}`}>Overview</Link>
+                  <Link href={`/${projectId}`}>Overview</Link>
                 </TabsTrigger>
                 <TabsTrigger
                   value="observability"
                   className="text-xs sm:text-sm rounded-full data-[state=active]:bg-accent data-[state=active]:text-primary data-[state=inactive]:border-transparent data-[state=inactive]:text-foreground px-3 sm:px-4"
                   asChild
                 >
-                  <Link href={`/dashboard/${projectId}/observability`}>
+                  <Link href={`/${projectId}/observability`}>
                     Observability
                   </Link>
                 </TabsTrigger>
@@ -117,9 +117,7 @@ export default function ProjectLayout({
                   className="text-xs sm:text-sm rounded-full data-[state=active]:bg-accent data-[state=active]:text-primary data-[state=inactive]:border-transparent data-[state=inactive]:text-foreground px-3 sm:px-4"
                   asChild
                 >
-                  <Link href={`/dashboard/${projectId}/settings`}>
-                    Settings
-                  </Link>
+                  <Link href={`/${projectId}/settings`}>Settings</Link>
                 </TabsTrigger>
               </TabsList>
             </Tabs>

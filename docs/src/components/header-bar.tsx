@@ -62,7 +62,7 @@ export default function HeaderBar() {
                 </span>
               </Link>
               <Link
-                href="https://tambo.co/dashboard"
+                href="https://console.tambo.co"
                 className="inline-flex items-center justify-center rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
               >
                 Dashboard

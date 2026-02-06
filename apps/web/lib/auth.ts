@@ -261,7 +261,7 @@ export const authOptions: NextAuthOptions = {
         return url;
       }
       // Default to dashboard
-      return `${baseUrl}/dashboard`;
+      return baseUrl;
     },
   },
   pages: {

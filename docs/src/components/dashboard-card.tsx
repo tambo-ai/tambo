@@ -12,7 +12,7 @@ export const DashboardCardComponent = React.forwardRef<
   DashboardCardProps
 >(({ className, ...props }, ref) => {
   const handleOpenDashboard = () => {
-    window.open("https://tambo.co/dashboard", "_blank", "noopener,noreferrer");
+    window.open("https://console.tambo.co", "_blank", "noopener,noreferrer");
   };
 
   return (
