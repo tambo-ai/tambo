@@ -1,19 +1,25 @@
-import { Injectable, OnModuleDestroy } from "@nestjs/common";
+import { Injectable, Logger, OnModuleDestroy } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { PostHog } from "posthog-node";
 
 @Injectable()
 export class AnalyticsService implements OnModuleDestroy {
+  private readonly logger = new Logger(AnalyticsService.name);
   private readonly client?: PostHog;
 
   constructor(private readonly configService: ConfigService) {
     const apiKey = this.configService.get<string>("POSTHOG_API_KEY")?.trim();
+    const host =
+      this.configService.get<string>("POSTHOG_HOST")?.trim() ||
+      "https://app.posthog.com";
+
     if (apiKey) {
-      this.client = new PostHog(apiKey, {
-        host:
-          this.configService.get<string>("POSTHOG_HOST")?.trim() ||
-          "https://app.posthog.com",
-      });
+      this.client = new PostHog(apiKey, { host });
+      this.logger.log(`PostHog initialized (host: ${host})`);
+    } else {
+      this.logger.debug(
+        "PostHog API key not provided; skipping initialization",
+      );
     }
   }
 
