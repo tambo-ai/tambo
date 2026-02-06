@@ -73,7 +73,7 @@ function convertToolChoice(
   | "required"
   | "none"
   | { type: "function"; function: { name: string } } {
-  if (!forceToolChoice) {
+  if (forceToolChoice === undefined) {
     return "auto";
   }
   if (isToolChoiceKeyword(forceToolChoice)) {
