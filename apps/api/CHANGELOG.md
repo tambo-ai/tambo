@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.137.0](https://github.com/tambo-ai/tambo/compare/api-v0.136.1...api-v0.137.0) (2026-02-06)
+
+
+### Features
+
+* **v1:** add run cancellation support ([#2213](https://github.com/tambo-ai/tambo/issues/2213)) ([27e6ac2](https://github.com/tambo-ai/tambo/commit/27e6ac2ecfd0b47d8cf683288bcdfe13d96ba014))
+
+
+### Bug Fixes
+
+* **api:** abort LLM HTTP stream when run is cancelled ([#2236](https://github.com/tambo-ai/tambo/issues/2236)) ([a96d856](https://github.com/tambo-ai/tambo/commit/a96d856e643b0aabd2c1ef2d9af20e549d3f01a1))
+* **api:** add PostHog env vars to turbo globalEnv for production analytics ([#2239](https://github.com/tambo-ai/tambo/issues/2239)) ([47cac2d](https://github.com/tambo-ai/tambo/commit/47cac2d62f16e63ab4e94465740900b296060ded))
+* **v1:** set isError flag on tool result errors ([#2229](https://github.com/tambo-ai/tambo/issues/2229)) ([1aa04ad](https://github.com/tambo-ai/tambo/commit/1aa04adf6817d51e9457de61904da8b096b2783b))
+
 ## [0.136.1](https://github.com/tambo-ai/tambo/compare/api-v0.136.0...api-v0.136.1) (2026-02-05)
 
 

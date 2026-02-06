@@ -76,6 +76,7 @@ describe("useTamboV1ComponentState", () => {
           status: "idle",
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
+          lastRunCancelled: false,
         },
         streaming: { status: "idle" },
         accumulatingToolArgs: new Map(),

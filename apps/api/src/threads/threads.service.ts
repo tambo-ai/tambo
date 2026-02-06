@@ -924,6 +924,7 @@ export class ThreadsService {
     cachedSystemTools?: McpToolRegistry,
     queue?: AsyncQueue<StreamQueueItem>,
     contextKey?: string,
+    abortSignal?: AbortSignal,
   ): Promise<void> {
     await Sentry.startSpan(
       {
@@ -945,6 +946,7 @@ export class ThreadsService {
           cachedSystemTools,
           queue,
           contextKey,
+          abortSignal,
         ),
     );
   }
@@ -957,6 +959,7 @@ export class ThreadsService {
     cachedSystemTools?: McpToolRegistry,
     queue?: AsyncQueue<StreamQueueItem>,
     contextKey?: string,
+    abortSignal?: AbortSignal,
   ): Promise<void> {
     const db = this.getDb();
     queue = queue ?? new AsyncQueue<StreamQueueItem>();
@@ -1140,6 +1143,7 @@ export class ThreadsService {
         mcpAccessToken,
         project?.maxToolCallLimit ?? DEFAULT_MAX_TOTAL_TOOL_CALLS,
         mcpClients,
+        abortSignal,
       );
     } catch (error) {
       queue.fail(error);
@@ -1279,6 +1283,7 @@ export class ThreadsService {
       url: string;
       serverId: string;
     }>,
+    abortSignal?: AbortSignal,
   ): Promise<void> {
     return await Sentry.startSpan(
       {
@@ -1309,6 +1314,7 @@ export class ThreadsService {
           mcpAccessToken,
           maxToolCallLimit,
           mcpClients,
+          abortSignal,
         ),
     );
   }
@@ -1332,7 +1338,24 @@ export class ThreadsService {
       url: string;
       serverId: string;
     }>,
+    abortSignal?: AbortSignal,
   ): Promise<void> {
+    // Create internal abort controller for this streaming session.
+    // This allows both external callers (V1 executeRun) and internal
+    // cancellation detection (handleAdvanceThreadStream) to sever the
+    // LLM HTTP connection.
+    const abortController = new AbortController();
+    const onExternalAbort = () => abortController.abort(abortSignal?.reason);
+    if (abortSignal) {
+      if (abortSignal.aborted) {
+        abortController.abort(abortSignal.reason);
+      } else {
+        abortSignal.addEventListener("abort", onExternalAbort, {
+          once: true,
+        });
+      }
+    }
+
     try {
       const latestMessage = messages[messages.length - 1];
 
@@ -1410,6 +1433,7 @@ export class ThreadsService {
           messages,
           strictTools,
           resourceFetchers,
+          abortSignal: abortController.signal,
         });
 
         decisionLoopSpan.end();
@@ -1428,6 +1452,7 @@ export class ThreadsService {
           mcpAccessToken,
           maxToolCallLimit,
           tamboBackend.modelOptions,
+          abortController,
         );
 
         return;
@@ -1493,6 +1518,7 @@ export class ThreadsService {
         strictTools,
         forceToolChoice: advanceRequestDto.forceToolChoice,
         resourceFetchers,
+        abortSignal: abortController.signal,
       });
 
       decisionLoopSpan.end();
@@ -1522,6 +1548,7 @@ export class ThreadsService {
         mcpAccessToken,
         maxToolCallLimit,
         tamboBackend.modelOptions,
+        abortController,
       );
     } catch (error) {
       // Capture streaming generation errors with context
@@ -1542,6 +1569,12 @@ export class ThreadsService {
         Sentry.captureException(error);
       });
       throw error;
+    } finally {
+      // Clean up: remove listener to avoid leaks, and ensure the LLM
+      // HTTP connection is severed on all termination paths (success,
+      // error, or cancellation).
+      abortSignal?.removeEventListener("abort", onExternalAbort);
+      abortController.abort();
     }
   }
 
@@ -1559,6 +1592,7 @@ export class ThreadsService {
     mcpAccessToken: string | undefined,
     maxToolCallLimit: number,
     modelOptions: ModelOptions,
+    abortController: AbortController,
   ): Promise<void> {
     const db = this.getDb();
     const logger = this.logger;
@@ -1730,6 +1764,7 @@ export class ThreadsService {
         );
         if (cancelledMessage) {
           queue.push(cancelledMessage);
+          abortController.abort();
           return;
         }
 

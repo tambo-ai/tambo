@@ -207,6 +207,7 @@ export function TamboV1ThreadInputProvider({ children }: PropsWithChildren) {
     mutate: _unusedSubmit,
     ...mutationState
   } = useTamboMutation({
+    mutationKey: ["v1-thread-input", currentThreadId],
     mutationFn: submitFn,
   });
 

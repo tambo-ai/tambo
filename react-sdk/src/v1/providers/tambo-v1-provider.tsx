@@ -7,6 +7,7 @@
  * - TamboClientProvider: API client and authentication
  * - TamboRegistryProvider: Component and tool registration
  * - TamboContextHelpersProvider: Context helper functions
+ * - TamboInteractableProvider: Interactive component tracking
  * - TamboV1StreamProvider: Streaming state management
  *
  * This provider should wrap your entire application or the portion
@@ -27,6 +28,7 @@ import {
   type TamboRegistryProviderProps,
 } from "../../providers/tambo-registry-provider";
 import { TamboContextHelpersProvider } from "../../providers/tambo-context-helpers-provider";
+import { TamboInteractableProvider } from "../../providers/tambo-interactable-provider";
 import type { ContextHelpers } from "../../context-helpers";
 import type { McpServerInfo } from "../../model/mcp-server-info";
 import type {
@@ -43,6 +45,10 @@ import { TamboV1ThreadInputProvider } from "./tambo-v1-thread-input-provider";
 export interface TamboV1Config {
   /** User key for thread ownership and scoping */
   userKey?: string;
+  /** Whether to automatically generate thread names after a threshold of messages. Defaults to true. */
+  autoGenerateThreadName?: boolean;
+  /** The message count threshold at which the thread name will be auto-generated. Defaults to 3. */
+  autoGenerateNameThreshold?: number;
 }
 
 /**
@@ -134,6 +140,18 @@ export interface TamboV1ProviderProps extends Pick<
   userKey?: string;
 
   /**
+   * Whether to automatically generate thread names after a threshold of messages.
+   * Defaults to true.
+   */
+  autoGenerateThreadName?: boolean;
+
+  /**
+   * The message count threshold at which the thread name will be auto-generated.
+   * Defaults to 3.
+   */
+  autoGenerateNameThreshold?: number;
+
+  /**
    * Children components
    */
   children: React.ReactNode;
@@ -163,6 +181,8 @@ export interface TamboV1ProviderProps extends Pick<
  * @param props.getResource - Dynamic resource fetch function (must be paired with listResources)
  * @param props.contextHelpers - Configuration for context helper functions
  * @param props.userKey - User key for thread ownership (required if not using userToken)
+ * @param props.autoGenerateThreadName - Whether to automatically generate thread names. Defaults to true.
+ * @param props.autoGenerateNameThreshold - The message count threshold at which the thread name will be auto-generated. Defaults to 3.
  * @param props.children - Child components
  * @returns Provider component tree
  * @example
@@ -196,10 +216,16 @@ export function TamboV1Provider({
   getResource,
   contextHelpers,
   userKey,
+  autoGenerateThreadName,
+  autoGenerateNameThreshold,
   children,
 }: PropsWithChildren<TamboV1ProviderProps>) {
   // Config is static - created once and never changes
-  const config: TamboV1Config = { userKey };
+  const config: TamboV1Config = {
+    userKey,
+    autoGenerateThreadName,
+    autoGenerateNameThreshold,
+  };
 
   return (
     <TamboClientProvider
@@ -218,13 +244,15 @@ export function TamboV1Provider({
         getResource={getResource}
       >
         <TamboContextHelpersProvider contextHelpers={contextHelpers}>
-          <TamboV1ConfigContext.Provider value={config}>
-            <TamboV1StreamProvider>
-              <TamboV1ThreadInputProvider>
-                {children}
-              </TamboV1ThreadInputProvider>
-            </TamboV1StreamProvider>
-          </TamboV1ConfigContext.Provider>
+          <TamboInteractableProvider>
+            <TamboV1ConfigContext.Provider value={config}>
+              <TamboV1StreamProvider>
+                <TamboV1ThreadInputProvider>
+                  {children}
+                </TamboV1ThreadInputProvider>
+              </TamboV1StreamProvider>
+            </TamboV1ConfigContext.Provider>
+          </TamboInteractableProvider>
         </TamboContextHelpersProvider>
       </TamboRegistryProvider>
     </TamboClientProvider>

@@ -26,6 +26,12 @@ jest.mock("../providers/tambo-v1-provider", () => ({
   useTamboV1Config: jest.fn(),
 }));
 
+jest.mock("../../providers/tambo-context-helpers-provider", () => ({
+  useTamboContextHelpers: () => ({
+    getAdditionalContext: jest.fn().mockResolvedValue([]),
+  }),
+}));
+
 describe("useTamboV1SendMessage", () => {
   const mockThreadsRunsApi = {
     run: jest.fn(),
@@ -789,6 +795,7 @@ describe("useTamboV1SendMessage mutation", () => {
     expect(continueCall[1].message.content[0]).toEqual({
       type: "tool_result",
       toolUseId: "call_1",
+      isError: true,
       content: [
         { type: "text", text: 'Tool "unknown_tool" not found in registry' },
       ],
@@ -1076,5 +1083,245 @@ describe("useTamboV1SendMessage mutation", () => {
     });
 
     consoleSpy.mockRestore();
+  });
+});
+
+describe("useTamboV1SendMessage auto thread name generation", () => {
+  const mockGenerateName = jest.fn();
+  const mockThreadsRunsApi = {
+    run: jest.fn(),
+    create: jest.fn(),
+  };
+
+  const mockTamboAI = {
+    apiKey: "",
+    threads: {
+      runs: mockThreadsRunsApi,
+    },
+    beta: {
+      threads: {
+        generateName: mockGenerateName,
+      },
+    },
+  } as unknown as TamboAI;
+
+  let queryClient: QueryClient;
+
+  function createAsyncIterator<T>(events: T[]) {
+    return {
+      [Symbol.asyncIterator]: async function* () {
+        for (const event of events) {
+          yield event;
+        }
+      },
+    };
+  }
+
+  const mockRegistry = {
+    componentList: new Map(),
+    toolRegistry: new Map(),
+  };
+
+  function TestWrapper({ children }: { children: React.ReactNode }) {
+    return (
+      <QueryClientProvider client={queryClient}>
+        <TamboRegistryContext.Provider value={mockRegistry as any}>
+          <TamboV1StreamProvider>{children}</TamboV1StreamProvider>
+        </TamboRegistryContext.Provider>
+      </QueryClientProvider>
+    );
+  }
+
+  function createFinishedStream(threadId: string) {
+    return createAsyncIterator([
+      {
+        type: EventType.RUN_STARTED,
+        runId: "run_1",
+        threadId,
+      },
+      {
+        type: EventType.TEXT_MESSAGE_START,
+        messageId: "msg_assistant_1",
+        role: "assistant",
+      },
+      {
+        type: EventType.TEXT_MESSAGE_CONTENT,
+        messageId: "msg_assistant_1",
+        delta: "Hello!",
+      },
+      {
+        type: EventType.TEXT_MESSAGE_END,
+        messageId: "msg_assistant_1",
+      },
+      { type: EventType.RUN_FINISHED },
+    ]);
+  }
+
+  beforeEach(() => {
+    queryClient = new QueryClient({
+      defaultOptions: {
+        queries: { retry: false },
+        mutations: { retry: false },
+      },
+    });
+    jest.mocked(useTamboClient).mockReturnValue(mockTamboAI);
+    jest.mocked(useTamboQueryClient).mockReturnValue(queryClient);
+    mockThreadsRunsApi.run.mockReset();
+    mockThreadsRunsApi.create.mockReset();
+    mockGenerateName.mockReset();
+  });
+
+  it("calls generateName when message count reaches threshold", async () => {
+    // Threshold=2. Pre-mutation=0, 0 + 2 = 2 >= 2 → fire
+    jest.mocked(useTamboV1Config).mockReturnValue({
+      userKey: undefined,
+      autoGenerateThreadName: true,
+      autoGenerateNameThreshold: 2,
+    });
+
+    mockGenerateName.mockResolvedValue({ name: "Generated Thread Name" });
+    mockThreadsRunsApi.run.mockResolvedValue(
+      createFinishedStream("thread_123"),
+    );
+
+    const { result } = renderHook(() => useTamboV1SendMessage("thread_123"), {
+      wrapper: TestWrapper,
+    });
+
+    await act(async () => {
+      await result.current.mutateAsync({
+        message: {
+          role: "user",
+          content: [{ type: "text", text: "Hello" }],
+        },
+      });
+    });
+
+    await waitFor(() => {
+      expect(mockGenerateName).toHaveBeenCalledWith("thread_123");
+    });
+  });
+
+  it("does not call generateName when autoGenerateThreadName is false", async () => {
+    jest.mocked(useTamboV1Config).mockReturnValue({
+      userKey: undefined,
+      autoGenerateThreadName: false,
+      autoGenerateNameThreshold: 3,
+    });
+
+    mockThreadsRunsApi.run.mockResolvedValue(
+      createFinishedStream("thread_123"),
+    );
+
+    const { result } = renderHook(() => useTamboV1SendMessage("thread_123"), {
+      wrapper: TestWrapper,
+    });
+
+    await act(async () => {
+      await result.current.mutateAsync({
+        message: {
+          role: "user",
+          content: [{ type: "text", text: "Hello" }],
+        },
+      });
+    });
+
+    // mutateAsync resolves after onSuccess, so all async work has settled
+    expect(mockGenerateName).not.toHaveBeenCalled();
+  });
+
+  it("does not call generateName when message count is below threshold", async () => {
+    // With threshold=3, preMutation=0 messages, 0 + 2 = 2 < 3 → skip
+    jest.mocked(useTamboV1Config).mockReturnValue({
+      userKey: undefined,
+      autoGenerateThreadName: true,
+      autoGenerateNameThreshold: 3,
+    });
+
+    mockThreadsRunsApi.create.mockResolvedValue(
+      createFinishedStream("new_thread"),
+    );
+
+    const { result } = renderHook(() => useTamboV1SendMessage(), {
+      wrapper: TestWrapper,
+    });
+
+    await act(async () => {
+      await result.current.mutateAsync({
+        message: {
+          role: "user",
+          content: [{ type: "text", text: "Hello" }],
+        },
+      });
+    });
+
+    expect(mockGenerateName).not.toHaveBeenCalled();
+  });
+
+  it("logs error when generateName fails (does not throw)", async () => {
+    // Threshold=2. Pre-mutation=0, 0 + 2 = 2 >= 2 → fire
+    jest.mocked(useTamboV1Config).mockReturnValue({
+      userKey: undefined,
+      autoGenerateThreadName: true,
+      autoGenerateNameThreshold: 2,
+    });
+
+    const consoleSpy = jest
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
+    mockGenerateName.mockRejectedValue(new Error("API error"));
+    mockThreadsRunsApi.run.mockResolvedValue(
+      createFinishedStream("thread_123"),
+    );
+
+    const { result } = renderHook(() => useTamboV1SendMessage("thread_123"), {
+      wrapper: TestWrapper,
+    });
+
+    await act(async () => {
+      await result.current.mutateAsync({
+        message: {
+          role: "user",
+          content: [{ type: "text", text: "Hello" }],
+        },
+      });
+    });
+
+    await waitFor(() => {
+      expect(consoleSpy).toHaveBeenCalledWith(
+        "[useTamboV1SendMessage] Failed to auto-generate thread name:",
+        expect.any(Error),
+      );
+    });
+
+    consoleSpy.mockRestore();
+  });
+
+  it("uses default config values (enabled, threshold=3)", async () => {
+    // Don't set autoGenerateThreadName/autoGenerateNameThreshold — defaults apply
+    jest.mocked(useTamboV1Config).mockReturnValue({
+      userKey: undefined,
+    });
+
+    mockGenerateName.mockResolvedValue({ name: "Auto Name" });
+    mockThreadsRunsApi.run.mockResolvedValue(
+      createFinishedStream("thread_123"),
+    );
+
+    const { result } = renderHook(() => useTamboV1SendMessage("thread_123"), {
+      wrapper: TestWrapper,
+    });
+
+    await act(async () => {
+      await result.current.mutateAsync({
+        message: {
+          role: "user",
+          content: [{ type: "text", text: "Hello" }],
+        },
+      });
+    });
+
+    // Default threshold=3, preMutation=0 messages, 0 + 2 = 2 < 3 → should NOT fire
+    expect(mockGenerateName).not.toHaveBeenCalled();
   });
 });

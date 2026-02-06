@@ -349,6 +349,8 @@ export function messageToDto(
     content,
     createdAt: message.createdAt.toISOString(),
     metadata: message.metadata ?? undefined,
+    // Only include isCancelled if true (to keep response size minimal)
+    isCancelled: message.isCancelled || undefined,
   };
 }
 

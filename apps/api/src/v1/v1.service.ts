@@ -8,6 +8,12 @@ import {
   Logger,
   NotFoundException,
 } from "@nestjs/common";
+
+/**
+ * Interval in milliseconds for checking run cancellation status during streaming.
+ * Set to 500ms as a balance between responsiveness and database load.
+ */
+const CANCEL_CHECK_INTERVAL_MS = 500;
 import * as Sentry from "@sentry/nestjs";
 import {
   EventType,
@@ -538,7 +544,8 @@ export class V1Service {
   /**
    * Cancel an active run.
    *
-   * Sets the thread status back to IDLE and marks the run as cancelled.
+   * Sets the thread status back to IDLE, marks the run as cancelled,
+   * and marks the latest assistant message as cancelled (if any).
    *
    * @returns The cancelled run info
    */
@@ -566,6 +573,19 @@ export class V1Service {
       }
 
       await operations.markRunCancelled(tx, runId);
+
+      // Use the "latest message" fallback here since we don't have access to the
+      // streaming context's message ID. This is called from connection close handlers
+      // and the DELETE endpoint. The streaming loop uses markMessageCancelled()
+      // directly when it detects cancellation since it knows the exact message ID.
+      const cancelledMessageId =
+        await operations.markLatestAssistantMessageCancelled(tx, threadId);
+      if (cancelledMessageId) {
+        this.logger.log(
+          `Marked message ${cancelledMessageId} as cancelled for run ${runId}`,
+        );
+      }
+
       return true;
     });
 
@@ -661,6 +681,9 @@ export class V1Service {
           );
           const clientTools = convertV1ToolsToInternal(dto.tools);
 
+          // Create abort controller to stop LLM stream on cancellation
+          const abortController = new AbortController();
+
           const streamingPromise = this.threadsService.advanceThread(
             projectId,
             {
@@ -673,7 +696,17 @@ export class V1Service {
             undefined, // cachedSystemTools
             queue,
             contextKey,
+            abortController.signal,
           );
+
+          // Handle expected abort rejection when we cancel the stream
+          void streamingPromise.catch((error: unknown) => {
+            if (abortController.signal.aborted) {
+              this.logger.log(`LLM stream aborted for cancelled run ${runId}`);
+              return;
+            }
+            this.logger.error(`Streaming error for run ${runId}: ${error}`);
+          });
 
           // 5. Consume queue and emit AG-UI events, tracking tool calls
           const clientToolNames = new Set(dto.tools?.map((t) => t.name) ?? []);
@@ -685,9 +718,49 @@ export class V1Service {
           // to real IDs so the client SDK can reference messages correctly.
           const messageIdMapping = new Map<string, string>();
 
+          // Throttled cancellation check - poll database for run cancellation status
+          // at most once per CANCEL_CHECK_INTERVAL_MS to balance responsiveness vs DB load
+          let lastCancelCheckTime = Date.now();
+
+          // Track current message ID for precise cancellation marking
+          let currentMessageId: string | undefined;
+
           for await (const item of queue) {
+            // Check for cancellation periodically (throttled to avoid excessive DB queries)
+            const now = Date.now();
+            if (now - lastCancelCheckTime >= CANCEL_CHECK_INTERVAL_MS) {
+              lastCancelCheckTime = now;
+              const run = await operations.getRun(this.db, threadId, runId);
+              if (run?.isCancelled) {
+                abortController.abort();
+                // Mark the specific message we know is being streamed
+                if (currentMessageId) {
+                  await operations.markMessageCancelled(
+                    this.db,
+                    currentMessageId,
+                  );
+                  this.logger.log(
+                    `Marked message ${currentMessageId} as cancelled for run ${runId}`,
+                  );
+                }
+                const cancelErrorEvent: RunErrorEvent = {
+                  type: EventType.RUN_ERROR,
+                  message: "Run cancelled",
+                  code: "CANCELLED",
+                  timestamp: Date.now(),
+                };
+                this.emitEvent(response, cancelErrorEvent);
+                this.logger.log(
+                  `Run ${runId} cancelled during streaming on thread ${threadId}`,
+                );
+                return;
+              }
+            }
             // Extract real message ID from the response (persisted by advanceThread)
             const realMessageId = item.response?.responseMessageDto?.id;
+            if (realMessageId) {
+              currentMessageId = realMessageId;
+            }
 
             if (item.aguiEvents) {
               for (const event of item.aguiEvents) {

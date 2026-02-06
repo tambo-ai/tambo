@@ -7,8 +7,15 @@
  * to thread state, streaming status, registry, and client.
  */
 
+import { EventType } from "@ag-ui/core";
 import type TamboAI from "@tambo-ai/typescript-sdk";
-import React, { useContext, useMemo, useRef, type ReactElement } from "react";
+import React, {
+  useCallback,
+  useContext,
+  useMemo,
+  useRef,
+  type ReactElement,
+} from "react";
 import { useTamboClient } from "../../providers/tambo-client-provider";
 import {
   TamboRegistryContext,
@@ -28,7 +35,10 @@ import type {
   V1ToolUseContent,
 } from "../types/message";
 import type { StreamingState } from "../types/thread";
-import type { ThreadState } from "../utils/event-accumulator";
+import {
+  isPlaceholderThreadId,
+  type ThreadState,
+} from "../utils/event-accumulator";
 
 /**
  * Return type for useTamboV1 hook
@@ -118,6 +128,13 @@ export interface UseTamboV1Return {
    * Dispatch function for stream events (advanced usage)
    */
   dispatch: ReturnType<typeof useStreamDispatch>;
+
+  /**
+   * Cancel the current run on this thread.
+   * Optimistically updates local state and sends cancellation request to the API.
+   * No-op if there's no active run or thread is a placeholder.
+   */
+  cancelRun: () => Promise<void>;
 }
 
 /**
@@ -175,6 +192,42 @@ export function useTamboV1(): UseTamboV1Return {
 
   // Get thread state for the current thread
   const threadState = streamState.threadMap[streamState.currentThreadId];
+
+  // Cancel the current run on this thread
+  const cancelRun = useCallback(async () => {
+    const runId = threadState?.streaming.runId;
+    const threadId = streamState.currentThreadId;
+
+    // No-op if there's no active run or thread is a placeholder
+    if (!runId || isPlaceholderThreadId(threadId)) {
+      return;
+    }
+
+    // Optimistically update local state with RUN_ERROR event
+    dispatch({
+      type: "EVENT",
+      threadId,
+      event: {
+        type: EventType.RUN_ERROR,
+        message: "Run cancelled",
+        code: "CANCELLED",
+        timestamp: Date.now(),
+      },
+    });
+
+    // Call API to cancel the run
+    try {
+      await client.threads.runs.delete(runId, { threadId });
+    } catch (error) {
+      // Log but don't rethrow - local state is already updated
+      console.warn("Failed to cancel run on server:", error);
+    }
+  }, [
+    client,
+    streamState.currentThreadId,
+    threadState?.streaming.runId,
+    dispatch,
+  ]);
 
   // Memoize the return object to prevent unnecessary re-renders
   return useMemo(() => {
@@ -302,8 +355,10 @@ export function useTamboV1(): UseTamboV1Return {
       switchThread: threadManagement.switchThread,
       startNewThread: threadManagement.startNewThread,
       dispatch,
+      cancelRun,
     };
   }, [
+    cancelRun,
     client,
     threadState,
     registry,

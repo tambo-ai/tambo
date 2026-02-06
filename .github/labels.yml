@@ -42,6 +42,10 @@
   color: "26b5ce"
   description: "Changes to the web app (apps/web)"
 
+- name: "area: react-ui-base"
+  color: "26b5ce"
+  description: "Changes to the react-ui-base package (packages/react-ui-base)"
+
 - name: "area: templates"
   color: "26b5ce"
   description: "Changes to templates"
