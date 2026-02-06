@@ -109,6 +109,8 @@ const excludedSitemapExactPathList = [
   "/llms.txt",
   "/llms-full.txt",
   "/robots.txt",
+  // We use `/llms.mdx/*` as a routable prefix via `next.config.mjs` rewrites.
+  // It serves a Markdown rendering of pages and should not be indexed.
   "/llms.mdx",
 ];
 
@@ -122,7 +124,12 @@ const excludedSitemapGlobs = [
 const excludedSitemapExactPaths = new Set(excludedSitemapExactPathList);
 
 const isExcludedSitemapPath = (path) =>
-  excludedSitemapExactPaths.has(path) || path.startsWith("/llms.mdx/");
+  excludedSitemapExactPaths.has(path) ||
+  path.startsWith("/llms.mdx/") ||
+  path.startsWith("/_next/") ||
+  path === "/_next" ||
+  path.startsWith("/api/") ||
+  path === "/api";
 
 // Enumerate routes once at config load for deterministic, build-time-only sitemap generation
 const enumerated = enumerateRoutes();
