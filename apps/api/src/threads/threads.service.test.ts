@@ -312,7 +312,12 @@ describe("ThreadsService.advanceThread initialization", () => {
     ]);
 
     operations.addMessage.mockImplementation(
-      async (_db: any, threadIdInput: string, input: any) => ({
+      async (
+        _db: any,
+        threadIdInput: string,
+        input: any,
+        _sdkVersion?: string,
+      ) => ({
         id: "u1",
         threadId: threadIdInput,
         role: input.role,
@@ -330,6 +335,7 @@ describe("ThreadsService.advanceThread initialization", () => {
         additionalContext: input.additionalContext ?? {},
         reasoning: input.reasoning ?? null,
         reasoningDurationMS: input.reasoningDurationMS ?? null,
+        sdkVersion: null,
       }),
     );
 
@@ -429,7 +435,7 @@ describe("ThreadsService.advanceThread initialization", () => {
         throw new Error("STOP_AFTER_INIT");
       });
 
-    await expect(service.advanceThread(projectId, dto)).rejects.toThrow(
+    await expect(service.advanceThread({ projectId }, dto)).rejects.toThrow(
       "STOP_AFTER_INIT",
     );
 
@@ -455,15 +461,7 @@ describe("ThreadsService.advanceThread initialization", () => {
       });
 
     await expect(
-      service.advanceThread(
-        projectId,
-        dto,
-        undefined,
-        {},
-        undefined,
-        undefined, // queue
-        contextKey,
-      ),
+      service.advanceThread({ projectId, contextKey }, dto),
     ).rejects.toThrow("STOP_AFTER_INIT");
 
     const initArgs2 = mockedCreateTamboBackend.mock.calls[0];
@@ -497,7 +495,7 @@ describe("ThreadsService.advanceThread initialization", () => {
       throw new Error("STOP_AFTER_INIT");
     });
 
-    await expect(service.advanceThread(projectId, dto)).rejects.toThrow(
+    await expect(service.advanceThread({ projectId }, dto)).rejects.toThrow(
       "STOP_AFTER_INIT",
     );
 
@@ -548,11 +546,10 @@ describe("ThreadsService.advanceThread initialization", () => {
 
     await expect(
       service.advanceThread(
-        projectId,
+        { projectId },
         dto,
         undefined,
         {},
-        undefined,
         undefined,
         undefined,
         externalController.signal,
@@ -617,7 +614,7 @@ describe("ThreadsService.advanceThread initialization", () => {
       // Start the operation (don't await - it will run concurrently)
       // Pass undefined for threadId to avoid complex thread lookup mocking
       const advancePromise = service.advanceThread(
-        projectId,
+        { projectId },
         dto,
         undefined, // let service create new thread
         {},
@@ -677,7 +674,7 @@ describe("ThreadsService.advanceThread initialization", () => {
         );
 
       const advancePromise = service.advanceThread(
-        projectId,
+        { projectId },
         dto,
         undefined,
         {},
@@ -716,7 +713,7 @@ describe("ThreadsService.advanceThread initialization", () => {
 
       // Start the operation
       const advancePromise = service.advanceThread(
-        projectId,
+        { projectId },
         dto,
         undefined,
         {},
@@ -767,7 +764,7 @@ describe("ThreadsService.advanceThread initialization", () => {
         );
 
       const advancePromise = service.advanceThread(
-        projectId,
+        { projectId },
         dto,
         undefined,
         {},
@@ -821,7 +818,7 @@ describe("ThreadsService.advanceThread initialization", () => {
         );
 
       const advancePromise = service.advanceThread(
-        projectId,
+        { projectId },
         dto,
         undefined,
         {},
@@ -885,7 +882,7 @@ describe("ThreadsService.advanceThread initialization", () => {
         );
 
       const advancePromise = service.advanceThread(
-        projectId,
+        { projectId },
         dto,
         undefined,
         {},
@@ -938,7 +935,7 @@ describe("ThreadsService.advanceThread initialization", () => {
         );
 
       const advancePromise = service.advanceThread(
-        projectId,
+        { projectId },
         dto,
         undefined,
         {},
@@ -986,7 +983,7 @@ describe("ThreadsService.advanceThread initialization", () => {
         .mockResolvedValue(backendMock);
 
       try {
-        await expect(service.advanceThread(projectId, dto)).rejects.toThrow(
+        await expect(service.advanceThread({ projectId }, dto)).rejects.toThrow(
           "STOP_ATTACHMENT_CHECK",
         );
 
@@ -1048,7 +1045,7 @@ describe("ThreadsService.advanceThread initialization", () => {
         .mockResolvedValue(backendMock);
 
       try {
-        await expect(service.advanceThread(projectId, dto)).rejects.toThrow(
+        await expect(service.advanceThread({ projectId }, dto)).rejects.toThrow(
           "STOP_ATTACHMENT_CHECK_TRUE",
         );
 
@@ -1353,6 +1350,7 @@ describe("ThreadsService.advanceThread initialization", () => {
             role: MessageRole.Assistant,
             content: [{ type: ContentPartType.Text, text: "" }],
           }),
+          undefined,
         );
       });
 
@@ -1399,6 +1397,7 @@ describe("ThreadsService.advanceThread initialization", () => {
             tool_call_id: "tc_123",
             content: [{ type: ContentPartType.Text, text: "" }],
           }),
+          undefined,
         );
       });
     });
