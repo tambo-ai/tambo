@@ -11,23 +11,36 @@ This plan covers creating individual PRs for compound components in the `react-u
 **Done:** 14 components with complete base primitives, 2 skill documents
 **Pending:** 3 components have empty stub directories (no implementation)
 
+### Pattern Change: `render` Prop Deprecated
+
+The `render` prop pattern is **deprecated** across all base components. All styled wrappers must use **children as a function** instead. The `render` prop is retained in the type system for backwards compatibility but should not appear in any new code.
+
+**State access hierarchy for styled wrappers** (in order of preference):
+
+1. **Context-aware sub-components** — render base sub-components directly with `className`
+2. **Data attributes** — use `data-[attr]` Tailwind selectors for state-based styling
+3. **Children as render function** — only when rendering entirely different component trees
+4. **Context hooks** — import directly from base source file for deep access
+
+See `.claude/skills/styled-compound-wrappers/SKILL.md` for details.
+
 ---
 
 ## Phase 1: Independent Components (Target `main`)
 
 These components have no dependencies on other refactored components. Create PRs in parallel.
 
-| Component              | Linear Issue                                        | Styled Wrapper                                         |
-| ---------------------- | --------------------------------------------------- | ------------------------------------------------------ |
-| message-suggestions    | [TAM-1057](https://linear.app/tambo/issue/TAM-1057) | `cli/dist/registry/components/message-suggestions/`    |
-| thread-history         | [TAM-1064](https://linear.app/tambo/issue/TAM-1064) | `cli/dist/registry/components/thread-history/`         |
-| graph                  | [TAM-1052](https://linear.app/tambo/issue/TAM-1052) | `cli/dist/registry/components/graph/`                  |
-| form                   | [TAM-1051](https://linear.app/tambo/issue/TAM-1051) | `cli/dist/registry/components/form/`                   |
-| elicitation-ui         | [TAM-1050](https://linear.app/tambo/issue/TAM-1050) | `cli/dist/registry/components/elicitation-ui/`         |
-| edit-with-tambo-button | [TAM-1049](https://linear.app/tambo/issue/TAM-1049) | `cli/dist/registry/components/edit-with-tambo-button/` |
-| map                    | [TAM-1054](https://linear.app/tambo/issue/TAM-1054) | `cli/dist/registry/components/map/`                    |
-| input-fields           | [TAM-1053](https://linear.app/tambo/issue/TAM-1053) | `cli/dist/registry/components/input-fields/`           |
-| canvas-space           | [TAM-1047](https://linear.app/tambo/issue/TAM-1047) | `cli/dist/registry/components/canvas-space/`           |
+| Component              | Linear Issue                                        | Styled Wrapper                                                |
+| ---------------------- | --------------------------------------------------- | ------------------------------------------------------------- |
+| message-suggestions    | [TAM-1057](https://linear.app/tambo/issue/TAM-1057) | `packages/ui-registry/src/components/message-suggestions/`    |
+| thread-history         | [TAM-1064](https://linear.app/tambo/issue/TAM-1064) | `packages/ui-registry/src/components/thread-history/`         |
+| graph                  | [TAM-1052](https://linear.app/tambo/issue/TAM-1052) | `packages/ui-registry/src/components/graph/`                  |
+| form                   | [TAM-1051](https://linear.app/tambo/issue/TAM-1051) | `packages/ui-registry/src/components/form/`                   |
+| elicitation-ui         | [TAM-1050](https://linear.app/tambo/issue/TAM-1050) | `packages/ui-registry/src/components/elicitation-ui/`         |
+| edit-with-tambo-button | [TAM-1049](https://linear.app/tambo/issue/TAM-1049) | `packages/ui-registry/src/components/edit-with-tambo-button/` |
+| map                    | [TAM-1054](https://linear.app/tambo/issue/TAM-1054) | `packages/ui-registry/src/components/map/`                    |
+| input-fields           | [TAM-1053](https://linear.app/tambo/issue/TAM-1053) | `packages/ui-registry/src/components/input-fields/`           |
+| canvas-space           | [TAM-1047](https://linear.app/tambo/issue/TAM-1047) | `packages/ui-registry/src/components/canvas-space/`           |
 
 ---
 
@@ -84,7 +97,7 @@ These compose multiple base components and should be merged after Phase 2.
 - [ ] Component renders without errors
 - [ ] All sub-components work within Root context
 - [ ] Data attributes exposed correctly for CSS styling (`data-*`)
-- [ ] Render props expose expected state
+- [ ] Children-as-function exposes expected state (no `render` prop usage)
 - [ ] No hooks exported from component barrel file (`index.tsx`)
 - [ ] Types exported correctly from main `index.ts`
 - [ ] Subpath export works (`@tambo-ai/react-ui-base/<component>`)
@@ -113,7 +126,7 @@ git reset main
 
 # 3. Stage ONLY this component's changes
 git add packages/react-ui-base/src/<component-name>/
-git add cli/dist/registry/components/<component-name>/
+git add packages/ui-registry/src/components/<component-name>/
 # Add only the relevant exports to index.ts (may need to manually edit)
 
 # 4. Commit with descriptive message
@@ -126,7 +139,7 @@ gh pr create --base main
 
 ### Important Notes
 
-1. **Don't forget styled wrappers** - Each PR should include both the base component AND updates to the styled wrapper in `cli/dist/registry/components/`
+1. **Don't forget styled wrappers** - Each PR should include both the base component AND updates to the styled wrapper in `packages/ui-registry/src/components/`
 
 2. **Index.ts exports** - Be careful to only add the relevant exports for your component to avoid conflicts
 
@@ -153,9 +166,9 @@ Refactors `<component-name>` to use the compound component pattern with base pri
 - Root component with context provider
 - Sub-components: <list>
 - Data attributes: <list>
-- Render props: <list>
+- Children-as-function render props: <list>
 
-**Styled Wrapper** (`cli/dist/registry/components/<component>/`)
+**Styled Wrapper** (`packages/ui-registry/src/components/<component>/`)
 
 - Composes base components from `@tambo-ai/react-ui-base/<component>`
 - Applies Tailwind styling via className

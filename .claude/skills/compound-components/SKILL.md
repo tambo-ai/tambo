@@ -160,31 +160,51 @@ const Content = ({ children, className, ...props }) => {
 </Component.Content>;
 ```
 
-### Pattern 2: Render Prop (State Access)
+### Pattern 2: Children as Render Function (State Access)
 
-Best when consumer needs internal state.
+Best when consumer needs internal state. Children can be a function that receives render props.
 
 ```tsx
 // Component
-interface ContentProps {
-  render?: (props: { data: string; isLoading: boolean }) => React.ReactNode;
-  children?: React.ReactNode;
+interface ContentRenderProps {
+  data: string;
+  isLoading: boolean;
 }
 
-const Content = ({ render, children, ...props }) => {
-  const { data, isLoading } = useContext();
+type ContentProps = BasePropsWithChildrenOrRenderFunction<
+  React.HTMLAttributes<HTMLDivElement>,
+  ContentRenderProps
+>;
 
-  const content = render ? render({ data, isLoading }) : children;
-  return <div {...props}>{content}</div>;
-};
+const Content = React.forwardRef<HTMLDivElement, ContentProps>(
+  ({ asChild, ...props }, ref) => {
+    const { data, isLoading } = useContext();
+    const Comp = asChild ? Slot : "div";
 
-// Usage
-<Component.Content
-  render={({ data, isLoading }) => (
+    const { content, componentProps } = useRender(props, { data, isLoading });
+
+    return (
+      <Comp ref={ref} data-loading={isLoading || undefined} {...componentProps}>
+        {content}
+      </Comp>
+    );
+  },
+);
+
+// Usage - children as function
+<Component.Content>
+  {({ data, isLoading }) => (
     <div className={isLoading ? "opacity-50" : ""}>{data}</div>
   )}
-/>;
+</Component.Content>;
+
+// Usage - static children (state accessed via data attributes or sub-components)
+<Component.Content className="data-[loading]:opacity-50">
+  <p>Static content</p>
+</Component.Content>;
 ```
+
+**Never use a `render` prop.** Always use children — either as static ReactNode or as a function.
 
 ### Pattern 3: Sub-Context (Maximum Composability)
 
@@ -320,13 +340,13 @@ export interface ComponentContentRenderProps {
 
 ## When to Use Each Pattern
 
-| Scenario             | Pattern         | Why                             |
-| -------------------- | --------------- | ------------------------------- |
-| Static content       | Direct children | Simplest, most flexible         |
-| Need internal state  | Render prop     | Explicit state access           |
-| List/iteration       | Sub-context     | Each item gets own context      |
-| Element polymorphism | asChild         | Change underlying element       |
-| CSS-only styling     | Data attributes | No JS needed for style variants |
+| Scenario             | Pattern                     | Why                             |
+| -------------------- | --------------------------- | ------------------------------- |
+| Static content       | Direct children             | Simplest, most flexible         |
+| Need internal state  | Children as render function | Explicit state access           |
+| List/iteration       | Sub-context                 | Each item gets own context      |
+| Element polymorphism | asChild                     | Change underlying element       |
+| CSS-only styling     | Data attributes             | No JS needed for style variants |
 
 ## Hooks Are Internal
 
@@ -466,7 +486,7 @@ This pattern:
 - **Missing error boundaries** - throw when context is missing
 - **Inline functions in render prop types** - define proper interfaces
 - **Default exports** - use named exports in namespace object
-- **Exporting hooks** - hooks are internal; expose state via render props
+- **Exporting hooks** - hooks are internal; expose state via children-as-function or sub-components
 - **Custom data fetching in primitives** - SDK hooks are fine, but combining/external fetching belongs in styled layer
 - **Re-implementing base logic** - styled wrappers should compose, not duplicate
 - **Getter functions for collections** - pre-compute props arrays in useMemo instead

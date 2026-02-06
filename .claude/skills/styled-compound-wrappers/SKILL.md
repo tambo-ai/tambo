@@ -34,20 +34,135 @@ const StyledInput = ({ children, className }) => {
   );
 };
 
-// ✅ CORRECT - compose the base component
+// ✅ CORRECT - compose the base component, use data attributes for styling
 const StyledInput = ({ children, className, variant }) => {
   return (
     <BaseInput.Root className={cn(inputVariants({ variant }), className)}>
-      <BaseInput.Content>
-        {({ isDragging }) => (
-          <div className={cn("rounded-xl", isDragging && "border-dashed")}>
-            {children}
-          </div>
-        )}
+      <BaseInput.Content
+        className={cn("rounded-xl", "data-[dragging]:border-dashed")}
+      >
+        {children}
       </BaseInput.Content>
     </BaseInput.Root>
   );
 };
+```
+
+## State Access Hierarchy
+
+Styled wrappers should access base component state in this order of preference:
+
+### 1. Use context-aware sub-components directly (BEST)
+
+Base components provide sub-components that read from context automatically. Just render them with styling.
+
+```tsx
+// ✅ BEST - sub-components read context internally, just add styling
+const StyledSuggestions = ({ className }) => (
+  <SuggestionsBase.Root className={cn("px-4 pb-2", className)}>
+    <SuggestionsBase.Status className="text-sm text-muted-foreground" />
+    <SuggestionsBase.List className="flex gap-2 overflow-x-auto" />
+  </SuggestionsBase.Root>
+);
+```
+
+### 2. Data attributes for CSS styling (PREFERRED for conditional styles)
+
+Base components expose state via `data-*` attributes. Use Tailwind's `data-[attr]` selectors.
+
+```tsx
+// ✅ PREFERRED - data-* classes for styling based on state
+<BaseComponent.Content
+  className={cn(
+    "group rounded-xl border border-border",
+    "data-[dragging]:border-dashed data-[dragging]:border-emerald-400",
+    "data-[idle]:p-0 data-[idle]:min-h-0",
+  )}
+>
+  {/* Child elements can use group-data-* to react to parent state */}
+  <div className="hidden group-data-[dragging]:flex absolute inset-0 bg-emerald-50/90">
+    <p>Drop files here</p>
+  </div>
+  {children}
+</BaseComponent.Content>
+```
+
+### 3. Children as render function (ONLY when rendering differs)
+
+Use children-as-function **only** when you need to conditionally render entirely different component trees based on state. Not for styling.
+
+```tsx
+// ✅ OK - different component trees based on state
+<BaseComponent.Content
+  className="group rounded-xl border data-[dragging]:border-dashed"
+>
+  {({ elicitation, resolveElicitation }) => (
+    <>
+      <div className="hidden group-data-[dragging]:flex absolute inset-0 bg-emerald-50/90">
+        <p>Drop files here</p>
+      </div>
+      {elicitation ? (
+        <ElicitationUI request={elicitation} onResponse={resolveElicitation} />
+      ) : (
+        children
+      )}
+    </>
+  )}
+</BaseComponent.Content>
+
+// ❌ WRONG - children function just for styling (use data-* instead)
+<BaseComponent.Content>
+  {({ isDragging }) => (
+    <div className={cn("rounded-xl", isDragging && "border-dashed")} />
+  )}
+</BaseComponent.Content>
+```
+
+### 4. Context hooks (for deep access in sub-components)
+
+Styled sub-components that need context values not available via render props can import the context hook directly from the base source file.
+
+```tsx
+// ✅ OK - styled sub-component needs deep context access
+const StyledTextarea = ({ placeholder }) => {
+  const { value, setValue, handleSubmit, editorRef } = useMessageInputContext();
+  return (
+    <CustomEditor
+      ref={editorRef}
+      value={value}
+      onChange={setValue}
+      onSubmit={handleSubmit}
+      placeholder={placeholder}
+    />
+  );
+};
+```
+
+## NEVER Use the `render` Prop
+
+The `render` prop is **deprecated**. Always use children — either as static ReactNode or as a function.
+
+```tsx
+// ❌ NEVER - render prop is deprecated
+<BaseComponent.Status
+  render={({ error, isGenerating }) => (
+    <div>{error ? error.message : "Loading..."}</div>
+  )}
+/>
+
+// ✅ CORRECT - children as function
+<BaseComponent.Status>
+  {({ error, isGenerating }) => (
+    <div>{error ? error.message : "Loading..."}</div>
+  )}
+</BaseComponent.Status>
+
+// ✅ EVEN BETTER - static children with data attributes when possible
+<BaseComponent.Status
+  className="data-[error]:bg-red-50 data-[generating]:animate-pulse"
+>
+  <BaseComponent.GenerationStage className="text-xs text-muted-foreground" />
+</BaseComponent.Status>
 ```
 
 ## Refactoring Pattern
@@ -68,7 +183,6 @@ Look for these patterns that indicate logic should come from base:
 Import the base namespace:
 
 ```tsx
-// Import base compound components
 import { MessageInput as MessageInputBase } from "@tambo-ai/react-ui-base/message-input";
 ```
 
@@ -94,55 +208,45 @@ const MessageInput = ({ children, variant, className }) => {
 };
 ```
 
-### Step 4: Use Data Attributes for Styling, Render Props for Behavior
+### Step 4: Prefer Sub-Components Over Render Functions
 
-**Prefer Tailwind `data-*` classes** for styling changes. Base components expose state via data attributes (e.g., `data-dragging="true"`). Only use render props when the actual rendering behavior changes (showing different components).
+When the base provides sub-components that handle display, use them directly with styling instead of using children-as-function to reconstruct the same thing manually.
 
 ```tsx
-{
-  /* ✅ PREFERRED - data-* classes for styling */
-}
-<MessageInputBase.Content
-  className={cn(
-    "rounded-xl border border-border",
-    "data-[dragging=true]:border-dashed data-[dragging=true]:border-emerald-400",
+// ❌ AVOID - manually reconstructing what sub-components already do
+<SuggestionsBase.List>
+  {({ suggestions, isGenerating }) => (
+    <>
+      {suggestions.map((s) => (
+        <button key={s.id} className="rounded-2xl px-2.5 py-2">
+          {s.title}
+        </button>
+      ))}
+    </>
   )}
->
-  {/* Drop overlay styled with CSS, hidden by default */}
-  <div className="hidden data-[dragging=true]:flex absolute inset-0 bg-emerald-50/90">
-    <p>Drop files here</p>
-  </div>
+</SuggestionsBase.List>
 
-  {/* Render props ONLY for actual rendering behavior changes */}
-  <MessageInputBase.Elicitation>
-    {({ elicitation, resolveElicitation }) =>
-      elicitation ? (
-        <ElicitationUI request={elicitation} onResponse={resolveElicitation} />
-      ) : (
-        <>{children}</>
-      )
-    }
-  </MessageInputBase.Elicitation>
-</MessageInputBase.Content>;
-
-{
-  /* ❌ AVOID - render props just for styling */
-}
-<MessageInputBase.Content>
-  {({ isDragging }) => (
-    <div className={cn("rounded-xl", isDragging && "border-emerald-400")}>
-      {/* Don't use render props when data-* classes would work */}
-    </div>
-  )}
-</MessageInputBase.Content>;
+// ✅ PREFER - use base Item sub-component, just add styling
+<SuggestionsBase.List className="flex gap-2 data-[generating]:opacity-70">
+  {({ suggestions }) =>
+    suggestions.map((suggestion, index) => (
+      <SuggestionsBase.Item
+        key={suggestion.id}
+        suggestion={suggestion}
+        index={index}
+        className="rounded-2xl px-2.5 py-2 border text-xs"
+      >
+        <span className="font-medium">{suggestion.title}</span>
+      </SuggestionsBase.Item>
+    ))
+  }
+</SuggestionsBase.List>
 ```
 
-### Step 5: Wrap Sub-Components
-
-Wrap base sub-components with styling:
+### Step 5: Wrap Sub-Components with Styling
 
 ```tsx
-// Submit button wrapping base
+// Submit button wrapping base - children as function for icon swap
 const SubmitButton = ({ className, children }) => (
   <BaseComponent.SubmitButton className={cn("w-10 h-10 rounded-lg", className)}>
     {({ showCancelButton }) =>
@@ -151,12 +255,12 @@ const SubmitButton = ({ className, children }) => (
   </BaseComponent.SubmitButton>
 );
 
-// Error wrapping base
+// Error wrapping base - static children, styling only
 const Error = ({ className }) => (
   <BaseComponent.Error className={cn("text-sm text-destructive", className)} />
 );
 
-// Staged images - base pre-computes props for each image
+// Staged images - children as function to iterate pre-computed array
 const StagedImages = ({ className }) => (
   <BaseComponent.StagedImages className={cn("flex gap-2", className)}>
     {({ images }) =>
@@ -173,7 +277,6 @@ const StagedImages = ({ className }) => (
 Base components expose collections as **pre-computed props arrays** (see `compound-components` skill). Simply iterate and spread:
 
 ```tsx
-// Base provides pre-computed array - just iterate
 <BaseComponent.Items>
   {({ items }) =>
     items.map((itemProps) => (
@@ -193,7 +296,6 @@ When base components include data-fetching hooks that need icons, pass a factory
 
 ```tsx
 // ✅ Base hook accepts optional icon factory
-// packages/base/use-combined-lists.tsx
 export function useCombinedResourceList(
   providers: ResourceProvider[] | undefined,
   search: string,
@@ -208,24 +310,16 @@ export function useCombinedResourceList(
 }
 
 // ✅ Styled layer provides the icon factory
-// packages/styled/message-input.tsx
 const resources = useCombinedResourceList(providers, search, (serverName) => (
   <McpServerIcon name={serverName} className="w-4 h-4" />
 ));
 ```
-
-This keeps styling in the styled layer while logic lives in base.
-
-### Custom Data Fetching
-
-Data fetching that combines multiple sources or uses external providers can live in base as implementation details, with the styled layer providing any visual elements (like icons) via factory functions.
 
 ### Styled Sub-Components
 
 Visual components that render state from base:
 
 ```tsx
-// ✅ Styled layer - visual presentation
 const ImageContextBadge = ({
   image,
   displayName,
@@ -252,18 +346,15 @@ const ImageContextBadge = ({
 Custom layout that's specific to the styled version:
 
 ```tsx
-// ✅ Styled layer - toolbar layout splits children
 const Toolbar = ({ children }) => (
   <BaseComponent.Toolbar className="flex justify-between">
     <div className="flex gap-2">
-      {/* Left side - everything except submit */}
       {React.Children.map(children, (child) =>
         child.type !== SubmitButton ? child : null,
       )}
     </div>
     <div className="flex gap-2">
       <DictationButton />
-      {/* Right side - only submit */}
       {React.Children.map(children, (child) =>
         child.type === SubmitButton ? child : null,
       )}
@@ -273,8 +364,6 @@ const Toolbar = ({ children }) => (
 ```
 
 ### CSS Variants
-
-Style variants using class-variance-authority or similar:
 
 ```tsx
 const inputVariants = cva("w-full", {
@@ -288,83 +377,11 @@ const inputVariants = cva("w-full", {
 });
 ```
 
-## Accessing State in Styled Components
-
-State access follows a hierarchy:
-
-1. **Data attributes** (preferred for styling) - Base components expose `data-*` attributes
-2. **Render props** (for behavior changes) - Use when rendering different components
-3. **Context hooks** (for sub-components) - OK for styled sub-components needing deep context access
-
-```tsx
-// ✅ BEST - data-* classes for styling, render props only for behavior
-// Note: `data-[dragging]:*` and `data-dragging:*` are equivalent in Tailwind v4
-// but only the former works in v3. For this reason, we use the v3 syntax here
-// for broader compatibility.
-const StyledContent = ({ children }) => (
-  <BaseComponent.Content
-    className={cn(
-      "group rounded-xl border",
-      "data-[dragging]:border-dashed data-[dragging]:border-emerald-400",
-    )}
-  >
-    {/* Render props ONLY for behavior changes */}
-    {({ elicitation, resolveElicitation }) => (
-      <>
-        {/* Drop overlay uses group-data-* for styling */}
-        <div className="hidden group-data-[dragging]:flex absolute inset-0 bg-emerald-50/90">
-          <p>Drop files here</p>
-        </div>
-
-        {elicitation ? (
-          <ElicitationUI
-            request={elicitation}
-            onResponse={resolveElicitation}
-          />
-        ) : (
-          children
-        )}
-      </>
-    )}
-  </BaseComponent.Content>
-);
-
-// ✅ OK - styled sub-components can use exported context hook
-// when they need more context than render props provide
-const StyledTextarea = ({ placeholder }) => {
-  // Hook usage OK here - this sub-component needs deep context access
-  const { value, setValue, handleSubmit, editorRef } = useMessageInputContext();
-  return (
-    <CustomEditor
-      ref={editorRef}
-      value={value}
-      onChange={setValue}
-      onSubmit={handleSubmit}
-      placeholder={placeholder}
-    />
-  );
-};
-
-// ❌ WRONG - render props just for styling
-<BaseComponent.Content>
-  {({ isDragging }) => (
-    <div className={cn("rounded-xl", isDragging && "border-dashed")} />
-  )}
-</BaseComponent.Content>;
-```
-
-**When to use context hooks vs render props:**
-
-- Use render props when the parent wrapper needs state for behavior changes
-- Use context hooks when a styled sub-component needs context values not exposed via render props
-
 ## Type Handling
 
 Handle ref type differences between base and styled components:
 
 ```tsx
-// Base context may have RefObject<T | null>
-// Styled component may need RefObject<T>
 <TextEditor
   ref={editorRef as React.RefObject<TamboEditor>}
   // ...
@@ -380,8 +397,10 @@ When refactoring to use base components:
 - [ ] Remove duplicate state management
 - [ ] Remove duplicate event handlers (drag, submit, etc.)
 - [ ] Import base namespace and use `Base.Root` as wrapper
+- [ ] **Never use `render` prop** — use children (static or function)
+- [ ] Prefer using base sub-components directly with className over children-as-function
 - [ ] Use `data-*` classes for styling based on state (with `group-data-*` for children)
-- [ ] Use render props only for rendering behavior changes
+- [ ] Use children-as-function only when rendering entirely different component trees
 - [ ] Wrap base sub-components with styling
 - [ ] Base hooks can provide data fetching; styled layer provides icon factories
 - [ ] Keep visual sub-components in styled layer
@@ -390,7 +409,9 @@ When refactoring to use base components:
 
 ## Anti-Patterns
 
-- **Re-implementing base logic** - If base handles it, compose it
-- **Using render props for styling** - Prefer `data-*` classes; render props are for behavior changes
-- **Duplicating context in wrapper** - Use base Root which provides context
-- **Hardcoding icons in base hooks** - Use factory functions to keep styling in styled layer
+- **Using `render` prop** — It's deprecated. Use children as a function instead
+- **Using children-as-function just for styling** — Use `data-*` classes instead
+- **Manually reconstructing what sub-components do** — Use the base sub-components with className
+- **Re-implementing base logic** — If base handles it, compose it
+- **Duplicating context in wrapper** — Use base Root which provides context
+- **Hardcoding icons in base hooks** — Use factory functions to keep styling in styled layer
