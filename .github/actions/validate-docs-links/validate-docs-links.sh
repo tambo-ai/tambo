@@ -7,6 +7,8 @@ broken=0
 docsUrlRegex='https://docs\.tambo\.co/[^[:space:]"'\''`)}>]+'
 
 while IFS= read -r url; do
+  # The extraction regex intentionally doesn't try to handle every trailing-punctuation case
+  # in Markdown/MDX. Trim a few common terminators as a safety net.
   url="${url%,}"
   url="${url%.}"
   url="${url%;}"
@@ -28,6 +30,7 @@ while IFS= read -r url; do
 done < <(
   (
     # Stop at quotes/backticks (strings), ')' (Markdown), '}' (JSDoc), '>' (<...>), or whitespace.
+    # Use `git grep` so we only scan tracked files (avoids picking up `node_modules` in CI).
     git grep -h --no-line-number -oE "$docsUrlRegex" -- \
       ':(glob)**/*.ts' \
       ':(glob)**/*.tsx' \
