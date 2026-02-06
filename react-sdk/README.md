@@ -97,10 +97,17 @@ const { thread } = useTamboThread();
 
 ## MCP Dependency Note
 
-If you use the `@tambo-ai/react/mcp` subpath, install the optional peer dependencies:
+`@modelcontextprotocol/sdk` is included automatically when you install `@tambo-ai/react`.
+
+If you import from `@tambo-ai/react/mcp` **and** use features that require schema validation (like component prop schemas), install the optional peer dependencies:
+
+Zod 3 (`^3.25`) and Zod 4 are both supported.
 
 ```bash
-npm install zod@^4.0.0 zod-to-json-schema@^3.25.0
+npm install zod@^4.0.0 zod-to-json-schema@^3.25.1
+
+# Or, for Zod 3:
+npm install zod@^3.25.76 zod-to-json-schema@^3.25.1
 ```
 
 ## Learn More
