@@ -101,7 +101,7 @@ const { thread } = useTamboThread();
 
 If you import from `@tambo-ai/react/mcp` **and** use features that require schema validation (like component prop schemas), install the optional peer dependencies:
 
-Zod 3 (`^3.25`) and Zod 4 are both supported.
+Zod 3 (`^3.25.76`) and Zod 4 are both supported.
 
 ```bash
 npm install zod@^4.0.0 zod-to-json-schema@^3.25.1
