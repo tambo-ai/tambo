@@ -37,6 +37,7 @@ interface StreamingCompleteBaseParams {
   promptTemplateName: string;
   promptTemplateParams: Record<string, string | ThreadMessage[]>;
   chainId?: string;
+  abortSignal?: AbortSignal;
 }
 
 export type StreamingCompleteParams = StreamingCompleteBaseParams &

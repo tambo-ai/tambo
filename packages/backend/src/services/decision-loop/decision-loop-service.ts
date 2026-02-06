@@ -78,6 +78,7 @@ export async function* runDecisionLoop(
   customInstructions: string | undefined,
   forceToolChoice: string | undefined,
   resourceFetchers: ResourceFetcherMap,
+  abortSignal?: AbortSignal,
 ): AsyncIterableIterator<DecisionStreamItem> {
   const componentTools = strictTools.filter((tool) =>
     isUiToolName(getToolName(tool)),
@@ -141,6 +142,7 @@ export async function* runDecisionLoop(
     tool_choice: forceToolChoice
       ? { type: "function", function: { name: forceToolChoice } }
       : "auto",
+    abortSignal,
   });
 
   const initialDecision: LegacyComponentDecision = {
