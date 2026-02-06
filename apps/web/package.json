@@ -40,7 +40,7 @@
     "@rehype-pretty/transformers": "^0.13.2",
     "@sentry/nextjs": "^10.38.0",
     "@splinetool/react-spline": "^4.1.0",
-    "@splinetool/runtime": "^1.12.46",
+    "@splinetool/runtime": "^1.12.49",
     "@svgr/webpack": "^8.1.0",
     "@t3-oss/env-nextjs": "^0.13.10",
     "@tambo-ai-cloud/db": "*",
