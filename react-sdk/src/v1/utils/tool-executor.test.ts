@@ -5,6 +5,7 @@ import {
   executeClientTool,
   executeAllPendingTools,
   executeStreamableToolCall,
+  createDebouncedStreamableExecutor,
   type PendingToolCall,
 } from "./tool-executor";
 import { ToolCallTracker } from "./tool-call-tracker";
@@ -414,6 +415,140 @@ describe("tool-executor", () => {
       );
 
       expect(toolFn).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("createDebouncedStreamableExecutor", () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    function createTrackerWithToolCall(
+      toolCallId: string,
+      toolName: string,
+    ): ToolCallTracker {
+      const tracker = new ToolCallTracker();
+      tracker.handleEvent({
+        type: EventType.TOOL_CALL_START,
+        toolCallId,
+        toolCallName: toolName,
+        parentMessageId: "msg_1",
+      });
+      tracker.handleEvent({
+        type: EventType.TOOL_CALL_ARGS,
+        toolCallId,
+        delta: '{"text":"hello"}',
+      });
+      return tracker;
+    }
+
+    it("delays execution until after the debounce period", () => {
+      const toolFn = jest.fn().mockResolvedValue(undefined);
+      const registry: Record<string, TamboTool> = {
+        write_story: {
+          name: "write_story",
+          description: "Writes a story",
+          tool: toolFn,
+          inputSchema: z.object({ text: z.string() }),
+          outputSchema: z.void(),
+          annotations: { tamboStreamableHint: true },
+        },
+      };
+
+      const tracker = createTrackerWithToolCall("call_1", "write_story");
+      const executor = createDebouncedStreamableExecutor(
+        tracker,
+        registry,
+        100,
+      );
+
+      executor.schedule("call_1", { text: "hello" });
+      expect(toolFn).not.toHaveBeenCalled();
+
+      jest.advanceTimersByTime(100);
+      expect(toolFn).toHaveBeenCalledTimes(1);
+      expect(toolFn).toHaveBeenCalledWith({ text: "hello" });
+    });
+
+    it("collapses rapid calls and only executes the latest args", () => {
+      const toolFn = jest.fn().mockResolvedValue(undefined);
+      const registry: Record<string, TamboTool> = {
+        write_story: {
+          name: "write_story",
+          description: "Writes a story",
+          tool: toolFn,
+          inputSchema: z.object({ text: z.string() }),
+          outputSchema: z.void(),
+          annotations: { tamboStreamableHint: true },
+        },
+      };
+
+      const tracker = createTrackerWithToolCall("call_1", "write_story");
+      const executor = createDebouncedStreamableExecutor(
+        tracker,
+        registry,
+        100,
+      );
+
+      executor.schedule("call_1", { text: "h" });
+      jest.advanceTimersByTime(50);
+      executor.schedule("call_1", { text: "he" });
+      jest.advanceTimersByTime(50);
+      executor.schedule("call_1", { text: "hel" });
+      jest.advanceTimersByTime(100);
+
+      // Only the last scheduled call should have fired
+      expect(toolFn).toHaveBeenCalledTimes(1);
+      expect(toolFn).toHaveBeenCalledWith({ text: "hel" });
+    });
+
+    it("flush() executes pending calls immediately", () => {
+      const toolFn = jest.fn().mockResolvedValue(undefined);
+      const registry: Record<string, TamboTool> = {
+        write_story: {
+          name: "write_story",
+          description: "Writes a story",
+          tool: toolFn,
+          inputSchema: z.object({ text: z.string() }),
+          outputSchema: z.void(),
+          annotations: { tamboStreamableHint: true },
+        },
+      };
+
+      const tracker = createTrackerWithToolCall("call_1", "write_story");
+      const executor = createDebouncedStreamableExecutor(
+        tracker,
+        registry,
+        100,
+      );
+
+      executor.schedule("call_1", { text: "hello" });
+      expect(toolFn).not.toHaveBeenCalled();
+
+      executor.flush();
+      expect(toolFn).toHaveBeenCalledTimes(1);
+      expect(toolFn).toHaveBeenCalledWith({ text: "hello" });
+
+      // Timer should be cancelled — advancing should not fire again
+      jest.advanceTimersByTime(200);
+      expect(toolFn).toHaveBeenCalledTimes(1);
+    });
+
+    it("flush() is a no-op when nothing is pending", () => {
+      const registry: Record<string, TamboTool> = {};
+      const tracker = new ToolCallTracker();
+      const executor = createDebouncedStreamableExecutor(
+        tracker,
+        registry,
+        100,
+      );
+
+      // Should not throw
+      executor.flush();
     });
   });
 });

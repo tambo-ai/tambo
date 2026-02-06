@@ -12,6 +12,7 @@ import type {
   ResourceContent,
 } from "@tambo-ai/typescript-sdk/resources/threads/threads";
 import type { ToolCallTracker } from "./tool-call-tracker";
+import { createKeyedDebounce, type KeyedDebounce } from "./keyed-debounce";
 
 /**
  * Pending tool call from the stream accumulator
@@ -52,6 +53,31 @@ export async function executeStreamableToolCall(
   } catch {
     // Tool execution error during streaming is non-fatal
   }
+}
+
+const DEFAULT_STREAMABLE_DEBOUNCE_MS = 150;
+
+/**
+ * Creates a debounced wrapper around executeStreamableToolCall.
+ *
+ * Each tool call ID gets its own independent debounce timer via
+ * {@link createKeyedDebounce}. When a new call arrives for the same ID,
+ * the previous timer is cancelled and the args are replaced. After
+ * `delay` ms of quiet, the tool executes with the latest args.
+ * Call `flush()` to force-execute all pending calls.
+ * @param toolTracker - Tracker holding pending tool call state
+ * @param toolRegistry - Record of tool name to tool definition
+ * @param delay - Debounce delay in milliseconds
+ * @returns Keyed debounce controller (schedule / flush)
+ */
+export function createDebouncedStreamableExecutor(
+  toolTracker: ToolCallTracker,
+  toolRegistry: Record<string, TamboTool>,
+  delay = DEFAULT_STREAMABLE_DEBOUNCE_MS,
+): KeyedDebounce<Record<string, unknown>> {
+  return createKeyedDebounce<Record<string, unknown>>((toolCallId, args) => {
+    void executeStreamableToolCall(toolCallId, args, toolTracker, toolRegistry);
+  }, delay);
 }
 
 /**
