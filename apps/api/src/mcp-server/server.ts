@@ -26,24 +26,7 @@ export async function createMcpServer(
   projectId: string,
   threadId: string,
 ) {
-  const server = new McpServer(
-    {
-      name: "tambo-service",
-      version: "1.0.0",
-    },
-    {
-      capabilities: {
-        prompts: { listChanged: true },
-      },
-      // Enable notification debouncing for specific methods
-      debouncedNotificationMethods: [
-        "notifications/tools/list_changed",
-        "notifications/resources/list_changed",
-        "notifications/prompts/list_changed",
-      ],
-    },
-  );
-
+  // Fetch MCP clients first to determine what capabilities we can actually support
   // These will be immediately replaced by the handlers from the MCP clients,
   // but we need to set them now so that MCPClient.create() tells the servers that we support elicitation and sampling.
   const mcpHandlers: Partial<MCPHandlers> = {
@@ -57,6 +40,29 @@ export async function createMcpServer(
     threadId,
     mcpHandlers,
   );
+
+  // Only advertise prompts/resources capabilities if we have MCP clients to proxy from.
+  // This prevents "Method not found" errors when no MCP servers are configured.
+  const hasClients = mcpClients.length > 0;
+
+  const server = new McpServer(
+    {
+      name: "tambo-service",
+      version: "1.0.0",
+    },
+    {
+      capabilities: hasClients
+        ? { prompts: { listChanged: true }, resources: { listChanged: true } }
+        : {},
+      // Enable notification debouncing for specific methods
+      debouncedNotificationMethods: [
+        "notifications/tools/list_changed",
+        "notifications/resources/list_changed",
+        "notifications/prompts/list_changed",
+      ],
+    },
+  );
+
   await registerPromptHandlers(server, mcpClients);
   await registerResourceHandlers(server, mcpClients);
   registerElicitationHandlers(server, mcpClients);
@@ -90,16 +96,24 @@ export async function createSessionlessMcpServer(
   projectId: string,
   _contextKey: string,
 ) {
+  // Fetch MCP clients first to determine what capabilities we can actually support
+  // Session-less servers don't support elicitation/sampling, so no handlers needed
+  // We create MCP clients without thread context
+  const mcpClients = await getThreadMCPClients(db, projectId, null, {});
+
+  // Only advertise prompts/resources capabilities if we have MCP clients to proxy from.
+  // This prevents "Method not found" errors when no MCP servers are configured.
+  const hasClients = mcpClients.length > 0;
+
   const server = new McpServer(
     {
       name: "tambo-service",
       version: "1.0.0",
     },
     {
-      capabilities: {
-        prompts: { listChanged: true },
-        // No elicitation capability for session-less servers
-      },
+      capabilities: hasClients
+        ? { prompts: { listChanged: true }, resources: { listChanged: true } }
+        : {},
       // Enable notification debouncing for specific methods
       debouncedNotificationMethods: [
         "notifications/tools/list_changed",
@@ -109,9 +123,6 @@ export async function createSessionlessMcpServer(
     },
   );
 
-  // Session-less servers don't support elicitation/sampling, so no handlers needed
-  // We create MCP clients without thread context
-  const mcpClients = await getThreadMCPClients(db, projectId, null, {});
   await registerPromptHandlers(server, mcpClients);
   await registerResourceHandlers(server, mcpClients);
   // No elicitation handlers for session-less servers
