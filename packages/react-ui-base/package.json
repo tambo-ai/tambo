@@ -22,6 +22,76 @@
         "default": "./dist/cjs/index.cjs"
       }
     },
+    "./elicitation-ui": {
+      "import": {
+        "types": "./dist/esm/elicitation-ui/index.d.ts",
+        "default": "./dist/esm/elicitation-ui/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/elicitation-ui/index.d.ts",
+        "default": "./dist/cjs/elicitation-ui/index.cjs"
+      }
+    },
+    "./edit-with-tambo-button": {
+      "import": {
+        "types": "./dist/esm/edit-with-tambo-button/index.d.ts",
+        "default": "./dist/esm/edit-with-tambo-button/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/edit-with-tambo-button/index.d.ts",
+        "default": "./dist/cjs/edit-with-tambo-button/index.cjs"
+      }
+    },
+    "./canvas-space": {
+      "import": {
+        "types": "./dist/esm/canvas-space/index.d.ts",
+        "default": "./dist/esm/canvas-space/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/canvas-space/index.d.ts",
+        "default": "./dist/cjs/canvas-space/index.cjs"
+      }
+    },
+    "./form": {
+      "import": {
+        "types": "./dist/esm/form/index.d.ts",
+        "default": "./dist/esm/form/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/form/index.d.ts",
+        "default": "./dist/cjs/form/index.cjs"
+      }
+    },
+    "./graph": {
+      "import": {
+        "types": "./dist/esm/graph/index.d.ts",
+        "default": "./dist/esm/graph/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/graph/index.d.ts",
+        "default": "./dist/cjs/graph/index.cjs"
+      }
+    },
+    "./input-fields": {
+      "import": {
+        "types": "./dist/esm/input-fields/index.d.ts",
+        "default": "./dist/esm/input-fields/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/input-fields/index.d.ts",
+        "default": "./dist/cjs/input-fields/index.cjs"
+      }
+    },
+    "./message-suggestions": {
+      "import": {
+        "types": "./dist/esm/message-suggestions/index.d.ts",
+        "default": "./dist/esm/message-suggestions/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/message-suggestions/index.d.ts",
+        "default": "./dist/cjs/message-suggestions/index.cjs"
+      }
+    },
     "./message": {
       "import": {
         "types": "./dist/esm/message/index.d.ts",
@@ -30,6 +100,16 @@
       "require": {
         "types": "./dist/cjs/message/index.d.ts",
         "default": "./dist/cjs/message/index.cjs"
+      }
+    },
+    "./scrollable-message-container": {
+      "import": {
+        "types": "./dist/esm/scrollable-message-container/index.d.ts",
+        "default": "./dist/esm/scrollable-message-container/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/scrollable-message-container/index.d.ts",
+        "default": "./dist/cjs/scrollable-message-container/index.cjs"
       }
     },
     "./reasoning-info": {
@@ -42,6 +122,26 @@
         "default": "./dist/cjs/reasoning-info/index.cjs"
       }
     },
+    "./thread-content": {
+      "import": {
+        "types": "./dist/esm/thread-content/index.d.ts",
+        "default": "./dist/esm/thread-content/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/thread-content/index.d.ts",
+        "default": "./dist/cjs/thread-content/index.cjs"
+      }
+    },
+    "./thread-dropdown": {
+      "import": {
+        "types": "./dist/esm/thread-dropdown/index.d.ts",
+        "default": "./dist/esm/thread-dropdown/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/thread-dropdown/index.d.ts",
+        "default": "./dist/cjs/thread-dropdown/index.cjs"
+      }
+    },
     "./toolcall-info": {
       "import": {
         "types": "./dist/esm/toolcall-info/index.d.ts",
@@ -50,6 +150,26 @@
       "require": {
         "types": "./dist/cjs/toolcall-info/index.d.ts",
         "default": "./dist/cjs/toolcall-info/index.cjs"
+      }
+    },
+    "./map": {
+      "import": {
+        "types": "./dist/esm/map/index.d.ts",
+        "default": "./dist/esm/map/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/map/index.d.ts",
+        "default": "./dist/cjs/map/index.cjs"
+      }
+    },
+    "./thread-history": {
+      "import": {
+        "types": "./dist/esm/thread-history/index.d.ts",
+        "default": "./dist/esm/thread-history/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/thread-history/index.d.ts",
+        "default": "./dist/cjs/thread-history/index.cjs"
       }
     },
     "./types": {

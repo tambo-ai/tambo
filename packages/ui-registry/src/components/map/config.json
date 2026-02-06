@@ -9,7 +9,8 @@
     "leaflet",
     "leaflet.heat",
     "leaflet.markercluster",
-    "@tambo-ai/react"
+    "@tambo-ai/react",
+    "@tambo-ai/react-ui-base"
   ],
   "devDependencies": [],
   "requires": [],

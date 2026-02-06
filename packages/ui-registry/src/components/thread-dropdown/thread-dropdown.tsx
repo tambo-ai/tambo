@@ -1,24 +1,24 @@
 "use client";
 
-import { cn } from "@tambo-ai/ui-registry/utils";
+import {
+  ThreadDropdown as ThreadDropdownBase,
+  useThreadDropdownContext,
+  type ThreadDropdownRootProps,
+} from "@tambo-ai/react-ui-base/thread-dropdown";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
-import { useTamboThread, useTamboThreadList } from "@tambo-ai/react";
+import { cn } from "@tambo-ai/ui-registry/utils";
 import { ChevronDownIcon, PlusIcon } from "lucide-react";
 import * as React from "react";
-import { useCallback } from "react";
 
 /**
- * Props for the ThreadDropdown component
- * @interface
- * @extends React.HTMLAttributes<HTMLDivElement>
+ * Props for the ThreadDropdown component.
  */
-export interface ThreadDropdownProps extends React.HTMLAttributes<HTMLDivElement> {
-  /** Optional callback function called when the current thread changes */
-  onThreadChange?: () => void;
-}
+export type ThreadDropdownProps = ThreadDropdownRootProps;
 
 /**
- * A component that displays a dropdown menu for managing chat threads with keyboard shortcuts
+ * A styled component that displays a dropdown menu for managing chat threads
+ * with keyboard shortcuts. Wraps the headless ThreadDropdown base components
+ * with Radix DropdownMenu and Tailwind styling.
  * @component
  * @example
  * ```tsx
@@ -27,73 +27,27 @@ export interface ThreadDropdownProps extends React.HTMLAttributes<HTMLDivElement
  *   className="custom-styles"
  * />
  * ```
+ * @returns The styled thread dropdown component
  */
 export const ThreadDropdown = React.forwardRef<
   HTMLDivElement,
   ThreadDropdownProps
 >(({ className, onThreadChange, ...props }, ref) => {
-  const { data: threads, isLoading, error, refetch } = useTamboThreadList();
-  const { switchCurrentThread, startNewThread } = useTamboThread();
-  const isMac =
-    typeof navigator !== "undefined" && navigator.platform.startsWith("Mac");
-  const modKey = isMac ? "⌥" : "Alt";
-
-  const handleNewThread = useCallback(
-    async (e?: React.MouseEvent) => {
-      if (e) {
-        e.stopPropagation();
-      }
-
-      try {
-        await startNewThread();
-        await refetch();
-        onThreadChange?.();
-      } catch (error) {
-        console.error("Failed to create new thread:", error);
-      }
-    },
-    [onThreadChange, startNewThread, refetch],
-  );
-
-  React.useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.altKey && event.shiftKey && event.key === "n") {
-        event.preventDefault();
-        void handleNewThread();
-      }
-    };
-
-    document.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      document.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [handleNewThread]);
-
-  const handleSwitchThread = async (threadId: string, e?: React.MouseEvent) => {
-    if (e) {
-      e.stopPropagation();
-    }
-
-    try {
-      switchCurrentThread(threadId);
-      onThreadChange?.();
-    } catch (error) {
-      console.error("Failed to switch thread:", error);
-    }
-  };
-
   return (
-    <div className={cn("relative", className)} ref={ref} {...props}>
+    <ThreadDropdownBase.Root
+      ref={ref}
+      className={cn("relative", className)}
+      onThreadChange={onThreadChange}
+      {...props}
+    >
       <DropdownMenu.Root>
         <DropdownMenu.Trigger asChild>
-          <button
-            type="button"
+          <ThreadDropdownBase.Trigger
             className="rounded-md px-1 flex items-center gap-2 text-sm border border-border bg-background hover:bg-accent hover:text-accent-foreground cursor-pointer transition-colors"
             aria-label="Thread History"
           >
             <ChevronDownIcon className="h-4 w-4" />
-          </button>
+          </ThreadDropdownBase.Trigger>
         </DropdownMenu.Trigger>
         <DropdownMenu.Portal>
           <DropdownMenu.Content
@@ -102,55 +56,49 @@ export const ThreadDropdown = React.forwardRef<
             align="start"
             sideOffset={5}
           >
-            <DropdownMenu.Item
-              className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
-              onSelect={(e: Event) => {
-                e.preventDefault();
-                void handleNewThread();
-              }}
-            >
-              <div className="flex items-center">
-                <PlusIcon className="mr-2 h-4 w-4" />
-                <span>New Thread</span>
-              </div>
-              <span
-                className="ml-auto text-xs text-muted-foreground"
-                suppressHydrationWarning
-              >
-                {modKey}+⇧+N
-              </span>
-            </DropdownMenu.Item>
+            <ThreadDropdownBase.NewThreadItem
+              render={({ shortcutLabel, onSelect }) => (
+                <DropdownMenu.Item
+                  className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
+                  onSelect={(e: Event) => {
+                    e.preventDefault();
+                    onSelect();
+                  }}
+                >
+                  <div className="flex items-center">
+                    <PlusIcon className="mr-2 h-4 w-4" />
+                    <span>New Thread</span>
+                  </div>
+                  <span
+                    className="ml-auto text-xs text-muted-foreground"
+                    suppressHydrationWarning
+                  >
+                    {shortcutLabel}
+                  </span>
+                </DropdownMenu.Item>
+              )}
+            />
 
             <DropdownMenu.Separator className="my-1 h-px bg-border" />
 
-            <ThreadListContent
-              isLoading={isLoading}
-              error={error}
-              threads={threads}
-              onSwitchThread={handleSwitchThread}
-            />
+            <StyledThreadListContent />
           </DropdownMenu.Content>
         </DropdownMenu.Portal>
       </DropdownMenu.Root>
-    </div>
+    </ThreadDropdownBase.Root>
   );
 });
 ThreadDropdown.displayName = "ThreadDropdown";
 
 /**
- * Internal component to render thread list content based on loading/error/empty states
+ * Internal component to render thread list content based on loading/error/empty states.
+ * Consumes the ThreadDropdown context to access thread data.
+ * @returns The styled thread list content
  */
-function ThreadListContent({
-  isLoading,
-  error,
-  threads,
-  onSwitchThread,
-}: {
-  isLoading: boolean;
-  error: Error | null;
-  threads: { items: { id: string }[] } | null | undefined;
-  onSwitchThread: (threadId: string) => void;
-}) {
+function StyledThreadListContent() {
+  const { threads, isLoading, error, onSwitchThread } =
+    useThreadDropdownContext();
+
   if (isLoading) {
     return (
       <DropdownMenu.Item
@@ -171,7 +119,7 @@ function ThreadListContent({
       </DropdownMenu.Item>
     );
   }
-  if (threads?.items.length === 0) {
+  if (threads.length === 0) {
     return (
       <DropdownMenu.Item
         className="px-2 py-1.5 text-sm text-muted-foreground"
@@ -183,13 +131,13 @@ function ThreadListContent({
   }
   return (
     <>
-      {threads?.items.map((thread) => (
+      {threads.map((thread) => (
         <DropdownMenu.Item
           key={thread.id}
           className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
           onSelect={(e: Event) => {
             e.preventDefault();
-            void onSwitchThread(thread.id);
+            onSwitchThread(thread.id);
           }}
         >
           <span className="truncate max-w-[180px]">

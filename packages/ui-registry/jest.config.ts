@@ -22,6 +22,9 @@ const config: Config = {
     "^@tambo-ai/ui-registry/utils$": "<rootDir>/src/utils",
     "^@tambo-ai/ui-registry/lib/(.*)$": "<rootDir>/src/lib/$1",
     "^@tambo-ai/ui-registry/components/(.*)$": "<rootDir>/src/components/$1",
+    // Map @tambo-ai/react-ui-base subpath exports to source
+    "^@tambo-ai/react-ui-base/(.*)$":
+      "<rootDir>/../react-ui-base/src/$1/index.tsx",
     // Mock @tambo-ai/react
     "^@tambo-ai/react$": "<rootDir>/__tests__/__mocks__/@tambo-ai-react.ts",
     // Mock @tambo-ai/react/mcp
