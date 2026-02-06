@@ -6,6 +6,20 @@
  * allowing consumers to apply their own design system.
  */
 
+// MessageSuggestions components
+export { MessageSuggestions } from "./message-suggestions";
+export type {
+  MessageSuggestionsContextValue,
+  MessageSuggestionsGenerationStageProps,
+  MessageSuggestionsGenerationStageRenderProps,
+  MessageSuggestionsItemProps,
+  MessageSuggestionsListProps,
+  MessageSuggestionsListRenderProps,
+  MessageSuggestionsRootProps,
+  MessageSuggestionsStatusProps,
+  MessageSuggestionsStatusRenderProps,
+} from "./message-suggestions";
+
 // Message components
 export { Message } from "./message";
 export type {
