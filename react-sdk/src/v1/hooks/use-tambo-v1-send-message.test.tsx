@@ -1325,3 +1325,249 @@ describe("useTamboV1SendMessage auto thread name generation", () => {
     expect(mockGenerateName).not.toHaveBeenCalled();
   });
 });
+
+describe("useTamboV1SendMessage tamboStreamableHint", () => {
+  const mockThreadsRunsApi = {
+    run: jest.fn(),
+    create: jest.fn(),
+  };
+
+  const mockTamboAI = {
+    apiKey: "",
+    threads: {
+      runs: mockThreadsRunsApi,
+    },
+  } as unknown as TamboAI;
+
+  let queryClient: QueryClient;
+
+  function createAsyncIterator<T>(events: T[]) {
+    return {
+      [Symbol.asyncIterator]: async function* () {
+        for (const event of events) {
+          yield event;
+        }
+      },
+    };
+  }
+
+  beforeEach(() => {
+    queryClient = new QueryClient({
+      defaultOptions: {
+        queries: { retry: false },
+        mutations: { retry: false },
+      },
+    });
+    jest.mocked(useTamboClient).mockReturnValue(mockTamboAI);
+    jest.mocked(useTamboQueryClient).mockReturnValue(queryClient);
+    jest.mocked(useTamboV1Config).mockReturnValue({ userKey: undefined });
+    mockThreadsRunsApi.run.mockReset();
+    mockThreadsRunsApi.create.mockReset();
+  });
+
+  it("calls streamable tool on TOOL_CALL_ARGS events during streaming", async () => {
+    const streamableToolFn = jest.fn().mockResolvedValue(undefined);
+
+    const streamableTool: TamboTool = {
+      name: "write_story",
+      description: "Writes a story",
+      tool: streamableToolFn,
+      inputSchema: z.object({ text: z.string() }),
+      outputSchema: z.void(),
+      annotations: { tamboStreamableHint: true },
+    };
+
+    // Use Record (not Map) for toolRegistry — matches real runtime type
+    const mockRegistry = {
+      componentList: new Map(),
+      toolRegistry: { write_story: streamableTool } as Record<
+        string,
+        TamboTool
+      >,
+    };
+
+    const initialStream = createAsyncIterator([
+      {
+        type: EventType.RUN_STARTED,
+        runId: "run_1",
+        threadId: "thread_123",
+      },
+      {
+        type: EventType.TEXT_MESSAGE_START,
+        messageId: "msg_1",
+        role: "assistant",
+      },
+      {
+        type: EventType.TOOL_CALL_START,
+        toolCallId: "call_1",
+        toolCallName: "write_story",
+        parentMessageId: "msg_1",
+      },
+      {
+        type: EventType.TOOL_CALL_ARGS,
+        toolCallId: "call_1",
+        delta: '{"text":"Once upon',
+      },
+      {
+        type: EventType.TOOL_CALL_ARGS,
+        toolCallId: "call_1",
+        delta: ' a time"}',
+      },
+      {
+        type: EventType.TOOL_CALL_END,
+        toolCallId: "call_1",
+      },
+      {
+        type: EventType.CUSTOM,
+        name: "tambo.run.awaiting_input",
+        value: {
+          pendingToolCalls: [
+            { toolCallId: "call_1", toolName: "write_story", arguments: "{}" },
+          ],
+        },
+      },
+    ]);
+
+    const continueStream = createAsyncIterator([
+      {
+        type: EventType.RUN_STARTED,
+        runId: "run_2",
+        threadId: "thread_123",
+      },
+      { type: EventType.RUN_FINISHED },
+    ]);
+
+    mockThreadsRunsApi.run
+      .mockResolvedValueOnce(initialStream)
+      .mockResolvedValueOnce(continueStream);
+
+    function TestWrapper({ children }: { children: React.ReactNode }) {
+      return (
+        <QueryClientProvider client={queryClient}>
+          <TamboRegistryContext.Provider value={mockRegistry as any}>
+            <TamboV1StreamProvider>{children}</TamboV1StreamProvider>
+          </TamboRegistryContext.Provider>
+        </QueryClientProvider>
+      );
+    }
+
+    const { result } = renderHook(() => useTamboV1SendMessage("thread_123"), {
+      wrapper: TestWrapper,
+    });
+
+    await act(async () => {
+      await result.current.mutateAsync({
+        message: {
+          role: "user",
+          content: [{ type: "text", text: "Write me a story" }],
+        },
+      });
+    });
+
+    // Streamable tool should have been called during TOOL_CALL_ARGS events
+    // (at least once per parseable chunk)
+    expect(streamableToolFn.mock.calls.length).toBeGreaterThanOrEqual(1);
+
+    // Each streaming call should have had partial args
+    const firstStreamingCall = streamableToolFn.mock.calls[0][0] as Record<
+      string,
+      unknown
+    >;
+    expect(firstStreamingCall).toHaveProperty("text");
+  });
+
+  it("does NOT call non-streamable tool during TOOL_CALL_ARGS events", async () => {
+    const normalToolFn = jest.fn().mockResolvedValue("result");
+
+    const normalTool: TamboTool = {
+      name: "normal_tool",
+      description: "Normal tool (not streamable)",
+      tool: normalToolFn,
+      inputSchema: z.object({ query: z.string() }),
+      outputSchema: z.string(),
+      // No tamboStreamableHint
+    };
+
+    const mockRegistry = {
+      componentList: new Map(),
+      toolRegistry: { normal_tool: normalTool } as Record<string, TamboTool>,
+    };
+
+    const initialStream = createAsyncIterator([
+      {
+        type: EventType.RUN_STARTED,
+        runId: "run_1",
+        threadId: "thread_123",
+      },
+      {
+        type: EventType.TEXT_MESSAGE_START,
+        messageId: "msg_1",
+        role: "assistant",
+      },
+      {
+        type: EventType.TOOL_CALL_START,
+        toolCallId: "call_1",
+        toolCallName: "normal_tool",
+        parentMessageId: "msg_1",
+      },
+      {
+        type: EventType.TOOL_CALL_ARGS,
+        toolCallId: "call_1",
+        delta: '{"query":"test"}',
+      },
+      {
+        type: EventType.TOOL_CALL_END,
+        toolCallId: "call_1",
+      },
+      {
+        type: EventType.CUSTOM,
+        name: "tambo.run.awaiting_input",
+        value: {
+          pendingToolCalls: [
+            { toolCallId: "call_1", toolName: "normal_tool", arguments: "{}" },
+          ],
+        },
+      },
+    ]);
+
+    const continueStream = createAsyncIterator([
+      {
+        type: EventType.RUN_STARTED,
+        runId: "run_2",
+        threadId: "thread_123",
+      },
+      { type: EventType.RUN_FINISHED },
+    ]);
+
+    mockThreadsRunsApi.run
+      .mockResolvedValueOnce(initialStream)
+      .mockResolvedValueOnce(continueStream);
+
+    function TestWrapper({ children }: { children: React.ReactNode }) {
+      return (
+        <QueryClientProvider client={queryClient}>
+          <TamboRegistryContext.Provider value={mockRegistry as any}>
+            <TamboV1StreamProvider>{children}</TamboV1StreamProvider>
+          </TamboRegistryContext.Provider>
+        </QueryClientProvider>
+      );
+    }
+
+    const { result } = renderHook(() => useTamboV1SendMessage("thread_123"), {
+      wrapper: TestWrapper,
+    });
+
+    await act(async () => {
+      await result.current.mutateAsync({
+        message: {
+          role: "user",
+          content: [{ type: "text", text: "Test" }],
+        },
+      });
+    });
+
+    // Tool should only be called once at awaiting_input, not during streaming
+    expect(normalToolFn).toHaveBeenCalledTimes(1);
+    expect(normalToolFn).toHaveBeenCalledWith({ query: "test" });
+  });
+});

@@ -36,9 +36,13 @@ import {
   toAvailableTools,
 } from "../utils/registry-conversion";
 import { handleEventStream } from "../utils/stream-handler";
-import { executeAllPendingTools } from "../utils/tool-executor";
+import {
+  executeAllPendingTools,
+  createDebouncedStreamableExecutor,
+} from "../utils/tool-executor";
 import type { ToolResultContent } from "@tambo-ai/typescript-sdk/resources/threads/threads";
 import { ToolCallTracker } from "../utils/tool-call-tracker";
+import { parse as parsePartialJson } from "partial-json";
 
 /**
  * Dispatches synthetic AG-UI events to show a user message in the thread.
@@ -158,6 +162,38 @@ function shouldGenerateThreadName(
     // +2 accounts for the user message and assistant response just added
     preMutationMessageCount + 2 >= autoGenerateNameThreshold
   );
+}
+
+/**
+ * Attempts to parse partial JSON from accumulated tool call args.
+ *
+ * Returns a parsed object if the accumulated args are parseable as
+ * a JSON object, or undefined if parsing fails or the result is not
+ * a plain object (e.g. array or primitive).
+ * @param toolTracker - Tracker holding pending tool call state
+ * @param toolCallId - The tool call ID to parse args for
+ * @returns Parsed args object, or undefined if not parseable yet
+ */
+function parseToolCallArgs(
+  toolTracker: ToolCallTracker,
+  toolCallId: string,
+): Record<string, unknown> | undefined {
+  const accToolCall = toolTracker.getAccumulatingToolCall(toolCallId);
+  if (!accToolCall) return undefined;
+
+  try {
+    const parsed: unknown = parsePartialJson(accToolCall.accumulatedArgs);
+    if (
+      typeof parsed === "object" &&
+      parsed !== null &&
+      !Array.isArray(parsed)
+    ) {
+      return parsed as Record<string, unknown>;
+    }
+  } catch {
+    /* not parseable yet */
+  }
+  return undefined;
 }
 
 /**
@@ -470,6 +506,10 @@ export function useTamboV1SendMessage(threadId?: string) {
       const threadAlreadyHasTitle = !!existingThread?.thread.title;
 
       const toolTracker = new ToolCallTracker();
+      const debouncedStreamable = createDebouncedStreamableExecutor(
+        toolTracker,
+        registry.toolRegistry,
+      );
 
       // Generate a stable message ID for the user message
       const userMessageId = userMessageText
@@ -542,7 +582,24 @@ export function useTamboV1SendMessage(threadId?: string) {
             }
 
             toolTracker.handleEvent(event);
-            dispatch({ type: "EVENT", event, threadId: actualThreadId });
+
+            // Parse partial JSON once for TOOL_CALL_ARGS — reused by both dispatch and streamable execution
+            const parsedToolArgs =
+              event.type === EventType.TOOL_CALL_ARGS
+                ? parseToolCallArgs(toolTracker, event.toolCallId)
+                : undefined;
+
+            dispatch({
+              type: "EVENT",
+              event,
+              threadId: actualThreadId,
+              parsedToolArgs,
+            });
+
+            // Schedule debounced streamable tool execution with the same pre-parsed args
+            if (parsedToolArgs && event.type === EventType.TOOL_CALL_ARGS) {
+              debouncedStreamable.schedule(event.toolCallId, parsedToolArgs);
+            }
 
             // Check for awaiting_input - if found, break to execute tools
             if (event.type === EventType.CUSTOM) {
@@ -553,6 +610,9 @@ export function useTamboV1SendMessage(threadId?: string) {
               }
             }
           }
+
+          // Flush any pending debounced streamable calls before continuing
+          debouncedStreamable.flush();
 
           // If stream finished without awaiting_input, we're done
           if (!pendingAwaitingInput) {

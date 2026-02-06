@@ -70,6 +70,21 @@ export class ToolCallTracker {
   }
 
   /**
+   * Gets the name and accumulated args for a tool call that is still accumulating.
+   * Used by the event loop to get tool state for partial JSON parsing.
+   * @param toolCallId - ID of the tool call to look up
+   * @returns The tool name and raw accumulated args string, or undefined if not found
+   */
+  getAccumulatingToolCall(
+    toolCallId: string,
+  ): { name: string; accumulatedArgs: string } | undefined {
+    const toolCall = this.pendingToolCalls.get(toolCallId);
+    const args = this.accumulatingArgs.get(toolCallId);
+    if (!toolCall || args === undefined) return undefined;
+    return { name: toolCall.name, accumulatedArgs: args };
+  }
+
+  /**
    * Gets tool calls for the given IDs, filtered to only those that exist.
    * @param toolCallIds - IDs of tool calls to retrieve
    * @returns Map of tool call ID to pending tool call

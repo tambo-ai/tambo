@@ -84,6 +84,8 @@ export interface EventAction {
   type: "EVENT";
   event: AGUIEvent;
   threadId: string;
+  /** Pre-parsed partial JSON args for TOOL_CALL_ARGS events. Avoids double-parsing. */
+  parsedToolArgs?: Record<string, unknown>;
 }
 
 /**
@@ -514,7 +516,11 @@ export function streamReducer(
       break;
 
     case EventType.TOOL_CALL_ARGS:
-      updatedThreadState = handleToolCallArgs(threadState, event);
+      updatedThreadState = handleToolCallArgs(
+        threadState,
+        event,
+        action.parsedToolArgs,
+      );
       break;
 
     case EventType.TOOL_CALL_END:
@@ -898,6 +904,7 @@ function handleToolCallStart(
 function handleToolCallArgs(
   threadState: ThreadState,
   event: ToolCallArgsEvent,
+  parsedToolArgs?: Record<string, unknown>,
 ): ThreadState {
   const toolCallId = event.toolCallId;
 
@@ -908,19 +915,21 @@ function handleToolCallArgs(
   const newAccumulatedArgs = new Map(accumulatedArgs);
   newAccumulatedArgs.set(toolCallId, newAccumulatedJson);
 
-  // Optimistically parse partial JSON to update the tool_use content block
-  let parsedInput: Record<string, unknown> | undefined;
-  try {
-    const parsed: unknown = parsePartialJson(newAccumulatedJson);
-    if (
-      typeof parsed === "object" &&
-      parsed !== null &&
-      !Array.isArray(parsed)
-    ) {
-      parsedInput = parsed as Record<string, unknown>;
+  // Use pre-parsed args if provided, otherwise parse partial JSON ourselves
+  let parsedInput: Record<string, unknown> | undefined = parsedToolArgs;
+  if (!parsedInput) {
+    try {
+      const parsed: unknown = parsePartialJson(newAccumulatedJson);
+      if (
+        typeof parsed === "object" &&
+        parsed !== null &&
+        !Array.isArray(parsed)
+      ) {
+        parsedInput = parsed as Record<string, unknown>;
+      }
+    } catch {
+      // Partial JSON not parseable yet — leave input unchanged
     }
-  } catch {
-    // Partial JSON not parseable yet — leave input unchanged
   }
 
   if (!parsedInput) {
