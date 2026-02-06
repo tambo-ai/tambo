@@ -48,7 +48,12 @@ export interface DecisionStreamItem {
   aguiEvents: BaseEvent[];
 }
 
-const TOOL_CHOICE_KEYWORDS = new Set(["auto", "required", "none"]);
+const TOOL_CHOICE_KEYWORDS = ["auto", "required", "none"] as const;
+type ToolChoiceKeyword = (typeof TOOL_CHOICE_KEYWORDS)[number];
+
+function isToolChoiceKeyword(value: string): value is ToolChoiceKeyword {
+  return (TOOL_CHOICE_KEYWORDS as readonly string[]).includes(value);
+}
 
 /**
  * Converts a forceToolChoice string to the OpenAI tool_choice parameter format.
@@ -68,7 +73,7 @@ function convertToolChoice(
   if (!forceToolChoice || forceToolChoice === "auto") {
     return "auto";
   }
-  if (forceToolChoice === "required" || forceToolChoice === "none") {
+  if (isToolChoiceKeyword(forceToolChoice)) {
     return forceToolChoice;
   }
   return { type: "function", function: { name: forceToolChoice } };
@@ -118,7 +123,7 @@ export async function* runDecisionLoop(
 
   if (
     forceToolChoice &&
-    !TOOL_CHOICE_KEYWORDS.has(forceToolChoice) &&
+    !isToolChoiceKeyword(forceToolChoice) &&
     !toolsWithStandardParameters.find(
       (tool) => getToolName(tool) === forceToolChoice,
     )
