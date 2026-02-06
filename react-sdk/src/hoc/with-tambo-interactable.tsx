@@ -4,6 +4,7 @@ import { TamboMessageProvider } from "../hooks/use-current-message";
 import { TamboThreadMessage } from "../model/generate-component-response";
 import { useTamboInteractable } from "../providers/tambo-interactable-provider";
 import { SupportedSchema } from "../schema";
+import { V1ComponentContentProvider } from "../v1/utils/component-renderer";
 
 export interface InteractableConfig<
   Props = Record<string, unknown>,
@@ -188,7 +189,7 @@ export function withTamboInteractable<ComponentProps extends object>(
       componentState: {},
     };
 
-    // Wrap with TamboMessageProvider including interactable metadata
+    // Wrap with TamboMessageProvider and V1ComponentContentProvider including interactable metadata
     return (
       <TamboMessageProvider
         message={minimalMessage}
@@ -198,7 +199,14 @@ export function withTamboInteractable<ComponentProps extends object>(
           description: config.description,
         }}
       >
-        <WrappedComponent {...(effectiveProps as ComponentProps)} />
+        <V1ComponentContentProvider
+          componentId={interactableId}
+          threadId=""
+          messageId=""
+          componentName={config.componentName}
+        >
+          <WrappedComponent {...(effectiveProps as ComponentProps)} />
+        </V1ComponentContentProvider>
       </TamboMessageProvider>
     );
   };

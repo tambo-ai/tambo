@@ -14,6 +14,28 @@ jest.mock("../utils/component-renderer", () => ({
   useV1ComponentContent: jest.fn(),
 }));
 
+const mockSetInteractableState = jest.fn();
+const mockGetInteractableComponentState = jest.fn<
+  Record<string, unknown> | undefined,
+  [string]
+>(() => undefined);
+
+jest.mock("../../providers/tambo-interactable-provider", () => ({
+  useTamboInteractable: () => ({
+    interactableComponents: [],
+    addInteractableComponent: jest.fn(),
+    removeInteractableComponent: jest.fn(),
+    updateInteractableComponentProps: jest.fn(),
+    getInteractableComponent: jest.fn(),
+    getInteractableComponentsByName: jest.fn(),
+    clearAllInteractableComponents: jest.fn(),
+    setInteractableState: mockSetInteractableState,
+    getInteractableComponentState: mockGetInteractableComponentState,
+    setInteractableSelected: jest.fn(),
+    clearInteractableSelections: jest.fn(),
+  }),
+}));
+
 // Create a mock debounced function with flush method
 const createMockDebouncedFunction = (fn: (...args: unknown[]) => unknown) => {
   const debouncedFn = jest.fn((...args: unknown[]) =>
@@ -110,6 +132,11 @@ describe("useTamboV1ComponentState", () => {
     jest
       .mocked(useDebouncedCallback)
       .mockImplementation((fn) => createMockDebouncedFunction(fn));
+
+    // Reset interactable mocks to default (no interactable state)
+    mockSetInteractableState.mockClear();
+    mockGetInteractableComponentState.mockReset();
+    mockGetInteractableComponentState.mockReturnValue(undefined);
   });
 
   afterEach(() => {
@@ -420,6 +447,136 @@ describe("useTamboV1ComponentState", () => {
       }).toThrow(
         "useV1ComponentContent must be used within a rendered component",
       );
+    });
+  });
+
+  describe("Interactable Component Support", () => {
+    const interactableComponentId = "MyWidget-abc";
+
+    beforeEach(() => {
+      // Simulate interactable context: threadId="" signals interactable
+      jest.mocked(useV1ComponentContent).mockReturnValue({
+        componentId: interactableComponentId,
+        threadId: "",
+        messageId: "",
+        componentName: "MyWidget",
+      });
+
+      // Empty stream state - interactable components don't use it
+      jest.mocked(useStreamState).mockReturnValue({
+        threadMap: {},
+        currentThreadId: "",
+      });
+    });
+
+    it("should initialize with initialValue when no interactable state exists", () => {
+      mockGetInteractableComponentState.mockReturnValue(undefined);
+
+      const { result } = renderHook(() =>
+        useTamboV1ComponentState("count", 42),
+      );
+
+      expect(result.current[0]).toBe(42);
+    });
+
+    it("should initialize from interactable state when it exists", () => {
+      mockGetInteractableComponentState.mockReturnValue({ count: 99 });
+
+      const { result } = renderHook(() => useTamboV1ComponentState("count", 0));
+
+      expect(result.current[0]).toBe(99);
+    });
+
+    it("should call setInteractableState when setState is called", () => {
+      mockGetInteractableComponentState.mockReturnValue(undefined);
+
+      const { result } = renderHook(() => useTamboV1ComponentState("count", 0));
+
+      act(() => {
+        result.current[1](10);
+      });
+
+      expect(mockSetInteractableState).toHaveBeenCalledWith(
+        interactableComponentId,
+        "count",
+        10,
+      );
+    });
+
+    it("should NOT call client.threads.state.updateState for interactable components", () => {
+      mockGetInteractableComponentState.mockReturnValue(undefined);
+
+      const { result } = renderHook(() => useTamboV1ComponentState("count", 0));
+
+      act(() => {
+        result.current[1](10);
+      });
+
+      expect(mockUpdateState).not.toHaveBeenCalled();
+    });
+
+    it("should sync from interactable provider when state changes externally", () => {
+      mockGetInteractableComponentState.mockReturnValue({ count: 0 });
+
+      const { result, rerender } = renderHook(() =>
+        useTamboV1ComponentState("count", 0),
+      );
+
+      expect(result.current[0]).toBe(0);
+
+      // Simulate external state change (e.g., AI tool call)
+      mockGetInteractableComponentState.mockReturnValue({ count: 77 });
+
+      rerender();
+
+      expect(result.current[0]).toBe(77);
+    });
+
+    it("should have isPending as false in interactable context", () => {
+      mockGetInteractableComponentState.mockReturnValue(undefined);
+
+      const { result } = renderHook(() => useTamboV1ComponentState("count", 0));
+
+      expect(result.current[2].isPending).toBe(false);
+      expect(result.current[2].error).toBeNull();
+    });
+
+    it("should set initial value in interactable state on mount when no existing state", () => {
+      mockGetInteractableComponentState.mockReturnValue(undefined);
+
+      renderHook(() => useTamboV1ComponentState("count", 42));
+
+      expect(mockSetInteractableState).toHaveBeenCalledWith(
+        interactableComponentId,
+        "count",
+        42,
+      );
+    });
+
+    it("should NOT set initial value in interactable state when state already exists", () => {
+      mockGetInteractableComponentState.mockReturnValue({ count: 99 });
+
+      renderHook(() => useTamboV1ComponentState("count", 42));
+
+      // Should not be called because state already exists
+      expect(mockSetInteractableState).not.toHaveBeenCalled();
+    });
+
+    it("should not flush on unmount for interactable components", () => {
+      const mockFlush = jest.fn();
+      const mockDebouncedFn = createMockDebouncedFunction(jest.fn());
+      mockDebouncedFn.flush = mockFlush;
+      jest.mocked(useDebouncedCallback).mockReturnValue(mockDebouncedFn);
+
+      mockGetInteractableComponentState.mockReturnValue(undefined);
+
+      const { unmount } = renderHook(() =>
+        useTamboV1ComponentState("count", 0),
+      );
+
+      unmount();
+
+      expect(mockFlush).not.toHaveBeenCalled();
     });
   });
 });
