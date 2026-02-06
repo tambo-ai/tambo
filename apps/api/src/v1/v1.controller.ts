@@ -333,6 +333,7 @@ export class V1Controller {
       {
         userKey: dto.thread?.userKey,
         metadata: dto.threadMetadata ?? dto.thread?.metadata,
+        initialMessages: dto.thread?.initialMessages,
       },
     );
 

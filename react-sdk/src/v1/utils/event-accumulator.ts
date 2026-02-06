@@ -31,7 +31,7 @@ import {
   type ComponentStateDeltaEvent,
   type RunAwaitingInputEvent,
 } from "../types/event";
-import type { Content, TamboV1Message } from "../types/message";
+import type { Content, InputMessage, TamboV1Message } from "../types/message";
 import type { StreamingState, TamboV1Thread } from "../types/thread";
 import { parse as parsePartialJson } from "partial-json";
 import { applyJsonPatch } from "./json-patch";
@@ -205,6 +205,42 @@ export function createInitialState(): StreamState {
   return {
     threadMap: {
       [PLACEHOLDER_THREAD_ID]: createInitialThreadState(PLACEHOLDER_THREAD_ID),
+    },
+    currentThreadId: PLACEHOLDER_THREAD_ID,
+  };
+}
+
+/**
+ * Create initial stream state with placeholder thread seeded with initial messages.
+ * The messages are converted from InputMessage format to TamboV1Message format
+ * for immediate UI display before any API call.
+ * @param initialMessages - Messages to seed the placeholder thread with
+ * @returns Initial stream state with messages in the placeholder thread
+ */
+export function createInitialStateWithMessages(
+  initialMessages: InputMessage[],
+): StreamState {
+  const placeholderState = createInitialThreadState(PLACEHOLDER_THREAD_ID);
+  const messages: TamboV1Message[] = initialMessages.map((msg) => ({
+    id: `initial_${crypto.randomUUID()}`,
+    role: msg.role,
+    content: msg.content.map((c): Content => {
+      if (c.type === "text") {
+        return { type: "text" as const, text: c.text };
+      }
+      return c as Content;
+    }),
+  }));
+
+  return {
+    threadMap: {
+      [PLACEHOLDER_THREAD_ID]: {
+        ...placeholderState,
+        thread: {
+          ...placeholderState.thread,
+          messages,
+        },
+      },
     },
     currentThreadId: PLACEHOLDER_THREAD_ID,
   };

@@ -4,6 +4,7 @@ import {
   ContentPartType,
   isUiToolName,
   MessageRole,
+  type UnsavedThreadUserMessage,
 } from "@tambo-ai-cloud/core";
 import { MessageRequest } from "../threads/dto/message.dto";
 import { V1InputContent } from "./dto/message.dto";
@@ -404,5 +405,41 @@ export function convertV1InputMessageToInternal(
       }
     }),
     additionalContext: message.additionalContext,
+  };
+}
+
+/**
+ * Convert a V1 input message to an UnsavedThreadUserMessage for direct database insertion.
+ * Used for seeding threads with initial messages.
+ * @param message - The V1 input message
+ * @returns An unsaved user message ready for operations.addMessage()
+ */
+export function convertV1InputMessageToUnsaved(
+  message: V1InputMessage,
+): UnsavedThreadUserMessage {
+  return {
+    role: MessageRole.User,
+    content: message.content
+      .filter((block) => block.type !== "tool_result")
+      .map((block) => {
+        switch (block.type) {
+          case "text":
+            return {
+              type: ContentPartType.Text as const,
+              text: block.text,
+            };
+          case "resource":
+            return {
+              type: ContentPartType.Resource as const,
+              resource: block.resource,
+            };
+          default:
+            throw new Error(
+              `Unknown content type in initial message: ${(block as { type: string }).type}`,
+            );
+        }
+      }),
+    additionalContext: message.additionalContext,
+    metadata: message.metadata,
   };
 }
