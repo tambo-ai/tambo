@@ -59,15 +59,13 @@ jobs:
             fi
           done < <(
             (
-              (
-                grep -rhoE 'https://docs\.tambo\.co/[^"'"'"'`)}\>[:space:]]+' \
-                  --include='*.ts' \
-                  --include='*.tsx' \
-                  --include='*.md' \
-                  --include='*.mdx' \
-                  . 2>/dev/null || true
-              ) | sort -u
-            )
+              grep -rhoE 'https://docs\.tambo\.co/[^"'"'"'`)}>[:space:]]+' \
+                --include='*.ts' \
+                --include='*.tsx' \
+                --include='*.md' \
+                --include='*.mdx' \
+                . 2>/dev/null || true
+            ) | sort -u
           )
 
           if [ "$broken" -ne 0 ]; then
