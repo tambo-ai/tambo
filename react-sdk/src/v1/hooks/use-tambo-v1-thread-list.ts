@@ -42,16 +42,31 @@ function normalizeThreadListOptions(
   if (!listOptions) return undefined;
 
   const rawLimit = listOptions.limit;
-  const limit = typeof rawLimit === "string" ? Number(rawLimit) : rawLimit;
+  const userKey = listOptions.userKey;
+  const cursor = listOptions.cursor;
 
-  if (typeof limit === "number" && !Number.isFinite(limit)) {
-    throw new Error(`Invalid thread list limit: ${rawLimit}`);
+  const limit = (() => {
+    if (rawLimit === undefined) return undefined;
+
+    if (typeof rawLimit === "number") {
+      return Number.isFinite(rawLimit) ? rawLimit : undefined;
+    }
+
+    const trimmedRawLimit = rawLimit.trim();
+    if (trimmedRawLimit === "") return undefined;
+
+    const parsedLimit = Number(trimmedRawLimit);
+    return Number.isFinite(parsedLimit) ? parsedLimit : undefined;
+  })();
+
+  if (userKey === undefined && cursor === undefined && limit === undefined) {
+    return undefined;
   }
 
   return {
-    userKey: listOptions.userKey,
-    cursor: listOptions.cursor,
-    limit,
+    ...(userKey === undefined ? {} : { userKey }),
+    ...(cursor === undefined ? {} : { cursor }),
+    ...(limit === undefined ? {} : { limit }),
   };
 }
 

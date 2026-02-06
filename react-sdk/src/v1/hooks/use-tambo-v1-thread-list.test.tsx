@@ -91,6 +91,24 @@ describe("useTamboV1ThreadList", () => {
     });
   });
 
+  it("ignores invalid limit values", async () => {
+    mockThreadsApi.list.mockResolvedValue(mockThreads);
+
+    const { result } = renderHook(
+      () =>
+        useTamboV1ThreadList({
+          limit: "abc",
+        }),
+      { wrapper: TestWrapper },
+    );
+
+    await waitFor(() => {
+      expect(result.current.data).toEqual(mockThreads);
+    });
+
+    expect(mockThreadsApi.list).toHaveBeenCalledWith(undefined);
+  });
+
   it("handles loading state", async () => {
     let resolvePromise: (value: unknown) => void;
     const promise = new Promise((resolve) => {
