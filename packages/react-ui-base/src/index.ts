@@ -80,6 +80,43 @@ export type {
   ToolcallInfoTriggerProps,
 } from "./toolcall-info";
 
+// MCP Components
+export { McpPromptButton, McpResourceButton } from "./mcp-components";
+export {
+  extractPromptText,
+  isValidPromptData,
+  useMcpPromptButtonContext,
+  useMcpResourceButtonContext,
+  useOptionalMcpPromptButtonContext,
+  useOptionalMcpResourceButtonContext,
+} from "./mcp-components";
+export type {
+  McpPromptButtonContextValue,
+  McpPromptButtonItemProps,
+  McpPromptButtonItemRenderProps,
+  McpPromptButtonListProps,
+  McpPromptButtonListRenderProps,
+  McpPromptButtonMenuProps,
+  McpPromptButtonRootProps,
+  McpPromptButtonTriggerProps,
+  McpPromptButtonTriggerRenderProps,
+  McpPromptEntry,
+  McpResourceButtonContextValue,
+  McpResourceButtonItemProps,
+  McpResourceButtonItemRenderProps,
+  McpResourceButtonListProps,
+  McpResourceButtonListRenderProps,
+  McpResourceButtonMenuProps,
+  McpResourceButtonRootProps,
+  McpResourceButtonSearchInputProps,
+  McpResourceButtonSearchInputRenderProps,
+  McpResourceButtonTriggerProps,
+  McpResourceEntry,
+  PromptMessage,
+  PromptMessageContent,
+} from "./mcp-components";
+
+
 // Types
 export type {
   BaseProps,
