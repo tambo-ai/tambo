@@ -512,6 +512,57 @@ describe("ThreadsService.advanceThread initialization", () => {
     );
   });
 
+  test("passes abortSignal through to decision loop and links to external signal", async () => {
+    const dto = makeDto({ withComponents: true, withClientTools: true });
+    jest
+      .spyOn<any, any>(service, "createTamboBackendForThread")
+      .mockResolvedValue({
+        runDecisionLoop: __testRunDecisionLoop__,
+        generateSuggestions: jest.fn(),
+        generateThreadName: jest.fn(),
+        modelOptions: {
+          provider: "openai",
+          model: DEFAULT_OPENAI_MODEL,
+          baseURL: undefined,
+          maxInputTokens: undefined,
+        },
+      });
+
+    // Capture the abortSignal from the decision loop call
+    let capturedSignal: AbortSignal | undefined;
+    __testRunDecisionLoop__.mockImplementationOnce(
+      (args: { abortSignal?: AbortSignal }) => {
+        capturedSignal = args.abortSignal;
+        throw new Error("STOP_AFTER_INIT");
+      },
+    );
+
+    const externalController = new AbortController();
+    await expect(
+      service.advanceThread(
+        projectId,
+        dto,
+        undefined,
+        {},
+        undefined,
+        undefined,
+        undefined,
+        externalController.signal,
+      ),
+    ).rejects.toThrow("STOP_AFTER_INIT");
+
+    expect(__testRunDecisionLoop__).toHaveBeenCalledTimes(1);
+
+    // An AbortSignal should have been passed to the decision loop
+    expect(capturedSignal).toBeInstanceOf(AbortSignal);
+    expect(capturedSignal!.aborted).toBe(false);
+
+    // The internal signal should be linked to the external one:
+    // aborting the external controller should also abort the internal signal
+    externalController.abort();
+    expect(capturedSignal!.aborted).toBe(true);
+  });
+
   describe("Queue-based streaming behavior", () => {
     test("pushes messages to queue during streaming execution", async () => {
       const dto = makeDto({ withComponents: false, withClientTools: false });
