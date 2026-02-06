@@ -96,26 +96,6 @@ describe("useTamboV1ThreadList", () => {
     });
   });
 
-  it("errors on invalid limit", async () => {
-    const { result } = renderHook(
-      () =>
-        useTamboV1ThreadList({
-          userKey: "test-context",
-          limit: "not-a-number",
-        }),
-      { wrapper: TestWrapper },
-    );
-
-    await waitFor(() => {
-      expect(result.current.isError).toBe(true);
-    });
-
-    expect(mockThreadsApi.list).not.toHaveBeenCalled();
-    expect(result.current.error!.message).toBe(
-      "Invalid thread list limit: not-a-number",
-    );
-  });
-
   it("handles loading state", async () => {
     let resolvePromise: (value: unknown) => void;
     const promise = new Promise((resolve) => {

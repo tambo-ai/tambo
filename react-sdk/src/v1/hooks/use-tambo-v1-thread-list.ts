@@ -11,57 +11,16 @@ import type {
   ThreadListParams,
   ThreadListResponse,
 } from "@tambo-ai/typescript-sdk/resources/threads/threads";
-import { useTamboQuery } from "../../hooks/react-query-hooks";
 import { useTamboClient } from "../../providers/tambo-client-provider";
+import { useTamboQuery } from "../../hooks/react-query-hooks";
 import { useTamboV1Config } from "../providers/tambo-v1-provider";
 
 /**
  * Options for fetching thread list.
- * Extended from the SDK for convenience.
+ * Re-exported from SDK for convenience.
  * Note: userKey can also be provided via TamboV1Provider context.
  */
-export type ThreadListOptions = Omit<ThreadListParams, "limit"> & {
-  /**
-   * Maximum number of threads to return.
-   *
-   * Accepts a number or a numeric string. Invalid values cause the query to
-   * error.
-   */
-  limit?: number | string;
-};
-
-function normalizeThreadListOptions(
-  listOptions: ThreadListOptions | undefined,
-): {
-  params: ThreadListParams | undefined;
-  queryKeyOptions: ThreadListOptions | undefined;
-  invalidLimit: ThreadListOptions["limit"] | undefined;
-} {
-  if (!listOptions) {
-    return {
-      params: undefined,
-      queryKeyOptions: undefined,
-      invalidLimit: undefined,
-    };
-  }
-
-  const { limit, ...rest } = listOptions;
-  if (limit === undefined) {
-    return { params: rest, queryKeyOptions: rest, invalidLimit: undefined };
-  }
-
-  const limitNumber = typeof limit === "string" ? Number(limit) : limit;
-  if (!Number.isFinite(limitNumber)) {
-    return { params: rest, queryKeyOptions: listOptions, invalidLimit: limit };
-  }
-
-  const normalized = { ...rest, limit: limitNumber };
-  return {
-    params: normalized,
-    queryKeyOptions: normalized,
-    invalidLimit: undefined,
-  };
-}
+export type { ThreadListParams as ThreadListOptions };
 
 /**
  * Hook to fetch a list of threads.
@@ -99,7 +58,7 @@ function normalizeThreadListOptions(
  * ```
  */
 export function useTamboV1ThreadList(
-  listOptions?: ThreadListOptions,
+  listOptions?: ThreadListParams,
   queryOptions?: Omit<
     UseQueryOptions<ThreadListResponse>,
     "queryKey" | "queryFn"
@@ -109,24 +68,14 @@ export function useTamboV1ThreadList(
   const { userKey: contextUserKey } = useTamboV1Config();
 
   // Merge userKey from context with provided options (explicit option takes precedence)
-  const effectiveOptions: ThreadListOptions | undefined =
+  const effectiveOptions: ThreadListParams | undefined =
     (listOptions?.userKey ?? contextUserKey)
       ? { ...listOptions, userKey: listOptions?.userKey ?? contextUserKey }
       : listOptions;
 
-  const normalized = normalizeThreadListOptions(effectiveOptions);
-
   return useTamboQuery({
-    queryKey: ["v1-threads", "list", normalized.queryKeyOptions],
-    queryFn: async () => {
-      if (normalized.invalidLimit !== undefined) {
-        throw new Error(
-          `Invalid thread list limit: ${normalized.invalidLimit}`,
-        );
-      }
-
-      return await client.threads.list(normalized.params);
-    },
+    queryKey: ["v1-threads", "list", effectiveOptions],
+    queryFn: async () => await client.threads.list(effectiveOptions),
     staleTime: 5000, // Consider stale after 5s
     ...queryOptions,
   });

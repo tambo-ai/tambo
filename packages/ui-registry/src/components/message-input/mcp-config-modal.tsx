@@ -420,14 +420,23 @@ function MyApp() {
             <p className="text-sm text-muted-foreground">
               <span className="font-semibold text-foreground">Learn more:</span>{" "}
               <a
-                href="https://docs.tambo.co/guides/connect-mcp-servers"
+                href="https://docs.tambo.co/concepts/model-context-protocol/clientside-mcp-connection"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-muted-foreground hover:text-foreground underline underline-offset-2"
               >
-                MCP configuration guide
-              </a>
-              {"."}
+                client-side
+              </a>{" "}
+              |{" "}
+              <a
+                href="https://docs.tambo.co/concepts/model-context-protocol/serverside-mcp-connection"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-muted-foreground hover:text-foreground underline underline-offset-2"
+              >
+                server-side
+              </a>{" "}
+              MCP configuration.
             </p>
           </div>
         </div>
