@@ -2,7 +2,7 @@
   "name": "input-fields",
   "description": "Provides reusable input fields with various styles and validation options",
   "componentName": "InputFields",
-  "dependencies": ["class-variance-authority"],
+  "dependencies": ["class-variance-authority", "@tambo-ai/react-ui-base@next"],
   "devDependencies": [],
   "requires": [],
   "files": [
