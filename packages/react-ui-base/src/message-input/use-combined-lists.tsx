@@ -7,7 +7,6 @@ import {
   type ListResourceEntry,
 } from "@tambo-ai/react/mcp";
 import * as React from "react";
-import { useDebounce } from "use-debounce";
 import type {
   PromptItem,
   PromptProvider,
@@ -16,6 +15,17 @@ import type {
 } from "./message-input-context";
 
 const EXTERNAL_SEARCH_DEBOUNCE_MS = 200;
+
+function useDebouncedValue(value: string, delayMs: number): string {
+  const [debounced, setDebounced] = React.useState(value);
+
+  React.useEffect(() => {
+    const timer = setTimeout(() => setDebounced(value), delayMs);
+    return () => clearTimeout(timer);
+  }, [value, delayMs]);
+
+  return debounced;
+}
 
 /**
  * Removes duplicate resource items based on ID.
@@ -84,7 +94,10 @@ export function useCombinedResourceList(
   options?: ResourceFormatOptions,
 ): ResourceItem[] {
   const { data: mcpResources } = useTamboMcpResourceList(search);
-  const [debouncedSearch] = useDebounce(search, EXTERNAL_SEARCH_DEBOUNCE_MS);
+  const debouncedSearch = useDebouncedValue(
+    search,
+    EXTERNAL_SEARCH_DEBOUNCE_MS,
+  );
 
   // Convert MCP resources to ResourceItems
   const mcpItems: ResourceItem[] = React.useMemo(
@@ -163,7 +176,10 @@ export function useCombinedPromptList(
 ): PromptItem[] {
   // Pass search to MCP hook for filtering
   const { data: mcpPrompts } = useTamboMcpPromptList(search);
-  const [debouncedSearch] = useDebounce(search, EXTERNAL_SEARCH_DEBOUNCE_MS);
+  const debouncedSearch = useDebouncedValue(
+    search,
+    EXTERNAL_SEARCH_DEBOUNCE_MS,
+  );
 
   // Convert MCP prompts to PromptItems (mark with mcp-prompt: prefix for special handling)
   const mcpItems: PromptItem[] = React.useMemo(
