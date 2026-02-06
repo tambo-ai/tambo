@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.0-alpha.2](https://github.com/tambo-ai/tambo/compare/@tambo-ai/react-ui-base-v0.1.0-alpha.1...@tambo-ai/react-ui-base-v0.1.0-alpha.2) (2026-02-06)
+
+
+### Miscellaneous Chores
+
+* **react-ui-base:** adjust workflow for prerelease ([#2237](https://github.com/tambo-ai/tambo/issues/2237)) ([bd5fd1a](https://github.com/tambo-ai/tambo/commit/bd5fd1af991b16bb9cd7ffbd844a6e118ff249d3))
+
 ## [0.1.0-alpha.1](https://github.com/tambo-ai/tambo/compare/@tambo-ai/react-ui-base-v0.1.0-alpha.0...@tambo-ai/react-ui-base-v0.1.0-alpha.1) (2026-02-05)
 
 
