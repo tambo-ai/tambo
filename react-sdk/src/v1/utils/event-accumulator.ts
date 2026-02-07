@@ -31,7 +31,11 @@ import {
   type ComponentStateDeltaEvent,
   type RunAwaitingInputEvent,
 } from "../types/event";
-import type { Content, InputMessage, TamboV1Message } from "../types/message";
+import type {
+  Content,
+  InitialInputMessage,
+  TamboV1Message,
+} from "../types/message";
 import type { StreamingState, TamboV1Thread } from "../types/thread";
 import { parse as parsePartialJson } from "partial-json";
 import { applyJsonPatch } from "./json-patch";
@@ -236,7 +240,7 @@ export function createInitialState(): StreamState {
  * @returns Initial stream state with messages in the placeholder thread
  */
 export function createInitialStateWithMessages(
-  initialMessages: InputMessage[],
+  initialMessages: InitialInputMessage[],
 ): StreamState {
   const placeholderState = createInitialThreadState(PLACEHOLDER_THREAD_ID);
   const messages: TamboV1Message[] = initialMessages.map((msg) => ({

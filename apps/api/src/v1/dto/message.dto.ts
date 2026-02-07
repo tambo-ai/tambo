@@ -155,6 +155,46 @@ export class V1InputMessageDto {
 }
 
 /**
+ * Initial message for thread creation.
+ * Supports "user", "system", and "assistant" roles (unlike input messages which are user-only).
+ */
+@ApiSchema({ name: "InitialMessage" })
+@ApiExtraModels(V1TextContentDto, V1ResourceContentDto, V1ToolResultContentDto)
+export class V1InitialMessageDto {
+  @ApiProperty({
+    description:
+      "Message role - 'user', 'system', or 'assistant' for initial messages",
+    enum: ["user", "system", "assistant"],
+    example: "user",
+  })
+  @IsIn(["user", "system", "assistant"])
+  role!: "user" | "system" | "assistant";
+
+  @ApiDiscriminatedUnion({
+    types: [
+      { dto: V1TextContentDto, name: "text" },
+      { dto: V1ResourceContentDto, name: "resource" },
+      { dto: V1ToolResultContentDto, name: "tool_result" },
+    ],
+    description: "Content blocks (text, resource, or tool_result)",
+    isArray: true,
+    additionalOptions: {
+      required: true,
+    },
+  })
+  @IsNotEmpty()
+  content!: V1InputContent[];
+
+  @ApiProperty({
+    description: "Additional metadata to attach to the message",
+    required: false,
+  })
+  @IsOptional()
+  @IsObject()
+  metadata?: Record<string, unknown>;
+}
+
+/**
  * Response DTO for listing messages.
  */
 @ApiSchema({ name: "ListMessagesResponse" })

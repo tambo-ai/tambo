@@ -12,7 +12,7 @@ import {
   Max,
 } from "class-validator";
 import { Type } from "class-transformer";
-import { V1InputMessageDto, V1MessageDto } from "./message.dto";
+import { V1InitialMessageDto, V1MessageDto } from "./message.dto";
 import { V1RunStatus } from "@tambo-ai-cloud/core";
 
 /**
@@ -213,14 +213,14 @@ export class V1CreateThreadDto {
 
   @ApiProperty({
     description: "Initial messages to seed the thread with",
-    type: [V1InputMessageDto],
+    type: [V1InitialMessageDto],
     required: false,
   })
   @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
-  @Type(() => V1InputMessageDto)
-  initialMessages?: V1InputMessageDto[];
+  @Type(() => V1InitialMessageDto)
+  initialMessages?: V1InitialMessageDto[];
 }
 
 /**
