@@ -34,6 +34,7 @@ interface TamboV1Thread {
   metadata?: Record<string, unknown>;
   createdAt: string;
   updatedAt: string;
+  lastRunCancelled: boolean;
 }
 ```
 
@@ -83,8 +84,15 @@ interface TamboV1Message {
   content: Content[];
   createdAt?: string;
   metadata?: Record<string, unknown>;
+  reasoning?: string[];
+  reasoningDurationMS?: number;
 }
 ```
+
+| Property              | Type       | Description                                                                                           |
+| --------------------- | ---------- | ----------------------------------------------------------------------------------------------------- |
+| `reasoning`           | `string[]` | Reasoning chunks from the model. Transient — only present during streaming, not persisted to the API. |
+| `reasoningDurationMS` | `number`   | Duration of the reasoning phase in milliseconds, for display purposes.                                |
 
 ### MessageRole
 
@@ -276,7 +284,16 @@ interface TamboTool {
 }
 ```
 
-See the [base SDK types reference](/reference/react-sdk/types#tambotool) for detailed documentation.
+| Property             | Type              | Required | Description                                                                                              |
+| -------------------- | ----------------- | -------- | -------------------------------------------------------------------------------------------------------- |
+| `name`               | `string`          | Yes      | Unique identifier for the tool                                                                           |
+| `description`        | `string`          | Yes      | Description for AI understanding                                                                         |
+| `tool`               | `function`        | Yes      | The tool implementation function                                                                         |
+| `inputSchema`        | `SupportedSchema` | Yes      | Schema for tool input parameters                                                                         |
+| `outputSchema`       | `SupportedSchema` | Yes      | Schema for tool output                                                                                   |
+| `maxCalls`           | `number`          | No       | Maximum times this tool can be called in a single response. Overrides the project-level tool call limit. |
+| `annotations`        | `ToolAnnotations` | No       | Behavior annotations (see [ToolAnnotations](#toolannotations))                                           |
+| `transformToContent` | `function`        | No       | Transform tool result into content parts for richer display                                              |
 
 ## Event Types
 
@@ -361,6 +378,101 @@ function isTamboCustomEvent(event: {
 }): event is TamboCustomEvent;
 function asTamboCustomEvent(event: CustomEvent): TamboCustomEvent | undefined;
 ```
+
+## Input Types
+
+### SubmitOptions
+
+Options passed to `useTamboV1ThreadInput().submit()`.
+
+```typescript
+interface SubmitOptions {
+  debug?: boolean;
+  toolChoice?: ToolChoice;
+}
+```
+
+| Property     | Type         | Description                                     |
+| ------------ | ------------ | ----------------------------------------------- |
+| `debug`      | `boolean`    | Enable debug logging for this submission        |
+| `toolChoice` | `ToolChoice` | Control how the model selects tools (see below) |
+
+### ToolChoice
+
+Controls how the model selects tools during generation.
+
+```typescript
+type ToolChoice = "auto" | "required" | "none" | { name: string };
+```
+
+| Value              | Description                                  |
+| ------------------ | -------------------------------------------- |
+| `"auto"`           | Model decides whether to use tools (default) |
+| `"required"`       | Model must use at least one tool             |
+| `"none"`           | Model cannot use tools                       |
+| `{ name: string }` | Model must use the specified tool            |
+
+## Stream Status Types
+
+### StreamStatus
+
+Overall streaming status for a component, returned by `useTamboV1StreamStatus()`.
+
+```typescript
+interface StreamStatus {
+  isPending: boolean;
+  isStreaming: boolean;
+  isSuccess: boolean;
+  isError: boolean;
+  streamError?: Error;
+}
+```
+
+| Property      | Type      | Description                                         |
+| ------------- | --------- | --------------------------------------------------- |
+| `isPending`   | `boolean` | No tokens received yet and generation is not active |
+| `isStreaming` | `boolean` | At least one prop is still streaming                |
+| `isSuccess`   | `boolean` | All props finished streaming without error          |
+| `isError`     | `boolean` | A fatal error occurred in the stream or any prop    |
+| `streamError` | `Error`   | The first error encountered during streaming        |
+
+### PropStatus
+
+Per-prop streaming status, returned by `useTamboV1StreamStatus()`.
+
+```typescript
+interface PropStatus {
+  isPending: boolean;
+  isStreaming: boolean;
+  isSuccess: boolean;
+  error?: Error;
+}
+```
+
+| Property      | Type      | Description                                        |
+| ------------- | --------- | -------------------------------------------------- |
+| `isPending`   | `boolean` | No tokens received for this prop yet               |
+| `isStreaming` | `boolean` | Tokens received but streaming is not complete      |
+| `isSuccess`   | `boolean` | This prop has finished streaming successfully      |
+| `error`       | `Error`   | Error that occurred during streaming for this prop |
+
+## Tool Annotations
+
+### ToolAnnotations
+
+Annotations describing a tool's behavior, extending the MCP specification.
+
+```typescript
+type ToolAnnotations = MCPToolAnnotations & {
+  tamboStreamableHint?: boolean;
+};
+```
+
+| Property              | Type      | Description                                                                                                                         |
+| --------------------- | --------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `tamboStreamableHint` | `boolean` | When `true`, the tool can be called with partially-streamed arguments as they arrive. Use for read-only tools without side effects. |
+
+`ToolAnnotations` can be set on both `TamboTool` and `TamboComponent` via the `annotations` property.
 
 ## Re-exported Types
 

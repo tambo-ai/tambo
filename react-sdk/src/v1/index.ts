@@ -93,6 +93,9 @@ export {
   useTamboContextHelpers,
 } from "../providers/tambo-context-helpers-provider";
 
+// Re-export context attachment hook from beta SDK (works with v1)
+export { useTamboContextAttachment } from "../providers/tambo-context-attachment-provider";
+
 // Export v1 thread input provider for advanced composition
 export {
   TamboV1ThreadInputProvider,
@@ -227,7 +230,7 @@ export type { V1ToolUseContent, TamboToolDisplayProps } from "./types/message";
 
 // HOC for making components interactable by the AI
 export {
-  withTamboInteractable as withInteractable,
+  withTamboInteractable,
   type InteractableConfig,
   type WithTamboInteractableProps,
 } from "../hoc/with-tambo-interactable";
