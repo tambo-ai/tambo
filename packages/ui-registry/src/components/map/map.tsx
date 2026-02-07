@@ -364,9 +364,8 @@ function createClusterIcon(cluster: L.MarkerCluster): L.DivIcon {
  */
 function MapLeafletContainer() {
   return (
-    <MapBase.Container
-      className="h-full w-full overflow-hidden"
-      render={({
+    <MapBase.Container className="h-full w-full overflow-hidden">
+      {({
         center,
         zoom,
         zoomControl,
@@ -416,7 +415,7 @@ function MapLeafletContainer() {
           <MapClickHandler />
         </LeafletMapContainer>
       )}
-    />
+    </MapBase.Container>
   );
 }
 

@@ -55,8 +55,8 @@ export const ThreadDropdown = React.forwardRef<
             align="start"
             sideOffset={5}
           >
-            <ThreadDropdownBase.NewThreadItem
-              render={({ shortcutLabel, onSelect }) => (
+            <ThreadDropdownBase.NewThreadItem>
+              {({ shortcutLabel, onSelect }) => (
                 <DropdownMenu.Item
                   className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
                   onSelect={(e: Event) => {
@@ -76,12 +76,12 @@ export const ThreadDropdown = React.forwardRef<
                   </span>
                 </DropdownMenu.Item>
               )}
-            />
+            </ThreadDropdownBase.NewThreadItem>
 
             <DropdownMenu.Separator className="my-1 h-px bg-border" />
 
-            <ThreadDropdownBase.Menu
-              render={({ threads, isLoading, error, onSwitchThread }) => {
+            <ThreadDropdownBase.Menu>
+              {({ threads, isLoading, error, onSwitchThread }) => {
                 if (isLoading) {
                   return (
                     <DropdownMenu.Item
@@ -131,7 +131,7 @@ export const ThreadDropdown = React.forwardRef<
                   </>
                 );
               }}
-            />
+            </ThreadDropdownBase.Menu>
           </DropdownMenu.Content>
         </DropdownMenu.Portal>
       </DropdownMenu.Root>

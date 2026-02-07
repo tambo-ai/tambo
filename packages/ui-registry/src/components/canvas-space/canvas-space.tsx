@@ -34,9 +34,8 @@ export function CanvasSpace({ className }: CanvasSpaceProps) {
     >
       <CanvasSpaceBase.Viewport className="w-full flex-1 overflow-y-auto [&::-webkit-scrollbar]:w-[6px] [&::-webkit-scrollbar-thumb]:bg-muted-foreground/30">
         <div className="p-8 h-full flex flex-col">
-          <CanvasSpaceBase.Content
-            className="h-full space-y-6 pb-8 flex flex-col items-center justify-center w-full"
-            render={({ renderedComponent }: CanvasSpaceContentRenderProps) => (
+          <CanvasSpaceBase.Content className="h-full space-y-6 pb-8 flex flex-col items-center justify-center w-full">
+            {({ renderedComponent }: CanvasSpaceContentRenderProps) => (
               <div
                 className={cn(
                   "w-full transition-all duration-200 ease-out transform flex justify-center",
@@ -46,7 +45,7 @@ export function CanvasSpace({ className }: CanvasSpaceProps) {
                 {renderedComponent}
               </div>
             )}
-          />
+          </CanvasSpaceBase.Content>
           <CanvasSpaceBase.EmptyState className="flex-1 flex items-center justify-center text-center p-6">
             <div className="space-y-2">
               <p className="text-muted-foreground font-medium">

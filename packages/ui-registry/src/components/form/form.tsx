@@ -342,20 +342,16 @@ export const FormComponent = React.forwardRef<HTMLFormElement, FormProps>(
             <p className="text-sm text-destructive">{onError}</p>
           </FormBase.Error>
 
-          <FormBase.Fields
-            render={({ fields: validFields }) =>
+          <FormBase.Fields>
+            {({ fields: validFields }) =>
               validFields.map((field) => (
                 <StyledField key={field.id} field={field} />
               ))
             }
-          />
+          </FormBase.Fields>
 
-          <FormBase.Submit
-            className="w-full px-4 py-2.5 bg-accent text-accent-foreground rounded-lg hover:bg-accent/90 focus:ring-2 focus:ring-accent disabled:opacity-50 disabled:pointer-events-none font-medium transition-colors duration-200"
-            render={({
-              isGenerating,
-              submitText: text,
-            }: FormSubmitRenderProps) =>
+          <FormBase.Submit className="w-full px-4 py-2.5 bg-accent text-accent-foreground rounded-lg hover:bg-accent/90 focus:ring-2 focus:ring-accent disabled:opacity-50 disabled:pointer-events-none font-medium transition-colors duration-200">
+            {({ isGenerating, submitText: text }: FormSubmitRenderProps) =>
               isGenerating ? (
                 <div className="flex items-center justify-center gap-2">
                   <Loader2Icon className="h-4 w-4 animate-spin" />
@@ -365,7 +361,7 @@ export const FormComponent = React.forwardRef<HTMLFormElement, FormProps>(
                 text
               )
             }
-          />
+          </FormBase.Submit>
         </div>
       </FormBase.Root>
     );
