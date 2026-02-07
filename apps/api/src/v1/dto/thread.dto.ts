@@ -57,6 +57,14 @@ export class V1ThreadDto {
   id!: string;
 
   @ApiProperty({
+    description: "Thread name (auto-generated or user-set)",
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  name?: string;
+
+  @ApiProperty({
     description: "Optional user key for thread organization",
     required: false,
   })

@@ -75,12 +75,24 @@ describe("v1-conversions", () => {
     it("should convert null values to undefined", () => {
       const result = threadToDto(baseThread);
 
+      expect(result.name).toBeUndefined();
       expect(result.currentRunId).toBeUndefined();
       expect(result.statusMessage).toBeUndefined();
       expect(result.lastRunCancelled).toBeUndefined();
       expect(result.lastRunError).toBeUndefined();
       expect(result.pendingToolCallIds).toBeUndefined();
       expect(result.lastCompletedRunId).toBeUndefined();
+    });
+
+    it("should include name when present", () => {
+      const threadWithName: DbThread = {
+        ...baseThread,
+        name: "My conversation",
+      };
+
+      const result = threadToDto(threadWithName);
+
+      expect(result.name).toBe("My conversation");
     });
 
     it("should convert V1 run fields when present", () => {
