@@ -8,6 +8,7 @@ import {
   type MessageSuggestionsStatusProps as MessageSuggestionsBaseStatusProps,
   type MessageSuggestionsStatusRenderProps,
 } from "@tambo-ai/react-ui-base/message-suggestions";
+import { GenerationStage } from "@tambo-ai/react";
 import { cn } from "@tambo-ai/ui-registry/utils";
 import { Loader2Icon } from "lucide-react";
 import * as React from "react";
@@ -127,7 +128,7 @@ function StatusGenerationContent({
   isGenerating: boolean;
   generationStage: string | undefined;
 }) {
-  if (generationStage && generationStage !== "COMPLETE") {
+  if (generationStage && generationStage !== GenerationStage.COMPLETE) {
     return (
       <MessageSuggestionsBase.GenerationStage className="inline-flex items-center gap-2 px-2 py-1 text-xs rounded-md bg-transparent text-muted-foreground">
         {({
