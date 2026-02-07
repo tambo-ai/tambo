@@ -49,6 +49,7 @@ jest.mock("@tambo-ai-cloud/db", () => ({
     updateThreadRunStatus: jest.fn(),
     completeRun: jest.fn(),
     updateMessage: jest.fn(),
+    updateThreadGenerationStatus: jest.fn(),
     listThreadsPaginated: jest.fn(),
     listMessagesPaginated: jest.fn(),
     getMessageByIdInThread: jest.fn(),
@@ -1888,6 +1889,9 @@ describe("V1Service", () => {
 
       expect(mockDb.transaction).toHaveBeenCalledTimes(1);
       expect(mockOperations.markRunCancelled).not.toHaveBeenCalled();
+      expect(
+        mockOperations.updateThreadGenerationStatus,
+      ).not.toHaveBeenCalled();
     });
 
     it("should successfully cancel an existing run", async () => {
@@ -1898,6 +1902,7 @@ describe("V1Service", () => {
       } as any);
       mockOperations.releaseRunLockIfCurrent.mockResolvedValue(true);
       mockOperations.markRunCancelled.mockResolvedValue(undefined);
+      mockOperations.updateThreadGenerationStatus.mockResolvedValue({} as any);
       mockOperations.markLatestAssistantMessageCancelled.mockResolvedValue(
         "msg_123",
       );
@@ -1914,6 +1919,11 @@ describe("V1Service", () => {
       expect(mockDb.transaction).toHaveBeenCalledTimes(1);
       expect(mockOperations.releaseRunLockIfCurrent).toHaveBeenCalledTimes(1);
       expect(mockOperations.markRunCancelled).toHaveBeenCalledTimes(1);
+      expect(mockOperations.updateThreadGenerationStatus).toHaveBeenCalledWith(
+        expect.anything(),
+        "thr_123",
+        GenerationStage.CANCELLED,
+      );
     });
   });
 
