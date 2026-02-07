@@ -474,14 +474,12 @@ describe("tool-executor", () => {
       );
 
       executor.schedule("call_1", { text: "hello" });
-      expect(toolFn).not.toHaveBeenCalled();
-
-      jest.advanceTimersByTime(100);
+      // Leading edge: fires immediately
       expect(toolFn).toHaveBeenCalledTimes(1);
       expect(toolFn).toHaveBeenCalledWith({ text: "hello" });
     });
 
-    it("collapses rapid calls and only executes the latest args", () => {
+    it("collapses rapid calls, fires leading then trailing with latest args", () => {
       const toolFn = jest.fn().mockResolvedValue(undefined);
       const registry: Record<string, TamboTool> = {
         write_story: {
@@ -502,18 +500,22 @@ describe("tool-executor", () => {
       );
 
       executor.schedule("call_1", { text: "h" });
+      // Leading edge fires immediately with first value
+      expect(toolFn).toHaveBeenCalledTimes(1);
+      expect(toolFn).toHaveBeenCalledWith({ text: "h" });
+
       jest.advanceTimersByTime(50);
       executor.schedule("call_1", { text: "he" });
       jest.advanceTimersByTime(50);
       executor.schedule("call_1", { text: "hel" });
       jest.advanceTimersByTime(100);
 
-      // Only the last scheduled call should have fired
-      expect(toolFn).toHaveBeenCalledTimes(1);
-      expect(toolFn).toHaveBeenCalledWith({ text: "hel" });
+      // Trailing edge fires with latest value after cooldown
+      expect(toolFn).toHaveBeenCalledTimes(3);
+      expect(toolFn).toHaveBeenLastCalledWith({ text: "hel" });
     });
 
-    it("flush() executes pending calls immediately", () => {
+    it("flush() executes pending trailing calls immediately", () => {
       const toolFn = jest.fn().mockResolvedValue(undefined);
       const registry: Record<string, TamboTool> = {
         write_story: {
@@ -534,15 +536,18 @@ describe("tool-executor", () => {
       );
 
       executor.schedule("call_1", { text: "hello" });
-      expect(toolFn).not.toHaveBeenCalled();
-
-      executor.flush();
+      // Leading edge fires immediately
       expect(toolFn).toHaveBeenCalledTimes(1);
-      expect(toolFn).toHaveBeenCalledWith({ text: "hello" });
+
+      executor.schedule("call_1", { text: "hello world" });
+      executor.flush();
+      // Trailing fires with latest value
+      expect(toolFn).toHaveBeenCalledTimes(2);
+      expect(toolFn).toHaveBeenLastCalledWith({ text: "hello world" });
 
       // Timer should be cancelled — advancing should not fire again
       jest.advanceTimersByTime(200);
-      expect(toolFn).toHaveBeenCalledTimes(1);
+      expect(toolFn).toHaveBeenCalledTimes(2);
     });
 
     it("flush() is a no-op when nothing is pending", () => {
