@@ -5,7 +5,7 @@ import { BaseProps } from "../../types/component-render-or-children";
 import { useMessageSuggestionsContext } from "../root/message-suggestions-context";
 
 export type MessageSuggestionsItemProps = BaseProps<
-  Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, "onClick"> & {
+  React.ButtonHTMLAttributes<HTMLButtonElement> & {
     /** The suggestion to display and handle acceptance for. */
     suggestion: Suggestion;
     /** The index of this suggestion in the list. */
@@ -29,18 +29,28 @@ export const MessageSuggestionsItem = React.forwardRef<
   HTMLButtonElement,
   MessageSuggestionsItemProps
 >(function MessageSuggestionsItem(
-  { suggestion, index, asChild, children, ...props },
+  { suggestion, index, asChild, children, onClick, disabled, ...props },
   ref,
 ) {
   const { selectedSuggestionId, accept, isGenerating } =
     useMessageSuggestionsContext();
 
   const isSelected = selectedSuggestionId === suggestion.id;
+  const isDisabled = isGenerating || Boolean(disabled);
 
-  const handleClick = async () => {
-    if (!isGenerating) {
-      await accept({ suggestion });
+  const handleClick: React.MouseEventHandler<HTMLButtonElement> = async (
+    event,
+  ) => {
+    onClick?.(event);
+    if (event.defaultPrevented) {
+      return;
     }
+
+    if (isDisabled) {
+      return;
+    }
+
+    await accept({ suggestion });
   };
 
   const Comp = asChild ? Slot : "button";
@@ -54,7 +64,7 @@ export const MessageSuggestionsItem = React.forwardRef<
       data-selected={isSelected ? "" : undefined}
       data-generating={isGenerating ? "" : undefined}
       onClick={handleClick}
-      disabled={isGenerating}
+      disabled={isDisabled}
       {...props}
     >
       {children ?? <span>{suggestion.title}</span>}
