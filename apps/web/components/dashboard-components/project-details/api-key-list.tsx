@@ -5,6 +5,7 @@ import { EditWithTamboButton } from "@/components/ui/tambo/edit-with-tambo-butto
 import { useClipboard } from "@/hooks/use-clipboard";
 import { useToast } from "@/hooks/use-toast";
 import { api } from "@/trpc/react";
+import posthog from "posthog-js";
 import { withInteractable, type Suggestion } from "@tambo-ai/react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Copy } from "lucide-react";
@@ -177,6 +178,7 @@ export function APIKeyList({
           name: name,
         });
         setNewGeneratedKey(newKey.apiKey);
+        posthog.capture("api_key_generated", { projectId });
 
         // Only show dialog for auto-generated first key
         if (keyName === "first-tambo-key") {

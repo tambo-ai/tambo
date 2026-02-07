@@ -122,6 +122,6 @@ function getPostAuthRedirect(
       return url.toString();
     }
   }
-  // just fall back to the project dashboard
-  return new URL(`/dashboard/${projectId}`, baseUrl).toString();
+  // just fall back to the project page
+  return new URL(`/${projectId}`, baseUrl).toString();
 }

@@ -1120,6 +1120,41 @@ describe("streamReducer", () => {
         });
       }).toThrow("Failed to parse tool call arguments");
     });
+
+    it("uses parsedToolArgs from action when provided (skips own parsing)", () => {
+      const state = createTestStreamState("thread_1");
+      state.threadMap.thread_1.thread.messages = [
+        {
+          id: "msg_1",
+          role: "assistant",
+          content: [
+            { type: "tool_use", id: "tool_1", name: "test", input: {} },
+          ],
+          createdAt: "2024-01-01T00:00:00.000Z",
+        },
+      ];
+
+      const preParsed = { city: "Seattle", units: "celsius" };
+
+      const result = streamReducer(state, {
+        type: "EVENT",
+        event: {
+          type: EventType.TOOL_CALL_ARGS,
+          toolCallId: "tool_1",
+          // Deliberately incomplete JSON — if the reducer re-parses, it would not match preParsed
+          delta: '{"city": "Seat',
+        } satisfies ToolCallArgsEvent,
+        threadId: "thread_1",
+        parsedToolArgs: preParsed,
+      });
+
+      const toolContent = asToolUseContent(
+        result.threadMap.thread_1.thread.messages[0].content,
+        0,
+      );
+      // Should use the pre-parsed value, not the incomplete delta
+      expect(toolContent.input).toEqual(preParsed);
+    });
   });
 
   describe("custom component events", () => {

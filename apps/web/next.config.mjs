@@ -125,9 +125,15 @@ const config = {
         destination: "https://x.com/tambo_ai",
         permanent: false,
       },
+      // Redirect old dashboard URLs to new root paths
       {
-        source: "/mcp",
-        destination: "/#mcp",
+        source: "/dashboard",
+        destination: "/",
+        permanent: true,
+      },
+      {
+        source: "/dashboard/:path*",
+        destination: "/:path*",
         permanent: true,
       },
     ];

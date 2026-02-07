@@ -27,7 +27,7 @@ export const NextAuthLayoutWrapper: FC<NextAuthLayoutWrapperProps> = ({
 
   // Compute return URL once for redirects
   const fullPath = search ? `${pathname}?${search}` : pathname;
-  const returnUrl = encodeURIComponent(fullPath || "/dashboard");
+  const returnUrl = encodeURIComponent(fullPath || "/");
 
   // Check legal acceptance status
   const { data: legalStatus } = api.user.hasAcceptedLegal.useQuery(undefined, {

@@ -42,7 +42,7 @@ export const messageLimitEmail: Email<MessageLimitEmailVariables> = {
                             </li>
                           </ol>
                           <div style="margin: 40px 0;">
-                            <a href="https://tambo.co/dashboard/${variables.projectId}"
+                            <a href="https://console.tambo.co/${variables.projectId}"
                                style="background-color: #7FFFC4; color: #023A41; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 500; display: block; text-align: center; width: 100%; box-sizing: border-box;">
                               Go to Your Project
                             </a>

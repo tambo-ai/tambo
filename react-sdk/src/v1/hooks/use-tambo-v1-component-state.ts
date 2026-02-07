@@ -14,6 +14,7 @@ import { useCallback, useEffect, useState, useRef } from "react";
 import { useDebouncedCallback } from "use-debounce";
 import { deepEqual } from "fast-equals";
 import { useTamboClient } from "../../providers/tambo-client-provider";
+import { useTamboInteractable } from "../../providers/tambo-interactable-provider";
 import { useV1ComponentContent } from "../utils/component-renderer";
 import { useStreamState } from "../providers/tambo-v1-stream-context";
 import { findComponentContent } from "../utils/thread-utils";
@@ -78,21 +79,29 @@ export function useTamboV1ComponentState<S>(
   const client = useTamboClient();
   const { componentId, threadId } = useV1ComponentContent();
   const streamState = useStreamState();
+  const { setInteractableState, getInteractableComponentState } =
+    useTamboInteractable();
 
-  // Find the component content to get server state (only search current thread)
-  const componentContent = findComponentContent(
-    streamState,
-    threadId,
-    componentId,
-  );
+  // Interactable components use threadId="" (set by withTamboInteractable)
+  const isInteractable = threadId === "";
+
+  // Find the component content to get server state (only for v1-rendered components)
+  const componentContent = isInteractable
+    ? undefined
+    : findComponentContent(streamState, threadId, componentId);
   const serverState = componentContent?.state as
     | Record<string, unknown>
     | undefined;
   const serverValue = serverState?.[keyName] as S | undefined;
 
-  // Local state - initialized from server state or initial value
+  // For interactable components, read state from the interactable provider
+  const interactableState = isInteractable
+    ? (getInteractableComponentState(componentId)?.[keyName] as S | undefined)
+    : undefined;
+
+  // Local state - initialized from interactable state, server state, or initial value
   const [localState, setLocalState] = useState<S>(
-    () => serverValue ?? (initialValue as S),
+    () => interactableState ?? serverValue ?? (initialValue as S),
   );
 
   // Track pending state and errors
@@ -108,8 +117,10 @@ export function useTamboV1ComponentState<S>(
   // Track in-flight sync requests to avoid stale completions clearing pending state
   const syncSeqRef = useRef(0);
 
-  // Debounced function to sync state to server
+  // Debounced function to sync state to server (only used for v1-rendered components)
   const syncToServer = useDebouncedCallback(async (newState: S) => {
+    if (isInteractable) return;
+
     const seq = ++syncSeqRef.current;
     setIsPending(true);
     setError(null);
@@ -139,7 +150,7 @@ export function useTamboV1ComponentState<S>(
     }
   }, debounceTime);
 
-  // setState function that updates local state and triggers debounced sync
+  // setState function that updates local state and syncs appropriately
   const setState = useCallback(
     (newState: S | ((prev: S) => S)) => {
       setLocalState((prev) => {
@@ -148,28 +159,57 @@ export function useTamboV1ComponentState<S>(
             ? (newState as (prev: S) => S)(prev)
             : newState;
 
-        // Mark that we have a pending local change
-        hasPendingLocalChangeRef.current = true;
-
-        // Trigger debounced sync to server
-        void syncToServer(nextState);
+        if (isInteractable) {
+          // For interactable components, update the interactable provider's state
+          setInteractableState(componentId, keyName, nextState);
+        } else {
+          // For v1-rendered components, trigger debounced sync to server
+          hasPendingLocalChangeRef.current = true;
+          void syncToServer(nextState);
+        }
 
         return nextState;
       });
     },
-    [syncToServer],
+    [isInteractable, syncToServer, setInteractableState, componentId, keyName],
   );
 
-  // Sync from server state when it changes (e.g., from streaming events)
+  // Set initial value in interactable state on mount if no existing state
+  const existingInteractableState = isInteractable
+    ? getInteractableComponentState(componentId)?.[keyName]
+    : undefined;
+  const shouldUpdateInteractableInitial =
+    isInteractable &&
+    existingInteractableState === undefined &&
+    initialValue !== undefined;
+
   useEffect(() => {
-    if (serverValue === undefined) {
-      return;
-    }
+    if (!shouldUpdateInteractableInitial) return;
+    setInteractableState(componentId, keyName, initialValue!);
+  }, [
+    shouldUpdateInteractableInitial,
+    componentId,
+    keyName,
+    initialValue,
+    setInteractableState,
+  ]);
+
+  // Sync from interactable provider when state changes externally (e.g., from AI tool call)
+  useEffect(() => {
+    if (!isInteractable) return;
+    if (interactableState === undefined) return;
+    setLocalState((prev) =>
+      deepEqual(prev, interactableState) ? prev : (interactableState as S),
+    );
+  }, [isInteractable, interactableState]);
+
+  // Sync from server state when it changes (e.g., from streaming events) - v1-rendered only
+  useEffect(() => {
+    if (isInteractable) return;
+    if (serverValue === undefined) return;
 
     // Don't overwrite local changes that haven't synced yet
-    if (hasPendingLocalChangeRef.current) {
-      return;
-    }
+    if (hasPendingLocalChangeRef.current) return;
 
     // Only sync if the server value is different from what we last sent
     // This prevents overwriting local state with stale server values
@@ -184,19 +224,21 @@ export function useTamboV1ComponentState<S>(
     setLocalState((prev) =>
       deepEqual(serverValue, prev) ? prev : serverValue,
     );
-  }, [serverValue]);
+  }, [isInteractable, serverValue]);
 
-  // Flush pending updates on unmount
+  // Flush pending updates on unmount (only for v1-rendered components)
   useEffect(() => {
+    if (isInteractable) return;
     return () => {
       void syncToServer.flush();
     };
-  }, [syncToServer]);
+  }, [isInteractable, syncToServer]);
 
-  // Flush function for immediate sync
+  // Flush function for immediate sync (noop for interactable)
   const flush = useCallback(() => {
+    if (isInteractable) return;
     void syncToServer.flush();
-  }, [syncToServer]);
+  }, [isInteractable, syncToServer]);
 
   return [localState, setState, { isPending, error, flush }];
 }

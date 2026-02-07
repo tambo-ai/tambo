@@ -200,7 +200,7 @@ function PricingTier({
         "noopener,noreferrer",
       );
     } else {
-      router.push("/dashboard");
+      router.push("/");
     }
   };
 

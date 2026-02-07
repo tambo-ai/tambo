@@ -449,9 +449,6 @@ export class AISdkClient implements LLMClient {
 
     // Track message ID for AG-UI events
     let textMessageId: string | undefined;
-    // Local mutable accumulator for tool call args deltas (reset per tool call);
-    // do not reuse outside this scope.
-    let toolCallArgDeltas: string[] = [];
 
     // Track component streaming for UI tools (show_component_*)
     let componentTracker: ComponentStreamTracker | undefined;
@@ -496,7 +493,6 @@ export class AISdkClient implements LLMClient {
           accumulatedToolCall.name = delta.toolName;
           accumulatedToolCall.arguments = "";
           accumulatedToolCall.id = undefined;
-          toolCallArgDeltas = [];
 
           // Initialize component tracker for UI tools (show_component_* tools).
           // Component tools emit tambo.component.* custom events instead of
@@ -514,12 +510,19 @@ export class AISdkClient implements LLMClient {
             );
           } else {
             componentTracker = undefined;
+            // V1: emit TOOL_CALL_START immediately — delta.id is the toolCallId
+            aguiEvents.push({
+              type: EventType.TOOL_CALL_START,
+              toolCallId: delta.id,
+              toolCallName: delta.toolName,
+              parentMessageId: textMessageId,
+              timestamp: Date.now(),
+            } as ToolCallStartEvent);
           }
           break;
         }
         case "tool-input-delta":
           accumulatedToolCall.arguments += delta.delta;
-          toolCallArgDeltas.push(delta.delta);
 
           // Emit component streaming events for UI tools
           if (componentTracker) {
@@ -527,49 +530,33 @@ export class AISdkClient implements LLMClient {
               delta.delta,
             );
             aguiEvents.push(...componentEvents);
+          } else {
+            // V1: emit TOOL_CALL_ARGS immediately — delta.id is the toolCallId
+            aguiEvents.push({
+              type: EventType.TOOL_CALL_ARGS,
+              toolCallId: delta.id,
+              delta: delta.delta,
+              timestamp: Date.now(),
+            } as ToolCallArgsEvent);
           }
           break;
         case "tool-input-end":
           break;
         case "tool-call":
           accumulatedToolCall.id = delta.toolCallId;
-          if (accumulatedToolCall.name) {
-            // For component tools (show_component_*), we only emit tambo.component.*
-            // custom events, not TOOL_CALL_* events. The tool mechanism is an
-            // internal implementation detail.
-            if (componentTracker) {
-              // Finalize component tracker and emit end event
-              const endEvents = componentTracker.finalize();
-              aguiEvents.push(...endEvents);
-              componentTracker = undefined;
-            } else {
-              // Non-component tool: emit standard TOOL_CALL_* events
-              aguiEvents.push({
-                type: EventType.TOOL_CALL_START,
-                toolCallId: delta.toolCallId,
-                toolCallName: accumulatedToolCall.name,
-                parentMessageId: textMessageId,
-                timestamp: Date.now(),
-              } as ToolCallStartEvent);
-
-              for (const toolCallArgDelta of toolCallArgDeltas) {
-                aguiEvents.push({
-                  type: EventType.TOOL_CALL_ARGS,
-                  toolCallId: delta.toolCallId,
-                  delta: toolCallArgDelta,
-                  timestamp: Date.now(),
-                } as ToolCallArgsEvent);
-              }
-
-              aguiEvents.push({
-                type: EventType.TOOL_CALL_END,
-                toolCallId: delta.toolCallId,
-                timestamp: Date.now(),
-              } as ToolCallEndEvent);
-            }
+          if (componentTracker) {
+            // Finalize component tracker and emit end event
+            const endEvents = componentTracker.finalize();
+            aguiEvents.push(...endEvents);
+            componentTracker = undefined;
+          } else if (accumulatedToolCall.name) {
+            // V1: only emit TOOL_CALL_END — START and ARGS already emitted above
+            aguiEvents.push({
+              type: EventType.TOOL_CALL_END,
+              toolCallId: delta.toolCallId,
+              timestamp: Date.now(),
+            } as ToolCallEndEvent);
           }
-
-          toolCallArgDeltas = [];
           break;
         case "tool-result":
           // Tambo should be handling all tool results, not operating like an agent

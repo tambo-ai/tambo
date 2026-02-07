@@ -49,6 +49,7 @@ import {
 import { V1CreateRunDto } from "./dto/run.dto";
 import {
   convertV1ComponentsToInternal,
+  convertV1ToolChoiceToInternal,
   convertV1ToolsToInternal,
 } from "./v1-tool-conversions";
 import {
@@ -82,6 +83,7 @@ import {
   isHiddenUiToolResponse,
   ContentConversionOptions,
   convertV1InputMessageToInternal,
+  convertV1InputMessageToUnsaved,
 } from "./v1-conversions";
 import { encodeV1CompoundCursor, parseV1CompoundCursor } from "./v1-pagination";
 import {
@@ -208,19 +210,13 @@ export class V1Service {
   }
 
   /**
-   * Create a new empty thread.
+   * Create a new thread, optionally seeded with initial messages.
    */
   async createThread(
     projectId: string,
     contextKey: string,
     dto: V1CreateThreadDto,
   ): Promise<V1CreateThreadResponseDto> {
-    if (dto.initialMessages?.length) {
-      throw new BadRequestException(
-        "initialMessages is not supported yet. Create the thread first, then add messages via runs/message endpoints.",
-      );
-    }
-
     const thread = await operations.createThread(this.db, {
       projectId,
       contextKey,
@@ -232,6 +228,17 @@ export class V1Service {
         `Failed to create thread for project ${projectId}. ` +
           `Database insert did not return created record.`,
       );
+    }
+
+    // Save initial messages to the thread
+    if (dto.initialMessages?.length) {
+      for (const msg of dto.initialMessages) {
+        await operations.addMessage(
+          this.db,
+          thread.id,
+          convertV1InputMessageToUnsaved(msg),
+        );
+      }
     }
 
     return threadToDto(thread);
@@ -685,12 +692,15 @@ export class V1Service {
           // Create abort controller to stop LLM stream on cancellation
           const abortController = new AbortController();
 
+          const forceToolChoice = convertV1ToolChoiceToInternal(dto.toolChoice);
+
           const streamingPromise = this.threadsService.advanceThread(
             { projectId, contextKey, sdkVersion },
             {
               messageToAppend,
               availableComponents,
               clientTools,
+              forceToolChoice,
             },
             threadId,
             {}, // toolCallCounts - start fresh for V1 API

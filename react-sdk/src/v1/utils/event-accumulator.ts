@@ -31,7 +31,7 @@ import {
   type ComponentStateDeltaEvent,
   type RunAwaitingInputEvent,
 } from "../types/event";
-import type { Content, TamboV1Message } from "../types/message";
+import type { Content, InputMessage, TamboV1Message } from "../types/message";
 import type { StreamingState, TamboV1Thread } from "../types/thread";
 import { parse as parsePartialJson } from "partial-json";
 import { applyJsonPatch } from "./json-patch";
@@ -84,6 +84,8 @@ export interface EventAction {
   type: "EVENT";
   event: AGUIEvent;
   threadId: string;
+  /** Pre-parsed partial JSON args for TOOL_CALL_ARGS events. Avoids double-parsing. */
+  parsedToolArgs?: Record<string, unknown>;
 }
 
 /**
@@ -203,6 +205,42 @@ export function createInitialState(): StreamState {
   return {
     threadMap: {
       [PLACEHOLDER_THREAD_ID]: createInitialThreadState(PLACEHOLDER_THREAD_ID),
+    },
+    currentThreadId: PLACEHOLDER_THREAD_ID,
+  };
+}
+
+/**
+ * Create initial stream state with placeholder thread seeded with initial messages.
+ * The messages are converted from InputMessage format to TamboV1Message format
+ * for immediate UI display before any API call.
+ * @param initialMessages - Messages to seed the placeholder thread with
+ * @returns Initial stream state with messages in the placeholder thread
+ */
+export function createInitialStateWithMessages(
+  initialMessages: InputMessage[],
+): StreamState {
+  const placeholderState = createInitialThreadState(PLACEHOLDER_THREAD_ID);
+  const messages: TamboV1Message[] = initialMessages.map((msg) => ({
+    id: `initial_${crypto.randomUUID()}`,
+    role: msg.role,
+    content: msg.content.map((c): Content => {
+      if (c.type === "text") {
+        return { type: "text" as const, text: c.text };
+      }
+      return c as Content;
+    }),
+  }));
+
+  return {
+    threadMap: {
+      [PLACEHOLDER_THREAD_ID]: {
+        ...placeholderState,
+        thread: {
+          ...placeholderState.thread,
+          messages,
+        },
+      },
     },
     currentThreadId: PLACEHOLDER_THREAD_ID,
   };
@@ -514,7 +552,11 @@ export function streamReducer(
       break;
 
     case EventType.TOOL_CALL_ARGS:
-      updatedThreadState = handleToolCallArgs(threadState, event);
+      updatedThreadState = handleToolCallArgs(
+        threadState,
+        event,
+        action.parsedToolArgs,
+      );
       break;
 
     case EventType.TOOL_CALL_END:
@@ -898,6 +940,7 @@ function handleToolCallStart(
 function handleToolCallArgs(
   threadState: ThreadState,
   event: ToolCallArgsEvent,
+  parsedToolArgs?: Record<string, unknown>,
 ): ThreadState {
   const toolCallId = event.toolCallId;
 
@@ -908,19 +951,21 @@ function handleToolCallArgs(
   const newAccumulatedArgs = new Map(accumulatedArgs);
   newAccumulatedArgs.set(toolCallId, newAccumulatedJson);
 
-  // Optimistically parse partial JSON to update the tool_use content block
-  let parsedInput: Record<string, unknown> | undefined;
-  try {
-    const parsed: unknown = parsePartialJson(newAccumulatedJson);
-    if (
-      typeof parsed === "object" &&
-      parsed !== null &&
-      !Array.isArray(parsed)
-    ) {
-      parsedInput = parsed as Record<string, unknown>;
+  // Use pre-parsed args if provided, otherwise parse partial JSON ourselves
+  let parsedInput: Record<string, unknown> | undefined = parsedToolArgs;
+  if (!parsedInput) {
+    try {
+      const parsed: unknown = parsePartialJson(newAccumulatedJson);
+      if (
+        typeof parsed === "object" &&
+        parsed !== null &&
+        !Array.isArray(parsed)
+      ) {
+        parsedInput = parsed as Record<string, unknown>;
+      }
+    } catch {
+      // Partial JSON not parseable yet — leave input unchanged
     }
-  } catch {
-    // Partial JSON not parseable yet — leave input unchanged
   }
 
   if (!parsedInput) {

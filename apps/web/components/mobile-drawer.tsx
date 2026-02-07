@@ -53,7 +53,7 @@ export function MobileDrawer({
         <div className="px-6 flex flex-col gap-2">
           {showDashboardButton && (
             <Link
-              href="/dashboard"
+              href="/"
               className={cn(
                 buttonVariants({ variant: "ghost" }),
                 "justify-start text-base w-full",

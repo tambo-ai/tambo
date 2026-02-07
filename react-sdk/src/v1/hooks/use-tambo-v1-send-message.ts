@@ -27,6 +27,7 @@ import {
 import { useTamboV1Config } from "../providers/tambo-v1-provider";
 import { useTamboContextHelpers } from "../../providers/tambo-context-helpers-provider";
 import type { InputMessage } from "../types/message";
+import type { ToolChoice } from "../types/tool-choice";
 import {
   isPlaceholderThreadId,
   type StreamAction,
@@ -36,9 +37,13 @@ import {
   toAvailableTools,
 } from "../utils/registry-conversion";
 import { handleEventStream } from "../utils/stream-handler";
-import { executeAllPendingTools } from "../utils/tool-executor";
+import {
+  executeAllPendingTools,
+  createDebouncedStreamableExecutor,
+} from "../utils/tool-executor";
 import type { ToolResultContent } from "@tambo-ai/typescript-sdk/resources/threads/threads";
 import { ToolCallTracker } from "../utils/tool-call-tracker";
+import { parse as parsePartialJson } from "partial-json";
 
 /**
  * Dispatches synthetic AG-UI events to show a user message in the thread.
@@ -161,6 +166,38 @@ function shouldGenerateThreadName(
 }
 
 /**
+ * Attempts to parse partial JSON from accumulated tool call args.
+ *
+ * Returns a parsed object if the accumulated args are parseable as
+ * a JSON object, or undefined if parsing fails or the result is not
+ * a plain object (e.g. array or primitive).
+ * @param toolTracker - Tracker holding pending tool call state
+ * @param toolCallId - The tool call ID to parse args for
+ * @returns Parsed args object, or undefined if not parseable yet
+ */
+function parseToolCallArgs(
+  toolTracker: ToolCallTracker,
+  toolCallId: string,
+): Record<string, unknown> | undefined {
+  const accToolCall = toolTracker.getAccumulatingToolCall(toolCallId);
+  if (!accToolCall) return undefined;
+
+  try {
+    const parsed: unknown = parsePartialJson(accToolCall.accumulatedArgs);
+    if (
+      typeof parsed === "object" &&
+      parsed !== null &&
+      !Array.isArray(parsed)
+    ) {
+      return parsed as Record<string, unknown>;
+    }
+  } catch {
+    /* not parseable yet */
+  }
+  return undefined;
+}
+
+/**
  * Generates a thread name via the beta API, dispatches the title update,
  * and invalidates the thread list cache. Errors are logged, never thrown.
  * @param client - The Tambo API client
@@ -214,6 +251,15 @@ export interface SendMessageOptions {
    * Enable debug logging for the stream
    */
   debug?: boolean;
+
+  /**
+   * How the model should use tools. Defaults to "auto".
+   * - "auto": Model decides whether to use tools
+   * - "required": Model must use at least one tool
+   * - "none": Model cannot use tools
+   * - { name: "toolName" }: Model must use the specified tool
+   */
+  toolChoice?: ToolChoice;
 }
 
 /**
@@ -235,6 +281,15 @@ export interface CreateRunStreamParams {
    * Merged into the message's additionalContext before sending.
    */
   additionalContext?: Record<string, unknown>;
+  /**
+   * How the model should use tools.
+   */
+  toolChoice?: ToolChoice;
+  /**
+   * Initial messages to seed the thread with when creating a new thread.
+   * Only used when threadId is undefined (new thread creation).
+   */
+  initialMessages?: InputMessage[];
 }
 
 /**
@@ -263,6 +318,7 @@ interface ExecuteToolsParams {
   runId: string;
   userKey: string | undefined;
   additionalContext?: Record<string, unknown>;
+  toolChoice?: ToolChoice;
 }
 
 /**
@@ -294,6 +350,7 @@ async function executeToolsAndContinue(
     runId,
     userKey,
     additionalContext,
+    toolChoice,
   } = params;
 
   const pendingToolCallIds = event.value.pendingToolCalls.map(
@@ -321,6 +378,7 @@ async function executeToolsAndContinue(
     availableComponents: toAvailableComponents(registry.componentList),
     tools: toAvailableTools(registry.toolRegistry),
     userKey,
+    toolChoice,
   });
 
   return { stream, toolResults };
@@ -345,6 +403,8 @@ export async function createRunStream(
     userKey,
     previousRunId,
     additionalContext,
+    toolChoice,
+    initialMessages,
   } = params;
 
   // Merge helper context with any caller-provided additionalContext on the message
@@ -371,15 +431,26 @@ export async function createRunStream(
       tools: availableTools,
       userKey,
       previousRunId,
+      toolChoice,
     });
     return { stream, initialThreadId: threadId };
   } else {
-    // Create new thread
+    // Create new thread - include initialMessages if provided
+    const threadConfig: { userKey?: string; initialMessages?: InputMessage[] } =
+      {};
+    if (userKey) {
+      threadConfig.userKey = userKey;
+    }
+    if (initialMessages?.length) {
+      threadConfig.initialMessages = initialMessages;
+    }
+
     const stream = await client.threads.runs.create({
       message: messageWithContext,
       availableComponents,
       tools: availableTools,
-      thread: userKey ? { userKey } : undefined,
+      thread: Object.keys(threadConfig).length > 0 ? threadConfig : undefined,
+      toolChoice,
     });
     // threadId will be extracted from first event (RUN_STARTED)
     return { stream, initialThreadId: undefined };
@@ -438,6 +509,7 @@ export function useTamboV1SendMessage(threadId?: string) {
     userKey,
     autoGenerateThreadName = true,
     autoGenerateNameThreshold = 3,
+    initialMessages,
   } = useTamboV1Config();
   const registry = useContext(TamboRegistryContext);
   const queryClient = useTamboQueryClient();
@@ -461,7 +533,7 @@ export function useTamboV1SendMessage(threadId?: string) {
 
   return useTamboMutation({
     mutationFn: async (options: SendMessageOptions) => {
-      const { message, userMessageText, debug = false } = options;
+      const { message, userMessageText, debug = false, toolChoice } = options;
 
       // Capture pre-mutation state for auto thread name generation
       const existingThread = streamState.threadMap[apiThreadId ?? ""];
@@ -470,6 +542,10 @@ export function useTamboV1SendMessage(threadId?: string) {
       const threadAlreadyHasTitle = !!existingThread?.thread.title;
 
       const toolTracker = new ToolCallTracker();
+      const debouncedStreamable = createDebouncedStreamableExecutor(
+        toolTracker,
+        registry.toolRegistry,
+      );
 
       // Generate a stable message ID for the user message
       const userMessageId = userMessageText
@@ -494,6 +570,7 @@ export function useTamboV1SendMessage(threadId?: string) {
       }
 
       // Create the run stream
+      // Include initialMessages only on first send (new thread creation)
       const { stream, initialThreadId } = await createRunStream({
         client,
         threadId: apiThreadId,
@@ -502,6 +579,8 @@ export function useTamboV1SendMessage(threadId?: string) {
         userKey,
         previousRunId,
         additionalContext,
+        toolChoice,
+        initialMessages: isNewThread ? initialMessages : undefined,
       });
 
       let actualThreadId = initialThreadId;
@@ -542,7 +621,24 @@ export function useTamboV1SendMessage(threadId?: string) {
             }
 
             toolTracker.handleEvent(event);
-            dispatch({ type: "EVENT", event, threadId: actualThreadId });
+
+            // Parse partial JSON once for TOOL_CALL_ARGS — reused by both dispatch and streamable execution
+            const parsedToolArgs =
+              event.type === EventType.TOOL_CALL_ARGS
+                ? parseToolCallArgs(toolTracker, event.toolCallId)
+                : undefined;
+
+            dispatch({
+              type: "EVENT",
+              event,
+              threadId: actualThreadId,
+              parsedToolArgs,
+            });
+
+            // Schedule debounced streamable tool execution with the same pre-parsed args
+            if (parsedToolArgs && event.type === EventType.TOOL_CALL_ARGS) {
+              debouncedStreamable.schedule(event.toolCallId, parsedToolArgs);
+            }
 
             // Check for awaiting_input - if found, break to execute tools
             if (event.type === EventType.CUSTOM) {
@@ -553,6 +649,9 @@ export function useTamboV1SendMessage(threadId?: string) {
               }
             }
           }
+
+          // Flush any pending debounced streamable calls before continuing
+          debouncedStreamable.flush();
 
           // If stream finished without awaiting_input, we're done
           if (!pendingAwaitingInput) {
@@ -577,6 +676,7 @@ export function useTamboV1SendMessage(threadId?: string) {
               runId,
               userKey,
               additionalContext,
+              toolChoice,
             });
 
           dispatchToolResults(dispatch, actualThreadId, toolResults);

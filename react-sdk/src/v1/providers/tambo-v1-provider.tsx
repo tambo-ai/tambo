@@ -7,6 +7,7 @@
  * - TamboClientProvider: API client and authentication
  * - TamboRegistryProvider: Component and tool registration
  * - TamboContextHelpersProvider: Context helper functions
+ * - TamboContextAttachmentProvider: Single-message context attachments
  * - TamboInteractableProvider: Interactive component tracking
  * - TamboV1StreamProvider: Streaming state management
  *
@@ -27,6 +28,7 @@ import {
   TamboRegistryProvider,
   type TamboRegistryProviderProps,
 } from "../../providers/tambo-registry-provider";
+import { TamboContextAttachmentProvider } from "../../providers/tambo-context-attachment-provider";
 import { TamboContextHelpersProvider } from "../../providers/tambo-context-helpers-provider";
 import { TamboInteractableProvider } from "../../providers/tambo-interactable-provider";
 import type { ContextHelpers } from "../../context-helpers";
@@ -35,6 +37,7 @@ import type {
   ListResourceItem,
   ResourceSource,
 } from "../../model/resource-info";
+import type { InputMessage } from "../types/message";
 import { TamboV1StreamProvider } from "./tambo-v1-stream-context";
 import { TamboV1ThreadInputProvider } from "./tambo-v1-thread-input-provider";
 
@@ -49,6 +52,11 @@ export interface TamboV1Config {
   autoGenerateThreadName?: boolean;
   /** The message count threshold at which the thread name will be auto-generated. Defaults to 3. */
   autoGenerateNameThreshold?: number;
+  /**
+   * Initial messages to seed new threads with.
+   * These are displayed in the UI immediately and sent to the API on first message.
+   */
+  initialMessages?: InputMessage[];
 }
 
 /**
@@ -152,6 +160,13 @@ export interface TamboV1ProviderProps extends Pick<
   autoGenerateNameThreshold?: number;
 
   /**
+   * Initial messages to seed new threads with.
+   * These are displayed in the UI immediately (before the first API call)
+   * and sent to the API when the first message is sent to create the thread.
+   */
+  initialMessages?: InputMessage[];
+
+  /**
    * Children components
    */
   children: React.ReactNode;
@@ -218,6 +233,7 @@ export function TamboV1Provider({
   userKey,
   autoGenerateThreadName,
   autoGenerateNameThreshold,
+  initialMessages,
   children,
 }: PropsWithChildren<TamboV1ProviderProps>) {
   // Config is static - created once and never changes
@@ -225,6 +241,7 @@ export function TamboV1Provider({
     userKey,
     autoGenerateThreadName,
     autoGenerateNameThreshold,
+    initialMessages,
   };
 
   return (
@@ -244,15 +261,17 @@ export function TamboV1Provider({
         getResource={getResource}
       >
         <TamboContextHelpersProvider contextHelpers={contextHelpers}>
-          <TamboInteractableProvider>
-            <TamboV1ConfigContext.Provider value={config}>
-              <TamboV1StreamProvider>
-                <TamboV1ThreadInputProvider>
-                  {children}
-                </TamboV1ThreadInputProvider>
-              </TamboV1StreamProvider>
-            </TamboV1ConfigContext.Provider>
-          </TamboInteractableProvider>
+          <TamboContextAttachmentProvider>
+            <TamboInteractableProvider>
+              <TamboV1ConfigContext.Provider value={config}>
+                <TamboV1StreamProvider initialMessages={initialMessages}>
+                  <TamboV1ThreadInputProvider>
+                    {children}
+                  </TamboV1ThreadInputProvider>
+                </TamboV1StreamProvider>
+              </TamboV1ConfigContext.Provider>
+            </TamboInteractableProvider>
+          </TamboContextAttachmentProvider>
         </TamboContextHelpersProvider>
       </TamboRegistryProvider>
     </TamboClientProvider>
