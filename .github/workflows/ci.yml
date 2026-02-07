@@ -26,6 +26,66 @@ jobs:
       - name: Setup tools
         uses: ./.github/actions/setup-tools
 
+      - name: Check for incorrect domain
+        run: |
+          # Correct domain is tambo.co - catch common typos (.ai, .com)
+          # Patterns constructed via variable so this file doesn't match itself
+          # This uses `git grep`, so it only scans tracked files (i.e., content that can be merged).
+          # Pattern ([^[:alnum:]-]|$) matches .com but NOT .component
+          if [ -z "${GITHUB_WORKSPACE:-}" ]; then
+            echo "::error::GITHUB_WORKSPACE is not set; cannot run domain check"
+            exit 1
+          fi
+          cd "$GITHUB_WORKSPACE" || {
+            echo "::error::Failed to cd into GITHUB_WORKSPACE: $GITHUB_WORKSPACE"
+            exit 1
+          }
+          found=0
+          BASE="tambo"
+          PAT_AI="${BASE}\.ai([^[:alnum:]-]|$)"
+          PAT_COM="${BASE}\.com([^[:alnum:]-]|$)"
+
+          # NOTE: If new file types can contain domains, update this list.
+          PATTERNS=(
+            '*.ts'
+            '*.tsx'
+            '*.md'
+            '*.mdx'
+            '*.yml'
+            '*.yaml'
+            '*.json'
+            '*.html'
+            ':(exclude)node_modules/**'
+          )
+
+          # Examples (match): tambo[.]ai/, tambo[.]ai:443, tambo[.]com/, tambo[.]com:443
+          # Examples (no match): tambo.component, tambo.company
+
+          # label: human-readable domain for error messages
+          # regex: corresponding git-grep pattern used to detect the domain
+          checkDomain() {
+            local label=$1
+            local regex=$2
+            local status=0
+            git grep -nIE "$regex" -- "${PATTERNS[@]}" || status=$?
+
+            case "$status" in
+              0)
+                echo "::error::Found incorrect domain (${label}) - use ${BASE}.co instead"
+                found=1
+                ;;
+              1) ;;
+              *)
+                echo "::error::Domain check failed unexpectedly (git grep exit $status)" >&2
+                return "$status"
+                ;;
+            esac
+          }
+
+          checkDomain "${BASE}.ai" "$PAT_AI" || exit $?
+          checkDomain "${BASE}.com" "$PAT_COM" || exit $?
+          exit "$found"
+
       - name: Run Prettier
         run: npm run prettier-check
 

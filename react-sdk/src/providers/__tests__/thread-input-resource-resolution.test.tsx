@@ -78,7 +78,7 @@ const createMockInternalServer = (serverKey: string): McpServer =>
   ({
     key: serverKey,
     serverKey,
-    url: "https://api.tambo.ai/mcp",
+    url: "https://api.tambo.co/mcp",
     name: "__tambo_internal_mcp_server__",
     transport: "http",
     serverType: ServerType.TAMBO_INTERNAL,
@@ -142,7 +142,7 @@ describe("TamboProvider - Resource Content Resolution Integration", () => {
         <QueryClientProvider client={queryClient}>
           <TamboProvider
             apiKey="test-api-key"
-            tamboUrl="https://api.tambo.ai"
+            tamboUrl="https://api.tambo.co"
             listResources={options?.listResources}
             // Cast to any because test mocks return simplified types
             getResource={options?.getResource as any}

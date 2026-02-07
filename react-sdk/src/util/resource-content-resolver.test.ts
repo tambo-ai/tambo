@@ -87,7 +87,7 @@ describe("resolveResourceContents", () => {
     ({
       key: serverKey,
       serverKey,
-      url: "https://api.tambo.ai/mcp",
+      url: "https://api.tambo.co/mcp",
       name: "__tambo_internal_mcp_server__",
       transport: MCPTransport.HTTP,
       serverType: ServerType.TAMBO_INTERNAL,
