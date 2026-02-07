@@ -98,7 +98,9 @@ const ThreadContentMessages = React.forwardRef<
     <ThreadContentBase.MessageList
       ref={ref}
       className={cn("flex flex-col gap-2", className)}
-      render={({
+      {...props}
+    >
+      {({
         messages: filteredMessages,
         isGenerating,
       }: ThreadContentMessageListRenderProps) =>
@@ -142,8 +144,7 @@ const ThreadContentMessages = React.forwardRef<
           </ThreadContentBase.Message>
         ))
       }
-      {...props}
-    />
+    </ThreadContentBase.MessageList>
   );
 });
 ThreadContentMessages.displayName = "ThreadContent.Messages";
