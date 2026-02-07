@@ -199,8 +199,8 @@ function StyledPopoverContent({
         />
         <div className="flex items-center justify-between">
           {/* Helper text or generation status */}
-          <EditWithTamboButtonBase.Status
-            render={({
+          <EditWithTamboButtonBase.Status>
+            {({
               isGenerating: generating,
               onOpenThread: openThread,
             }) => {
@@ -224,7 +224,7 @@ function StyledPopoverContent({
                 </p>
               );
             }}
-          />
+          </EditWithTamboButtonBase.Status>
           <div className="flex items-center">
             <EditWithTamboButtonBase.SendButton
               className={cn(
@@ -326,7 +326,8 @@ export function EditWithTamboButton({
       tooltip={tooltip}
       onOpenThread={onOpenThread}
       editorRef={editorRef}
-      render={(renderProps) => (
+    >
+      {(renderProps) => (
         <StyledTrigger
           icon={icon}
           description={description}
@@ -342,6 +343,6 @@ export function EditWithTamboButton({
           setDropdownOpen={renderProps.setDropdownOpen}
         />
       )}
-    />
+    </EditWithTamboButtonBase.Root>
   );
 }
