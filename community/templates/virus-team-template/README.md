@@ -1,24 +1,25 @@
-# Virus Team UI Template
+# Virus Team Signup Template
 
-A sleek and modern signup UI template for web projects, featuring a responsive design with a two-panel layout.
+A clean and modern signup page template for Virus Team projects. Includes social login buttons and responsive design.
 
+## Screenshot
+
+![Project Screenshot](https://i.postimg.cc/4xx3cMvz/Screenshot-20260207-034814.jpg)
+
+## Setup
+
+1. Download or clone this template.
+2. Open `index.html` in your browser to view the template.
+3. Link `style.css` is already included in `index.html`.
+
+## Included Files
+
+- `index.html` – The main HTML file with the signup form.
+- `style.css` – The CSS file with styling for the template.
 
 ## Features
 
-- Responsive two-panel layout (Left panel: info/steps, Right panel: signup form)
-- Fully styled with HTML & CSS
-- Social login buttons (Google & GitHub)
-- Password visibility toggle
-- Step indicator for guided registration
-- Clean and minimal design suitable for further customization
-
-## Setup Instructions
-
-1. Clone this repository or download the template.
-2. Open the folder and run the project locally by opening `index.html` in your browser.
-3. Customize HTML or CSS as needed for your project.
-
-```bash
-# Clone the repo
-git clone <your-repo-link>
-# Open index.html in any browser
+- Responsive design for mobile and desktop.
+- Social login buttons for Google and GitHub.
+- Step list UI for guided signup.
+- Modern dark theme with gradient left panel.
