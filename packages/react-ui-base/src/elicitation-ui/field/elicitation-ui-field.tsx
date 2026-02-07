@@ -132,7 +132,10 @@ export const ElicitationUIField = React.forwardRef<
     );
   }
 
-  // Otherwise, dispatch to the appropriate field type component
+  // Strip render/children before dispatching — sub-fields have their own render prop types
+  const { children: _children, render: _render, ...restProps } = props;
+
+  // Dispatch to the appropriate field type component
   switch (fieldType) {
     case "boolean":
       return (
@@ -140,7 +143,7 @@ export const ElicitationUIField = React.forwardRef<
           ref={ref}
           name={name}
           autoFocus={autoFocus}
-          {...props}
+          {...restProps}
         />
       );
     case "enum":
@@ -149,7 +152,7 @@ export const ElicitationUIField = React.forwardRef<
           ref={ref}
           name={name}
           autoFocus={autoFocus}
-          {...props}
+          {...restProps}
         />
       );
     case "string":
@@ -158,7 +161,7 @@ export const ElicitationUIField = React.forwardRef<
           ref={ref}
           name={name}
           autoFocus={autoFocus}
-          {...props}
+          {...restProps}
         />
       );
     case "number":
@@ -167,7 +170,7 @@ export const ElicitationUIField = React.forwardRef<
           ref={ref}
           name={name}
           autoFocus={autoFocus}
-          {...props}
+          {...restProps}
         />
       );
     default:
