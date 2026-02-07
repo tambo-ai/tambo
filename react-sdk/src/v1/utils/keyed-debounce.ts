@@ -16,7 +16,11 @@
 export interface KeyedDebounce<T> {
   /** Schedule a throttled call for the given key. Fires immediately if idle, otherwise queues a trailing call. */
   schedule(key: string, value: T): void;
-  /** Force-execute all pending trailing calls immediately and clear timers. */
+  /**
+   * Force-execute all pending trailing calls immediately, cancel all timers,
+   * and reset to idle. After flush(), the next schedule() for any key will
+   * fire immediately (leading edge) as if the key were new.
+   */
   flush(): void;
 }
 
@@ -25,8 +29,10 @@ interface ThrottleEntry<T> {
   latestValue: T;
   /** Whether a new value arrived during the cooldown window */
   hasTrailing: boolean;
-  /** The active cooldown timer */
-  timer: ReturnType<typeof setTimeout>;
+  /** The active cooldown timer, if any */
+  timer?: ReturnType<typeof setTimeout>;
+  /** Generation counter — incremented on flush/reschedule to invalidate stale callbacks */
+  gen: number;
 }
 
 /**
@@ -36,10 +42,11 @@ interface ThrottleEntry<T> {
  * key, `fn` fires immediately (leading edge). Subsequent calls during the
  * cooldown window update the stored value. When the cooldown expires, if a
  * new value arrived, `fn` fires again with the latest value (trailing edge)
- * and a new cooldown starts. This repeats until no new calls arrive during
- * a cooldown window.
+ * and the timer re-arms. This repeats until no new calls arrive during
+ * a cooldown window, at which point the key becomes idle.
  *
- * Call `flush()` to force-execute all pending trailing calls immediately.
+ * Call `flush()` to force-execute all pending trailing calls, cancel all
+ * timers, and reset to idle.
  * @param fn - Callback invoked with (key, latestValue) on leading and trailing edges
  * @param delay - Throttle interval in milliseconds
  * @returns KeyedDebounce controller
@@ -50,22 +57,31 @@ export function createKeyedDebounce<T>(
 ): KeyedDebounce<T> {
   const pending = new Map<string, ThrottleEntry<T>>();
 
-  function startCooldown(key: string, value: T): void {
-    const timer = setTimeout(() => {
-      const entry = pending.get(key);
-      if (entry?.hasTrailing) {
-        // Trailing fire with latest value, then start new cooldown
-        const trailingValue = entry.latestValue;
-        pending.delete(key);
-        fn(key, trailingValue);
-        startCooldown(key, trailingValue);
-      } else {
-        // No new calls during cooldown — done
-        pending.delete(key);
-      }
-    }, delay);
+  function armTimer(key: string): void {
+    const entry = pending.get(key);
+    if (!entry || entry.timer) return;
 
-    pending.set(key, { latestValue: value, hasTrailing: false, timer });
+    const myGen = entry.gen;
+    entry.timer = setTimeout(() => {
+      const current = pending.get(key);
+      if (current?.gen !== myGen) return;
+
+      current.timer = undefined;
+
+      if (!current.hasTrailing) {
+        // No new calls during cooldown — go idle
+        pending.delete(key);
+        return;
+      }
+
+      // Trailing fire with latest value
+      current.hasTrailing = false;
+      const trailingValue = current.latestValue;
+      fn(key, trailingValue);
+
+      // Re-arm only if more updates may arrive
+      armTimer(key);
+    }, delay);
   }
 
   function schedule(key: string, value: T): void {
@@ -74,16 +90,22 @@ export function createKeyedDebounce<T>(
       // Currently in cooldown — update value, mark trailing
       existing.latestValue = value;
       existing.hasTrailing = true;
+      armTimer(key);
     } else {
       // Idle — fire immediately (leading edge), start cooldown
       fn(key, value);
-      startCooldown(key, value);
+      pending.set(key, { latestValue: value, hasTrailing: false, gen: 0 });
+      armTimer(key);
     }
   }
 
   function flush(): void {
     for (const [key, entry] of pending) {
-      clearTimeout(entry.timer);
+      entry.gen++;
+      if (entry.timer) {
+        clearTimeout(entry.timer);
+        entry.timer = undefined;
+      }
       if (entry.hasTrailing) {
         fn(key, entry.latestValue);
       }
