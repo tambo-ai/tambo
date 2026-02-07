@@ -130,9 +130,8 @@ function getLoadingMessage(status: GraphLoadingStatus): string {
  */
 function GraphLoadingIndicator() {
   return (
-    <GraphBase.Loading
-      className="p-4 h-full flex items-center justify-center"
-      render={({ status }) => {
+    <GraphBase.Loading className="p-4 h-full flex items-center justify-center">
+      {({ status }) => {
         if (status === "no-data") {
           return (
             <div className="flex flex-col items-center gap-2 text-muted-foreground">
@@ -152,7 +151,7 @@ function GraphLoadingIndicator() {
           </div>
         );
       }}
-    />
+    </GraphBase.Loading>
   );
 }
 
@@ -409,14 +408,13 @@ export const Graph = React.forwardRef<HTMLDivElement, GraphProps>(
           <GraphLoadingIndicator />
           <div className="p-4 h-full">
             <GraphBase.Title className="text-lg font-medium mb-4 text-foreground" />
-            <GraphBase.Chart
-              className="w-full h-[calc(100%-2rem)]"
-              render={(chartProps) => (
+            <GraphBase.Chart className="w-full h-[calc(100%-2rem)]">
+              {(chartProps) => (
                 <RechartsCore.ResponsiveContainer width="100%" height="100%">
                   <ChartRenderer {...chartProps} />
                 </RechartsCore.ResponsiveContainer>
               )}
-            />
+            </GraphBase.Chart>
           </div>
         </GraphBase.Root>
       </GraphBase.ErrorBoundary>
