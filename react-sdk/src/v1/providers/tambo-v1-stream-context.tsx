@@ -17,8 +17,8 @@ import React, {
   useReducer,
   useRef,
 } from "react";
-import { useTamboClient } from "../../providers/tambo-client-provider";
 import { useTamboQuery } from "../../hooks/react-query-hooks";
+import { useTamboClient } from "../../providers/tambo-client-provider";
 import type { InputMessage, TamboV1Message } from "../types/message";
 import type { TamboV1Thread } from "../types/thread";
 import {
@@ -31,6 +31,7 @@ import {
   type StreamAction,
   type StreamState,
 } from "../utils/event-accumulator";
+import { useTamboV1Config } from "./tambo-v1-provider";
 
 /**
  * Thread management functions exposed by the stream context.
@@ -250,6 +251,7 @@ export function TamboV1StreamProvider(props: TamboV1StreamProviderProps) {
  */
 function ThreadSyncManager(): null {
   const client = useTamboClient();
+  const { userKey } = useTamboV1Config();
   const state = useContext(StreamStateContext);
   const dispatch = useContext(StreamDispatchContext);
 
@@ -277,7 +279,8 @@ function ThreadSyncManager(): null {
 
   const { data: threadData, isSuccess: threadSuccess } = useTamboQuery({
     queryKey: ["v1-thread-metadata", currentThreadId],
-    queryFn: async () => await client.threads.retrieve(currentThreadId),
+    queryFn: async () =>
+      await client.threads.retrieve(currentThreadId, { userKey }),
     enabled: shouldFetch,
     staleTime: 1000,
     refetchOnWindowFocus: false,
