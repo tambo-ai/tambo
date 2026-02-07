@@ -39,6 +39,7 @@ export function useCanvasDetection(
     };
 
     checkCanvas();
+    // Re-check after initial render cycle to catch canvas elements that mount asynchronously
     const timeoutId = setTimeout(checkCanvas, 100);
 
     window.addEventListener("resize", checkCanvas);

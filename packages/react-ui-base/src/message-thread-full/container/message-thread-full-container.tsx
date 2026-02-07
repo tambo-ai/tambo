@@ -57,18 +57,16 @@ export const MessageThreadFullContainer = React.forwardRef<
 
   const mergedRef = useMergeRefs<HTMLDivElement | null>(ref, containerRef);
 
-  let content: React.ReactNode;
-  if (typeof children === "function") {
-    content = children({
-      hasCanvasSpace,
-      canvasIsOnLeft,
-      isLeftPanel,
-      historyPosition,
-      disableSidebarSpacing,
-    });
-  } else {
-    content = children;
-  }
+  const content =
+    typeof children === "function"
+      ? children({
+          hasCanvasSpace,
+          canvasIsOnLeft,
+          isLeftPanel,
+          historyPosition,
+          disableSidebarSpacing,
+        })
+      : children;
 
   const Comp = asChild ? Slot : "div";
 
@@ -85,3 +83,4 @@ export const MessageThreadFullContainer = React.forwardRef<
     </Comp>
   );
 });
+MessageThreadFullContainer.displayName = "MessageThreadFull.Container";

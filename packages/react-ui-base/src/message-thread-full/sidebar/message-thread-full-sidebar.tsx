@@ -44,3 +44,4 @@ export const MessageThreadFullSidebar = React.forwardRef<
     </Comp>
   );
 });
+MessageThreadFullSidebar.displayName = "MessageThreadFull.Sidebar";
