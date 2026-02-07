@@ -6,23 +6,12 @@ import {
   type MessageThreadFullContextValue,
 } from "./message-thread-full-context";
 import { useCanvasDetection } from "../../utils/use-canvas-detection";
-import { usePositioning } from "../../utils/use-positioning";
+import { getPositioning } from "../../utils/use-positioning";
 
 /**
  * Props passed to the Root render function.
  */
-export interface MessageThreadFullRootRenderProps {
-  /** Ref for the container element used for canvas detection. */
-  containerRef: React.RefObject<HTMLDivElement | null>;
-  /** Whether canvas space is present in the layout. */
-  hasCanvasSpace: boolean;
-  /** Whether the canvas is positioned on the left side. */
-  canvasIsOnLeft: boolean;
-  /** Whether this thread is positioned as a left panel. */
-  isLeftPanel: boolean;
-  /** Which side the history sidebar is positioned on. */
-  historyPosition: "left" | "right";
-}
+export type MessageThreadFullRootRenderProps = MessageThreadFullContextValue;
 
 export interface MessageThreadFullRootProps {
   /** Optional className used for positioning detection (e.g., "right" class). */
@@ -45,7 +34,7 @@ export function MessageThreadFullRoot({
 }: MessageThreadFullRootProps) {
   const containerRef = React.useRef<HTMLDivElement>(null);
   const { hasCanvasSpace, canvasIsOnLeft } = useCanvasDetection(containerRef);
-  const { isLeftPanel, historyPosition } = usePositioning(
+  const { isLeftPanel, historyPosition } = getPositioning(
     className,
     canvasIsOnLeft,
     hasCanvasSpace,
@@ -62,18 +51,8 @@ export function MessageThreadFullRoot({
     [hasCanvasSpace, canvasIsOnLeft, isLeftPanel, historyPosition],
   );
 
-  let content: React.ReactNode;
-  if (typeof children === "function") {
-    content = children({
-      containerRef,
-      hasCanvasSpace,
-      canvasIsOnLeft,
-      isLeftPanel,
-      historyPosition,
-    });
-  } else {
-    content = children;
-  }
+  const content =
+    typeof children === "function" ? children(contextValue) : children;
 
   return (
     <MessageThreadFullContext.Provider value={contextValue}>
@@ -81,3 +60,4 @@ export function MessageThreadFullRoot({
     </MessageThreadFullContext.Provider>
   );
 }
+MessageThreadFullRoot.displayName = "MessageThreadFull.Root";
