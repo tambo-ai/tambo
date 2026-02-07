@@ -94,6 +94,18 @@ export type {
   ToolcallInfoTriggerProps,
 } from "./toolcall-info";
 
+// MessageThreadPanel components
+export { MessageThreadPanel } from "./message-thread-panel";
+export type {
+  MessageThreadPanelContentProps,
+  MessageThreadPanelContextValue,
+  MessageThreadPanelResizableProps,
+  MessageThreadPanelResizableRenderProps,
+  MessageThreadPanelRootProps,
+  MessageThreadPanelRootRenderProps,
+  MessageThreadPanelSidebarProps,
+} from "./message-thread-panel";
+
 // Types
 export type {
   BaseProps,

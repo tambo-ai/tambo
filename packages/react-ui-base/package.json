@@ -73,6 +73,16 @@
         "default": "./dist/cjs/toolcall-info/index.cjs"
       }
     },
+    "./message-thread-panel": {
+      "import": {
+        "types": "./dist/esm/message-thread-panel/index.d.ts",
+        "default": "./dist/esm/message-thread-panel/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/message-thread-panel/index.d.ts",
+        "default": "./dist/cjs/message-thread-panel/index.cjs"
+      }
+    },
     "./types": {
       "import": {
         "types": "./dist/esm/types/index.d.ts",
