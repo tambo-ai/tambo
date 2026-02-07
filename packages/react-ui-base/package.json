@@ -42,6 +42,16 @@
         "default": "./dist/cjs/edit-with-tambo-button/index.cjs"
       }
     },
+    "./control-bar": {
+      "import": {
+        "types": "./dist/esm/control-bar/index.d.ts",
+        "default": "./dist/esm/control-bar/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/control-bar/index.d.ts",
+        "default": "./dist/cjs/control-bar/index.cjs"
+      }
+    },
     "./canvas-space": {
       "import": {
         "types": "./dist/esm/canvas-space/index.d.ts",
