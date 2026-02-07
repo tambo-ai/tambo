@@ -15,6 +15,7 @@ import {
   DbMessage,
   V1InputMessage,
 } from "../v1-conversions";
+import { V1ThreadDto } from "../dto/thread.dto";
 
 describe("v1-conversions", () => {
   describe("roleToV1", () => {
@@ -131,6 +132,15 @@ describe("v1-conversions", () => {
         code: "RATE_LIMITED",
         message: "Too many requests",
       });
+    });
+  });
+
+  describe("V1ThreadDto", () => {
+    it("should support optional name field", () => {
+      const dto = new V1ThreadDto();
+      expect(dto.name).toBeUndefined();
+      dto.name = "My thread";
+      expect(dto.name).toBe("My thread");
     });
   });
 
