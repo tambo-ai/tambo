@@ -48,6 +48,16 @@ export type {
   ToolcallInfoTriggerProps,
 } from "./toolcall-info";
 
+// CanvasSpace components
+export { CanvasSpace } from "./canvas-space";
+export type {
+  CanvasSpaceContentProps,
+  CanvasSpaceContentRenderProps,
+  CanvasSpaceEmptyStateProps,
+  CanvasSpaceRootProps,
+  CanvasSpaceViewportProps,
+} from "./canvas-space";
+
 // Types
 export type {
   BaseProps,

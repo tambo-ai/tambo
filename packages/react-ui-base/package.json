@@ -52,6 +52,16 @@
         "default": "./dist/cjs/toolcall-info/index.cjs"
       }
     },
+    "./canvas-space": {
+      "import": {
+        "types": "./dist/esm/canvas-space/index.d.ts",
+        "default": "./dist/esm/canvas-space/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/canvas-space/index.d.ts",
+        "default": "./dist/cjs/canvas-space/index.cjs"
+      }
+    },
     "./types": {
       "import": {
         "types": "./dist/esm/types/index.d.ts",
