@@ -225,7 +225,7 @@ export type { V1ToolUseContent, TamboToolDisplayProps } from "./types/message";
 
 // HOC for making components interactable by the AI
 export {
-  withTamboInteractable as withInteractable,
+  withTamboInteractable,
   type InteractableConfig,
   type WithTamboInteractableProps,
 } from "../hoc/with-tambo-interactable";
