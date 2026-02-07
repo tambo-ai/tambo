@@ -451,10 +451,10 @@ const InteractableNote = withTamboInteractable(Note, {
 
 ### Context attachments
 
-The `TamboContextAttachmentProvider` is included in the V1 provider hierarchy. The `useTamboContextAttachment` hook is available from the base SDK import path:
+The `TamboContextAttachmentProvider` is included in the V1 provider hierarchy, and the `useTamboContextAttachment` hook is re-exported from the v1 subpath:
 
 ```tsx
-import { useTamboContextAttachment } from "@tambo-ai/react";
+import { useTamboContextAttachment } from "@tambo-ai/react/v1";
 ```
 
 ## Quick reference: API name mapping

@@ -93,7 +93,7 @@ export interface PropStatus {
 function usePropsStreamingStatus<Props extends object>(
   props: Props | undefined,
   componentStreamingState: V1ComponentContent["streamingState"] | undefined,
-): Record<keyof Props, PropStatus> {
+): Partial<Record<keyof Props, PropStatus>> {
   /** Track which props have received content */
   const [startedProps, setStartedProps] = useState<Set<string>>(new Set());
 
@@ -153,11 +153,13 @@ function usePropsStreamingStatus<Props extends object>(
  */
 function deriveGlobalStreamStatus(
   componentStreamingState: V1ComponentContent["streamingState"] | undefined,
-  propStatus: Record<string, PropStatus>,
+  propStatus: Partial<Record<string, PropStatus>>,
   hasComponent: boolean,
   streamError?: Error,
 ): StreamStatus {
-  const propStatuses: PropStatus[] = Object.values(propStatus);
+  const propStatuses: PropStatus[] = Object.values(propStatus).filter(
+    (p): p is PropStatus => p !== undefined,
+  );
   const isStreamError = !!streamError;
 
   // If all props are already successful, the component is complete regardless of streaming state
@@ -215,7 +217,7 @@ function deriveGlobalStreamStatus(
  * ```tsx
  * // Highlight in-flight props
  * const { propStatus } = useTamboV1StreamStatus<Props>();
- * <h2 className={propStatus.title.isStreaming ? "animate-pulse" : ""}>
+ * <h2 className={propStatus.title?.isStreaming ? "animate-pulse" : ""}>
  *   {title}
  * </h2>
  * ```
@@ -224,7 +226,7 @@ export function useTamboV1StreamStatus<
   Props extends object = Record<string, unknown>,
 >(): {
   streamStatus: StreamStatus;
-  propStatus: Record<keyof Props, PropStatus>;
+  propStatus: Partial<Record<keyof Props, PropStatus>>;
 } {
   const { componentId, threadId } = useV1ComponentContent();
   const streamState = useStreamState();

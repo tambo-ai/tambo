@@ -93,6 +93,9 @@ export {
   useTamboContextHelpers,
 } from "../providers/tambo-context-helpers-provider";
 
+// Re-export context attachment hook from beta SDK (works with v1)
+export { useTamboContextAttachment } from "../providers/tambo-context-attachment-provider";
+
 // Export v1 thread input provider for advanced composition
 export {
   TamboV1ThreadInputProvider,
