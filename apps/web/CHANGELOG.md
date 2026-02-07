@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.132.0](https://github.com/tambo-ai/tambo/compare/web-v0.131.0...web-v0.132.0) (2026-02-07)
+
+
+### Features
+
+* **api:** add SDK version tracking to messages and threads ([#2255](https://github.com/tambo-ai/tambo/issues/2255)) ([36a47bd](https://github.com/tambo-ai/tambo/commit/36a47bdf3cd7b7de8411a6d26ed100ffb5d48f90))
+* **web:** add delete button for MCP server custom headers ([#2224](https://github.com/tambo-ai/tambo/issues/2224)) ([ef71ebb](https://github.com/tambo-ai/tambo/commit/ef71ebb58a8196806314ebc986d3192e4b6a9e34))
+* **web:** move dashboard from /dashboard to root path ([#2232](https://github.com/tambo-ai/tambo/issues/2232)) ([9aec81d](https://github.com/tambo-ai/tambo/commit/9aec81d5e3017d4de5eb83d020bad4a9d401d70f))
+* **web:** track api_key_generated event in PostHog ([#2266](https://github.com/tambo-ai/tambo/issues/2266)) ([f64a037](https://github.com/tambo-ai/tambo/commit/f64a037be70bba4d08e674f6e2612c30b02f50ea))
+
+
+### Bug Fixes
+
+* **docs:** add CI validation for docs.tambo.co links and fix broken links ([#2136](https://github.com/tambo-ai/tambo/issues/2136)) ([6a9ba62](https://github.com/tambo-ai/tambo/commit/6a9ba62cffc42b0b5bc2f646f6ec0b8e3eb394ea))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump @types/node from 22.19.7 to 22.19.8 ([#2249](https://github.com/tambo-ai/tambo/issues/2249)) ([aed1ae6](https://github.com/tambo-ai/tambo/commit/aed1ae6a83a35f74e3c4d919f5ee266206711880))
+* **deps:** bump tailwind-merge from 2.6.0 to 2.6.1 in the tailwind group ([#2247](https://github.com/tambo-ai/tambo/issues/2247)) ([723185c](https://github.com/tambo-ai/tambo/commit/723185cc510bbe164677e7e371924cb1cfc24c0e))
+* **deps:** bump the small-safe-packages group with 2 updates ([#2246](https://github.com/tambo-ai/tambo/issues/2246)) ([89cb632](https://github.com/tambo-ai/tambo/commit/89cb63280b5909b6f4158dcf87000d0b6abfcfba))
+
 ## [0.131.0](https://github.com/tambo-ai/tambo/compare/web-v0.130.0...web-v0.131.0) (2026-02-05)
 
 
