@@ -41,12 +41,12 @@ export const MessageSuggestionsItem = React.forwardRef<
   const handleClick: React.MouseEventHandler<HTMLButtonElement> = async (
     event,
   ) => {
-    onClick?.(event);
-    if (event.defaultPrevented) {
+    if (isDisabled) {
       return;
     }
 
-    if (isDisabled) {
+    onClick?.(event);
+    if (event.defaultPrevented) {
       return;
     }
 
