@@ -44,3 +44,4 @@ export const MessageThreadPanelSidebar = React.forwardRef<
     </Comp>
   );
 });
+MessageThreadPanelSidebar.displayName = "MessageThreadPanel.Sidebar";

@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useCanvasDetection } from "../../utils/use-canvas-detection";
-import { usePositioning } from "../../utils/use-positioning";
+import { getPositioning } from "../../utils/use-positioning";
 import {
   MessageThreadPanelContext,
   type MessageThreadPanelContextValue,
@@ -52,7 +52,7 @@ export function MessageThreadPanelRoot({
   const panelRef = React.useRef<HTMLDivElement>(null);
   const [width, setWidth] = React.useState(defaultWidth);
   const { hasCanvasSpace, canvasIsOnLeft } = useCanvasDetection(panelRef);
-  const { isLeftPanel, historyPosition } = usePositioning(
+  const { isLeftPanel, historyPosition } = getPositioning(
     className,
     canvasIsOnLeft,
     hasCanvasSpace,
@@ -71,19 +71,17 @@ export function MessageThreadPanelRoot({
     [width, isLeftPanel, historyPosition, hasCanvasSpace, canvasIsOnLeft],
   );
 
-  let content: React.ReactNode;
-  if (typeof children === "function") {
-    content = children({
-      panelRef,
-      width,
-      isLeftPanel,
-      historyPosition,
-      hasCanvasSpace,
-      canvasIsOnLeft,
-    });
-  } else {
-    content = children;
-  }
+  const renderProps: MessageThreadPanelRootRenderProps = {
+    panelRef,
+    width,
+    isLeftPanel,
+    historyPosition,
+    hasCanvasSpace,
+    canvasIsOnLeft,
+  };
+
+  const content =
+    typeof children === "function" ? children(renderProps) : children;
 
   return (
     <MessageThreadPanelContext.Provider value={contextValue}>
@@ -91,3 +89,4 @@ export function MessageThreadPanelRoot({
     </MessageThreadPanelContext.Provider>
   );
 }
+MessageThreadPanelRoot.displayName = "MessageThreadPanel.Root";
