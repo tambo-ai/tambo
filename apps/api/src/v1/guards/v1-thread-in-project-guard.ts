@@ -5,7 +5,11 @@ import {
   Inject,
   Injectable,
 } from "@nestjs/common";
-import { type HydraDatabase, operations } from "@tambo-ai-cloud/db";
+import {
+  type HydraDatabase,
+  operations,
+  ThreadNotFoundError,
+} from "@tambo-ai-cloud/db";
 import { type Request } from "express";
 import { DATABASE } from "../../common/middleware/db-transaction-middleware";
 import { CorrelationLoggerService } from "../../common/services/logger.service";
@@ -80,9 +84,7 @@ export class V1ThreadInProjectGuard implements CanActivate {
       );
       return true;
     } catch (error: unknown) {
-      // Only suppress "Thread not found" - the expected authorization failure.
-      // Rethrow unexpected errors (database issues, etc.) so they become 500s, not 403s.
-      if (error instanceof Error && error.message === "Thread not found") {
+      if (error instanceof ThreadNotFoundError) {
         this.logger.warn(
           `Thread ${threadId} not found or not in project ${projectId} for context ${effectiveContextKey}`,
         );

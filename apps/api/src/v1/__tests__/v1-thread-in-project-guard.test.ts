@@ -1,15 +1,22 @@
 import { BadRequestException, ExecutionContext } from "@nestjs/common";
-import { operations } from "@tambo-ai-cloud/db";
+import { operations, ThreadNotFoundError } from "@tambo-ai-cloud/db";
 import { Request } from "express";
 import { ProjectId } from "../../projects/guards/apikey.guard";
 import { ContextKey } from "../../projects/guards/bearer-token.guard";
 import { V1ThreadInProjectGuard } from "../guards/v1-thread-in-project-guard";
 
-jest.mock("@tambo-ai-cloud/db", () => ({
-  operations: {
-    ensureThreadByProjectId: jest.fn(),
-  },
-}));
+jest.mock("@tambo-ai-cloud/db", () => {
+  const actual =
+    jest.requireActual<typeof import("@tambo-ai-cloud/db")>(
+      "@tambo-ai-cloud/db",
+    );
+  return {
+    ...actual,
+    operations: {
+      ensureThreadByProjectId: jest.fn(),
+    },
+  };
+});
 
 const mockEnsureThreadByProjectId =
   operations.ensureThreadByProjectId as jest.MockedFunction<
@@ -184,7 +191,7 @@ describe("V1ThreadInProjectGuard", () => {
 
   it("should return false when thread not found", async () => {
     mockEnsureThreadByProjectId.mockRejectedValue(
-      new Error("Thread not found"),
+      new ThreadNotFoundError("thr_nonexistent", "prj_123"),
     );
 
     const context = createMockExecutionContext({
