@@ -233,10 +233,10 @@ export class V1Service {
 
     return {
       id: thread.id,
-      name: thread.name,
+      name: thread.name ?? undefined,
       userKey: contextKey,
       runStatus: V1RunStatus.IDLE,
-      metadata: thread.metadata,
+      metadata: thread.metadata ?? undefined,
       createdAt: thread.createdAt.toISOString(),
       updatedAt: thread.updatedAt.toISOString(),
     };

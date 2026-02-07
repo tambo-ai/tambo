@@ -28,10 +28,7 @@ export type { InputMessage } from "@tambo-ai/typescript-sdk/resources/threads/ru
  * accepts `'user' | 'system' | 'assistant'` for `initialMessages`. This type
  * widens the role field until the TS SDK type is regenerated.
  */
-export type InitialInputMessage = Omit<
-  import("@tambo-ai/typescript-sdk/resources/threads/runs").InputMessage,
-  "role"
-> & {
+export type InitialInputMessage = Omit<InputMessage, "role"> & {
   role: "user" | "system" | "assistant";
 };
 
