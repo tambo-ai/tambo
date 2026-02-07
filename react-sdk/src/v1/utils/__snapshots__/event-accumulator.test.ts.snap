@@ -47,6 +47,7 @@ exports[`streamReducer snapshot tests for complex state transitions matches snap
   "threadMap": {
     "thread_1": {
       "accumulatingToolArgs": Map {},
+      "lastCompletedRunId": "run_1",
       "streaming": {
         "messageId": undefined,
         "runId": "run_1",
