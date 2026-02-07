@@ -509,7 +509,7 @@ describe("streamReducer", () => {
       expect(result.threadMap.thread_1.streaming.status).toBe("complete");
     });
 
-    it("sets lastCompletedRunId from streaming.runId", () => {
+    it("sets lastCompletedRunId from event.runId", () => {
       const state = createTestStreamState("thread_1");
       state.threadMap.thread_1.streaming = {
         status: "streaming",
@@ -531,7 +531,7 @@ describe("streamReducer", () => {
       expect(result.threadMap.thread_1.lastCompletedRunId).toBe("run_abc");
     });
 
-    it("preserves existing lastCompletedRunId when streaming.runId is undefined", () => {
+    it("prefers event.runId over streaming.runId for lastCompletedRunId", () => {
       const state = createTestStreamState("thread_1");
       state.threadMap.thread_1.lastCompletedRunId = "run_old";
       state.threadMap.thread_1.streaming = {
@@ -541,7 +541,7 @@ describe("streamReducer", () => {
 
       const event: RunFinishedEvent = {
         type: EventType.RUN_FINISHED,
-        runId: "run_123",
+        runId: "run_from_event",
         threadId: "thread_1",
       };
 
@@ -551,7 +551,9 @@ describe("streamReducer", () => {
         threadId: "thread_1",
       });
 
-      expect(result.threadMap.thread_1.lastCompletedRunId).toBe("run_old");
+      expect(result.threadMap.thread_1.lastCompletedRunId).toBe(
+        "run_from_event",
+      );
     });
   });
 
@@ -2599,20 +2601,7 @@ describe("streamReducer", () => {
       warnSpy.mockRestore();
     });
 
-    it("stores lastCompletedRunId from action", () => {
-      const state = createTestStreamState("thread_1");
-
-      const result = streamReducer(state, {
-        type: "LOAD_THREAD_MESSAGES",
-        threadId: "thread_1",
-        messages: [],
-        lastCompletedRunId: "run_xyz",
-      });
-
-      expect(result.threadMap.thread_1.lastCompletedRunId).toBe("run_xyz");
-    });
-
-    it("preserves existing lastCompletedRunId when action omits it", () => {
+    it("does not modify lastCompletedRunId", () => {
       const state = createTestStreamState("thread_1");
       state.threadMap.thread_1.lastCompletedRunId = "run_existing";
 
@@ -2623,20 +2612,6 @@ describe("streamReducer", () => {
       });
 
       expect(result.threadMap.thread_1.lastCompletedRunId).toBe("run_existing");
-    });
-
-    it("overwrites lastCompletedRunId when action provides a new one", () => {
-      const state = createTestStreamState("thread_1");
-      state.threadMap.thread_1.lastCompletedRunId = "run_old";
-
-      const result = streamReducer(state, {
-        type: "LOAD_THREAD_MESSAGES",
-        threadId: "thread_1",
-        messages: [],
-        lastCompletedRunId: "run_new",
-      });
-
-      expect(result.threadMap.thread_1.lastCompletedRunId).toBe("run_new");
     });
 
     it("handles system role messages from API", () => {
@@ -2664,6 +2639,46 @@ describe("streamReducer", () => {
       expect(result.threadMap.thread_1.thread.messages).toHaveLength(2);
       expect(result.threadMap.thread_1.thread.messages[0].role).toBe("system");
       expect(result.threadMap.thread_1.thread.messages[1].role).toBe("user");
+    });
+  });
+
+  describe("SET_LAST_COMPLETED_RUN_ID action", () => {
+    it("stores lastCompletedRunId on an existing thread", () => {
+      const state = createTestStreamState("thread_1");
+
+      const result = streamReducer(state, {
+        type: "SET_LAST_COMPLETED_RUN_ID",
+        threadId: "thread_1",
+        lastCompletedRunId: "run_xyz",
+      });
+
+      expect(result.threadMap.thread_1.lastCompletedRunId).toBe("run_xyz");
+    });
+
+    it("overwrites existing lastCompletedRunId", () => {
+      const state = createTestStreamState("thread_1");
+      state.threadMap.thread_1.lastCompletedRunId = "run_old";
+
+      const result = streamReducer(state, {
+        type: "SET_LAST_COMPLETED_RUN_ID",
+        threadId: "thread_1",
+        lastCompletedRunId: "run_new",
+      });
+
+      expect(result.threadMap.thread_1.lastCompletedRunId).toBe("run_new");
+    });
+
+    it("creates thread state if thread does not exist", () => {
+      const state = createTestStreamState("thread_1");
+
+      const result = streamReducer(state, {
+        type: "SET_LAST_COMPLETED_RUN_ID",
+        threadId: "thread_new",
+        lastCompletedRunId: "run_abc",
+      });
+
+      expect(result.threadMap.thread_new).toBeDefined();
+      expect(result.threadMap.thread_new.lastCompletedRunId).toBe("run_abc");
     });
   });
 

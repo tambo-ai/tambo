@@ -305,10 +305,8 @@ function ThreadSyncManager(): null {
     if (!threadData.lastCompletedRunId) return;
 
     dispatch({
-      type: "LOAD_THREAD_MESSAGES",
+      type: "SET_LAST_COMPLETED_RUN_ID",
       threadId: currentThreadId,
-      messages: [],
-      skipIfStreaming: true,
       lastCompletedRunId: threadData.lastCompletedRunId,
     });
   }, [threadSuccess, threadData, currentThreadId, dispatch]);

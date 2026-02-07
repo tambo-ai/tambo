@@ -135,11 +135,16 @@ export interface LoadThreadMessagesAction {
    * This prevents overwriting in-flight streaming messages.
    */
   skipIfStreaming?: boolean;
-  /**
-   * ID of the last completed run, fetched from the thread metadata.
-   * Stored so it can be used as `previousRunId` for follow-up messages.
-   */
-  lastCompletedRunId?: string;
+}
+
+/**
+ * Set last completed run ID action - stores metadata from the API
+ * so it can be used as `previousRunId` for follow-up messages.
+ */
+export interface SetLastCompletedRunIdAction {
+  type: "SET_LAST_COMPLETED_RUN_ID";
+  threadId: string;
+  lastCompletedRunId: string;
 }
 
 /**
@@ -161,6 +166,7 @@ export type StreamAction =
   | SetCurrentThreadAction
   | StartNewThreadAction
   | LoadThreadMessagesAction
+  | SetLastCompletedRunIdAction
   | UpdateThreadTitleAction;
 
 /**
@@ -443,6 +449,22 @@ export function streamReducer(
       return handleLoadThreadMessages(state, action);
     }
 
+    case "SET_LAST_COMPLETED_RUN_ID": {
+      const threadState =
+        state.threadMap[action.threadId] ??
+        createInitialThreadState(action.threadId);
+      return {
+        ...state,
+        threadMap: {
+          ...state.threadMap,
+          [action.threadId]: {
+            ...threadState,
+            lastCompletedRunId: action.lastCompletedRunId,
+          },
+        },
+      };
+    }
+
     case "UPDATE_THREAD_TITLE": {
       const threadState = state.threadMap[action.threadId];
       if (!threadState) {
@@ -664,17 +686,19 @@ function handleRunStarted(
 /**
  * Handle RUN_FINISHED event.
  * @param threadState - Current thread state
- * @param _event - Run finished event (unused)
+ * @param event - Run finished event containing the completed run's ID
  * @returns Updated thread state
  */
 function handleRunFinished(
   threadState: ThreadState,
-  _event: RunFinishedEvent,
+  event: RunFinishedEvent,
 ): ThreadState {
   return {
     ...threadState,
     lastCompletedRunId:
-      threadState.streaming.runId ?? threadState.lastCompletedRunId,
+      event.runId ??
+      threadState.streaming.runId ??
+      threadState.lastCompletedRunId,
     thread: {
       ...threadState.thread,
       status: "complete",
@@ -1624,7 +1648,7 @@ function handleLoadThreadMessages(
   state: StreamState,
   action: LoadThreadMessagesAction,
 ): StreamState {
-  const { threadId, messages, skipIfStreaming, lastCompletedRunId } = action;
+  const { threadId, messages, skipIfStreaming } = action;
 
   // Get or create thread state
   let threadState = state.threadMap[threadId];
@@ -1680,7 +1704,6 @@ function handleLoadThreadMessages(
 
   const updatedThreadState: ThreadState = {
     ...threadState,
-    lastCompletedRunId: lastCompletedRunId ?? threadState.lastCompletedRunId,
     thread: {
       ...threadState.thread,
       messages: mergedMessages,
