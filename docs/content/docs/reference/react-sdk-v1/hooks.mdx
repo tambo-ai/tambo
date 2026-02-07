@@ -388,9 +388,9 @@ function MyComponent(props: MyProps) {
 
 ### Return Values
 
-| Value          | Type                                                         | Description                                                                              |
-| -------------- | ------------------------------------------------------------ | ---------------------------------------------------------------------------------------- |
-| `streamStatus` | [`StreamStatus`](/reference/react-sdk-v1/types#streamstatus) | Overall streaming status for the component                                               |
+| Value          | Type                                                         | Description                                                                                                                                       |
+| -------------- | ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `streamStatus` | [`StreamStatus`](/reference/react-sdk-v1/types#streamstatus) | Overall streaming status for the component                                                                                                        |
 | `propStatus`   | `Partial<Record<keyof Props, PropStatus>>`                   | Per-prop streaming status. Keys are absent until the prop receives its first token. See [`PropStatus`](/reference/react-sdk-v1/types#propstatus). |
 
 <Callout type="info">
