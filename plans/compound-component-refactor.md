@@ -8,8 +8,38 @@ This plan covers creating individual PRs for compound components in the `react-u
 
 **Branch:** `compound-components`
 **Stats:** 142 files changed, +13,030 / -4,206 lines
-**Done:** 14 components with complete base primitives, 2 skill documents
+**Done:** 14 components with complete base primitives, 2 skill documents, 12 PRs created
 **Pending:** 3 components have empty stub directories (no implementation)
+
+### Progress
+
+**Phase 1 & 2: COMPLETE** — All 12 PRs created, reviewed, and fixes applied.
+
+| PR | Component | Branch | Status |
+|----|-----------|--------|--------|
+| #2267 | message-suggestions | `lachieh/tam-1057-message-suggestions` | targets `main` |
+| #2268 | thread-history | `lachieh/tam-1064-thread-history` | targets message-suggestions |
+| #2269 | graph | `lachieh/tam-1052-graph` | targets message-suggestions |
+| #2270 | form | `lachieh/tam-1051-form` | targets message-suggestions |
+| #2271 | elicitation-ui | `lachieh/tam-1050-elicitation-ui` | targets message-suggestions |
+| #2272 | edit-with-tambo-button | `lachieh/tam-1049-edit-with-tambo-button` | targets message-suggestions |
+| #2273 | map | `lachieh/tam-1054-map` | targets message-suggestions |
+| #2274 | input-fields | `lachieh/tam-1053-input-fields` | targets message-suggestions |
+| #2275 | canvas-space | `lachieh/tam-1047-canvas-space` | targets message-suggestions |
+| #2276 | scrollable-message-container | `lachieh/tam-1061-scrollable-message-container` | targets message-suggestions |
+| #2277 | thread-content | `lachieh/tam-1062-thread-content` | targets message-suggestions |
+| #2278 | thread-dropdown | `lachieh/tam-1063-thread-dropdown` | targets message-suggestions |
+
+**Review fixes applied to correct individual branches:**
+- Type errors in elicitation-ui-field.tsx (stripped children/render before sub-field dispatch)
+- 18 `render=` usages converted to children-as-function across all 10 styled wrappers
+- Missing `./control-bar` subpath export added to package.json
+- No-nested-ternary lint errors fixed in 3 root components
+- Render priority fixed (children first, render fallback) in 3 root components
+- FieldSchema type used instead of loose `{type: string}` in styled elicitation-ui
+
+**Phase 3: NOT STARTED** — Stub components need implementation
+**Phase 4: NOT STARTED** — Blocked on Phase 3
 
 ### Pattern Change: `render` Prop Deprecated
 
