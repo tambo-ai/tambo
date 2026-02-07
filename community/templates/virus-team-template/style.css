@@ -1,0 +1,38 @@
+.main-container {display:flex;justify-content:center;align-items:center;width:100%;height:100%;background-color:#000;padding:20px;font-family:"Inter",sans-serif;color:white;}
+.main-container * {box-sizing:border-box;margin:0;padding:0;}
+.main-container .card-box {display:flex;flex-wrap:wrap;width:100%;max-width:1000px;background:#000;border-radius:24px;overflow:hidden;border:1px solid #1a1a1a;box-shadow:0 0 40px rgba(0,0,0,0.5);}
+.main-container .left-panel {flex:1 1 340px;position:relative;background:radial-gradient(circle at 50% 10%,#d8b4fe 0%,#7e22ce 30%,#3b0764 60%,#000 100%);padding:40px;display:flex;flex-direction:column;justify-content:space-between;min-height:450px;}
+.main-container .noise-texture {position:absolute;top:0;left:0;right:0;bottom:0;opacity:0.6;mix-blend-mode:overlay;pointer-events:none;}
+.main-container .brand-header {position:relative;z-index:2;display:flex;align-items:center;gap:12px;font-weight:600;font-size:18px;}
+.brand-logo {width:40px;height:40px;border-radius:50%;}
+.main-container .hero-text {position:relative;z-index:2;margin-top:auto;margin-bottom:auto;}
+.main-container .hero-title {font-size:36px;font-weight:700;line-height:1.1;margin-bottom:16px;}
+.main-container .hero-desc {color:rgba(255,255,255,0.7);margin-bottom:32px;font-size:15px;}
+.main-container .step-list {display:flex;flex-direction:column;gap:12px;}
+.main-container .step-item {display:flex;align-items:center;gap:12px;padding:12px 16px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.05);border-radius:12px;transition:0.3s;font-size:14px;}
+.main-container .active-step {background:white;color:black;box-shadow:0 10px 20px rgba(0,0,0,0.2);border:none;}
+.main-container .step-num {width:24px;height:24px;background:rgba(255,255,255,0.2);border-radius:50%;display:flex;justify-content:center;align-items:center;font-size:12px;font-weight:bold;}
+.main-container .active-step .step-num {background:black;color:white;}
+.main-container .right-panel {flex:1 1 340px;background:black;padding:40px;display:flex;flex-direction:column;justify-content:center;}
+.main-container .form-wrapper {width:100%;max-width:400px;margin:0 auto;}
+.main-container .form-header-group {margin-bottom:32px;}
+.main-container .form-title {color:white;font-size:26px;font-weight:600;margin-bottom:8px;}
+.main-container .form-desc {color:#888;font-size:14px;}
+.main-container .social-btn-group {display:flex;gap:12px;margin-bottom:24px;}
+.main-container .social-button {flex:1;background:transparent;border:1px solid #333;color:white;padding:12px;border-radius:8px;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;transition:0.2s;font-family:"Inter",sans-serif;font-size:14px;}
+.main-container .social-button:hover {background:#111;border-color:#555;}
+.main-container .divider-text {display:flex;align-items:center;color:#666;font-size:13px;margin-bottom:24px;}
+.main-container .divider-text::before,.main-container .divider-text::after {content:"";flex:1;height:1px;background:#333;margin:0 16px;}
+.main-container .row-inputs {display:flex;gap:12px;}
+.main-container .input-box {margin-bottom:20px;width:100%;min-width:0;}
+.main-container .input-label {display:block;color:#ccc;font-size:13px;font-weight:500;margin-bottom:8px;}
+.main-container .input-field {width:100%;background:#121212;border:1px solid #1a1a1a;padding:14px;border-radius:8px;color:white;outline:none;font-family:"Inter",sans-serif;font-size:14px;transition:0.2s;}
+.main-container .input-field:focus {background:#1a1a1a;border-color:#444;}
+.main-container .password-wrapper {position:relative;}
+.main-container .eye-icon {position:absolute;right:14px;top:50%;transform:translateY(-50%);cursor:pointer;}
+.main-container .hint-text {color:#666;font-size:12px;margin-top:-10px;margin-bottom:24px;}
+.main-container .submit-button {width:100%;background:white;color:black;border:none;padding:16px;border-radius:8px;font-weight:600;cursor:pointer;transition:0.2s;font-family:"Inter",sans-serif;font-size:15px;}
+.main-container .submit-button:hover {background:#e5e5e5;}
+.main-container .footer-text {text-align:center;margin-top:24px;color:#888;font-size:13px;}
+.main-container .footer-text a {color:white;text-decoration:none;}
+@media(max-width:500px){.main-container .left-panel,.main-container .right-panel{padding:24px}.main-container .hero-title{font-size:28px}.main-container .row-inputs{flex-direction:column;gap:0}}
