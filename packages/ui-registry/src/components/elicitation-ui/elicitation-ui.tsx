@@ -7,6 +7,7 @@ import {
   type ElicitationUIEnumFieldRenderProps,
   type ElicitationUINumberFieldRenderProps,
   type ElicitationUIStringFieldRenderProps,
+  type FieldSchema,
 } from "@tambo-ai/react-ui-base/elicitation-ui";
 import type {
   TamboElicitationRequest,
@@ -216,7 +217,7 @@ const StyledNumberField: React.FC<{
  */
 const StyledField: React.FC<{
   name: string;
-  schema: { type: string; enum?: unknown };
+  schema: FieldSchema;
   autoFocus?: boolean;
 }> = ({ name, schema, autoFocus }) => {
   if (schema.type === "boolean") {

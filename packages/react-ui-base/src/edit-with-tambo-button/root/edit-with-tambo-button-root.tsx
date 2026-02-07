@@ -13,7 +13,7 @@ import {
 /**
  * Minimal interface for a TipTap-like editor instance.
  * Only the methods used for "Send in Thread" text insertion are required.
- * Uses a broad `commands` type to remain compatible with the actual TipTap Editor.
+ * Uses broad `commands` signatures to remain compatible with TipTap's Editor type.
  */
 interface EditorLike {
   commands: {
@@ -237,12 +237,14 @@ export function EditWithTamboButtonRoot({
   };
 
   let renderedContent: React.ReactNode;
-  if (render) {
-    renderedContent = render(renderProps);
-  } else if (typeof children === "function") {
+  if (typeof children === "function") {
     renderedContent = children(renderProps);
-  } else {
+  } else if (children != null) {
     renderedContent = children;
+  } else if (render) {
+    renderedContent = render(renderProps);
+  } else {
+    renderedContent = null;
   }
 
   return (

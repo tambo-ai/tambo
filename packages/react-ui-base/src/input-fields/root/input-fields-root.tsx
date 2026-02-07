@@ -116,12 +116,14 @@ export const InputFieldsRoot = React.forwardRef<
   };
 
   let renderedChildren: React.ReactNode;
-  if (render) {
-    renderedChildren = render(renderProps);
-  } else if (typeof children === "function") {
+  if (typeof children === "function") {
     renderedChildren = children(renderProps);
-  } else {
+  } else if (children != null) {
     renderedChildren = children;
+  } else if (render) {
+    renderedChildren = render(renderProps);
+  } else {
+    renderedChildren = null;
   }
 
   return (

@@ -90,12 +90,14 @@ export function ControlBarRoot({
   };
 
   let renderedContent: React.ReactNode;
-  if (render) {
-    renderedContent = render(renderProps);
-  } else if (typeof children === "function") {
+  if (typeof children === "function") {
     renderedContent = children(renderProps);
-  } else {
+  } else if (children != null) {
     renderedContent = children;
+  } else if (render) {
+    renderedContent = render(renderProps);
+  } else {
+    renderedContent = null;
   }
 
   return (
