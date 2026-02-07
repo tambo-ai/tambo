@@ -78,7 +78,9 @@ const MessageSuggestionsStatus = React.forwardRef<
         "data-[idle]:p-0 data-[idle]:min-h-0 data-[idle]:mb-0",
         className,
       )}
-      render={({
+      {...props}
+    >
+      {({
         error,
         isGenerating,
         generationStage,
@@ -93,8 +95,7 @@ const MessageSuggestionsStatus = React.forwardRef<
           </div>
         </>
       )}
-      {...props}
-    />
+    </MessageSuggestionsBase.Status>
   );
 });
 MessageSuggestionsStatus.displayName = "MessageSuggestions.Status";
@@ -128,9 +129,8 @@ function StatusGenerationContent({
 }) {
   if (generationStage && generationStage !== "COMPLETE") {
     return (
-      <MessageSuggestionsBase.GenerationStage
-        className="inline-flex items-center gap-2 px-2 py-1 text-xs rounded-md bg-transparent text-muted-foreground"
-        render={({
+      <MessageSuggestionsBase.GenerationStage className="inline-flex items-center gap-2 px-2 py-1 text-xs rounded-md bg-transparent text-muted-foreground">
+        {({
           label,
           showLabel,
         }: MessageSuggestionsGenerationStageRenderProps) => (
@@ -139,7 +139,7 @@ function StatusGenerationContent({
             {showLabel && <span>{label}</span>}
           </>
         )}
-      />
+      </MessageSuggestionsBase.GenerationStage>
     );
   }
 
@@ -205,7 +205,9 @@ const MessageSuggestionsList = React.forwardRef<
         "data-[generating]:opacity-70",
         className,
       )}
-      render={({
+      {...props}
+    >
+      {({
         suggestions,
         isGenerating,
         selectedSuggestionId,
@@ -251,8 +253,7 @@ const MessageSuggestionsList = React.forwardRef<
               ))}
         </>
       )}
-      {...props}
-    />
+    </MessageSuggestionsBase.List>
   );
 });
 MessageSuggestionsList.displayName = "MessageSuggestions.List";
