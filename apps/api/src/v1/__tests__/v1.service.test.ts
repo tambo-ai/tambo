@@ -1902,7 +1902,7 @@ describe("V1Service", () => {
       } as any);
       mockOperations.releaseRunLockIfCurrent.mockResolvedValue(true);
       mockOperations.markRunCancelled.mockResolvedValue(undefined);
-      mockOperations.updateThreadGenerationStatus.mockResolvedValue(undefined);
+      mockOperations.updateThreadGenerationStatus.mockResolvedValue({} as any);
       mockOperations.markLatestAssistantMessageCancelled.mockResolvedValue(
         "msg_123",
       );
