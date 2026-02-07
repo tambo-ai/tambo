@@ -366,7 +366,8 @@ function MapLeafletContainer() {
   return (
     <MapBase.Container
       className="h-full w-full overflow-hidden"
-      render={({
+    >
+      {({
         center,
         zoom,
         zoomControl,
@@ -416,7 +417,7 @@ function MapLeafletContainer() {
           <MapClickHandler />
         </LeafletMapContainer>
       )}
-    />
+    </MapBase.Container>
   );
 }
 
