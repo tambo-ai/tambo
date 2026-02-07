@@ -2,13 +2,41 @@
   "name": "scrollable-message-container",
   "description": "A container that scrolls to the bottom when new messages are added",
   "componentName": "ScrollableMessageContainer",
-  "dependencies": ["@tambo-ai/react@rc"],
+  "dependencies": ["@tambo-ai/react@rc", "@tambo-ai/react-ui-base@next"],
   "devDependencies": [],
   "requires": [],
   "files": [
     {
       "name": "scrollable-message-container.tsx",
       "content": "src/registry/scrollable-message-container/scrollable-message-container.tsx"
+    },
+    {
+      "name": "base/scrollable-message-container/index.tsx",
+      "content": "src/registry/base/scrollable-message-container/index.tsx"
+    },
+    {
+      "name": "base/scrollable-message-container/root/scrollable-message-container-root.tsx",
+      "content": "src/registry/base/scrollable-message-container/root/scrollable-message-container-root.tsx"
+    },
+    {
+      "name": "base/scrollable-message-container/root/scrollable-message-container-root-context.tsx",
+      "content": "src/registry/base/scrollable-message-container/root/scrollable-message-container-root-context.tsx"
+    },
+    {
+      "name": "base/scrollable-message-container/viewport/scrollable-message-container-viewport.tsx",
+      "content": "src/registry/base/scrollable-message-container/viewport/scrollable-message-container-viewport.tsx"
+    },
+    {
+      "name": "base/scrollable-message-container/scroll-to-bottom/scrollable-message-container-scroll-to-bottom.tsx",
+      "content": "src/registry/base/scrollable-message-container/scroll-to-bottom/scrollable-message-container-scroll-to-bottom.tsx"
+    },
+    {
+      "name": "base/types/component-render-or-children.ts",
+      "content": "src/registry/base/types/component-render-or-children.ts"
+    },
+    {
+      "name": "base/use-render/use-render.ts",
+      "content": "src/registry/base/use-render/use-render.ts"
     }
   ]
 }

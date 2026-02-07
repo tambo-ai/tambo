@@ -1,19 +1,26 @@
 "use client";
 
-import { useTambo } from "@tambo-ai/react";
+import {
+  ScrollableMessageContainer as ScrollableMessageContainerBase,
+  type ScrollableMessageContainerViewportProps,
+} from "@tambo-ai/react-ui-base/scrollable-message-container";
 import { cn } from "@tambo-ai/ui-registry/utils";
 import * as React from "react";
-import { useCallback, useEffect, useRef, useState, useMemo } from "react";
 
 /**
- * Props for the ScrollableMessageContainer component
+ * Props for the ScrollableMessageContainer component.
  */
 export type ScrollableMessageContainerProps =
-  React.HTMLAttributes<HTMLDivElement>;
+  ScrollableMessageContainerViewportProps &
+    React.HTMLAttributes<HTMLDivElement>;
 
 /**
  * A scrollable container for message content with auto-scroll functionality.
  * Used across message thread components for consistent scrolling behavior.
+ *
+ * This is a styled wrapper around the base ScrollableMessageContainer compound
+ * component. It composes Root and Viewport into a single element for backwards
+ * compatibility with the original non-compound API.
  *
  * @example
  * ```tsx
@@ -23,89 +30,29 @@ export type ScrollableMessageContainerProps =
  *   </ThreadContent>
  * </ScrollableMessageContainer>
  * ```
+ * @returns A scrollable container element with auto-scroll behavior
  */
 export const ScrollableMessageContainer = React.forwardRef<
   HTMLDivElement,
   ScrollableMessageContainerProps
 >(({ className, children, ...props }, ref) => {
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const { messages, isStreaming } = useTambo();
-  const [shouldAutoscroll, setShouldAutoscroll] = useState(true);
-  const lastScrollTopRef = useRef(0);
-
-  // Handle forwarded ref
-  React.useImperativeHandle(ref, () => scrollContainerRef.current!, []);
-
-  // Create a dependency that represents all content that should trigger autoscroll
-  const messagesContent = useMemo(() => {
-    if (!messages.length) return null;
-
-    return messages.map((message) => ({
-      id: message.id,
-      content: message.content,
-      reasoning: message.reasoning,
-    }));
-  }, [messages]);
-
-  // Handle scroll events to detect user scrolling
-  const handleScroll = useCallback(() => {
-    if (!scrollContainerRef.current) return;
-
-    const { scrollTop, scrollHeight, clientHeight } =
-      scrollContainerRef.current;
-    const isAtBottom = Math.abs(scrollHeight - scrollTop - clientHeight) < 8; // 8px tolerance for rounding
-
-    // If user scrolled up, disable autoscroll
-    if (scrollTop < lastScrollTopRef.current) {
-      setShouldAutoscroll(false);
-    }
-    // If user is at bottom, enable autoscroll
-    else if (isAtBottom) {
-      setShouldAutoscroll(true);
-    }
-
-    lastScrollTopRef.current = scrollTop;
-  }, []);
-
-  // Auto-scroll to bottom when message content changes
-  useEffect(() => {
-    if (scrollContainerRef.current && messagesContent && shouldAutoscroll) {
-      const scroll = () => {
-        if (scrollContainerRef.current) {
-          scrollContainerRef.current.scrollTo({
-            top: scrollContainerRef.current.scrollHeight,
-            behavior: "smooth",
-          });
-        }
-      };
-
-      if (isStreaming) {
-        // During streaming, scroll immediately
-        requestAnimationFrame(scroll);
-      } else {
-        // For other updates, use a short delay to batch rapid changes
-        const timeoutId = setTimeout(scroll, 50);
-        return () => clearTimeout(timeoutId);
-      }
-    }
-  }, [messagesContent, isStreaming, shouldAutoscroll]);
-
   return (
-    <div
-      ref={scrollContainerRef}
-      onScroll={handleScroll}
-      className={cn(
-        "flex-1 overflow-y-auto",
-        "[&::-webkit-scrollbar]:w-[6px]",
-        "[&::-webkit-scrollbar-thumb]:bg-muted-foreground/30",
-        "[&::-webkit-scrollbar:horizontal]:h-[4px]",
-        className,
-      )}
-      data-slot="scrollable-message-container"
-      {...props}
-    >
-      {children}
-    </div>
+    <ScrollableMessageContainerBase.Root asChild>
+      <ScrollableMessageContainerBase.Viewport
+        ref={ref}
+        className={cn(
+          "flex-1 overflow-y-auto",
+          "[&::-webkit-scrollbar]:w-[6px]",
+          "[&::-webkit-scrollbar-thumb]:bg-muted-foreground/30",
+          "[&::-webkit-scrollbar:horizontal]:h-[4px]",
+          className,
+        )}
+        data-slot="scrollable-message-container"
+        {...props}
+      >
+        {children}
+      </ScrollableMessageContainerBase.Viewport>
+    </ScrollableMessageContainerBase.Root>
   );
 });
 ScrollableMessageContainer.displayName = "ScrollableMessageContainer";

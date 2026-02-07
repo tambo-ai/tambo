@@ -63,6 +63,16 @@
         "default": "./dist/cjs/toolcall-info/index.cjs"
       }
     },
+    "./scrollable-message-container": {
+      "import": {
+        "types": "./dist/esm/scrollable-message-container/index.d.ts",
+        "default": "./dist/esm/scrollable-message-container/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/scrollable-message-container/index.d.ts",
+        "default": "./dist/cjs/scrollable-message-container/index.cjs"
+      }
+    },
     "./types": {
       "import": {
         "types": "./dist/esm/types/index.d.ts",
