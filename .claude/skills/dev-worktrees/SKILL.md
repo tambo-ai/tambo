@@ -96,7 +96,7 @@ Status is exactly one of: `symlinked`, `skipped (missing settings)`, `skipped (c
 
 ### 6. Install dependencies
 
-`install_command` is a local preference and may include shell metacharacters (e.g., `&&`). Treat `.claude/dev-worktrees.local.md` as trusted-local-only input and execute `install_command` via a shell in the worktree directory (do not attempt to split it into argv tokens).
+`install_command` is a local preference and may include shell metacharacters (e.g., `&&`). Treat `.claude/dev-worktrees.local.md` as trusted-local-only input and execute `install_command` via a shell in the worktree directory (do not attempt to split it into argv tokens). It runs with your user permissions and can execute arbitrary shell code — do not paste commands from untrusted sources.
 
 ```bash
 (cd "<worktree-path>" && <install_command>)
