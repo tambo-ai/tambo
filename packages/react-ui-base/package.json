@@ -73,6 +73,16 @@
         "default": "./dist/cjs/toolcall-info/index.cjs"
       }
     },
+    "./form": {
+      "import": {
+        "types": "./dist/esm/form/index.d.ts",
+        "default": "./dist/esm/form/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/form/index.d.ts",
+        "default": "./dist/cjs/form/index.cjs"
+      }
+    },
     "./types": {
       "import": {
         "types": "./dist/esm/types/index.d.ts",

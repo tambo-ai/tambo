@@ -94,6 +94,25 @@ export type {
   ToolcallInfoTriggerProps,
 } from "./toolcall-info";
 
+// Form components
+export { Form } from "./form";
+export type {
+  FormErrorProps,
+  FormFieldDefinition,
+  FormFieldDescriptionProps,
+  FormFieldInputProps,
+  FormFieldLabelProps,
+  FormFieldProps,
+  FormFieldsProps,
+  FormFieldsRenderProps,
+  FormFieldType,
+  FormRootContextValue,
+  FormRootProps,
+  FormState,
+  FormSubmitProps,
+  FormSubmitRenderProps,
+} from "./form";
+
 // Types
 export type {
   BaseProps,

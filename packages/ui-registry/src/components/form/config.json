@@ -5,7 +5,8 @@
   "dependencies": [
     "class-variance-authority",
     "lucide-react",
-    "@tambo-ai/react"
+    "@tambo-ai/react",
+    "@tambo-ai/react-ui-base@next"
   ],
   "devDependencies": [],
   "requires": [],
