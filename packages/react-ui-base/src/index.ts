@@ -48,6 +48,24 @@ export type {
   ToolcallInfoTriggerProps,
 } from "./toolcall-info";
 
+// EditWithTamboButton components
+export { EditWithTamboButtonBase } from "./edit-with-tambo-button";
+export type {
+  EditWithTamboButtonContextValue,
+  EditWithTamboButtonPopoverProps,
+  EditWithTamboButtonRootProps,
+  EditWithTamboButtonRootRenderProps,
+  EditWithTamboButtonSendButtonProps,
+  EditWithTamboButtonSendButtonRenderProps,
+  EditWithTamboButtonSendMode,
+  EditWithTamboButtonSendModeDropdownProps,
+  EditWithTamboButtonSendModeOptionProps,
+  EditWithTamboButtonStatusProps,
+  EditWithTamboButtonStatusRenderProps,
+  EditWithTamboButtonTextareaProps,
+  EditWithTamboButtonTriggerProps,
+} from "./edit-with-tambo-button";
+
 // Types
 export type {
   BaseProps,

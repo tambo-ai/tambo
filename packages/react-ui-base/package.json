@@ -52,6 +52,16 @@
         "default": "./dist/cjs/toolcall-info/index.cjs"
       }
     },
+    "./edit-with-tambo-button": {
+      "import": {
+        "types": "./dist/esm/edit-with-tambo-button/index.d.ts",
+        "default": "./dist/esm/edit-with-tambo-button/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/edit-with-tambo-button/index.d.ts",
+        "default": "./dist/cjs/edit-with-tambo-button/index.cjs"
+      }
+    },
     "./types": {
       "import": {
         "types": "./dist/esm/types/index.d.ts",

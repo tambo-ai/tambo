@@ -4,6 +4,7 @@
   "componentName": "EditWithTamboButton",
   "dependencies": [
     "@tambo-ai/react",
+    "@tambo-ai/react-ui-base",
     "lucide-react",
     "@radix-ui/react-popover",
     "@radix-ui/react-tooltip"
