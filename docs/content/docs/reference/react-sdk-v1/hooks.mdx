@@ -82,8 +82,8 @@ function Chat() {
 
 #### Run Control
 
-| Value       | Type                  | Description                                                                     |
-| ----------- | --------------------- | ------------------------------------------------------------------------------- |
+| Value       | Type                  | Description                                                                       |
+| ----------- | --------------------- | --------------------------------------------------------------------------------- |
 | `cancelRun` | `() => Promise<void>` | Cancel the active run. No-op if there's no active run or thread is a placeholder. |
 
 #### Thread Management
@@ -162,20 +162,20 @@ function MessageInput() {
 
 ### Return Values
 
-| Value         | Type                                                                      | Description                            |
-| ------------- | ------------------------------------------------------------------------- | -------------------------------------- |
-| `value`       | `string`                                                                  | Current input value                    |
-| `setValue`    | `Dispatch<SetStateAction<string>>`                                        | Update the input value                 |
+| Value         | Type                                                                      | Description                                                                                 |
+| ------------- | ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `value`       | `string`                                                                  | Current input value                                                                         |
+| `setValue`    | `Dispatch<SetStateAction<string>>`                                        | Update the input value                                                                      |
 | `submit`      | `(options?: SubmitOptions) => Promise<{ threadId: string \| undefined }>` | Submit the current input (see [SubmitOptions](/reference/react-sdk-v1/types#submitoptions)) |
-| `images`      | `StagedImage[]`                                                           | Array of staged images                 |
-| `addImage`    | `(file: File) => Promise<void>`                                           | Add a single image                     |
-| `addImages`   | `(files: File[]) => Promise<void>`                                        | Add multiple images                    |
-| `removeImage` | `(id: string) => void`                                                    | Remove a staged image                  |
-| `clearImages` | `() => void`                                                              | Clear all staged images                |
-| `threadId`    | `string \| undefined`                                                     | Current thread ID                      |
-| `isPending`   | `boolean`                                                                 | `true` while submission is in progress |
-| `isError`     | `boolean`                                                                 | `true` if submission failed            |
-| `error`       | `Error \| null`                                                           | Error details if submission failed     |
+| `images`      | `StagedImage[]`                                                           | Array of staged images                                                                      |
+| `addImage`    | `(file: File) => Promise<void>`                                           | Add a single image                                                                          |
+| `addImages`   | `(files: File[]) => Promise<void>`                                        | Add multiple images                                                                         |
+| `removeImage` | `(id: string) => void`                                                    | Remove a staged image                                                                       |
+| `clearImages` | `() => void`                                                              | Clear all staged images                                                                     |
+| `threadId`    | `string \| undefined`                                                     | Current thread ID                                                                           |
+| `isPending`   | `boolean`                                                                 | `true` while submission is in progress                                                      |
+| `isError`     | `boolean`                                                                 | `true` if submission failed                                                                 |
+| `error`       | `Error \| null`                                                           | Error details if submission failed                                                          |
 
 ### Example: Input with Images
 
@@ -388,14 +388,14 @@ function MyComponent(props: MyProps) {
 
 ### Return Values
 
-| Value        | Type                              | Description                                 |
-| ------------ | --------------------------------- | ------------------------------------------- |
-| `streamStatus` | [`StreamStatus`](/reference/react-sdk-v1/types#streamstatus)     | Overall streaming status for the component  |
-| `propStatus`   | `Record<keyof Props, PropStatus>` | Per-prop streaming status (see [`PropStatus`](/reference/react-sdk-v1/types#propstatus)) |
+| Value          | Type                                                         | Description                                                                              |
+| -------------- | ------------------------------------------------------------ | ---------------------------------------------------------------------------------------- |
+| `streamStatus` | [`StreamStatus`](/reference/react-sdk-v1/types#streamstatus) | Overall streaming status for the component                                               |
+| `propStatus`   | `Record<keyof Props, PropStatus>`                            | Per-prop streaming status (see [`PropStatus`](/reference/react-sdk-v1/types#propstatus)) |
 
 <Callout type="info">
-  This hook only works inside components rendered via `V1ComponentRenderer`.
-  The renderer provides the necessary context for tracking streaming state.
+  This hook only works inside components rendered via `V1ComponentRenderer`. The
+  renderer provides the necessary context for tracking streaming state.
 </Callout>
 
 ## useTamboV1Suggestions

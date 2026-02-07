@@ -113,18 +113,18 @@ Replace `TamboProvider` with `TamboV1Provider`. The main change is that `context
 
 ### What changed
 
-| Pre-v1 prop                 | V1 equivalent               | Notes                                                                         |
-| --------------------------- | --------------------------- | ----------------------------------------------------------------------------- |
-| `contextKey`                | `userKey`                   | Now identifies the user, not the context. Threads are scoped to the user.     |
-| `userToken`                 | `userToken`                 | Still supported — provide either `userKey` or `userToken`, not both.          |
-| `streaming`                 | _removed_                   | Streaming is always on in v1.                                                 |
-| `autoGenerateThreadName`    | `autoGenerateThreadName`    | Same prop. Defaults to `true` in v1.                                          |
-| `autoGenerateNameThreshold` | `autoGenerateNameThreshold` | Same prop. Defaults to `3` in v1.                                             |
+| Pre-v1 prop                 | V1 equivalent               | Notes                                                                                  |
+| --------------------------- | --------------------------- | -------------------------------------------------------------------------------------- |
+| `contextKey`                | `userKey`                   | Now identifies the user, not the context. Threads are scoped to the user.              |
+| `userToken`                 | `userToken`                 | Still supported — provide either `userKey` or `userToken`, not both.                   |
+| `streaming`                 | _removed_                   | Streaming is always on in v1.                                                          |
+| `autoGenerateThreadName`    | `autoGenerateThreadName`    | Same prop. Defaults to `true` in v1.                                                   |
+| `autoGenerateNameThreshold` | `autoGenerateNameThreshold` | Same prop. Defaults to `3` in v1.                                                      |
 | `initialMessages`           | `initialMessages`           | Same concept — accepts `InputMessage[]` with content blocks instead of simple strings. |
-| `components`                | `components`                | Same format.                                                                  |
-| `tools`                     | `tools`                     | Same format.                                                                  |
-| `mcpServers`                | `mcpServers`                | Same format.                                                                  |
-| `contextHelpers`            | `contextHelpers`            | Same format.                                                                  |
+| `components`                | `components`                | Same format.                                                                           |
+| `tools`                     | `tools`                     | Same format.                                                                           |
+| `mcpServers`                | `mcpServers`                | Same format.                                                                           |
+| `contextHelpers`            | `contextHelpers`            | Same format.                                                                           |
 
 ## Step 3: Update the main hook
 
@@ -459,22 +459,22 @@ import { useTamboContextAttachment } from "@tambo-ai/react";
 
 ## Quick reference: API name mapping
 
-| Pre-v1 (`@tambo-ai/react`)          | V1 preview (`@tambo-ai/react/v1`)     | V1 stable (future `@tambo-ai/react`)  |
-| ----------------------------------- | ------------------------------------- | ------------------------------------- |
-| `TamboProvider`                     | `TamboV1Provider`                     | `TamboProvider`                       |
-| `TamboStubProvider`                 | `TamboV1StubProvider`                 | `TamboStubProvider`                   |
-| `useTambo()`                        | `useTamboV1()`                        | `useTambo()`                          |
-| `useTamboThreadInput()`             | `useTamboV1ThreadInput()`             | `useTamboThreadInput()`               |
-| `useTamboComponentState()`          | `useTamboV1ComponentState()`          | `useTamboComponentState()`            |
-| `useTamboStreamStatus()`            | `useTamboV1StreamStatus()`            | `useTamboStreamStatus()`              |
-| `useTamboThreadList()`              | `useTamboV1ThreadList()`              | `useTamboThreadList()`                |
-| `useTamboSuggestions()`             | `useTamboV1Suggestions()`             | `useTamboSuggestions()`               |
-| `TamboThreadMessage`                | `TamboV1Message`                      | `TamboMessage`                        |
-| `GenerationStage`                   | `streamingState.status` (`RunStatus`) | `streamingState.status` (`RunStatus`) |
-| `withInteractable`                  | `withTamboInteractable`               | `withTamboInteractable`               |
-| `useTamboInteractable`              | `useTamboInteractable`                | `useTamboInteractable`                |
-| `useCurrentInteractablesSnapshot`   | `useCurrentInteractablesSnapshot`     | `useCurrentInteractablesSnapshot`     |
-| _n/a_                               | `V1ComponentRenderer`                 | `ComponentRenderer`                   |
-| _n/a_                               | `cancelRun()`                         | `cancelRun()`                         |
-| _n/a_                               | `startNewThread()`                    | `startNewThread()`                    |
-| _n/a_                               | `switchThread()`                      | `switchThread()`                      |
+| Pre-v1 (`@tambo-ai/react`)        | V1 preview (`@tambo-ai/react/v1`)     | V1 stable (future `@tambo-ai/react`)  |
+| --------------------------------- | ------------------------------------- | ------------------------------------- |
+| `TamboProvider`                   | `TamboV1Provider`                     | `TamboProvider`                       |
+| `TamboStubProvider`               | `TamboV1StubProvider`                 | `TamboStubProvider`                   |
+| `useTambo()`                      | `useTamboV1()`                        | `useTambo()`                          |
+| `useTamboThreadInput()`           | `useTamboV1ThreadInput()`             | `useTamboThreadInput()`               |
+| `useTamboComponentState()`        | `useTamboV1ComponentState()`          | `useTamboComponentState()`            |
+| `useTamboStreamStatus()`          | `useTamboV1StreamStatus()`            | `useTamboStreamStatus()`              |
+| `useTamboThreadList()`            | `useTamboV1ThreadList()`              | `useTamboThreadList()`                |
+| `useTamboSuggestions()`           | `useTamboV1Suggestions()`             | `useTamboSuggestions()`               |
+| `TamboThreadMessage`              | `TamboV1Message`                      | `TamboMessage`                        |
+| `GenerationStage`                 | `streamingState.status` (`RunStatus`) | `streamingState.status` (`RunStatus`) |
+| `withInteractable`                | `withTamboInteractable`               | `withTamboInteractable`               |
+| `useTamboInteractable`            | `useTamboInteractable`                | `useTamboInteractable`                |
+| `useCurrentInteractablesSnapshot` | `useCurrentInteractablesSnapshot`     | `useCurrentInteractablesSnapshot`     |
+| _n/a_                             | `V1ComponentRenderer`                 | `ComponentRenderer`                   |
+| _n/a_                             | `cancelRun()`                         | `cancelRun()`                         |
+| _n/a_                             | `startNewThread()`                    | `startNewThread()`                    |
+| _n/a_                             | `switchThread()`                      | `switchThread()`                      |

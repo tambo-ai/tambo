@@ -89,10 +89,10 @@ interface TamboV1Message {
 }
 ```
 
-| Property             | Type       | Description                                                                                         |
-| -------------------- | ---------- | --------------------------------------------------------------------------------------------------- |
-| `reasoning`          | `string[]` | Reasoning chunks from the model. Transient — only present during streaming, not persisted to the API. |
-| `reasoningDurationMS` | `number`  | Duration of the reasoning phase in milliseconds, for display purposes.                              |
+| Property              | Type       | Description                                                                                           |
+| --------------------- | ---------- | ----------------------------------------------------------------------------------------------------- |
+| `reasoning`           | `string[]` | Reasoning chunks from the model. Transient — only present during streaming, not persisted to the API. |
+| `reasoningDurationMS` | `number`   | Duration of the reasoning phase in milliseconds, for display purposes.                                |
 
 ### MessageRole
 
@@ -284,16 +284,16 @@ interface TamboTool {
 }
 ```
 
-| Property       | Type              | Required | Description                                                                                              |
-| -------------- | ----------------- | -------- | -------------------------------------------------------------------------------------------------------- |
-| `name`         | `string`          | Yes      | Unique identifier for the tool                                                                            |
-| `description`  | `string`          | Yes      | Description for AI understanding                                                                          |
-| `tool`         | `function`        | Yes      | The tool implementation function                                                                          |
-| `inputSchema`  | `SupportedSchema` | Yes      | Schema for tool input parameters                                                                          |
-| `outputSchema` | `SupportedSchema` | Yes      | Schema for tool output                                                                                    |
-| `maxCalls`     | `number`          | No       | Maximum times this tool can be called in a single response. Overrides the project-level tool call limit.  |
-| `annotations`  | `ToolAnnotations` | No       | Behavior annotations (see [ToolAnnotations](#toolannotations))                                           |
-| `transformToContent` | `function`  | No       | Transform tool result into content parts for richer display                                               |
+| Property             | Type              | Required | Description                                                                                              |
+| -------------------- | ----------------- | -------- | -------------------------------------------------------------------------------------------------------- |
+| `name`               | `string`          | Yes      | Unique identifier for the tool                                                                           |
+| `description`        | `string`          | Yes      | Description for AI understanding                                                                         |
+| `tool`               | `function`        | Yes      | The tool implementation function                                                                         |
+| `inputSchema`        | `SupportedSchema` | Yes      | Schema for tool input parameters                                                                         |
+| `outputSchema`       | `SupportedSchema` | Yes      | Schema for tool output                                                                                   |
+| `maxCalls`           | `number`          | No       | Maximum times this tool can be called in a single response. Overrides the project-level tool call limit. |
+| `annotations`        | `ToolAnnotations` | No       | Behavior annotations (see [ToolAnnotations](#toolannotations))                                           |
+| `transformToContent` | `function`        | No       | Transform tool result into content parts for richer display                                              |
 
 ## Event Types
 
@@ -392,29 +392,25 @@ interface SubmitOptions {
 }
 ```
 
-| Property     | Type         | Description                                      |
-| ------------ | ------------ | ------------------------------------------------ |
-| `debug`      | `boolean`    | Enable debug logging for this submission         |
-| `toolChoice` | `ToolChoice` | Control how the model selects tools (see below)  |
+| Property     | Type         | Description                                     |
+| ------------ | ------------ | ----------------------------------------------- |
+| `debug`      | `boolean`    | Enable debug logging for this submission        |
+| `toolChoice` | `ToolChoice` | Control how the model selects tools (see below) |
 
 ### ToolChoice
 
 Controls how the model selects tools during generation.
 
 ```typescript
-type ToolChoice =
-  | "auto"
-  | "required"
-  | "none"
-  | { name: string };
+type ToolChoice = "auto" | "required" | "none" | { name: string };
 ```
 
-| Value            | Description                         |
-| ---------------- | ----------------------------------- |
-| `"auto"`         | Model decides whether to use tools (default) |
-| `"required"`     | Model must use at least one tool    |
-| `"none"`         | Model cannot use tools              |
-| `{ name: string }` | Model must use the specified tool |
+| Value              | Description                                  |
+| ------------------ | -------------------------------------------- |
+| `"auto"`           | Model decides whether to use tools (default) |
+| `"required"`       | Model must use at least one tool             |
+| `"none"`           | Model cannot use tools                       |
+| `{ name: string }` | Model must use the specified tool            |
 
 ## Stream Status Types
 
@@ -432,13 +428,13 @@ interface StreamStatus {
 }
 ```
 
-| Property      | Type      | Description                                                              |
-| ------------- | --------- | ------------------------------------------------------------------------ |
-| `isPending`   | `boolean` | No tokens received yet and generation is not active                      |
-| `isStreaming`  | `boolean` | At least one prop is still streaming                                    |
-| `isSuccess`   | `boolean` | All props finished streaming without error                               |
-| `isError`     | `boolean` | A fatal error occurred in the stream or any prop                         |
-| `streamError` | `Error`   | The first error encountered during streaming                             |
+| Property      | Type      | Description                                         |
+| ------------- | --------- | --------------------------------------------------- |
+| `isPending`   | `boolean` | No tokens received yet and generation is not active |
+| `isStreaming` | `boolean` | At least one prop is still streaming                |
+| `isSuccess`   | `boolean` | All props finished streaming without error          |
+| `isError`     | `boolean` | A fatal error occurred in the stream or any prop    |
+| `streamError` | `Error`   | The first error encountered during streaming        |
 
 ### PropStatus
 
@@ -453,12 +449,12 @@ interface PropStatus {
 }
 ```
 
-| Property      | Type      | Description                                                     |
-| ------------- | --------- | --------------------------------------------------------------- |
-| `isPending`   | `boolean` | No tokens received for this prop yet                            |
-| `isStreaming`  | `boolean` | Tokens received but streaming is not complete                  |
-| `isSuccess`   | `boolean` | This prop has finished streaming successfully                   |
-| `error`       | `Error`   | Error that occurred during streaming for this prop              |
+| Property      | Type      | Description                                        |
+| ------------- | --------- | -------------------------------------------------- |
+| `isPending`   | `boolean` | No tokens received for this prop yet               |
+| `isStreaming` | `boolean` | Tokens received but streaming is not complete      |
+| `isSuccess`   | `boolean` | This prop has finished streaming successfully      |
+| `error`       | `Error`   | Error that occurred during streaming for this prop |
 
 ## Tool Annotations
 
@@ -472,8 +468,8 @@ type ToolAnnotations = MCPToolAnnotations & {
 };
 ```
 
-| Property              | Type      | Description                                                                                               |
-| --------------------- | --------- | --------------------------------------------------------------------------------------------------------- |
+| Property              | Type      | Description                                                                                                                         |
+| --------------------- | --------- | ----------------------------------------------------------------------------------------------------------------------------------- |
 | `tamboStreamableHint` | `boolean` | When `true`, the tool can be called with partially-streamed arguments as they arrive. Use for read-only tools without side effects. |
 
 `ToolAnnotations` can be set on both `TamboTool` and `TamboComponent` via the `annotations` property.
