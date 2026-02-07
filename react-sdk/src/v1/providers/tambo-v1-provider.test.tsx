@@ -26,6 +26,14 @@ jest.mock("../../providers/tambo-client-provider", () => {
   };
 });
 
+// Mock auth state to avoid TamboClientContext dependency
+jest.mock("../hooks/use-tambo-v1-auth-state", () => ({
+  useTamboV1AuthState: () => ({
+    status: "identified",
+    source: "userKey",
+  }),
+}));
+
 // Mock useTamboV1SendMessage to avoid complex dependencies
 jest.mock("../hooks/use-tambo-v1-send-message", () => ({
   useTamboV1SendMessage: jest.fn(() => ({

@@ -49,6 +49,9 @@ describe("useTamboVoice", () => {
           client: mockClient,
           queryClient,
           isUpdatingToken: false,
+          tokenExchangeError: null,
+          userToken: undefined,
+          hasValidToken: false,
         }}
       >
         <QueryClientProvider client={queryClient}>

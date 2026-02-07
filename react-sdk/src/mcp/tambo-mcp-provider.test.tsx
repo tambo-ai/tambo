@@ -78,6 +78,9 @@ const TestWrapper: React.FC<{
         client,
         queryClient: {} as any,
         isUpdatingToken: false,
+        tokenExchangeError: null,
+        userToken: undefined,
+        hasValidToken: false,
       }}
     >
       <TamboRegistryProvider mcpServers={mcpServers}>
@@ -269,6 +272,9 @@ describe("TamboMcpProvider server list changes", () => {
           client: useTamboClient(),
           queryClient: {} as any,
           isUpdatingToken: false,
+          tokenExchangeError: null,
+          userToken: undefined,
+          hasValidToken: false,
         }}
       >
         <TamboRegistryProvider mcpServers={["https://a.example"]}>
@@ -293,6 +299,9 @@ describe("TamboMcpProvider server list changes", () => {
           client: useTamboClient(),
           queryClient: {} as any,
           isUpdatingToken: false,
+          tokenExchangeError: null,
+          userToken: undefined,
+          hasValidToken: false,
         }}
       >
         <TamboRegistryProvider
@@ -323,6 +332,9 @@ describe("TamboMcpProvider server list changes", () => {
           client: useTamboClient(),
           queryClient: {} as any,
           isUpdatingToken: false,
+          tokenExchangeError: null,
+          userToken: undefined,
+          hasValidToken: false,
         }}
       >
         <TamboRegistryProvider
@@ -348,6 +360,9 @@ describe("TamboMcpProvider server list changes", () => {
           client: useTamboClient(),
           queryClient: {} as any,
           isUpdatingToken: false,
+          tokenExchangeError: null,
+          userToken: undefined,
+          hasValidToken: false,
         }}
       >
         <TamboRegistryProvider mcpServers={["https://a.example"]}>
@@ -507,6 +522,9 @@ describe("TamboMcpProvider server list changes", () => {
           client: useTamboClient(),
           queryClient: {} as any,
           isUpdatingToken: false,
+          tokenExchangeError: null,
+          userToken: undefined,
+          hasValidToken: false,
         }}
       >
         <TamboRegistryProvider
@@ -534,6 +552,9 @@ describe("TamboMcpProvider server list changes", () => {
           client: useTamboClient(),
           queryClient: {} as any,
           isUpdatingToken: false,
+          tokenExchangeError: null,
+          userToken: undefined,
+          hasValidToken: false,
         }}
       >
         <TamboRegistryProvider mcpServers={["https://a.example"]}>
@@ -569,6 +590,9 @@ describe("TamboMcpProvider server list changes", () => {
           client: useTamboClient(),
           queryClient: {} as any,
           isUpdatingToken: false,
+          tokenExchangeError: null,
+          userToken: undefined,
+          hasValidToken: false,
         }}
       >
         <TamboRegistryProvider

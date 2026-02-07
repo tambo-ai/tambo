@@ -25,6 +25,7 @@ import {
   useStreamState,
 } from "../providers/tambo-v1-stream-context";
 import { useTamboV1Config } from "../providers/tambo-v1-provider";
+import { useTamboV1AuthState } from "./use-tambo-v1-auth-state";
 import { useTamboContextHelpers } from "../../providers/tambo-context-helpers-provider";
 import type { InputMessage } from "../types/message";
 import type { ToolChoice } from "../types/tool-choice";
@@ -514,6 +515,7 @@ export function useTamboV1SendMessage(threadId?: string) {
   const registry = useContext(TamboRegistryContext);
   const queryClient = useTamboQueryClient();
   const { getAdditionalContext } = useTamboContextHelpers();
+  const authState = useTamboV1AuthState();
 
   if (!registry) {
     throw new Error(
@@ -533,6 +535,24 @@ export function useTamboV1SendMessage(threadId?: string) {
 
   return useTamboMutation({
     mutationFn: async (options: SendMessageOptions) => {
+      if (authState.status !== "identified") {
+        const messages: Record<string, string> = {
+          unauthenticated:
+            "Cannot send message: no userKey or userToken provided. " +
+            "Configure authentication in TamboV1Provider.",
+          exchanging:
+            "Cannot send message: token exchange is still in progress. " +
+            "Wait for authentication to complete.",
+          error:
+            "Cannot send message: token exchange failed. " +
+            "Check your userToken configuration.",
+          invalid:
+            "Cannot send message: both userKey and userToken were provided. " +
+            "You must provide one or the other, not both.",
+        };
+        throw new Error(messages[authState.status]);
+      }
+
       const { message, userMessageText, debug = false, toolChoice } = options;
 
       // Capture pre-mutation state for auto thread name generation

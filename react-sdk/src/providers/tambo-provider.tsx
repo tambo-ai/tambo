@@ -168,7 +168,14 @@ export const TamboCompositeProvider: React.FC<PropsWithChildren> = ({
       "TamboCompositeProvider must be used within a TamboClientProvider",
     );
   }
-  const { client, queryClient, isUpdatingToken } = clientContext;
+  const {
+    client,
+    queryClient,
+    isUpdatingToken,
+    tokenExchangeError,
+    userToken,
+    hasValidToken,
+  } = clientContext;
   const componentRegistry = useTamboComponent();
   const interactableComponents = useTamboInteractable();
   const contextHelpers = useTamboContextHelpers();
@@ -180,6 +187,9 @@ export const TamboCompositeProvider: React.FC<PropsWithChildren> = ({
         client,
         queryClient,
         isUpdatingToken,
+        tokenExchangeError,
+        userToken,
+        hasValidToken,
         ...componentRegistry,
         ...threads,
         ...interactableComponents,
