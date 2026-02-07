@@ -73,6 +73,16 @@
         "default": "./dist/cjs/toolcall-info/index.cjs"
       }
     },
+    "./input-fields": {
+      "import": {
+        "types": "./dist/esm/input-fields/index.d.ts",
+        "default": "./dist/esm/input-fields/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/input-fields/index.d.ts",
+        "default": "./dist/cjs/input-fields/index.cjs"
+      }
+    },
     "./types": {
       "import": {
         "types": "./dist/esm/types/index.d.ts",
