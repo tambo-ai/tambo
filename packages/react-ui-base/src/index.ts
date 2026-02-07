@@ -80,6 +80,21 @@ export type {
   ToolcallInfoTriggerProps,
 } from "./toolcall-info";
 
+// ThreadDropdown components
+export { ThreadDropdown } from "./thread-dropdown";
+export type {
+  ThreadDropdownContextValue,
+  ThreadDropdownMenuProps,
+  ThreadDropdownMenuRenderProps,
+  ThreadDropdownNewThreadItemProps,
+  ThreadDropdownNewThreadItemRenderProps,
+  ThreadDropdownRootProps,
+  ThreadDropdownThread,
+  ThreadDropdownThreadItemProps,
+  ThreadDropdownThreadItemRenderProps,
+  ThreadDropdownTriggerProps,
+} from "./thread-dropdown";
+
 // Types
 export type {
   BaseProps,

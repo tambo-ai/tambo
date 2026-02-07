@@ -63,6 +63,16 @@
         "default": "./dist/cjs/toolcall-info/index.cjs"
       }
     },
+    "./thread-dropdown": {
+      "import": {
+        "types": "./dist/esm/thread-dropdown/index.d.ts",
+        "default": "./dist/esm/thread-dropdown/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/thread-dropdown/index.d.ts",
+        "default": "./dist/cjs/thread-dropdown/index.cjs"
+      }
+    },
     "./types": {
       "import": {
         "types": "./dist/esm/types/index.d.ts",
