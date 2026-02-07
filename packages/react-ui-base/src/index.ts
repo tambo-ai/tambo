@@ -80,6 +80,25 @@ export type {
   ToolcallInfoTriggerProps,
 } from "./toolcall-info";
 
+// ThreadHistory components
+export { ThreadHistory } from "./thread-history";
+export type {
+  ThreadHistoryCollapseToggleProps,
+  ThreadHistoryHeaderProps,
+  ThreadHistoryHeaderRenderProps,
+  ThreadHistoryItemProps,
+  ThreadHistoryItemRenderProps,
+  ThreadHistoryListProps,
+  ThreadHistoryListRenderProps,
+  ThreadHistoryNewThreadButtonProps,
+  ThreadHistoryNewThreadButtonRenderProps,
+  ThreadHistoryRootContextValue,
+  ThreadHistoryRootProps,
+  ThreadHistoryRootRenderProps,
+  ThreadHistorySearchInputProps,
+  ThreadHistorySearchInputRenderProps,
+} from "./thread-history";
+
 // Types
 export type {
   BaseProps,
