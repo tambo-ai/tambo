@@ -527,11 +527,14 @@ export function useTamboV1SendMessage(threadId?: string) {
   const isNewThread = isPlaceholderThreadId(threadId);
   const apiThreadId = isNewThread ? undefined : threadId;
 
-  // Get previousRunId from the thread's streaming state (if thread exists and has messages)
+  // Get previousRunId from the thread's streaming state (active run) or
+  // lastCompletedRunId (persisted after run finishes / loaded from API).
+  // The latter is essential after page reload when streaming state is gone.
   const threadState = apiThreadId
     ? streamState.threadMap[apiThreadId]
     : undefined;
-  const previousRunId = threadState?.streaming.runId;
+  const previousRunId =
+    threadState?.streaming.runId ?? threadState?.lastCompletedRunId;
 
   return useTamboMutation({
     mutationFn: async (options: SendMessageOptions) => {

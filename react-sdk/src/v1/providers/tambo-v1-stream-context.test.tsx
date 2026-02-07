@@ -16,10 +16,20 @@ jest.mock("../../providers/tambo-client-provider", () => ({
       messages: {
         list: jest.fn().mockResolvedValue({ messages: [], hasMore: false }),
       },
+      retrieve: jest.fn().mockResolvedValue({}),
     },
   })),
   useTamboQueryClient: jest.fn(),
 }));
+
+// Mock useTamboV1Config to avoid TamboV1Provider dependency
+jest.mock("./tambo-v1-provider", () => {
+  const actual = jest.requireActual("./tambo-v1-provider");
+  return {
+    ...actual,
+    useTamboV1Config: () => ({ userKey: undefined }),
+  };
+});
 
 // Import for mocking
 import { useTamboQueryClient } from "../../providers/tambo-client-provider";
