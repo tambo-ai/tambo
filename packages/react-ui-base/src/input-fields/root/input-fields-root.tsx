@@ -115,11 +115,14 @@ export const InputFieldsRoot = React.forwardRef<
     isGenerating,
   };
 
-  const renderedChildren = render
-    ? render(renderProps)
-    : typeof children === "function"
-      ? children(renderProps)
-      : children;
+  let renderedChildren: React.ReactNode;
+  if (render) {
+    renderedChildren = render(renderProps);
+  } else if (typeof children === "function") {
+    renderedChildren = children(renderProps);
+  } else {
+    renderedChildren = children;
+  }
 
   return (
     <InputFieldsRootContext.Provider value={contextValue}>
