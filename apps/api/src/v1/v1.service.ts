@@ -24,6 +24,7 @@ import {
 } from "@ag-ui/core";
 import {
   AsyncQueue,
+  GenerationStage,
   V1RunStatus,
   type UnsavedThreadToolMessage,
 } from "@tambo-ai-cloud/core";
@@ -581,6 +582,15 @@ export class V1Service {
 
       await operations.markRunCancelled(tx, runId);
 
+      // Reset generationStage so the thread isn't stuck in a processing state.
+      // The V1 runStatus lock is released above, but the legacy generationStage
+      // (checked by addMessageToThreadAndStream) must also be cleared.
+      await operations.updateThreadGenerationStatus(
+        tx,
+        threadId,
+        GenerationStage.CANCELLED,
+      );
+
       // Use the "latest message" fallback here since we don't have access to the
       // streaming context's message ID. This is called from connection close handlers
       // and the DELETE endpoint. The streaming loop uses markMessageCancelled()
@@ -863,6 +873,12 @@ export class V1Service {
           // Update run and thread with error
           const didReleaseLock = await this.db.transaction(async (tx) => {
             await operations.completeRun(tx, runId, { error: errorInfo });
+            // Reset generationStage so the thread isn't stuck in a processing state
+            await operations.updateThreadGenerationStatus(
+              tx,
+              threadId,
+              GenerationStage.ERROR,
+            );
             return await operations.releaseRunLockIfCurrent(
               tx,
               threadId,
