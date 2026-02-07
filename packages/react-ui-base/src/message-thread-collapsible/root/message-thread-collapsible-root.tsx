@@ -7,34 +7,50 @@ import {
 /**
  * Props passed to the Root render function.
  */
-export interface MessageThreadCollapsibleRootRenderProps {
-  /** Whether the collapsible thread is open. */
-  isOpen: boolean;
-  /** Set the open/close state. */
-  setIsOpen: (value: boolean) => void;
-  /** Display-friendly shortcut string (e.g. "⌘K" or "Ctrl+K"). */
-  shortcutText: string;
-  /** The configured hotkey string (e.g. "mod+k"). */
-  hotkey: string;
-  /** Whether the current platform is macOS. */
-  isMac: boolean;
-  /** Callback to invoke when the active thread changes. Opens the collapsible. */
-  onThreadChange: () => void;
-}
+export type MessageThreadCollapsibleRootRenderProps =
+  MessageThreadCollapsibleContextValue;
 
 export interface MessageThreadCollapsibleRootProps {
   /** Children as ReactNode or render function receiving root state. */
   children?:
     | React.ReactNode
     | ((props: MessageThreadCollapsibleRootRenderProps) => React.ReactNode);
-  /** Render function receiving root state. Alternative to children. */
+  /**
+   * Render function receiving root state. Alternative to children.
+   * @deprecated Use children-as-function instead.
+   */
   render?: (
     props: MessageThreadCollapsibleRootRenderProps,
   ) => React.ReactNode;
-  /** Keyboard shortcut for toggling the collapsible (default: "mod+k"). */
+  /** Keyboard shortcut for toggling the collapsible (format: "mod+key", default: "mod+k"). */
   hotkey?: string;
   /** Whether the collapsible should be open by default (default: false). */
   defaultOpen?: boolean;
+}
+
+const isMac =
+  typeof navigator !== "undefined" &&
+  /mac/i.test(navigator.platform || navigator.userAgent);
+
+function resolveContent(
+  children: MessageThreadCollapsibleRootProps["children"],
+  render: MessageThreadCollapsibleRootProps["render"],
+  renderProps: MessageThreadCollapsibleRootRenderProps,
+): React.ReactNode {
+  if (typeof children === "function") return children(renderProps);
+  if (children != null) return children;
+  if (render) return render(renderProps);
+  return null;
+}
+
+function parseHotkey(hotkey: string): { modifier: string; key: string } {
+  const parts = hotkey.split("+");
+  if (parts.length !== 2 || parts[0] !== "mod") {
+    throw new Error(
+      `MessageThreadCollapsible.Root: invalid hotkey "${hotkey}". Expected format: "mod+<key>" (e.g. "mod+k").`,
+    );
+  }
+  return { modifier: parts[0], key: parts[1] };
 }
 
 /**
@@ -50,24 +66,18 @@ export function MessageThreadCollapsibleRoot({
   defaultOpen = false,
 }: MessageThreadCollapsibleRootProps) {
   const [isOpen, setIsOpen] = React.useState(defaultOpen);
+  const contentId = React.useId();
 
-  const isMac =
-    typeof navigator !== "undefined" && navigator.platform.startsWith("Mac");
+  const { key } = parseHotkey(hotkey);
 
   const shortcutText = React.useMemo(() => {
-    const [modifier, key] = hotkey.split("+");
-    let modDisplay = "";
-    if (modifier === "mod") {
-      modDisplay = isMac ? "⌘" : "Ctrl+";
-    }
-    return `${modDisplay}${(key ?? "").toUpperCase()}`;
-  }, [hotkey, isMac]);
+    const modDisplay = isMac ? "⌘" : "Ctrl+";
+    return `${modDisplay}${key.toUpperCase()}`;
+  }, [key]);
 
   React.useEffect(() => {
     const down = (e: KeyboardEvent) => {
-      const [modifier, key] = hotkey.split("+");
-      const isModifierPressed =
-        modifier === "mod" ? e.metaKey || e.ctrlKey : false;
+      const isModifierPressed = isMac ? e.metaKey : e.ctrlKey;
       if (e.key === key && isModifierPressed) {
         e.preventDefault();
         setIsOpen((prev) => !prev);
@@ -75,39 +85,30 @@ export function MessageThreadCollapsibleRoot({
     };
     document.addEventListener("keydown", down);
     return () => document.removeEventListener("keydown", down);
-  }, [hotkey]);
+  }, [key]);
 
   const onThreadChange = React.useCallback(() => {
     setIsOpen(true);
   }, []);
 
-  const renderProps: MessageThreadCollapsibleRootRenderProps = {
-    isOpen,
-    setIsOpen,
-    shortcutText,
-    hotkey,
-    isMac,
-    onThreadChange,
-  };
+  const contextValue = React.useMemo<MessageThreadCollapsibleContextValue>(
+    () => ({
+      isOpen,
+      setIsOpen,
+      shortcutText,
+      hotkey,
+      isMac,
+      onThreadChange,
+      contentId,
+    }),
+    [isOpen, shortcutText, hotkey, onThreadChange, contentId],
+  );
 
-  const contextValue: MessageThreadCollapsibleContextValue = {
-    ...renderProps,
-  };
-
-  let renderedContent: React.ReactNode;
-  if (typeof children === "function") {
-    renderedContent = children(renderProps);
-  } else if (children != null) {
-    renderedContent = children;
-  } else if (render) {
-    renderedContent = render(renderProps);
-  } else {
-    renderedContent = null;
-  }
+  const content = resolveContent(children, render, contextValue);
 
   return (
     <MessageThreadCollapsibleContext.Provider value={contextValue}>
-      {renderedContent}
+      {content}
     </MessageThreadCollapsibleContext.Provider>
   );
 }

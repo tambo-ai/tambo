@@ -27,7 +27,7 @@ export const MessageThreadCollapsibleContent = React.forwardRef<
   HTMLDivElement,
   MessageThreadCollapsibleContentProps
 >(function MessageThreadCollapsibleContent({ asChild, ...props }, ref) {
-  const { isOpen } = useMessageThreadCollapsibleContext();
+  const { isOpen, contentId } = useMessageThreadCollapsibleContext();
 
   const Comp = asChild ? Slot : "div";
 
@@ -42,6 +42,8 @@ export const MessageThreadCollapsibleContent = React.forwardRef<
   return (
     <Comp
       ref={ref}
+      id={contentId}
+      role="region"
       data-slot="message-thread-collapsible-content"
       {...componentProps}
     >
@@ -49,3 +51,5 @@ export const MessageThreadCollapsibleContent = React.forwardRef<
     </Comp>
   );
 });
+MessageThreadCollapsibleContent.displayName =
+  "MessageThreadCollapsible.Content";

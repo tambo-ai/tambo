@@ -29,7 +29,7 @@ export const MessageThreadCollapsibleTrigger = React.forwardRef<
   HTMLButtonElement,
   MessageThreadCollapsibleTriggerProps
 >(function MessageThreadCollapsibleTrigger({ asChild, ...props }, ref) {
-  const { isOpen, setIsOpen, shortcutText } =
+  const { isOpen, setIsOpen, shortcutText, contentId } =
     useMessageThreadCollapsibleContext();
 
   const Comp = asChild ? Slot : "button";
@@ -43,6 +43,8 @@ export const MessageThreadCollapsibleTrigger = React.forwardRef<
     <Comp
       ref={ref}
       type="button"
+      aria-expanded={isOpen}
+      aria-controls={contentId}
       data-slot="message-thread-collapsible-trigger"
       data-state={isOpen ? "open" : "closed"}
       onClick={() => setIsOpen(!isOpen)}
@@ -52,3 +54,5 @@ export const MessageThreadCollapsibleTrigger = React.forwardRef<
     </Comp>
   );
 });
+MessageThreadCollapsibleTrigger.displayName =
+  "MessageThreadCollapsible.Trigger";
