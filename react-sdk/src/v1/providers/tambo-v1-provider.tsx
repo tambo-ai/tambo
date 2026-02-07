@@ -7,6 +7,8 @@
  * - TamboClientProvider: API client and authentication
  * - TamboRegistryProvider: Component and tool registration
  * - TamboContextHelpersProvider: Context helper functions
+ * - TamboMcpTokenProvider: MCP access token management
+ * - TamboMcpProvider: MCP server connections and tool discovery
  * - TamboContextAttachmentProvider: Single-message context attachments
  * - TamboInteractableProvider: Interactive component tracking
  * - TamboV1StreamProvider: Streaming state management
@@ -33,6 +35,8 @@ import {
 import { TamboContextAttachmentProvider } from "../../providers/tambo-context-attachment-provider";
 import { TamboContextHelpersProvider } from "../../providers/tambo-context-helpers-provider";
 import { TamboInteractableProvider } from "../../providers/tambo-interactable-provider";
+import { TamboMcpTokenProvider } from "../../providers/tambo-mcp-token-provider";
+import { TamboMcpProvider } from "../../mcp/tambo-mcp-provider";
 import type { ContextHelpers } from "../../context-helpers";
 import type { McpServerInfo } from "../../model/mcp-server-info";
 import type {
@@ -295,18 +299,22 @@ export function TamboV1Provider({
         getResource={getResource}
       >
         <TamboContextHelpersProvider contextHelpers={contextHelpers}>
-          <TamboContextAttachmentProvider>
-            <TamboInteractableProvider>
-              <TamboV1ConfigContext.Provider value={config}>
-                <TamboV1AuthWarnings />
-                <TamboV1StreamProvider initialMessages={initialMessages}>
-                  <TamboV1ThreadInputProvider>
-                    {children}
-                  </TamboV1ThreadInputProvider>
-                </TamboV1StreamProvider>
-              </TamboV1ConfigContext.Provider>
-            </TamboInteractableProvider>
-          </TamboContextAttachmentProvider>
+          <TamboMcpTokenProvider>
+            <TamboMcpProvider>
+              <TamboContextAttachmentProvider>
+                <TamboInteractableProvider>
+                  <TamboV1ConfigContext.Provider value={config}>
+                    <TamboV1AuthWarnings />
+                    <TamboV1StreamProvider initialMessages={initialMessages}>
+                      <TamboV1ThreadInputProvider>
+                        {children}
+                      </TamboV1ThreadInputProvider>
+                    </TamboV1StreamProvider>
+                  </TamboV1ConfigContext.Provider>
+                </TamboInteractableProvider>
+              </TamboContextAttachmentProvider>
+            </TamboMcpProvider>
+          </TamboMcpTokenProvider>
         </TamboContextHelpersProvider>
       </TamboRegistryProvider>
     </TamboClientProvider>
