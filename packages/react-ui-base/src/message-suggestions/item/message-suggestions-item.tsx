@@ -42,6 +42,7 @@ export const MessageSuggestionsItem = React.forwardRef<
     event,
   ) => {
     if (isDisabled) {
+      event.preventDefault();
       return;
     }
 
