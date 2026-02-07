@@ -126,7 +126,7 @@ function StatusGenerationContent({
   generationStage,
 }: {
   isGenerating: boolean;
-  generationStage: string | undefined;
+  generationStage: MessageSuggestionsStatusRenderProps["generationStage"];
 }) {
   if (generationStage && generationStage !== GenerationStage.COMPLETE) {
     return (
