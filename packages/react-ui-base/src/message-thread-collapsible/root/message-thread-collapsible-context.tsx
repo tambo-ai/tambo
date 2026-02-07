@@ -16,6 +16,8 @@ export interface MessageThreadCollapsibleContextValue {
   isMac: boolean;
   /** Callback to invoke when the active thread changes. Opens the collapsible. */
   onThreadChange: () => void;
+  /** Stable ID for linking trigger aria-controls to content. */
+  contentId: string;
 }
 
 const MessageThreadCollapsibleContext =

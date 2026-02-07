@@ -34,12 +34,14 @@ export const MessageThreadCollapsibleHeader = React.forwardRef<
   const { isOpen, setIsOpen, shortcutText } =
     useMessageThreadCollapsibleContext();
 
+  const onClose = React.useCallback(() => setIsOpen(false), [setIsOpen]);
+
   const Comp = asChild ? Slot : "div";
 
   const { content, componentProps } = useRender(props, {
     isOpen,
     shortcutText,
-    onClose: () => setIsOpen(false),
+    onClose,
   });
 
   return (
@@ -53,3 +55,5 @@ export const MessageThreadCollapsibleHeader = React.forwardRef<
     </Comp>
   );
 });
+MessageThreadCollapsibleHeader.displayName =
+  "MessageThreadCollapsible.Header";
