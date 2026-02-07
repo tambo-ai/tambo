@@ -80,6 +80,16 @@ export type {
   ToolcallInfoTriggerProps,
 } from "./toolcall-info";
 
+// ThreadContent components
+export { ThreadContent } from "./thread-content";
+export type {
+  ThreadContentMessageListProps,
+  ThreadContentMessageListRenderProps,
+  ThreadContentMessageProps,
+  ThreadContentRootContextValue,
+  ThreadContentRootProps,
+} from "./thread-content";
+
 // Types
 export type {
   BaseProps,
