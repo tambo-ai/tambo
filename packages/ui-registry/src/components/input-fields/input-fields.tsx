@@ -106,9 +106,10 @@ export const InputFields = React.forwardRef<
       ref={ref}
       className={cn(inputFieldsVariants({ variant, layout }), className)}
       fields={fields}
-      render={(renderProps) => <InputFieldsContent {...renderProps} />}
       {...props}
-    />
+    >
+      {(renderProps) => <InputFieldsContent {...renderProps} />}
+    </InputFieldsBase.Root>
   );
 });
 InputFields.displayName = "InputFields";
