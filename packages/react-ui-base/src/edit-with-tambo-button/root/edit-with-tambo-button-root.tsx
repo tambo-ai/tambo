@@ -236,11 +236,14 @@ export function EditWithTamboButtonRoot({
     ...renderProps,
   };
 
-  const renderedContent = render
-    ? render(renderProps)
-    : typeof children === "function"
-      ? children(renderProps)
-      : children;
+  let renderedContent: React.ReactNode;
+  if (render) {
+    renderedContent = render(renderProps);
+  } else if (typeof children === "function") {
+    renderedContent = children(renderProps);
+  } else {
+    renderedContent = children;
+  }
 
   return (
     <EditWithTamboButtonContext.Provider value={contextValue}>

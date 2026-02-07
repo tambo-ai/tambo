@@ -55,7 +55,10 @@ export function ControlBarRoot({
 
   const hotkeyDisplay = React.useMemo(() => {
     const [modifier, key] = hotkey.split("+");
-    const modDisplay = modifier === "mod" ? (isMac ? "⌘" : "Ctrl+") : "";
+    let modDisplay = "";
+    if (modifier === "mod") {
+      modDisplay = isMac ? "⌘" : "Ctrl+";
+    }
     return `${modDisplay}${(key ?? "").toUpperCase()}`;
   }, [hotkey, isMac]);
 
@@ -86,11 +89,14 @@ export function ControlBarRoot({
     ...renderProps,
   };
 
-  const renderedContent = render
-    ? render(renderProps)
-    : typeof children === "function"
-      ? children(renderProps)
-      : children;
+  let renderedContent: React.ReactNode;
+  if (render) {
+    renderedContent = render(renderProps);
+  } else if (typeof children === "function") {
+    renderedContent = children(renderProps);
+  } else {
+    renderedContent = children;
+  }
 
   return (
     <ControlBarRootContext.Provider value={contextValue}>
