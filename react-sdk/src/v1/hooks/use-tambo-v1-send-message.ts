@@ -27,7 +27,7 @@ import {
 import { useTamboV1Config } from "../providers/tambo-v1-provider";
 import { useTamboV1AuthState } from "./use-tambo-v1-auth-state";
 import { useTamboContextHelpers } from "../../providers/tambo-context-helpers-provider";
-import type { InputMessage } from "../types/message";
+import type { InitialInputMessage, InputMessage } from "../types/message";
 import type { ToolChoice } from "../types/tool-choice";
 import {
   isPlaceholderThreadId,
@@ -290,7 +290,7 @@ export interface CreateRunStreamParams {
    * Initial messages to seed the thread with when creating a new thread.
    * Only used when threadId is undefined (new thread creation).
    */
-  initialMessages?: InputMessage[];
+  initialMessages?: InitialInputMessage[];
 }
 
 /**
@@ -437,13 +437,15 @@ export async function createRunStream(
     return { stream, initialThreadId: threadId };
   } else {
     // Create new thread - include initialMessages if provided
+    // Cast to InputMessage[] at the SDK boundary: the V1 API accepts system/assistant roles
+    // but the TS SDK type constrains role to 'user'. Remove cast when typescript-sdk is regenerated.
     const threadConfig: { userKey?: string; initialMessages?: InputMessage[] } =
       {};
     if (userKey) {
       threadConfig.userKey = userKey;
     }
     if (initialMessages?.length) {
-      threadConfig.initialMessages = initialMessages;
+      threadConfig.initialMessages = initialMessages as InputMessage[];
     }
 
     const stream = await client.threads.runs.create({

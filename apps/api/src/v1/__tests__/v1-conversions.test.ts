@@ -11,9 +11,11 @@ import {
   contentToV1Blocks,
   contentPartToV1Block,
   convertV1InputMessageToInternal,
+  convertV1InitialMessageToMessageRequest,
   DbThread,
   DbMessage,
   V1InputMessage,
+  V1InitialMessage,
 } from "../v1-conversions";
 import { V1ThreadDto } from "../dto/thread.dto";
 
@@ -651,6 +653,132 @@ describe("v1-conversions", () => {
       const result = convertV1InputMessageToInternal(input);
 
       expect(result.additionalContext).toEqual({});
+    });
+  });
+
+  describe("convertV1InitialMessageToMessageRequest", () => {
+    it("should convert a user role message", () => {
+      const input: V1InitialMessage = {
+        role: "user",
+        content: [{ type: "text", text: "Hello" }],
+      };
+
+      const result = convertV1InitialMessageToMessageRequest(input);
+
+      expect(result.role).toBe(MessageRole.User);
+      expect(result.content).toHaveLength(1);
+      expect(result.content[0]).toEqual({
+        type: ContentPartType.Text,
+        text: "Hello",
+      });
+    });
+
+    it("should convert a system role message", () => {
+      const input: V1InitialMessage = {
+        role: "system",
+        content: [{ type: "text", text: "You are a helpful assistant" }],
+      };
+
+      const result = convertV1InitialMessageToMessageRequest(input);
+
+      expect(result.role).toBe(MessageRole.System);
+      expect(result.content).toHaveLength(1);
+      expect(result.content[0]).toEqual({
+        type: ContentPartType.Text,
+        text: "You are a helpful assistant",
+      });
+    });
+
+    it("should convert an assistant role message", () => {
+      const input: V1InitialMessage = {
+        role: "assistant",
+        content: [{ type: "text", text: "How can I help?" }],
+      };
+
+      const result = convertV1InitialMessageToMessageRequest(input);
+
+      expect(result.role).toBe(MessageRole.Assistant);
+      expect(result.content).toHaveLength(1);
+      expect(result.content[0]).toEqual({
+        type: ContentPartType.Text,
+        text: "How can I help?",
+      });
+    });
+
+    it("should convert resource content", () => {
+      const input: V1InitialMessage = {
+        role: "user",
+        content: [
+          {
+            type: "resource",
+            resource: {
+              uri: "https://example.com/file.pdf",
+              mimeType: "application/pdf",
+            },
+          },
+        ],
+      };
+
+      const result = convertV1InitialMessageToMessageRequest(input);
+
+      expect(result.content).toHaveLength(1);
+      expect(result.content[0]).toEqual({
+        type: ContentPartType.Resource,
+        resource: {
+          uri: "https://example.com/file.pdf",
+          mimeType: "application/pdf",
+        },
+      });
+    });
+
+    it("should pass metadata through", () => {
+      const input: V1InitialMessage = {
+        role: "user",
+        content: [{ type: "text", text: "Hi" }],
+        metadata: { key: "value" },
+      };
+
+      const result = convertV1InitialMessageToMessageRequest(input);
+
+      expect(result.metadata).toEqual({ key: "value" });
+    });
+
+    it("should throw for unknown content types", () => {
+      const input: V1InitialMessage = {
+        role: "user",
+        content: [
+          {
+            type: "unknown_type",
+            data: "something",
+          } as unknown as V1InitialMessage["content"][0],
+        ],
+      };
+
+      expect(() => convertV1InitialMessageToMessageRequest(input)).toThrow(
+        /Unknown content type in initial message: unknown_type/,
+      );
+    });
+
+    it("should convert multiple content blocks", () => {
+      const input: V1InitialMessage = {
+        role: "user",
+        content: [
+          { type: "text", text: "Check this:" },
+          {
+            type: "resource",
+            resource: {
+              uri: "https://example.com/doc.pdf",
+              mimeType: "application/pdf",
+            },
+          },
+        ],
+      };
+
+      const result = convertV1InitialMessageToMessageRequest(input);
+
+      expect(result.content).toHaveLength(2);
+      expect(result.content[0].type).toBe(ContentPartType.Text);
+      expect(result.content[1].type).toBe(ContentPartType.Resource);
     });
   });
 });

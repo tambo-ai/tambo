@@ -19,7 +19,7 @@ import React, {
 } from "react";
 import { useTamboQuery } from "../../hooks/react-query-hooks";
 import { useTamboClient } from "../../providers/tambo-client-provider";
-import type { InputMessage, TamboV1Message } from "../types/message";
+import type { InitialInputMessage, TamboV1Message } from "../types/message";
 import type { TamboV1Thread } from "../types/thread";
 import {
   createInitialState,
@@ -92,7 +92,7 @@ export interface TamboV1StreamProviderProps {
    * Initial messages to populate the placeholder thread with.
    * These render in the UI before any API call is made.
    */
-  initialMessages?: InputMessage[];
+  initialMessages?: InitialInputMessage[];
 
   /**
    * Optional override for stream state (primarily for tests).
