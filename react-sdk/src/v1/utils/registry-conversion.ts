@@ -100,6 +100,7 @@ export function toAvailableTool(
       name: tool.name,
       description: tool.description,
       inputSchema: inputSchema as Record<string, unknown>,
+      ...(tool.maxCalls !== undefined ? { maxCalls: tool.maxCalls } : {}),
     };
   }
 
@@ -110,6 +111,7 @@ export function toAvailableTool(
       name: tool.name,
       description: tool.description,
       inputSchema: inputSchema as Record<string, unknown>,
+      ...(tool.maxCalls !== undefined ? { maxCalls: tool.maxCalls } : {}),
     };
   }
 

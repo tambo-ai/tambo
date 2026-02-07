@@ -166,6 +166,35 @@ describe("registry-conversion", () => {
       );
     });
 
+    it("includes maxCalls when set", () => {
+      const tool: TamboTool = {
+        name: "limited_tool",
+        description: "Tool with call limit",
+        tool: async () => ({}),
+        inputSchema: z.object({ x: z.string() }),
+        outputSchema: z.any(),
+        maxCalls: 3,
+      };
+
+      const result = toAvailableTool(tool);
+
+      expect(result.maxCalls).toBe(3);
+    });
+
+    it("omits maxCalls when not set", () => {
+      const tool: TamboTool = {
+        name: "unlimited_tool",
+        description: "Tool without call limit",
+        tool: async () => ({}),
+        inputSchema: z.object({ x: z.string() }),
+        outputSchema: z.any(),
+      };
+
+      const result = toAvailableTool(tool);
+
+      expect(result).not.toHaveProperty("maxCalls");
+    });
+
     it("throws when schema is missing", () => {
       const tool = {
         name: "bad_tool",
