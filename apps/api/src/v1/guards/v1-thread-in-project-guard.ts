@@ -1,9 +1,9 @@
 import {
-  BadRequestException,
   CanActivate,
   ExecutionContext,
   Inject,
   Injectable,
+  InternalServerErrorException,
 } from "@nestjs/common";
 import {
   type HydraDatabase,
@@ -14,7 +14,7 @@ import { type Request } from "express";
 import { DATABASE } from "../../common/middleware/db-transaction-middleware";
 import { CorrelationLoggerService } from "../../common/services/logger.service";
 import { ProjectId } from "../../projects/guards/apikey.guard";
-import { ContextKey } from "../../projects/guards/bearer-token.guard";
+import { getV1ContextInfo } from "../utils/get-v1-context-info";
 
 /**
  * V1-specific guard that verifies a thread belongs to the authenticated project
@@ -46,10 +46,9 @@ export class V1ThreadInProjectGuard implements CanActivate {
       this.logger.error(
         "Missing project ID in request: should be set by ApiKeyGuard",
       );
-      return false;
+      throw new InternalServerErrorException("Project context missing");
     }
 
-    const bearerContextKey = request[ContextKey];
     const queryUserKey =
       typeof request.query?.userKey === "string"
         ? request.query.userKey
@@ -58,19 +57,12 @@ export class V1ThreadInProjectGuard implements CanActivate {
       typeof request.body?.userKey === "string"
         ? request.body.userKey
         : undefined;
-    const paramUserKey = queryUserKey ?? bodyUserKey;
+    const requestUserKey = queryUserKey ?? bodyUserKey;
 
-    if (paramUserKey === "") {
-      throw new BadRequestException("userKey cannot be an empty string.");
-    }
-
-    const effectiveContextKey = paramUserKey ?? bearerContextKey;
-
-    if (!effectiveContextKey) {
-      throw new BadRequestException(
-        "userKey is required. Provide it as a query/body parameter or use a bearer token with a context key.",
-      );
-    }
+    const { contextKey: effectiveContextKey } = getV1ContextInfo(
+      request,
+      requestUserKey,
+    );
 
     try {
       await operations.ensureThreadByProjectId(

@@ -1,5 +1,13 @@
-import { BadRequestException, ExecutionContext } from "@nestjs/common";
-import { operations, ThreadNotFoundError } from "@tambo-ai-cloud/db";
+import {
+  BadRequestException,
+  ExecutionContext,
+  InternalServerErrorException,
+} from "@nestjs/common";
+import {
+  type HydraDatabase,
+  operations,
+  ThreadNotFoundError,
+} from "@tambo-ai-cloud/db";
 import { Request } from "express";
 import { ProjectId } from "../../projects/guards/apikey.guard";
 import { ContextKey } from "../../projects/guards/bearer-token.guard";
@@ -49,15 +57,20 @@ function createMockExecutionContext(
 
 describe("V1ThreadInProjectGuard", () => {
   let guard: V1ThreadInProjectGuard;
-  const mockDb = {} as any;
   const mockLogger = {
     log: jest.fn(),
     warn: jest.fn(),
     error: jest.fn(),
-  } as any;
+  };
+  const mockDb = {} as unknown as HydraDatabase;
 
   beforeEach(() => {
-    guard = new V1ThreadInProjectGuard(mockDb, mockLogger);
+    guard = new V1ThreadInProjectGuard(
+      mockDb,
+      mockLogger as unknown as ConstructorParameters<
+        typeof V1ThreadInProjectGuard
+      >[1],
+    );
     mockEnsureThreadByProjectId.mockClear();
     mockLogger.log.mockClear();
     mockLogger.warn.mockClear();
@@ -145,9 +158,7 @@ describe("V1ThreadInProjectGuard", () => {
     );
   });
 
-  it("should prefer param userKey over bearer contextKey", async () => {
-    mockEnsureThreadByProjectId.mockResolvedValue(undefined);
-
+  it("should throw BadRequestException when both userKey and bearer token are provided", async () => {
     const context = createMockExecutionContext({
       params: { threadId: "thr_123" },
       query: { userKey: "param_user" },
@@ -155,14 +166,8 @@ describe("V1ThreadInProjectGuard", () => {
       contextKey: "oauth:user:bearer",
     });
 
-    const result = await guard.canActivate(context);
-
-    expect(result).toBe(true);
-    expect(mockEnsureThreadByProjectId).toHaveBeenCalledWith(
-      mockDb,
-      "thr_123",
-      "prj_123",
-      "param_user",
+    await expect(guard.canActivate(context)).rejects.toThrow(
+      BadRequestException,
     );
   });
 
@@ -217,15 +222,27 @@ describe("V1ThreadInProjectGuard", () => {
     expect(result).toBe(false);
   });
 
-  it("should return false when projectId is missing", async () => {
+  it("should throw InternalServerErrorException when projectId is missing", async () => {
     const context = createMockExecutionContext({
       params: { threadId: "thr_123" },
       contextKey: "oauth:user:alice",
     });
 
-    const result = await guard.canActivate(context);
+    await expect(guard.canActivate(context)).rejects.toThrow(
+      InternalServerErrorException,
+    );
+  });
 
-    expect(result).toBe(false);
+  it("should throw BadRequestException for whitespace-only userKey", async () => {
+    const context = createMockExecutionContext({
+      params: { threadId: "thr_123" },
+      query: { userKey: "   " },
+      projectId: "prj_123",
+    });
+
+    await expect(guard.canActivate(context)).rejects.toThrow(
+      BadRequestException,
+    );
   });
 
   it("should rethrow unexpected errors", async () => {

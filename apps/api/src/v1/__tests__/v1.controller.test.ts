@@ -98,7 +98,7 @@ describe("V1Controller", () => {
         );
       });
 
-      it("should prefer query userKey over bearer token context key", async () => {
+      it("should throw BadRequestException when both query userKey and bearer token are provided", async () => {
         const mockRequest = {} as Request;
         mockExtractContextInfo.mockReturnValue({
           projectId: "prj_123",
@@ -109,15 +109,11 @@ describe("V1Controller", () => {
           hasMore: false,
         } as any);
 
-        await controller.listThreads(mockRequest, {
-          userKey: "query_context",
-        });
+        await expect(
+          controller.listThreads(mockRequest, { userKey: "query_context" }),
+        ).rejects.toThrow(BadRequestException);
 
-        expect(mockV1Service.listThreads).toHaveBeenCalledWith(
-          "prj_123",
-          "query_context",
-          { userKey: "query_context" },
-        );
+        expect(mockV1Service.listThreads).not.toHaveBeenCalled();
       });
     });
 
@@ -276,7 +272,7 @@ describe("V1Controller", () => {
         );
       });
 
-      it("should prefer body userKey over bearer token context key", async () => {
+      it("should throw BadRequestException when both body userKey and bearer token are provided", async () => {
         const mockRequest = {} as Request;
         mockExtractContextInfo.mockReturnValue({
           projectId: "prj_123",
@@ -284,15 +280,11 @@ describe("V1Controller", () => {
         });
         mockV1Service.createThread.mockResolvedValue({} as any);
 
-        await controller.createThread(mockRequest, {
-          userKey: "body_context",
-        });
+        await expect(
+          controller.createThread(mockRequest, { userKey: "body_context" }),
+        ).rejects.toThrow(BadRequestException);
 
-        expect(mockV1Service.createThread).toHaveBeenCalledWith(
-          "prj_123",
-          "body_context",
-          { userKey: "body_context" },
-        );
+        expect(mockV1Service.createThread).not.toHaveBeenCalled();
       });
     });
 

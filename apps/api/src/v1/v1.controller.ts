@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -25,10 +24,10 @@ import {
   ApiTags,
 } from "@nestjs/swagger";
 import { Request, Response } from "express";
-import { extractContextInfo } from "../common/utils/extract-context-info";
 import { ApiKeyGuard } from "../projects/guards/apikey.guard";
 import { BearerTokenGuard } from "../projects/guards/bearer-token.guard";
 import { V1ThreadInProjectGuard } from "./guards/v1-thread-in-project-guard";
+import { getV1ContextInfo } from "./utils/get-v1-context-info";
 import {
   V1GetMessageResponseDto,
   V1ListMessagesQueryDto,
@@ -59,27 +58,6 @@ import {
 } from "./dto/suggestion.dto";
 import { V1Service } from "./v1.service";
 
-/**
- * Validates that a userKey is provided either via request parameter or bearer token.
- * @throws BadRequestException if no userKey is available from either source, or if it's empty
- */
-function requireUserKey(
-  paramUserKey: string | undefined,
-  bearerContextKey: string | undefined,
-): string {
-  // Check for empty string explicitly
-  if (paramUserKey === "") {
-    throw new BadRequestException("userKey cannot be an empty string.");
-  }
-  const effectiveUserKey = paramUserKey ?? bearerContextKey;
-  if (!effectiveUserKey) {
-    throw new BadRequestException(
-      "userKey is required. Provide it as a query/body parameter or use a bearer token with a context key.",
-    );
-  }
-  return effectiveUserKey;
-}
-
 @ApiTags("v1")
 @ApiSecurity("apiKey")
 @ApiSecurity("bearer")
@@ -109,16 +87,8 @@ export class V1Controller {
     @Req() request: Request,
     @Query() query: V1ListThreadsQueryDto,
   ): Promise<V1ListThreadsResponseDto> {
-    const { projectId, contextKey: bearerContextKey } = extractContextInfo(
-      request,
-      query.userKey,
-    );
-    const effectiveContextKey = requireUserKey(query.userKey, bearerContextKey);
-    return await this.v1Service.listThreads(
-      projectId,
-      effectiveContextKey,
-      query,
-    );
+    const { projectId, contextKey } = getV1ContextInfo(request, query.userKey);
+    return await this.v1Service.listThreads(projectId, contextKey, query);
   }
 
   @Get("threads/:threadId")
@@ -152,16 +122,8 @@ export class V1Controller {
     @Param("threadId") threadId: string,
     @Query("userKey") userKey?: string,
   ): Promise<V1GetThreadResponseDto> {
-    const { projectId, contextKey: bearerContextKey } = extractContextInfo(
-      request,
-      userKey,
-    );
-    const effectiveContextKey = requireUserKey(userKey, bearerContextKey);
-    return await this.v1Service.getThread(
-      threadId,
-      projectId,
-      effectiveContextKey,
-    );
+    const { projectId, contextKey } = getV1ContextInfo(request, userKey);
+    return await this.v1Service.getThread(threadId, projectId, contextKey);
   }
 
   @Post("threads")
@@ -179,16 +141,8 @@ export class V1Controller {
     @Req() request: Request,
     @Body() dto: V1CreateThreadDto,
   ): Promise<V1CreateThreadResponseDto> {
-    const { projectId, contextKey: bearerContextKey } = extractContextInfo(
-      request,
-      dto.userKey,
-    );
-    const effectiveContextKey = requireUserKey(dto.userKey, bearerContextKey);
-    return await this.v1Service.createThread(
-      projectId,
-      effectiveContextKey,
-      dto,
-    );
+    const { projectId, contextKey } = getV1ContextInfo(request, dto.userKey);
+    return await this.v1Service.createThread(projectId, contextKey, dto);
   }
 
   @Delete("threads/:threadId")
@@ -223,11 +177,7 @@ export class V1Controller {
     @Param("threadId") threadId: string,
     @Query("userKey") userKey?: string,
   ): Promise<void> {
-    const { contextKey: bearerContextKey } = extractContextInfo(
-      request,
-      userKey,
-    );
-    requireUserKey(userKey, bearerContextKey);
+    getV1ContextInfo(request, userKey);
     await this.v1Service.deleteThread(threadId);
   }
 
@@ -268,11 +218,7 @@ export class V1Controller {
     @Query() query: V1ListMessagesQueryDto,
     @Query("userKey") userKey?: string,
   ): Promise<V1ListMessagesResponseDto> {
-    const { contextKey: bearerContextKey } = extractContextInfo(
-      request,
-      userKey,
-    );
-    requireUserKey(userKey, bearerContextKey);
+    getV1ContextInfo(request, userKey);
     return await this.v1Service.listMessages(threadId, query);
   }
 
@@ -313,11 +259,7 @@ export class V1Controller {
     @Param("messageId") messageId: string,
     @Query("userKey") userKey?: string,
   ): Promise<V1GetMessageResponseDto> {
-    const { contextKey: bearerContextKey } = extractContextInfo(
-      request,
-      userKey,
-    );
-    requireUserKey(userKey, bearerContextKey);
+    getV1ContextInfo(request, userKey);
     return await this.v1Service.getMessage(threadId, messageId);
   }
 
@@ -357,26 +299,17 @@ export class V1Controller {
     @Body() dto: V1CreateThreadWithRunDto,
     @Res() response: Response,
   ): Promise<void> {
-    const {
-      projectId,
-      contextKey: bearerContextKey,
-      sdkVersion,
-    } = extractContextInfo(request, dto.thread?.userKey);
+    const { projectId, contextKey, sdkVersion } = getV1ContextInfo(
+      request,
+      dto.thread?.userKey,
+    );
 
     // Create thread first
-    const effectiveContextKey = requireUserKey(
-      dto.thread?.userKey,
-      bearerContextKey,
-    );
-    const thread = await this.v1Service.createThread(
-      projectId,
-      effectiveContextKey,
-      {
-        userKey: dto.thread?.userKey,
-        metadata: dto.threadMetadata ?? dto.thread?.metadata,
-        initialMessages: dto.thread?.initialMessages,
-      },
-    );
+    const thread = await this.v1Service.createThread(projectId, contextKey, {
+      userKey: dto.thread?.userKey,
+      metadata: dto.threadMetadata ?? dto.thread?.metadata,
+      initialMessages: dto.thread?.initialMessages,
+    });
 
     // Start run (handles concurrency atomically)
     const startResult = await this.v1Service.startRun(thread.id, dto);
@@ -421,7 +354,7 @@ export class V1Controller {
         startResult.runId,
         dto,
         projectId,
-        effectiveContextKey,
+        contextKey,
         sdkVersion,
       );
     } catch (error) {
@@ -481,12 +414,10 @@ export class V1Controller {
     @Body() dto: V1CreateRunDto,
     @Res() response: Response,
   ): Promise<void> {
-    const {
-      projectId,
-      contextKey: bearerContextKey,
-      sdkVersion,
-    } = extractContextInfo(request, dto.userKey);
-    const effectiveContextKey = requireUserKey(dto.userKey, bearerContextKey);
+    const { projectId, contextKey, sdkVersion } = getV1ContextInfo(
+      request,
+      dto.userKey,
+    );
 
     // Start run (handles concurrency atomically)
     const startResult = await this.v1Service.startRun(threadId, dto);
@@ -530,7 +461,7 @@ export class V1Controller {
         startResult.runId,
         dto,
         projectId,
-        effectiveContextKey,
+        contextKey,
         sdkVersion,
       );
     } catch (error) {
@@ -589,11 +520,7 @@ export class V1Controller {
     @Param("runId") runId: string,
     @Query("userKey") userKey?: string,
   ): Promise<V1CancelRunResponseDto> {
-    const { contextKey: bearerContextKey } = extractContextInfo(
-      request,
-      userKey,
-    );
-    requireUserKey(userKey, bearerContextKey);
+    getV1ContextInfo(request, userKey);
     return await this.v1Service.cancelRun(threadId, runId, "user_cancelled");
   }
 
@@ -641,11 +568,7 @@ export class V1Controller {
     @Param("componentId") componentId: string,
     @Body() dto: UpdateComponentStateDto,
   ): Promise<UpdateComponentStateResponseDto> {
-    const { contextKey: bearerContextKey } = extractContextInfo(
-      request,
-      dto.userKey,
-    );
-    requireUserKey(dto.userKey, bearerContextKey);
+    getV1ContextInfo(request, dto.userKey);
     return await this.v1Service.updateComponentState(
       threadId,
       componentId,
@@ -695,16 +618,12 @@ export class V1Controller {
     @Query() query: V1ListSuggestionsQueryDto,
     @Query("userKey") userKey?: string,
   ): Promise<V1ListSuggestionsResponseDto> {
-    const { projectId, contextKey: bearerUserKey } = extractContextInfo(
-      request,
-      userKey,
-    );
-    const effectiveUserKey = requireUserKey(userKey, bearerUserKey);
+    const { projectId, contextKey } = getV1ContextInfo(request, userKey);
     return await this.v1Service.listSuggestions(
       threadId,
       messageId,
       projectId,
-      effectiveUserKey,
+      contextKey,
       query,
     );
   }
@@ -746,16 +665,12 @@ export class V1Controller {
     @Param("messageId") messageId: string,
     @Body() dto: V1GenerateSuggestionsDto,
   ): Promise<V1GenerateSuggestionsResponseDto> {
-    const { projectId, contextKey: bearerUserKey } = extractContextInfo(
-      request,
-      dto.userKey,
-    );
-    const effectiveUserKey = requireUserKey(dto.userKey, bearerUserKey);
+    const { projectId, contextKey } = getV1ContextInfo(request, dto.userKey);
     return await this.v1Service.generateSuggestions(
       threadId,
       messageId,
       projectId,
-      effectiveUserKey,
+      contextKey,
       dto,
     );
   }
