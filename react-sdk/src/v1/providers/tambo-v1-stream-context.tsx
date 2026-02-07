@@ -277,10 +277,19 @@ function ThreadSyncManager(): null {
     refetchOnWindowFocus: false,
   });
 
-  const { data: threadData, isSuccess: threadSuccess } = useTamboQuery({
+  useTamboQuery({
     queryKey: ["v1-thread-metadata", currentThreadId],
-    queryFn: async () =>
-      await client.threads.retrieve(currentThreadId, { userKey }),
+    queryFn: async () => {
+      const data = await client.threads.retrieve(currentThreadId, { userKey });
+      if (data.lastCompletedRunId && dispatch) {
+        dispatch({
+          type: "SET_LAST_COMPLETED_RUN_ID",
+          threadId: currentThreadId,
+          lastCompletedRunId: data.lastCompletedRunId,
+        });
+      }
+      return data;
+    },
     enabled: shouldFetch,
     staleTime: 1000,
     refetchOnWindowFocus: false,
@@ -300,19 +309,6 @@ function ThreadSyncManager(): null {
 
     lastSyncedThreadRef.current = currentThreadId;
   }, [messagesSuccess, messagesData, currentThreadId, dispatch]);
-
-  // Sync thread metadata (lastCompletedRunId) separately so messages
-  // aren't blocked if the thread retrieve is slower or fails
-  useEffect(() => {
-    if (!threadSuccess || !threadData || !dispatch) return;
-    if (!threadData.lastCompletedRunId) return;
-
-    dispatch({
-      type: "SET_LAST_COMPLETED_RUN_ID",
-      threadId: currentThreadId,
-      lastCompletedRunId: threadData.lastCompletedRunId,
-    });
-  }, [threadSuccess, threadData, currentThreadId, dispatch]);
 
   return null;
 }
