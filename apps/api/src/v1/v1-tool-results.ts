@@ -198,5 +198,6 @@ export function convertToolResultsToMessages(
           );
       }
     }),
+    ...(result.isError ? { error: "Tool execution failed" } : {}),
   }));
 }

@@ -207,7 +207,7 @@ export function ProjectTable({
                 const projectId = project.id || "";
                 const projectName = projectId ? (
                   <Link
-                    href={`/dashboard/${projectId}`}
+                    href={`/${projectId}`}
                     className="inline-flex items-center gap-1 transition-colors duration-100 group rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                   >
                     <span className="group-hover:underline group-focus-visible:underline underline-offset-4">
@@ -307,7 +307,7 @@ export function ProjectTable({
                       <div className="flex items-center">
                         {projectId ? (
                           <Link
-                            href={`/dashboard/${projectId}`}
+                            href={`/${projectId}`}
                             className="hover:bg-accent rounded-md p-1"
                           >
                             View

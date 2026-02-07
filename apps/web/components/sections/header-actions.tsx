@@ -69,7 +69,7 @@ export function HeaderActions({
       )}
       {showDashboardButton && (
         <Link
-          href="/dashboard"
+          href="/"
           className={cn(
             buttonVariants({ variant: "default" }),
             "h-9 rounded-md group tracking-tight font-medium",

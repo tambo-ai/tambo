@@ -72,7 +72,7 @@ Connect to external MCP servers for tools, resources, prompts:
 
 ### Server-Side Setup
 
-1. Go to [project dashboard](https://tambo.co/dashboard)
+1. Go to [project dashboard](https://console.tambo.co)
 2. Click "Add MCP Server"
 3. Enter URL and server type (StreamableHTTP or SSE)
 4. Complete OAuth if required

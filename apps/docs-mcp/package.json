@@ -25,7 +25,7 @@
   "devDependencies": {
     "@tambo-ai/eslint-config": "*",
     "@tambo-ai/typescript-config": "*",
-    "@types/node": "^22.19.7",
+    "@types/node": "^22.19.8",
     "typescript": "^5.9.3"
   }
 }

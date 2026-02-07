@@ -53,6 +53,7 @@ export async function addUserMessage(
   threadId: string,
   message: MessageRequest,
   logger?: Logger,
+  sdkVersion?: string,
 ) {
   try {
     const result = await db.transaction(
@@ -79,7 +80,7 @@ export async function addUserMessage(
           "Starting processing...",
         );
 
-        return await addMessage(tx, threadId, message);
+        return await addMessage(tx, threadId, message, sdkVersion);
       },
       {
         isolationLevel: "read committed",
@@ -309,6 +310,7 @@ export async function appendNewMessageToThread(
   role: MessageRole = MessageRole.Assistant,
   initialText: string = "",
   logger?: Logger,
+  sdkVersion?: string,
 ) {
   try {
     const message = await db.transaction(
@@ -320,15 +322,20 @@ export async function appendNewMessageToThread(
           false,
         );
 
-        return await addMessage(tx, threadId, {
-          role,
-          content: [
-            {
-              type: ContentPartType.Text,
-              text: initialText,
-            },
-          ],
-        });
+        return await addMessage(
+          tx,
+          threadId,
+          {
+            role,
+            content: [
+              {
+                type: ContentPartType.Text,
+                text: initialText,
+              },
+            ],
+          },
+          sdkVersion,
+        );
       },
       {
         isolationLevel: "read committed",

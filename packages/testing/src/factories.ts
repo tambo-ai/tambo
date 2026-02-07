@@ -87,6 +87,7 @@ export function createMockDBThread(
     lastRunError: overrides.lastRunError ?? null,
     pendingToolCallIds: overrides.pendingToolCallIds ?? null,
     lastCompletedRunId: overrides.lastCompletedRunId ?? null,
+    sdkVersion: overrides.sdkVersion ?? null,
   };
 
   return thread;
@@ -118,6 +119,7 @@ export function createMockDBMessage(
     createdAt: overrides.createdAt ?? now,
     reasoning: overrides.reasoning ?? null,
     reasoningDurationMS: overrides.reasoningDurationMS ?? null,
+    sdkVersion: overrides.sdkVersion ?? null,
   };
 
   return message;

@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { HeadersEditor, type HeaderKV } from "./headers-editor";
 
@@ -54,5 +54,26 @@ describe("HeadersEditor", () => {
 
     const saveButton = screen.getByRole("button", { name: /save header/i });
     expect(saveButton).toBeEnabled();
+  });
+
+  it("calls onSave with remaining headers when delete is clicked", async () => {
+    const user = userEvent.setup();
+    const onSave = jest.fn();
+    render(<HeadersEditor headers={sampleHeaders} onSave={onSave} />);
+
+    // Find delete buttons (one per header row)
+    const deleteButtons = screen.getAllByRole("button", {
+      name: /delete header/i,
+    });
+    expect(deleteButtons).toHaveLength(2);
+
+    // Delete the first header
+    await user.click(deleteButtons[0]);
+
+    // onSave should be called exactly once with only the second header
+    await waitFor(() => {
+      expect(onSave).toHaveBeenCalledTimes(1);
+    });
+    expect(onSave).toHaveBeenCalledWith([{ header: "X-Custom", value: "foo" }]);
   });
 });

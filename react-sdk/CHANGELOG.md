@@ -1,5 +1,44 @@
 # Changelog
 
+## [0.74.1](https://github.com/tambo-ai/tambo/compare/react-v0.74.0...react-v0.74.1) (2026-02-06)
+
+
+### Bug Fixes
+
+* **api,react-sdk:** prevent MCP "Method not found" error when no servers configured ([#2223](https://github.com/tambo-ai/tambo/issues/2223)) ([1363bde](https://github.com/tambo-ai/tambo/commit/1363bde8668012734c5fb83cacbe6792352c2c89))
+
+## [0.74.0](https://github.com/tambo-ai/tambo/compare/react-v0.73.1...react-v0.74.0) (2026-02-06)
+
+
+### Features
+
+* **api,react-sdk:** V1 API message loading improvements ([#2190](https://github.com/tambo-ai/tambo/issues/2190)) ([53eb5ad](https://github.com/tambo-ai/tambo/commit/53eb5ad852c7c4b02845af8c326c1e4007eca521))
+* **react-sdk:** add interactable component support to V1 SDK ([#2217](https://github.com/tambo-ai/tambo/issues/2217)) ([73ef2f4](https://github.com/tambo-ai/tambo/commit/73ef2f4dc3adbb08df755166f399ac593f5400c7))
+* **react-sdk:** add reasoning message support in v1 SDK ([#2204](https://github.com/tambo-ai/tambo/issues/2204)) ([5cb35fb](https://github.com/tambo-ai/tambo/commit/5cb35fb147aaf2d5060ab431e986365691648100))
+* **react-sdk:** auto-generate thread names after message threshold ([#2222](https://github.com/tambo-ai/tambo/issues/2222)) ([060a01e](https://github.com/tambo-ai/tambo/commit/060a01e6a06ab3a55d681829ead9d5ea03d2310f))
+* **react-sdk:** optimistically parse streaming tool call arguments ([#2231](https://github.com/tambo-ai/tambo/issues/2231)) ([e2f9af5](https://github.com/tambo-ai/tambo/commit/e2f9af555acb8d7c1125115095b40db0db59fa83))
+* **v1:** add run cancellation support ([#2213](https://github.com/tambo-ai/tambo/issues/2213)) ([27e6ac2](https://github.com/tambo-ai/tambo/commit/27e6ac2ecfd0b47d8cf683288bcdfe13d96ba014))
+
+
+### Bug Fixes
+
+* **react-sdk:** isolate thread input pending state per thread ([#2211](https://github.com/tambo-ai/tambo/issues/2211)) ([3a964b5](https://github.com/tambo-ai/tambo/commit/3a964b56027053a98f11511df2fcea16150bd85c))
+* **react-sdk:** propStatus.isSuccess false for API-loaded components ([#2227](https://github.com/tambo-ai/tambo/issues/2227)) ([4061356](https://github.com/tambo-ai/tambo/commit/4061356c1143685804ae9ddcf4af7e134cb55b01))
+* **v1:** set isError flag on tool result errors ([#2229](https://github.com/tambo-ai/tambo/issues/2229)) ([1aa04ad](https://github.com/tambo-ai/tambo/commit/1aa04adf6817d51e9457de61904da8b096b2783b))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump @types/node from 22.19.5 to 22.19.7 ([#2181](https://github.com/tambo-ai/tambo/issues/2181)) ([2dbb652](https://github.com/tambo-ai/tambo/commit/2dbb652293255c5f1baf370a87c0760567eb441e))
+* **deps:** bump @modelcontextprotocol/sdk from 1.25.2 to 1.26.0 ([#2199](https://github.com/tambo-ai/tambo/issues/2199)) ([8884ac7](https://github.com/tambo-ai/tambo/commit/8884ac7b3c800aedb6ed18b934d0f4db98e74e38))
+* **deps:** bump type-fest from 5.4.1 to 5.4.3 ([#2183](https://github.com/tambo-ai/tambo/issues/2183)) ([6484de1](https://github.com/tambo-ai/tambo/commit/6484de16f49ad891989d89b067a47a8883508959))
+* **deps:** bump typescript sdk to 0.89 ([#2203](https://github.com/tambo-ai/tambo/issues/2203)) ([22130d4](https://github.com/tambo-ai/tambo/commit/22130d4cfe7951343bea660e8f64f2a2161fd38a))
+
+
+### Code Refactoring
+
+* **react-sdk:** use internal React Query hooks in v1 SDK ([#2205](https://github.com/tambo-ai/tambo/issues/2205)) ([d12d25d](https://github.com/tambo-ai/tambo/commit/d12d25decca6ae1311aba57fe8121d68237fc46c))
+
 ## [0.73.1](https://github.com/tambo-ai/tambo/compare/react-v0.73.0...react-v0.73.1) (2026-01-31)
 
 

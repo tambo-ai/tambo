@@ -7,6 +7,8 @@
  * - TamboClientProvider: API client and authentication
  * - TamboRegistryProvider: Component and tool registration
  * - TamboContextHelpersProvider: Context helper functions
+ * - TamboContextAttachmentProvider: Single-message context attachments
+ * - TamboInteractableProvider: Interactive component tracking
  * - TamboV1StreamProvider: Streaming state management
  *
  * This provider should wrap your entire application or the portion
@@ -26,13 +28,16 @@ import {
   TamboRegistryProvider,
   type TamboRegistryProviderProps,
 } from "../../providers/tambo-registry-provider";
+import { TamboContextAttachmentProvider } from "../../providers/tambo-context-attachment-provider";
 import { TamboContextHelpersProvider } from "../../providers/tambo-context-helpers-provider";
+import { TamboInteractableProvider } from "../../providers/tambo-interactable-provider";
 import type { ContextHelpers } from "../../context-helpers";
 import type { McpServerInfo } from "../../model/mcp-server-info";
 import type {
   ListResourceItem,
   ResourceSource,
 } from "../../model/resource-info";
+import type { InputMessage } from "../types/message";
 import { TamboV1StreamProvider } from "./tambo-v1-stream-context";
 import { TamboV1ThreadInputProvider } from "./tambo-v1-thread-input-provider";
 
@@ -43,6 +48,15 @@ import { TamboV1ThreadInputProvider } from "./tambo-v1-thread-input-provider";
 export interface TamboV1Config {
   /** User key for thread ownership and scoping */
   userKey?: string;
+  /** Whether to automatically generate thread names after a threshold of messages. Defaults to true. */
+  autoGenerateThreadName?: boolean;
+  /** The message count threshold at which the thread name will be auto-generated. Defaults to 3. */
+  autoGenerateNameThreshold?: number;
+  /**
+   * Initial messages to seed new threads with.
+   * These are displayed in the UI immediately and sent to the API on first message.
+   */
+  initialMessages?: InputMessage[];
 }
 
 /**
@@ -134,6 +148,25 @@ export interface TamboV1ProviderProps extends Pick<
   userKey?: string;
 
   /**
+   * Whether to automatically generate thread names after a threshold of messages.
+   * Defaults to true.
+   */
+  autoGenerateThreadName?: boolean;
+
+  /**
+   * The message count threshold at which the thread name will be auto-generated.
+   * Defaults to 3.
+   */
+  autoGenerateNameThreshold?: number;
+
+  /**
+   * Initial messages to seed new threads with.
+   * These are displayed in the UI immediately (before the first API call)
+   * and sent to the API when the first message is sent to create the thread.
+   */
+  initialMessages?: InputMessage[];
+
+  /**
    * Children components
    */
   children: React.ReactNode;
@@ -163,6 +196,8 @@ export interface TamboV1ProviderProps extends Pick<
  * @param props.getResource - Dynamic resource fetch function (must be paired with listResources)
  * @param props.contextHelpers - Configuration for context helper functions
  * @param props.userKey - User key for thread ownership (required if not using userToken)
+ * @param props.autoGenerateThreadName - Whether to automatically generate thread names. Defaults to true.
+ * @param props.autoGenerateNameThreshold - The message count threshold at which the thread name will be auto-generated. Defaults to 3.
  * @param props.children - Child components
  * @returns Provider component tree
  * @example
@@ -196,10 +231,18 @@ export function TamboV1Provider({
   getResource,
   contextHelpers,
   userKey,
+  autoGenerateThreadName,
+  autoGenerateNameThreshold,
+  initialMessages,
   children,
 }: PropsWithChildren<TamboV1ProviderProps>) {
   // Config is static - created once and never changes
-  const config: TamboV1Config = { userKey };
+  const config: TamboV1Config = {
+    userKey,
+    autoGenerateThreadName,
+    autoGenerateNameThreshold,
+    initialMessages,
+  };
 
   return (
     <TamboClientProvider
@@ -218,13 +261,17 @@ export function TamboV1Provider({
         getResource={getResource}
       >
         <TamboContextHelpersProvider contextHelpers={contextHelpers}>
-          <TamboV1ConfigContext.Provider value={config}>
-            <TamboV1StreamProvider>
-              <TamboV1ThreadInputProvider>
-                {children}
-              </TamboV1ThreadInputProvider>
-            </TamboV1StreamProvider>
-          </TamboV1ConfigContext.Provider>
+          <TamboContextAttachmentProvider>
+            <TamboInteractableProvider>
+              <TamboV1ConfigContext.Provider value={config}>
+                <TamboV1StreamProvider initialMessages={initialMessages}>
+                  <TamboV1ThreadInputProvider>
+                    {children}
+                  </TamboV1ThreadInputProvider>
+                </TamboV1StreamProvider>
+              </TamboV1ConfigContext.Provider>
+            </TamboInteractableProvider>
+          </TamboContextAttachmentProvider>
         </TamboContextHelpersProvider>
       </TamboRegistryProvider>
     </TamboClientProvider>

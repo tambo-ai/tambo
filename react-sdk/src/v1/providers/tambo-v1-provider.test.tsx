@@ -321,7 +321,7 @@ describe("TamboV1Provider", () => {
     expect(helpers.getCurrentTime).toBe(contextHelpers.getCurrentTime);
   });
 
-  it("returns empty contextHelpers when none provided", async () => {
+  it("returns only interactables contextHelper when none explicitly provided", async () => {
     const wrapper = ({ children }: { children: React.ReactNode }) => (
       <TamboV1Provider apiKey="test-api-key">{children}</TamboV1Provider>
     );
@@ -329,6 +329,10 @@ describe("TamboV1Provider", () => {
     const { result } = renderHook(() => useTamboContextHelpers(), { wrapper });
 
     const helpers = result.current.getContextHelpers();
-    expect(Object.keys(helpers)).toHaveLength(0);
+    // TamboInteractableProvider registers "interactables" and TamboContextAttachmentProvider registers "contextAttachments"
+    expect(Object.keys(helpers)).toEqual([
+      "interactables",
+      "contextAttachments",
+    ]);
   });
 });

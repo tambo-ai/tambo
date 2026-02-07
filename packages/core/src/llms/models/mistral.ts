@@ -11,7 +11,8 @@ export const mistralModels: Partial<LlmModelConfig<MistralModelId>> = {
     notes:
       "Mistral Medium 3 is designed to be frontier-class, particularly in categories of professional use.",
     docLink: "https://mistral.ai/news/mistral-medium-3",
-    tamboDocLink: "https://docs.tambo.co/models/mistral#mistral-medium-3",
+    tamboDocLink:
+      "https://docs.tambo.co/reference/llm-providers/mistral#mistral-medium-3",
     inputTokenLimit: 128000,
   },
   "magistral-medium-2506": {
@@ -21,7 +22,8 @@ export const mistralModels: Partial<LlmModelConfig<MistralModelId>> = {
     notes:
       "Magistral Medium 1 is a frontier-class reasoning model released June 2025.",
     docLink: "https://mistral.ai/news/magistral",
-    tamboDocLink: "https://docs.tambo.co/models/mistral#magistral-medium-1",
+    tamboDocLink:
+      "https://docs.tambo.co/reference/llm-providers/mistral#magistral-medium-1",
     inputTokenLimit: 40000,
   },
   "mistral-large-latest": {
@@ -31,7 +33,8 @@ export const mistralModels: Partial<LlmModelConfig<MistralModelId>> = {
     notes:
       "Mistral Large 2.1 is Mistral's top-tier large model for high-complexity tasks with the lastest version released November 2024.",
     docLink: "https://mistral.ai/news/pixtral-large",
-    tamboDocLink: "https://docs.tambo.co/models/mistral#mistral-large-21",
+    tamboDocLink:
+      "https://docs.tambo.co/reference/llm-providers/mistral#mistral-large-21",
     inputTokenLimit: 128000,
   },
 };

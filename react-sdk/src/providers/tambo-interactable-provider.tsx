@@ -19,7 +19,7 @@ import {
 } from "../model/tambo-interactable";
 import { makeJsonSchemaPartial, schemaToJsonSchema } from "../schema";
 import { assertValidName } from "../util/validate-component-name";
-import { useTamboComponent } from "./tambo-component-provider";
+import { useTamboRegistry } from "./tambo-registry-provider";
 import { useTamboContextHelpers } from "./tambo-context-helpers-provider";
 
 const TamboInteractableContext = createContext<TamboInteractableContext>({
@@ -50,7 +50,7 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
   const [interactableComponents, setInteractableComponents] = useState<
     TamboInteractableComponent[]
   >([]);
-  const { registerTool } = useTamboComponent();
+  const { registerTool } = useTamboRegistry();
   const { addContextHelper, removeContextHelper } = useTamboContextHelpers();
 
   // Create a stable context helper function for interactable components

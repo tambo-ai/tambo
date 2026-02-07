@@ -40,7 +40,7 @@ Let me walk through each layer of the architecture.
 
 Let me start with the simplest case: tab management.
 
-Tabs are just lightweight metadata: an ID and a name. The standard [interactable pattern](https://docs.tambo.co/docs/interactables/overview) works great for this.
+Tabs are just lightweight metadata: an ID and a name. The standard [interactable pattern](https://docs.tambo.co/concepts/generative-interfaces/interactable-components) works great for this.
 
 The interactable wrapper basically subscribes to the tab store and publishes a simple state object whenever anything changes:
 
@@ -87,7 +87,7 @@ I initially tried just passing the raw JSON of the spreadsheet data to the AI. I
 
 So I tried a few different formats and found that markdown tables worked surprisingly well. JSON is inherently noisy. All those brackets, quotes, and keys add a lot of extra tokens that don't really help the model understand the tabular structure. Markdown tables are much cleaner, and I think LLMs have probably seen millions of them in their training data, so they just naturally understand rows and columns.
 
-Tambo's [context helper feature](https://docs.tambo.co/docs/additional-context/context-helpers) makes this super easy. I just write a function that formats the data, register it, and it automatically gets included with every message. I don't have to think about when or how to inject that context. It's just always there.
+Tambo's [context helper feature](https://docs.tambo.co/concepts/additional-context) makes this super easy. I just write a function that formats the data, register it, and it automatically gets included with every message. I don't have to think about when or how to inject that context. It's just always there.
 
 Here's the basic idea:
 

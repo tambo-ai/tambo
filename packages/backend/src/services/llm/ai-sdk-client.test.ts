@@ -1,3 +1,4 @@
+import { EventType } from "@ag-ui/core";
 import { AISdkClient } from "./ai-sdk-client";
 
 // Mock the message ID generator
@@ -13,8 +14,8 @@ jest.mock("../../config/langfuse.config", () => ({
 
 // Type for the delta events from AI SDK's fullStream
 type StreamDelta =
-  | { type: "tool-input-start"; toolName: string }
-  | { type: "tool-input-delta"; delta: string }
+  | { type: "tool-input-start"; id: string; toolName: string }
+  | { type: "tool-input-delta"; id: string; delta: string }
   | { type: "tool-call"; toolCallId: string; toolName: string; args: unknown }
   | { type: "text-start" }
   | { type: "text-delta"; text: string }
@@ -53,10 +54,10 @@ describe("AISdkClient", () => {
 
       // Mock stream: tool-input-start -> tool-input-delta (x3) -> tool-call
       const mockDeltas: StreamDelta[] = [
-        { type: "tool-input-start", toolName: "get_weather" },
-        { type: "tool-input-delta", delta: '{"loc' },
-        { type: "tool-input-delta", delta: 'ation":' },
-        { type: "tool-input-delta", delta: '"NYC"}' },
+        { type: "tool-input-start", id: "call-123", toolName: "get_weather" },
+        { type: "tool-input-delta", id: "call-123", delta: '{"loc' },
+        { type: "tool-input-delta", id: "call-123", delta: 'ation":' },
+        { type: "tool-input-delta", id: "call-123", delta: '"NYC"}' },
         {
           type: "tool-call",
           toolCallId: "call-123",
@@ -136,8 +137,8 @@ describe("AISdkClient", () => {
         { type: "text-delta", text: "Let me check " },
         { type: "text-delta", text: "the weather." },
         { type: "text-end" },
-        { type: "tool-input-start", toolName: "get_weather" },
-        { type: "tool-input-delta", delta: '{"city":"SF"}' },
+        { type: "tool-input-start", id: "call-456", toolName: "get_weather" },
+        { type: "tool-input-delta", id: "call-456", delta: '{"city":"SF"}' },
         {
           type: "tool-call",
           toolCallId: "call-456",
@@ -188,9 +189,9 @@ describe("AISdkClient", () => {
       let deltaIndex = 0;
 
       const mockDeltas: StreamDelta[] = [
-        { type: "tool-input-start", toolName: "test_tool" },
-        { type: "tool-input-delta", delta: '{"a":' },
-        { type: "tool-input-delta", delta: '"b"}' },
+        { type: "tool-input-start", id: "call-789", toolName: "test_tool" },
+        { type: "tool-input-delta", id: "call-789", delta: '{"a":' },
+        { type: "tool-input-delta", id: "call-789", delta: '"b"}' },
         {
           type: "tool-call",
           toolCallId: "call-789",
@@ -223,6 +224,70 @@ describe("AISdkClient", () => {
       expect(chunkCount).toBe(4);
       // Chunks should be yielded as deltas arrive (deltaIndex matches chunk index)
       expect(yieldTimes).toEqual([1, 2, 3, 4]);
+    });
+
+    it("should emit TOOL_CALL AG-UI events incrementally for V1 streaming", async () => {
+      const client = new AISdkClient(
+        "test-api-key",
+        "gpt-4",
+        "openai",
+        "test-chain",
+        "test-user",
+      );
+      const mockDeltas: StreamDelta[] = [
+        { type: "tool-input-start", id: "call-123", toolName: "get_weather" },
+        { type: "tool-input-delta", id: "call-123", delta: '{"loc' },
+        { type: "tool-input-delta", id: "call-123", delta: 'ation":"NYC"}' },
+        {
+          type: "tool-call",
+          toolCallId: "call-123",
+          toolName: "get_weather",
+          args: { location: "NYC" },
+        },
+      ];
+
+      const mockStream = createMockStreamResponse(mockDeltas);
+      const handleStreamingResponse = (
+        client as any
+      ).handleStreamingResponse.bind(client);
+
+      const chunks = [];
+      for await (const chunk of handleStreamingResponse(mockStream)) {
+        chunks.push(chunk);
+      }
+
+      // tool-input-start → TOOL_CALL_START emitted immediately
+      expect(chunks[0].aguiEvents).toEqual([
+        expect.objectContaining({
+          type: EventType.TOOL_CALL_START,
+          toolCallId: "call-123",
+          toolCallName: "get_weather",
+        }),
+      ]);
+
+      // Each tool-input-delta → TOOL_CALL_ARGS emitted immediately
+      expect(chunks[1].aguiEvents).toEqual([
+        expect.objectContaining({
+          type: EventType.TOOL_CALL_ARGS,
+          toolCallId: "call-123",
+          delta: '{"loc',
+        }),
+      ]);
+      expect(chunks[2].aguiEvents).toEqual([
+        expect.objectContaining({
+          type: EventType.TOOL_CALL_ARGS,
+          toolCallId: "call-123",
+          delta: 'ation":"NYC"}',
+        }),
+      ]);
+
+      // tool-call → only TOOL_CALL_END (START and ARGS already emitted)
+      expect(chunks[3].aguiEvents).toEqual([
+        expect.objectContaining({
+          type: EventType.TOOL_CALL_END,
+          toolCallId: "call-123",
+        }),
+      ]);
     });
   });
 });

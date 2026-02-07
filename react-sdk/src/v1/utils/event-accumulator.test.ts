@@ -1002,6 +1002,84 @@ describe("streamReducer", () => {
       expect(toolContent.input).toEqual({ city: "NYC" });
     });
 
+    it("optimistically parses partial tool args during streaming", () => {
+      const state = createTestStreamState("thread_1");
+      state.threadMap.thread_1.thread.messages = [
+        {
+          id: "msg_1",
+          role: "assistant",
+          content: [
+            { type: "tool_use", id: "tool_1", name: "test", input: {} },
+          ],
+          createdAt: "2024-01-01T00:00:00.000Z",
+        },
+      ];
+
+      // First chunk: partial key — partial-json can parse this into { city: "" }
+      let result = streamReducer(state, {
+        type: "EVENT",
+        event: {
+          type: EventType.TOOL_CALL_ARGS,
+          toolCallId: "tool_1",
+          delta: '{"city": "N',
+        } satisfies ToolCallArgsEvent,
+        threadId: "thread_1",
+      });
+
+      let toolContent = asToolUseContent(
+        result.threadMap.thread_1.thread.messages[0].content,
+        0,
+      );
+      // partial-json parses incomplete string values
+      expect(toolContent.input).toEqual({ city: "N" });
+
+      // Second chunk: complete city, start of units
+      result = streamReducer(result, {
+        type: "EVENT",
+        event: {
+          type: EventType.TOOL_CALL_ARGS,
+          toolCallId: "tool_1",
+          delta: 'YC", "units": "fahr',
+        } satisfies ToolCallArgsEvent,
+        threadId: "thread_1",
+      });
+
+      toolContent = asToolUseContent(
+        result.threadMap.thread_1.thread.messages[0].content,
+        0,
+      );
+      expect(toolContent.input).toEqual({ city: "NYC", units: "fahr" });
+
+      // Final chunk + TOOL_CALL_END
+      result = streamReducer(result, {
+        type: "EVENT",
+        event: {
+          type: EventType.TOOL_CALL_ARGS,
+          toolCallId: "tool_1",
+          delta: 'enheit"}',
+        } satisfies ToolCallArgsEvent,
+        threadId: "thread_1",
+      });
+
+      result = streamReducer(result, {
+        type: "EVENT",
+        event: {
+          type: EventType.TOOL_CALL_END,
+          toolCallId: "tool_1",
+        } satisfies ToolCallEndEvent,
+        threadId: "thread_1",
+      });
+
+      toolContent = asToolUseContent(
+        result.threadMap.thread_1.thread.messages[0].content,
+        0,
+      );
+      expect(toolContent.input).toEqual({
+        city: "NYC",
+        units: "fahrenheit",
+      });
+    });
+
     it("throws when tool arguments JSON is invalid", () => {
       const state = createTestStreamState("thread_1");
       state.threadMap.thread_1.thread.messages = [
@@ -1041,6 +1119,41 @@ describe("streamReducer", () => {
           threadId: "thread_1",
         });
       }).toThrow("Failed to parse tool call arguments");
+    });
+
+    it("uses parsedToolArgs from action when provided (skips own parsing)", () => {
+      const state = createTestStreamState("thread_1");
+      state.threadMap.thread_1.thread.messages = [
+        {
+          id: "msg_1",
+          role: "assistant",
+          content: [
+            { type: "tool_use", id: "tool_1", name: "test", input: {} },
+          ],
+          createdAt: "2024-01-01T00:00:00.000Z",
+        },
+      ];
+
+      const preParsed = { city: "Seattle", units: "celsius" };
+
+      const result = streamReducer(state, {
+        type: "EVENT",
+        event: {
+          type: EventType.TOOL_CALL_ARGS,
+          toolCallId: "tool_1",
+          // Deliberately incomplete JSON — if the reducer re-parses, it would not match preParsed
+          delta: '{"city": "Seat',
+        } satisfies ToolCallArgsEvent,
+        threadId: "thread_1",
+        parsedToolArgs: preParsed,
+      });
+
+      const toolContent = asToolUseContent(
+        result.threadMap.thread_1.thread.messages[0].content,
+        0,
+      );
+      // Should use the pre-parsed value, not the incomplete delta
+      expect(toolContent.input).toEqual(preParsed);
     });
   });
 
@@ -2364,6 +2477,83 @@ describe("streamReducer", () => {
       );
     });
 
+    it("sets streamingState to 'done' on component content blocks without streamingState", () => {
+      const state = createTestStreamState("thread_1");
+
+      const result = streamReducer(state, {
+        type: "LOAD_THREAD_MESSAGES",
+        threadId: "thread_1",
+        messages: [
+          {
+            id: "msg_1",
+            role: "assistant",
+            content: [
+              { type: "text", text: "Here is a component" },
+              {
+                type: "component",
+                id: "comp_1",
+                name: "WeatherCard",
+                props: { city: "SF", temperature: 72 },
+                // No streamingState — simulates API-loaded message
+              },
+            ],
+            createdAt: "2024-01-01T00:00:00.000Z",
+          },
+        ],
+      });
+
+      const messages = result.threadMap.thread_1.thread.messages;
+      expect(messages).toHaveLength(1);
+      const componentBlock = messages[0].content.find(
+        (c) => c.type === "component",
+      );
+      expect(componentBlock).toBeDefined();
+      expect(componentBlock!.type).toBe("component");
+      expect(
+        (componentBlock as { streamingState?: string }).streamingState,
+      ).toBe("done");
+    });
+
+    it("overwrites non-done streamingState and warns", () => {
+      const state = createTestStreamState("thread_1");
+      const warnSpy = jest.spyOn(console, "warn").mockImplementation();
+
+      const result = streamReducer(state, {
+        type: "LOAD_THREAD_MESSAGES",
+        threadId: "thread_1",
+        messages: [
+          {
+            id: "msg_1",
+            role: "assistant",
+            content: [
+              {
+                type: "component",
+                id: "comp_1",
+                name: "WeatherCard",
+                props: { city: "SF" },
+                streamingState: "streaming",
+              },
+            ],
+            createdAt: "2024-01-01T00:00:00.000Z",
+          },
+        ],
+      });
+
+      const messages = result.threadMap.thread_1.thread.messages;
+      const componentBlock = messages[0].content.find(
+        (c) => c.type === "component",
+      );
+      // Always set to "done" for API-loaded messages
+      expect(
+        (componentBlock as { streamingState?: string }).streamingState,
+      ).toBe("done");
+      expect(warnSpy).toHaveBeenCalledWith(
+        expect.stringContaining('unexpected streamingState "streaming"'),
+      );
+
+      warnSpy.mockRestore();
+    });
+
     it("handles system role messages from API", () => {
       const state = createTestStreamState("thread_1");
 
@@ -2389,6 +2579,54 @@ describe("streamReducer", () => {
       expect(result.threadMap.thread_1.thread.messages).toHaveLength(2);
       expect(result.threadMap.thread_1.thread.messages[0].role).toBe("system");
       expect(result.threadMap.thread_1.thread.messages[1].role).toBe("user");
+    });
+  });
+
+  describe("UPDATE_THREAD_TITLE action", () => {
+    it("updates the title on an existing thread", () => {
+      const state = createTestStreamState("thread_1");
+
+      const result = streamReducer(state, {
+        type: "UPDATE_THREAD_TITLE",
+        threadId: "thread_1",
+        title: "My Chat Thread",
+      });
+
+      expect(result.threadMap.thread_1.thread.title).toBe("My Chat Thread");
+    });
+
+    it("returns unchanged state when thread does not exist", () => {
+      const state = createTestStreamState("thread_1");
+
+      const result = streamReducer(state, {
+        type: "UPDATE_THREAD_TITLE",
+        threadId: "nonexistent_thread",
+        title: "My Chat Thread",
+      });
+
+      expect(result).toBe(state);
+    });
+
+    it("preserves other thread properties when updating title", () => {
+      const state = createTestStreamState("thread_1");
+      state.threadMap.thread_1.thread.messages = [
+        {
+          id: "msg_1",
+          role: "user",
+          content: [{ type: "text", text: "Hello" }],
+          createdAt: "2024-01-01T00:00:00.000Z",
+        },
+      ];
+
+      const result = streamReducer(state, {
+        type: "UPDATE_THREAD_TITLE",
+        threadId: "thread_1",
+        title: "My Chat Thread",
+      });
+
+      expect(result.threadMap.thread_1.thread.title).toBe("My Chat Thread");
+      expect(result.threadMap.thread_1.thread.messages).toHaveLength(1);
+      expect(result.threadMap.thread_1.thread.id).toBe("thread_1");
     });
   });
 });

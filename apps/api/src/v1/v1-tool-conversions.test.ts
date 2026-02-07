@@ -3,6 +3,7 @@ import {
   convertV1ToolsToInternal,
   convertV1ComponentToInternal,
   convertV1ComponentsToInternal,
+  convertV1ToolChoiceToInternal,
 } from "./v1-tool-conversions";
 import type { V1ToolDto, V1AvailableComponentDto } from "./dto/tool.dto";
 
@@ -285,6 +286,30 @@ describe("v1-tool-conversions", () => {
       // stateSchema is not used in internal format currently
       expect(result.name).toBe("Counter");
       expect(result.contextTools).toEqual([]);
+    });
+  });
+
+  describe("convertV1ToolChoiceToInternal", () => {
+    it("returns undefined for undefined input", () => {
+      expect(convertV1ToolChoiceToInternal(undefined)).toBeUndefined();
+    });
+
+    it("returns undefined for 'auto'", () => {
+      expect(convertV1ToolChoiceToInternal("auto")).toBeUndefined();
+    });
+
+    it("returns 'required' for 'required'", () => {
+      expect(convertV1ToolChoiceToInternal("required")).toBe("required");
+    });
+
+    it("returns 'none' for 'none'", () => {
+      expect(convertV1ToolChoiceToInternal("none")).toBe("none");
+    });
+
+    it("returns tool name for named tool choice", () => {
+      expect(convertV1ToolChoiceToInternal({ name: "get_weather" })).toBe(
+        "get_weather",
+      );
     });
   });
 

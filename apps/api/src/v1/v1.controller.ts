@@ -316,10 +316,11 @@ export class V1Controller {
     @Body() dto: V1CreateThreadWithRunDto,
     @Res() response: Response,
   ): Promise<void> {
-    const { projectId, contextKey: bearerContextKey } = extractContextInfo(
-      request,
-      dto.thread?.userKey,
-    );
+    const {
+      projectId,
+      contextKey: bearerContextKey,
+      sdkVersion,
+    } = extractContextInfo(request, dto.thread?.userKey);
 
     // Create thread first
     const effectiveContextKey = requireUserKey(
@@ -332,6 +333,7 @@ export class V1Controller {
       {
         userKey: dto.thread?.userKey,
         metadata: dto.threadMetadata ?? dto.thread?.metadata,
+        initialMessages: dto.thread?.initialMessages,
       },
     );
 
@@ -379,6 +381,7 @@ export class V1Controller {
         dto,
         projectId,
         effectiveContextKey,
+        sdkVersion,
       );
     } catch (error) {
       // Emit error event if headers already sent
@@ -437,10 +440,11 @@ export class V1Controller {
     @Body() dto: V1CreateRunDto,
     @Res() response: Response,
   ): Promise<void> {
-    const { projectId, contextKey: bearerContextKey } = extractContextInfo(
-      request,
-      dto.userKey,
-    );
+    const {
+      projectId,
+      contextKey: bearerContextKey,
+      sdkVersion,
+    } = extractContextInfo(request, dto.userKey);
     const effectiveContextKey = requireUserKey(dto.userKey, bearerContextKey);
 
     // Start run (handles concurrency atomically)
@@ -486,6 +490,7 @@ export class V1Controller {
         dto,
         projectId,
         effectiveContextKey,
+        sdkVersion,
       );
     } catch (error) {
       // Emit error event if headers already sent
