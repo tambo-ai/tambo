@@ -18,6 +18,7 @@ export type {
 } from "@tambo-ai/typescript-sdk/resources/threads/threads";
 
 // Re-export message types from TypeScript SDK
+import type { InputMessage } from "@tambo-ai/typescript-sdk/resources/threads/runs";
 export type { InputMessage } from "@tambo-ai/typescript-sdk/resources/threads/runs";
 
 /**
