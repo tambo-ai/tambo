@@ -12,7 +12,7 @@ import type {
   ResourceContent,
 } from "@tambo-ai/typescript-sdk/resources/threads/threads";
 import type { ToolCallTracker } from "./tool-call-tracker";
-import { createKeyedDebounce, type KeyedDebounce } from "./keyed-debounce";
+import { createKeyedThrottle, type KeyedThrottle } from "./keyed-throttle";
 
 /**
  * Pending tool call from the stream accumulator
@@ -60,27 +60,30 @@ export async function executeStreamableToolCall(
   }
 }
 
-const DEFAULT_STREAMABLE_DEBOUNCE_MS = 150;
+const DEFAULT_STREAMABLE_THROTTLE_MS = 100;
 
 /**
- * Creates a debounced wrapper around executeStreamableToolCall.
+ * Creates a throttled wrapper around executeStreamableToolCall.
  *
- * Each tool call ID gets its own independent debounce timer via
- * {@link createKeyedDebounce}. When a new call arrives for the same ID,
- * the previous timer is cancelled and the args are replaced. After
- * `delay` ms of quiet, the tool executes with the latest args.
- * Call `flush()` to force-execute all pending calls.
+ * Each tool call ID gets its own independent leading+trailing throttle via
+ * {@link createKeyedThrottle}. The first call for a tool ID fires immediately
+ * (leading edge). Subsequent calls during the cooldown window update the
+ * stored args. After `delay` ms, if new args arrived, the tool re-executes
+ * with the latest args (trailing edge). This repeats as long as new args
+ * keep arriving — roughly one execution per `delay` ms during streaming.
+ *
+ * Call `flush()` to force-execute all pending trailing calls and reset to idle.
  * @param toolTracker - Tracker holding pending tool call state
  * @param toolRegistry - Record of tool name to tool definition
- * @param delay - Debounce delay in milliseconds
- * @returns Keyed debounce controller (schedule / flush)
+ * @param delay - Throttle interval in milliseconds
+ * @returns Keyed throttle controller (schedule / flush)
  */
-export function createDebouncedStreamableExecutor(
+export function createThrottledStreamableExecutor(
   toolTracker: ToolCallTracker,
   toolRegistry: Record<string, TamboTool>,
-  delay = DEFAULT_STREAMABLE_DEBOUNCE_MS,
-): KeyedDebounce<Record<string, unknown>> {
-  return createKeyedDebounce<Record<string, unknown>>((toolCallId, args) => {
+  delay = DEFAULT_STREAMABLE_THROTTLE_MS,
+): KeyedThrottle<Record<string, unknown>> {
+  return createKeyedThrottle<Record<string, unknown>>((toolCallId, args) => {
     void executeStreamableToolCall(toolCallId, args, toolTracker, toolRegistry);
   }, delay);
 }

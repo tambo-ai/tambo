@@ -40,7 +40,7 @@ import {
 import { handleEventStream } from "../utils/stream-handler";
 import {
   executeAllPendingTools,
-  createDebouncedStreamableExecutor,
+  createThrottledStreamableExecutor,
 } from "../utils/tool-executor";
 import type { ToolResultContent } from "@tambo-ai/typescript-sdk/resources/threads/threads";
 import { ToolCallTracker } from "../utils/tool-call-tracker";
@@ -565,7 +565,7 @@ export function useTamboV1SendMessage(threadId?: string) {
       const threadAlreadyHasTitle = !!existingThread?.thread.title;
 
       const toolTracker = new ToolCallTracker();
-      const debouncedStreamable = createDebouncedStreamableExecutor(
+      const throttledStreamable = createThrottledStreamableExecutor(
         toolTracker,
         registry.toolRegistry,
       );
@@ -660,7 +660,7 @@ export function useTamboV1SendMessage(threadId?: string) {
 
             // Schedule debounced streamable tool execution with the same pre-parsed args
             if (parsedToolArgs && event.type === EventType.TOOL_CALL_ARGS) {
-              debouncedStreamable.schedule(event.toolCallId, parsedToolArgs);
+              throttledStreamable.schedule(event.toolCallId, parsedToolArgs);
             }
 
             // Check for awaiting_input - if found, break to execute tools
@@ -674,7 +674,7 @@ export function useTamboV1SendMessage(threadId?: string) {
           }
 
           // Flush any pending debounced streamable calls before continuing
-          debouncedStreamable.flush();
+          throttledStreamable.flush();
 
           // If stream finished without awaiting_input, we're done
           if (!pendingAwaitingInput) {
