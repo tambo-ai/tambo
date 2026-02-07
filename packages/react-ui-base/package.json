@@ -73,6 +73,16 @@
         "default": "./dist/cjs/toolcall-info/index.cjs"
       }
     },
+    "./message-thread-full": {
+      "import": {
+        "types": "./dist/esm/message-thread-full/index.d.ts",
+        "default": "./dist/esm/message-thread-full/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/message-thread-full/index.d.ts",
+        "default": "./dist/cjs/message-thread-full/index.cjs"
+      }
+    },
     "./types": {
       "import": {
         "types": "./dist/esm/types/index.d.ts",

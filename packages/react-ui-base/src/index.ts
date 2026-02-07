@@ -94,6 +94,17 @@ export type {
   ToolcallInfoTriggerProps,
 } from "./toolcall-info";
 
+// MessageThreadFull components
+export { MessageThreadFull } from "./message-thread-full";
+export type {
+  MessageThreadFullContainerProps,
+  MessageThreadFullContainerRenderProps,
+  MessageThreadFullContextValue,
+  MessageThreadFullRootProps,
+  MessageThreadFullRootRenderProps,
+  MessageThreadFullSidebarProps,
+} from "./message-thread-full";
+
 // Types
 export type {
   BaseProps,
