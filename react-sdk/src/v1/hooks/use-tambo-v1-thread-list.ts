@@ -14,6 +14,7 @@ import type {
 import { useTamboClient } from "../../providers/tambo-client-provider";
 import { useTamboQuery } from "../../hooks/react-query-hooks";
 import { useTamboV1Config } from "../providers/tambo-v1-provider";
+import { useTamboV1AuthState } from "./use-tambo-v1-auth-state";
 
 /**
  * Options for fetching thread list.
@@ -66,6 +67,8 @@ export function useTamboV1ThreadList(
 ) {
   const client = useTamboClient();
   const { userKey: contextUserKey } = useTamboV1Config();
+  const authState = useTamboV1AuthState();
+  const isIdentified = authState.status === "identified";
 
   // Merge userKey from context with provided options (explicit option takes precedence)
   const effectiveOptions: ThreadListParams | undefined =
@@ -78,5 +81,6 @@ export function useTamboV1ThreadList(
     queryFn: async () => await client.threads.list(effectiveOptions),
     staleTime: 5000, // Consider stale after 5s
     ...queryOptions,
+    enabled: isIdentified && (queryOptions?.enabled ?? true),
   });
 }

@@ -28,6 +28,7 @@ import { useTamboV1SendMessage } from "../hooks/use-tambo-v1-send-message";
 import type { InputMessage } from "../types/message";
 import type { ToolChoice } from "../types/tool-choice";
 import { isPlaceholderThreadId } from "../utils/event-accumulator";
+import { useTamboV1AuthState } from "../hooks/use-tambo-v1-auth-state";
 import { useStreamDispatch, useStreamState } from "./tambo-v1-stream-context";
 
 // Error messages for various input-related error scenarios.
@@ -136,6 +137,9 @@ export interface TamboV1ThreadInputContextProps extends Omit<
 
   /** Current thread ID being used for input (from stream state) */
   threadId: string | undefined;
+
+  /** Whether the input should be disabled (pending submission or not authenticated) */
+  isDisabled: boolean;
 }
 
 /**
@@ -160,6 +164,7 @@ export function TamboV1ThreadInputProvider({ children }: PropsWithChildren) {
   const imageState = useMessageImages();
   const streamState = useStreamState();
   const dispatch = useStreamDispatch();
+  const authState = useTamboV1AuthState();
 
   // Use the current thread from stream state directly
   // Placeholder ID indicates a new thread should be created
@@ -167,10 +172,19 @@ export function TamboV1ThreadInputProvider({ children }: PropsWithChildren) {
   const isNewThread = isPlaceholderThreadId(currentThreadId);
   const sendMessage = useTamboV1SendMessage(currentThreadId);
 
+  const isIdentified = authState.status === "identified";
+
   const submitFn = useCallback(
     async (
       options?: SubmitOptions,
     ): Promise<{ threadId: string | undefined }> => {
+      if (!isIdentified) {
+        throw new Error(
+          "Cannot submit: authentication is not ready. " +
+            "Ensure a valid userKey or userToken is provided.",
+        );
+      }
+
       const trimmedValue = inputValue.trim();
 
       // Check if we have content to send
@@ -210,7 +224,7 @@ export function TamboV1ThreadInputProvider({ children }: PropsWithChildren) {
       return result;
     },
     // `stagedImageToResourceContent` is a pure module-level helper (not a hook value).
-    [inputValue, imageState, sendMessage, isNewThread, dispatch],
+    [inputValue, imageState, sendMessage, isNewThread, dispatch, isIdentified],
   );
 
   const {
@@ -233,6 +247,7 @@ export function TamboV1ThreadInputProvider({ children }: PropsWithChildren) {
     removeImage: imageState.removeImage,
     clearImages: imageState.clearImages,
     threadId: currentThreadId,
+    isDisabled: mutationState.isPending || !isIdentified,
   };
 
   return (

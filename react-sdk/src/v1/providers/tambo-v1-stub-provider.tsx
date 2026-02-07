@@ -307,6 +307,7 @@ export function TamboV1StubProvider({
       context: undefined,
       submittedAt: 0,
       isPaused: false,
+      isDisabled: false,
     };
   }, [inputValue, threadId, onSubmit, onSetValue, setInputValueInternal]);
 
@@ -339,6 +340,9 @@ export function TamboV1StubProvider({
       client: stubClient,
       queryClient,
       isUpdatingToken: false,
+      tokenExchangeError: null,
+      userToken: undefined,
+      hasValidToken: false,
     }),
     [stubClient, queryClient],
   );

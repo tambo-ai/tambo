@@ -167,6 +167,9 @@ describe("TamboThreadProvider", () => {
             client,
             queryClient,
             isUpdatingToken: false,
+            tokenExchangeError: null,
+            userToken: undefined,
+            hasValidToken: false,
           }}
         >
           <TamboRegistryProvider

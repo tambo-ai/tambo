@@ -18,6 +18,13 @@ jest.mock("../providers/tambo-v1-provider", () => ({
   useTamboV1Config: jest.fn(),
 }));
 
+jest.mock("./use-tambo-v1-auth-state", () => ({
+  useTamboV1AuthState: () => ({
+    status: "identified",
+    source: "userKey",
+  }),
+}));
+
 describe("useTamboV1ThreadList", () => {
   const mockThreads = {
     threads: [

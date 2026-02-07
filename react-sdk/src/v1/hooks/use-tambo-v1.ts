@@ -17,6 +17,8 @@ import React, {
   type ReactElement,
 } from "react";
 import { useTamboClient } from "../../providers/tambo-client-provider";
+import { useTamboV1AuthState } from "./use-tambo-v1-auth-state";
+import type { TamboV1AuthState } from "../types/auth";
 import {
   TamboRegistryContext,
   type TamboRegistryContext as TamboRegistryContextType,
@@ -135,6 +137,18 @@ export interface UseTamboV1Return {
    * No-op if there's no active run or thread is a placeholder.
    */
   cancelRun: () => Promise<void>;
+
+  /**
+   * Current authentication state.
+   * Use this to show auth-related UI or conditionally render features.
+   */
+  authState: TamboV1AuthState;
+
+  /**
+   * Shorthand for `authState.status === "identified"`.
+   * When true, the SDK is ready to make API calls.
+   */
+  isIdentified: boolean;
 }
 
 /**
@@ -185,6 +199,7 @@ export function useTamboV1(): UseTamboV1Return {
   const dispatch = useStreamDispatch();
   const registry = useContext(TamboRegistryContext);
   const threadManagement = useThreadManagement();
+  const authState = useTamboV1AuthState();
 
   // Cache for rendered component wrappers - maintains stable element references
   // across renders when props haven't changed
@@ -356,6 +371,8 @@ export function useTamboV1(): UseTamboV1Return {
       startNewThread: threadManagement.startNewThread,
       dispatch,
       cancelRun,
+      authState,
+      isIdentified: authState.status === "identified",
     };
   }, [
     cancelRun,
@@ -365,5 +382,6 @@ export function useTamboV1(): UseTamboV1Return {
     streamState.currentThreadId,
     threadManagement,
     dispatch,
+    authState,
   ]);
 }

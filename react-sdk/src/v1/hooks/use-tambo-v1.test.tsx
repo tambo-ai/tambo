@@ -21,6 +21,13 @@ jest.mock("../../providers/tambo-client-provider", () => ({
   useTamboQueryClient: jest.fn(),
 }));
 
+jest.mock("./use-tambo-v1-auth-state", () => ({
+  useTamboV1AuthState: () => ({
+    status: "identified",
+    source: "userKey",
+  }),
+}));
+
 import { useTamboQueryClient } from "../../providers/tambo-client-provider";
 
 describe("useTamboV1", () => {

@@ -64,6 +64,9 @@ const createWrapper = (
           client,
           queryClient,
           isUpdatingToken: false,
+          tokenExchangeError: null,
+          userToken: undefined,
+          hasValidToken: false,
         }}
       >
         <TamboRegistryProvider components={[]} tools={tools}>
