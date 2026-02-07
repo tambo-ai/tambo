@@ -30,3 +30,4 @@ export const MessageThreadPanelContent = React.forwardRef<
     </Comp>
   );
 });
+MessageThreadPanelContent.displayName = "MessageThreadPanel.Content";

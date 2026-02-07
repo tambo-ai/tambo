@@ -23,11 +23,15 @@ export interface MessageThreadPanelResizableProps
   asChild?: boolean;
   /** Minimum width of the panel in pixels. Defaults to 300. */
   minWidth?: number;
+  /** Width increment for keyboard resizing in pixels. Defaults to 20. */
+  keyboardStep?: number;
   /** Children as ReactNode or render function receiving resize state. */
   children?:
     | React.ReactNode
     | ((props: MessageThreadPanelResizableRenderProps) => React.ReactNode);
 }
+
+const KEYBOARD_STEP_DEFAULT = 20;
 
 /**
  * Resizable container primitive for the message thread panel.
@@ -40,33 +44,34 @@ export const MessageThreadPanelResizable = React.forwardRef<
   HTMLDivElement,
   MessageThreadPanelResizableProps
 >(function MessageThreadPanelResizable(
-  { children, asChild, minWidth = 300, style, ...props },
+  {
+    children,
+    asChild,
+    minWidth = 300,
+    keyboardStep = KEYBOARD_STEP_DEFAULT,
+    style,
+    ...props
+  },
   ref,
 ) {
   const { panelRef, width, setWidth, isLeftPanel } =
     useMessageThreadPanelContext();
   const mergedRef = useMergeRefs<HTMLDivElement | null>(ref, panelRef);
   const isResizingRef = React.useRef(false);
-  const lastUpdateRef = React.useRef(0);
+  const handleMouseMoveRef = React.useRef<((e: MouseEvent) => void) | null>(
+    null,
+  );
   const [isResizing, setIsResizing] = React.useState(false);
 
   const handleMouseMove = React.useCallback(
     (e: MouseEvent) => {
-      if (!isResizingRef.current) return;
-
-      const now = Date.now();
-      if (now - lastUpdateRef.current < 16) return;
-      lastUpdateRef.current = now;
-
-      const windowWidth = window.innerWidth;
-
       requestAnimationFrame(() => {
-        let newWidth;
-        if (isLeftPanel) {
-          newWidth = Math.round(e.clientX);
-        } else {
-          newWidth = Math.round(windowWidth - e.clientX);
-        }
+        if (!isResizingRef.current) return;
+
+        const windowWidth = window.innerWidth;
+        const newWidth = isLeftPanel
+          ? Math.round(e.clientX)
+          : Math.round(windowWidth - e.clientX);
 
         const clampedWidth = Math.max(
           minWidth,
@@ -74,21 +79,32 @@ export const MessageThreadPanelResizable = React.forwardRef<
         );
         setWidth(clampedWidth);
 
-        if (isLeftPanel) {
-          document.documentElement.style.setProperty(
-            "--panel-left-width",
-            `${clampedWidth}px`,
-          );
-        } else {
-          document.documentElement.style.setProperty(
-            "--panel-right-width",
-            `${clampedWidth}px`,
-          );
-        }
+        const prop = isLeftPanel
+          ? "--panel-left-width"
+          : "--panel-right-width";
+        document.documentElement.style.setProperty(prop, `${clampedWidth}px`);
       });
     },
     [isLeftPanel, minWidth, setWidth],
   );
+
+  // Store latest handleMouseMove in ref for cleanup
+  handleMouseMoveRef.current = handleMouseMove;
+
+  // Clean up drag listeners on unmount
+  React.useEffect(() => {
+    return () => {
+      if (handleMouseMoveRef.current) {
+        document.removeEventListener("mousemove", handleMouseMoveRef.current);
+      }
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+      isResizingRef.current = false;
+
+      const prop = isLeftPanel ? "--panel-left-width" : "--panel-right-width";
+      document.documentElement.style.removeProperty(prop);
+    };
+  }, [isLeftPanel]);
 
   const handleMouseDown = React.useCallback(
     (e: React.MouseEvent) => {
@@ -113,12 +129,34 @@ export const MessageThreadPanelResizable = React.forwardRef<
     [handleMouseMove],
   );
 
-  let content: React.ReactNode;
-  if (typeof children === "function") {
-    content = children({ width, isLeftPanel, isResizing });
-  } else {
-    content = children;
-  }
+  const handleKeyDown = React.useCallback(
+    (e: React.KeyboardEvent) => {
+      const windowWidth = window.innerWidth;
+      const grow = isLeftPanel ? "ArrowRight" : "ArrowLeft";
+      const shrink = isLeftPanel ? "ArrowLeft" : "ArrowRight";
+
+      if (e.key === grow || e.key === shrink) {
+        e.preventDefault();
+        const delta = e.key === grow ? keyboardStep : -keyboardStep;
+        const newWidth = Math.max(
+          minWidth,
+          Math.min(windowWidth - minWidth, width + delta),
+        );
+        setWidth(newWidth);
+
+        const prop = isLeftPanel
+          ? "--panel-left-width"
+          : "--panel-right-width";
+        document.documentElement.style.setProperty(prop, `${newWidth}px`);
+      }
+    },
+    [isLeftPanel, keyboardStep, minWidth, width, setWidth],
+  );
+
+  const content =
+    typeof children === "function"
+      ? children({ width, isLeftPanel, isResizing })
+      : children;
 
   const Comp = asChild ? Slot : "div";
 
@@ -133,6 +171,11 @@ export const MessageThreadPanelResizable = React.forwardRef<
     >
       {/* Resize handle */}
       <div
+        role="separator"
+        aria-orientation="vertical"
+        aria-label="Resize panel"
+        aria-valuenow={width}
+        tabIndex={0}
         data-slot="message-thread-panel-resize-handle"
         data-position={isLeftPanel ? "right" : "left"}
         style={{
@@ -145,8 +188,10 @@ export const MessageThreadPanelResizable = React.forwardRef<
           ...(isLeftPanel ? { right: 0 } : { left: 0 }),
         }}
         onMouseDown={handleMouseDown}
+        onKeyDown={handleKeyDown}
       />
       {content}
     </Comp>
   );
 });
+MessageThreadPanelResizable.displayName = "MessageThreadPanel.Resizable";
