@@ -73,6 +73,16 @@
         "default": "./dist/cjs/toolcall-info/index.cjs"
       }
     },
+    "./elicitation-ui": {
+      "import": {
+        "types": "./dist/esm/elicitation-ui/index.d.ts",
+        "default": "./dist/esm/elicitation-ui/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/elicitation-ui/index.d.ts",
+        "default": "./dist/cjs/elicitation-ui/index.cjs"
+      }
+    },
     "./types": {
       "import": {
         "types": "./dist/esm/types/index.d.ts",
