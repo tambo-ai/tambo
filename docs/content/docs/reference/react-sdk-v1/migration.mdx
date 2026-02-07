@@ -423,7 +423,7 @@ The interactable HOC and hooks are available in V1 with the same names:
 
 ```tsx title="Before"
 import {
-  withTamboInteractable,
+  withInteractable,
   useTamboInteractable,
   useCurrentInteractablesSnapshot,
 } from "@tambo-ai/react";
@@ -437,10 +437,11 @@ import {
 } from "@tambo-ai/react/v1";
 ```
 
-Usage is unchanged — `withTamboInteractable` wraps a component the same way:
+The HOC was renamed from `withInteractable` to `withTamboInteractable` for consistency with the SDK naming convention. Usage is otherwise unchanged:
 
 ```tsx
 const InteractableNote = withTamboInteractable(Note, {
+  componentName: "Note",
   description: "An editable note",
   propsSchema: noteSchema,
 });
@@ -470,7 +471,7 @@ import { useTamboContextAttachment } from "@tambo-ai/react";
 | `useTamboSuggestions()`             | `useTamboV1Suggestions()`             | `useTamboSuggestions()`               |
 | `TamboThreadMessage`                | `TamboV1Message`                      | `TamboMessage`                        |
 | `GenerationStage`                   | `streamingState.status` (`RunStatus`) | `streamingState.status` (`RunStatus`) |
-| `withTamboInteractable`             | `withTamboInteractable`               | `withTamboInteractable`               |
+| `withInteractable`                  | `withTamboInteractable`               | `withTamboInteractable`               |
 | `useTamboInteractable`              | `useTamboInteractable`                | `useTamboInteractable`                |
 | `useCurrentInteractablesSnapshot`   | `useCurrentInteractablesSnapshot`     | `useCurrentInteractablesSnapshot`     |
 | _n/a_                               | `V1ComponentRenderer`                 | `ComponentRenderer`                   |

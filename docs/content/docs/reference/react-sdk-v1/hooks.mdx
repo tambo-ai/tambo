@@ -365,6 +365,8 @@ function EditableCard({ title: initialTitle }: { title: string }) {
 
 Track streaming status for components rendered via `V1ComponentRenderer`. Provides both overall stream status and per-prop granularity.
 
+**Important**: Props update repeatedly during streaming and may be partial. Use `propStatus.<field>?.isSuccess` before treating a prop as complete.
+
 ```tsx
 import { useTamboV1StreamStatus } from "@tambo-ai/react/v1";
 
