@@ -1,5 +1,9 @@
 "use client";
 
+import {
+  MapBase,
+  type MapContainerRenderProps,
+} from "@tambo-ai/react-ui-base/map";
 import { cn } from "@tambo-ai/ui-registry/utils";
 import {
   createElementObject,
@@ -8,11 +12,6 @@ import {
   type LayerProps,
   type LeafletContextInterface,
 } from "@react-leaflet/core";
-import {
-  GenerationStage,
-  useTambo,
-  useTamboCurrentMessage,
-} from "@tambo-ai/react";
 import { cva, type VariantProps } from "class-variance-authority";
 import L, {
   type HeatLatLngTuple,
@@ -25,7 +24,7 @@ import "leaflet.markercluster/dist/MarkerCluster.css";
 import "leaflet.markercluster/dist/MarkerCluster.Default.css";
 import * as React from "react";
 import {
-  MapContainer,
+  MapContainer as LeafletMapContainer,
   Marker,
   TileLayer,
   Tooltip,
@@ -47,8 +46,8 @@ interface MarkerClusterGroupProps extends MarkerClusterGroupOptions {
 
 /**
  * ClusterGroup component for grouping markers on the map
- * @param {MarkerClusterGroupProps} props - The component props
- * @returns {null} - This component doesn't render anything directly
+ * @param props - The component props
+ * @returns null - This component doesn't render anything directly
  */
 const ClusterGroup: React.FC<MarkerClusterGroupProps> = ({
   children,
@@ -111,9 +110,9 @@ interface HeatLayerProps extends LayerProps, L.HeatMapOptions {
 
 /**
  * Creates a heat layer for the map
- * @param {HeatLayerProps} props - Heat layer properties including coordinates and options
- * @param {LeafletContextInterface} context - Leaflet context interface
- * @returns {Object} - Element object for the heat layer
+ * @param props - Heat layer properties including coordinates and options
+ * @param context - Leaflet context interface
+ * @returns Element object for the heat layer
  */
 const createHeatLayer = (
   { latlngs, ...options }: HeatLayerProps,
@@ -125,9 +124,9 @@ const createHeatLayer = (
 
 /**
  * Updates an existing heat layer with new data
- * @param {L.HeatLayer} layer - The heat layer instance to update
- * @param {HeatLayerProps} props - New properties for the heat layer
- * @param {HeatLayerProps} prevProps - Previous properties for comparison
+ * @param layer - The heat layer instance to update
+ * @param props - New properties for the heat layer
+ * @param prevProps - Previous properties for comparison
  */
 const updateHeatLayer = (
   layer: L.HeatLayer,
@@ -263,79 +262,50 @@ export type MapProps = z.infer<typeof mapSchema> &
   };
 
 /**
- * Hook to filter and validate marker data
- * Removes invalid markers that don't meet coordinate or label requirements
- * @param {MarkerData[]} markers - Array of marker objects to validate
- * @returns {MarkerData[]} - Array of valid marker objects
- */
-function useValidMarkers(markers: MarkerData[] = []) {
-  return React.useMemo(
-    () =>
-      (markers || []).filter(
-        (m) =>
-          typeof m.lat === "number" &&
-          m.lat >= -90 &&
-          m.lat <= 90 &&
-          typeof m.lng === "number" &&
-          m.lng >= -180 &&
-          m.lng <= 180 &&
-          typeof m.label === "string" &&
-          m.label.length > 0,
-      ),
-    [markers],
-  );
-}
-
-/**
- * Hook to filter and validate heatmap data
- * Converts valid heat data to the format expected by Leaflet heatLayer
- * @param {HeatData[] | null} heatData - Array of heatmap data points
- * @returns {HeatLatLngTuple[]} - Array of validated heat data tuples
- */
-function useValidHeatData(heatData?: HeatData[] | null) {
-  return React.useMemo(() => {
-    if (!Array.isArray(heatData)) return [];
-    return heatData
-      .filter(
-        (d) =>
-          typeof d.lat === "number" &&
-          d.lat >= -90 &&
-          d.lat <= 90 &&
-          typeof d.lng === "number" &&
-          d.lng >= -180 &&
-          d.lng <= 180 &&
-          typeof d.intensity === "number" &&
-          d.intensity >= 0 &&
-          d.intensity <= 1,
-      )
-      .map((d) => [d.lat, d.lng, d.intensity] as HeatLatLngTuple);
-  }, [heatData]);
-}
-
-/**
- * Loading spinner component displayed while map is generating or loading
- * Shows animated dots with "Loading map..." text
- * @returns {JSX.Element} - Loading spinner component
+ * Loading spinner component displayed while map is generating or loading.
+ * Shows animated dots with "Loading map..." text.
+ * @returns Loading spinner component
  */
 function LoadingSpinner() {
   return (
-    <div className="h-full w-full flex items-center justify-center">
-      <div className="flex flex-col items-center gap-2 text-muted-foreground">
-        <div className="flex items-center gap-1 h-4">
-          <span className="w-2 h-2 bg-current rounded-full animate-bounce [animation-delay:-0.3s]"></span>
-          <span className="w-2 h-2 bg-current rounded-full animate-bounce [animation-delay:-0.2s]"></span>
-          <span className="w-2 h-2 bg-current rounded-full animate-bounce [animation-delay:-0.1s]"></span>
+    <MapBase.Loading className="h-full w-full">
+      <div className="h-full w-full flex items-center justify-center">
+        <div className="flex flex-col items-center gap-2 text-muted-foreground">
+          <div className="flex items-center gap-1 h-4">
+            <span className="w-2 h-2 bg-current rounded-full animate-bounce [animation-delay:-0.3s]"></span>
+            <span className="w-2 h-2 bg-current rounded-full animate-bounce [animation-delay:-0.2s]"></span>
+            <span className="w-2 h-2 bg-current rounded-full animate-bounce [animation-delay:-0.1s]"></span>
+          </div>
+          <span className="text-sm">Loading map...</span>
         </div>
-        <span className="text-sm">Loading map...</span>
       </div>
-    </div>
+    </MapBase.Loading>
   );
 }
 
 /**
- * Map click handler component that centers the map on clicked location
- * Uses useMapEvents hook to listen for click events on the map
- * @returns {null} - This component doesn't render anything
+ * Error display component shown when center coordinates are missing.
+ * @returns Error display component
+ */
+function MapErrorDisplay() {
+  return (
+    <MapBase.Error className="h-full">
+      <div className="h-full flex items-center justify-center">
+        <div className="text-destructive text-center">
+          <p className="font-medium">Invalid Map Data</p>
+          <p className="text-sm mt-1">
+            Center coordinates are required to display the map.
+          </p>
+        </div>
+      </div>
+    </MapBase.Error>
+  );
+}
+
+/**
+ * Map click handler component that centers the map on clicked location.
+ * Uses useMapEvents hook to listen for click events on the map.
+ * @returns null - This component doesn't render anything
  */
 function MapClickHandler() {
   const animateRef = React.useRef(true);
@@ -349,7 +319,109 @@ function MapClickHandler() {
 }
 
 /**
- * Interactive map component with support for markers, heatmaps, and clustering
+ * Creates a custom cluster icon based on marker count.
+ * @param cluster - The Leaflet marker cluster
+ * @returns A Leaflet DivIcon for the cluster
+ */
+function createClusterIcon(cluster: L.MarkerCluster): L.DivIcon {
+  const count = cluster.getChildCount();
+  let size: "small" | "medium" | "large" = "small";
+  let colorClass = "bg-blue-500";
+  if (count < 10) {
+    size = "small";
+    colorClass = "bg-blue-500";
+  } else if (count < 100) {
+    size = "medium";
+    colorClass = "bg-orange-500";
+  } else {
+    size = "large";
+    colorClass = "bg-red-500";
+  }
+  const sizeClasses: Record<"small" | "medium" | "large", string> = {
+    small: "w-8 h-8 text-xs",
+    medium: "w-10 h-10 text-sm",
+    large: "w-12 h-12 text-base",
+  };
+  let iconSize = 48;
+  if (size === "small") {
+    iconSize = 32;
+  } else if (size === "medium") {
+    iconSize = 40;
+  }
+  return L.divIcon({
+    html: `<div class="flex items-center justify-center ${colorClass} ${sizeClasses[size]} text-white font-bold rounded-xl border-2 border-white shadow-lg transition-all duration-200 hover:scale-110 hover:brightness-90">${count}</div>`,
+    className: "custom-cluster-icon",
+    iconSize: L.point(iconSize, iconSize),
+    iconAnchor: L.point(iconSize / 2, iconSize / 2),
+  });
+}
+
+/**
+ * Renders the Leaflet map container with tile layer, heatmap, markers, and click handler.
+ * Uses MapBase.Container render prop to get validated data, then renders Leaflet
+ * components directly (without extra wrapper divs that would break Leaflet context).
+ * @returns The Leaflet map container rendered via MapBase.Container
+ */
+function MapLeafletContainer() {
+  return (
+    <MapBase.Container
+      className="h-full w-full overflow-hidden"
+      render={({
+        center,
+        zoom,
+        zoomControl,
+        tileTheme,
+        validMarkers,
+        validHeatData,
+      }: MapContainerRenderProps) => (
+        <LeafletMapContainer
+          center={center}
+          zoom={zoom}
+          className="h-full w-full"
+          scrollWheelZoom
+          zoomControl={zoomControl}
+        >
+          <TileLayer url={getTileLayerUrl(tileTheme)} />
+
+          {validHeatData.length > 0 && (
+            <HeatLayer
+              latlngs={validHeatData as HeatLatLngTuple[]}
+              radius={25}
+              blur={15}
+              maxZoom={20}
+              minOpacity={0.45}
+            />
+          )}
+
+          <ClusterGroup
+            chunkedLoading
+            animate
+            animateAddingMarkers
+            zoomToBoundsOnClick
+            maxClusterRadius={75}
+            showCoverageOnHover={false}
+            spiderfyOnMaxZoom
+            spiderfyDistanceMultiplier={1.5}
+            iconCreateFunction={createClusterIcon}
+          >
+            {validMarkers.map((marker, idx) => (
+              <Marker
+                key={marker.id ?? `marker-${idx}`}
+                position={[marker.lat, marker.lng]}
+              >
+                <Tooltip>{marker.label}</Tooltip>
+              </Marker>
+            ))}
+          </ClusterGroup>
+          <MapClickHandler />
+        </LeafletMapContainer>
+      )}
+    />
+  );
+}
+
+/**
+ * Interactive map component with support for markers, heatmaps, and clustering.
  *
  * Features:
  * - Multiple tile layer themes (default, dark, light, satellite)
@@ -371,9 +443,9 @@ function MapClickHandler() {
  * />
  * ```
  *
- * @param {MapProps} props - Map component properties
- * @param {React.Ref<HTMLDivElement>} ref - Forward ref for the container element
- * @returns {JSX.Element} - The rendered map component
+ * @param props - Map component properties
+ * @param ref - Forward ref for the container element
+ * @returns The rendered map component
  */
 export const Map = React.forwardRef<HTMLDivElement, MapProps>(
   (
@@ -392,141 +464,29 @@ export const Map = React.forwardRef<HTMLDivElement, MapProps>(
     },
     ref,
   ) => {
-    // Support deprecated theme prop, prefer tileTheme
-    const effectiveTileTheme = tileTheme ?? theme ?? "default";
-    const { thread } = useTambo();
-    const currentMessage = useTamboCurrentMessage();
-
-    const message = thread?.messages[thread?.messages.length - 1];
-
-    const isLatestMessage = message?.id && message.id === currentMessage?.id;
-
-    const generationStage = thread?.generationStage;
-    const isGenerating =
-      generationStage &&
-      generationStage !== GenerationStage.COMPLETE &&
-      generationStage !== GenerationStage.ERROR;
-
-    const validMarkers = useValidMarkers(markers);
-    const validHeatData = useValidHeatData(heatData);
-
-    // Show loading state during generation
-    if (isLatestMessage && isGenerating) {
-      return (
-        <div
-          ref={ref}
-          className={cn(mapVariants({ size, rounded }), className)}
-          {...props}
-        >
-          <LoadingSpinner />
-        </div>
-      );
-    }
-
-    // Show error state if center coordinates are missing
-    if (!center) {
-      return (
-        <div
-          ref={ref}
-          className={cn(mapVariants({ size, rounded }), className)}
-          {...props}
-        >
-          <div className="h-full flex items-center justify-center">
-            <div className="text-destructive text-center">
-              <p className="font-medium">Invalid Map Data</p>
-              <p className="text-sm mt-1">
-                Center coordinates are required to display the map.
-              </p>
-            </div>
-          </div>
-        </div>
-      );
-    }
-
     return (
-      <div
+      <MapBase.Root
         ref={ref}
         className={cn(
           mapVariants({ size, rounded }),
           "overflow-hidden",
           className,
         )}
+        center={center}
+        zoom={zoom}
+        markers={markers}
+        heatData={heatData}
+        zoomControl={zoomControl}
+        size={size ?? undefined}
+        tileTheme={tileTheme}
+        theme={theme}
+        rounded={rounded ?? undefined}
         {...props}
       >
-        <MapContainer
-          center={[center.lat, center.lng]}
-          zoom={zoom}
-          className="h-full w-full"
-          scrollWheelZoom
-          zoomControl={zoomControl}
-        >
-          <TileLayer url={getTileLayerUrl(effectiveTileTheme)} />
-
-          {validHeatData.length > 0 && (
-            <HeatLayer
-              latlngs={validHeatData}
-              radius={25}
-              blur={15}
-              maxZoom={20}
-              minOpacity={0.45}
-            />
-          )}
-
-          <ClusterGroup
-            chunkedLoading
-            animate
-            animateAddingMarkers
-            zoomToBoundsOnClick
-            maxClusterRadius={75}
-            showCoverageOnHover={false}
-            spiderfyOnMaxZoom
-            spiderfyDistanceMultiplier={1.5}
-            iconCreateFunction={(cluster: L.MarkerCluster) => {
-              const count = cluster.getChildCount();
-              let size: "small" | "medium" | "large" = "small";
-              let colorClass = "bg-blue-500";
-              if (count < 10) {
-                size = "small";
-                colorClass = "bg-blue-500";
-              } else if (count < 100) {
-                size = "medium";
-                colorClass = "bg-orange-500";
-              } else {
-                size = "large";
-                colorClass = "bg-red-500";
-              }
-              const sizeClasses: Record<"small" | "medium" | "large", string> =
-                {
-                  small: "w-8 h-8 text-xs",
-                  medium: "w-10 h-10 text-sm",
-                  large: "w-12 h-12 text-base",
-                };
-              let iconSize = 48;
-              if (size === "small") {
-                iconSize = 32;
-              } else if (size === "medium") {
-                iconSize = 40;
-              }
-              return L.divIcon({
-                html: `<div class="flex items-center justify-center ${colorClass} ${sizeClasses[size]} text-white font-bold rounded-xl border-2 border-white shadow-lg transition-all duration-200 hover:scale-110 hover:brightness-90">${count}</div>`,
-                className: "custom-cluster-icon",
-                iconSize: L.point(iconSize, iconSize),
-                iconAnchor: L.point(iconSize / 2, iconSize / 2),
-              });
-            }}
-          >
-            {validMarkers.map((marker, idx) => (
-              <Marker
-                key={marker.id ?? `marker-${idx}`}
-                position={[marker.lat, marker.lng]}
-              >
-                <Tooltip>{marker.label}</Tooltip>
-              </Marker>
-            ))}
-          </ClusterGroup>
-          <MapClickHandler />
-        </MapContainer>
-      </div>
+        <LoadingSpinner />
+        <MapErrorDisplay />
+        <MapLeafletContainer />
+      </MapBase.Root>
     );
   },
 );
@@ -534,7 +494,9 @@ export const Map = React.forwardRef<HTMLDivElement, MapProps>(
 Map.displayName = "Map";
 
 /**
- * Internal function to get tile layer URL based on tile theme
+ * Gets the tile layer URL for the given tile theme.
+ * @param tileTheme - The tile theme to get the URL for
+ * @returns The tile layer URL
  */
 function getTileLayerUrl(
   tileTheme: "default" | "dark" | "light" | "satellite",

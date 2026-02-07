@@ -48,6 +48,28 @@ export type {
   ToolcallInfoTriggerProps,
 } from "./toolcall-info";
 
+// Map components
+export { MapBase } from "./map";
+export type {
+  HeatData,
+  MapContainerProps,
+  MapContainerRenderProps,
+  MapErrorProps,
+  MapErrorRenderProps,
+  MapHeatmapProps,
+  MapHeatmapRenderProps,
+  MapLoadingProps,
+  MapLoadingRenderProps,
+  MapMarkersProps,
+  MapMarkersRenderProps,
+  MapRootContextValue,
+  MapRootProps,
+  MarkerData,
+  TileTheme,
+  ValidatedHeatDataTuple,
+  ValidatedMarkerData,
+} from "./map";
+
 // Types
 export type {
   BaseProps,
