@@ -59,6 +59,13 @@ export interface ThreadState {
    * Maps tool call ID to accumulated JSON string.
    */
   accumulatingToolArgs: Map<string, string>;
+  /**
+   * ID of the last completed run. Persists across the session so it's
+   * available as `previousRunId` when sending follow-up messages, even
+   * after the streaming state has been cleared (e.g., after page reload
+   * and thread re-fetch).
+   */
+  lastCompletedRunId?: string;
 }
 
 /**
@@ -128,6 +135,11 @@ export interface LoadThreadMessagesAction {
    * This prevents overwriting in-flight streaming messages.
    */
   skipIfStreaming?: boolean;
+  /**
+   * ID of the last completed run, fetched from the thread metadata.
+   * Stored so it can be used as `previousRunId` for follow-up messages.
+   */
+  lastCompletedRunId?: string;
 }
 
 /**
@@ -661,6 +673,8 @@ function handleRunFinished(
 ): ThreadState {
   return {
     ...threadState,
+    lastCompletedRunId:
+      threadState.streaming.runId ?? threadState.lastCompletedRunId,
     thread: {
       ...threadState.thread,
       status: "complete",
@@ -1610,7 +1624,7 @@ function handleLoadThreadMessages(
   state: StreamState,
   action: LoadThreadMessagesAction,
 ): StreamState {
-  const { threadId, messages, skipIfStreaming } = action;
+  const { threadId, messages, skipIfStreaming, lastCompletedRunId } = action;
 
   // Get or create thread state
   let threadState = state.threadMap[threadId];
@@ -1666,6 +1680,7 @@ function handleLoadThreadMessages(
 
   const updatedThreadState: ThreadState = {
     ...threadState,
+    lastCompletedRunId: lastCompletedRunId ?? threadState.lastCompletedRunId,
     thread: {
       ...threadState.thread,
       messages: mergedMessages,

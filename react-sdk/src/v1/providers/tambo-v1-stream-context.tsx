@@ -266,8 +266,8 @@ function ThreadSyncManager(): null {
     !threadState || threadState.thread.messages.length === 0;
   const shouldFetch = isNotPlaceholder && isNotSynced && hasNoMessages;
 
-  // Fetch messages from the messages endpoint (not the thread endpoint)
-  const { data: messagesData, isSuccess } = useTamboQuery({
+  // Fetch messages and thread metadata in parallel
+  const { data: messagesData, isSuccess: messagesSuccess } = useTamboQuery({
     queryKey: ["v1-thread-messages", currentThreadId],
     queryFn: async () => await client.threads.messages.list(currentThreadId),
     enabled: shouldFetch,
@@ -275,9 +275,17 @@ function ThreadSyncManager(): null {
     refetchOnWindowFocus: false,
   });
 
+  const { data: threadData, isSuccess: threadSuccess } = useTamboQuery({
+    queryKey: ["v1-thread-metadata", currentThreadId],
+    queryFn: async () => await client.threads.retrieve(currentThreadId),
+    enabled: shouldFetch,
+    staleTime: 1000,
+    refetchOnWindowFocus: false,
+  });
+
   // Sync fetched messages to stream state
   useEffect(() => {
-    if (!isSuccess || !messagesData || !dispatch) return;
+    if (!messagesSuccess || !messagesData || !dispatch) return;
     if (lastSyncedThreadRef.current === currentThreadId) return;
 
     dispatch({
@@ -288,7 +296,22 @@ function ThreadSyncManager(): null {
     });
 
     lastSyncedThreadRef.current = currentThreadId;
-  }, [isSuccess, messagesData, currentThreadId, dispatch]);
+  }, [messagesSuccess, messagesData, currentThreadId, dispatch]);
+
+  // Sync thread metadata (lastCompletedRunId) separately so messages
+  // aren't blocked if the thread retrieve is slower or fails
+  useEffect(() => {
+    if (!threadSuccess || !threadData || !dispatch) return;
+    if (!threadData.lastCompletedRunId) return;
+
+    dispatch({
+      type: "LOAD_THREAD_MESSAGES",
+      threadId: currentThreadId,
+      messages: [],
+      skipIfStreaming: true,
+      lastCompletedRunId: threadData.lastCompletedRunId,
+    });
+  }, [threadSuccess, threadData, currentThreadId, dispatch]);
 
   return null;
 }
