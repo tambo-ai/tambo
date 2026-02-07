@@ -94,6 +94,20 @@ export type {
   ToolcallInfoTriggerProps,
 } from "./toolcall-info";
 
+// MessageThreadCollapsible components
+export { MessageThreadCollapsible } from "./message-thread-collapsible";
+export type {
+  MessageThreadCollapsibleContentProps,
+  MessageThreadCollapsibleContentRenderProps,
+  MessageThreadCollapsibleContextValue,
+  MessageThreadCollapsibleHeaderProps,
+  MessageThreadCollapsibleHeaderRenderProps,
+  MessageThreadCollapsibleRootProps,
+  MessageThreadCollapsibleRootRenderProps,
+  MessageThreadCollapsibleTriggerProps,
+  MessageThreadCollapsibleTriggerRenderProps,
+} from "./message-thread-collapsible";
+
 // Types
 export type {
   BaseProps,
