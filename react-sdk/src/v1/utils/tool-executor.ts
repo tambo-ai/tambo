@@ -60,7 +60,7 @@ export async function executeStreamableToolCall(
   }
 }
 
-const DEFAULT_STREAMABLE_DEBOUNCE_MS = 150;
+const DEFAULT_STREAMABLE_DEBOUNCE_MS = 100;
 
 /**
  * Creates a debounced wrapper around executeStreamableToolCall.
