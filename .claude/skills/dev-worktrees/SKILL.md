@@ -25,10 +25,10 @@ install_command: npm install
 ---
 ```
 
-| Key               | Default                                    | Description                                          |
-| ----------------- | ------------------------------------------ | ---------------------------------------------------- |
-| `worktree_base`   | `$HOME/.claude-worktrees/<repo-basename>/` | Absolute path where worktrees are created (no `~`)   |
-| `linear_prefix`   | `TAM`                                      | Linear issue prefix (case-insensitive)               |
+| Key               | Default                                    | Description                                            |
+| ----------------- | ------------------------------------------ | ------------------------------------------------------ |
+| `worktree_base`   | `$HOME/.claude-worktrees/<repo-basename>/` | Absolute path where worktrees are created (no `~`)     |
+| `linear_prefix`   | `TAM`                                      | Linear issue prefix (case-insensitive)                 |
 | `install_command` | `npm install`                              | Dependency install command, executed as-is in worktree |
 
 If a user asks to change a preference, update or create the file in the main repo, preserving other values. Always write `worktree_base` as a fully resolved absolute path.
@@ -44,11 +44,13 @@ op plugin run -- gh api user -q .login
 ### 2. Build branch name
 
 **Linear issue** (e.g., `TAM-1234`):
+
 1. Fetch with `mcp__linear__get_issue` using the issue identifier.
 2. Branch: `<username>/<issue-id-lowercase>-<kebab-title>`
    Example: `TAM-1234` with title "Add Dark Mode Toggle" → `lachieh/tam-1234-add-dark-mode-toggle`
 
 **Task description**:
+
 1. Convert to kebab-case, truncate description to ~60 chars.
 2. Branch: `<username>/<kebab-description>`
    Example: "fix login redirect" → `lachieh/fix-login-redirect`
@@ -93,6 +95,8 @@ fi
 Status is exactly one of: `symlinked`, `skipped (missing settings)`, `skipped (conflict)`. On symlink failure, abort — do not print the summary.
 
 ### 6. Install dependencies
+
+`install_command` is a local preference and may include shell metacharacters (e.g., `&&`). Treat `.claude/dev-worktrees.local.md` as trusted-local-only input and execute `install_command` via a shell in the worktree directory (do not attempt to split it into argv tokens).
 
 ```bash
 (cd "<worktree-path>" && <install_command>)
