@@ -94,6 +94,24 @@ export type {
   ToolcallInfoTriggerProps,
 } from "./toolcall-info";
 
+// Graph components
+export { Graph, validateGraphData } from "./graph";
+export type {
+  GraphChartProps,
+  GraphChartRenderProps,
+  GraphData,
+  GraphDataset,
+  GraphDataState,
+  GraphErrorBoundaryProps,
+  GraphLoadingProps,
+  GraphLoadingRenderProps,
+  GraphLoadingStatus,
+  GraphRootContextValue,
+  GraphRootProps,
+  GraphTitleProps,
+  GraphTitleRenderProps,
+} from "./graph";
+
 // Types
 export type {
   BaseProps,
