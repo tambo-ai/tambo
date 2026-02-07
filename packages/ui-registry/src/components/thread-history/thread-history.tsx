@@ -276,7 +276,8 @@ const ThreadHistoryList = React.forwardRef<
         className,
       )}
       {...props}
-      render={({
+    >
+      {({
         filteredThreads,
         isLoading,
         error,
@@ -414,7 +415,7 @@ const ThreadHistoryList = React.forwardRef<
           </div>
         );
       }}
-    />
+    </ThreadHistoryBase.List>
   );
 });
 ThreadHistoryList.displayName = "ThreadHistory.List";
