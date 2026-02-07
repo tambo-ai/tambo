@@ -3,6 +3,7 @@ import {
   ExecutionContext,
   Inject,
   Injectable,
+  InternalServerErrorException,
 } from "@nestjs/common";
 import {
   type HydraDatabase,
@@ -13,9 +14,18 @@ import { type Request } from "express";
 import { DATABASE } from "../../common/middleware/db-transaction-middleware";
 import { CorrelationLoggerService } from "../../common/services/logger.service";
 import { ProjectId } from "../../projects/guards/apikey.guard";
+import { getV1ContextInfo } from "../utils/get-v1-context-info";
 
+/**
+ * V1-specific guard that verifies a thread belongs to the authenticated project
+ * AND is scoped to the requesting user's contextKey.
+ *
+ * Unlike the pre-V1 ThreadInProjectGuard (which uses ANY_CONTEXT_KEY),
+ * this guard requires a userKey (via query/body param or bearer token)
+ * and uses it to scope the thread lookup.
+ */
 @Injectable()
-export class ThreadInProjectGuard implements CanActivate {
+export class V1ThreadInProjectGuard implements CanActivate {
   constructor(
     @Inject(DATABASE) private readonly db: HydraDatabase,
     private readonly logger: CorrelationLoggerService,
@@ -24,7 +34,6 @@ export class ThreadInProjectGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request: Request = context.switchToHttp().getRequest();
     const projectId = request[ProjectId];
-    // Support :threadId (v1 API), :thread_id (v1 API snake_case), and :id (legacy)
     const threadId =
       request.params.threadId ?? request.params.thread_id ?? request.params.id;
 
@@ -37,26 +46,39 @@ export class ThreadInProjectGuard implements CanActivate {
       this.logger.error(
         "Missing project ID in request: should be set by ApiKeyGuard",
       );
-      return false;
+      throw new InternalServerErrorException("Project context missing");
     }
 
+    const queryUserKey =
+      typeof request.query?.userKey === "string"
+        ? request.query.userKey
+        : undefined;
+    const bodyUserKey =
+      typeof request.body?.userKey === "string"
+        ? request.body.userKey
+        : undefined;
+    const requestUserKey = queryUserKey ?? bodyUserKey;
+
+    const { contextKey: effectiveContextKey } = getV1ContextInfo(
+      request,
+      requestUserKey,
+    );
+
     try {
-      // Use ANY_CONTEXT_KEY because this guard only verifies the thread belongs
-      // to the project.
       await operations.ensureThreadByProjectId(
         this.db,
         threadId,
         projectId,
-        operations.ANY_CONTEXT_KEY,
+        effectiveContextKey,
       );
       this.logger.log(
-        `Valid thread ${threadId} access for project ${projectId}`,
+        `Valid thread ${threadId} access for project ${projectId} with context ${effectiveContextKey}`,
       );
       return true;
     } catch (error: unknown) {
       if (error instanceof ThreadNotFoundError) {
         this.logger.warn(
-          `Thread ${threadId} not found or not in project ${projectId}`,
+          `Thread ${threadId} not found or not in project ${projectId} for context ${effectiveContextKey}`,
         );
         return false;
       }
