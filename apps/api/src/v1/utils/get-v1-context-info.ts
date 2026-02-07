@@ -26,7 +26,7 @@ export function getV1ContextInfo(
 
   if (trimmedUserKey && bearerContextKey) {
     throw new BadRequestException(
-      "Context key cannot be provided both via API parameter and OAuth bearer token. Use only one method.",
+      "V1 APIs require exactly one context identifier: provide either userKey (query/body) or an OAuth bearer token with a context key (received both).",
     );
   }
 
@@ -34,7 +34,7 @@ export function getV1ContextInfo(
 
   if (!contextKey) {
     throw new BadRequestException(
-      "userKey is required. Provide it as a query/body parameter or use a bearer token with a context key.",
+      "V1 APIs require exactly one context identifier: provide either userKey (query/body) or an OAuth bearer token with a context key (received neither).",
     );
   }
 

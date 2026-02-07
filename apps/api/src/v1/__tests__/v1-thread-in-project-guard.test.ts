@@ -9,6 +9,7 @@ import {
   ThreadNotFoundError,
 } from "@tambo-ai-cloud/db";
 import { Request } from "express";
+import { type CorrelationLoggerService } from "../../common/services/logger.service";
 import { ProjectId } from "../../projects/guards/apikey.guard";
 import { ContextKey } from "../../projects/guards/bearer-token.guard";
 import { V1ThreadInProjectGuard } from "../guards/v1-thread-in-project-guard";
@@ -57,7 +58,10 @@ function createMockExecutionContext(
 
 describe("V1ThreadInProjectGuard", () => {
   let guard: V1ThreadInProjectGuard;
-  const mockLogger = {
+
+  type LoggerStub = Pick<CorrelationLoggerService, "log" | "warn" | "error">;
+
+  const mockLogger: jest.Mocked<LoggerStub> = {
     log: jest.fn(),
     warn: jest.fn(),
     error: jest.fn(),
@@ -67,9 +71,7 @@ describe("V1ThreadInProjectGuard", () => {
   beforeEach(() => {
     guard = new V1ThreadInProjectGuard(
       mockDb,
-      mockLogger as unknown as ConstructorParameters<
-        typeof V1ThreadInProjectGuard
-      >[1],
+      mockLogger as unknown as CorrelationLoggerService,
     );
     mockEnsureThreadByProjectId.mockClear();
     mockLogger.log.mockClear();
@@ -230,6 +232,9 @@ describe("V1ThreadInProjectGuard", () => {
 
     await expect(guard.canActivate(context)).rejects.toThrow(
       InternalServerErrorException,
+    );
+    expect(mockLogger.error).toHaveBeenCalledWith(
+      "Missing project ID in request: should be set by ApiKeyGuard",
     );
   });
 

@@ -177,7 +177,7 @@ export class V1Controller {
     @Param("threadId") threadId: string,
     @Query("userKey") userKey?: string,
   ): Promise<void> {
-    getV1ContextInfo(request, userKey);
+    const { contextKey: _contextKey } = getV1ContextInfo(request, userKey);
     await this.v1Service.deleteThread(threadId);
   }
 
@@ -218,7 +218,7 @@ export class V1Controller {
     @Query() query: V1ListMessagesQueryDto,
     @Query("userKey") userKey?: string,
   ): Promise<V1ListMessagesResponseDto> {
-    getV1ContextInfo(request, userKey);
+    const { contextKey: _contextKey } = getV1ContextInfo(request, userKey);
     return await this.v1Service.listMessages(threadId, query);
   }
 
@@ -259,7 +259,7 @@ export class V1Controller {
     @Param("messageId") messageId: string,
     @Query("userKey") userKey?: string,
   ): Promise<V1GetMessageResponseDto> {
-    getV1ContextInfo(request, userKey);
+    const { contextKey: _contextKey } = getV1ContextInfo(request, userKey);
     return await this.v1Service.getMessage(threadId, messageId);
   }
 
@@ -520,7 +520,8 @@ export class V1Controller {
     @Param("runId") runId: string,
     @Query("userKey") userKey?: string,
   ): Promise<V1CancelRunResponseDto> {
-    getV1ContextInfo(request, userKey);
+    const { contextKey: _contextKey } = getV1ContextInfo(request, userKey);
+    // Note: the third argument is a cancellation reason, not user identity.
     return await this.v1Service.cancelRun(threadId, runId, "user_cancelled");
   }
 
@@ -568,7 +569,7 @@ export class V1Controller {
     @Param("componentId") componentId: string,
     @Body() dto: UpdateComponentStateDto,
   ): Promise<UpdateComponentStateResponseDto> {
-    getV1ContextInfo(request, dto.userKey);
+    const { contextKey: _contextKey } = getV1ContextInfo(request, dto.userKey);
     return await this.v1Service.updateComponentState(
       threadId,
       componentId,
