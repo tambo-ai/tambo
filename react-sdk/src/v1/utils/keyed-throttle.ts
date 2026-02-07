@@ -13,7 +13,7 @@
 /**
  * A throttle controller with independent timers per key.
  */
-export interface KeyedDebounce<T> {
+export interface KeyedThrottle<T> {
   /** Schedule a throttled call for the given key. Fires immediately if idle, otherwise queues a trailing call. */
   schedule(key: string, value: T): void;
   /**
@@ -49,12 +49,12 @@ interface ThrottleEntry<T> {
  * timers, and reset to idle.
  * @param fn - Callback invoked with (key, latestValue) on leading and trailing edges
  * @param delay - Throttle interval in milliseconds
- * @returns KeyedDebounce controller
+ * @returns KeyedThrottle controller
  */
-export function createKeyedDebounce<T>(
+export function createKeyedThrottle<T>(
   fn: (key: string, value: T) => void,
   delay: number,
-): KeyedDebounce<T> {
+): KeyedThrottle<T> {
   const pending = new Map<string, ThrottleEntry<T>>();
 
   function armTimer(key: string): void {

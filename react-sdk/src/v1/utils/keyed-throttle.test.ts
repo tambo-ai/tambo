@@ -1,6 +1,6 @@
-import { createKeyedDebounce } from "./keyed-debounce";
+import { createKeyedThrottle } from "./keyed-throttle";
 
-describe("createKeyedDebounce", () => {
+describe("createKeyedThrottle", () => {
   beforeEach(() => {
     jest.useFakeTimers();
   });
@@ -11,7 +11,7 @@ describe("createKeyedDebounce", () => {
 
   it("fires immediately on first call (leading edge)", () => {
     const fn = jest.fn();
-    const throttle = createKeyedDebounce(fn, 100);
+    const throttle = createKeyedThrottle(fn, 100);
 
     throttle.schedule("a", 1);
     expect(fn).toHaveBeenCalledTimes(1);
@@ -20,7 +20,7 @@ describe("createKeyedDebounce", () => {
 
   it("does not fire again during cooldown window", () => {
     const fn = jest.fn();
-    const throttle = createKeyedDebounce(fn, 100);
+    const throttle = createKeyedThrottle(fn, 100);
 
     throttle.schedule("a", 1);
     throttle.schedule("a", 2);
@@ -33,7 +33,7 @@ describe("createKeyedDebounce", () => {
 
   it("fires trailing call with latest value after cooldown", () => {
     const fn = jest.fn();
-    const throttle = createKeyedDebounce(fn, 100);
+    const throttle = createKeyedThrottle(fn, 100);
 
     throttle.schedule("a", 1); // leading fire
     throttle.schedule("a", 2);
@@ -48,7 +48,7 @@ describe("createKeyedDebounce", () => {
 
   it("does not fire trailing call if no new values arrived", () => {
     const fn = jest.fn();
-    const throttle = createKeyedDebounce(fn, 100);
+    const throttle = createKeyedThrottle(fn, 100);
 
     throttle.schedule("a", 1); // leading fire
 
@@ -60,7 +60,7 @@ describe("createKeyedDebounce", () => {
 
   it("fires periodically during continuous rapid calls", () => {
     const fn = jest.fn();
-    const throttle = createKeyedDebounce(fn, 100);
+    const throttle = createKeyedThrottle(fn, 100);
 
     // Simulate rapid streaming chunks every 30ms for 350ms
     throttle.schedule("a", 1); // t=0, leading fire
@@ -89,7 +89,7 @@ describe("createKeyedDebounce", () => {
 
   it("tracks keys independently", () => {
     const fn = jest.fn();
-    const throttle = createKeyedDebounce(fn, 100);
+    const throttle = createKeyedThrottle(fn, 100);
 
     throttle.schedule("a", 1); // leading fire for "a"
     jest.advanceTimersByTime(50);
@@ -102,7 +102,7 @@ describe("createKeyedDebounce", () => {
 
   it("tracks keys independently with trailing calls", () => {
     const fn = jest.fn();
-    const throttle = createKeyedDebounce(fn, 100);
+    const throttle = createKeyedThrottle(fn, 100);
 
     throttle.schedule("a", 1); // leading fire for "a"
     throttle.schedule("a", 2); // queued trailing for "a"
@@ -125,7 +125,7 @@ describe("createKeyedDebounce", () => {
 
   it("flush() fires all pending trailing calls immediately", () => {
     const fn = jest.fn();
-    const throttle = createKeyedDebounce(fn, 100);
+    const throttle = createKeyedThrottle(fn, 100);
 
     throttle.schedule("a", 1); // leading fire
     throttle.schedule("a", 2); // queued trailing
@@ -147,7 +147,7 @@ describe("createKeyedDebounce", () => {
 
   it("flush() is a no-op when nothing is pending", () => {
     const fn = jest.fn();
-    const throttle = createKeyedDebounce(fn, 100);
+    const throttle = createKeyedThrottle(fn, 100);
 
     throttle.flush();
     expect(fn).not.toHaveBeenCalled();
@@ -155,7 +155,7 @@ describe("createKeyedDebounce", () => {
 
   it("flush() skips keys with no trailing value", () => {
     const fn = jest.fn();
-    const throttle = createKeyedDebounce(fn, 100);
+    const throttle = createKeyedThrottle(fn, 100);
 
     throttle.schedule("a", 1); // leading fire, no trailing queued
 
@@ -169,7 +169,7 @@ describe("createKeyedDebounce", () => {
 
   it("becomes idle after trailing fire with no new calls", () => {
     const fn = jest.fn();
-    const throttle = createKeyedDebounce(fn, 100);
+    const throttle = createKeyedThrottle(fn, 100);
 
     throttle.schedule("a", 1); // leading
     throttle.schedule("a", 2); // trailing queued

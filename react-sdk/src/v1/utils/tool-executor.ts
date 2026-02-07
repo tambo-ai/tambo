@@ -12,7 +12,7 @@ import type {
   ResourceContent,
 } from "@tambo-ai/typescript-sdk/resources/threads/threads";
 import type { ToolCallTracker } from "./tool-call-tracker";
-import { createKeyedDebounce, type KeyedDebounce } from "./keyed-debounce";
+import { createKeyedThrottle, type KeyedThrottle } from "./keyed-throttle";
 
 /**
  * Pending tool call from the stream accumulator
@@ -66,7 +66,7 @@ const DEFAULT_STREAMABLE_THROTTLE_MS = 100;
  * Creates a throttled wrapper around executeStreamableToolCall.
  *
  * Each tool call ID gets its own independent leading+trailing throttle via
- * {@link createKeyedDebounce}. The first call for a tool ID fires immediately
+ * {@link createKeyedThrottle}. The first call for a tool ID fires immediately
  * (leading edge). Subsequent calls during the cooldown window update the
  * stored args. After `delay` ms, if new args arrived, the tool re-executes
  * with the latest args (trailing edge). This repeats as long as new args
@@ -78,12 +78,12 @@ const DEFAULT_STREAMABLE_THROTTLE_MS = 100;
  * @param delay - Throttle interval in milliseconds
  * @returns Keyed throttle controller (schedule / flush)
  */
-export function createDebouncedStreamableExecutor(
+export function createThrottledStreamableExecutor(
   toolTracker: ToolCallTracker,
   toolRegistry: Record<string, TamboTool>,
   delay = DEFAULT_STREAMABLE_THROTTLE_MS,
-): KeyedDebounce<Record<string, unknown>> {
-  return createKeyedDebounce<Record<string, unknown>>((toolCallId, args) => {
+): KeyedThrottle<Record<string, unknown>> {
+  return createKeyedThrottle<Record<string, unknown>>((toolCallId, args) => {
     void executeStreamableToolCall(toolCallId, args, toolTracker, toolRegistry);
   }, delay);
 }

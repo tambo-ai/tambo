@@ -5,7 +5,7 @@ import {
   executeClientTool,
   executeAllPendingTools,
   executeStreamableToolCall,
-  createDebouncedStreamableExecutor,
+  createThrottledStreamableExecutor,
   type PendingToolCall,
 } from "./tool-executor";
 import { ToolCallTracker } from "./tool-call-tracker";
@@ -425,7 +425,7 @@ describe("tool-executor", () => {
     });
   });
 
-  describe("createDebouncedStreamableExecutor", () => {
+  describe("createThrottledStreamableExecutor", () => {
     beforeEach(() => {
       jest.useFakeTimers();
     });
@@ -453,7 +453,7 @@ describe("tool-executor", () => {
       return tracker;
     }
 
-    it("delays execution until after the debounce period", () => {
+    it("fires immediately on the leading edge", () => {
       const toolFn = jest.fn().mockResolvedValue(undefined);
       const registry: Record<string, TamboTool> = {
         write_story: {
@@ -467,7 +467,7 @@ describe("tool-executor", () => {
       };
 
       const tracker = createTrackerWithToolCall("call_1", "write_story");
-      const executor = createDebouncedStreamableExecutor(
+      const executor = createThrottledStreamableExecutor(
         tracker,
         registry,
         100,
@@ -493,7 +493,7 @@ describe("tool-executor", () => {
       };
 
       const tracker = createTrackerWithToolCall("call_1", "write_story");
-      const executor = createDebouncedStreamableExecutor(
+      const executor = createThrottledStreamableExecutor(
         tracker,
         registry,
         100,
@@ -529,7 +529,7 @@ describe("tool-executor", () => {
       };
 
       const tracker = createTrackerWithToolCall("call_1", "write_story");
-      const executor = createDebouncedStreamableExecutor(
+      const executor = createThrottledStreamableExecutor(
         tracker,
         registry,
         100,
@@ -553,7 +553,7 @@ describe("tool-executor", () => {
     it("flush() is a no-op when nothing is pending", () => {
       const registry: Record<string, TamboTool> = {};
       const tracker = new ToolCallTracker();
-      const executor = createDebouncedStreamableExecutor(
+      const executor = createThrottledStreamableExecutor(
         tracker,
         registry,
         100,
