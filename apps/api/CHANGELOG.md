@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.139.0](https://github.com/tambo-ai/tambo/compare/api-v0.138.0...api-v0.139.0) (2026-02-07)
+
+
+### Features
+
+* **api,react-sdk:** wire up toolChoice support end-to-end ([#2260](https://github.com/tambo-ai/tambo/issues/2260)) ([3106ab6](https://github.com/tambo-ai/tambo/commit/3106ab64a21a6086e5bea699936438a7a97b8580))
+* **react-sdk,api:** support initialMessages in V1 stack and add maxCalls to tool DTO ([#2264](https://github.com/tambo-ai/tambo/issues/2264)) ([872af14](https://github.com/tambo-ai/tambo/commit/872af14ee4054357b5e06fee5bab9236b9d50fc5))
+* **web:** move dashboard from /dashboard to root path ([#2232](https://github.com/tambo-ai/tambo/issues/2232)) ([9aec81d](https://github.com/tambo-ai/tambo/commit/9aec81d5e3017d4de5eb83d020bad4a9d401d70f))
+* **web:** track api_key_generated event in PostHog ([#2266](https://github.com/tambo-ai/tambo/issues/2266)) ([f64a037](https://github.com/tambo-ai/tambo/commit/f64a037be70bba4d08e674f6e2612c30b02f50ea))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump @types/node from 22.19.7 to 22.19.8 ([#2249](https://github.com/tambo-ai/tambo/issues/2249)) ([aed1ae6](https://github.com/tambo-ai/tambo/commit/aed1ae6a83a35f74e3c4d919f5ee266206711880))
+* **deps:** bump posthog-node from 5.24.1 to 5.24.9 ([#2248](https://github.com/tambo-ai/tambo/issues/2248)) ([87bfe9d](https://github.com/tambo-ai/tambo/commit/87bfe9ddc6f3eb4aca7e39ad4f786ce0ddd9e9d7))
+* **deps:** bump the nestjs group with 7 updates ([#2242](https://github.com/tambo-ai/tambo/issues/2242)) ([e4cb91d](https://github.com/tambo-ai/tambo/commit/e4cb91d465b30affc09db86a48e65be2636032b6))
+
 ## [0.138.0](https://github.com/tambo-ai/tambo/compare/api-v0.137.0...api-v0.138.0) (2026-02-06)
 
 
