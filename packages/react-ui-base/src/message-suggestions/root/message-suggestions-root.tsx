@@ -52,10 +52,6 @@ export const MessageSuggestionsRoot = React.forwardRef<
   const isMac =
     typeof navigator !== "undefined" && navigator.platform.startsWith("Mac");
 
-  // Track the last AI message ID to detect new messages
-  const lastAiMessageIdRef = React.useRef<string | null>(null);
-  const loadingTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
-
   const contextValue = React.useMemo(
     () => ({
       suggestions,
@@ -77,47 +73,23 @@ export const MessageSuggestionsRoot = React.forwardRef<
     ],
   );
 
-  // Find the last AI message
-  const lastAiMessage = thread?.messages
-    ? [...thread.messages].reverse().find((msg) => msg.role === "assistant")
-    : null;
-
-  // When a new AI message appears, update the reference
-  React.useEffect(() => {
-    if (lastAiMessage && lastAiMessage.id !== lastAiMessageIdRef.current) {
-      lastAiMessageIdRef.current = lastAiMessage.id;
-
-      if (loadingTimeoutRef.current) {
-        clearTimeout(loadingTimeoutRef.current);
-      }
-
-      loadingTimeoutRef.current = setTimeout(() => {}, 5000);
-    }
-
-    return () => {
-      if (loadingTimeoutRef.current) {
-        clearTimeout(loadingTimeoutRef.current);
-      }
-    };
-  }, [lastAiMessage, suggestions.length]);
-
   // Handle keyboard shortcuts for selecting suggestions
   React.useEffect(() => {
-    if (!suggestions || suggestions.length === 0) return;
+    if (suggestions.length === 0 || isGenerating) return;
 
     const handleKeyDown = (event: KeyboardEvent) => {
       const modifierPressed = isMac
         ? event.metaKey && event.altKey
         : event.ctrlKey && event.altKey;
 
-      if (modifierPressed) {
-        const keyNum = parseInt(event.key);
-        if (!isNaN(keyNum) && keyNum > 0 && keyNum <= suggestions.length) {
-          event.preventDefault();
-          const suggestionIndex = keyNum - 1;
-          void accept({ suggestion: suggestions[suggestionIndex] });
-        }
-      }
+      if (!modifierPressed) return;
+
+      const keyNum = Number.parseInt(event.key, 10);
+      if (Number.isNaN(keyNum)) return;
+      if (keyNum < 1 || keyNum > suggestions.length) return;
+
+      event.preventDefault();
+      void accept({ suggestion: suggestions[keyNum - 1] });
     };
 
     document.addEventListener("keydown", handleKeyDown);
@@ -125,7 +97,7 @@ export const MessageSuggestionsRoot = React.forwardRef<
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [suggestions, accept, isMac]);
+  }, [suggestions, accept, isMac, isGenerating]);
 
   // If we have no messages yet and no initial suggestions, render nothing
   if (!thread?.messages?.length && initialSuggestions.length === 0) {
