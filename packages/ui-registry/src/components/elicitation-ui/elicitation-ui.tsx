@@ -26,7 +26,8 @@ const StyledBooleanField: React.FC<{
   <ElicitationUIBase.BooleanField
     name={name}
     autoFocus={autoFocus}
-    render={(props: ElicitationUIBooleanFieldRenderProps) => (
+  >
+    {(props: ElicitationUIBooleanFieldRenderProps) => (
       <div className="space-y-2">
         <label className="text-sm font-medium text-foreground">
           {props.label}
@@ -61,7 +62,7 @@ const StyledBooleanField: React.FC<{
         </div>
       </div>
     )}
-  />
+  </ElicitationUIBase.BooleanField>
 );
 
 /**
@@ -75,7 +76,8 @@ const StyledEnumField: React.FC<{
   <ElicitationUIBase.EnumField
     name={name}
     autoFocus={autoFocus}
-    render={(props: ElicitationUIEnumFieldRenderProps) => (
+  >
+    {(props: ElicitationUIEnumFieldRenderProps) => (
       <div className="space-y-2">
         <label className="text-sm font-medium text-foreground">
           {props.label}
@@ -101,7 +103,7 @@ const StyledEnumField: React.FC<{
         </div>
       </div>
     )}
-  />
+  </ElicitationUIBase.EnumField>
 );
 
 /**
@@ -115,7 +117,8 @@ const StyledStringField: React.FC<{
   <ElicitationUIBase.StringField
     name={name}
     autoFocus={autoFocus}
-    render={(props: ElicitationUIStringFieldRenderProps) => (
+  >
+    {(props: ElicitationUIStringFieldRenderProps) => (
       <div className="space-y-2">
         <label
           htmlFor={props.inputId}
@@ -154,7 +157,7 @@ const StyledStringField: React.FC<{
         )}
       </div>
     )}
-  />
+  </ElicitationUIBase.StringField>
 );
 
 /**
@@ -168,7 +171,8 @@ const StyledNumberField: React.FC<{
   <ElicitationUIBase.NumberField
     name={name}
     autoFocus={autoFocus}
-    render={(props: ElicitationUINumberFieldRenderProps) => (
+  >
+    {(props: ElicitationUINumberFieldRenderProps) => (
       <div className="space-y-2">
         <label
           htmlFor={props.inputId}
@@ -215,7 +219,7 @@ const StyledNumberField: React.FC<{
         )}
       </div>
     )}
-  />
+  </ElicitationUIBase.NumberField>
 );
 
 /**
@@ -251,8 +255,8 @@ const StyledField: React.FC<{
  * @returns A styled action button container with cancel, decline, and optional submit
  */
 const StyledActions: React.FC = () => (
-  <ElicitationUIBase.Actions
-    render={(props: ElicitationUIActionsRenderProps) => (
+  <ElicitationUIBase.Actions>
+    {(props: ElicitationUIActionsRenderProps) => (
       <div className="flex justify-end gap-2 pt-2">
         <button
           type="button"
@@ -280,7 +284,7 @@ const StyledActions: React.FC = () => (
         )}
       </div>
     )}
-  />
+  </ElicitationUIBase.Actions>
 );
 
 /**
