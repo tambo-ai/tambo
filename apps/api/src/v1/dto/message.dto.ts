@@ -155,11 +155,16 @@ export class V1InputMessageDto {
 }
 
 /**
+ * Content types allowed in initial messages (text and resource only).
+ */
+export type V1InitialContent = V1TextContentDto | V1ResourceContentDto;
+
+/**
  * Initial message for thread creation.
  * Supports "user", "system", and "assistant" roles (unlike input messages which are user-only).
  */
 @ApiSchema({ name: "InitialMessage" })
-@ApiExtraModels(V1TextContentDto, V1ResourceContentDto, V1ToolResultContentDto)
+@ApiExtraModels(V1TextContentDto, V1ResourceContentDto)
 export class V1InitialMessageDto {
   @ApiProperty({
     description:
@@ -174,16 +179,15 @@ export class V1InitialMessageDto {
     types: [
       { dto: V1TextContentDto, name: "text" },
       { dto: V1ResourceContentDto, name: "resource" },
-      { dto: V1ToolResultContentDto, name: "tool_result" },
     ],
-    description: "Content blocks (text, resource, or tool_result)",
+    description: "Content blocks (text or resource)",
     isArray: true,
     additionalOptions: {
       required: true,
     },
   })
   @IsNotEmpty()
-  content!: V1InputContent[];
+  content!: V1InitialContent[];
 
   @ApiProperty({
     description: "Additional metadata to attach to the message",

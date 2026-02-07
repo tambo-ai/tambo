@@ -7,7 +7,7 @@ import {
   type UnsavedThreadUserMessage,
 } from "@tambo-ai-cloud/core";
 import { MessageRequest } from "../threads/dto/message.dto";
-import { V1InputContent } from "./dto/message.dto";
+import { V1InitialContent, V1InputContent } from "./dto/message.dto";
 import { schema } from "@tambo-ai-cloud/db";
 import {
   V1ContentBlock,
@@ -373,7 +373,7 @@ export interface V1InputMessage {
  */
 export interface V1InitialMessage {
   role: "user" | "system" | "assistant";
-  content: V1InputContent[];
+  content: V1InitialContent[];
   metadata?: Record<string, unknown>;
 }
 
@@ -471,13 +471,9 @@ const v1RoleToMessageRole: Record<V1InitialMessage["role"], MessageRole> = {
 export function convertV1InitialMessageToMessageRequest(
   message: V1InitialMessage,
 ): MessageRequest {
-  const nonToolResultContent = message.content.filter(
-    (block) => block.type !== "tool_result",
-  );
-
   return {
     role: v1RoleToMessageRole[message.role],
-    content: nonToolResultContent.map((block) => {
+    content: message.content.map((block) => {
       switch (block.type) {
         case "text":
           return {

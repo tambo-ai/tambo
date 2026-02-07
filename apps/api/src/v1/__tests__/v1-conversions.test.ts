@@ -731,33 +731,6 @@ describe("v1-conversions", () => {
       });
     });
 
-    it("should filter out tool_result blocks", () => {
-      const input: V1InitialMessage = {
-        role: "user",
-        content: [
-          { type: "text", text: "Hello" },
-          {
-            type: "tool_result",
-            toolUseId: "call_123",
-            content: [{ type: "text", text: "result" }],
-          } as unknown as V1InitialMessage["content"][0],
-          { type: "text", text: "World" },
-        ],
-      };
-
-      const result = convertV1InitialMessageToMessageRequest(input);
-
-      expect(result.content).toHaveLength(2);
-      expect(result.content[0]).toEqual({
-        type: ContentPartType.Text,
-        text: "Hello",
-      });
-      expect(result.content[1]).toEqual({
-        type: ContentPartType.Text,
-        text: "World",
-      });
-    });
-
     it("should pass metadata through", () => {
       const input: V1InitialMessage = {
         role: "user",
