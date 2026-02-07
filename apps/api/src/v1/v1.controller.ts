@@ -28,7 +28,7 @@ import { Request, Response } from "express";
 import { extractContextInfo } from "../common/utils/extract-context-info";
 import { ApiKeyGuard } from "../projects/guards/apikey.guard";
 import { BearerTokenGuard } from "../projects/guards/bearer-token.guard";
-import { ThreadInProjectGuard } from "../threads/guards/thread-in-project-guard";
+import { V1ThreadInProjectGuard } from "./guards/v1-thread-in-project-guard";
 import {
   V1GetMessageResponseDto,
   V1ListMessagesQueryDto,
@@ -122,7 +122,7 @@ export class V1Controller {
   }
 
   @Get("threads/:threadId")
-  @UseGuards(ThreadInProjectGuard)
+  @UseGuards(V1ThreadInProjectGuard)
   @ApiOperation({
     summary: "Get thread with messages",
     description:
@@ -192,7 +192,7 @@ export class V1Controller {
   }
 
   @Delete("threads/:threadId")
-  @UseGuards(ThreadInProjectGuard)
+  @UseGuards(V1ThreadInProjectGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({
     summary: "Delete thread",
@@ -204,6 +204,12 @@ export class V1Controller {
     description: "Thread ID",
     example: "thr_abc123xyz",
   })
+  @ApiQuery({
+    name: "userKey",
+    description:
+      "Identifier for a user in your system. Required if no bearer token is provided.",
+    required: false,
+  })
   @ApiResponse({
     status: 204,
     description: "Thread deleted successfully",
@@ -212,7 +218,16 @@ export class V1Controller {
     status: 404,
     description: "Thread not found",
   })
-  async deleteThread(@Param("threadId") threadId: string): Promise<void> {
+  async deleteThread(
+    @Req() request: Request,
+    @Param("threadId") threadId: string,
+    @Query("userKey") userKey?: string,
+  ): Promise<void> {
+    const { contextKey: bearerContextKey } = extractContextInfo(
+      request,
+      userKey,
+    );
+    requireUserKey(userKey, bearerContextKey);
     await this.v1Service.deleteThread(threadId);
   }
 
@@ -221,7 +236,7 @@ export class V1Controller {
   // ==========================================
 
   @Get("threads/:threadId/messages")
-  @UseGuards(ThreadInProjectGuard)
+  @UseGuards(V1ThreadInProjectGuard)
   @ApiOperation({
     summary: "List messages",
     description:
@@ -231,6 +246,12 @@ export class V1Controller {
     name: "threadId",
     description: "Thread ID",
     example: "thr_abc123xyz",
+  })
+  @ApiQuery({
+    name: "userKey",
+    description:
+      "Identifier for a user in your system. Required if no bearer token is provided.",
+    required: false,
   })
   @ApiResponse({
     status: 200,
@@ -242,14 +263,21 @@ export class V1Controller {
     description: "Thread not found",
   })
   async listMessages(
+    @Req() request: Request,
     @Param("threadId") threadId: string,
     @Query() query: V1ListMessagesQueryDto,
+    @Query("userKey") userKey?: string,
   ): Promise<V1ListMessagesResponseDto> {
+    const { contextKey: bearerContextKey } = extractContextInfo(
+      request,
+      userKey,
+    );
+    requireUserKey(userKey, bearerContextKey);
     return await this.v1Service.listMessages(threadId, query);
   }
 
   @Get("threads/:threadId/messages/:messageId")
-  @UseGuards(ThreadInProjectGuard)
+  @UseGuards(V1ThreadInProjectGuard)
   @ApiOperation({
     summary: "Get message",
     description: "Get a specific message by ID from a thread.",
@@ -264,6 +292,12 @@ export class V1Controller {
     description: "Message ID",
     example: "msg_xyz789abc",
   })
+  @ApiQuery({
+    name: "userKey",
+    description:
+      "Identifier for a user in your system. Required if no bearer token is provided.",
+    required: false,
+  })
   @ApiResponse({
     status: 200,
     description: "Message details",
@@ -274,9 +308,16 @@ export class V1Controller {
     description: "Message not found",
   })
   async getMessage(
+    @Req() request: Request,
     @Param("threadId") threadId: string,
     @Param("messageId") messageId: string,
+    @Query("userKey") userKey?: string,
   ): Promise<V1GetMessageResponseDto> {
+    const { contextKey: bearerContextKey } = extractContextInfo(
+      request,
+      userKey,
+    );
+    requireUserKey(userKey, bearerContextKey);
     return await this.v1Service.getMessage(threadId, messageId);
   }
 
@@ -402,7 +443,7 @@ export class V1Controller {
   }
 
   @Post("threads/:threadId/runs")
-  @UseGuards(ThreadInProjectGuard)
+  @UseGuards(V1ThreadInProjectGuard)
   @ApiOperation({
     summary: "Create run on existing thread (SSE)",
     description:
@@ -511,7 +552,7 @@ export class V1Controller {
   }
 
   @Delete("threads/:threadId/runs/:runId")
-  @UseGuards(ThreadInProjectGuard)
+  @UseGuards(V1ThreadInProjectGuard)
   @ApiOperation({
     summary: "Cancel run",
     description:
@@ -527,6 +568,12 @@ export class V1Controller {
     description: "Run ID",
     example: "run_xyz789abc",
   })
+  @ApiQuery({
+    name: "userKey",
+    description:
+      "Identifier for a user in your system. Required if no bearer token is provided.",
+    required: false,
+  })
   @ApiResponse({
     status: 200,
     description: "Run cancelled",
@@ -537,9 +584,16 @@ export class V1Controller {
     description: "Run not found",
   })
   async cancelRun(
+    @Req() request: Request,
     @Param("threadId") threadId: string,
     @Param("runId") runId: string,
+    @Query("userKey") userKey?: string,
   ): Promise<V1CancelRunResponseDto> {
+    const { contextKey: bearerContextKey } = extractContextInfo(
+      request,
+      userKey,
+    );
+    requireUserKey(userKey, bearerContextKey);
     return await this.v1Service.cancelRun(threadId, runId, "user_cancelled");
   }
 
@@ -548,7 +602,7 @@ export class V1Controller {
   // ==========================================
 
   @Post("threads/:threadId/components/:componentId/state")
-  @UseGuards(ThreadInProjectGuard)
+  @UseGuards(V1ThreadInProjectGuard)
   @ApiOperation({
     summary: "Update component state",
     description:
@@ -582,10 +636,16 @@ export class V1Controller {
     description: "Cannot update state while run is active",
   })
   async updateComponentState(
+    @Req() request: Request,
     @Param("threadId") threadId: string,
     @Param("componentId") componentId: string,
     @Body() dto: UpdateComponentStateDto,
   ): Promise<UpdateComponentStateResponseDto> {
+    const { contextKey: bearerContextKey } = extractContextInfo(
+      request,
+      dto.userKey,
+    );
+    requireUserKey(dto.userKey, bearerContextKey);
     return await this.v1Service.updateComponentState(
       threadId,
       componentId,
@@ -598,7 +658,7 @@ export class V1Controller {
   // ==========================================
 
   @Get("threads/:threadId/messages/:messageId/suggestions")
-  @UseGuards(ThreadInProjectGuard)
+  @UseGuards(V1ThreadInProjectGuard)
   @ApiOperation({
     summary: "List suggestions for a message",
     description:
@@ -651,7 +711,7 @@ export class V1Controller {
 
   @Post("threads/:threadId/messages/:messageId/suggestions")
   @HttpCode(HttpStatus.CREATED)
-  @UseGuards(ThreadInProjectGuard)
+  @UseGuards(V1ThreadInProjectGuard)
   @ApiOperation({
     summary: "Generate suggestions for a message",
     description:
