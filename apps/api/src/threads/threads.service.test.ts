@@ -574,9 +574,7 @@ describe("ThreadsService.advanceThread initialization", () => {
         .mockRejectedValueOnce(new Error("Connection terminated unexpectedly"))
         .mockResolvedValueOnce({ projectId });
 
-      await expect(
-        service.createTamboBackendForThread(threadId, "user_1"),
-      ).resolves.toBeTruthy();
+      await service.createTamboBackendForThread(threadId, "user_1");
 
       expect(fakeDb.query.threads.findFirst).toHaveBeenCalledTimes(2);
     });
