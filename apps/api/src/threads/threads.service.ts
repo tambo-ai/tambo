@@ -142,6 +142,11 @@ function isTransientDbConnectionError(error: unknown): boolean {
   );
 }
 
+/**
+ * Extracts common fields for structured logging.
+ *
+ * Most errors in this path are expected to be real `Error` instances.
+ */
 function getErrorDetails(
   error: unknown,
   options?: { includeStack?: boolean },
@@ -282,6 +287,7 @@ export class ThreadsService {
 
         return threadData.projectId;
       } catch (error: unknown) {
+        // Not found / no project association is a logical error, not a transient DB issue.
         if (error instanceof NotFoundException) {
           throw error;
         }

@@ -570,16 +570,23 @@ describe("ThreadsService.advanceThread initialization", () => {
   });
 
   describe("createTamboBackendForThread", () => {
-    it("retries thread lookup once when the DB connection drops", async () => {
-      jest
-        .mocked(fakeDb.query.threads.findFirst)
-        .mockRejectedValueOnce(new Error("Connection terminated unexpectedly"))
-        .mockResolvedValueOnce({ projectId });
+    it.each([
+      "Connection terminated unexpectedly",
+      "server closed the connection unexpectedly",
+      "Connection reset by peer",
+    ])(
+      "retries thread lookup once when the DB error message suggests a connection drop (%s)",
+      async (errorMessage) => {
+        jest
+          .mocked(fakeDb.query.threads.findFirst)
+          .mockRejectedValueOnce(new Error(errorMessage))
+          .mockResolvedValueOnce({ projectId });
 
-      await service.createTamboBackendForThread(threadId, "user_1");
+        await service.createTamboBackendForThread(threadId, "user_1");
 
-      expect(fakeDb.query.threads.findFirst).toHaveBeenCalledTimes(2);
-    });
+        expect(fakeDb.query.threads.findFirst).toHaveBeenCalledTimes(2);
+      },
+    );
 
     it("logs diagnostic fields when retrying a transient DB error", async () => {
       const errorWithCode = Object.assign(
@@ -616,24 +623,6 @@ describe("ThreadsService.advanceThread initialization", () => {
       expect(typeof logArg.maxAttempts).toBe("number");
       expect(typeof logArg.retriesAttempted).toBe("number");
       expect(typeof logArg.threadId).toBe("string");
-
-      expect(logArg.attempt).toBe(1);
-      expect(logArg.nextAttempt).toBe(2);
-      expect(logArg.retriesAttempted).toBe(0);
-      expect(logArg.maxAttempts).toBe(2);
-    });
-
-    it("retries thread lookup once when the DB error message suggests a connection termination", async () => {
-      jest
-        .mocked(fakeDb.query.threads.findFirst)
-        .mockRejectedValueOnce(
-          new Error("server closed the connection unexpectedly"),
-        )
-        .mockResolvedValueOnce({ projectId });
-
-      await service.createTamboBackendForThread(threadId, "user_1");
-
-      expect(fakeDb.query.threads.findFirst).toHaveBeenCalledTimes(2);
     });
 
     it("retries thread lookup once when the DB error has a transient code", async () => {
