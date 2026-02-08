@@ -68,3 +68,12 @@ export function useV1ComponentContent(): V1ComponentContentContext {
   }
   return context;
 }
+
+/**
+ * Hook to optionally access the current component content context.
+ * Returns null when used outside a rendered component instead of throwing.
+ * @returns Component content context or null if not within a rendered component
+ */
+export function useV1ComponentContentOptional(): V1ComponentContentContext | null {
+  return useContext(ComponentContentContext);
+}

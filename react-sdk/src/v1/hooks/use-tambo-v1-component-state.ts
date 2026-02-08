@@ -15,7 +15,7 @@ import { useDebouncedCallback } from "use-debounce";
 import { deepEqual } from "fast-equals";
 import { useTamboClient } from "../../providers/tambo-client-provider";
 import { useTamboInteractable } from "../../providers/tambo-interactable-provider";
-import { useV1ComponentContent } from "../utils/component-renderer";
+import { useV1ComponentContentOptional } from "../utils/component-renderer";
 import { useStreamState } from "../providers/tambo-v1-stream-context";
 import { findComponentContent } from "../utils/thread-utils";
 
@@ -77,19 +77,24 @@ export function useTamboV1ComponentState<S>(
   debounceTime = 500,
 ): UseTamboV1ComponentStateReturn<S> {
   const client = useTamboClient();
-  const { componentId, threadId } = useV1ComponentContent();
+  const componentContent = useV1ComponentContentOptional();
   const streamState = useStreamState();
   const { setInteractableState, getInteractableComponentState } =
     useTamboInteractable();
+
+  // componentContent is null on the first render of interactable components
+  // (before withTamboInteractable sets the interactableId and wraps with provider)
+  const componentId = componentContent?.componentId ?? "";
+  const threadId = componentContent?.threadId ?? "";
 
   // Interactable components use threadId="" (set by withTamboInteractable)
   const isInteractable = threadId === "";
 
   // Find the component content to get server state (only for v1-rendered components)
-  const componentContent = isInteractable
+  const renderedContent = isInteractable
     ? undefined
     : findComponentContent(streamState, threadId, componentId);
-  const serverState = componentContent?.state as
+  const serverState = renderedContent?.state as
     | Record<string, unknown>
     | undefined;
   const serverValue = serverState?.[keyName] as S | undefined;
