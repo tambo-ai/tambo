@@ -2,26 +2,26 @@
 
 import { useContext } from "react";
 import { TamboClientContext } from "../../providers/tambo-client-provider";
-import { TamboV1ConfigContext } from "../providers/tambo-v1-provider";
-import type { TamboV1AuthState } from "../types/auth";
+import { TamboConfigContext } from "../providers/tambo-v1-provider";
+import type { TamboAuthState } from "../types/auth";
 
 /**
  * Hook to compute the current authentication state for the v1 SDK.
  *
- * Reads from TamboClientContext and TamboV1ConfigContext to determine
+ * Reads from TamboClientContext and TamboConfigContext to determine
  * whether the SDK is ready to make API calls.
  * @returns The current auth state as a discriminated union
- * @throws {Error} If used outside TamboV1Provider
+ * @throws {Error} If used outside TamboProvider
  */
-export function useTamboV1AuthState(): TamboV1AuthState {
+export function useTamboAuthState(): TamboAuthState {
   const clientContext = useContext(TamboClientContext);
   if (!clientContext) {
-    throw new Error("useTamboV1AuthState must be used within TamboV1Provider");
+    throw new Error("useTamboAuthState must be used within TamboProvider");
   }
 
-  const config = useContext(TamboV1ConfigContext);
+  const config = useContext(TamboConfigContext);
   if (!config) {
-    throw new Error("useTamboV1AuthState must be used within TamboV1Provider");
+    throw new Error("useTamboAuthState must be used within TamboProvider");
   }
 
   const { tokenExchangeError, userToken, hasValidToken } = clientContext;

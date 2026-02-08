@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * useTamboV1ComponentState - Component State Hook for v1 API
+ * useTamboComponentState - Component State Hook for v1 API
  *
  * Provides bidirectional state synchronization between React components
  * and the Tambo backend. State changes are debounced before syncing to
@@ -19,15 +19,15 @@ import { useDebouncedCallback } from "use-debounce";
 import { deepEqual } from "fast-equals";
 import { useTamboClient } from "../../providers/tambo-client-provider";
 import { useTamboInteractable } from "../../providers/tambo-interactable-provider";
-import { useV1ComponentContentOptional } from "../utils/component-renderer";
+import { useComponentContentOptional } from "../utils/component-renderer";
 import { useStreamState } from "../providers/tambo-v1-stream-context";
 import { findComponentContent } from "../utils/thread-utils";
 
 /**
- * Return type for useTamboV1ComponentState hook.
+ * Return type for useTamboComponentState hook.
  * Similar to useState but with additional metadata.
  */
-export type UseTamboV1ComponentStateReturn<S> = [
+export type UseTamboComponentStateReturn<S> = [
   currentState: S,
   setState: (newState: S | ((prev: S) => S)) => void,
   meta: {
@@ -53,7 +53,7 @@ export type UseTamboV1ComponentStateReturn<S> = [
  * @example
  * ```tsx
  * function Counter() {
- *   const [count, setCount, { isPending }] = useTamboV1ComponentState('count', 0);
+ *   const [count, setCount, { isPending }] = useTamboComponentState('count', 0);
  *
  *   return (
  *     <div>
@@ -66,23 +66,23 @@ export type UseTamboV1ComponentStateReturn<S> = [
  * }
  * ```
  */
-export function useTamboV1ComponentState<S = undefined>(
+export function useTamboComponentState<S = undefined>(
   keyName: string,
   initialValue?: S,
   debounceTime?: number,
-): UseTamboV1ComponentStateReturn<S | undefined>;
-export function useTamboV1ComponentState<S>(
+): UseTamboComponentStateReturn<S | undefined>;
+export function useTamboComponentState<S>(
   keyName: string,
   initialValue: S,
   debounceTime?: number,
-): UseTamboV1ComponentStateReturn<S>;
-export function useTamboV1ComponentState<S>(
+): UseTamboComponentStateReturn<S>;
+export function useTamboComponentState<S>(
   keyName: string,
   initialValue?: S,
   debounceTime = 500,
-): UseTamboV1ComponentStateReturn<S> {
+): UseTamboComponentStateReturn<S> {
   const client = useTamboClient();
-  const componentContent = useV1ComponentContentOptional();
+  const componentContent = useComponentContentOptional();
   const streamState = useStreamState();
   const { setInteractableState, getInteractableComponentState } =
     useTamboInteractable();
@@ -153,7 +153,7 @@ export function useTamboV1ComponentState<S>(
       const syncError = err instanceof Error ? err : new Error(String(err));
       setError(syncError);
       console.error(
-        `[useTamboV1ComponentState] Failed to sync state for ${componentId}:`,
+        `[useTamboComponentState] Failed to sync state for ${componentId}:`,
         syncError,
       );
     } finally {

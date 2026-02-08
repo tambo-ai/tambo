@@ -6,7 +6,7 @@ import {
   useTamboClient,
   useTamboQueryClient,
 } from "../../providers/tambo-client-provider";
-import { useTamboV1Thread } from "./use-tambo-v1-thread";
+import { useTamboThread } from "./use-tambo-v1-thread";
 
 jest.mock("../../providers/tambo-client-provider", () => ({
   useTamboClient: jest.fn(),
@@ -14,13 +14,13 @@ jest.mock("../../providers/tambo-client-provider", () => ({
 }));
 
 jest.mock("./use-tambo-v1-auth-state", () => ({
-  useTamboV1AuthState: () => ({
+  useTamboAuthState: () => ({
     status: "identified",
     source: "userKey",
   }),
 }));
 
-describe("useTamboV1Thread", () => {
+describe("useTamboThread", () => {
   const mockThread = {
     id: "thread_123",
     runStatus: "idle",
@@ -63,7 +63,7 @@ describe("useTamboV1Thread", () => {
   it("fetches thread by ID", async () => {
     mockThreadsApi.retrieve.mockResolvedValue(mockThread);
 
-    const { result } = renderHook(() => useTamboV1Thread("thread_123"), {
+    const { result } = renderHook(() => useTamboThread("thread_123"), {
       wrapper: TestWrapper,
     });
 
@@ -81,7 +81,7 @@ describe("useTamboV1Thread", () => {
     });
     mockThreadsApi.retrieve.mockReturnValue(promise);
 
-    const { result } = renderHook(() => useTamboV1Thread("thread_123"), {
+    const { result } = renderHook(() => useTamboThread("thread_123"), {
       wrapper: TestWrapper,
     });
 
@@ -98,7 +98,7 @@ describe("useTamboV1Thread", () => {
     const mockError = new Error("Thread not found");
     mockThreadsApi.retrieve.mockRejectedValue(mockError);
 
-    const { result } = renderHook(() => useTamboV1Thread("thread_123"), {
+    const { result } = renderHook(() => useTamboThread("thread_123"), {
       wrapper: TestWrapper,
     });
 

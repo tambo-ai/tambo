@@ -10,26 +10,11 @@ import {
   TamboInteractableProvider,
   useCurrentInteractablesSnapshot,
 } from "./tambo-interactable-provider";
-import { TamboStubProvider } from "./tambo-stubs";
+import { TamboStubProvider } from "../v1/providers/tambo-v1-stub-provider";
 
 function wrapperWithProviders(children: React.ReactNode) {
-  const thread = {
-    id: "t-1",
-    projectId: "p-1",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    messages: [],
-    metadata: {},
-  } as any;
-
   return (
-    <TamboStubProvider
-      thread={thread}
-      registerTool={() => {}}
-      registerTools={() => {}}
-      registerComponent={() => {}}
-      addToolAssociation={() => {}}
-    >
+    <TamboStubProvider>
       <TamboContextHelpersProvider>{children}</TamboContextHelpersProvider>
     </TamboStubProvider>
   );
@@ -390,23 +375,8 @@ describe("Interactables AdditionalContext (provider-based)", () => {
       return <div data-testid="ready">ready</div>;
     };
 
-    const thread = {
-      id: "t-1",
-      projectId: "p-1",
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      messages: [],
-      metadata: {},
-    } as any;
-
     const { getByTestId } = render(
-      <TamboStubProvider
-        thread={thread}
-        registerTool={() => {}}
-        registerTools={() => {}}
-        registerComponent={() => {}}
-        addToolAssociation={() => {}}
-      >
+      <TamboStubProvider>
         <DisabledContextHelpers>
           <TamboInteractableProvider>
             <InteractableNote title="should not appear" />
