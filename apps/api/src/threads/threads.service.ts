@@ -105,9 +105,8 @@ const TRANSIENT_DB_ERROR_CODES = new Set([
 ]);
 
 const TRANSIENT_DB_ERROR_MESSAGE_SUBSTRINGS = [
-  "Connection terminated unexpectedly",
+  "connection terminated unexpectedly",
   "server closed the connection unexpectedly",
-  "terminating connection due to administrator command",
 ];
 
 function getErrorCode(error: unknown): string | undefined {
@@ -129,8 +128,9 @@ function isTransientDbConnectionError(error: unknown): boolean {
     return false;
   }
 
+  const message = error.message.toLowerCase();
   return TRANSIENT_DB_ERROR_MESSAGE_SUBSTRINGS.some((substring) =>
-    error.message.includes(substring),
+    message.includes(substring),
   );
 }
 
@@ -250,6 +250,7 @@ export class ThreadsService {
               error instanceof Error ? error.message : String(error),
             errorCode,
             errorStack: error instanceof Error ? error.stack : undefined,
+            isTransientDbConnectionError: true,
           });
           await new Promise((resolve) =>
             setTimeout(resolve, baseBackoffMs * attempt),
