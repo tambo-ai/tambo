@@ -24,6 +24,7 @@ import {
 } from "@ag-ui/core";
 import {
   AsyncQueue,
+  GenerationStage,
   V1RunStatus,
   type UnsavedThreadToolMessage,
 } from "@tambo-ai-cloud/core";
@@ -83,7 +84,7 @@ import {
   isHiddenUiToolResponse,
   ContentConversionOptions,
   convertV1InputMessageToInternal,
-  convertV1InputMessageToUnsaved,
+  convertV1InitialMessageToMessageRequest,
 } from "./v1-conversions";
 import { encodeV1CompoundCursor, parseV1CompoundCursor } from "./v1-pagination";
 import {
@@ -211,37 +212,34 @@ export class V1Service {
 
   /**
    * Create a new thread, optionally seeded with initial messages.
+   *
+   * Routes through ThreadsService.createThread so that system prompt injection,
+   * validation, and customInstructions logic apply automatically.
    */
   async createThread(
     projectId: string,
     contextKey: string,
     dto: V1CreateThreadDto,
   ): Promise<V1CreateThreadResponseDto> {
-    const thread = await operations.createThread(this.db, {
-      projectId,
+    const initialMessages = dto.initialMessages?.map(
+      convertV1InitialMessageToMessageRequest,
+    );
+
+    const thread = await this.threadsService.createThread(
+      { projectId, metadata: dto.metadata },
       contextKey,
-      metadata: dto.metadata,
-    });
+      initialMessages,
+    );
 
-    if (!thread) {
-      throw new Error(
-        `Failed to create thread for project ${projectId}. ` +
-          `Database insert did not return created record.`,
-      );
-    }
-
-    // Save initial messages to the thread
-    if (dto.initialMessages?.length) {
-      for (const msg of dto.initialMessages) {
-        await operations.addMessage(
-          this.db,
-          thread.id,
-          convertV1InputMessageToUnsaved(msg),
-        );
-      }
-    }
-
-    return threadToDto(thread);
+    return {
+      id: thread.id,
+      name: thread.name ?? undefined,
+      userKey: contextKey,
+      runStatus: V1RunStatus.IDLE,
+      metadata: thread.metadata ?? undefined,
+      createdAt: thread.createdAt.toISOString(),
+      updatedAt: thread.updatedAt.toISOString(),
+    };
   }
 
   /**
@@ -581,6 +579,15 @@ export class V1Service {
 
       await operations.markRunCancelled(tx, runId);
 
+      // Reset generationStage so the thread isn't stuck in a processing state.
+      // The V1 runStatus lock is released above, but the legacy generationStage
+      // (checked by addMessageToThreadAndStream) must also be cleared.
+      await operations.updateThreadGenerationStatus(
+        tx,
+        threadId,
+        GenerationStage.CANCELLED,
+      );
+
       // Use the "latest message" fallback here since we don't have access to the
       // streaming context's message ID. This is called from connection close handlers
       // and the DELETE endpoint. The streaming loop uses markMessageCancelled()
@@ -863,6 +870,12 @@ export class V1Service {
           // Update run and thread with error
           const didReleaseLock = await this.db.transaction(async (tx) => {
             await operations.completeRun(tx, runId, { error: errorInfo });
+            // Reset generationStage so the thread isn't stuck in a processing state
+            await operations.updateThreadGenerationStatus(
+              tx,
+              threadId,
+              GenerationStage.ERROR,
+            );
             return await operations.releaseRunLockIfCurrent(
               tx,
               threadId,

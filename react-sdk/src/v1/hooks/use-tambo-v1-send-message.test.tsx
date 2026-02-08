@@ -26,6 +26,13 @@ jest.mock("../providers/tambo-v1-provider", () => ({
   useTamboV1Config: jest.fn(),
 }));
 
+jest.mock("./use-tambo-v1-auth-state", () => ({
+  useTamboV1AuthState: () => ({
+    status: "identified",
+    source: "userKey",
+  }),
+}));
+
 jest.mock("../../providers/tambo-context-helpers-provider", () => ({
   useTamboContextHelpers: () => ({
     getAdditionalContext: jest.fn().mockResolvedValue([]),
@@ -1034,6 +1041,87 @@ describe("useTamboV1SendMessage mutation", () => {
       toolUseId: "call_2",
       content: [{ type: "text", text: "result from tool 2" }],
     });
+  });
+
+  it("uses lastCompletedRunId as previousRunId when streaming.runId is absent", async () => {
+    const mockStream = createAsyncIterator([
+      {
+        type: EventType.RUN_STARTED,
+        runId: "run_2",
+        threadId: "thread_123",
+      },
+      { type: EventType.RUN_FINISHED },
+    ]);
+
+    mockThreadsRunsApi.run.mockResolvedValue(mockStream);
+
+    const mockRegistry = {
+      componentList: new Map(),
+      toolRegistry: new Map(),
+    };
+
+    // Provide stream state with lastCompletedRunId but no active streaming.runId
+    const stateWithLastRun: import("../utils/event-accumulator").StreamState = {
+      currentThreadId: "thread_123",
+      threadMap: {
+        thread_123: {
+          thread: {
+            id: "thread_123",
+            messages: [
+              {
+                id: "msg_1",
+                role: "user",
+                content: [{ type: "text", text: "Hello" }],
+                createdAt: "2024-01-01T00:00:00.000Z",
+              },
+            ],
+            status: "idle",
+            createdAt: "2024-01-01T00:00:00.000Z",
+            updatedAt: "2024-01-01T00:00:00.000Z",
+            lastRunCancelled: false,
+          },
+          streaming: { status: "idle" },
+          accumulatingToolArgs: new Map(),
+          lastCompletedRunId: "run_1",
+        },
+      },
+    };
+
+    function TestWrapper({ children }: { children: React.ReactNode }) {
+      return (
+        <QueryClientProvider client={queryClient}>
+          <TamboRegistryContext.Provider value={mockRegistry as any}>
+            <TamboV1StreamProvider
+              state={stateWithLastRun}
+              dispatch={jest.fn()}
+            >
+              {children}
+            </TamboV1StreamProvider>
+          </TamboRegistryContext.Provider>
+        </QueryClientProvider>
+      );
+    }
+
+    const { result } = renderHook(() => useTamboV1SendMessage("thread_123"), {
+      wrapper: TestWrapper,
+    });
+
+    await act(async () => {
+      await result.current.mutateAsync({
+        message: {
+          role: "user",
+          content: [{ type: "text", text: "Follow-up" }],
+        },
+      });
+    });
+
+    // Should have used lastCompletedRunId as previousRunId
+    expect(mockThreadsRunsApi.run).toHaveBeenCalledWith(
+      "thread_123",
+      expect.objectContaining({
+        previousRunId: "run_1",
+      }),
+    );
   });
 
   it("logs error on mutation failure", async () => {

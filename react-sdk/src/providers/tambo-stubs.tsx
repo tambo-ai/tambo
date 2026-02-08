@@ -90,6 +90,9 @@ const TamboStubClientProvider: React.FC<
         client,
         queryClient,
         isUpdatingToken,
+        tokenExchangeError: null,
+        userToken: undefined,
+        hasValidToken: false,
       }}
     >
       {children}

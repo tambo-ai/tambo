@@ -25,8 +25,9 @@ import {
   useStreamState,
 } from "../providers/tambo-v1-stream-context";
 import { useTamboV1Config } from "../providers/tambo-v1-provider";
+import { useTamboV1AuthState } from "./use-tambo-v1-auth-state";
 import { useTamboContextHelpers } from "../../providers/tambo-context-helpers-provider";
-import type { InputMessage } from "../types/message";
+import type { InitialInputMessage, InputMessage } from "../types/message";
 import type { ToolChoice } from "../types/tool-choice";
 import {
   isPlaceholderThreadId,
@@ -39,7 +40,7 @@ import {
 import { handleEventStream } from "../utils/stream-handler";
 import {
   executeAllPendingTools,
-  createDebouncedStreamableExecutor,
+  createThrottledStreamableExecutor,
 } from "../utils/tool-executor";
 import type { ToolResultContent } from "@tambo-ai/typescript-sdk/resources/threads/threads";
 import { ToolCallTracker } from "../utils/tool-call-tracker";
@@ -289,7 +290,7 @@ export interface CreateRunStreamParams {
    * Initial messages to seed the thread with when creating a new thread.
    * Only used when threadId is undefined (new thread creation).
    */
-  initialMessages?: InputMessage[];
+  initialMessages?: InitialInputMessage[];
 }
 
 /**
@@ -436,13 +437,15 @@ export async function createRunStream(
     return { stream, initialThreadId: threadId };
   } else {
     // Create new thread - include initialMessages if provided
+    // Cast to InputMessage[] at the SDK boundary: the V1 API accepts system/assistant roles
+    // but the TS SDK type constrains role to 'user'. Remove cast when typescript-sdk is regenerated.
     const threadConfig: { userKey?: string; initialMessages?: InputMessage[] } =
       {};
     if (userKey) {
       threadConfig.userKey = userKey;
     }
     if (initialMessages?.length) {
-      threadConfig.initialMessages = initialMessages;
+      threadConfig.initialMessages = initialMessages as InputMessage[];
     }
 
     const stream = await client.threads.runs.create({
@@ -514,6 +517,7 @@ export function useTamboV1SendMessage(threadId?: string) {
   const registry = useContext(TamboRegistryContext);
   const queryClient = useTamboQueryClient();
   const { getAdditionalContext } = useTamboContextHelpers();
+  const authState = useTamboV1AuthState();
 
   if (!registry) {
     throw new Error(
@@ -525,14 +529,35 @@ export function useTamboV1SendMessage(threadId?: string) {
   const isNewThread = isPlaceholderThreadId(threadId);
   const apiThreadId = isNewThread ? undefined : threadId;
 
-  // Get previousRunId from the thread's streaming state (if thread exists and has messages)
+  // Get previousRunId from the thread's streaming state (active run) or
+  // lastCompletedRunId (persisted after run finishes / loaded from API).
+  // The latter is essential after page reload when streaming state is gone.
   const threadState = apiThreadId
     ? streamState.threadMap[apiThreadId]
     : undefined;
-  const previousRunId = threadState?.streaming.runId;
+  const previousRunId =
+    threadState?.streaming.runId ?? threadState?.lastCompletedRunId;
 
   return useTamboMutation({
     mutationFn: async (options: SendMessageOptions) => {
+      if (authState.status !== "identified") {
+        const messages: Record<string, string> = {
+          unauthenticated:
+            "Cannot send message: no userKey or userToken provided. " +
+            "Configure authentication in TamboV1Provider.",
+          exchanging:
+            "Cannot send message: token exchange is still in progress. " +
+            "Wait for authentication to complete.",
+          error:
+            "Cannot send message: token exchange failed. " +
+            "Check your userToken configuration.",
+          invalid:
+            "Cannot send message: both userKey and userToken were provided. " +
+            "You must provide one or the other, not both.",
+        };
+        throw new Error(messages[authState.status]);
+      }
+
       const { message, userMessageText, debug = false, toolChoice } = options;
 
       // Capture pre-mutation state for auto thread name generation
@@ -542,7 +567,7 @@ export function useTamboV1SendMessage(threadId?: string) {
       const threadAlreadyHasTitle = !!existingThread?.thread.title;
 
       const toolTracker = new ToolCallTracker();
-      const debouncedStreamable = createDebouncedStreamableExecutor(
+      const throttledStreamable = createThrottledStreamableExecutor(
         toolTracker,
         registry.toolRegistry,
       );
@@ -637,7 +662,7 @@ export function useTamboV1SendMessage(threadId?: string) {
 
             // Schedule debounced streamable tool execution with the same pre-parsed args
             if (parsedToolArgs && event.type === EventType.TOOL_CALL_ARGS) {
-              debouncedStreamable.schedule(event.toolCallId, parsedToolArgs);
+              throttledStreamable.schedule(event.toolCallId, parsedToolArgs);
             }
 
             // Check for awaiting_input - if found, break to execute tools
@@ -651,7 +676,7 @@ export function useTamboV1SendMessage(threadId?: string) {
           }
 
           // Flush any pending debounced streamable calls before continuing
-          debouncedStreamable.flush();
+          throttledStreamable.flush();
 
           // If stream finished without awaiting_input, we're done
           if (!pendingAwaitingInput) {

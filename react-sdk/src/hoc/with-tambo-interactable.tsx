@@ -1,6 +1,7 @@
 "use client";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { TamboMessageProvider } from "../hooks/use-current-message";
+import type { ToolAnnotations } from "../model/component-metadata";
 import { TamboThreadMessage } from "../model/generate-component-response";
 import { useTamboInteractable } from "../providers/tambo-interactable-provider";
 import { SupportedSchema } from "../schema";
@@ -29,6 +30,13 @@ export interface InteractableConfig<
    * validated against this schema.
    */
   stateSchema?: SupportedSchema<State>;
+  /**
+   * Optional annotations for the interactable component's auto-registered tools
+   * (props update and state update). By default, `tamboStreamableHint` is `true`
+   * so props/state updates stream in real-time. Set `{ tamboStreamableHint: false }`
+   * to disable streaming for this component's tools.
+   */
+  annotations?: ToolAnnotations;
 }
 
 /**
@@ -134,6 +142,7 @@ export function withTamboInteractable<ComponentProps extends object>(
           props: componentProps,
           propsSchema: config.propsSchema,
           stateSchema: config.stateSchema,
+          annotations: config.annotations,
         });
 
         setInteractableId(id);

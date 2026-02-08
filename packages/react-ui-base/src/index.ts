@@ -18,6 +18,38 @@ export type {
   MessageRootProps,
 } from "./message";
 
+// MessageInput components
+export { MessageInput } from "./message-input";
+export type {
+  MessageInputContentProps,
+  MessageInputContentRenderProps,
+  MessageInputContextValue,
+  MessageInputErrorProps,
+  MessageInputErrorRenderProps,
+  MessageInputFileButtonProps,
+  MessageInputFileButtonRenderProps,
+  MessageInputRootProps,
+  MessageInputStagedImagesProps,
+  MessageInputStagedImagesRenderProps,
+  MessageInputSubmitButtonProps,
+  MessageInputSubmitButtonRenderProps,
+  MessageInputTextareaProps,
+  MessageInputTextareaRenderProps,
+  MessageInputToolbarProps,
+  MessageInputValueAccessProps,
+  MessageInputValueAccessRenderProps,
+  PromptFormatOptions,
+  PromptItem,
+  PromptProvider,
+  ResourceFormatOptions,
+  ResourceItem,
+  ResourceProvider,
+  StagedImage,
+  StagedImageRenderProps,
+  TamboEditor,
+} from "./message-input";
+export { IS_PASTED_IMAGE, MAX_IMAGES } from "./message-input";
+
 // ReasoningInfo components
 export { ReasoningInfo } from "./reasoning-info";
 export type {

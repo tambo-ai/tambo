@@ -49,6 +49,7 @@ jest.mock("@tambo-ai-cloud/db", () => ({
     updateThreadRunStatus: jest.fn(),
     completeRun: jest.fn(),
     updateMessage: jest.fn(),
+    updateThreadGenerationStatus: jest.fn(),
     listThreadsPaginated: jest.fn(),
     listMessagesPaginated: jest.fn(),
     getMessageByIdInThread: jest.fn(),
@@ -104,6 +105,7 @@ type MockDb = {
 // Mock ThreadsService type for testing
 type MockThreadsService = {
   advanceThread: jest.Mock;
+  createThread: jest.Mock;
 };
 
 describe("V1Service", () => {
@@ -213,6 +215,7 @@ describe("V1Service", () => {
 
     mockThreadsService = {
       advanceThread: jest.fn(),
+      createThread: jest.fn(),
     };
 
     // Create service with mock database and threads service (cast to unknown first to satisfy constructor type)
@@ -460,23 +463,33 @@ describe("V1Service", () => {
   });
 
   describe("createThread", () => {
+    const mockThreadsServiceThread = {
+      id: "thr_123",
+      name: null as string | null,
+      metadata: { key: "value" } as Record<string, unknown> | null,
+      createdAt: new Date("2024-01-01T00:00:00Z"),
+      updatedAt: new Date("2024-01-01T00:00:00Z"),
+    };
+
     it("should create a thread with minimal data", async () => {
-      mockOperations.createThread.mockResolvedValue(mockThread);
+      mockThreadsService.createThread.mockResolvedValue(
+        mockThreadsServiceThread,
+      );
 
       const result = await service.createThread("prj_123", "user_456", {});
 
-      expect(mockOperations.createThread).toHaveBeenCalledWith(mockDb, {
-        projectId: "prj_123",
-        contextKey: "user_456",
-        metadata: undefined,
-      });
+      expect(mockThreadsService.createThread).toHaveBeenCalledWith(
+        { projectId: "prj_123", metadata: undefined },
+        "user_456",
+        undefined,
+      );
       expect(result.id).toBe("thr_123");
+      expect(result.runStatus).toBe(V1RunStatus.IDLE);
     });
 
     it("should create a thread with context key and metadata", async () => {
-      mockOperations.createThread.mockResolvedValue({
-        ...mockThread,
-        contextKey: "user_456",
+      mockThreadsService.createThread.mockResolvedValue({
+        ...mockThreadsServiceThread,
         metadata: { custom: "data" },
       });
 
@@ -484,13 +497,19 @@ describe("V1Service", () => {
         metadata: { custom: "data" },
       });
 
+      expect(mockThreadsService.createThread).toHaveBeenCalledWith(
+        { projectId: "prj_123", metadata: { custom: "data" } },
+        "user_456",
+        undefined,
+      );
       expect(result.userKey).toBe("user_456");
       expect(result.metadata).toEqual({ custom: "data" });
     });
 
-    it("should save initialMessages when provided", async () => {
-      mockOperations.createThread.mockResolvedValue(mockThread);
-      mockOperations.addMessage.mockResolvedValue(mockMessage);
+    it("should pass converted initialMessages to threadsService.createThread", async () => {
+      mockThreadsService.createThread.mockResolvedValue(
+        mockThreadsServiceThread,
+      );
 
       const result = await service.createThread("prj_123", "user_456", {
         initialMessages: [
@@ -498,27 +517,92 @@ describe("V1Service", () => {
         ],
       });
 
-      expect(mockOperations.createThread).toHaveBeenCalled();
-      expect(mockOperations.addMessage).toHaveBeenCalledWith(
-        mockDb,
-        "thr_123",
-        expect.objectContaining({
-          role: "user",
-          content: expect.arrayContaining([
-            expect.objectContaining({ type: "text", text: "Hi" }),
-          ]),
-        }),
+      expect(mockThreadsService.createThread).toHaveBeenCalledWith(
+        { projectId: "prj_123", metadata: undefined },
+        "user_456",
+        [
+          expect.objectContaining({
+            role: MessageRole.User,
+            content: [expect.objectContaining({ type: "text", text: "Hi" })],
+          }),
+        ],
       );
       expect(result.id).toBe("thr_123");
     });
 
-    it("should not call addMessage when no initialMessages provided", async () => {
-      mockOperations.createThread.mockResolvedValue(mockThread);
+    it("should not pass initialMessages when none provided", async () => {
+      mockThreadsService.createThread.mockResolvedValue(
+        mockThreadsServiceThread,
+      );
 
       await service.createThread("prj_123", "user_456", {});
 
-      expect(mockOperations.createThread).toHaveBeenCalled();
-      expect(mockOperations.addMessage).not.toHaveBeenCalled();
+      expect(mockThreadsService.createThread).toHaveBeenCalledWith(
+        { projectId: "prj_123", metadata: undefined },
+        "user_456",
+        undefined,
+      );
+    });
+
+    it("should support system role in initialMessages", async () => {
+      mockThreadsService.createThread.mockResolvedValue(
+        mockThreadsServiceThread,
+      );
+
+      await service.createThread("prj_123", "user_456", {
+        initialMessages: [
+          {
+            role: "system",
+            content: [{ type: "text", text: "You are helpful" }],
+          },
+        ],
+      });
+
+      expect(mockThreadsService.createThread).toHaveBeenCalledWith(
+        expect.any(Object),
+        "user_456",
+        [
+          expect.objectContaining({
+            role: MessageRole.System,
+          }),
+        ],
+      );
+    });
+
+    it("should support assistant role in initialMessages", async () => {
+      mockThreadsService.createThread.mockResolvedValue(
+        mockThreadsServiceThread,
+      );
+
+      await service.createThread("prj_123", "user_456", {
+        initialMessages: [
+          {
+            role: "assistant",
+            content: [{ type: "text", text: "How can I help?" }],
+          },
+        ],
+      });
+
+      expect(mockThreadsService.createThread).toHaveBeenCalledWith(
+        expect.any(Object),
+        "user_456",
+        [
+          expect.objectContaining({
+            role: MessageRole.Assistant,
+          }),
+        ],
+      );
+    });
+
+    it("should map createdAt and updatedAt to ISO strings", async () => {
+      mockThreadsService.createThread.mockResolvedValue(
+        mockThreadsServiceThread,
+      );
+
+      const result = await service.createThread("prj_123", "user_456", {});
+
+      expect(result.createdAt).toBe("2024-01-01T00:00:00.000Z");
+      expect(result.updatedAt).toBe("2024-01-01T00:00:00.000Z");
     });
   });
 
@@ -1372,14 +1456,14 @@ describe("V1Service", () => {
   });
 
   describe("createThread error handling", () => {
-    it("should throw error if database returns null", async () => {
-      mockOperations.createThread.mockResolvedValue(
-        null as unknown as typeof mockThread,
+    it("should propagate errors from threadsService.createThread", async () => {
+      mockThreadsService.createThread.mockRejectedValue(
+        new Error("Failed to create thread"),
       );
 
       await expect(
         service.createThread("prj_123", "user_456", {}),
-      ).rejects.toThrow(/Failed to create thread for project prj_123/);
+      ).rejects.toThrow(/Failed to create thread/);
     });
   });
 
@@ -1888,6 +1972,9 @@ describe("V1Service", () => {
 
       expect(mockDb.transaction).toHaveBeenCalledTimes(1);
       expect(mockOperations.markRunCancelled).not.toHaveBeenCalled();
+      expect(
+        mockOperations.updateThreadGenerationStatus,
+      ).not.toHaveBeenCalled();
     });
 
     it("should successfully cancel an existing run", async () => {
@@ -1898,6 +1985,7 @@ describe("V1Service", () => {
       } as any);
       mockOperations.releaseRunLockIfCurrent.mockResolvedValue(true);
       mockOperations.markRunCancelled.mockResolvedValue(undefined);
+      mockOperations.updateThreadGenerationStatus.mockResolvedValue({} as any);
       mockOperations.markLatestAssistantMessageCancelled.mockResolvedValue(
         "msg_123",
       );
@@ -1914,6 +2002,11 @@ describe("V1Service", () => {
       expect(mockDb.transaction).toHaveBeenCalledTimes(1);
       expect(mockOperations.releaseRunLockIfCurrent).toHaveBeenCalledTimes(1);
       expect(mockOperations.markRunCancelled).toHaveBeenCalledTimes(1);
+      expect(mockOperations.updateThreadGenerationStatus).toHaveBeenCalledWith(
+        expect.anything(),
+        "thr_123",
+        GenerationStage.CANCELLED,
+      );
     });
   });
 

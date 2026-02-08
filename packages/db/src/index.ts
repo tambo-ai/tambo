@@ -79,4 +79,5 @@ async function closeDb() {
 export * from "./oauth/OAuthLocalProvider";
 export * from "./types";
 export * from "./converters/message-converters";
+export { ThreadNotFoundError } from "./operations/thread";
 export { closeDb, getDb, operations, schema }; // `withDbClient` exported above

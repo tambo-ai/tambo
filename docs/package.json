@@ -1,6 +1,6 @@
 {
   "name": "@tambo-ai/docs",
-  "version": "1.25.0",
+  "version": "1.26.0",
   "license": "MIT",
   "scripts": {
     "build": "next build",
@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "@tambo-ai/react": "*",
-    "@tambo-ai/typescript-sdk": "^0.89.0",
+    "@tambo-ai/typescript-sdk": "^0.90.0",
     "@tambo-ai/ui-registry": "*",
     "class-variance-authority": "^0.7.1",
     "dompurify": "^3.3.1",

@@ -31,7 +31,11 @@ import {
   type ComponentStateDeltaEvent,
   type RunAwaitingInputEvent,
 } from "../types/event";
-import type { Content, InputMessage, TamboV1Message } from "../types/message";
+import type {
+  Content,
+  InitialInputMessage,
+  TamboV1Message,
+} from "../types/message";
 import type { StreamingState, TamboV1Thread } from "../types/thread";
 import { parse as parsePartialJson } from "partial-json";
 import { applyJsonPatch } from "./json-patch";
@@ -59,6 +63,13 @@ export interface ThreadState {
    * Maps tool call ID to accumulated JSON string.
    */
   accumulatingToolArgs: Map<string, string>;
+  /**
+   * ID of the last completed run. Persists across the session so it's
+   * available as `previousRunId` when sending follow-up messages, even
+   * after the streaming state has been cleared (e.g., after page reload
+   * and thread re-fetch).
+   */
+  lastCompletedRunId?: string;
 }
 
 /**
@@ -131,6 +142,16 @@ export interface LoadThreadMessagesAction {
 }
 
 /**
+ * Set last completed run ID action - stores metadata from the API
+ * so it can be used as `previousRunId` for follow-up messages.
+ */
+export interface SetLastCompletedRunIdAction {
+  type: "SET_LAST_COMPLETED_RUN_ID";
+  threadId: string;
+  lastCompletedRunId: string;
+}
+
+/**
  * Update thread title action - sets the title on a thread.
  * Used after auto-generating a thread name via the API.
  */
@@ -149,6 +170,7 @@ export type StreamAction =
   | SetCurrentThreadAction
   | StartNewThreadAction
   | LoadThreadMessagesAction
+  | SetLastCompletedRunIdAction
   | UpdateThreadTitleAction;
 
 /**
@@ -218,7 +240,7 @@ export function createInitialState(): StreamState {
  * @returns Initial stream state with messages in the placeholder thread
  */
 export function createInitialStateWithMessages(
-  initialMessages: InputMessage[],
+  initialMessages: InitialInputMessage[],
 ): StreamState {
   const placeholderState = createInitialThreadState(PLACEHOLDER_THREAD_ID);
   const messages: TamboV1Message[] = initialMessages.map((msg) => ({
@@ -429,6 +451,22 @@ export function streamReducer(
 
     case "LOAD_THREAD_MESSAGES": {
       return handleLoadThreadMessages(state, action);
+    }
+
+    case "SET_LAST_COMPLETED_RUN_ID": {
+      const threadState =
+        state.threadMap[action.threadId] ??
+        createInitialThreadState(action.threadId);
+      return {
+        ...state,
+        threadMap: {
+          ...state.threadMap,
+          [action.threadId]: {
+            ...threadState,
+            lastCompletedRunId: action.lastCompletedRunId,
+          },
+        },
+      };
     }
 
     case "UPDATE_THREAD_TITLE": {
@@ -652,15 +690,19 @@ function handleRunStarted(
 /**
  * Handle RUN_FINISHED event.
  * @param threadState - Current thread state
- * @param _event - Run finished event (unused)
+ * @param event - Run finished event containing the completed run's ID
  * @returns Updated thread state
  */
 function handleRunFinished(
   threadState: ThreadState,
-  _event: RunFinishedEvent,
+  event: RunFinishedEvent,
 ): ThreadState {
   return {
     ...threadState,
+    lastCompletedRunId:
+      event.runId ??
+      threadState.streaming.runId ??
+      threadState.lastCompletedRunId,
     thread: {
       ...threadState.thread,
       status: "complete",

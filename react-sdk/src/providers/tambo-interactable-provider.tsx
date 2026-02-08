@@ -302,6 +302,10 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
         },
         inputSchema,
         outputSchema: z.string(),
+        annotations: {
+          tamboStreamableHint: true,
+          ...component.annotations,
+        },
       });
     },
     [registerTool, updateInteractableComponentProps],
@@ -353,6 +357,10 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
         },
         inputSchema,
         outputSchema: z.string(),
+        annotations: {
+          tamboStreamableHint: true,
+          ...component.annotations,
+        },
       });
     },
     [registerTool, updateInteractableComponentState],

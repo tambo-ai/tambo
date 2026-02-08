@@ -20,6 +20,21 @@ jest.mock("../../providers/tambo-client-provider", () => ({
   useTamboClient: jest.fn(),
 }));
 
+jest.mock("../providers/tambo-v1-provider", () => {
+  const actual = jest.requireActual("../providers/tambo-v1-provider");
+  return {
+    ...actual,
+    useTamboV1Config: () => ({ userKey: undefined }),
+  };
+});
+
+jest.mock("./use-tambo-v1-auth-state", () => ({
+  useTamboV1AuthState: () => ({
+    status: "identified",
+    source: "userKey",
+  }),
+}));
+
 const createSuccessfulFileReader = () => {
   const reader = {
     readAsDataURL: jest.fn(),

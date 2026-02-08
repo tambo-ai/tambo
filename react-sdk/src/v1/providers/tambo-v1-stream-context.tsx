@@ -17,9 +17,9 @@ import React, {
   useReducer,
   useRef,
 } from "react";
-import { useTamboClient } from "../../providers/tambo-client-provider";
 import { useTamboQuery } from "../../hooks/react-query-hooks";
-import type { InputMessage, TamboV1Message } from "../types/message";
+import { useTamboClient } from "../../providers/tambo-client-provider";
+import type { InitialInputMessage, TamboV1Message } from "../types/message";
 import type { TamboV1Thread } from "../types/thread";
 import {
   createInitialState,
@@ -31,6 +31,7 @@ import {
   type StreamAction,
   type StreamState,
 } from "../utils/event-accumulator";
+import { useTamboV1Config } from "./tambo-v1-provider";
 
 /**
  * Thread management functions exposed by the stream context.
@@ -91,7 +92,7 @@ export interface TamboV1StreamProviderProps {
    * Initial messages to populate the placeholder thread with.
    * These render in the UI before any API call is made.
    */
-  initialMessages?: InputMessage[];
+  initialMessages?: InitialInputMessage[];
 
   /**
    * Optional override for stream state (primarily for tests).
@@ -250,6 +251,7 @@ export function TamboV1StreamProvider(props: TamboV1StreamProviderProps) {
  */
 function ThreadSyncManager(): null {
   const client = useTamboClient();
+  const { userKey } = useTamboV1Config();
   const state = useContext(StreamStateContext);
   const dispatch = useContext(StreamDispatchContext);
 
@@ -266,8 +268,8 @@ function ThreadSyncManager(): null {
     !threadState || threadState.thread.messages.length === 0;
   const shouldFetch = isNotPlaceholder && isNotSynced && hasNoMessages;
 
-  // Fetch messages from the messages endpoint (not the thread endpoint)
-  const { data: messagesData, isSuccess } = useTamboQuery({
+  // Fetch messages and thread metadata in parallel
+  const { data: messagesData, isSuccess: messagesSuccess } = useTamboQuery({
     queryKey: ["v1-thread-messages", currentThreadId],
     queryFn: async () => await client.threads.messages.list(currentThreadId),
     enabled: shouldFetch,
@@ -275,9 +277,27 @@ function ThreadSyncManager(): null {
     refetchOnWindowFocus: false,
   });
 
+  useTamboQuery({
+    queryKey: ["v1-thread-metadata", currentThreadId],
+    queryFn: async () => {
+      const data = await client.threads.retrieve(currentThreadId, { userKey });
+      if (data.lastCompletedRunId && dispatch) {
+        dispatch({
+          type: "SET_LAST_COMPLETED_RUN_ID",
+          threadId: currentThreadId,
+          lastCompletedRunId: data.lastCompletedRunId,
+        });
+      }
+      return data;
+    },
+    enabled: shouldFetch,
+    staleTime: 1000,
+    refetchOnWindowFocus: false,
+  });
+
   // Sync fetched messages to stream state
   useEffect(() => {
-    if (!isSuccess || !messagesData || !dispatch) return;
+    if (!messagesSuccess || !messagesData || !dispatch) return;
     if (lastSyncedThreadRef.current === currentThreadId) return;
 
     dispatch({
@@ -288,7 +308,7 @@ function ThreadSyncManager(): null {
     });
 
     lastSyncedThreadRef.current = currentThreadId;
-  }, [isSuccess, messagesData, currentThreadId, dispatch]);
+  }, [messagesSuccess, messagesData, currentThreadId, dispatch]);
 
   return null;
 }

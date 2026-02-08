@@ -486,7 +486,19 @@ export async function ensureThreadByProjectId(
     contextKey,
   );
   if (!thread) {
-    throw new Error("Thread not found");
+    throw new ThreadNotFoundError(threadId, projectId);
+  }
+}
+
+export class ThreadNotFoundError extends Error {
+  constructor(
+    public readonly threadId: string,
+    public readonly projectId: string,
+  ) {
+    super(
+      `Thread ${threadId} not found or does not belong to project ${projectId}`,
+    );
+    this.name = "ThreadNotFoundError";
   }
 }
 
