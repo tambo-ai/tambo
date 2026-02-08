@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.0.0-rc.1](https://github.com/tambo-ai/tambo/compare/react-v0.75.0...react-v1.0.0-rc.1) (2026-02-08)
+
+
+### Bug Fixes
+
+* **v1 sdk:** allow component state outside generated component ([#2298](https://github.com/tambo-ai/tambo/issues/2298)) ([37c935f](https://github.com/tambo-ai/tambo/commit/37c935f519076dbd26afb7552f71bbd93b51e541))
+
+
+### Code Refactoring
+
+* **react-sdk:** promote V1 SDK to main export (1.0.0-rc.1) ([#2297](https://github.com/tambo-ai/tambo/issues/2297)) ([1799bce](https://github.com/tambo-ai/tambo/commit/1799bceecf412d1a4f263108dae75ddcb3fe7491))
+
 ## [0.75.0](https://github.com/tambo-ai/tambo/compare/react-v0.74.1...react-v0.75.0) (2026-02-08)
 
 
