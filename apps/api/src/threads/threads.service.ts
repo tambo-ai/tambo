@@ -97,6 +97,7 @@ const TAMBO_ANON_CONTEXT_KEY = "tambo:anon-user";
 
 const THREAD_PROJECT_ID_LOOKUP_MAX_ATTEMPTS = 2;
 const THREAD_PROJECT_ID_LOOKUP_BASE_BACKOFF_MS = 50;
+const THREAD_PROJECT_ID_LOOKUP_MAX_BACKOFF_MS = 100;
 
 const TRANSIENT_DB_ERROR_CODES = new Set([
   "ECONNRESET",
@@ -298,11 +299,14 @@ export class ThreadsService {
             errorName,
             errorMessage,
             errorCode,
+            // Intentionally omit stack on transient retries to reduce log noise.
             isTransientDbConnectionError: isTransient,
           });
-          await new Promise((resolve) =>
-            setTimeout(resolve, baseBackoffMs * attempt),
+          const backoffMs = Math.min(
+            baseBackoffMs * attempt,
+            THREAD_PROJECT_ID_LOOKUP_MAX_BACKOFF_MS,
           );
+          await new Promise((resolve) => setTimeout(resolve, backoffMs));
           continue;
         }
 
@@ -318,6 +322,9 @@ export class ThreadsService {
           errorCode,
           errorStack,
           isTransientDbConnectionError: isTransient,
+          errorCategory: isTransient
+            ? "transient-db-connection"
+            : "non-transient",
         });
 
         throw error;
