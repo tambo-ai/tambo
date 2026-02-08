@@ -32,7 +32,8 @@ export const ThreadDropdown = React.forwardRef<
   HTMLDivElement,
   ThreadDropdownProps
 >(({ className, onThreadChange, ...props }, ref) => {
-  const { data: threads, isLoading, error, refetch } = useTamboThreadList();
+  const { data, isLoading, error, refetch } = useTamboThreadList();
+  const threads = data?.threads;
   const { switchThread, startNewThread } = useTambo();
   const isMac =
     typeof navigator !== "undefined" && navigator.platform.startsWith("Mac");
@@ -148,7 +149,7 @@ function ThreadListContent({
 }: {
   isLoading: boolean;
   error: Error | null;
-  threads: { threads: { id: string }[] } | null | undefined;
+  threads?: { id: string }[];
   onSwitchThread: (threadId: string) => void;
 }) {
   if (isLoading) {
@@ -171,7 +172,7 @@ function ThreadListContent({
       </DropdownMenu.Item>
     );
   }
-  if (threads?.threads.length === 0) {
+  if (!threads || threads.length === 0) {
     return (
       <DropdownMenu.Item
         className="px-2 py-1.5 text-sm text-muted-foreground"
@@ -183,7 +184,7 @@ function ThreadListContent({
   }
   return (
     <>
-      {threads?.threads.map((thread) => (
+      {threads.map((thread) => (
         <DropdownMenu.Item
           key={thread.id}
           className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50"

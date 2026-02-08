@@ -148,7 +148,7 @@ const MessageSuggestions = React.forwardRef<
     // Find the last AI message
     const lastAiMessage =
       messages.length > 0
-        ? ([...messages].reverse().find((msg) => msg.role === "assistant") ??
+        ? (messages.toReversed().find((msg) => msg.role === "assistant") ??
           null)
         : null;
 
