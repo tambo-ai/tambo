@@ -66,7 +66,6 @@ export const MessageInputRoot = React.forwardRef<
     value,
     setValue,
     submit,
-    isPending,
     error,
     images,
     addImages,
@@ -85,6 +84,12 @@ export const MessageInputRoot = React.forwardRef<
 
   // Use elicitation context (optional)
   const { elicitation, resolveElicitation } = useTamboElicitationContext();
+
+  // Reset local submit state when switching threads so the new thread
+  // isn't blocked by an in-flight submit from the previous thread.
+  React.useEffect(() => {
+    setIsSubmitting(false);
+  }, [currentThreadId]);
 
   React.useEffect(() => {
     // On mount, load any stored draft value, but only if current value is empty
@@ -249,7 +254,7 @@ export const MessageInputRoot = React.forwardRef<
       submitMessage,
       submit,
       handleSubmit,
-      isPending: isPending ?? isSubmitting,
+      isPending: isSubmitting,
       error,
       editorRef: inputRef ?? editorRef,
       submitError,
@@ -273,7 +278,6 @@ export const MessageInputRoot = React.forwardRef<
       submitMessage,
       submit,
       handleSubmit,
-      isPending,
       isSubmitting,
       error,
       inputRef,
@@ -301,7 +305,7 @@ export const MessageInputRoot = React.forwardRef<
         onSubmit={handleSubmit}
         data-slot="message-input-root"
         data-state={isDragging ? "dragging" : undefined}
-        data-pending={isPending || isSubmitting || undefined}
+        data-pending={isSubmitting || undefined}
         onDragEnter={handleDragEnter}
         onDragLeave={handleDragLeave}
         onDragOver={handleDragOver}
