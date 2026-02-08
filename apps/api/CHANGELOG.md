@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.140.1](https://github.com/tambo-ai/tambo/compare/api-v0.140.0...api-v0.140.1) (2026-02-08)
+
+
+### Bug Fixes
+
+* bump self-enforced max client connections ([#2300](https://github.com/tambo-ai/tambo/issues/2300)) ([7bca6e1](https://github.com/tambo-ai/tambo/commit/7bca6e1b324e3358010832cf2fe7678b906e44a5))
+
 ## [0.140.0](https://github.com/tambo-ai/tambo/compare/api-v0.139.0...api-v0.140.0) (2026-02-08)
 
 
