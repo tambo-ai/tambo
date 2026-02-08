@@ -31,10 +31,10 @@ import {
 } from "@tambo-ai/ui-registry/components/thread-content";
 import { type VariantProps } from "class-variance-authority";
 import { XIcon } from "lucide-react";
-import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { Collapsible } from "radix-ui";
 import * as React from "react";
+import { Icons } from "../icons";
 
 /**
  * Props for the MessageThreadCollapsible component
@@ -89,7 +89,7 @@ const CollapsibleContainer = React.forwardRef<
     open={isOpen}
     onOpenChange={onOpenChange}
     className={cn(
-      "fixed shadow-lg bg-background border border-gray-200 z-50",
+      "fixed shadow-lg bg-background dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 z-50",
       "transition-[width,height] duration-300 ease-in-out",
       isOpen
         ? cn(
@@ -145,13 +145,7 @@ const CollapsibleTrigger = ({
             aria-controls="message-thread-content"
             tabIndex={0}
           >
-            <Image
-              src="/logo/icon/Octo-Icon.svg"
-              width={32}
-              height={32}
-              alt="Octo Icon"
-              className="w-8 h-8"
-            />
+            <Icons.octo className="h-7 w-auto" aria-label="Tambo" />
           </button>
         </Collapsible.Trigger>
       </div>
@@ -162,13 +156,7 @@ const CollapsibleTrigger = ({
     <div className="w-full">
       <div className="flex items-center justify-between w-full p-4 border-b border-gray-200 shadow-sm">
         <div className="flex items-center space-x-2">
-          <Image
-            src="/logo/icon/Octo-Icon.svg"
-            width={24}
-            height={24}
-            alt="Octo Icon"
-            className="w-4 h-4"
-          />
+          <Icons.octo className="h-6 w-auto" aria-label="Tambo" />
           <span>{config.labels.openState}</span>
         </div>
         <div
