@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.0-rc.2](https://github.com/tambo-ai/tambo/compare/react-v1.0.0-rc.1...react-v1.0.0-rc.2) (2026-02-08)
+
+
+### Documentation
+
+* **react-sdk:** remove V1 references from JSDoc and comments ([#2306](https://github.com/tambo-ai/tambo/issues/2306)) ([cbb64ad](https://github.com/tambo-ai/tambo/commit/cbb64ad736d42c5a7d95686c1bd282053f535be8))
+
 ## [1.0.0-rc.1](https://github.com/tambo-ai/tambo/compare/react-v0.75.0...react-v1.0.0-rc.1) (2026-02-08)
 
 
