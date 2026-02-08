@@ -2,7 +2,7 @@
 
 import { cn } from "@tambo-ai/ui-registry/utils";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
-import { useTamboThread, useTamboThreadList } from "@tambo-ai/react";
+import { useTambo, useTamboThreadList } from "@tambo-ai/react";
 import { ChevronDownIcon, PlusIcon } from "lucide-react";
 import * as React from "react";
 import { useCallback } from "react";
@@ -33,7 +33,7 @@ export const ThreadDropdown = React.forwardRef<
   ThreadDropdownProps
 >(({ className, onThreadChange, ...props }, ref) => {
   const { data: threads, isLoading, error, refetch } = useTamboThreadList();
-  const { switchCurrentThread, startNewThread } = useTamboThread();
+  const { switchThread, startNewThread } = useTambo();
   const isMac =
     typeof navigator !== "undefined" && navigator.platform.startsWith("Mac");
   const modKey = isMac ? "⌥" : "Alt";
@@ -76,7 +76,7 @@ export const ThreadDropdown = React.forwardRef<
     }
 
     try {
-      switchCurrentThread(threadId);
+      switchThread(threadId);
       onThreadChange?.();
     } catch (error) {
       console.error("Failed to switch thread:", error);
@@ -148,7 +148,7 @@ function ThreadListContent({
 }: {
   isLoading: boolean;
   error: Error | null;
-  threads: { items: { id: string }[] } | null | undefined;
+  threads: { threads: { id: string }[] } | null | undefined;
   onSwitchThread: (threadId: string) => void;
 }) {
   if (isLoading) {
@@ -171,7 +171,7 @@ function ThreadListContent({
       </DropdownMenu.Item>
     );
   }
-  if (threads?.items.length === 0) {
+  if (threads?.threads.length === 0) {
     return (
       <DropdownMenu.Item
         className="px-2 py-1.5 text-sm text-muted-foreground"
@@ -183,7 +183,7 @@ function ThreadListContent({
   }
   return (
     <>
-      {threads?.items.map((thread) => (
+      {threads?.threads.map((thread) => (
         <DropdownMenu.Item
           key={thread.id}
           className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50"

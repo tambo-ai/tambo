@@ -3,7 +3,7 @@
 import { Slot } from "@radix-ui/react-slot";
 import {
   useIsTamboTokenUpdating,
-  useTamboThread,
+  useTambo,
   useTamboThreadInput,
 } from "@tambo-ai/react";
 import {
@@ -73,7 +73,7 @@ export const MessageInputRoot = React.forwardRef<
     addImage,
     removeImage,
   } = useTamboThreadInput();
-  const { cancel, thread, isIdle } = useTamboThread();
+  const { cancelRun: cancel, currentThreadId, isIdle } = useTambo();
   const [displayValue, setDisplayValue] = React.useState("");
   const [submitError, setSubmitError] = React.useState<string | null>(null);
   const [imageError, setImageError] = React.useState<string | null>(null);
@@ -88,18 +88,18 @@ export const MessageInputRoot = React.forwardRef<
 
   React.useEffect(() => {
     // On mount, load any stored draft value, but only if current value is empty
-    const storedValue = getValueFromSessionStorage(thread.id);
+    const storedValue = getValueFromSessionStorage(currentThreadId);
     if (!storedValue) return;
     setValue((currentValue) => currentValue ?? storedValue);
-  }, [setValue, thread.id]);
+  }, [setValue, currentThreadId]);
 
   React.useEffect(() => {
     setDisplayValue(value);
-    storeValueInSessionStorage(thread.id, value);
+    storeValueInSessionStorage(currentThreadId, value);
     if (value && editorRef.current) {
       editorRef.current.focus();
     }
-  }, [value, thread.id]);
+  }, [value, currentThreadId]);
 
   const submitMessage = React.useCallback(async () => {
     if ((!value.trim() && images.length === 0) || isSubmitting) return;
@@ -108,24 +108,13 @@ export const MessageInputRoot = React.forwardRef<
     setSubmitError(null);
     setImageError(null);
     setDisplayValue("");
-    storeValueInSessionStorage(thread.id);
+    storeValueInSessionStorage(currentThreadId);
     setIsSubmitting(true);
-
-    // Extract resource names directly from editor at submit time to ensure we have the latest
-    let latestResourceNames: Record<string, string> = {};
-    const editor = editorRef.current;
-    if (editor) {
-      const extracted = editor.getTextWithResourceURIs();
-      latestResourceNames = extracted.resourceNames;
-    }
 
     const imageIdsAtSubmitTime = images.map((image) => image.id);
 
     try {
-      await submit({
-        streamResponse: true,
-        resourceNames: latestResourceNames,
-      });
+      await submit();
       setValue("");
       // Clear only the images that were staged when submission started so
       // any images added while the request was in-flight are preserved.
@@ -162,7 +151,7 @@ export const MessageInputRoot = React.forwardRef<
     isSubmitting,
     images,
     removeImage,
-    thread.id,
+    currentThreadId,
   ]);
 
   const handleSubmit = React.useCallback(

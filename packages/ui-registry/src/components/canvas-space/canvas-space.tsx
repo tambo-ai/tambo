@@ -1,7 +1,6 @@
 "use client";
 
-import type { TamboThreadMessage } from "@tambo-ai/react";
-import { useTamboThread } from "@tambo-ai/react";
+import { useTambo } from "@tambo-ai/react";
 import { cn } from "@tambo-ai/ui-registry/utils";
 import * as React from "react";
 import { useEffect, useRef, useState } from "react";
@@ -25,7 +24,7 @@ interface CanvasSpaceProps {
  */
 export function CanvasSpace({ className }: CanvasSpaceProps) {
   // Access the current Tambo thread context
-  const { thread } = useTamboThread();
+  const { messages, currentThreadId } = useTambo();
 
   // State for managing the currently rendered component
   const [renderedComponent, setRenderedComponent] =
@@ -42,17 +41,17 @@ export function CanvasSpace({ className }: CanvasSpaceProps) {
    * Prevents components from previous threads being displayed in new threads
    */
   useEffect(() => {
-    // If there's no thread, or if the thread ID changed, clear the canvas
+    // If the thread ID changed, clear the canvas
     if (
-      !thread ||
-      (previousThreadId.current && previousThreadId.current !== thread.id)
+      previousThreadId.current &&
+      previousThreadId.current !== currentThreadId
     ) {
       setRenderedComponent(null);
     }
 
     // Update the previous thread ID reference
-    previousThreadId.current = thread?.id ?? null;
-  }, [thread]);
+    previousThreadId.current = currentThreadId;
+  }, [currentThreadId]);
 
   /**
    * Effect to handle custom 'tambo:showComponent' events
@@ -88,21 +87,25 @@ export function CanvasSpace({ className }: CanvasSpaceProps) {
    * Updates when thread messages change or new components are added
    */
   useEffect(() => {
-    if (!thread?.messages) {
+    if (!messages.length) {
       setRenderedComponent(null);
       return;
     }
 
-    const messagesWithComponents = thread.messages.filter(
-      (msg: TamboThreadMessage) => msg.renderedComponent,
-    );
-
-    if (messagesWithComponents.length > 0) {
-      const latestMessage =
-        messagesWithComponents[messagesWithComponents.length - 1];
-      setRenderedComponent(latestMessage.renderedComponent);
+    // In V1, renderedComponent is on component content blocks, not on the message itself
+    let latestComponent: React.ReactNode | null = null;
+    for (const msg of messages) {
+      for (const content of msg.content) {
+        if (content.type === "component" && content.renderedComponent) {
+          latestComponent = content.renderedComponent;
+        }
+      }
     }
-  }, [thread?.messages]);
+
+    if (latestComponent) {
+      setRenderedComponent(latestComponent);
+    }
+  }, [messages]);
 
   /**
    * Effect to auto-scroll to bottom when new components are rendered
