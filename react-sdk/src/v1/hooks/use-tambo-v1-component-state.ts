@@ -20,6 +20,7 @@ import { deepEqual } from "fast-equals";
 import { useTamboClient } from "../../providers/tambo-client-provider";
 import { useTamboInteractable } from "../../providers/tambo-interactable-provider";
 import { useComponentContentOptional } from "../utils/component-renderer";
+import { useTamboConfig } from "../providers/tambo-v1-provider";
 import { useStreamState } from "../providers/tambo-v1-stream-context";
 import { findComponentContent } from "../utils/thread-utils";
 
@@ -82,6 +83,7 @@ export function useTamboComponentState<S>(
   debounceTime = 500,
 ): UseTamboComponentStateReturn<S> {
   const client = useTamboClient();
+  const { userKey } = useTamboConfig();
   const componentContent = useComponentContentOptional();
   const streamState = useStreamState();
   const { setInteractableState, getInteractableComponentState } =
@@ -144,6 +146,7 @@ export function useTamboComponentState<S>(
       await client.threads.state.updateState(componentId, {
         threadId,
         state: { [keyName]: newState },
+        userKey,
       });
       // Clear pending flag after successful sync
       hasPendingLocalChangeRef.current = false;

@@ -288,6 +288,7 @@ export function TamboProvider({
       tamboUrl={tamboUrl}
       environment={environment}
       userToken={userToken}
+      userKey={userKey}
     >
       <TamboRegistryProvider
         components={components}
