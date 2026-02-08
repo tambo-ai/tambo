@@ -8,8 +8,8 @@
  * component identity - as long as the key stays stable, the component instance
  * is preserved.
  *
- * Wraps the component with V1ComponentContentProvider so that hooks like
- * useTamboV1ComponentState can access component context.
+ * Wraps the component with ComponentContentProvider so that hooks like
+ * useTamboComponentState can access component context.
  */
 
 import { parse } from "partial-json";
@@ -18,14 +18,14 @@ import { TamboRegistryContext } from "../../providers/tambo-registry-provider";
 import { isStandardSchema } from "../../schema";
 import { isPromise } from "../../util/is-promise";
 import { getComponentFromRegistry } from "../../util/registry";
-import type { V1ComponentContent } from "../types/message";
-import { V1ComponentContentProvider } from "../utils/component-renderer";
+import type { TamboComponentContent } from "../types/message";
+import { ComponentContentProvider } from "../utils/component-renderer";
 
-export interface V1ComponentRendererProps {
+export interface ComponentRendererProps {
   /**
    * The component content block from a v1 message
    */
-  content: V1ComponentContent;
+  content: TamboComponentContent;
 
   /**
    * The thread ID the component belongs to
@@ -50,15 +50,15 @@ export interface V1ComponentRendererProps {
  * The component instance is preserved across re-renders as long as React's
  * reconciliation keeps this wrapper mounted (use content.id as key).
  *
- * Wraps the rendered component with V1ComponentContentProvider so that hooks
- * like useTamboV1ComponentState can access component context.
- * @returns The rendered component wrapped in V1ComponentContentProvider, or fallback if not found
+ * Wraps the rendered component with ComponentContentProvider so that hooks
+ * like useTamboComponentState can access component context.
+ * @returns The rendered component wrapped in ComponentContentProvider, or fallback if not found
  * @example
  * ```tsx
  * function MessageContent({ content }: { content: Content }) {
  *   if (content.type === 'component') {
  *     return (
- *       <V1ComponentRenderer
+ *       <ComponentRenderer
  *         key={content.id}
  *         content={content}
  *         fallback={<div>Unknown component: {content.name}</div>}
@@ -69,7 +69,7 @@ export interface V1ComponentRendererProps {
  * }
  * ```
  */
-export const V1ComponentRenderer: FC<V1ComponentRendererProps> = ({
+export const ComponentRenderer: FC<ComponentRendererProps> = ({
   content,
   threadId,
   messageId,
@@ -117,7 +117,7 @@ export const V1ComponentRenderer: FC<V1ComponentRendererProps> = ({
 
       return React.createElement(registeredComponent.component, validatedProps);
     } catch (error) {
-      console.error("[V1ComponentRenderer] Failed to render component", {
+      console.error("[ComponentRenderer] Failed to render component", {
         threadId,
         messageId,
         componentId: content.id,
@@ -142,15 +142,15 @@ export const V1ComponentRenderer: FC<V1ComponentRendererProps> = ({
     return <>{fallback}</>;
   }
 
-  // Wrap with provider so hooks like useTamboV1ComponentState work
+  // Wrap with provider so hooks like useTamboComponentState work
   return (
-    <V1ComponentContentProvider
+    <ComponentContentProvider
       componentId={content.id}
       threadId={threadId}
       messageId={messageId}
       componentName={content.name}
     >
       {element}
-    </V1ComponentContentProvider>
+    </ComponentContentProvider>
   );
 };

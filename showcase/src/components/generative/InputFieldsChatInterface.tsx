@@ -7,7 +7,7 @@ import { useTambo } from "@tambo-ai/react";
 import { useEffect } from "react";
 
 export const InputFieldsChatInterface = () => {
-  const { registerComponent, thread } = useTambo();
+  const { registerComponent, currentThreadId } = useTambo();
 
   useEffect(() => {
     registerComponent({
@@ -16,7 +16,7 @@ export const InputFieldsChatInterface = () => {
       Specialized for creating clean, accessible input interfaces with text, number, email, and password fields.
       Each field supports comprehensive validation, custom patterns, error handling, and accessibility features.
       Perfect for user authentication, profile management, and structured data collection scenarios.
-      
+
       Key Features:
       - Focused input types: text, number, email, password
       - Advanced validation with regex patterns and length constraints
@@ -26,7 +26,7 @@ export const InputFieldsChatInterface = () => {
       - Responsive design with consistent styling
       - Field descriptions and help text
       - Required field indicators
-      
+
       Ideal Use Cases:
       - User registration and login forms
       - Profile editing interfaces
@@ -34,12 +34,12 @@ export const InputFieldsChatInterface = () => {
       - Data entry workflows
       - Authentication forms
       - Personal information collection
-      
+
       Unlike complex forms with dropdowns and sliders, this component focuses on essential input field types with robust validation and accessibility features.`,
       component: InputFields,
       propsSchema: inputFieldsSchema,
     });
-  }, [registerComponent, thread.id]);
+  }, [registerComponent, currentThreadId]);
 
   return (
     <div className="flex flex-col" style={{ height: "700px" }}>

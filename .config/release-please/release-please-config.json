@@ -13,7 +13,10 @@
       "prerelease-type": "alpha"
     },
     "react-sdk": {
-      "component": "react"
+      "component": "react",
+      "versioning": "prerelease",
+      "prerelease": true,
+      "prerelease-type": "rc"
     },
     "showcase": {},
     "cli": {

@@ -1,4 +1,4 @@
-import { TamboThreadMessage } from "@tambo-ai/react";
+import type { TamboThreadMessage, TamboToolUseContent } from "@tambo-ai/react";
 import { getToolCallRequest } from "./get-tool-call-request";
 
 function createMessage(
@@ -10,47 +10,46 @@ function createMessage(
     content: [],
     createdAt: new Date().toISOString(),
     ...overrides,
-  } as TamboThreadMessage;
+  };
 }
 
 describe("getToolCallRequest", () => {
-  it("returns toolCallRequest from message", () => {
-    const toolCallRequest = { toolName: "test_tool", parameters: [] };
-    const message = createMessage({ toolCallRequest });
-    expect(getToolCallRequest(message)).toBe(toolCallRequest);
+  it("returns tool_use content block from message", () => {
+    const toolUseBlock: TamboToolUseContent = {
+      type: "tool_use",
+      id: "tool-1",
+      name: "test_tool",
+      input: { param: "value" },
+    };
+    const message = createMessage({ content: [toolUseBlock] });
+    expect(getToolCallRequest(message)).toBe(toolUseBlock);
   });
 
-  it("returns component toolCallRequest when message has none", () => {
-    const toolCallRequest = { toolName: "component_tool", parameters: [] };
+  it("returns first tool_use block when multiple exist", () => {
+    const firstBlock: TamboToolUseContent = {
+      type: "tool_use",
+      id: "tool-1",
+      name: "first_tool",
+      input: {},
+    };
+    const secondBlock: TamboToolUseContent = {
+      type: "tool_use",
+      id: "tool-2",
+      name: "second_tool",
+      input: {},
+    };
+    const message = createMessage({ content: [firstBlock, secondBlock] });
+    expect(getToolCallRequest(message)).toBe(firstBlock);
+  });
+
+  it("returns undefined when no tool_use content exists", () => {
     const message = createMessage({
-      component: {
-        toolCallRequest,
-        message: "",
-        componentName: "TestComponent",
-        componentState: {},
-        props: {},
-      } as TamboThreadMessage["component"],
+      content: [{ type: "text", text: "hello" }],
     });
-    expect(getToolCallRequest(message)).toBe(toolCallRequest);
+    expect(getToolCallRequest(message)).toBeUndefined();
   });
 
-  it("prefers message toolCallRequest over component toolCallRequest", () => {
-    const messageToolCall = { toolName: "message_tool", parameters: [] };
-    const componentToolCall = { toolName: "component_tool", parameters: [] };
-    const message = createMessage({
-      toolCallRequest: messageToolCall,
-      component: {
-        toolCallRequest: componentToolCall,
-        componentName: "TestComponent",
-        message: "",
-        componentState: {},
-        props: {},
-      } as TamboThreadMessage["component"],
-    });
-    expect(getToolCallRequest(message)).toBe(messageToolCall);
-  });
-
-  it("returns undefined when no toolCallRequest exists", () => {
+  it("returns undefined for empty content", () => {
     const message = createMessage();
     expect(getToolCallRequest(message)).toBeUndefined();
   });

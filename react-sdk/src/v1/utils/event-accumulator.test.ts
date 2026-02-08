@@ -24,7 +24,7 @@ import {
   type StreamState,
   type ThreadState,
 } from "./event-accumulator";
-import type { Content, V1ComponentContent } from "../types/message";
+import type { Content, TamboComponentContent } from "../types/message";
 
 /**
  * Helper to extract a ToolUseContent from a message content array.
@@ -37,16 +37,16 @@ function asToolUseContent(content: Content[], index: number): ToolUseContent {
 }
 
 /**
- * Helper to extract a V1ComponentContent from a message content array.
+ * Helper to extract a TamboComponentContent from a message content array.
  * @param content - Content array from a message
  * @param index - Index of the content item
- * @returns The content as V1ComponentContent
+ * @returns The content as TamboComponentContent
  */
 function asComponentContent(
   content: Content[],
   index: number,
-): V1ComponentContent {
-  return content[index] as V1ComponentContent;
+): TamboComponentContent {
+  return content[index] as TamboComponentContent;
 }
 
 // Helper to create a base thread state for testing
@@ -488,7 +488,7 @@ describe("streamReducer", () => {
   });
 
   describe("RUN_FINISHED event", () => {
-    it("updates thread status to complete", () => {
+    it("updates thread status to idle", () => {
       const state = createTestStreamState("thread_1");
       state.threadMap.thread_1.thread.status = "streaming";
       state.threadMap.thread_1.streaming.status = "streaming";
@@ -505,8 +505,8 @@ describe("streamReducer", () => {
         threadId: "thread_1",
       });
 
-      expect(result.threadMap.thread_1.thread.status).toBe("complete");
-      expect(result.threadMap.thread_1.streaming.status).toBe("complete");
+      expect(result.threadMap.thread_1.thread.status).toBe("idle");
+      expect(result.threadMap.thread_1.streaming.status).toBe("idle");
     });
 
     it("sets lastCompletedRunId from event.runId", () => {
@@ -558,7 +558,7 @@ describe("streamReducer", () => {
   });
 
   describe("RUN_ERROR event", () => {
-    it("updates thread status to error with details", () => {
+    it("updates thread status to idle with error details", () => {
       const state = createTestStreamState("thread_1");
       const event: RunErrorEvent = {
         type: EventType.RUN_ERROR,
@@ -572,8 +572,8 @@ describe("streamReducer", () => {
         threadId: "thread_1",
       });
 
-      expect(result.threadMap.thread_1.thread.status).toBe("error");
-      expect(result.threadMap.thread_1.streaming.status).toBe("error");
+      expect(result.threadMap.thread_1.thread.status).toBe("idle");
+      expect(result.threadMap.thread_1.streaming.status).toBe("idle");
       expect(result.threadMap.thread_1.streaming.error).toEqual({
         message: "Something went wrong",
         code: "ERR_001",

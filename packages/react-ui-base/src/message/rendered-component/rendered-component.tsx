@@ -9,7 +9,7 @@ export interface MessageRenderedComponentProps extends React.HTMLAttributes<HTML
 
 /**
  * RenderedComponent base for displaying AI-generated components.
- * Only renders for assistant messages with a renderedComponent.
+ * Only renders for assistant messages with component content blocks.
  */
 export const MessageRenderedComponent = React.forwardRef<
   HTMLDivElement,
@@ -17,11 +17,14 @@ export const MessageRenderedComponent = React.forwardRef<
 >(({ asChild, children, ...props }, ref) => {
   const { message, role } = useMessageRootContext();
 
-  if (
-    !message.renderedComponent ||
-    role !== "assistant" ||
-    message.isCancelled
-  ) {
+  const hasComponent = message.content.some(
+    (block) =>
+      block.type === "component" &&
+      "renderedComponent" in block &&
+      block.renderedComponent,
+  );
+
+  if (!hasComponent || role !== "assistant") {
     return null;
   }
 
