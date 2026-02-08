@@ -26,6 +26,24 @@ jest.mock("../../providers/tambo-client-provider", () => {
   };
 });
 
+// Mock MCP providers to avoid TamboClientContext dependency
+jest.mock("../../providers/tambo-mcp-token-provider", () => ({
+  TamboMcpTokenProvider: ({ children }: { children: React.ReactNode }) =>
+    children,
+}));
+
+jest.mock("../../mcp/tambo-mcp-provider", () => ({
+  TamboMcpProvider: ({ children }: { children: React.ReactNode }) => children,
+}));
+
+// Mock auth state to avoid TamboClientContext dependency
+jest.mock("../hooks/use-tambo-v1-auth-state", () => ({
+  useTamboV1AuthState: () => ({
+    status: "identified",
+    source: "userKey",
+  }),
+}));
+
 // Mock useTamboV1SendMessage to avoid complex dependencies
 jest.mock("../hooks/use-tambo-v1-send-message", () => ({
   useTamboV1SendMessage: jest.fn(() => ({
@@ -321,7 +339,7 @@ describe("TamboV1Provider", () => {
     expect(helpers.getCurrentTime).toBe(contextHelpers.getCurrentTime);
   });
 
-  it("returns empty contextHelpers when none provided", async () => {
+  it("returns only interactables contextHelper when none explicitly provided", async () => {
     const wrapper = ({ children }: { children: React.ReactNode }) => (
       <TamboV1Provider apiKey="test-api-key">{children}</TamboV1Provider>
     );
@@ -329,6 +347,10 @@ describe("TamboV1Provider", () => {
     const { result } = renderHook(() => useTamboContextHelpers(), { wrapper });
 
     const helpers = result.current.getContextHelpers();
-    expect(Object.keys(helpers)).toHaveLength(0);
+    // TamboInteractableProvider registers "interactables" and TamboContextAttachmentProvider registers "contextAttachments"
+    expect(Object.keys(helpers)).toEqual([
+      "interactables",
+      "contextAttachments",
+    ]);
   });
 });

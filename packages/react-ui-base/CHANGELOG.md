@@ -1,0 +1,27 @@
+# Changelog
+
+## [0.1.0-alpha.2](https://github.com/tambo-ai/tambo/compare/@tambo-ai/react-ui-base-v0.1.0-alpha.1...@tambo-ai/react-ui-base-v0.1.0-alpha.2) (2026-02-06)
+
+
+### Miscellaneous Chores
+
+* **react-ui-base:** adjust workflow for prerelease ([#2237](https://github.com/tambo-ai/tambo/issues/2237)) ([bd5fd1a](https://github.com/tambo-ai/tambo/commit/bd5fd1af991b16bb9cd7ffbd844a6e118ff249d3))
+
+## [0.1.0-alpha.1](https://github.com/tambo-ai/tambo/compare/@tambo-ai/react-ui-base-v0.1.0-alpha.0...@tambo-ai/react-ui-base-v0.1.0-alpha.1) (2026-02-05)
+
+
+### Miscellaneous Chores
+
+* **react-ui-base:** minor update to trigger versioning ([#2233](https://github.com/tambo-ai/tambo/issues/2233)) ([996a6b3](https://github.com/tambo-ai/tambo/commit/996a6b3408e7f314b4a8e0d466a68d26dec5fb2f))
+
+## 0.1.0-alpha.0 (2026-02-05)
+
+
+### Features
+
+* **react-ui-base:** create new package with base UI components ([#2176](https://github.com/tambo-ai/tambo/issues/2176)) ([7842a32](https://github.com/tambo-ai/tambo/commit/7842a32bd7e0af40395ec98ed0e1635ffe419b33))
+
+
+### Miscellaneous Chores
+
+* **react-ui-base:** versioning ([#2228](https://github.com/tambo-ai/tambo/issues/2228)) ([0bc768b](https://github.com/tambo-ai/tambo/commit/0bc768b6eaedb9d05aab278a66fd4ecfb5541377))

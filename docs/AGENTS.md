@@ -104,8 +104,10 @@ In general, try to fit changes into the following categories. If you can't find 
      - generative-components
      - interactable-components
      - component-state
-   - **model-context-protocol/** (2 pages including index)
+   - **model-context-protocol/** (4 pages including index)
      - features - Tools, prompts, resources, elicitations, sampling
+     - clientside-mcp-connection (compat)
+     - serverside-mcp-connection (compat)
    - tools - Function calling, schemas, orchestration
    - additional-context - Configuration, custom helpers, context attachments
    - conversation-storage - Message threads, history management, status tracking

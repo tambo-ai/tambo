@@ -194,6 +194,7 @@ jobs:
               backend: [/^packages\/backend\//],
               ui: [/^packages\/ui-registry\//],
               'react-sdk': [/^react-sdk\//],
+              'react-ui-base': [/^packages\/react-ui-base\//],
               config: [
                 /^packages\/eslint-config\//,
                 /^packages\/typescript-config\//,

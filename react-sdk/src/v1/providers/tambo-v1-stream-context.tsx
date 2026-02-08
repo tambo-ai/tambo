@@ -17,12 +17,13 @@ import React, {
   useReducer,
   useRef,
 } from "react";
-import { useTamboClient } from "../../providers/tambo-client-provider";
 import { useTamboQuery } from "../../hooks/react-query-hooks";
-import type { TamboV1Message } from "../types/message";
+import { useTamboClient } from "../../providers/tambo-client-provider";
+import type { InitialInputMessage, TamboV1Message } from "../types/message";
 import type { TamboV1Thread } from "../types/thread";
 import {
   createInitialState,
+  createInitialStateWithMessages,
   createInitialThreadState,
   isPlaceholderThreadId,
   PLACEHOLDER_THREAD_ID,
@@ -30,6 +31,7 @@ import {
   type StreamAction,
   type StreamState,
 } from "../utils/event-accumulator";
+import { useTamboV1Config } from "./tambo-v1-provider";
 
 /**
  * Thread management functions exposed by the stream context.
@@ -87,6 +89,12 @@ export interface TamboV1StreamProviderProps {
   children: React.ReactNode;
 
   /**
+   * Initial messages to populate the placeholder thread with.
+   * These render in the UI before any API call is made.
+   */
+  initialMessages?: InitialInputMessage[];
+
+  /**
    * Optional override for stream state (primarily for tests).
    * If provided, you must also provide `dispatch`.
    */
@@ -123,7 +131,12 @@ export interface TamboV1StreamProviderProps {
  * ```
  */
 export function TamboV1StreamProvider(props: TamboV1StreamProviderProps) {
-  const { children, state: providedState, dispatch: providedDispatch } = props;
+  const {
+    children,
+    initialMessages,
+    state: providedState,
+    dispatch: providedDispatch,
+  } = props;
 
   if (
     (providedState && !providedDispatch) ||
@@ -149,10 +162,14 @@ export function TamboV1StreamProvider(props: TamboV1StreamProviderProps) {
 
   // Create stable initial state - only computed once on mount
   // Uses createInitialState which sets up placeholder thread for optimistic UI
+  // If initialMessages are provided, the placeholder thread is seeded with them
   const [state, dispatch] = useReducer(
     streamReducer,
-    undefined,
-    createInitialState,
+    initialMessages,
+    (msgs) =>
+      msgs?.length
+        ? createInitialStateWithMessages(msgs)
+        : createInitialState(),
   );
 
   const activeState = providedState ?? state;
@@ -174,15 +191,34 @@ export function TamboV1StreamProvider(props: TamboV1StreamProviderProps) {
   );
 
   const startNewThread = useCallback(() => {
-    // Reset placeholder thread to empty state and switch to it
-    // This prepares for a new conversation while preserving existing threads
+    // Reset placeholder thread and switch to it
+    // This prepares for a new conversation while preserving existing threads.
+    // If initialMessages were provided, re-seed the placeholder with them.
+    const baseThread = createInitialThreadState(PLACEHOLDER_THREAD_ID).thread;
+    const threadWithMessages = initialMessages?.length
+      ? {
+          ...baseThread,
+          messages: initialMessages.map(
+            (msg): TamboV1Message => ({
+              id: `initial_${crypto.randomUUID()}`,
+              role: msg.role,
+              content: msg.content.map((c) => {
+                if (c.type === "text") {
+                  return { type: "text" as const, text: c.text };
+                }
+                return c;
+              }),
+            }),
+          ),
+        }
+      : baseThread;
     activeDispatch({
       type: "START_NEW_THREAD",
       threadId: PLACEHOLDER_THREAD_ID,
-      initialThread: createInitialThreadState(PLACEHOLDER_THREAD_ID).thread,
+      initialThread: threadWithMessages,
     });
     return PLACEHOLDER_THREAD_ID;
-  }, [activeDispatch]);
+  }, [activeDispatch, initialMessages]);
 
   const threadManagement = useMemo<ThreadManagement>(() => {
     return (
@@ -215,6 +251,7 @@ export function TamboV1StreamProvider(props: TamboV1StreamProviderProps) {
  */
 function ThreadSyncManager(): null {
   const client = useTamboClient();
+  const { userKey } = useTamboV1Config();
   const state = useContext(StreamStateContext);
   const dispatch = useContext(StreamDispatchContext);
 
@@ -231,8 +268,8 @@ function ThreadSyncManager(): null {
     !threadState || threadState.thread.messages.length === 0;
   const shouldFetch = isNotPlaceholder && isNotSynced && hasNoMessages;
 
-  // Fetch messages from the messages endpoint (not the thread endpoint)
-  const { data: messagesData, isSuccess } = useTamboQuery({
+  // Fetch messages and thread metadata in parallel
+  const { data: messagesData, isSuccess: messagesSuccess } = useTamboQuery({
     queryKey: ["v1-thread-messages", currentThreadId],
     queryFn: async () => await client.threads.messages.list(currentThreadId),
     enabled: shouldFetch,
@@ -240,9 +277,27 @@ function ThreadSyncManager(): null {
     refetchOnWindowFocus: false,
   });
 
+  useTamboQuery({
+    queryKey: ["v1-thread-metadata", currentThreadId],
+    queryFn: async () => {
+      const data = await client.threads.retrieve(currentThreadId, { userKey });
+      if (data.lastCompletedRunId && dispatch) {
+        dispatch({
+          type: "SET_LAST_COMPLETED_RUN_ID",
+          threadId: currentThreadId,
+          lastCompletedRunId: data.lastCompletedRunId,
+        });
+      }
+      return data;
+    },
+    enabled: shouldFetch,
+    staleTime: 1000,
+    refetchOnWindowFocus: false,
+  });
+
   // Sync fetched messages to stream state
   useEffect(() => {
-    if (!isSuccess || !messagesData || !dispatch) return;
+    if (!messagesSuccess || !messagesData || !dispatch) return;
     if (lastSyncedThreadRef.current === currentThreadId) return;
 
     dispatch({
@@ -253,7 +308,7 @@ function ThreadSyncManager(): null {
     });
 
     lastSyncedThreadRef.current = currentThreadId;
-  }, [isSuccess, messagesData, currentThreadId, dispatch]);
+  }, [messagesSuccess, messagesData, currentThreadId, dispatch]);
 
   return null;
 }

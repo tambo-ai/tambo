@@ -1,30 +1,29 @@
 ---
-title: Tambo quickstart template
-description: Launch a Tambo generative UI chat app locally and explore core features.
+title: Quickstart
+description: Run the Tambo starter template and build your first generative UI feature.
 icon: Rocket
 ---
 
-Download and run our generative UI chat template to get an understanding of the fundamental features of Tambo. This application will show you how to build generative UI, integrate tools, send messages to Tambo, and stream responses.
-
 import { ImageZoom } from "fumadocs-ui/components/image-zoom";
+import LearnMore from "@/components/learn-more";
+
+Run the starter template to see Tambo in action. You'll register components, add tools, and send messages.
 
 <ImageZoom
   src="/assets/docs/template.gif"
-  alt="Demo GIF"
+  alt="Tambo starter template demo"
   width={500}
   height={500}
   style={{ border: "2px solid #e5e7eb", borderRadius: "8px", width: "80%" }}
 />
 
-## Set up the Tambo starter app
+## Set up the starter app
 
-### 1. Download the starter app
+### 1. Create the app
 
 ```bash title="Create and navigate to your project"
 npm create tambo-app@latest my-tambo-app && cd my-tambo-app
 ```
-
-This will copy the source code of the template app into your directory and install the dependencies. See the source repo [here.](https://github.com/tambo-ai/tambo-template)
 
 ### 2. Create a Tambo API key
 
@@ -32,7 +31,9 @@ This will copy the source code of the template app into your directory and insta
 npx tambo init
 ```
 
-To send messages to Tambo, you need to create a Project through Tambo and generate an API key to send with requests. This command will walk you through the setup of your first Tambo project, generate an API key, and set the API key in your project automatically.
+This walks you through creating a project, generates an API key, and writes it to your env file.
+
+The CLI prefers `.env.local`, but will update `.env` if that's the only env file present.
 
 ### 3. Run the app
 
@@ -40,19 +41,17 @@ To send messages to Tambo, you need to create a Project through Tambo and genera
 npm run dev
 ```
 
-Start the app and go to `localhost:3000` in your browser to start sending messages to Tambo!
+Open `localhost:3000` and start chatting.
 
-## Customize your Tambo template
+## Customize the template
 
-To get a better understanding of what's happening in this application, try to make a change to update Tambo's capabilities.
+Try making a change to see how registration works.
 
-In `/src/lib/tambo.ts` you'll see how the template registers components and tools with Tambo. In `/src/app/chat/page.tsx` you'll see how those tools and components are passed to the `TamboProvider` to 'register' them.
+In `/src/lib/tambo.ts` you'll see how components and tools are registered. In `/src/app/chat/page.tsx` you'll see how they're passed to `TamboProvider`.
 
-### Add a Tambo component
+### Add a component
 
-Let's create and register a new component with Tambo to give our AI chat a new feature.
-
-In `src/components` create a new file called `recipe-card.tsx` and paste the following code into it:
+Create `src/components/recipe-card.tsx`:
 
 ```tsx title="recipe-card.tsx"
 "use client";
@@ -70,8 +69,8 @@ interface RecipeCardProps {
   title?: string;
   description?: string;
   ingredients?: Ingredient[];
-  prepTime?: number; // in minutes
-  cookTime?: number; // in minutes
+  prepTime?: number;
+  cookTime?: number;
   originalServings?: number;
 }
 
@@ -183,7 +182,7 @@ export default function RecipeCard({
 }
 ```
 
-Register it with Tambo by updating the `components` array in `src/lib/tambo.ts` with the following entry:
+Register it in `src/lib/tambo.ts`:
 
 ```tsx title="tambo.ts"
   {
@@ -211,21 +210,21 @@ Register it with Tambo by updating the `components` array in `src/lib/tambo.ts` 
   },
 ```
 
-Now refresh the browser page and send a message like "Show me a recipe" and you should see Tambo generate and stream in an instance of your `RecipeCard` component.
+Refresh the page and send "Show me a recipe". Tambo generates and streams your `RecipeCard`.
 
 <ImageZoom
   src="/assets/docs/recipe-gen.png"
-  alt="usage of RecipeCard"
+  alt="RecipeCard rendered by Tambo"
   width={500}
   height={500}
   style={{ border: "2px solid #e5e7eb", borderRadius: "8px", width: "80%" }}
 />
 
-### Add a Tambo tool
+### Add a tool
 
-You might notice that when using our added `RecipeCard` component above, Tambo generates recipe data completely from scratch. To allow Tambo to retrieve the list of ingredients we actually have, we can add a tool to get them.
+The `RecipeCard` above generates recipe data from scratch. Add a tool so Tambo can check what ingredients are available.
 
-In `src/lib/tambo.ts` add the following entry to the 'tools' array:
+In `src/lib/tambo.ts`, add to the tools array:
 
 ```tsx title="tambo.ts"
   {
@@ -254,16 +253,32 @@ In `src/lib/tambo.ts` add the following entry to the 'tools' array:
   },
 ```
 
-Now refresh the browser page and send a message like "Show me a recipe I can make" and you should see Tambo look for the available ingredients and then generate a `RecipeCard` using them.
+Refresh and send "Show me a recipe I can make". Tambo calls the tool, gets the ingredients, and generates a recipe using them.
 
 <ImageZoom
   src="/assets/docs/add-a-tool.png"
-  alt="usage of a tool"
+  alt="Tambo using a tool to get ingredients"
   width={500}
   height={500}
   style={{ border: "2px solid #e5e7eb", borderRadius: "8px", width: "80%" }}
 />
 
-### Going Further
+## Next steps
 
-This template app just scratches the surface of what you can build with Tambo. By using Tambo in creative ways you can make truly magical custom user experiences!
+<LearnMore
+  title="Add Tambo to an existing app"
+  description="Integrate Tambo into your current React project"
+  href="/getting-started/integrate"
+/>
+
+<LearnMore
+  title="Component registration"
+  description="Learn how components and tools work together"
+  href="/concepts/generative-interfaces"
+/>
+
+<LearnMore
+  title="MCP integration"
+  description="Connect external systems with Model Context Protocol"
+  href="/concepts/model-context-protocol"
+/>

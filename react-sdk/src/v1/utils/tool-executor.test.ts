@@ -1,10 +1,14 @@
+import { EventType } from "@ag-ui/core";
 import { z } from "zod";
 import type { TamboTool } from "../../model/component-metadata";
 import {
   executeClientTool,
   executeAllPendingTools,
+  executeStreamableToolCall,
+  createThrottledStreamableExecutor,
   type PendingToolCall,
 } from "./tool-executor";
+import { ToolCallTracker } from "./tool-call-tracker";
 
 describe("tool-executor", () => {
   describe("executeClientTool", () => {
@@ -113,6 +117,7 @@ describe("tool-executor", () => {
       expect(result).toEqual({
         type: "tool_result",
         toolUseId: "call-5",
+        isError: true,
         content: [{ type: "text", text: "Tool failed!" }],
       });
     });
@@ -133,6 +138,7 @@ describe("tool-executor", () => {
       expect(result).toEqual({
         type: "tool_result",
         toolUseId: "call-6",
+        isError: true,
         content: [{ type: "text", text: "Tool execution failed" }],
       });
     });
@@ -221,6 +227,7 @@ describe("tool-executor", () => {
       expect(results[0]).toEqual({
         type: "tool_result",
         toolUseId: "call-1",
+        isError: true,
         content: [
           { type: "text", text: 'Tool "unknown_tool" not found in registry' },
         ],
@@ -249,11 +256,311 @@ describe("tool-executor", () => {
       const results = await executeAllPendingTools(toolCalls, registry);
 
       expect(results).toHaveLength(2);
+      expect(results[0].isError).toBeUndefined();
       expect(results[0].content[0]).toEqual({ type: "text", text: "success" });
+      expect(results[1].isError).toBe(true);
       expect(results[1].content[0]).toEqual({
         type: "text",
         text: 'Tool "unknown" not found in registry',
       });
+    });
+  });
+
+  describe("executeStreamableToolCall", () => {
+    function createTrackerWithToolCall(
+      toolCallId: string,
+      toolName: string,
+    ): ToolCallTracker {
+      const tracker = new ToolCallTracker();
+      tracker.handleEvent({
+        type: EventType.TOOL_CALL_START,
+        toolCallId,
+        toolCallName: toolName,
+        parentMessageId: "msg_1",
+      });
+      tracker.handleEvent({
+        type: EventType.TOOL_CALL_ARGS,
+        toolCallId,
+        delta: '{"text":"hello"}',
+      });
+      return tracker;
+    }
+
+    it("calls tool when tamboStreamableHint is true", async () => {
+      const toolFn = jest.fn().mockResolvedValue(undefined);
+      const registry: Record<string, TamboTool> = {
+        write_story: {
+          name: "write_story",
+          description: "Writes a story",
+          tool: toolFn,
+          inputSchema: z.object({ text: z.string() }),
+          outputSchema: z.void(),
+          annotations: { tamboStreamableHint: true },
+        },
+      };
+
+      const tracker = createTrackerWithToolCall("call_1", "write_story");
+      await executeStreamableToolCall(
+        "call_1",
+        { text: "hello" },
+        tracker,
+        registry,
+      );
+
+      expect(toolFn).toHaveBeenCalledWith({ text: "hello" });
+    });
+
+    it("does NOT call tool when tamboStreamableHint is false", async () => {
+      const toolFn = jest.fn().mockResolvedValue(undefined);
+      const registry: Record<string, TamboTool> = {
+        write_story: {
+          name: "write_story",
+          description: "Writes a story",
+          tool: toolFn,
+          inputSchema: z.object({ text: z.string() }),
+          outputSchema: z.void(),
+          annotations: { tamboStreamableHint: false },
+        },
+      };
+
+      const tracker = createTrackerWithToolCall("call_1", "write_story");
+      await executeStreamableToolCall(
+        "call_1",
+        { text: "hello" },
+        tracker,
+        registry,
+      );
+
+      expect(toolFn).not.toHaveBeenCalled();
+    });
+
+    it("does NOT call tool when tamboStreamableHint is undefined", async () => {
+      const toolFn = jest.fn().mockResolvedValue(undefined);
+      const registry: Record<string, TamboTool> = {
+        write_story: {
+          name: "write_story",
+          description: "Writes a story",
+          tool: toolFn,
+          inputSchema: z.object({ text: z.string() }),
+          outputSchema: z.void(),
+        },
+      };
+
+      const tracker = createTrackerWithToolCall("call_1", "write_story");
+      await executeStreamableToolCall(
+        "call_1",
+        { text: "hello" },
+        tracker,
+        registry,
+      );
+
+      expect(toolFn).not.toHaveBeenCalled();
+    });
+
+    it("does NOT call tool when tool is not in registry", async () => {
+      const registry: Record<string, TamboTool> = {};
+      const tracker = createTrackerWithToolCall("call_1", "missing_tool");
+
+      // Should not throw
+      await executeStreamableToolCall(
+        "call_1",
+        { text: "hello" },
+        tracker,
+        registry,
+      );
+    });
+
+    it("logs and swallows tool execution errors during streaming", async () => {
+      const warnSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
+      const registry: Record<string, TamboTool> = {
+        write_story: {
+          name: "write_story",
+          description: "Writes a story",
+          tool: jest.fn().mockRejectedValue(new Error("tool error")),
+          inputSchema: z.object({ text: z.string() }),
+          outputSchema: z.void(),
+          annotations: { tamboStreamableHint: true },
+        },
+      };
+
+      const tracker = createTrackerWithToolCall("call_1", "write_story");
+
+      // Should not throw
+      await executeStreamableToolCall(
+        "call_1",
+        { text: "hello" },
+        tracker,
+        registry,
+      );
+
+      expect(warnSpy).toHaveBeenCalledTimes(1);
+      const warningMessage = String(warnSpy.mock.calls[0]?.[0]);
+      expect(warningMessage).toContain("write_story");
+      expect(warningMessage).toContain("call_1");
+      warnSpy.mockRestore();
+    });
+
+    it("returns early when tool call ID is not being tracked", async () => {
+      const toolFn = jest.fn();
+      const registry: Record<string, TamboTool> = {
+        write_story: {
+          name: "write_story",
+          description: "Writes a story",
+          tool: toolFn,
+          inputSchema: z.object({ text: z.string() }),
+          outputSchema: z.void(),
+          annotations: { tamboStreamableHint: true },
+        },
+      };
+
+      const tracker = new ToolCallTracker();
+      await executeStreamableToolCall(
+        "nonexistent",
+        { text: "hello" },
+        tracker,
+        registry,
+      );
+
+      expect(toolFn).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("createThrottledStreamableExecutor", () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    function createTrackerWithToolCall(
+      toolCallId: string,
+      toolName: string,
+    ): ToolCallTracker {
+      const tracker = new ToolCallTracker();
+      tracker.handleEvent({
+        type: EventType.TOOL_CALL_START,
+        toolCallId,
+        toolCallName: toolName,
+        parentMessageId: "msg_1",
+      });
+      tracker.handleEvent({
+        type: EventType.TOOL_CALL_ARGS,
+        toolCallId,
+        delta: '{"text":"hello"}',
+      });
+      return tracker;
+    }
+
+    it("fires immediately on the leading edge", () => {
+      const toolFn = jest.fn().mockResolvedValue(undefined);
+      const registry: Record<string, TamboTool> = {
+        write_story: {
+          name: "write_story",
+          description: "Writes a story",
+          tool: toolFn,
+          inputSchema: z.object({ text: z.string() }),
+          outputSchema: z.void(),
+          annotations: { tamboStreamableHint: true },
+        },
+      };
+
+      const tracker = createTrackerWithToolCall("call_1", "write_story");
+      const executor = createThrottledStreamableExecutor(
+        tracker,
+        registry,
+        100,
+      );
+
+      executor.schedule("call_1", { text: "hello" });
+      // Leading edge: fires immediately
+      expect(toolFn).toHaveBeenCalledTimes(1);
+      expect(toolFn).toHaveBeenCalledWith({ text: "hello" });
+    });
+
+    it("collapses rapid calls, fires leading then trailing with latest args", () => {
+      const toolFn = jest.fn().mockResolvedValue(undefined);
+      const registry: Record<string, TamboTool> = {
+        write_story: {
+          name: "write_story",
+          description: "Writes a story",
+          tool: toolFn,
+          inputSchema: z.object({ text: z.string() }),
+          outputSchema: z.void(),
+          annotations: { tamboStreamableHint: true },
+        },
+      };
+
+      const tracker = createTrackerWithToolCall("call_1", "write_story");
+      const executor = createThrottledStreamableExecutor(
+        tracker,
+        registry,
+        100,
+      );
+
+      executor.schedule("call_1", { text: "h" });
+      // Leading edge fires immediately with first value
+      expect(toolFn).toHaveBeenCalledTimes(1);
+      expect(toolFn).toHaveBeenCalledWith({ text: "h" });
+
+      jest.advanceTimersByTime(50);
+      executor.schedule("call_1", { text: "he" });
+      jest.advanceTimersByTime(50);
+      executor.schedule("call_1", { text: "hel" });
+      jest.advanceTimersByTime(100);
+
+      // Trailing edge fires with latest value after cooldown
+      expect(toolFn).toHaveBeenCalledTimes(3);
+      expect(toolFn).toHaveBeenLastCalledWith({ text: "hel" });
+    });
+
+    it("flush() executes pending trailing calls immediately", () => {
+      const toolFn = jest.fn().mockResolvedValue(undefined);
+      const registry: Record<string, TamboTool> = {
+        write_story: {
+          name: "write_story",
+          description: "Writes a story",
+          tool: toolFn,
+          inputSchema: z.object({ text: z.string() }),
+          outputSchema: z.void(),
+          annotations: { tamboStreamableHint: true },
+        },
+      };
+
+      const tracker = createTrackerWithToolCall("call_1", "write_story");
+      const executor = createThrottledStreamableExecutor(
+        tracker,
+        registry,
+        100,
+      );
+
+      executor.schedule("call_1", { text: "hello" });
+      // Leading edge fires immediately
+      expect(toolFn).toHaveBeenCalledTimes(1);
+
+      executor.schedule("call_1", { text: "hello world" });
+      executor.flush();
+      // Trailing fires with latest value
+      expect(toolFn).toHaveBeenCalledTimes(2);
+      expect(toolFn).toHaveBeenLastCalledWith({ text: "hello world" });
+
+      // Timer should be cancelled — advancing should not fire again
+      jest.advanceTimersByTime(200);
+      expect(toolFn).toHaveBeenCalledTimes(2);
+    });
+
+    it("flush() is a no-op when nothing is pending", () => {
+      const registry: Record<string, TamboTool> = {};
+      const tracker = new ToolCallTracker();
+      const executor = createThrottledStreamableExecutor(
+        tracker,
+        registry,
+        100,
+      );
+
+      // Should not throw
+      executor.flush();
     });
   });
 });

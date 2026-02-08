@@ -87,7 +87,7 @@ export function ProjectSettings({ projectId }: ProjectSettingsProps) {
         title: "Success",
         description: "Project deleted successfully",
       });
-      router.push("/dashboard");
+      router.push("/");
     } catch (_error) {
       toast({
         title: "Error",

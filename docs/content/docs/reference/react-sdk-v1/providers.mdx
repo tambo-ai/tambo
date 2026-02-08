@@ -43,22 +43,24 @@ function App() {
 
 ### Props
 
-| Prop                     | Type                                             | Required | Description                            |
-| ------------------------ | ------------------------------------------------ | -------- | -------------------------------------- |
-| `apiKey`                 | `string`                                         | Yes      | Your Tambo API key                     |
-| `userToken`              | `string`                                         | No\*     | OAuth token for user authentication    |
-| `userKey`                | `string`                                         | No\*     | Unique identifier for the current user |
-| `tamboUrl`               | `string`                                         | No       | Custom Tambo API URL                   |
-| `environment`            | `string`                                         | No       | Environment name                       |
-| `components`             | `TamboV1Component[]`                             | No       | Components to register                 |
-| `tools`                  | `TamboTool[]`                                    | No       | Tools to register                      |
-| `mcpServers`             | `(McpServerInfo \| string)[]`                    | No       | MCP servers to connect                 |
-| `contextHelpers`         | `ContextHelpers`                                 | No       | Context helper functions               |
-| `onCallUnregisteredTool` | `(toolName: string) => void`                     | No       | Callback for unregistered tool calls   |
-| `resources`              | `ListResourceItem[]`                             | No       | Static resources for MCP               |
-| `listResources`          | `(query: string) => Promise<ListResourceItem[]>` | No       | Dynamic resource listing               |
-| `getResource`            | `(uri: string) => Promise<ReadResourceResult>`   | No       | Resource content resolver              |
-| `queryClient`            | `QueryClient`                                    | No       | Custom React Query client              |
+| Prop                        | Type                                             | Required | Description                                                            |
+| --------------------------- | ------------------------------------------------ | -------- | ---------------------------------------------------------------------- |
+| `apiKey`                    | `string`                                         | Yes      | Your Tambo API key                                                     |
+| `userToken`                 | `string`                                         | No\*     | OAuth token for user authentication                                    |
+| `userKey`                   | `string`                                         | No\*     | Unique identifier for the current user                                 |
+| `tamboUrl`                  | `string`                                         | No       | Custom Tambo API URL                                                   |
+| `environment`               | `string`                                         | No       | Environment name                                                       |
+| `components`                | `TamboV1Component[]`                             | No       | Components to register                                                 |
+| `tools`                     | `TamboTool[]`                                    | No       | Tools to register                                                      |
+| `mcpServers`                | `(McpServerInfo \| string)[]`                    | No       | MCP servers to connect                                                 |
+| `contextHelpers`            | `ContextHelpers`                                 | No       | Context helper functions                                               |
+| `onCallUnregisteredTool`    | `(toolName: string) => void`                     | No       | Callback for unregistered tool calls                                   |
+| `resources`                 | `ListResourceItem[]`                             | No       | Static resources for MCP                                               |
+| `listResources`             | `(query: string) => Promise<ListResourceItem[]>` | No       | Dynamic resource listing                                               |
+| `getResource`               | `(uri: string) => Promise<ReadResourceResult>`   | No       | Resource content resolver                                              |
+| `initialMessages`           | `InputMessage[]`                                 | No       | Messages to seed new threads with, displayed before the first API call |
+| `autoGenerateThreadName`    | `boolean`                                        | No       | Auto-generate thread names after a message threshold (default: `true`) |
+| `autoGenerateNameThreshold` | `number`                                         | No       | Messages before auto-generating a thread name (default: `3`)           |
 
 \*Exactly one of `userToken` or `userKey` is required to identify the current user.
 
@@ -117,13 +119,14 @@ const tools = [
 
 `TamboV1Provider` internally composes several providers in this order:
 
-1. `QueryClientProvider` - React Query for data fetching
-2. `TamboClientProvider` - API client and authentication
-3. `TamboRegistryProvider` - Component and tool registration
-4. `TamboContextHelpersProvider` - Context helper management
-5. `TamboV1ConfigContext` - V1 configuration (userKey, etc.)
-6. `TamboV1StreamProvider` - Streaming state management
-7. `TamboV1ThreadInputProvider` - Shared input state
+1. `TamboClientProvider` - API client and authentication
+2. `TamboRegistryProvider` - Component and tool registration
+3. `TamboContextHelpersProvider` - Context helper management
+4. `TamboContextAttachmentProvider` - Context attachment state
+5. `TamboInteractableProvider` - Interactable component tracking
+6. `TamboV1ConfigContext` - V1 configuration (userKey, etc.)
+7. `TamboV1StreamProvider` - Streaming state management
+8. `TamboV1ThreadInputProvider` - Shared input state
 
 ## TamboV1StubProvider
 

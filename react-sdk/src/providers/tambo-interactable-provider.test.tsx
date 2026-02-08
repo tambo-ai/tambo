@@ -23,11 +23,11 @@ jest.mock("./tambo-context-helpers-provider", () => ({
   }),
 }));
 
-// Mock the component provider
+// Mock the registry provider
 const mockRegisterTool = jest.fn();
 
-jest.mock("./tambo-component-provider", () => ({
-  useTamboComponent: () => ({
+jest.mock("./tambo-registry-provider", () => ({
+  useTamboRegistry: () => ({
     registerTool: mockRegisterTool,
   }),
 }));
@@ -386,6 +386,84 @@ describe("TamboInteractableProvider - State Update Tool Registration", () => {
     expect(inputSchema.properties.newProps.required).toBeUndefined();
     // But it should have the properties from the schema
     expect(inputSchema.properties.newProps.properties).toBeDefined();
+  });
+
+  it("should register props update tool with tamboStreamableHint true by default", () => {
+    const { result } = renderHook(() => useTamboInteractable(), { wrapper });
+
+    const component: Omit<TamboInteractableComponent, "id" | "createdAt"> = {
+      name: "TestComponent",
+      description: "A test component",
+      component: () => <div>Test</div>,
+      props: { title: "test" },
+    };
+
+    act(() => {
+      result.current.addInteractableComponent(component);
+    });
+
+    const propsToolCall = mockRegisterTool.mock.calls.find((call) =>
+      call[0].name.startsWith("update_component_props_"),
+    );
+
+    expect(propsToolCall).toBeDefined();
+    expect(propsToolCall[0].annotations).toEqual(
+      expect.objectContaining({ tamboStreamableHint: true }),
+    );
+  });
+
+  it("should register state update tool with tamboStreamableHint true by default", () => {
+    const { result } = renderHook(() => useTamboInteractable(), { wrapper });
+
+    const component: Omit<TamboInteractableComponent, "id" | "createdAt"> = {
+      name: "TestComponent",
+      description: "A test component",
+      component: () => <div>Test</div>,
+      props: {},
+    };
+
+    act(() => {
+      result.current.addInteractableComponent(component);
+    });
+
+    const stateToolCall = mockRegisterTool.mock.calls.find((call) =>
+      call[0].name.startsWith("update_component_state_"),
+    );
+
+    expect(stateToolCall).toBeDefined();
+    expect(stateToolCall[0].annotations).toEqual(
+      expect.objectContaining({ tamboStreamableHint: true }),
+    );
+  });
+
+  it("should allow overriding tamboStreamableHint via component annotations", () => {
+    const { result } = renderHook(() => useTamboInteractable(), { wrapper });
+
+    const component: Omit<TamboInteractableComponent, "id" | "createdAt"> = {
+      name: "TestComponent",
+      description: "A test component",
+      component: () => <div>Test</div>,
+      props: {},
+      annotations: { tamboStreamableHint: false },
+    };
+
+    act(() => {
+      result.current.addInteractableComponent(component);
+    });
+
+    const propsToolCall = mockRegisterTool.mock.calls.find((call) =>
+      call[0].name.startsWith("update_component_props_"),
+    );
+    const stateToolCall = mockRegisterTool.mock.calls.find((call) =>
+      call[0].name.startsWith("update_component_state_"),
+    );
+
+    expect(propsToolCall[0].annotations).toEqual(
+      expect.objectContaining({ tamboStreamableHint: false }),
+    );
+    expect(stateToolCall[0].annotations).toEqual(
+      expect.objectContaining({ tamboStreamableHint: false }),
+    );
   });
 
   it("should use additionalProperties when no propsSchema provided", () => {

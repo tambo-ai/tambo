@@ -8,6 +8,7 @@
     "lucide-react",
     "highlight.js",
     "@tambo-ai/react",
+    "@tambo-ai/react-ui-base@next",
     "@tambo-ai/typescript-sdk",
     "dompurify",
     "json-stringify-pretty-compact",

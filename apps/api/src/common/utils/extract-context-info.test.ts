@@ -1,5 +1,6 @@
 import { BadRequestException } from "@nestjs/common";
 import { Request } from "express";
+import { SdkVersion } from "../middleware/sdk-version.middleware";
 import { ProjectId } from "../../projects/guards/apikey.guard";
 import { ContextKey } from "../../projects/guards/bearer-token.guard";
 import { extractContextInfo } from "./extract-context-info";
@@ -143,6 +144,35 @@ describe("extractContextInfo", () => {
         projectId: "test-project-id",
         contextKey: "api-context-key",
       });
+    });
+  });
+
+  describe("sdkVersion", () => {
+    it("should include sdkVersion when SdkVersion symbol is set on request", () => {
+      const request = {
+        ...mockRequest,
+        [ProjectId]: "test-project-id",
+        [SdkVersion]: "1.2.3",
+      } as Request;
+
+      const result = extractContextInfo(request, undefined);
+
+      expect(result).toEqual({
+        projectId: "test-project-id",
+        contextKey: undefined,
+        sdkVersion: "1.2.3",
+      });
+    });
+
+    it("should have undefined sdkVersion when SdkVersion symbol is not set", () => {
+      const request = {
+        ...mockRequest,
+        [ProjectId]: "test-project-id",
+      } as Request;
+
+      const result = extractContextInfo(request, undefined);
+
+      expect(result.sdkVersion).toBeUndefined();
     });
   });
 });

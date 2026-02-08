@@ -1,9 +1,11 @@
 "use client";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { TamboMessageProvider } from "../hooks/use-current-message";
+import type { ToolAnnotations } from "../model/component-metadata";
 import { TamboThreadMessage } from "../model/generate-component-response";
 import { useTamboInteractable } from "../providers/tambo-interactable-provider";
 import { SupportedSchema } from "../schema";
+import { V1ComponentContentProvider } from "../v1/utils/component-renderer";
 
 export interface InteractableConfig<
   Props = Record<string, unknown>,
@@ -28,6 +30,13 @@ export interface InteractableConfig<
    * validated against this schema.
    */
   stateSchema?: SupportedSchema<State>;
+  /**
+   * Optional annotations for the interactable component's auto-registered tools
+   * (props update and state update). By default, `tamboStreamableHint` is `true`
+   * so props/state updates stream in real-time. Set `{ tamboStreamableHint: false }`
+   * to disable streaming for this component's tools.
+   */
+  annotations?: ToolAnnotations;
 }
 
 /**
@@ -133,6 +142,7 @@ export function withTamboInteractable<ComponentProps extends object>(
           props: componentProps,
           propsSchema: config.propsSchema,
           stateSchema: config.stateSchema,
+          annotations: config.annotations,
         });
 
         setInteractableId(id);
@@ -188,7 +198,7 @@ export function withTamboInteractable<ComponentProps extends object>(
       componentState: {},
     };
 
-    // Wrap with TamboMessageProvider including interactable metadata
+    // Wrap with TamboMessageProvider and V1ComponentContentProvider including interactable metadata
     return (
       <TamboMessageProvider
         message={minimalMessage}
@@ -198,7 +208,14 @@ export function withTamboInteractable<ComponentProps extends object>(
           description: config.description,
         }}
       >
-        <WrappedComponent {...(effectiveProps as ComponentProps)} />
+        <V1ComponentContentProvider
+          componentId={interactableId}
+          threadId=""
+          messageId=""
+          componentName={config.componentName}
+        >
+          <WrappedComponent {...(effectiveProps as ComponentProps)} />
+        </V1ComponentContentProvider>
       </TamboMessageProvider>
     );
   };

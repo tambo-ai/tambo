@@ -103,6 +103,7 @@ describe("Thread State", () => {
         lastRunError: null,
         pendingToolCallIds: null,
         lastCompletedRunId: null,
+        sdkVersion: null,
       });
       jest
         .mocked(
@@ -147,6 +148,7 @@ describe("Thread State", () => {
         lastRunError: null,
         pendingToolCallIds: null,
         lastCompletedRunId: null,
+        sdkVersion: null,
       };
 
       const mockTransaction = {
@@ -237,6 +239,7 @@ describe("Thread State", () => {
           role: MessageRole.Assistant,
           content: [{ type: ContentPartType.Text, text: "" }],
         }),
+        undefined,
       );
     });
 
@@ -301,6 +304,7 @@ describe("Thread State", () => {
             { type: ContentPartType.Text, text: "Custom initial text" },
           ],
         }),
+        undefined,
       );
     });
 
@@ -928,6 +932,7 @@ describe("Thread State", () => {
         additionalContext: null,
         reasoning: null,
         reasoningDurationMS: null,
+        sdkVersion: null,
       });
 
       const result = await finishInProgressMessage(

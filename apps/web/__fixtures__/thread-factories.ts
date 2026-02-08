@@ -39,6 +39,7 @@ export function createMockThreadMessage(
     suggestedActions: [],
     suggestions: [],
     toolCallRequest: undefined,
+    sdkVersion: null,
   };
 
   return { ...baseMessage, ...overrides };
@@ -72,6 +73,7 @@ export function createMockThread(
     lastRunError: null,
     pendingToolCallIds: null,
     lastCompletedRunId: null,
+    sdkVersion: null,
   };
 
   return { ...baseThread, ...overrides };

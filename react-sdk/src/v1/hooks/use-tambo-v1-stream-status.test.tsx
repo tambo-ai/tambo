@@ -69,6 +69,7 @@ function createThreadState(
       status: "idle",
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
+      lastRunCancelled: false,
     },
     streaming: {
       status: "idle",
@@ -176,8 +177,8 @@ describe("useTamboV1StreamStatus", () => {
       expect(result.current.streamStatus.isPending).toBe(false);
 
       // Individual props should still be pending
-      expect(result.current.propStatus.title.isPending).toBe(true);
-      expect(result.current.propStatus.title.isStreaming).toBe(false);
+      expect(result.current.propStatus.title?.isPending).toBe(true);
+      expect(result.current.propStatus.title?.isStreaming).toBe(false);
     });
 
     it("should show prop streaming when props receive content during streaming", () => {
@@ -194,12 +195,12 @@ describe("useTamboV1StreamStatus", () => {
       );
 
       // Title prop should be streaming since it has content
-      expect(result.current.propStatus.title.isStreaming).toBe(true);
-      expect(result.current.propStatus.title.isPending).toBe(false);
+      expect(result.current.propStatus.title?.isStreaming).toBe(true);
+      expect(result.current.propStatus.title?.isPending).toBe(false);
 
       // Body prop should still be pending since it has no content
-      expect(result.current.propStatus.body.isStreaming).toBe(false);
-      expect(result.current.propStatus.body.isPending).toBe(true);
+      expect(result.current.propStatus.body?.isStreaming).toBe(false);
+      expect(result.current.propStatus.body?.isPending).toBe(true);
 
       // Global should be streaming because at least one prop is streaming
       expect(result.current.streamStatus.isStreaming).toBe(true);
@@ -306,9 +307,9 @@ describe("useTamboV1StreamStatus", () => {
 
       // All props are pending and no streaming activity
       expect(result.current.streamStatus.isPending).toBe(true);
-      expect(result.current.propStatus.title.isPending).toBe(true);
-      expect(result.current.propStatus.body.isPending).toBe(true);
-      expect(result.current.propStatus.footer.isPending).toBe(true);
+      expect(result.current.propStatus.title?.isPending).toBe(true);
+      expect(result.current.propStatus.body?.isPending).toBe(true);
+      expect(result.current.propStatus.footer?.isPending).toBe(true);
     });
 
     it("should derive isSuccess correctly (streaming done AND all props successful)", () => {
@@ -356,8 +357,8 @@ describe("useTamboV1StreamStatus", () => {
       rerender();
 
       // Now both props should be successful
-      expect(result.current.propStatus.title.isSuccess).toBe(true);
-      expect(result.current.propStatus.body.isSuccess).toBe(true);
+      expect(result.current.propStatus.title?.isSuccess).toBe(true);
+      expect(result.current.propStatus.body?.isSuccess).toBe(true);
       expect(result.current.streamStatus.isSuccess).toBe(true);
     });
   });

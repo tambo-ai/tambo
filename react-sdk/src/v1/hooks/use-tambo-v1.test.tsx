@@ -1,20 +1,39 @@
 import TamboAI from "@tambo-ai/typescript-sdk";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { renderHook, act } from "@testing-library/react";
-import React from "react";
+import React, { useReducer } from "react";
 import { useTamboClient } from "../../providers/tambo-client-provider";
 import {
   TamboRegistryContext,
   type TamboRegistryContext as TamboRegistryContextType,
 } from "../../providers/tambo-registry-provider";
 import { TamboV1StreamProvider } from "../providers/tambo-v1-stream-context";
-import type { StreamState, StreamAction } from "../utils/event-accumulator";
+import {
+  streamReducer,
+  type StreamState,
+  type StreamAction,
+} from "../utils/event-accumulator";
 import type { V1ComponentContent, V1ToolUseContent } from "../types/message";
 import { useTamboV1 } from "./use-tambo-v1";
 
 jest.mock("../../providers/tambo-client-provider", () => ({
   useTamboClient: jest.fn(),
   useTamboQueryClient: jest.fn(),
+}));
+
+jest.mock("../providers/tambo-v1-provider", () => {
+  const actual = jest.requireActual("../providers/tambo-v1-provider");
+  return {
+    ...actual,
+    useTamboV1Config: () => ({ userKey: undefined }),
+  };
+});
+
+jest.mock("./use-tambo-v1-auth-state", () => ({
+  useTamboV1AuthState: () => ({
+    status: "identified",
+    source: "userKey",
+  }),
 }));
 
 import { useTamboQueryClient } from "../../providers/tambo-client-provider";
@@ -27,6 +46,9 @@ describe("useTamboV1", () => {
     threads: {
       messages: {
         list: jest.fn().mockResolvedValue({ messages: [], hasMore: false }),
+      },
+      runs: {
+        delete: jest.fn().mockResolvedValue({}),
       },
     },
   } as unknown as TamboAI;
@@ -73,6 +95,26 @@ describe("useTamboV1", () => {
         <QueryClientProvider client={queryClient}>
           <TamboRegistryContext.Provider value={registry}>
             <TamboV1StreamProvider state={state} dispatch={noopDispatch}>
+              {children}
+            </TamboV1StreamProvider>
+          </TamboRegistryContext.Provider>
+        </QueryClientProvider>
+      );
+    };
+  }
+
+  // Wrapper that uses the real reducer so state updates properly
+  function createWrapperWithRealReducer(initialState: StreamState) {
+    return function WrapperWithRealReducer({
+      children,
+    }: {
+      children: React.ReactNode;
+    }) {
+      const [state, dispatch] = useReducer(streamReducer, initialState);
+      return (
+        <QueryClientProvider client={queryClient}>
+          <TamboRegistryContext.Provider value={mockRegistry}>
+            <TamboV1StreamProvider state={state} dispatch={dispatch}>
               {children}
             </TamboV1StreamProvider>
           </TamboRegistryContext.Provider>
@@ -275,6 +317,7 @@ describe("useTamboV1", () => {
               status: "idle",
               createdAt: new Date().toISOString(),
               updatedAt: new Date().toISOString(),
+              lastRunCancelled: false,
             },
             streaming: { status: "idle" },
             accumulatingToolArgs: new Map(),
@@ -315,6 +358,7 @@ describe("useTamboV1", () => {
               status: "idle",
               createdAt: new Date().toISOString(),
               updatedAt: new Date().toISOString(),
+              lastRunCancelled: false,
             },
             streaming: { status: "idle" },
             accumulatingToolArgs: new Map(),
@@ -360,6 +404,7 @@ describe("useTamboV1", () => {
               status: "idle",
               createdAt: new Date().toISOString(),
               updatedAt: new Date().toISOString(),
+              lastRunCancelled: false,
             },
             streaming: { status: "idle" },
             accumulatingToolArgs: new Map(),
@@ -406,6 +451,7 @@ describe("useTamboV1", () => {
               status: "idle",
               createdAt: new Date().toISOString(),
               updatedAt: new Date().toISOString(),
+              lastRunCancelled: false,
             },
             streaming: { status: "idle" },
             accumulatingToolArgs: new Map(),
@@ -448,6 +494,7 @@ describe("useTamboV1", () => {
               status: "idle",
               createdAt: new Date().toISOString(),
               updatedAt: new Date().toISOString(),
+              lastRunCancelled: false,
             },
             streaming: { status: "idle" },
             accumulatingToolArgs: new Map(),
@@ -492,6 +539,7 @@ describe("useTamboV1", () => {
               status: "idle",
               createdAt: new Date().toISOString(),
               updatedAt: new Date().toISOString(),
+              lastRunCancelled: false,
             },
             streaming: { status: "idle" },
             accumulatingToolArgs: new Map(),
@@ -532,6 +580,7 @@ describe("useTamboV1", () => {
               status: "idle",
               createdAt: new Date().toISOString(),
               updatedAt: new Date().toISOString(),
+              lastRunCancelled: false,
             },
             streaming: { status: "idle" },
             accumulatingToolArgs: new Map(),
@@ -577,6 +626,7 @@ describe("useTamboV1", () => {
               status: "idle",
               createdAt: new Date().toISOString(),
               updatedAt: new Date().toISOString(),
+              lastRunCancelled: false,
             },
             streaming: { status: "idle" },
             accumulatingToolArgs: new Map(),
@@ -632,6 +682,7 @@ describe("useTamboV1", () => {
               status: "idle",
               createdAt: new Date().toISOString(),
               updatedAt: new Date().toISOString(),
+              lastRunCancelled: false,
             },
             streaming: { status: "idle" },
             accumulatingToolArgs: new Map(),
@@ -676,6 +727,7 @@ describe("useTamboV1", () => {
               status: "idle",
               createdAt: new Date().toISOString(),
               updatedAt: new Date().toISOString(),
+              lastRunCancelled: false,
             },
             streaming: { status: "idle" },
             accumulatingToolArgs: new Map(),
@@ -735,6 +787,7 @@ describe("useTamboV1", () => {
               status: "idle",
               createdAt: new Date().toISOString(),
               updatedAt: new Date().toISOString(),
+              lastRunCancelled: false,
             },
             streaming: { status: "idle" },
             accumulatingToolArgs: new Map(),
@@ -782,6 +835,7 @@ describe("useTamboV1", () => {
               status: "idle",
               createdAt: new Date().toISOString(),
               updatedAt: new Date().toISOString(),
+              lastRunCancelled: false,
             },
             streaming: { status: "idle" },
             accumulatingToolArgs: new Map(),
@@ -826,6 +880,7 @@ describe("useTamboV1", () => {
               status: "idle",
               createdAt: new Date().toISOString(),
               updatedAt: new Date().toISOString(),
+              lastRunCancelled: false,
             },
             streaming: { status: "idle" },
             accumulatingToolArgs: new Map(),
@@ -868,6 +923,7 @@ describe("useTamboV1", () => {
               status: "idle",
               createdAt: new Date().toISOString(),
               updatedAt: new Date().toISOString(),
+              lastRunCancelled: false,
             },
             streaming: { status: "idle" },
             accumulatingToolArgs: new Map(),
@@ -928,6 +984,7 @@ describe("useTamboV1", () => {
               status: "idle",
               createdAt: new Date().toISOString(),
               updatedAt: new Date().toISOString(),
+              lastRunCancelled: false,
             },
             streaming: { status: "idle" },
             accumulatingToolArgs: new Map(),
@@ -948,6 +1005,179 @@ describe("useTamboV1", () => {
 
       expect(tool2.hasCompleted).toBe(false);
       expect(tool2.statusMessage).toBe("Calling getTime");
+    });
+  });
+
+  describe("cancelRun", () => {
+    it("sets thread to idle and lastRunCancelled to true when cancelled", async () => {
+      const initialState: StreamState = {
+        threadMap: {
+          thread_123: {
+            thread: {
+              id: "thread_123",
+              messages: [],
+              status: "streaming",
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+              lastRunCancelled: false,
+            },
+            streaming: { status: "streaming", runId: "run_456" },
+            accumulatingToolArgs: new Map(),
+          },
+        },
+        currentThreadId: "thread_123",
+      };
+
+      const { result } = renderHook(() => useTamboV1(), {
+        wrapper: createWrapperWithRealReducer(initialState),
+      });
+
+      // Before cancel: streaming and lastRunCancelled is false
+      expect(result.current.isStreaming).toBe(true);
+      expect(result.current.isIdle).toBe(false);
+      expect(result.current.thread?.thread.lastRunCancelled).toBe(false);
+
+      await act(async () => {
+        await result.current.cancelRun();
+      });
+
+      // After cancel: idle and lastRunCancelled is true
+      expect(result.current.isStreaming).toBe(false);
+      expect(result.current.isIdle).toBe(true);
+      expect(result.current.thread?.thread.lastRunCancelled).toBe(true);
+
+      // Verify API was called to cancel the run
+      expect(mockTamboClient.threads.runs.delete).toHaveBeenCalledWith(
+        "run_456",
+        { threadId: "thread_123" },
+      );
+    });
+
+    it("is a no-op when there is no active run", async () => {
+      const initialState: StreamState = {
+        threadMap: {
+          thread_123: {
+            thread: {
+              id: "thread_123",
+              messages: [],
+              status: "idle",
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+              lastRunCancelled: false,
+            },
+            streaming: { status: "idle" }, // No runId
+            accumulatingToolArgs: new Map(),
+          },
+        },
+        currentThreadId: "thread_123",
+      };
+
+      const { result } = renderHook(() => useTamboV1(), {
+        wrapper: createWrapperWithRealReducer(initialState),
+      });
+
+      // Idle before
+      expect(result.current.isIdle).toBe(true);
+      expect(result.current.thread?.thread.lastRunCancelled).toBe(false);
+
+      await act(async () => {
+        await result.current.cancelRun();
+      });
+
+      // Still idle, lastRunCancelled unchanged
+      expect(result.current.isIdle).toBe(true);
+      expect(result.current.thread?.thread.lastRunCancelled).toBe(false);
+
+      // API should not have been called
+      expect(mockTamboClient.threads.runs.delete).not.toHaveBeenCalled();
+    });
+
+    it("is a no-op when on a placeholder thread", async () => {
+      const initialState: StreamState = {
+        threadMap: {
+          placeholder: {
+            thread: {
+              id: "placeholder",
+              messages: [],
+              status: "streaming",
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+              lastRunCancelled: false,
+            },
+            streaming: { status: "streaming", runId: "run_123" },
+            accumulatingToolArgs: new Map(),
+          },
+        },
+        currentThreadId: "placeholder",
+      };
+
+      const { result } = renderHook(() => useTamboV1(), {
+        wrapper: createWrapperWithRealReducer(initialState),
+      });
+
+      // Before: streaming on placeholder
+      expect(result.current.isStreaming).toBe(true);
+      expect(result.current.thread?.thread.lastRunCancelled).toBe(false);
+
+      await act(async () => {
+        await result.current.cancelRun();
+      });
+
+      // After: state should be unchanged (placeholder threads are skipped)
+      expect(result.current.isStreaming).toBe(true);
+      expect(result.current.thread?.thread.lastRunCancelled).toBe(false);
+
+      // API should not have been called for placeholder threads
+      expect(mockTamboClient.threads.runs.delete).not.toHaveBeenCalled();
+    });
+
+    it("still updates local state even if API call fails", async () => {
+      const consoleWarnSpy = jest
+        .spyOn(console, "warn")
+        .mockImplementation(() => {});
+
+      // Make the API call fail
+      jest
+        .mocked(mockTamboClient.threads.runs.delete)
+        .mockRejectedValueOnce(new Error("Network error"));
+
+      const initialState: StreamState = {
+        threadMap: {
+          thread_123: {
+            thread: {
+              id: "thread_123",
+              messages: [],
+              status: "streaming",
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+              lastRunCancelled: false,
+            },
+            streaming: { status: "streaming", runId: "run_456" },
+            accumulatingToolArgs: new Map(),
+          },
+        },
+        currentThreadId: "thread_123",
+      };
+
+      const { result } = renderHook(() => useTamboV1(), {
+        wrapper: createWrapperWithRealReducer(initialState),
+      });
+
+      await act(async () => {
+        await result.current.cancelRun();
+      });
+
+      // Local state should still be updated (optimistic update)
+      expect(result.current.isIdle).toBe(true);
+      expect(result.current.thread?.thread.lastRunCancelled).toBe(true);
+
+      // Warning should have been logged
+      expect(consoleWarnSpy).toHaveBeenCalledWith(
+        "Failed to cancel run on server:",
+        expect.any(Error),
+      );
+
+      consoleWarnSpy.mockRestore();
     });
   });
 });

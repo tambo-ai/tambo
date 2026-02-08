@@ -50,6 +50,7 @@ interface RunDecisionLoopParams {
   customInstructions?: string | undefined;
   forceToolChoice?: string;
   resourceFetchers: ResourceFetcherMap;
+  abortSignal?: AbortSignal;
 }
 
 export interface TamboBackend {
@@ -214,6 +215,7 @@ class AgenticTamboBackend implements TamboBackend {
       params.customInstructions,
       params.forceToolChoice,
       params.resourceFetchers,
+      params.abortSignal,
     );
   }
 

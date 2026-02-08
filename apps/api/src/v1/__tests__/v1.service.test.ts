@@ -41,11 +41,15 @@ jest.mock("@tambo-ai-cloud/db", () => ({
     setCurrentRunId: jest.fn(),
     getRun: jest.fn(),
     markRunCancelled: jest.fn(),
+    markMessageCancelled: jest.fn(),
+    markLatestAssistantMessageCancelled: jest.fn(),
+    addMessage: jest.fn(),
     releaseRunLockIfCurrent: jest.fn(),
     updateRunStatus: jest.fn(),
     updateThreadRunStatus: jest.fn(),
     completeRun: jest.fn(),
     updateMessage: jest.fn(),
+    updateThreadGenerationStatus: jest.fn(),
     listThreadsPaginated: jest.fn(),
     listMessagesPaginated: jest.fn(),
     getMessageByIdInThread: jest.fn(),
@@ -101,6 +105,7 @@ type MockDb = {
 // Mock ThreadsService type for testing
 type MockThreadsService = {
   advanceThread: jest.Mock;
+  createThread: jest.Mock;
 };
 
 describe("V1Service", () => {
@@ -129,6 +134,7 @@ describe("V1Service", () => {
     pendingToolCallIds: null,
     lastCompletedRunId: null,
     metadata: { key: "value" },
+    sdkVersion: null,
     createdAt: new Date("2024-01-01T00:00:00Z"),
     updatedAt: new Date("2024-01-01T00:00:00Z"),
   };
@@ -154,6 +160,7 @@ describe("V1Service", () => {
     tokenUsage: null,
     llmModel: null,
     suggestions: [],
+    sdkVersion: null,
   };
 
   beforeEach(() => {
@@ -208,6 +215,7 @@ describe("V1Service", () => {
 
     mockThreadsService = {
       advanceThread: jest.fn(),
+      createThread: jest.fn(),
     };
 
     // Create service with mock database and threads service (cast to unknown first to satisfy constructor type)
@@ -455,23 +463,33 @@ describe("V1Service", () => {
   });
 
   describe("createThread", () => {
+    const mockThreadsServiceThread = {
+      id: "thr_123",
+      name: null as string | null,
+      metadata: { key: "value" } as Record<string, unknown> | null,
+      createdAt: new Date("2024-01-01T00:00:00Z"),
+      updatedAt: new Date("2024-01-01T00:00:00Z"),
+    };
+
     it("should create a thread with minimal data", async () => {
-      mockOperations.createThread.mockResolvedValue(mockThread);
+      mockThreadsService.createThread.mockResolvedValue(
+        mockThreadsServiceThread,
+      );
 
       const result = await service.createThread("prj_123", "user_456", {});
 
-      expect(mockOperations.createThread).toHaveBeenCalledWith(mockDb, {
-        projectId: "prj_123",
-        contextKey: "user_456",
-        metadata: undefined,
-      });
+      expect(mockThreadsService.createThread).toHaveBeenCalledWith(
+        { projectId: "prj_123", metadata: undefined },
+        "user_456",
+        undefined,
+      );
       expect(result.id).toBe("thr_123");
+      expect(result.runStatus).toBe(V1RunStatus.IDLE);
     });
 
     it("should create a thread with context key and metadata", async () => {
-      mockOperations.createThread.mockResolvedValue({
-        ...mockThread,
-        contextKey: "user_456",
+      mockThreadsService.createThread.mockResolvedValue({
+        ...mockThreadsServiceThread,
         metadata: { custom: "data" },
       });
 
@@ -479,19 +497,112 @@ describe("V1Service", () => {
         metadata: { custom: "data" },
       });
 
+      expect(mockThreadsService.createThread).toHaveBeenCalledWith(
+        { projectId: "prj_123", metadata: { custom: "data" } },
+        "user_456",
+        undefined,
+      );
       expect(result.userKey).toBe("user_456");
       expect(result.metadata).toEqual({ custom: "data" });
     });
 
-    it("should reject initialMessages for now", async () => {
-      await expect(
-        service.createThread("prj_123", "user_456", {
-          initialMessages: [
-            { role: "user", content: [{ type: "text", text: "Hi" }] },
-          ],
-        }),
-      ).rejects.toThrow(BadRequestException);
-      expect(mockOperations.createThread).not.toHaveBeenCalled();
+    it("should pass converted initialMessages to threadsService.createThread", async () => {
+      mockThreadsService.createThread.mockResolvedValue(
+        mockThreadsServiceThread,
+      );
+
+      const result = await service.createThread("prj_123", "user_456", {
+        initialMessages: [
+          { role: "user", content: [{ type: "text", text: "Hi" }] },
+        ],
+      });
+
+      expect(mockThreadsService.createThread).toHaveBeenCalledWith(
+        { projectId: "prj_123", metadata: undefined },
+        "user_456",
+        [
+          expect.objectContaining({
+            role: MessageRole.User,
+            content: [expect.objectContaining({ type: "text", text: "Hi" })],
+          }),
+        ],
+      );
+      expect(result.id).toBe("thr_123");
+    });
+
+    it("should not pass initialMessages when none provided", async () => {
+      mockThreadsService.createThread.mockResolvedValue(
+        mockThreadsServiceThread,
+      );
+
+      await service.createThread("prj_123", "user_456", {});
+
+      expect(mockThreadsService.createThread).toHaveBeenCalledWith(
+        { projectId: "prj_123", metadata: undefined },
+        "user_456",
+        undefined,
+      );
+    });
+
+    it("should support system role in initialMessages", async () => {
+      mockThreadsService.createThread.mockResolvedValue(
+        mockThreadsServiceThread,
+      );
+
+      await service.createThread("prj_123", "user_456", {
+        initialMessages: [
+          {
+            role: "system",
+            content: [{ type: "text", text: "You are helpful" }],
+          },
+        ],
+      });
+
+      expect(mockThreadsService.createThread).toHaveBeenCalledWith(
+        expect.any(Object),
+        "user_456",
+        [
+          expect.objectContaining({
+            role: MessageRole.System,
+          }),
+        ],
+      );
+    });
+
+    it("should support assistant role in initialMessages", async () => {
+      mockThreadsService.createThread.mockResolvedValue(
+        mockThreadsServiceThread,
+      );
+
+      await service.createThread("prj_123", "user_456", {
+        initialMessages: [
+          {
+            role: "assistant",
+            content: [{ type: "text", text: "How can I help?" }],
+          },
+        ],
+      });
+
+      expect(mockThreadsService.createThread).toHaveBeenCalledWith(
+        expect.any(Object),
+        "user_456",
+        [
+          expect.objectContaining({
+            role: MessageRole.Assistant,
+          }),
+        ],
+      );
+    });
+
+    it("should map createdAt and updatedAt to ISO strings", async () => {
+      mockThreadsService.createThread.mockResolvedValue(
+        mockThreadsServiceThread,
+      );
+
+      const result = await service.createThread("prj_123", "user_456", {});
+
+      expect(result.createdAt).toBe("2024-01-01T00:00:00.000Z");
+      expect(result.updatedAt).toBe("2024-01-01T00:00:00.000Z");
     });
   });
 
@@ -1119,6 +1230,7 @@ describe("V1Service", () => {
         projectId: "proj_123",
         contextKey: "user_123",
         runStatus: "idle",
+        sdkVersion: null,
         createdAt: new Date(),
         updatedAt: new Date(),
         messages: [regularMessage, uiToolResponseMessage],
@@ -1344,14 +1456,14 @@ describe("V1Service", () => {
   });
 
   describe("createThread error handling", () => {
-    it("should throw error if database returns null", async () => {
-      mockOperations.createThread.mockResolvedValue(
-        null as unknown as typeof mockThread,
+    it("should propagate errors from threadsService.createThread", async () => {
+      mockThreadsService.createThread.mockRejectedValue(
+        new Error("Failed to create thread"),
       );
 
       await expect(
         service.createThread("prj_123", "user_456", {}),
-      ).rejects.toThrow(/Failed to create thread for project prj_123/);
+      ).rejects.toThrow(/Failed to create thread/);
     });
   });
 
@@ -1653,6 +1765,188 @@ describe("V1Service", () => {
       const writes = response.write.mock.calls.map(([value]) => `${value}`);
       expect(writes.some((w) => w.includes('"type":"RUN_ERROR"'))).toBe(true);
     });
+
+    describe("periodic cancellation check", () => {
+      it("should emit RUN_ERROR with CANCELLED code and mark specific message when run is cancelled during streaming", async () => {
+        const response = createMockResponse();
+
+        // Mock Date.now to simulate time passing
+        let currentTime = 1000;
+        const originalDateNow = Date.now;
+        Date.now = jest.fn(() => {
+          // Advance time by 600ms on each call to ensure the check interval is triggered
+          currentTime += 600;
+          return currentTime;
+        });
+
+        // Track how many times getRun is called and return isCancelled on second call
+        let getRunCallCount = 0;
+        mockOperations.getRun.mockImplementation(async () => {
+          getRunCallCount++;
+          // First call returns not cancelled, second call returns cancelled
+          return {
+            id: "run_123",
+            threadId: "thr_123",
+            isCancelled: getRunCallCount > 1,
+          } as any;
+        });
+        mockOperations.releaseRunLockIfCurrent.mockResolvedValue(true);
+        mockOperations.markMessageCancelled.mockResolvedValue(undefined);
+
+        // Mock advanceThread to push multiple items with responseMessageDto
+        mockThreadsService.advanceThread.mockImplementation(
+          async (
+            _projectId,
+            _advanceRequest,
+            _threadId,
+            _toolCallCounts,
+            _cached,
+            queue,
+          ) => {
+            // Push first item with responseMessageDto - first cancellation check will pass
+            queue.push({
+              aguiEvents: [{ type: "TEXT_MESSAGE_START", messageId: "msg_1" }],
+              response: { responseMessageDto: { id: "msg_real_123" } },
+            });
+
+            // Push second item - second cancellation check will detect isCancelled: true
+            queue.push({
+              aguiEvents: [
+                {
+                  type: "TEXT_MESSAGE_CONTENT",
+                  messageId: "msg_1",
+                  delta: "Hello",
+                },
+              ],
+            });
+
+            // Push third item - should never be processed
+            queue.push({
+              aguiEvents: [{ type: "TEXT_MESSAGE_END", messageId: "msg_1" }],
+            });
+
+            queue.finish();
+          },
+        );
+
+        try {
+          await service.executeRun(
+            response as any,
+            "thr_123",
+            "run_123",
+            mockRunDtoBase as any,
+            "prj_123",
+            "user_456",
+          );
+        } finally {
+          Date.now = originalDateNow;
+        }
+
+        const writes = response.write.mock.calls.map(([value]) => `${value}`);
+
+        // Should have emitted a RUN_ERROR event with CANCELLED code
+        const cancelEvent = writes.find(
+          (w) =>
+            w.includes('"type":"RUN_ERROR"') &&
+            w.includes('"code":"CANCELLED"'),
+        );
+        expect(cancelEvent).toBeDefined();
+
+        // Verify getRun was called at least twice (for the cancellation checks)
+        expect(getRunCallCount).toBeGreaterThanOrEqual(2);
+
+        // Verify markMessageCancelled was called with the specific message ID
+        expect(mockOperations.markMessageCancelled).toHaveBeenCalledWith(
+          expect.anything(),
+          "msg_real_123",
+        );
+      });
+
+      it("should stop emitting events after cancellation is detected", async () => {
+        const response = createMockResponse();
+
+        // Mock Date.now to simulate time passing past the check interval
+        let currentTime = 1000;
+        const originalDateNow = Date.now;
+        Date.now = jest.fn(() => {
+          currentTime += 600; // Each call advances by 600ms
+          return currentTime;
+        });
+
+        // Return isCancelled: true on the first check
+        mockOperations.getRun.mockResolvedValue({
+          id: "run_123",
+          threadId: "thr_123",
+          isCancelled: true,
+        } as any);
+        mockOperations.releaseRunLockIfCurrent.mockResolvedValue(true);
+
+        mockThreadsService.advanceThread.mockImplementation(
+          async (
+            _projectId,
+            _advanceRequest,
+            _threadId,
+            _toolCallCounts,
+            _cached,
+            queue,
+          ) => {
+            // Push multiple items - only first should be processed before cancellation
+            queue.push({
+              aguiEvents: [{ type: "TEXT_MESSAGE_START", messageId: "msg_1" }],
+            });
+            queue.push({
+              aguiEvents: [
+                {
+                  type: "TEXT_MESSAGE_CONTENT",
+                  messageId: "msg_1",
+                  delta: "Hello",
+                },
+              ],
+            });
+            queue.push({
+              aguiEvents: [
+                {
+                  type: "TEXT_MESSAGE_CONTENT",
+                  messageId: "msg_1",
+                  delta: " World",
+                },
+              ],
+            });
+            queue.push({
+              aguiEvents: [{ type: "TEXT_MESSAGE_END", messageId: "msg_1" }],
+            });
+            queue.finish();
+          },
+        );
+
+        try {
+          await service.executeRun(
+            response as any,
+            "thr_123",
+            "run_123",
+            mockRunDtoBase as any,
+            "prj_123",
+            "user_456",
+          );
+        } finally {
+          Date.now = originalDateNow;
+        }
+
+        const writes = response.write.mock.calls.map(([value]) => `${value}`);
+
+        // Should have the RUN_ERROR CANCELLED event
+        expect(
+          writes.some(
+            (w) =>
+              w.includes('"type":"RUN_ERROR"') &&
+              w.includes('"code":"CANCELLED"'),
+          ),
+        ).toBe(true);
+
+        // Should NOT have TEXT_MESSAGE_END (stream stopped before completion)
+        expect(writes.some((w) => w.includes("TEXT_MESSAGE_END"))).toBe(false);
+      });
+    });
   });
 
   describe("cancelRun", () => {
@@ -1678,6 +1972,9 @@ describe("V1Service", () => {
 
       expect(mockDb.transaction).toHaveBeenCalledTimes(1);
       expect(mockOperations.markRunCancelled).not.toHaveBeenCalled();
+      expect(
+        mockOperations.updateThreadGenerationStatus,
+      ).not.toHaveBeenCalled();
     });
 
     it("should successfully cancel an existing run", async () => {
@@ -1688,6 +1985,10 @@ describe("V1Service", () => {
       } as any);
       mockOperations.releaseRunLockIfCurrent.mockResolvedValue(true);
       mockOperations.markRunCancelled.mockResolvedValue(undefined);
+      mockOperations.updateThreadGenerationStatus.mockResolvedValue({} as any);
+      mockOperations.markLatestAssistantMessageCancelled.mockResolvedValue(
+        "msg_123",
+      );
 
       const result = await service.cancelRun(
         "thr_123",
@@ -1701,6 +2002,11 @@ describe("V1Service", () => {
       expect(mockDb.transaction).toHaveBeenCalledTimes(1);
       expect(mockOperations.releaseRunLockIfCurrent).toHaveBeenCalledTimes(1);
       expect(mockOperations.markRunCancelled).toHaveBeenCalledTimes(1);
+      expect(mockOperations.updateThreadGenerationStatus).toHaveBeenCalledWith(
+        expect.anything(),
+        "thr_123",
+        GenerationStage.CANCELLED,
+      );
     });
   });
 
@@ -1738,6 +2044,7 @@ describe("V1Service", () => {
       updatedAt: new Date(),
       actionType: null,
       toolCallId: null,
+      sdkVersion: null,
     };
 
     describe("updateComponentState", () => {

@@ -11,10 +11,13 @@ import {
   contentToV1Blocks,
   contentPartToV1Block,
   convertV1InputMessageToInternal,
+  convertV1InitialMessageToMessageRequest,
   DbThread,
   DbMessage,
   V1InputMessage,
+  V1InitialMessage,
 } from "../v1-conversions";
+import { V1ThreadDto } from "../dto/thread.dto";
 
 describe("v1-conversions", () => {
   describe("roleToV1", () => {
@@ -55,6 +58,7 @@ describe("v1-conversions", () => {
       lastRunError: null,
       pendingToolCallIds: null,
       lastCompletedRunId: null,
+      sdkVersion: null,
       metadata: { key: "value" },
       createdAt: new Date("2024-01-01T00:00:00Z"),
       updatedAt: new Date("2024-01-01T00:00:00Z"),
@@ -74,12 +78,24 @@ describe("v1-conversions", () => {
     it("should convert null values to undefined", () => {
       const result = threadToDto(baseThread);
 
+      expect(result.name).toBeUndefined();
       expect(result.currentRunId).toBeUndefined();
       expect(result.statusMessage).toBeUndefined();
       expect(result.lastRunCancelled).toBeUndefined();
       expect(result.lastRunError).toBeUndefined();
       expect(result.pendingToolCallIds).toBeUndefined();
       expect(result.lastCompletedRunId).toBeUndefined();
+    });
+
+    it("should include name when present", () => {
+      const threadWithName: DbThread = {
+        ...baseThread,
+        name: "My conversation",
+      };
+
+      const result = threadToDto(threadWithName);
+
+      expect(result.name).toBe("My conversation");
     });
 
     it("should convert V1 run fields when present", () => {
@@ -118,6 +134,15 @@ describe("v1-conversions", () => {
         code: "RATE_LIMITED",
         message: "Too many requests",
       });
+    });
+  });
+
+  describe("V1ThreadDto", () => {
+    it("should support optional name field", () => {
+      const dto = new V1ThreadDto();
+      expect(dto.name).toBeUndefined();
+      dto.name = "My thread";
+      expect(dto.name).toBe("My thread");
     });
   });
 
@@ -439,6 +464,36 @@ describe("v1-conversions", () => {
 
       expect(result.metadata).toBeUndefined();
     });
+
+    it("should include isCancelled when message is cancelled", () => {
+      const message = {
+        ...baseMessage,
+        isCancelled: true,
+      } as unknown as DbMessage;
+      const result = messageToDto(message);
+
+      expect(result.isCancelled).toBe(true);
+    });
+
+    it("should omit isCancelled when message is not cancelled", () => {
+      const message = {
+        ...baseMessage,
+        isCancelled: false,
+      } as unknown as DbMessage;
+      const result = messageToDto(message);
+
+      expect(result.isCancelled).toBeUndefined();
+    });
+
+    it("should omit isCancelled when field is null/undefined", () => {
+      const message = {
+        ...baseMessage,
+        isCancelled: null,
+      } as unknown as DbMessage;
+      const result = messageToDto(message);
+
+      expect(result.isCancelled).toBeUndefined();
+    });
   });
 
   describe("convertV1InputMessageToInternal", () => {
@@ -598,6 +653,132 @@ describe("v1-conversions", () => {
       const result = convertV1InputMessageToInternal(input);
 
       expect(result.additionalContext).toEqual({});
+    });
+  });
+
+  describe("convertV1InitialMessageToMessageRequest", () => {
+    it("should convert a user role message", () => {
+      const input: V1InitialMessage = {
+        role: "user",
+        content: [{ type: "text", text: "Hello" }],
+      };
+
+      const result = convertV1InitialMessageToMessageRequest(input);
+
+      expect(result.role).toBe(MessageRole.User);
+      expect(result.content).toHaveLength(1);
+      expect(result.content[0]).toEqual({
+        type: ContentPartType.Text,
+        text: "Hello",
+      });
+    });
+
+    it("should convert a system role message", () => {
+      const input: V1InitialMessage = {
+        role: "system",
+        content: [{ type: "text", text: "You are a helpful assistant" }],
+      };
+
+      const result = convertV1InitialMessageToMessageRequest(input);
+
+      expect(result.role).toBe(MessageRole.System);
+      expect(result.content).toHaveLength(1);
+      expect(result.content[0]).toEqual({
+        type: ContentPartType.Text,
+        text: "You are a helpful assistant",
+      });
+    });
+
+    it("should convert an assistant role message", () => {
+      const input: V1InitialMessage = {
+        role: "assistant",
+        content: [{ type: "text", text: "How can I help?" }],
+      };
+
+      const result = convertV1InitialMessageToMessageRequest(input);
+
+      expect(result.role).toBe(MessageRole.Assistant);
+      expect(result.content).toHaveLength(1);
+      expect(result.content[0]).toEqual({
+        type: ContentPartType.Text,
+        text: "How can I help?",
+      });
+    });
+
+    it("should convert resource content", () => {
+      const input: V1InitialMessage = {
+        role: "user",
+        content: [
+          {
+            type: "resource",
+            resource: {
+              uri: "https://example.com/file.pdf",
+              mimeType: "application/pdf",
+            },
+          },
+        ],
+      };
+
+      const result = convertV1InitialMessageToMessageRequest(input);
+
+      expect(result.content).toHaveLength(1);
+      expect(result.content[0]).toEqual({
+        type: ContentPartType.Resource,
+        resource: {
+          uri: "https://example.com/file.pdf",
+          mimeType: "application/pdf",
+        },
+      });
+    });
+
+    it("should pass metadata through", () => {
+      const input: V1InitialMessage = {
+        role: "user",
+        content: [{ type: "text", text: "Hi" }],
+        metadata: { key: "value" },
+      };
+
+      const result = convertV1InitialMessageToMessageRequest(input);
+
+      expect(result.metadata).toEqual({ key: "value" });
+    });
+
+    it("should throw for unknown content types", () => {
+      const input: V1InitialMessage = {
+        role: "user",
+        content: [
+          {
+            type: "unknown_type",
+            data: "something",
+          } as unknown as V1InitialMessage["content"][0],
+        ],
+      };
+
+      expect(() => convertV1InitialMessageToMessageRequest(input)).toThrow(
+        /Unknown content type in initial message: unknown_type/,
+      );
+    });
+
+    it("should convert multiple content blocks", () => {
+      const input: V1InitialMessage = {
+        role: "user",
+        content: [
+          { type: "text", text: "Check this:" },
+          {
+            type: "resource",
+            resource: {
+              uri: "https://example.com/doc.pdf",
+              mimeType: "application/pdf",
+            },
+          },
+        ],
+      };
+
+      const result = convertV1InitialMessageToMessageRequest(input);
+
+      expect(result.content).toHaveLength(2);
+      expect(result.content[0].type).toBe(ContentPartType.Text);
+      expect(result.content[1].type).toBe(ContentPartType.Resource);
     });
   });
 });

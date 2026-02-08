@@ -8,6 +8,12 @@ import {
   Logger,
   NotFoundException,
 } from "@nestjs/common";
+
+/**
+ * Interval in milliseconds for checking run cancellation status during streaming.
+ * Set to 500ms as a balance between responsiveness and database load.
+ */
+const CANCEL_CHECK_INTERVAL_MS = 500;
 import * as Sentry from "@sentry/nestjs";
 import {
   EventType,
@@ -18,6 +24,7 @@ import {
 } from "@ag-ui/core";
 import {
   AsyncQueue,
+  GenerationStage,
   V1RunStatus,
   type UnsavedThreadToolMessage,
 } from "@tambo-ai-cloud/core";
@@ -43,6 +50,7 @@ import {
 import { V1CreateRunDto } from "./dto/run.dto";
 import {
   convertV1ComponentsToInternal,
+  convertV1ToolChoiceToInternal,
   convertV1ToolsToInternal,
 } from "./v1-tool-conversions";
 import {
@@ -76,6 +84,7 @@ import {
   isHiddenUiToolResponse,
   ContentConversionOptions,
   convertV1InputMessageToInternal,
+  convertV1InitialMessageToMessageRequest,
 } from "./v1-conversions";
 import { encodeV1CompoundCursor, parseV1CompoundCursor } from "./v1-pagination";
 import {
@@ -202,33 +211,35 @@ export class V1Service {
   }
 
   /**
-   * Create a new empty thread.
+   * Create a new thread, optionally seeded with initial messages.
+   *
+   * Routes through ThreadsService.createThread so that system prompt injection,
+   * validation, and customInstructions logic apply automatically.
    */
   async createThread(
     projectId: string,
     contextKey: string,
     dto: V1CreateThreadDto,
   ): Promise<V1CreateThreadResponseDto> {
-    if (dto.initialMessages?.length) {
-      throw new BadRequestException(
-        "initialMessages is not supported yet. Create the thread first, then add messages via runs/message endpoints.",
-      );
-    }
+    const initialMessages = dto.initialMessages?.map(
+      convertV1InitialMessageToMessageRequest,
+    );
 
-    const thread = await operations.createThread(this.db, {
-      projectId,
+    const thread = await this.threadsService.createThread(
+      { projectId, metadata: dto.metadata },
       contextKey,
-      metadata: dto.metadata,
-    });
+      initialMessages,
+    );
 
-    if (!thread) {
-      throw new Error(
-        `Failed to create thread for project ${projectId}. ` +
-          `Database insert did not return created record.`,
-      );
-    }
-
-    return threadToDto(thread);
+    return {
+      id: thread.id,
+      name: thread.name ?? undefined,
+      userKey: contextKey,
+      runStatus: V1RunStatus.IDLE,
+      metadata: thread.metadata ?? undefined,
+      createdAt: thread.createdAt.toISOString(),
+      updatedAt: thread.updatedAt.toISOString(),
+    };
   }
 
   /**
@@ -538,7 +549,8 @@ export class V1Service {
   /**
    * Cancel an active run.
    *
-   * Sets the thread status back to IDLE and marks the run as cancelled.
+   * Sets the thread status back to IDLE, marks the run as cancelled,
+   * and marks the latest assistant message as cancelled (if any).
    *
    * @returns The cancelled run info
    */
@@ -566,6 +578,28 @@ export class V1Service {
       }
 
       await operations.markRunCancelled(tx, runId);
+
+      // Reset generationStage so the thread isn't stuck in a processing state.
+      // The V1 runStatus lock is released above, but the legacy generationStage
+      // (checked by addMessageToThreadAndStream) must also be cleared.
+      await operations.updateThreadGenerationStatus(
+        tx,
+        threadId,
+        GenerationStage.CANCELLED,
+      );
+
+      // Use the "latest message" fallback here since we don't have access to the
+      // streaming context's message ID. This is called from connection close handlers
+      // and the DELETE endpoint. The streaming loop uses markMessageCancelled()
+      // directly when it detects cancellation since it knows the exact message ID.
+      const cancelledMessageId =
+        await operations.markLatestAssistantMessageCancelled(tx, threadId);
+      if (cancelledMessageId) {
+        this.logger.log(
+          `Marked message ${cancelledMessageId} as cancelled for run ${runId}`,
+        );
+      }
+
       return true;
     });
 
@@ -606,6 +640,7 @@ export class V1Service {
     dto: V1CreateRunDto,
     projectId: string,
     contextKey: string,
+    sdkVersion?: string,
   ): Promise<void> {
     return await Sentry.startSpan(
       {
@@ -661,19 +696,34 @@ export class V1Service {
           );
           const clientTools = convertV1ToolsToInternal(dto.tools);
 
+          // Create abort controller to stop LLM stream on cancellation
+          const abortController = new AbortController();
+
+          const forceToolChoice = convertV1ToolChoiceToInternal(dto.toolChoice);
+
           const streamingPromise = this.threadsService.advanceThread(
-            projectId,
+            { projectId, contextKey, sdkVersion },
             {
               messageToAppend,
               availableComponents,
               clientTools,
+              forceToolChoice,
             },
             threadId,
             {}, // toolCallCounts - start fresh for V1 API
             undefined, // cachedSystemTools
             queue,
-            contextKey,
+            abortController.signal,
           );
+
+          // Handle expected abort rejection when we cancel the stream
+          void streamingPromise.catch((error: unknown) => {
+            if (abortController.signal.aborted) {
+              this.logger.log(`LLM stream aborted for cancelled run ${runId}`);
+              return;
+            }
+            this.logger.error(`Streaming error for run ${runId}: ${error}`);
+          });
 
           // 5. Consume queue and emit AG-UI events, tracking tool calls
           const clientToolNames = new Set(dto.tools?.map((t) => t.name) ?? []);
@@ -685,9 +735,49 @@ export class V1Service {
           // to real IDs so the client SDK can reference messages correctly.
           const messageIdMapping = new Map<string, string>();
 
+          // Throttled cancellation check - poll database for run cancellation status
+          // at most once per CANCEL_CHECK_INTERVAL_MS to balance responsiveness vs DB load
+          let lastCancelCheckTime = Date.now();
+
+          // Track current message ID for precise cancellation marking
+          let currentMessageId: string | undefined;
+
           for await (const item of queue) {
+            // Check for cancellation periodically (throttled to avoid excessive DB queries)
+            const now = Date.now();
+            if (now - lastCancelCheckTime >= CANCEL_CHECK_INTERVAL_MS) {
+              lastCancelCheckTime = now;
+              const run = await operations.getRun(this.db, threadId, runId);
+              if (run?.isCancelled) {
+                abortController.abort();
+                // Mark the specific message we know is being streamed
+                if (currentMessageId) {
+                  await operations.markMessageCancelled(
+                    this.db,
+                    currentMessageId,
+                  );
+                  this.logger.log(
+                    `Marked message ${currentMessageId} as cancelled for run ${runId}`,
+                  );
+                }
+                const cancelErrorEvent: RunErrorEvent = {
+                  type: EventType.RUN_ERROR,
+                  message: "Run cancelled",
+                  code: "CANCELLED",
+                  timestamp: Date.now(),
+                };
+                this.emitEvent(response, cancelErrorEvent);
+                this.logger.log(
+                  `Run ${runId} cancelled during streaming on thread ${threadId}`,
+                );
+                return;
+              }
+            }
             // Extract real message ID from the response (persisted by advanceThread)
             const realMessageId = item.response?.responseMessageDto?.id;
+            if (realMessageId) {
+              currentMessageId = realMessageId;
+            }
 
             if (item.aguiEvents) {
               for (const event of item.aguiEvents) {
@@ -780,6 +870,12 @@ export class V1Service {
           // Update run and thread with error
           const didReleaseLock = await this.db.transaction(async (tx) => {
             await operations.completeRun(tx, runId, { error: errorInfo });
+            // Reset generationStage so the thread isn't stuck in a processing state
+            await operations.updateThreadGenerationStatus(
+              tx,
+              threadId,
+              GenerationStage.ERROR,
+            );
             return await operations.releaseRunLockIfCurrent(
               tx,
               threadId,

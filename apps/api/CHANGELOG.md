@@ -1,5 +1,48 @@
 # Changelog
 
+## [0.139.0](https://github.com/tambo-ai/tambo/compare/api-v0.138.0...api-v0.139.0) (2026-02-07)
+
+
+### Features
+
+* **api,react-sdk:** wire up toolChoice support end-to-end ([#2260](https://github.com/tambo-ai/tambo/issues/2260)) ([3106ab6](https://github.com/tambo-ai/tambo/commit/3106ab64a21a6086e5bea699936438a7a97b8580))
+* **react-sdk,api:** support initialMessages in V1 stack and add maxCalls to tool DTO ([#2264](https://github.com/tambo-ai/tambo/issues/2264)) ([872af14](https://github.com/tambo-ai/tambo/commit/872af14ee4054357b5e06fee5bab9236b9d50fc5))
+* **web:** move dashboard from /dashboard to root path ([#2232](https://github.com/tambo-ai/tambo/issues/2232)) ([9aec81d](https://github.com/tambo-ai/tambo/commit/9aec81d5e3017d4de5eb83d020bad4a9d401d70f))
+* **web:** track api_key_generated event in PostHog ([#2266](https://github.com/tambo-ai/tambo/issues/2266)) ([f64a037](https://github.com/tambo-ai/tambo/commit/f64a037be70bba4d08e674f6e2612c30b02f50ea))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump @types/node from 22.19.7 to 22.19.8 ([#2249](https://github.com/tambo-ai/tambo/issues/2249)) ([aed1ae6](https://github.com/tambo-ai/tambo/commit/aed1ae6a83a35f74e3c4d919f5ee266206711880))
+* **deps:** bump posthog-node from 5.24.1 to 5.24.9 ([#2248](https://github.com/tambo-ai/tambo/issues/2248)) ([87bfe9d](https://github.com/tambo-ai/tambo/commit/87bfe9ddc6f3eb4aca7e39ad4f786ce0ddd9e9d7))
+* **deps:** bump the nestjs group with 7 updates ([#2242](https://github.com/tambo-ai/tambo/issues/2242)) ([e4cb91d](https://github.com/tambo-ai/tambo/commit/e4cb91d465b30affc09db86a48e65be2636032b6))
+
+## [0.138.0](https://github.com/tambo-ai/tambo/compare/api-v0.137.0...api-v0.138.0) (2026-02-06)
+
+
+### Features
+
+* **api:** add SDK version tracking to messages and threads ([#2255](https://github.com/tambo-ai/tambo/issues/2255)) ([36a47bd](https://github.com/tambo-ai/tambo/commit/36a47bdf3cd7b7de8411a6d26ed100ffb5d48f90))
+
+
+### Bug Fixes
+
+* **api,react-sdk:** prevent MCP "Method not found" error when no servers configured ([#2223](https://github.com/tambo-ai/tambo/issues/2223)) ([1363bde](https://github.com/tambo-ai/tambo/commit/1363bde8668012734c5fb83cacbe6792352c2c89))
+
+## [0.137.0](https://github.com/tambo-ai/tambo/compare/api-v0.136.1...api-v0.137.0) (2026-02-06)
+
+
+### Features
+
+* **v1:** add run cancellation support ([#2213](https://github.com/tambo-ai/tambo/issues/2213)) ([27e6ac2](https://github.com/tambo-ai/tambo/commit/27e6ac2ecfd0b47d8cf683288bcdfe13d96ba014))
+
+
+### Bug Fixes
+
+* **api:** abort LLM HTTP stream when run is cancelled ([#2236](https://github.com/tambo-ai/tambo/issues/2236)) ([a96d856](https://github.com/tambo-ai/tambo/commit/a96d856e643b0aabd2c1ef2d9af20e549d3f01a1))
+* **api:** add PostHog env vars to turbo globalEnv for production analytics ([#2239](https://github.com/tambo-ai/tambo/issues/2239)) ([47cac2d](https://github.com/tambo-ai/tambo/commit/47cac2d62f16e63ab4e94465740900b296060ded))
+* **v1:** set isError flag on tool result errors ([#2229](https://github.com/tambo-ai/tambo/issues/2229)) ([1aa04ad](https://github.com/tambo-ai/tambo/commit/1aa04adf6817d51e9457de61904da8b096b2783b))
+
 ## [0.136.1](https://github.com/tambo-ai/tambo/compare/api-v0.136.0...api-v0.136.1) (2026-02-05)
 
 

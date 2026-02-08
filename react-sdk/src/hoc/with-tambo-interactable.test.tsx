@@ -261,6 +261,26 @@ describe("withTamboInteractable", () => {
     expect(screen.getByTestId("has-update")).toHaveTextContent("no");
   });
 
+  it("should pass annotations config to addInteractableComponent", () => {
+    const InteractableComponent = withTamboInteractable(TestComponent, {
+      componentName: "TestComponent",
+      description: "A test component",
+      annotations: { tamboStreamableHint: false },
+    });
+
+    render(
+      <TamboInteractableProvider>
+        <InteractableComponent title="Test" />
+      </TamboInteractableProvider>,
+    );
+
+    expect(mockAddInteractableComponent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        annotations: { tamboStreamableHint: false },
+      }),
+    );
+  });
+
   it("should work without propsSchema", () => {
     const InteractableComponent = withTamboInteractable(TestComponent, {
       componentName: "TestComponent",

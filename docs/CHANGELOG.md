@@ -1,5 +1,30 @@
 # Changelog
 
+## [1.26.0](https://github.com/tambo-ai/tambo/compare/docs-v1.25.0...docs-v1.26.0) (2026-02-07)
+
+
+### Features
+
+* **web:** move dashboard from /dashboard to root path ([#2232](https://github.com/tambo-ai/tambo/issues/2232)) ([9aec81d](https://github.com/tambo-ai/tambo/commit/9aec81d5e3017d4de5eb83d020bad4a9d401d70f))
+
+
+### Bug Fixes
+
+* **docs:** add CI validation for docs.tambo.co links and fix broken links ([#2136](https://github.com/tambo-ai/tambo/issues/2136)) ([6a9ba62](https://github.com/tambo-ai/tambo/commit/6a9ba62cffc42b0b5bc2f646f6ec0b8e3eb394ea))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump @types/node from 22.19.7 to 22.19.8 ([#2249](https://github.com/tambo-ai/tambo/issues/2249)) ([aed1ae6](https://github.com/tambo-ai/tambo/commit/aed1ae6a83a35f74e3c4d919f5ee266206711880))
+* **deps:** bump @tambo-ai/typescript-sdk from 0.88.0 to 0.89.0 in the tambo-ai group ([#2245](https://github.com/tambo-ai/tambo/issues/2245)) ([aec371a](https://github.com/tambo-ai/tambo/commit/aec371aa99da5b6e75129038278c19d25f3c3462))
+* **deps:** bump tailwind-merge from 2.6.0 to 2.6.1 in the tailwind group ([#2247](https://github.com/tambo-ai/tambo/issues/2247)) ([723185c](https://github.com/tambo-ai/tambo/commit/723185cc510bbe164677e7e371924cb1cfc24c0e))
+
+
+### Documentation
+
+* **react-sdk:** add v1 migration guide ([#2221](https://github.com/tambo-ai/tambo/issues/2221)) ([e9cb197](https://github.com/tambo-ai/tambo/commit/e9cb197ca18a8270a9602cc0aefc0d0b2b2f491f))
+* **react-sdk:** update V1 SDK reference for new features ([#2292](https://github.com/tambo-ai/tambo/issues/2292)) ([f285d75](https://github.com/tambo-ai/tambo/commit/f285d755bdb3a877d6db08166aeed51894cdb97d))
+
 ## [1.25.0](https://github.com/tambo-ai/tambo/compare/docs-v1.24.0...docs-v1.25.0) (2026-02-05)
 
 

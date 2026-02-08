@@ -431,7 +431,7 @@ export class ThreadsController {
     @Body() advanceRequestDto: AdvanceThreadDto,
     @Res() response: Response,
   ): Promise<void> {
-    const { projectId, contextKey } = extractContextInfo(
+    const contextInfo = extractContextInfo(
       request,
       advanceRequestDto.contextKey,
     );
@@ -442,13 +442,12 @@ export class ThreadsController {
     const queue = new AsyncQueue<StreamQueueItem>();
     try {
       const p = this.threadsService.advanceThread(
-        projectId,
+        contextInfo,
         advanceRequestDto,
         threadId,
         advanceRequestDto.toolCallCounts ?? {},
         undefined,
         queue,
-        contextKey,
       );
 
       await this.handleAdvanceStream(response, queue);
@@ -457,7 +456,7 @@ export class ThreadsController {
       const normalizedError =
         error instanceof Error ? error : new Error(String(error));
       this.logger.error(
-        `Error in streaming response (projectId=${projectId}, threadId=${threadId})`,
+        `Error in streaming response (projectId=${contextInfo.projectId}, threadId=${threadId})`,
         normalizedError.stack,
       );
       Sentry.captureException(normalizedError);
@@ -505,7 +504,7 @@ export class ThreadsController {
     @Body() advanceRequestDto: AdvanceThreadDto,
     @Res() response,
   ): Promise<void> {
-    const { projectId, contextKey } = extractContextInfo(
+    const contextInfo = extractContextInfo(
       request,
       advanceRequestDto.contextKey,
     );
@@ -516,13 +515,12 @@ export class ThreadsController {
     const queue = new AsyncQueue<StreamQueueItem>();
     try {
       const p = this.threadsService.advanceThread(
-        projectId,
+        contextInfo,
         advanceRequestDto,
         undefined,
         advanceRequestDto.toolCallCounts ?? {},
         undefined,
         queue,
-        contextKey,
       );
       await this.handleAdvanceStream(response, queue);
       await p;
@@ -530,7 +528,7 @@ export class ThreadsController {
       const normalizedError =
         error instanceof Error ? error : new Error(String(error));
       this.logger.error(
-        `Error in streaming response (projectId=${projectId})`,
+        `Error in streaming response (projectId=${contextInfo.projectId})`,
         normalizedError.stack,
       );
       Sentry.captureException(normalizedError);

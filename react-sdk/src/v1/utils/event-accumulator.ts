@@ -31,8 +31,13 @@ import {
   type ComponentStateDeltaEvent,
   type RunAwaitingInputEvent,
 } from "../types/event";
-import type { Content, TamboV1Message } from "../types/message";
+import type {
+  Content,
+  InitialInputMessage,
+  TamboV1Message,
+} from "../types/message";
 import type { StreamingState, TamboV1Thread } from "../types/thread";
+import { parse as parsePartialJson } from "partial-json";
 import { applyJsonPatch } from "./json-patch";
 
 /**
@@ -58,6 +63,13 @@ export interface ThreadState {
    * Maps tool call ID to accumulated JSON string.
    */
   accumulatingToolArgs: Map<string, string>;
+  /**
+   * ID of the last completed run. Persists across the session so it's
+   * available as `previousRunId` when sending follow-up messages, even
+   * after the streaming state has been cleared (e.g., after page reload
+   * and thread re-fetch).
+   */
+  lastCompletedRunId?: string;
 }
 
 /**
@@ -83,6 +95,8 @@ export interface EventAction {
   type: "EVENT";
   event: AGUIEvent;
   threadId: string;
+  /** Pre-parsed partial JSON args for TOOL_CALL_ARGS events. Avoids double-parsing. */
+  parsedToolArgs?: Record<string, unknown>;
 }
 
 /**
@@ -128,6 +142,26 @@ export interface LoadThreadMessagesAction {
 }
 
 /**
+ * Set last completed run ID action - stores metadata from the API
+ * so it can be used as `previousRunId` for follow-up messages.
+ */
+export interface SetLastCompletedRunIdAction {
+  type: "SET_LAST_COMPLETED_RUN_ID";
+  threadId: string;
+  lastCompletedRunId: string;
+}
+
+/**
+ * Update thread title action - sets the title on a thread.
+ * Used after auto-generating a thread name via the API.
+ */
+export interface UpdateThreadTitleAction {
+  type: "UPDATE_THREAD_TITLE";
+  threadId: string;
+  title: string;
+}
+
+/**
  * Action type for the stream reducer.
  */
 export type StreamAction =
@@ -135,7 +169,9 @@ export type StreamAction =
   | InitThreadAction
   | SetCurrentThreadAction
   | StartNewThreadAction
-  | LoadThreadMessagesAction;
+  | LoadThreadMessagesAction
+  | SetLastCompletedRunIdAction
+  | UpdateThreadTitleAction;
 
 /**
  * Initial streaming state.
@@ -158,6 +194,7 @@ export function createInitialThreadState(threadId: string): ThreadState {
       status: "idle",
       createdAt: now,
       updatedAt: now,
+      lastRunCancelled: false,
     },
     streaming: initialStreamingState,
     accumulatingToolArgs: new Map(),
@@ -190,6 +227,42 @@ export function createInitialState(): StreamState {
   return {
     threadMap: {
       [PLACEHOLDER_THREAD_ID]: createInitialThreadState(PLACEHOLDER_THREAD_ID),
+    },
+    currentThreadId: PLACEHOLDER_THREAD_ID,
+  };
+}
+
+/**
+ * Create initial stream state with placeholder thread seeded with initial messages.
+ * The messages are converted from InputMessage format to TamboV1Message format
+ * for immediate UI display before any API call.
+ * @param initialMessages - Messages to seed the placeholder thread with
+ * @returns Initial stream state with messages in the placeholder thread
+ */
+export function createInitialStateWithMessages(
+  initialMessages: InitialInputMessage[],
+): StreamState {
+  const placeholderState = createInitialThreadState(PLACEHOLDER_THREAD_ID);
+  const messages: TamboV1Message[] = initialMessages.map((msg) => ({
+    id: `initial_${crypto.randomUUID()}`,
+    role: msg.role,
+    content: msg.content.map((c): Content => {
+      if (c.type === "text") {
+        return { type: "text" as const, text: c.text };
+      }
+      return c as Content;
+    }),
+  }));
+
+  return {
+    threadMap: {
+      [PLACEHOLDER_THREAD_ID]: {
+        ...placeholderState,
+        thread: {
+          ...placeholderState.thread,
+          messages,
+        },
+      },
     },
     currentThreadId: PLACEHOLDER_THREAD_ID,
   };
@@ -380,6 +453,42 @@ export function streamReducer(
       return handleLoadThreadMessages(state, action);
     }
 
+    case "SET_LAST_COMPLETED_RUN_ID": {
+      const threadState =
+        state.threadMap[action.threadId] ??
+        createInitialThreadState(action.threadId);
+      return {
+        ...state,
+        threadMap: {
+          ...state.threadMap,
+          [action.threadId]: {
+            ...threadState,
+            lastCompletedRunId: action.lastCompletedRunId,
+          },
+        },
+      };
+    }
+
+    case "UPDATE_THREAD_TITLE": {
+      const threadState = state.threadMap[action.threadId];
+      if (!threadState) {
+        return state;
+      }
+      return {
+        ...state,
+        threadMap: {
+          ...state.threadMap,
+          [action.threadId]: {
+            ...threadState,
+            thread: {
+              ...threadState.thread,
+              title: action.title,
+            },
+          },
+        },
+      };
+    }
+
     case "EVENT":
       // Fall through to event handling below
       break;
@@ -481,7 +590,11 @@ export function streamReducer(
       break;
 
     case EventType.TOOL_CALL_ARGS:
-      updatedThreadState = handleToolCallArgs(threadState, event);
+      updatedThreadState = handleToolCallArgs(
+        threadState,
+        event,
+        action.parsedToolArgs,
+      );
       break;
 
     case EventType.TOOL_CALL_END:
@@ -563,6 +676,8 @@ function handleRunStarted(
       ...threadState.thread,
       status: "streaming",
       updatedAt: new Date().toISOString(),
+      // Reset lastRunCancelled when a new run starts
+      lastRunCancelled: false,
     },
     streaming: {
       status: "streaming",
@@ -575,15 +690,19 @@ function handleRunStarted(
 /**
  * Handle RUN_FINISHED event.
  * @param threadState - Current thread state
- * @param _event - Run finished event (unused)
+ * @param event - Run finished event containing the completed run's ID
  * @returns Updated thread state
  */
 function handleRunFinished(
   threadState: ThreadState,
-  _event: RunFinishedEvent,
+  event: RunFinishedEvent,
 ): ThreadState {
   return {
     ...threadState,
+    lastCompletedRunId:
+      event.runId ??
+      threadState.streaming.runId ??
+      threadState.lastCompletedRunId,
     thread: {
       ...threadState.thread,
       status: "complete",
@@ -598,6 +717,7 @@ function handleRunFinished(
 
 /**
  * Handle RUN_ERROR event.
+ * Sets lastRunCancelled if the error code is "CANCELLED".
  * @param threadState - Current thread state
  * @param event - Run error event
  * @returns Updated thread state
@@ -606,20 +726,27 @@ function handleRunError(
   threadState: ThreadState,
   event: RunErrorEvent,
 ): ThreadState {
+  const isCancelled = event.code === "CANCELLED";
+
   return {
     ...threadState,
     thread: {
       ...threadState.thread,
-      status: "error",
+      // Use "idle" status for cancelled runs (not a real error from user perspective)
+      status: isCancelled ? "idle" : "error",
       updatedAt: new Date().toISOString(),
+      lastRunCancelled: isCancelled,
     },
     streaming: {
       ...threadState.streaming,
-      status: "error",
-      error: {
-        message: event.message,
-        code: event.code,
-      },
+      // Use "idle" status for cancelled runs so UI shows as not streaming
+      status: isCancelled ? "idle" : "error",
+      error: isCancelled
+        ? undefined
+        : {
+            message: event.message,
+            code: event.code,
+          },
     },
   };
 }
@@ -845,8 +972,9 @@ function handleToolCallStart(
 
 /**
  * Handle TOOL_CALL_ARGS event.
- * Accumulates JSON string deltas for tool call arguments.
- * The accumulated string will be parsed at TOOL_CALL_END.
+ * Accumulates JSON string deltas for tool call arguments and optimistically
+ * parses the partial JSON to update the tool_use content block in real-time.
+ * The final authoritative parse still happens at TOOL_CALL_END.
  * @param threadState - Current thread state
  * @param event - Tool call args event
  * @returns Updated thread state
@@ -854,17 +982,78 @@ function handleToolCallStart(
 function handleToolCallArgs(
   threadState: ThreadState,
   event: ToolCallArgsEvent,
+  parsedToolArgs?: Record<string, unknown>,
 ): ThreadState {
   const toolCallId = event.toolCallId;
 
   // Accumulate the JSON string delta
   const accumulatedArgs = threadState.accumulatingToolArgs;
   const existingArgs = accumulatedArgs.get(toolCallId) ?? "";
+  const newAccumulatedJson = existingArgs + event.delta;
   const newAccumulatedArgs = new Map(accumulatedArgs);
-  newAccumulatedArgs.set(toolCallId, existingArgs + event.delta);
+  newAccumulatedArgs.set(toolCallId, newAccumulatedJson);
+
+  // Use pre-parsed args if provided, otherwise parse partial JSON ourselves
+  let parsedInput: Record<string, unknown> | undefined = parsedToolArgs;
+  if (!parsedInput) {
+    try {
+      const parsed: unknown = parsePartialJson(newAccumulatedJson);
+      if (
+        typeof parsed === "object" &&
+        parsed !== null &&
+        !Array.isArray(parsed)
+      ) {
+        parsedInput = parsed as Record<string, unknown>;
+      }
+    } catch {
+      // Partial JSON not parseable yet — leave input unchanged
+    }
+  }
+
+  if (!parsedInput) {
+    return {
+      ...threadState,
+      accumulatingToolArgs: newAccumulatedArgs,
+    };
+  }
+
+  // Update the tool_use content block with partially parsed input
+  const messages = threadState.thread.messages;
+  const { messageIndex, contentIndex } = findContentById(
+    messages,
+    "tool_use",
+    toolCallId,
+    "TOOL_CALL_ARGS event",
+  );
+
+  const message = messages[messageIndex];
+  const toolUseContent = message.content[contentIndex];
+
+  if (toolUseContent.type !== "tool_use") {
+    throw new Error(
+      `Content at index ${contentIndex} is not a tool_use block for TOOL_CALL_ARGS event`,
+    );
+  }
+
+  const updatedContent: Content = {
+    ...toolUseContent,
+    input: parsedInput,
+  };
+
+  const updatedMessage: TamboV1Message = {
+    ...message,
+    content: updateContentAtIndex(
+      message.content,
+      contentIndex,
+      updatedContent,
+    ),
+  };
 
   return {
-    ...threadState,
+    ...updateThreadMessages(
+      threadState,
+      updateMessageAtIndex(messages, messageIndex, updatedMessage),
+    ),
     accumulatingToolArgs: newAccumulatedArgs,
   };
 }
@@ -1481,8 +1670,30 @@ function handleLoadThreadMessages(
   // Build a set of existing message IDs for fast lookup
   const existingIds = new Set(existingMessages.map((m) => m.id));
 
-  // Filter out messages that already exist (keep existing, add new)
-  const newMessages = messages.filter((m) => !existingIds.has(m.id));
+  // Filter out messages that already exist (keep existing, add new).
+  // API-loaded messages are by definition fully complete, so stamp
+  // streamingState: "done" on all component content blocks. This is
+  // required by downstream hooks (usePropsStreamingStatus) which check
+  // streamingState === "done" to report isSuccess: true.
+  const newMessages = messages
+    .filter((m) => !existingIds.has(m.id))
+    .map((m) => ({
+      ...m,
+      content: m.content.map((block): Content => {
+        if (block.type !== "component") return block;
+        if (
+          block.streamingState !== undefined &&
+          block.streamingState !== "done"
+        ) {
+          console.warn(
+            `LOAD_THREAD_MESSAGES: component "${block.id}" has unexpected ` +
+              `streamingState "${block.streamingState}". API-loaded messages ` +
+              `should not have in-flight streaming state.`,
+          );
+        }
+        return { ...block, streamingState: "done" as const };
+      }),
+    }));
 
   // Merge and sort by createdAt
   const mergedMessages = [...existingMessages, ...newMessages].toSorted(
