@@ -18,20 +18,15 @@ export type {
 } from "@tambo-ai/typescript-sdk/resources/threads/threads";
 
 // Re-export message types from TypeScript SDK
-import type { InputMessage } from "@tambo-ai/typescript-sdk/resources/threads/runs";
 export type { InputMessage } from "@tambo-ai/typescript-sdk/resources/threads/runs";
+import type { RunCreateParams } from "@tambo-ai/typescript-sdk/resources/threads/runs";
 
 /**
- * Widened InputMessage type for initial messages that supports system and assistant roles
- * in addition to the user role.
- *
- * The TS SDK `InputMessage` type constrains `role` to `'user'`, but the V1 API
- * accepts `'user' | 'system' | 'assistant'` for `initialMessages`. This type
- * widens the role field until the TS SDK type is regenerated.
+ * Message type for initial messages that seed a new thread.
+ * Supports system and assistant roles in addition to user,
+ * and restricts content to text and resource blocks (no tool results).
  */
-export type InitialInputMessage = Omit<InputMessage, "role"> & {
-  role: "user" | "system" | "assistant";
-};
+export type InitialInputMessage = RunCreateParams.Thread.InitialMessage;
 
 export type {
   MessageListResponse,

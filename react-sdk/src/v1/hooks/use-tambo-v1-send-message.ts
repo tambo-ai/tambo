@@ -443,10 +443,7 @@ export async function createRunStream(
       threadConfig.userKey = userKey;
     }
     if (initialMessages?.length) {
-      // InitialInputMessage extends InputMessage which includes ToolResultContent in its
-      // content union, but initial messages never contain tool results in practice.
-      threadConfig.initialMessages =
-        initialMessages as unknown as RunCreateParams.Thread.InitialMessage[];
+      threadConfig.initialMessages = initialMessages;
     }
 
     const stream = await client.threads.runs.create({
