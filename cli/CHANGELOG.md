@@ -1,5 +1,23 @@
 # Changelog
 
+## [1.0.0-rc.1](https://github.com/tambo-ai/tambo/compare/tambo-v0.51.0...tambo-v1.0.0-rc.1) (2026-02-08)
+
+
+### Features
+
+* **web:** move dashboard from /dashboard to root path ([#2232](https://github.com/tambo-ai/tambo/issues/2232)) ([9aec81d](https://github.com/tambo-ai/tambo/commit/9aec81d5e3017d4de5eb83d020bad4a9d401d70f))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump @types/node from 22.19.7 to 22.19.8 ([#2249](https://github.com/tambo-ai/tambo/issues/2249)) ([aed1ae6](https://github.com/tambo-ai/tambo/commit/aed1ae6a83a35f74e3c4d919f5ee266206711880))
+* **deps:** bump @tambo-ai/typescript-sdk from 0.88.0 to 0.89.0 in the tambo-ai group ([#2245](https://github.com/tambo-ai/tambo/issues/2245)) ([aec371a](https://github.com/tambo-ai/tambo/commit/aec371aa99da5b6e75129038278c19d25f3c3462))
+
+
+### Code Refactoring
+
+* **react-sdk:** promote V1 SDK to main export (1.0.0-rc.1) ([#2297](https://github.com/tambo-ai/tambo/issues/2297)) ([1799bce](https://github.com/tambo-ai/tambo/commit/1799bceecf412d1a4f263108dae75ddcb3fe7491))
+
 ## [0.51.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.50.0...tambo-v0.51.0) (2026-01-31)
 
 
