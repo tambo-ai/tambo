@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * useTamboMessages - Messages Hook for v1 API
+ * useTamboMessages - Messages Hook
  *
  * Provides access to messages in a thread with streaming state awareness.
  * Messages are accumulated from AG-UI events during streaming.

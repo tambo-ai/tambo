@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Send Message Hook for v1 API
+ * Send Message Hook
  *
  * React Query mutation hook for sending messages and handling streaming responses.
  */
@@ -421,7 +421,7 @@ export async function createRunStream(
     ? { ...message, additionalContext: mergedContext }
     : message;
 
-  // Convert registry components/tools to v1 API format
+  // Convert registry components/tools to API format
   const availableComponents = toAvailableComponents(registry.componentList);
   const availableTools = toAvailableTools(registry.toolRegistry);
 

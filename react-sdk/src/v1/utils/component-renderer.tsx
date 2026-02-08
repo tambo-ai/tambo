@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Component Renderer Utility for v1 API
+ * Component Renderer Utility
  *
  * Provides the component content context for rendered components.
  * Components can use useComponentContent() to access their context.

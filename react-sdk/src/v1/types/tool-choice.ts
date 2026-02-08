@@ -1,5 +1,5 @@
 /**
- * Tool choice type matching the V1 API format.
+ * Tool choice type matching the API format.
  * Controls how the model selects tools during generation.
  */
 export type ToolChoice =

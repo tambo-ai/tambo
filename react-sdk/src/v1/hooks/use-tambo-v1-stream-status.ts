@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * useTamboStreamStatus - Stream Status Hook for v1 API
+ * useTamboStreamStatus - Stream Status Hook
  *
  * Provides granular streaming status for components being rendered,
  * allowing UI to respond to prop-level streaming states.
@@ -196,7 +196,7 @@ function deriveGlobalStreamStatus(
 }
 
 /**
- * Track streaming status for Tambo v1 component props.
+ * Track streaming status for Tambo component props.
  *
  * **Important**: Props update repeatedly during streaming and may be partial.
  * Use `propStatus.<field>?.isSuccess` before treating a prop as complete.

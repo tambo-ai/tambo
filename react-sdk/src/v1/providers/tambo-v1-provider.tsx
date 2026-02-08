@@ -1,9 +1,9 @@
 "use client";
 
 /**
- * TamboProvider - Main Provider for v1 API
+ * TamboProvider - Main Provider
  *
- * Composes the necessary providers for the v1 SDK:
+ * Composes the necessary providers for the SDK:
  * - TamboClientProvider: API client and authentication
  * - TamboRegistryProvider: Component and tool registration
  * - TamboContextHelpersProvider: Context helper functions
@@ -14,7 +14,7 @@
  * - TamboStreamProvider: Streaming state management
  *
  * This provider should wrap your entire application or the portion
- * that needs access to Tambo v1 functionality.
+ * that needs access to Tambo functionality.
  */
 
 import React, {
@@ -48,7 +48,7 @@ import { TamboStreamProvider } from "./tambo-v1-stream-context";
 import { TamboThreadInputProvider } from "./tambo-v1-thread-input-provider";
 
 /**
- * Configuration values for v1 SDK.
+ * Configuration values for the SDK.
  * These are static values that don't change during the session.
  */
 export interface TamboConfig {
@@ -66,13 +66,13 @@ export interface TamboConfig {
 }
 
 /**
- * Context for v1 SDK configuration.
+ * Context for SDK configuration.
  * @internal
  */
 export const TamboConfigContext = createContext<TamboConfig | null>(null);
 
 /**
- * Hook to access v1 SDK configuration.
+ * Hook to access SDK configuration.
  * @returns Configuration values including userKey
  * @throws {Error} If used outside TamboProvider
  */
@@ -211,7 +211,7 @@ function TamboAuthWarnings(): null {
 }
 
 /**
- * Main provider for the Tambo v1 SDK.
+ * Main provider for the Tambo SDK.
  *
  * Composes TamboClientProvider, TamboRegistryProvider, and TamboStreamProvider
  * to provide a complete context for building AI-powered applications.

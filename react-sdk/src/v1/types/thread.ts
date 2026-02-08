@@ -1,5 +1,5 @@
 /**
- * Thread Types for v1 API
+ * Thread Types
  *
  * Re-exports thread types from `@tambo-ai/typescript-sdk` and defines
  * React-specific extensions for streaming state management.
@@ -16,7 +16,7 @@ export type {
 
 /**
  * Run status indicates the current state of the thread's run lifecycle.
- * Matches the API's V1RunStatus — no "complete" or "error" variants.
+ * Matches the API's RunStatus — no "complete" or "error" variants.
  * Error information is tracked separately in StreamingState.error.
  */
 export type RunStatus = "idle" | "waiting" | "streaming";

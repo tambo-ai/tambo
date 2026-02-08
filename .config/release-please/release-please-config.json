@@ -16,7 +16,10 @@
       "component": "react",
       "versioning": "prerelease",
       "prerelease": true,
-      "prerelease-type": "rc"
+      "prerelease-type": "rc",
+      "include-component-in-tag": true,
+      "include-v-in-tag": true,
+      "force-tag-creation": true
     },
     "showcase": {},
     "cli": {

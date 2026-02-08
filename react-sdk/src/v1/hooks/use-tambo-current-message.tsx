@@ -16,7 +16,7 @@ export interface InteractableMetadata extends InteractableConfig {
 }
 
 /**
- * V1 message with optional interactable metadata merged in by the provider.
+ * Message with optional interactable metadata merged in by the provider.
  * Used as the context type so consumers can access both the message and
  * any interactable information attached by withTamboInteractable.
  */
@@ -40,7 +40,7 @@ export interface TamboMessageProviderProps {
  * Also supports optional interactable metadata for components wrapped with withInteractable.
  * @param props - Props for the TamboMessageProvider
  * @param props.children - The children to wrap
- * @param props.message - The V1 message object
+ * @param props.message - The message object
  * @param props.interactableMetadata - Optional interactable component metadata
  * @returns The wrapped component
  */
@@ -68,7 +68,7 @@ export const TamboMessageProvider: React.FC<TamboMessageProviderProps> = ({
  * Wraps a component with a TamboMessageProvider - this allows the provider
  * to be used outside of a TSX file.
  * @param children - The children to wrap
- * @param message - The V1 message object
+ * @param message - The message object
  * @param interactableMetadata - Optional interactable metadata
  * @returns The wrapped component
  */
@@ -89,8 +89,8 @@ export function wrapWithTamboMessageProvider(
 
 /**
  * Hook used inside a component wrapped with TamboMessageProvider, to get
- * the current V1 message.
- * @returns The current V1 message that is used to render the component
+ * the current message.
+ * @returns The current message that is used to render the component
  */
 export const useTamboCurrentMessage = () => {
   const message = useContext(TamboMessageContext);
@@ -115,15 +115,15 @@ export interface TamboCurrentComponent {
   interactableId?: string;
   /** Description (only present for components wrapped with withInteractable) */
   description?: string;
-  /** Thread ID (not available on V1 messages directly) */
+  /** Thread ID (not available on messages directly) */
   threadId?: string;
 }
 
 /**
- * Hook to access the current component information from the V1 message context.
+ * Hook to access the current component information from the message context.
  * Provides a unified interface for both AI-generated and interactable components.
  *
- * For V1 messages, component info is derived from content blocks rather than
+ * Component info is derived from content blocks rather than
  * top-level message fields.
  *
  * **Use this hook when you need component metadata regardless of the context.**
@@ -164,6 +164,6 @@ export const useTamboCurrentComponent = (): TamboCurrentComponent | null => {
     props: componentContent?.props as Record<string, unknown> | undefined,
     interactableId: message.interactableMetadata?.id ?? undefined,
     description: message.interactableMetadata?.description ?? undefined,
-    threadId: undefined, // V1 messages don't carry threadId
+    threadId: undefined, // Messages don't carry threadId
   };
 };

@@ -40,7 +40,7 @@ function createMockRegistry() {
 }
 
 /**
- * Wrapper that provides the minimal V1-compatible provider tree for interactables:
+ * Wrapper that provides the minimal provider tree for interactables:
  * TamboRegistryContext > TamboContextHelpersProvider > TamboInteractableProvider
  */
 function V1InteractableWrapper({

@@ -3,7 +3,7 @@
 /**
  * TamboStubProvider - Mock Provider for Testing
  *
- * Provides stubbed versions of all v1 contexts for testing components
+ * Provides stubbed versions of all contexts for testing components
  * that use Tambo hooks without making real API calls.
  * @example
  * ```tsx
@@ -156,7 +156,7 @@ function normalizeThread(
 }
 
 /**
- * TamboStubProvider provides mock implementations of all v1 contexts
+ * TamboStubProvider provides mock implementations of all contexts
  * for testing components that use Tambo hooks.
  *
  * All operations are no-ops by default, returning stub data.

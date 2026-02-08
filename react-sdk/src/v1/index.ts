@@ -77,22 +77,22 @@ export {
   type TamboConfig,
 } from "./providers/tambo-v1-provider";
 
-// Re-export registry provider (works with v1)
+// Re-export registry provider
 export { TamboRegistryProvider } from "../providers/tambo-registry-provider";
 
-// Re-export client provider (works with v1)
+// Re-export client provider
 export {
   TamboClientProvider,
   useIsTamboTokenUpdating,
 } from "../providers/tambo-client-provider";
 
-// Re-export context helpers (works with v1)
+// Re-export context helpers
 export {
   TamboContextHelpersProvider,
   useTamboContextHelpers,
 } from "../providers/tambo-context-helpers-provider";
 
-// Re-export context attachment hook (works with v1)
+// Re-export context attachment hook
 export { useTamboContextAttachment } from "../providers/tambo-context-attachment-provider";
 
 // Export thread input provider for advanced composition
@@ -148,7 +148,7 @@ export {
   type AcceptSuggestionOptions,
 } from "./hooks/use-tambo-v1-suggestions";
 
-// Re-export client hook (works with v1)
+// Re-export client hook
 export { useTamboClient } from "../providers/tambo-client-provider";
 
 // Re-export image handling hook (pure React, API-agnostic)

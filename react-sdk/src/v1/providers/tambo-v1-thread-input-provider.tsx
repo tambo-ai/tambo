@@ -1,12 +1,12 @@
 "use client";
 
 /**
- * TamboThreadInputProvider - Shared Thread Input Context for v1 API
+ * TamboThreadInputProvider - Shared Thread Input Context
  *
  * Provides shared input state across all components, enabling features like
  * suggestions to update the input field directly.
  *
- * This mirrors the beta SDK's TamboThreadInputProvider pattern.
+ * This mirrors the TamboThreadInputProvider pattern from the legacy beta SDK.
  */
 
 import React, {
