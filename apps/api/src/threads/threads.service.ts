@@ -175,7 +175,11 @@ function getErrorDetails(
     errorMessage = undefined;
   }
 
-  return { errorCode, errorMessage };
+  const errorStack = includeStack
+    ? new Error("Non-Error thrown while handling DB error").stack
+    : undefined;
+
+  return { errorCode, errorMessage, errorStack };
 }
 
 @Injectable()

@@ -650,6 +650,22 @@ describe("ThreadsService.advanceThread initialization", () => {
       ).rejects.toThrow("Some permanent error");
 
       expect(fakeDb.query.threads.findFirst).toHaveBeenCalledTimes(1);
+
+      expect(logger.warn).not.toHaveBeenCalled();
+      expect(logger.error).toHaveBeenCalledTimes(1);
+      const logArg = (logger.error.mock.calls[0]?.[0] ?? {}) as Record<
+        string,
+        unknown
+      >;
+      expect(logArg).toMatchObject({
+        message: expect.stringContaining(
+          "DB error while fetching thread projectId",
+        ),
+        willRetry: false,
+        isTransientDbConnectionError: false,
+        errorCategory: "non-transient",
+      });
+      expect(typeof logArg.errorStack).toBe("string");
     });
 
     it("throws after retrying once if the connection keeps dropping", async () => {
@@ -663,6 +679,19 @@ describe("ThreadsService.advanceThread initialization", () => {
       ).rejects.toThrow("Connection terminated unexpectedly");
 
       expect(fakeDb.query.threads.findFirst).toHaveBeenCalledTimes(2);
+
+      expect(logger.warn).toHaveBeenCalledTimes(1);
+      expect(logger.error).toHaveBeenCalledTimes(1);
+      const errorLogArg = (logger.error.mock.calls[0]?.[0] ?? {}) as Record<
+        string,
+        unknown
+      >;
+      expect(errorLogArg).toMatchObject({
+        willRetry: false,
+        isTransientDbConnectionError: true,
+        errorCategory: "transient-db-connection",
+      });
+      expect(typeof errorLogArg.errorStack).toBe("string");
     });
   });
 
