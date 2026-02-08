@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.1.0-alpha.3](https://github.com/tambo-ai/tambo/compare/@tambo-ai/react-ui-base-v0.1.0-alpha.2...@tambo-ai/react-ui-base-v0.1.0-alpha.3) (2026-02-08)
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump @types/node from 22.19.7 to 22.19.8 ([#2249](https://github.com/tambo-ai/tambo/issues/2249)) ([aed1ae6](https://github.com/tambo-ai/tambo/commit/aed1ae6a83a35f74e3c4d919f5ee266206711880))
+* **deps:** bump @tambo-ai/typescript-sdk from 0.88.0 to 0.89.0 in the tambo-ai group ([#2245](https://github.com/tambo-ai/tambo/issues/2245)) ([aec371a](https://github.com/tambo-ai/tambo/commit/aec371aa99da5b6e75129038278c19d25f3c3462))
+
+
+### Code Refactoring
+
+* **ui-registry:** extract MessageInput base compound components ([#2167](https://github.com/tambo-ai/tambo/issues/2167)) ([bbcf8ed](https://github.com/tambo-ai/tambo/commit/bbcf8ed1e0fe2818ab0f90ca3595dafaacbbc8a1))
+
 ## [0.1.0-alpha.2](https://github.com/tambo-ai/tambo/compare/@tambo-ai/react-ui-base-v0.1.0-alpha.1...@tambo-ai/react-ui-base-v0.1.0-alpha.2) (2026-02-06)
 
 
