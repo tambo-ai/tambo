@@ -1,6 +1,5 @@
 import { ToolCallLimitEditor } from "@/components/dashboard-components/project-details/tool-call-limit-editor";
 import { MessageThreadPanelProvider } from "@/providers/message-thread-panel-provider";
-import { TamboContextAttachmentProvider } from "@tambo-ai/react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import React from "react";
@@ -29,12 +28,7 @@ jest.mock("@tambo-ai/react", () => ({
     addContextHelper: jest.fn(),
     removeContextHelper: jest.fn(),
   }),
-  withInteractable: (Component: React.ComponentType) => Component,
-  TamboContextAttachmentProvider: ({
-    children,
-  }: {
-    children: React.ReactNode;
-  }): React.ReactElement => children as React.ReactElement,
+  withTamboInteractable: (Component: React.ComponentType) => Component,
   useTamboContextAttachment: () => ({
     attachments: [],
     removeContextAttachment: jest.fn(),
@@ -59,11 +53,9 @@ function renderEditor(
     ...overrides,
   };
   const view = render(
-    <TamboContextAttachmentProvider>
-      <MessageThreadPanelProvider>
-        <ToolCallLimitEditor {...props} />
-      </MessageThreadPanelProvider>
-    </TamboContextAttachmentProvider>,
+    <MessageThreadPanelProvider>
+      <ToolCallLimitEditor {...props} />
+    </MessageThreadPanelProvider>,
   );
   return { onEdited, ...view };
 }

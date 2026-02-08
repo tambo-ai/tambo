@@ -2,7 +2,7 @@ import { useState } from "react";
 
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useTamboV1ComponentState } from "@tambo-ai/react/v1";
+import { useTamboComponentState } from "@tambo-ai/react";
 import { ReactNode } from "react";
 
 interface AirQualityProps {
@@ -23,8 +23,8 @@ export const AirQuality = (data: AirQualityProps): ReactNode => {
     return "Hazardous";
   };
 
-  const [checked1, setChecked1] = useTamboV1ComponentState("checked1", false);
-  const [checked2, setChecked2] = useTamboV1ComponentState("checked2", false);
+  const [checked1, setChecked1] = useTamboComponentState("checked1", false);
+  const [checked2, setChecked2] = useTamboComponentState("checked2", false);
   const [checked3, setChecked3] = useState(false);
 
   if (!data) {
