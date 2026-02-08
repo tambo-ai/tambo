@@ -435,7 +435,7 @@ describe("useTamboV1ComponentState", () => {
   });
 
   describe("Context Requirements", () => {
-    it("should gracefully handle missing component content context", () => {
+    it("should act as plain useState when component content context is missing", () => {
       jest.mocked(useV1ComponentContentOptional).mockReturnValue(null);
       jest.mocked(useStreamState).mockReturnValue({
         threadMap: {},
@@ -446,8 +446,32 @@ describe("useTamboV1ComponentState", () => {
         useTamboV1ComponentState("testKey", "initial"),
       );
 
-      // Falls back to interactable behavior (empty componentId/threadId)
       expect(result.current[0]).toBe("initial");
+
+      // No side effects when context is missing
+      expect(mockSetInteractableState).not.toHaveBeenCalled();
+      expect(mockUpdateState).not.toHaveBeenCalled();
+    });
+
+    it("should not trigger side effects on setState when context is missing", () => {
+      jest.mocked(useV1ComponentContentOptional).mockReturnValue(null);
+      jest.mocked(useStreamState).mockReturnValue({
+        threadMap: {},
+        currentThreadId: "",
+      });
+
+      const { result } = renderHook(() =>
+        useTamboV1ComponentState("testKey", "initial"),
+      );
+
+      act(() => {
+        result.current[1]("updated");
+      });
+
+      // Local state updates, but no server sync or interactable writes
+      expect(result.current[0]).toBe("updated");
+      expect(mockSetInteractableState).not.toHaveBeenCalled();
+      expect(mockUpdateState).not.toHaveBeenCalled();
     });
   });
 
