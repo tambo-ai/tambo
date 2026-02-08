@@ -8,7 +8,7 @@
  * - `invalid`: both userKey AND userToken provided (must choose one)
  * - `unauthenticated`: neither userKey nor userToken provided
  */
-export type TamboV1AuthState =
+export type TamboAuthState =
   | { status: "identified"; source: "userKey" | "tokenExchange" }
   | { status: "exchanging" }
   | { status: "error"; error: Error }

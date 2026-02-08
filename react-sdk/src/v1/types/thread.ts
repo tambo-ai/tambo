@@ -5,7 +5,7 @@
  * React-specific extensions for streaming state management.
  */
 
-import type { TamboV1Message } from "./message";
+import type { TamboThreadMessage } from "./message";
 
 // Re-export thread types from TypeScript SDK
 export type {
@@ -23,7 +23,7 @@ export type RunStatus = "idle" | "waiting" | "streaming" | "complete" | "error";
  * Thread represents a conversation with the AI
  * Extended from SDK's ThreadRetrieveResponse with additional fields for React state
  */
-export interface TamboV1Thread {
+export interface TamboThread {
   /** Unique thread identifier */
   id: string;
 
@@ -31,7 +31,7 @@ export interface TamboV1Thread {
   title?: string;
 
   /** Messages in the thread */
-  messages: TamboV1Message[];
+  messages: TamboThreadMessage[];
 
   /** Current run status */
   status: RunStatus;

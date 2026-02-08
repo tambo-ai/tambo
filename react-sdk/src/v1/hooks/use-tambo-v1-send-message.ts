@@ -24,8 +24,8 @@ import {
   useStreamDispatch,
   useStreamState,
 } from "../providers/tambo-v1-stream-context";
-import { useTamboV1Config } from "../providers/tambo-v1-provider";
-import { useTamboV1AuthState } from "./use-tambo-v1-auth-state";
+import { useTamboConfig } from "../providers/tambo-v1-provider";
+import { useTamboAuthState } from "./use-tambo-v1-auth-state";
 import { useTamboContextHelpers } from "../../providers/tambo-context-helpers-provider";
 import type { InitialInputMessage, InputMessage } from "../types/message";
 import type { ToolChoice } from "../types/tool-choice";
@@ -226,7 +226,7 @@ async function generateThreadName(
     }
   } catch (error) {
     console.error(
-      "[useTamboV1SendMessage] Failed to auto-generate thread name:",
+      "[useTamboSendMessage] Failed to auto-generate thread name:",
       error,
     );
   }
@@ -479,7 +479,7 @@ export async function createRunStream(
  * @example
  * ```tsx
  * function ChatInput({ threadId }: { threadId?: string }) {
- *   const sendMessage = useTamboV1SendMessage(threadId);
+ *   const sendMessage = useTamboSendMessage(threadId);
  *
  *   const handleSubmit = async (text: string) => {
  *     const result = await sendMessage.mutateAsync({
@@ -504,7 +504,7 @@ export async function createRunStream(
  * }
  * ```
  */
-export function useTamboV1SendMessage(threadId?: string) {
+export function useTamboSendMessage(threadId?: string) {
   const client = useTamboClient();
   const dispatch = useStreamDispatch();
   const streamState = useStreamState();
@@ -513,15 +513,15 @@ export function useTamboV1SendMessage(threadId?: string) {
     autoGenerateThreadName = true,
     autoGenerateNameThreshold = 3,
     initialMessages,
-  } = useTamboV1Config();
+  } = useTamboConfig();
   const registry = useContext(TamboRegistryContext);
   const queryClient = useTamboQueryClient();
   const { getAdditionalContext } = useTamboContextHelpers();
-  const authState = useTamboV1AuthState();
+  const authState = useTamboAuthState();
 
   if (!registry) {
     throw new Error(
-      "useTamboV1SendMessage must be used within TamboRegistryProvider",
+      "useTamboSendMessage must be used within TamboRegistryProvider",
     );
   }
 
@@ -544,7 +544,7 @@ export function useTamboV1SendMessage(threadId?: string) {
         const messages: Record<string, string> = {
           unauthenticated:
             "Cannot send message: no userKey or userToken provided. " +
-            "Configure authentication in TamboV1Provider.",
+            "Configure authentication in TamboProvider.",
           exchanging:
             "Cannot send message: token exchange is still in progress. " +
             "Wait for authentication to complete.",
@@ -756,7 +756,7 @@ export function useTamboV1SendMessage(threadId?: string) {
       }
     },
     onError: (error) => {
-      console.error("[useTamboV1SendMessage] Mutation failed:", error);
+      console.error("[useTamboSendMessage] Mutation failed:", error);
     },
   });
 }

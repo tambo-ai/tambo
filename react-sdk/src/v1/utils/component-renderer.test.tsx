@@ -1,13 +1,13 @@
 import React from "react";
 import { render, screen } from "@testing-library/react";
 import {
-  useV1ComponentContent,
-  V1ComponentContentProvider,
+  useComponentContent,
+  ComponentContentProvider,
 } from "./component-renderer";
 
 // Test component that uses the content context
 const ContextAwareComponent: React.FC = () => {
-  const context = useV1ComponentContent();
+  const context = useComponentContent();
   return (
     <div data-testid="context-aware">
       <span data-testid="componentId">{context.componentId}</span>
@@ -18,17 +18,17 @@ const ContextAwareComponent: React.FC = () => {
   );
 };
 
-describe("V1ComponentContentProvider", () => {
+describe("ComponentContentProvider", () => {
   it("provides context to child components", () => {
     render(
-      <V1ComponentContentProvider
+      <ComponentContentProvider
         componentId="comp_123"
         threadId="thread_456"
         messageId="msg_789"
         componentName="TestComponent"
       >
         <ContextAwareComponent />
-      </V1ComponentContentProvider>,
+      </ComponentContentProvider>,
     );
 
     expect(screen.getByTestId("componentId")).toHaveTextContent("comp_123");
@@ -40,10 +40,10 @@ describe("V1ComponentContentProvider", () => {
   });
 });
 
-describe("useV1ComponentContent", () => {
+describe("useComponentContent", () => {
   it("throws when used outside provider", () => {
     function TestConsumer() {
-      useV1ComponentContent();
+      useComponentContent();
       return <div>Should not render</div>;
     }
 
@@ -51,7 +51,7 @@ describe("useV1ComponentContent", () => {
     const consoleSpy = jest.spyOn(console, "error").mockImplementation();
 
     expect(() => render(<TestConsumer />)).toThrow(
-      "useV1ComponentContent must be used within a rendered component",
+      "useComponentContent must be used within a rendered component",
     );
 
     consoleSpy.mockRestore();
@@ -59,14 +59,14 @@ describe("useV1ComponentContent", () => {
 
   it("returns context when used within provider", () => {
     render(
-      <V1ComponentContentProvider
+      <ComponentContentProvider
         componentId="comp_test"
         threadId="thread_test"
         messageId="msg_test"
         componentName="TestComp"
       >
         <ContextAwareComponent />
-      </V1ComponentContentProvider>,
+      </ComponentContentProvider>,
     );
 
     expect(screen.getByTestId("componentId")).toHaveTextContent("comp_test");

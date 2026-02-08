@@ -34,7 +34,7 @@ export interface AvailableComponent {
  * Component registration for React SDK
  * Extends AvailableComponent with the actual React component
  */
-export interface TamboV1Component extends AvailableComponent {
+export interface TamboComponent extends AvailableComponent {
   /** The React component to render */
   component: ComponentType<any>;
 

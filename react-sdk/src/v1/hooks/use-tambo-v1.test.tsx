@@ -7,14 +7,17 @@ import {
   TamboRegistryContext,
   type TamboRegistryContext as TamboRegistryContextType,
 } from "../../providers/tambo-registry-provider";
-import { TamboV1StreamProvider } from "../providers/tambo-v1-stream-context";
+import { TamboStreamProvider } from "../providers/tambo-v1-stream-context";
 import {
   streamReducer,
   type StreamState,
   type StreamAction,
 } from "../utils/event-accumulator";
-import type { V1ComponentContent, V1ToolUseContent } from "../types/message";
-import { useTamboV1 } from "./use-tambo-v1";
+import type {
+  TamboComponentContent,
+  TamboToolUseContent,
+} from "../types/message";
+import { useTambo } from "./use-tambo-v1";
 
 jest.mock("../../providers/tambo-client-provider", () => ({
   useTamboClient: jest.fn(),
@@ -25,12 +28,12 @@ jest.mock("../providers/tambo-v1-provider", () => {
   const actual = jest.requireActual("../providers/tambo-v1-provider");
   return {
     ...actual,
-    useTamboV1Config: () => ({ userKey: undefined }),
+    useTamboConfig: () => ({ userKey: undefined }),
   };
 });
 
 jest.mock("./use-tambo-v1-auth-state", () => ({
-  useTamboV1AuthState: () => ({
+  useTamboAuthState: () => ({
     status: "identified",
     source: "userKey",
   }),
@@ -38,7 +41,7 @@ jest.mock("./use-tambo-v1-auth-state", () => ({
 
 import { useTamboQueryClient } from "../../providers/tambo-client-provider";
 
-describe("useTamboV1", () => {
+describe("useTambo", () => {
   let queryClient: QueryClient;
 
   const mockTamboClient = {
@@ -75,7 +78,7 @@ describe("useTamboV1", () => {
     return (
       <QueryClientProvider client={queryClient}>
         <TamboRegistryContext.Provider value={mockRegistry}>
-          <TamboV1StreamProvider>{children}</TamboV1StreamProvider>
+          <TamboStreamProvider>{children}</TamboStreamProvider>
         </TamboRegistryContext.Provider>
       </QueryClientProvider>
     );
@@ -94,9 +97,9 @@ describe("useTamboV1", () => {
       return (
         <QueryClientProvider client={queryClient}>
           <TamboRegistryContext.Provider value={registry}>
-            <TamboV1StreamProvider state={state} dispatch={noopDispatch}>
+            <TamboStreamProvider state={state} dispatch={noopDispatch}>
               {children}
-            </TamboV1StreamProvider>
+            </TamboStreamProvider>
           </TamboRegistryContext.Provider>
         </QueryClientProvider>
       );
@@ -114,9 +117,9 @@ describe("useTamboV1", () => {
       return (
         <QueryClientProvider client={queryClient}>
           <TamboRegistryContext.Provider value={mockRegistry}>
-            <TamboV1StreamProvider state={state} dispatch={dispatch}>
+            <TamboStreamProvider state={state} dispatch={dispatch}>
               {children}
-            </TamboV1StreamProvider>
+            </TamboStreamProvider>
           </TamboRegistryContext.Provider>
         </QueryClientProvider>
       );
@@ -135,7 +138,7 @@ describe("useTamboV1", () => {
   });
 
   it("returns client from useTamboClient", () => {
-    const { result } = renderHook(() => useTamboV1(), {
+    const { result } = renderHook(() => useTambo(), {
       wrapper: TestWrapper,
     });
 
@@ -143,7 +146,7 @@ describe("useTamboV1", () => {
   });
 
   it("returns registry functions", () => {
-    const { result } = renderHook(() => useTamboV1(), {
+    const { result } = renderHook(() => useTambo(), {
       wrapper: TestWrapper,
     });
 
@@ -157,7 +160,7 @@ describe("useTamboV1", () => {
   });
 
   it("returns placeholder thread when no threadId provided", () => {
-    const { result } = renderHook(() => useTamboV1(), {
+    const { result } = renderHook(() => useTambo(), {
       wrapper: TestWrapper,
     });
 
@@ -168,7 +171,7 @@ describe("useTamboV1", () => {
   });
 
   it("returns thread state when switched to a thread", () => {
-    const { result } = renderHook(() => useTamboV1(), {
+    const { result } = renderHook(() => useTambo(), {
       wrapper: TestWrapper,
     });
 
@@ -184,7 +187,7 @@ describe("useTamboV1", () => {
   });
 
   it("returns default streaming state when thread not loaded", () => {
-    const { result } = renderHook(() => useTamboV1(), {
+    const { result } = renderHook(() => useTambo(), {
       wrapper: TestWrapper,
     });
 
@@ -195,7 +198,7 @@ describe("useTamboV1", () => {
   });
 
   it("returns thread streaming state when thread loaded", () => {
-    const { result } = renderHook(() => useTamboV1(), {
+    const { result } = renderHook(() => useTambo(), {
       wrapper: TestWrapper,
     });
 
@@ -212,7 +215,7 @@ describe("useTamboV1", () => {
   });
 
   it("provides dispatch function for advanced usage", () => {
-    const { result } = renderHook(() => useTamboV1(), {
+    const { result } = renderHook(() => useTambo(), {
       wrapper: TestWrapper,
     });
 
@@ -220,7 +223,7 @@ describe("useTamboV1", () => {
   });
 
   it("provides thread management functions", () => {
-    const { result } = renderHook(() => useTamboV1(), {
+    const { result } = renderHook(() => useTambo(), {
       wrapper: TestWrapper,
     });
 
@@ -230,7 +233,7 @@ describe("useTamboV1", () => {
   });
 
   it("initializes and switches threads", () => {
-    const { result } = renderHook(() => useTamboV1(), {
+    const { result } = renderHook(() => useTambo(), {
       wrapper: TestWrapper,
     });
 
@@ -253,7 +256,7 @@ describe("useTamboV1", () => {
   });
 
   it("starts new thread with generated ID", () => {
-    const { result } = renderHook(() => useTamboV1(), {
+    const { result } = renderHook(() => useTambo(), {
       wrapper: TestWrapper,
     });
 
@@ -268,7 +271,7 @@ describe("useTamboV1", () => {
   });
 
   it("uses current thread when no threadId argument provided", () => {
-    const { result } = renderHook(() => useTamboV1(), {
+    const { result } = renderHook(() => useTambo(), {
       wrapper: TestWrapper,
     });
 
@@ -288,7 +291,7 @@ describe("useTamboV1", () => {
       id: string,
       name: string,
       props: Record<string, unknown>,
-    ): V1ComponentContent => ({
+    ): TamboComponentContent => ({
       type: "component",
       id,
       name,
@@ -326,14 +329,16 @@ describe("useTamboV1", () => {
         currentThreadId: "thread_123",
       };
 
-      const { result } = renderHook(() => useTamboV1(), {
+      const { result } = renderHook(() => useTambo(), {
         wrapper: createWrapperWithState(state),
       });
 
       expect(result.current.messages).toHaveLength(1);
       const content = result.current.messages[0].content[0];
       expect(content.type).toBe("component");
-      expect((content as V1ComponentContent).renderedComponent).toBeDefined();
+      expect(
+        (content as TamboComponentContent).renderedComponent,
+      ).toBeDefined();
     });
 
     it("preserves non-component content blocks unchanged", () => {
@@ -367,7 +372,7 @@ describe("useTamboV1", () => {
         currentThreadId: "thread_123",
       };
 
-      const { result } = renderHook(() => useTamboV1(), {
+      const { result } = renderHook(() => useTambo(), {
         wrapper: createWrapperWithState(state),
       });
 
@@ -379,7 +384,7 @@ describe("useTamboV1", () => {
       const componentContent = result.current.messages[0].content[1];
       expect(componentContent.type).toBe("component");
       expect(
-        (componentContent as V1ComponentContent).renderedComponent,
+        (componentContent as TamboComponentContent).renderedComponent,
       ).toBeDefined();
     });
 
@@ -413,19 +418,19 @@ describe("useTamboV1", () => {
         currentThreadId: "thread_123",
       };
 
-      const { result, rerender } = renderHook(() => useTamboV1(), {
+      const { result, rerender } = renderHook(() => useTambo(), {
         wrapper: createWrapperWithState(state),
       });
 
       const firstRender = (
-        result.current.messages[0].content[0] as V1ComponentContent
+        result.current.messages[0].content[0] as TamboComponentContent
       ).renderedComponent;
 
       // Re-render with same state
       rerender();
 
       const secondRender = (
-        result.current.messages[0].content[0] as V1ComponentContent
+        result.current.messages[0].content[0] as TamboComponentContent
       ).renderedComponent;
 
       // Should return the same cached element reference
@@ -460,13 +465,15 @@ describe("useTamboV1", () => {
         currentThreadId: "thread_123",
       };
 
-      const { result } = renderHook(() => useTamboV1(), {
+      const { result } = renderHook(() => useTambo(), {
         wrapper: createWrapperWithState(state),
       });
 
       const content = result.current.messages[0].content[0];
       expect(content.type).toBe("component");
-      expect((content as V1ComponentContent).renderedComponent).toBeDefined();
+      expect(
+        (content as TamboComponentContent).renderedComponent,
+      ).toBeDefined();
     });
 
     it("handles undefined props on components", () => {
@@ -486,7 +493,7 @@ describe("useTamboV1", () => {
                       name: "TestComponent",
                       props: undefined,
                       streamingState: "done",
-                    } as V1ComponentContent,
+                    } as TamboComponentContent,
                   ],
                   createdAt: new Date().toISOString(),
                 },
@@ -503,13 +510,15 @@ describe("useTamboV1", () => {
         currentThreadId: "thread_123",
       };
 
-      const { result } = renderHook(() => useTamboV1(), {
+      const { result } = renderHook(() => useTambo(), {
         wrapper: createWrapperWithState(state),
       });
 
       const content = result.current.messages[0].content[0];
       expect(content.type).toBe("component");
-      expect((content as V1ComponentContent).renderedComponent).toBeDefined();
+      expect(
+        (content as TamboComponentContent).renderedComponent,
+      ).toBeDefined();
     });
 
     it("handles multiple component content blocks in same message", () => {
@@ -548,14 +557,16 @@ describe("useTamboV1", () => {
         currentThreadId: "thread_123",
       };
 
-      const { result } = renderHook(() => useTamboV1(), {
+      const { result } = renderHook(() => useTambo(), {
         wrapper: createWrapperWithState(state),
       });
 
       expect(result.current.messages[0].content).toHaveLength(3);
       result.current.messages[0].content.forEach((content) => {
         expect(content.type).toBe("component");
-        expect((content as V1ComponentContent).renderedComponent).toBeDefined();
+        expect(
+          (content as TamboComponentContent).renderedComponent,
+        ).toBeDefined();
       });
     });
 
@@ -590,14 +601,16 @@ describe("useTamboV1", () => {
       };
 
       // No explicit threadId - uses currentThreadId from state
-      const { result } = renderHook(() => useTamboV1(), {
+      const { result } = renderHook(() => useTambo(), {
         wrapper: createWrapperWithState(state),
       });
 
       // Component should render using the placeholder thread
       const content = result.current.messages[0].content[0];
       expect(content.type).toBe("component");
-      expect((content as V1ComponentContent).renderedComponent).toBeDefined();
+      expect(
+        (content as TamboComponentContent).renderedComponent,
+      ).toBeDefined();
     });
   });
 
@@ -635,11 +648,12 @@ describe("useTamboV1", () => {
         currentThreadId: "thread_123",
       };
 
-      const { result } = renderHook(() => useTamboV1(), {
+      const { result } = renderHook(() => useTambo(), {
         wrapper: createWrapperWithState(state),
       });
 
-      const content = result.current.messages[0].content[0] as V1ToolUseContent;
+      const content = result.current.messages[0]
+        .content[0] as TamboToolUseContent;
       expect(content.type).toBe("tool_use");
       expect(content.hasCompleted).toBe(false);
       expect(content.statusMessage).toBe("Calling getWeather");
@@ -691,11 +705,12 @@ describe("useTamboV1", () => {
         currentThreadId: "thread_123",
       };
 
-      const { result } = renderHook(() => useTamboV1(), {
+      const { result } = renderHook(() => useTambo(), {
         wrapper: createWrapperWithState(state),
       });
 
-      const content = result.current.messages[0].content[0] as V1ToolUseContent;
+      const content = result.current.messages[0]
+        .content[0] as TamboToolUseContent;
       expect(content.hasCompleted).toBe(true);
       expect(content.statusMessage).toBe("Called getWeather");
     });
@@ -736,11 +751,12 @@ describe("useTamboV1", () => {
         currentThreadId: "thread_123",
       };
 
-      const { result } = renderHook(() => useTamboV1(), {
+      const { result } = renderHook(() => useTambo(), {
         wrapper: createWrapperWithState(state),
       });
 
-      const content = result.current.messages[0].content[0] as V1ToolUseContent;
+      const content = result.current.messages[0]
+        .content[0] as TamboToolUseContent;
       expect(content.statusMessage).toBe("Fetching weather for NYC...");
       expect(content.tamboDisplayProps?._tambo_statusMessage).toBe(
         "Fetching weather for NYC...",
@@ -796,11 +812,12 @@ describe("useTamboV1", () => {
         currentThreadId: "thread_123",
       };
 
-      const { result } = renderHook(() => useTamboV1(), {
+      const { result } = renderHook(() => useTambo(), {
         wrapper: createWrapperWithState(state),
       });
 
-      const content = result.current.messages[0].content[0] as V1ToolUseContent;
+      const content = result.current.messages[0]
+        .content[0] as TamboToolUseContent;
       expect(content.hasCompleted).toBe(true);
       expect(content.statusMessage).toBe("Got weather for NYC");
     });
@@ -844,11 +861,12 @@ describe("useTamboV1", () => {
         currentThreadId: "thread_123",
       };
 
-      const { result } = renderHook(() => useTamboV1(), {
+      const { result } = renderHook(() => useTambo(), {
         wrapper: createWrapperWithState(state),
       });
 
-      const content = result.current.messages[0].content[0] as V1ToolUseContent;
+      const content = result.current.messages[0]
+        .content[0] as TamboToolUseContent;
       // Input should only have non-_tambo_ properties
       expect(content.input).toEqual({ location: "NYC", units: "celsius" });
       expect(content.input._tambo_statusMessage).toBeUndefined();
@@ -889,11 +907,12 @@ describe("useTamboV1", () => {
         currentThreadId: "thread_123",
       };
 
-      const { result } = renderHook(() => useTamboV1(), {
+      const { result } = renderHook(() => useTambo(), {
         wrapper: createWrapperWithState(state),
       });
 
-      const content = result.current.messages[0].content[0] as V1ToolUseContent;
+      const content = result.current.messages[0]
+        .content[0] as TamboToolUseContent;
       expect(content.input).toEqual({});
       expect(content.hasCompleted).toBe(false);
       expect(content.statusMessage).toBe("Calling getCurrentTime");
@@ -915,7 +934,7 @@ describe("useTamboV1", () => {
                       id: "tool_1",
                       name: "getCurrentTime",
                       input: undefined,
-                    } as unknown as V1ToolUseContent,
+                    } as unknown as TamboToolUseContent,
                   ],
                   createdAt: new Date().toISOString(),
                 },
@@ -932,11 +951,12 @@ describe("useTamboV1", () => {
         currentThreadId: "thread_123",
       };
 
-      const { result } = renderHook(() => useTamboV1(), {
+      const { result } = renderHook(() => useTambo(), {
         wrapper: createWrapperWithState(state),
       });
 
-      const content = result.current.messages[0].content[0] as V1ToolUseContent;
+      const content = result.current.messages[0]
+        .content[0] as TamboToolUseContent;
       expect(content.input).toEqual({});
       expect(content.hasCompleted).toBe(false);
     });
@@ -993,12 +1013,14 @@ describe("useTamboV1", () => {
         currentThreadId: "thread_123",
       };
 
-      const { result } = renderHook(() => useTamboV1(), {
+      const { result } = renderHook(() => useTambo(), {
         wrapper: createWrapperWithState(state),
       });
 
-      const tool1 = result.current.messages[0].content[0] as V1ToolUseContent;
-      const tool2 = result.current.messages[0].content[1] as V1ToolUseContent;
+      const tool1 = result.current.messages[0]
+        .content[0] as TamboToolUseContent;
+      const tool2 = result.current.messages[0]
+        .content[1] as TamboToolUseContent;
 
       expect(tool1.hasCompleted).toBe(true);
       expect(tool1.statusMessage).toBe("Called getWeather");
@@ -1028,7 +1050,7 @@ describe("useTamboV1", () => {
         currentThreadId: "thread_123",
       };
 
-      const { result } = renderHook(() => useTamboV1(), {
+      const { result } = renderHook(() => useTambo(), {
         wrapper: createWrapperWithRealReducer(initialState),
       });
 
@@ -1072,7 +1094,7 @@ describe("useTamboV1", () => {
         currentThreadId: "thread_123",
       };
 
-      const { result } = renderHook(() => useTamboV1(), {
+      const { result } = renderHook(() => useTambo(), {
         wrapper: createWrapperWithRealReducer(initialState),
       });
 
@@ -1111,7 +1133,7 @@ describe("useTamboV1", () => {
         currentThreadId: "placeholder",
       };
 
-      const { result } = renderHook(() => useTamboV1(), {
+      const { result } = renderHook(() => useTambo(), {
         wrapper: createWrapperWithRealReducer(initialState),
       });
 
@@ -1159,7 +1181,7 @@ describe("useTamboV1", () => {
         currentThreadId: "thread_123",
       };
 
-      const { result } = renderHook(() => useTamboV1(), {
+      const { result } = renderHook(() => useTambo(), {
         wrapper: createWrapperWithRealReducer(initialState),
       });
 

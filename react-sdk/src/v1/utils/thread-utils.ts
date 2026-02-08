@@ -3,7 +3,7 @@
  */
 
 import type { StreamState } from "./event-accumulator";
-import type { V1ComponentContent } from "../types/message";
+import type { TamboComponentContent } from "../types/message";
 
 /**
  * Find a component content block by ID in a specific thread.
@@ -18,7 +18,7 @@ export function findComponentContent(
   streamState: StreamState,
   threadId: string,
   componentId: string,
-): V1ComponentContent | undefined {
+): TamboComponentContent | undefined {
   const threadState = streamState.threadMap[threadId];
   if (!threadState) {
     return undefined;

@@ -1,7 +1,7 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import React from "react";
 import { z } from "zod/v3";
-import { useTamboCurrentComponent } from "../hooks/use-current-message";
+import { useTamboCurrentComponent } from "../v1/hooks/use-tambo-current-message";
 import { TamboInteractableProvider } from "../providers/tambo-interactable-provider";
 import { withTamboInteractable } from "./with-tambo-interactable";
 
