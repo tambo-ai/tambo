@@ -3,10 +3,8 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  useTamboComponentState,
-  useTamboStreamingProps,
-} from "@tambo-ai/react";
+import { useTamboComponentState } from "@tambo-ai/react";
+import { useEffect } from "react";
 import { z } from "zod/v3";
 
 // Schema with descriptions to help Tambo understand the component
@@ -67,13 +65,20 @@ export function SubscribeForm({
     },
   );
 
-  // Use Tambo's streaming props hook to handle prop updates
-  useTamboStreamingProps(formState, setFormState, {
-    firstName,
-    lastName,
-    title,
-    email,
-  });
+  // Sync incoming props to state when they change
+  useEffect(() => {
+    if (formState) {
+      setFormState({
+        ...formState,
+        firstName: firstName || formState.firstName,
+        lastName: lastName || formState.lastName,
+        title: title || formState.title,
+        email: email || formState.email,
+      });
+    }
+    // Only sync when props change, not when formState changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [firstName, lastName, title, email]);
 
   // Handle form field changes
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {

@@ -13,8 +13,8 @@ export function MessageSuggestions({
 }: MessageSuggestionsProps) {
   const {
     suggestions,
-    acceptResult: { isPending: isAccepting },
-    generateResult: { isPending: isGenerating },
+    isAccepting,
+    isGenerating,
     error,
     accept,
     selectedSuggestionId,

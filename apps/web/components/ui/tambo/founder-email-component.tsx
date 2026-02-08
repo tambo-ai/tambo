@@ -46,18 +46,15 @@ export const FounderEmailComponent = ({
 }: FounderEmailProps) => {
   const [subject, setSubject] = useTamboComponentState(
     "emailSubject",
-    "",
-    aiGeneratedSubject,
+    aiGeneratedSubject || "",
   );
   const [body, setBody] = useTamboComponentState(
     "emailBody",
-    "",
-    aiGeneratedBody,
+    aiGeneratedBody || "",
   );
   const [usersEmail, setUsersEmail] = useTamboComponentState(
     "usersEmail",
-    "",
-    aiGeneratedUsersEmail,
+    aiGeneratedUsersEmail || "",
   );
   const [isSent, setIsSent] = useTamboComponentState("isSent", false);
   const [isLoading, setIsLoading] = useTamboComponentState("isLoading", false);

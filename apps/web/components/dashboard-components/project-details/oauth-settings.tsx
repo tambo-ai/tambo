@@ -18,7 +18,7 @@ import { useToast } from "@/hooks/use-toast";
 import { api } from "@/trpc/react";
 import { OAuthValidationMode } from "@tambo-ai-cloud/core";
 import type { Suggestion } from "@tambo-ai/react";
-import { withInteractable } from "@tambo-ai/react";
+import { withTamboInteractable } from "@tambo-ai/react";
 import { motion } from "framer-motion";
 import {
   Building2,
@@ -548,7 +548,7 @@ export function OAuthSettings({
   );
 }
 
-export const InteractableOAuthSettings = withInteractable(OAuthSettings, {
+export const InteractableOAuthSettings = withTamboInteractable(OAuthSettings, {
   componentName: COMPONENT_NAME,
   description:
     "Manages OAuth token validation settings for a project. Configure how OAuth bearer tokens are validated, including validation mode (None, Symmetric, Asymmetric Auto, Asymmetric Manual), token required setting, secret keys, and public keys. Users can view current settings and update them.",

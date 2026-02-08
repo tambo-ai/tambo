@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 
 export const TamboEmailButton = () => {
   const { setValue } = useTamboThreadInput();
-  const { thread } = useTambo();
+  const { messages } = useTambo();
   const [hasPressedButton, setHasPressedButton] = useState(false);
 
   const handleInteraction = useCallback(() => {
@@ -28,7 +28,7 @@ export const TamboEmailButton = () => {
   // Hide button if:
   // 1. Button has been pressed
   // 2. Thread has messages
-  if (hasPressedButton || (thread?.messages && thread.messages.length > 0)) {
+  if (hasPressedButton || messages.length > 0) {
     return null;
   }
 

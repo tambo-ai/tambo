@@ -24,7 +24,6 @@ import * as React from "react";
 interface ThreadContentContextValue {
   messages: TamboThreadMessage[];
   isGenerating: boolean;
-  generationStage?: string;
   variant?: VariantProps<typeof messageVariants>["variant"];
 }
 
@@ -75,17 +74,16 @@ export interface ThreadContentProps extends React.HTMLAttributes<HTMLDivElement>
  */
 const ThreadContent = React.forwardRef<HTMLDivElement, ThreadContentProps>(
   ({ children, className, variant, ...props }, ref) => {
-    const { thread, generationStage, isIdle } = useTambo();
+    const { messages, isIdle } = useTambo();
     const isGenerating = !isIdle;
 
     const contextValue = React.useMemo(
       () => ({
-        messages: thread?.messages ?? [],
+        messages,
         isGenerating,
-        generationStage,
         variant,
       }),
-      [thread?.messages, isGenerating, generationStage, variant],
+      [messages, isGenerating, variant],
     );
 
     return (
@@ -128,7 +126,7 @@ const ThreadContentMessages = React.forwardRef<
   const { messages, isGenerating, variant } = useThreadContentContext();
 
   const filteredMessages = messages.filter(
-    (message) => message.role !== "system" && !message.parentMessageId,
+    (message) => message.role !== "system",
   );
 
   return (

@@ -5,14 +5,14 @@ import TamboAI from "@tambo-ai/typescript-sdk";
 import { TamboClientContext } from "../../providers/tambo-client-provider";
 import type { TamboClientContextProps } from "../../providers/tambo-client-provider";
 import {
-  TamboV1ConfigContext,
-  type TamboV1Config,
+  TamboConfigContext,
+  type TamboConfig,
 } from "../providers/tambo-v1-provider";
-import { useTamboV1AuthState } from "./use-tambo-v1-auth-state";
+import { useTamboAuthState } from "./use-tambo-v1-auth-state";
 
 function createWrapper(
   clientOverrides: Partial<TamboClientContextProps>,
-  configOverrides: Partial<TamboV1Config> = {},
+  configOverrides: Partial<TamboConfig> = {},
 ) {
   const clientContext: TamboClientContextProps = {
     client: {} as TamboAI,
@@ -24,7 +24,7 @@ function createWrapper(
     ...clientOverrides,
   };
 
-  const config: TamboV1Config = {
+  const config: TamboConfig = {
     userKey: undefined,
     ...configOverrides,
   };
@@ -34,7 +34,7 @@ function createWrapper(
       TamboClientContext.Provider,
       { value: clientContext },
       React.createElement(
-        TamboV1ConfigContext.Provider,
+        TamboConfigContext.Provider,
         { value: config },
         children,
       ),
@@ -43,9 +43,9 @@ function createWrapper(
   return Wrapper;
 }
 
-describe("useTamboV1AuthState", () => {
+describe("useTamboAuthState", () => {
   it("returns 'identified' with source 'userKey' when only userKey is provided", () => {
-    const { result } = renderHook(() => useTamboV1AuthState(), {
+    const { result } = renderHook(() => useTamboAuthState(), {
       wrapper: createWrapper({}, { userKey: "user_123" }),
     });
 
@@ -56,7 +56,7 @@ describe("useTamboV1AuthState", () => {
   });
 
   it("returns 'identified' with source 'tokenExchange' when token exchange succeeded", () => {
-    const { result } = renderHook(() => useTamboV1AuthState(), {
+    const { result } = renderHook(() => useTamboAuthState(), {
       wrapper: createWrapper({
         userToken: "oauth_token",
         hasValidToken: true,
@@ -70,7 +70,7 @@ describe("useTamboV1AuthState", () => {
   });
 
   it("returns 'exchanging' when userToken provided but exchange not yet complete", () => {
-    const { result } = renderHook(() => useTamboV1AuthState(), {
+    const { result } = renderHook(() => useTamboAuthState(), {
       wrapper: createWrapper({
         userToken: "oauth_token",
         hasValidToken: false,
@@ -82,7 +82,7 @@ describe("useTamboV1AuthState", () => {
 
   it("returns 'error' when token exchange failed", () => {
     const exchangeError = new Error("Token exchange failed");
-    const { result } = renderHook(() => useTamboV1AuthState(), {
+    const { result } = renderHook(() => useTamboAuthState(), {
       wrapper: createWrapper({
         userToken: "oauth_token",
         tokenExchangeError: exchangeError,
@@ -97,7 +97,7 @@ describe("useTamboV1AuthState", () => {
   });
 
   it("returns 'invalid' when both userKey and userToken are provided", () => {
-    const { result } = renderHook(() => useTamboV1AuthState(), {
+    const { result } = renderHook(() => useTamboAuthState(), {
       wrapper: createWrapper(
         { userToken: "oauth_token" },
         { userKey: "user_123" },
@@ -108,7 +108,7 @@ describe("useTamboV1AuthState", () => {
   });
 
   it("returns 'unauthenticated' when neither userKey nor userToken is provided", () => {
-    const { result } = renderHook(() => useTamboV1AuthState(), {
+    const { result } = renderHook(() => useTamboAuthState(), {
       wrapper: createWrapper({}),
     });
 
@@ -118,17 +118,17 @@ describe("useTamboV1AuthState", () => {
   it("throws when used outside TamboClientContext", () => {
     const wrapper = ({ children }: { children: React.ReactNode }) =>
       React.createElement(
-        TamboV1ConfigContext.Provider,
+        TamboConfigContext.Provider,
         { value: { userKey: "x" } },
         children,
       );
 
-    expect(() => renderHook(() => useTamboV1AuthState(), { wrapper })).toThrow(
-      "useTamboV1AuthState must be used within TamboV1Provider",
+    expect(() => renderHook(() => useTamboAuthState(), { wrapper })).toThrow(
+      "useTamboAuthState must be used within TamboProvider",
     );
   });
 
-  it("throws when used outside TamboV1ConfigContext", () => {
+  it("throws when used outside TamboConfigContext", () => {
     const clientContext: TamboClientContextProps = {
       client: {} as TamboAI,
       queryClient: new QueryClient(),
@@ -145,8 +145,8 @@ describe("useTamboV1AuthState", () => {
         children,
       );
 
-    expect(() => renderHook(() => useTamboV1AuthState(), { wrapper })).toThrow(
-      "useTamboV1AuthState must be used within TamboV1Provider",
+    expect(() => renderHook(() => useTamboAuthState(), { wrapper })).toThrow(
+      "useTamboAuthState must be used within TamboProvider",
     );
   });
 });

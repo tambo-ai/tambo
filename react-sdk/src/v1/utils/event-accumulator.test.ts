@@ -24,7 +24,7 @@ import {
   type StreamState,
   type ThreadState,
 } from "./event-accumulator";
-import type { Content, V1ComponentContent } from "../types/message";
+import type { Content, TamboComponentContent } from "../types/message";
 
 /**
  * Helper to extract a ToolUseContent from a message content array.
@@ -37,16 +37,16 @@ function asToolUseContent(content: Content[], index: number): ToolUseContent {
 }
 
 /**
- * Helper to extract a V1ComponentContent from a message content array.
+ * Helper to extract a TamboComponentContent from a message content array.
  * @param content - Content array from a message
  * @param index - Index of the content item
- * @returns The content as V1ComponentContent
+ * @returns The content as TamboComponentContent
  */
 function asComponentContent(
   content: Content[],
   index: number,
-): V1ComponentContent {
-  return content[index] as V1ComponentContent;
+): TamboComponentContent {
+  return content[index] as TamboComponentContent;
 }
 
 // Helper to create a base thread state for testing

@@ -30,11 +30,6 @@ export const MessageRoot = React.forwardRef<HTMLDivElement, MessageRootProps>(
       [role, isLoading, message],
     );
 
-    // Don't render tool response messages as they're shown in tool call dropdowns
-    if (message.role === "tool") {
-      return null;
-    }
-
     const Comp = asChild ? Slot : "div";
 
     return (

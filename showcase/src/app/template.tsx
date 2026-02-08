@@ -44,7 +44,7 @@ export default function Template({
                   mcpServers={[
                     { url: MCP_DEMO_URL, transport: MCPTransport.HTTP },
                   ]}
-                  contextKey={userContextKey}
+                  userKey={userContextKey}
                   listResources={async (search = "X") => {
                     console.log("listResources", search);
                     return [

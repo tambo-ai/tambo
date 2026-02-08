@@ -19,8 +19,8 @@ import React, {
 } from "react";
 import { useTamboQuery } from "../../hooks/react-query-hooks";
 import { useTamboClient } from "../../providers/tambo-client-provider";
-import type { InitialInputMessage, TamboV1Message } from "../types/message";
-import type { TamboV1Thread } from "../types/thread";
+import type { InitialInputMessage, TamboThreadMessage } from "../types/message";
+import type { TamboThread } from "../types/thread";
 import {
   createInitialState,
   createInitialStateWithMessages,
@@ -31,7 +31,7 @@ import {
   type StreamAction,
   type StreamState,
 } from "../utils/event-accumulator";
-import { useTamboV1Config } from "./tambo-v1-provider";
+import { useTamboConfig } from "./tambo-v1-provider";
 
 /**
  * Thread management functions exposed by the stream context.
@@ -43,14 +43,11 @@ export interface ThreadManagement {
    * @param threadId - The thread ID to initialize
    * @param initialThread - Optional initial thread data
    */
-  initThread: (
-    threadId: string,
-    initialThread?: Partial<TamboV1Thread>,
-  ) => void;
+  initThread: (threadId: string, initialThread?: Partial<TamboThread>) => void;
 
   /**
    * Switch the current active thread.
-   * Does not fetch thread data - use useTamboV1Thread for that.
+   * Does not fetch thread data - use useTamboThread for that.
    * @param threadId - The thread ID to switch to
    */
   switchThread: (threadId: string) => void;
@@ -83,9 +80,9 @@ const StreamDispatchContext =
 const ThreadManagementContext = createContext<ThreadManagement | null>(null);
 
 /**
- * Props for TamboV1StreamProvider
+ * Props for TamboStreamProvider
  */
-export interface TamboV1StreamProviderProps {
+export interface TamboStreamProviderProps {
   children: React.ReactNode;
 
   /**
@@ -125,12 +122,12 @@ export interface TamboV1StreamProviderProps {
  * @returns JSX element wrapping children with stream contexts
  * @example
  * ```tsx
- * <TamboV1StreamProvider>
+ * <TamboStreamProvider>
  *   <ChatInterface />
- * </TamboV1StreamProvider>
+ * </TamboStreamProvider>
  * ```
  */
-export function TamboV1StreamProvider(props: TamboV1StreamProviderProps) {
+export function TamboStreamProvider(props: TamboStreamProviderProps) {
   const {
     children,
     initialMessages,
@@ -143,7 +140,7 @@ export function TamboV1StreamProvider(props: TamboV1StreamProviderProps) {
     (!providedState && providedDispatch)
   ) {
     throw new Error(
-      "TamboV1StreamProvider requires both state and dispatch when overriding",
+      "TamboStreamProvider requires both state and dispatch when overriding",
     );
   }
 
@@ -155,7 +152,7 @@ export function TamboV1StreamProvider(props: TamboV1StreamProviderProps) {
       typeof startNewThread !== "function"
     ) {
       throw new Error(
-        "TamboV1StreamProvider: threadManagement override is missing required methods",
+        "TamboStreamProvider: threadManagement override is missing required methods",
       );
     }
   }
@@ -177,7 +174,7 @@ export function TamboV1StreamProvider(props: TamboV1StreamProviderProps) {
 
   // Thread management functions
   const initThread = useCallback(
-    (threadId: string, initialThread?: Partial<TamboV1Thread>) => {
+    (threadId: string, initialThread?: Partial<TamboThread>) => {
       activeDispatch({ type: "INIT_THREAD", threadId, initialThread });
     },
     [activeDispatch],
@@ -199,7 +196,7 @@ export function TamboV1StreamProvider(props: TamboV1StreamProviderProps) {
       ? {
           ...baseThread,
           messages: initialMessages.map(
-            (msg): TamboV1Message => ({
+            (msg): TamboThreadMessage => ({
               id: `initial_${crypto.randomUUID()}`,
               role: msg.role,
               content: msg.content.map((c) => {
@@ -251,7 +248,7 @@ export function TamboV1StreamProvider(props: TamboV1StreamProviderProps) {
  */
 function ThreadSyncManager(): null {
   const client = useTamboClient();
-  const { userKey } = useTamboV1Config();
+  const { userKey } = useTamboConfig();
   const state = useContext(StreamStateContext);
   const dispatch = useContext(StreamDispatchContext);
 
@@ -303,7 +300,7 @@ function ThreadSyncManager(): null {
     dispatch({
       type: "LOAD_THREAD_MESSAGES",
       threadId: currentThreadId,
-      messages: messagesData.messages as TamboV1Message[],
+      messages: messagesData.messages as TamboThreadMessage[],
       skipIfStreaming: true,
     });
 
@@ -316,9 +313,9 @@ function ThreadSyncManager(): null {
 /**
  * Hook to access stream state.
  *
- * Must be used within TamboV1StreamProvider.
+ * Must be used within TamboStreamProvider.
  * @returns Current stream state
- * @throws {Error} if used outside TamboV1StreamProvider
+ * @throws {Error} if used outside TamboStreamProvider
  * @example
  * ```tsx
  * function ChatMessages() {
@@ -337,7 +334,7 @@ export function useStreamState(): StreamState {
   const context = useContext(StreamStateContext);
 
   if (!context) {
-    throw new Error("useStreamState must be used within TamboV1StreamProvider");
+    throw new Error("useStreamState must be used within TamboStreamProvider");
   }
 
   return context;
@@ -346,9 +343,9 @@ export function useStreamState(): StreamState {
 /**
  * Hook to access stream dispatch function.
  *
- * Must be used within TamboV1StreamProvider.
+ * Must be used within TamboStreamProvider.
  * @returns Dispatch function for sending events to reducer
- * @throws {Error} if used outside TamboV1StreamProvider
+ * @throws {Error} if used outside TamboStreamProvider
  * @example
  * ```tsx
  * function StreamHandler() {
@@ -372,7 +369,7 @@ export function useStreamDispatch(): React.Dispatch<StreamAction> {
 
   if (!context) {
     throw new Error(
-      "useStreamDispatch must be used within TamboV1StreamProvider",
+      "useStreamDispatch must be used within TamboStreamProvider",
     );
   }
 
@@ -382,9 +379,9 @@ export function useStreamDispatch(): React.Dispatch<StreamAction> {
 /**
  * Hook to access thread management functions.
  *
- * Must be used within TamboV1StreamProvider.
+ * Must be used within TamboStreamProvider.
  * @returns Thread management functions
- * @throws {Error} if used outside TamboV1StreamProvider
+ * @throws {Error} if used outside TamboStreamProvider
  * @example
  * ```tsx
  * function ThreadSwitcher() {
@@ -408,7 +405,7 @@ export function useThreadManagement(): ThreadManagement {
 
   if (!context) {
     throw new Error(
-      "useThreadManagement must be used within TamboV1StreamProvider",
+      "useThreadManagement must be used within TamboStreamProvider",
     );
   }
 

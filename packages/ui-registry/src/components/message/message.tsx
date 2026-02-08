@@ -1,6 +1,6 @@
 "use client";
 
-import { TamboThreadMessage, useTambo } from "@tambo-ai/react";
+import { TamboThreadMessage } from "@tambo-ai/react";
 import {
   Message as MessageBase,
   type MessageContentProps as MessageBaseContentProps,
@@ -416,23 +416,20 @@ ToolcallInfo.displayName = "ToolcallInfo";
  * Used for MCP sampling sub-threads.
  */
 const SamplingSubThread = ({
-  parentMessageId,
+  parentMessageId: _parentMessageId,
   titleText = "finished additional work",
 }: {
   parentMessageId: string;
   titleText?: string;
 }) => {
-  const { thread } = useTambo();
   const [isExpanded, setIsExpanded] = React.useState(false);
   const samplingDetailsId = React.useId();
 
-  const childMessages = React.useMemo(() => {
-    return thread?.messages?.filter(
-      (m: TamboThreadMessage) => m.parentMessageId === parentMessageId,
-    );
-  }, [thread?.messages, parentMessageId]);
+  // In V1, messages no longer have parentMessageId, so sub-threads are not supported.
+  // Render nothing until a V1 equivalent is available.
+  const childMessages: TamboThreadMessage[] = [];
 
-  if (!childMessages?.length) return null;
+  if (!childMessages.length) return null;
 
   return (
     <div className="flex flex-col gap-1">
@@ -671,8 +668,6 @@ function ToolResultContent({
 
       if (item.type === "text" && item.text) {
         textParts.push(item.text);
-      } else if (item.type === "image_url" && item.image_url?.url) {
-        nonTextItems.push({ type: "image", url: item.image_url.url, index });
       } else if (item.type === "resource" && item.resource) {
         nonTextItems.push({ type: "resource", resource: item.resource, index });
       }

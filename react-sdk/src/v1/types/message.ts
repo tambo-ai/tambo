@@ -9,8 +9,8 @@
 import type { ReactElement } from "react";
 
 // Re-export content block types from TypeScript SDK
-// Note: ToolUseContent and ComponentContent are NOT re-exported - use V1ToolUseContent
-// and V1ComponentContent instead, which include computed state properties.
+// Note: ToolUseContent and ComponentContent are NOT re-exported - use TamboToolUseContent
+// and TamboComponentContent instead, which include computed state properties.
 export type {
   TextContent,
   ToolResultContent,
@@ -57,7 +57,7 @@ export type ComponentStreamingState = "started" | "streaming" | "done";
  * Extended ComponentContent with streaming state and rendered element.
  * Used by the v1 SDK to track component rendering lifecycle.
  */
-export interface V1ComponentContent extends ComponentContent {
+export interface TamboComponentContent extends ComponentContent {
   /**
    * Current streaming state of this component's props.
    * - 'started': Component block created, awaiting props
@@ -92,10 +92,10 @@ export interface TamboToolDisplayProps {
  * Extended ToolUseContent with computed state properties.
  * Used by the v1 SDK to provide pre-computed tool state to consumers.
  *
- * Note: The computed properties are populated by `useTamboV1()` hook.
+ * Note: The computed properties are populated by `useTambo()` hook.
  * When accessed via lower-level APIs, they may be undefined.
  */
-export interface V1ToolUseContent extends Omit<ToolUseContent, "input"> {
+export interface TamboToolUseContent extends Omit<ToolUseContent, "input"> {
   /**
    * Tool input parameters with internal `_tambo_*` properties removed.
    * Consumers see only the actual tool parameters.
@@ -104,21 +104,21 @@ export interface V1ToolUseContent extends Omit<ToolUseContent, "input"> {
 
   /**
    * Whether this tool call has completed (has a matching tool_result).
-   * Computed by `useTamboV1()` based on presence of matching tool_result.
+   * Computed by `useTambo()` based on presence of matching tool_result.
    */
   hasCompleted?: boolean;
 
   /**
    * The status message to display, resolved based on tool execution state.
    * Automatically updates as tool progresses through execution lifecycle.
-   * Computed by `useTamboV1()`.
+   * Computed by `useTambo()`.
    */
   statusMessage?: string;
 
   /**
    * Extracted Tambo display properties from the tool input.
    * Consumers can use these for custom rendering if needed.
-   * Computed by `useTamboV1()`.
+   * Computed by `useTambo()`.
    */
   tamboDisplayProps?: TamboToolDisplayProps;
 }
@@ -131,19 +131,19 @@ export type MessageRole = "user" | "assistant" | "system";
 
 /**
  * Union type of all content block types.
- * Uses V1ComponentContent and V1ToolUseContent which include computed state.
+ * Uses TamboComponentContent and TamboToolUseContent which include computed state.
  */
 export type Content =
   | TextContent
-  | V1ToolUseContent
+  | TamboToolUseContent
   | ToolResultContent
-  | V1ComponentContent
+  | TamboComponentContent
   | ResourceContent;
 
 /**
  * Message in a thread (simplified from SDK's MessageGetResponse)
  */
-export interface TamboV1Message {
+export interface TamboThreadMessage {
   /** Unique message identifier */
   id: string;
 

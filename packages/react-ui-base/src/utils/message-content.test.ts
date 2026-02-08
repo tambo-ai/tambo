@@ -86,7 +86,10 @@ describe("convertContentToMarkdown", () => {
     });
 
     it("handles text parts with undefined text", () => {
-      const content = [{ type: "text" as const }];
+      // Test runtime behavior with malformed data (missing required text field)
+      const content = [
+        { type: "text" as const } as unknown as { type: "text"; text: string },
+      ];
       expect(convertContentToMarkdown(content)).toBe("");
     });
 
@@ -148,12 +151,13 @@ describe("convertContentToMarkdown", () => {
     });
 
     it("ignores unknown content types", () => {
+      // Test runtime behavior — image_url is not a V1 Content type but may appear at runtime
       const content = [
         { type: "text" as const, text: "Hello" },
         {
-          type: "image_url" as const,
+          type: "image_url",
           image_url: { url: "http://example.com/img.png" },
-        },
+        } as unknown as { type: "text"; text: string },
       ];
       expect(convertContentToMarkdown(content)).toBe("Hello");
     });

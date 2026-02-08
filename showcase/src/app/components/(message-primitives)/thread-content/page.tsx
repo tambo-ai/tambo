@@ -10,80 +10,53 @@ import { TamboStubProvider, TamboThread } from "@tambo-ai/react";
 
 const mockThread: TamboThread = {
   id: "1",
-  name: "Mock Thread",
+  title: "Mock Thread",
   messages: [
     {
       id: "msg-1",
       role: "user",
-      threadId: "1",
       createdAt: new Date().toISOString(),
-      componentState: {},
       content: [{ type: "text", text: "What's the weather?" }],
     },
     {
       id: "msg-2",
       role: "assistant",
-      threadId: "1",
       createdAt: new Date().toISOString(),
-      componentState: {},
       content: [
         {
           type: "text",
           text: "Hello, world! I'm an assistant. I'll get the weather for you",
         },
       ],
-      actionType: "tool_call",
-      toolCallRequest: {
-        toolName: "get_weather",
-        parameters: [
-          {
-            parameterName: "city",
-            parameterValue: "San Francisco",
-          },
-        ],
-      },
     },
     {
       id: "msg-3",
       role: "assistant",
-      threadId: "1",
       createdAt: new Date().toISOString(),
-      componentState: {},
       content: [
         { type: "text", text: "The weather in San Francisco is sunny." },
       ],
-      renderedComponent: (
-        <div>
-          <div className="flex items-center gap-2 p-4 bg-blue-50 rounded-lg">
-            <div className="text-yellow-400 text-2xl">☀️</div>
-            <div>
-              <div className="font-medium">San Francisco</div>
-              <div className="text-sm text-gray-600">Sunny</div>
-            </div>
-          </div>
-        </div>
-      ),
     },
     {
       id: "msg-4",
       role: "user",
-      threadId: "1",
       createdAt: new Date().toISOString(),
-      componentState: {},
       content: [{ type: "text", text: "Thanks" }],
     },
   ],
+  status: "idle",
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),
-  projectId: "1",
+  lastRunCancelled: false,
 };
 
 const emptyThread: TamboThread = {
   id: "2",
   messages: [],
+  status: "idle",
   createdAt: new Date().toISOString(),
-  projectId: "1",
   updatedAt: new Date().toISOString(),
+  lastRunCancelled: false,
 };
 
 export default function ThreadContentPage() {

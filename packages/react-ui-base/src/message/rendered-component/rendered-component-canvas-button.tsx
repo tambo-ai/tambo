@@ -1,3 +1,4 @@
+import type { TamboComponentContent } from "@tambo-ai/react";
 import * as React from "react";
 import { useMessageRootContext } from "../root/message-root-context";
 
@@ -23,18 +24,26 @@ export const MessageRenderedComponentCanvasButton = React.forwardRef<
     return () => window.removeEventListener("resize", checkCanvasExists);
   }, []);
 
+  const firstRenderedComponent = React.useMemo(() => {
+    const componentBlock = message.content.find(
+      (block): block is TamboComponentContent =>
+        block.type === "component" && !!block.renderedComponent,
+    );
+    return componentBlock?.renderedComponent;
+  }, [message.content]);
+
   const onShowInCanvas = React.useCallback(() => {
     if (typeof window !== "undefined") {
       window.dispatchEvent(
         new CustomEvent("tambo:showComponent", {
           detail: {
             messageId: message.id,
-            component: message.renderedComponent,
+            component: firstRenderedComponent,
           },
         }),
       );
     }
-  }, [message.id, message.renderedComponent]);
+  }, [message.id, firstRenderedComponent]);
 
   if (!canvasExists) return null;
 

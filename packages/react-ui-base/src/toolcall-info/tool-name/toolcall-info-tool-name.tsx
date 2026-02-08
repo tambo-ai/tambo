@@ -27,7 +27,7 @@ export const ToolcallInfoToolName = React.forwardRef<
   const Comp = asChild ? Slot : "span";
 
   const { content, componentProps } = useRender(props, {
-    toolName: toolCallRequest?.toolName,
+    toolName: toolCallRequest?.name,
   });
 
   return (

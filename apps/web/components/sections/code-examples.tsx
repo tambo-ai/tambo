@@ -96,14 +96,14 @@ export type EmailProps = z.infer<typeof EmailProps>;
 `,
 
   component: `// Create a component like normal but with tambo-ai for state management
-import { useTamboState } from "@tambo-ai/react";
+import { useTamboComponentState } from "@tambo-ai/react";
 import { EmailProps } from "./EmailProps"; // from file before
 
 export function EmailForm(EmailProps: EmailProps) {
   // Use Tambo state hooks to pass the values to the AI
-  const [emailSubject, setEmailSubject] = useTamboState("emailSubject", subject);
-  const [emailMessage, setEmailMessage] = useTamboState("emailMessage", message);
-  const [status, setStatus] = useTamboState("emailStatus", "pending");
+  const [emailSubject, setEmailSubject] = useTamboComponentState("emailSubject", subject);
+  const [emailMessage, setEmailMessage] = useTamboComponentState("emailMessage", message);
+  const [status, setStatus] = useTamboComponentState("emailStatus", "pending");
 
   return (
     <form onSubmit={handleSubmit}>
