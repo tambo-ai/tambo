@@ -43,6 +43,7 @@ import {
   createThrottledStreamableExecutor,
 } from "../utils/tool-executor";
 import type { ToolResultContent } from "@tambo-ai/typescript-sdk/resources/threads/threads";
+import type { RunCreateParams } from "@tambo-ai/typescript-sdk/resources/threads/runs";
 import { ToolCallTracker } from "../utils/tool-call-tracker";
 import { parse as parsePartialJson } from "partial-json";
 
@@ -437,15 +438,12 @@ export async function createRunStream(
     return { stream, initialThreadId: threadId };
   } else {
     // Create new thread - include initialMessages if provided
-    // Cast to InputMessage[] at the SDK boundary: the V1 API accepts system/assistant roles
-    // but the TS SDK type constrains role to 'user'. Remove cast when typescript-sdk is regenerated.
-    const threadConfig: { userKey?: string; initialMessages?: InputMessage[] } =
-      {};
+    const threadConfig: RunCreateParams.Thread = {};
     if (userKey) {
       threadConfig.userKey = userKey;
     }
     if (initialMessages?.length) {
-      threadConfig.initialMessages = initialMessages as InputMessage[];
+      threadConfig.initialMessages = initialMessages;
     }
 
     const stream = await client.threads.runs.create({

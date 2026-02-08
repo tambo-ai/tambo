@@ -20,6 +20,10 @@ const mockGetInteractableComponentState = jest.fn<
   [string]
 >(() => undefined);
 
+jest.mock("../providers/tambo-v1-provider", () => ({
+  useTamboConfig: jest.fn(() => ({})),
+}));
+
 jest.mock("../../providers/tambo-interactable-provider", () => ({
   useTamboInteractable: () => ({
     interactableComponents: [],
@@ -58,6 +62,7 @@ jest.mock("use-debounce", () => ({
 
 // Import the mocked modules
 import { useTamboClient } from "../../providers/tambo-client-provider";
+import { useTamboConfig } from "../providers/tambo-v1-provider";
 import { useStreamState } from "../providers/tambo-v1-stream-context";
 import { useComponentContentOptional } from "../utils/component-renderer";
 import { useDebouncedCallback } from "use-debounce";
@@ -109,6 +114,8 @@ describe("useTamboComponentState", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+
+    jest.mocked(useTamboConfig).mockReturnValue({});
 
     // Setup default mocks
     jest.mocked(useTamboClient).mockReturnValue({
@@ -255,6 +262,7 @@ describe("useTamboComponentState", () => {
       expect(mockUpdateState).toHaveBeenCalledWith(mockComponentId, {
         threadId: mockThreadId,
         state: { testKey: newValue },
+        userKey: undefined,
       });
     });
 

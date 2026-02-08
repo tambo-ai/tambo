@@ -17,6 +17,7 @@ import React, {
   type ReactElement,
 } from "react";
 import { useTamboClient } from "../../providers/tambo-client-provider";
+import { useTamboConfig } from "../providers/tambo-v1-provider";
 import { useTamboAuthState } from "./use-tambo-v1-auth-state";
 import type { TamboAuthState } from "../types/auth";
 import {
@@ -195,6 +196,7 @@ interface ComponentCacheEntry {
  */
 export function useTambo(): UseTamboReturn {
   const client = useTamboClient();
+  const { userKey } = useTamboConfig();
   const streamState = useStreamState();
   const dispatch = useStreamDispatch();
   const registry = useContext(TamboRegistryContext);
@@ -232,13 +234,14 @@ export function useTambo(): UseTamboReturn {
 
     // Call API to cancel the run
     try {
-      await client.threads.runs.delete(runId, { threadId });
+      await client.threads.runs.delete(runId, { threadId, userKey });
     } catch (error) {
       // Log but don't rethrow - local state is already updated
       console.warn("Failed to cancel run on server:", error);
     }
   }, [
     client,
+    userKey,
     streamState.currentThreadId,
     threadState?.streaming.runId,
     dispatch,
