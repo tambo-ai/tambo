@@ -488,7 +488,7 @@ describe("streamReducer", () => {
   });
 
   describe("RUN_FINISHED event", () => {
-    it("updates thread status to complete", () => {
+    it("updates thread status to idle", () => {
       const state = createTestStreamState("thread_1");
       state.threadMap.thread_1.thread.status = "streaming";
       state.threadMap.thread_1.streaming.status = "streaming";
@@ -505,8 +505,8 @@ describe("streamReducer", () => {
         threadId: "thread_1",
       });
 
-      expect(result.threadMap.thread_1.thread.status).toBe("complete");
-      expect(result.threadMap.thread_1.streaming.status).toBe("complete");
+      expect(result.threadMap.thread_1.thread.status).toBe("idle");
+      expect(result.threadMap.thread_1.streaming.status).toBe("idle");
     });
 
     it("sets lastCompletedRunId from event.runId", () => {
@@ -558,7 +558,7 @@ describe("streamReducer", () => {
   });
 
   describe("RUN_ERROR event", () => {
-    it("updates thread status to error with details", () => {
+    it("updates thread status to idle with error details", () => {
       const state = createTestStreamState("thread_1");
       const event: RunErrorEvent = {
         type: EventType.RUN_ERROR,
@@ -572,8 +572,8 @@ describe("streamReducer", () => {
         threadId: "thread_1",
       });
 
-      expect(result.threadMap.thread_1.thread.status).toBe("error");
-      expect(result.threadMap.thread_1.streaming.status).toBe("error");
+      expect(result.threadMap.thread_1.thread.status).toBe("idle");
+      expect(result.threadMap.thread_1.streaming.status).toBe("idle");
       expect(result.threadMap.thread_1.streaming.error).toEqual({
         message: "Something went wrong",
         code: "ERR_001",

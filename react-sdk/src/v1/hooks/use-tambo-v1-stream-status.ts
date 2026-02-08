@@ -254,10 +254,7 @@ export function useTamboStreamStatus<
   const threadState = streamState.threadMap[threadId];
 
   /** Get error message from stream state if any */
-  const streamErrorMessage =
-    threadState?.streaming.status === "error"
-      ? threadState?.streaming.error?.message
-      : undefined;
+  const streamErrorMessage = threadState?.streaming.error?.message;
 
   /** Find the component content block */
   const componentContent = findComponentContent(

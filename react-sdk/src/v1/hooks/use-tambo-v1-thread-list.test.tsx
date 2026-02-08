@@ -29,7 +29,7 @@ describe("useTamboThreadList", () => {
   const mockThreads = {
     threads: [
       { id: "thread_1", runStatus: "idle" },
-      { id: "thread_2", runStatus: "complete" },
+      { id: "thread_2", runStatus: "idle" },
     ],
     hasMore: false,
     nextCursor: undefined,

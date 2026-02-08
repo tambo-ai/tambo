@@ -269,7 +269,7 @@ describe("useTamboStreamStatus", () => {
       const message = createMessage(componentContent);
       const threadState = createThreadState([message], {
         streaming: {
-          status: "error",
+          status: "idle",
           error: { message: "Generation failed", code: "GENERATION_ERROR" },
         },
       });

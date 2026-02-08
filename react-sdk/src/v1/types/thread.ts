@@ -15,9 +15,11 @@ export type {
 } from "@tambo-ai/typescript-sdk/resources/threads/threads";
 
 /**
- * Run status indicates the current state of the thread
+ * Run status indicates the current state of the thread's run lifecycle.
+ * Matches the API's V1RunStatus — no "complete" or "error" variants.
+ * Error information is tracked separately in StreamingState.error.
  */
-export type RunStatus = "idle" | "waiting" | "streaming" | "complete" | "error";
+export type RunStatus = "idle" | "waiting" | "streaming";
 
 /**
  * Thread represents a conversation with the AI

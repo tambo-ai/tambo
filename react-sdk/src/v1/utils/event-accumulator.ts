@@ -705,12 +705,12 @@ function handleRunFinished(
       threadState.lastCompletedRunId,
     thread: {
       ...threadState.thread,
-      status: "complete",
+      status: "idle",
       updatedAt: new Date().toISOString(),
     },
     streaming: {
       ...threadState.streaming,
-      status: "complete",
+      status: "idle",
     },
   };
 }
@@ -732,15 +732,13 @@ function handleRunError(
     ...threadState,
     thread: {
       ...threadState.thread,
-      // Use "idle" status for cancelled runs (not a real error from user perspective)
-      status: isCancelled ? "idle" : "error",
+      status: "idle",
       updatedAt: new Date().toISOString(),
       lastRunCancelled: isCancelled,
     },
     streaming: {
       ...threadState.streaming,
-      // Use "idle" status for cancelled runs so UI shows as not streaming
-      status: isCancelled ? "idle" : "error",
+      status: "idle",
       error: isCancelled
         ? undefined
         : {
