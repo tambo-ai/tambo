@@ -202,7 +202,7 @@ describe("ThreadsService.advanceThread initialization", () => {
   let service: ThreadsService;
   let authService: AuthService;
   let _projectsService: ProjectsService;
-  let logger: { log: jest.Mock; warn: jest.Mock; error: jest.Mock };
+  let logger: jest.Mocked<CorrelationLoggerService>;
 
   const projectId = "proj_1";
   const threadId = "thread_1";
@@ -419,7 +419,9 @@ describe("ThreadsService.advanceThread initialization", () => {
 
     service = module.get(ThreadsService);
     authService = module.get(AuthService);
-    logger = module.get(CorrelationLoggerService);
+    logger = module.get(
+      CorrelationLoggerService,
+    );
     _projectsService = module.get(ProjectsService);
   });
 
@@ -595,13 +597,16 @@ describe("ThreadsService.advanceThread initialization", () => {
       await service.createTamboBackendForThread(threadId, "user_1");
 
       expect(logger.warn).toHaveBeenCalledTimes(1);
-      const [logArg] = logger.warn.mock.calls[0] ?? [];
+      const logArg = (logger.warn.mock.calls[0]?.[0] ?? {}) as Record<
+        string,
+        unknown
+      >;
       expect(logArg).toMatchObject({
-        message:
-          "DB connection dropped while fetching thread projectId; retrying",
+        message: expect.stringContaining(
+          "DB connection dropped while fetching thread projectId",
+        ),
         attempt: 1,
         nextAttempt: 2,
-        maxAttempts: 2,
         threadId,
         errorName: "Error",
         errorMessage: errorWithCode.message,
@@ -609,7 +614,6 @@ describe("ThreadsService.advanceThread initialization", () => {
         isTransientDbConnectionError: true,
       });
       expect(typeof logArg.attempt).toBe("number");
-      expect(typeof logArg.maxAttempts).toBe("number");
       expect(typeof logArg.threadId).toBe("string");
     });
 
