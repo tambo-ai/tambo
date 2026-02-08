@@ -567,6 +567,21 @@ describe("ThreadsService.advanceThread initialization", () => {
     expect(wasAbortedAfterExternalAbort).toBe(true);
   });
 
+  describe("createTamboBackendForThread", () => {
+    it("retries thread lookup once when the DB connection drops", async () => {
+      jest
+        .mocked(fakeDb.query.threads.findFirst)
+        .mockRejectedValueOnce(new Error("Connection terminated unexpectedly"))
+        .mockResolvedValueOnce({ projectId });
+
+      await expect(
+        service.createTamboBackendForThread(threadId, "user_1"),
+      ).resolves.toBeTruthy();
+
+      expect(fakeDb.query.threads.findFirst).toHaveBeenCalledTimes(2);
+    });
+  });
+
   describe("Queue-based streaming behavior", () => {
     test("pushes messages to queue during streaming execution", async () => {
       const dto = makeDto({ withComponents: false, withClientTools: false });

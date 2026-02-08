@@ -129,18 +129,7 @@ export class ThreadsService {
   ): Promise<ITamboBackend> {
     const chainId = await generateChainId(threadId);
 
-    const threadData = await this.getDb().query.threads.findFirst({
-      where: eq(schema.threads.id, threadId),
-      columns: { projectId: true },
-    });
-
-    if (!threadData?.projectId) {
-      throw new NotFoundException(
-        `Thread with ID ${threadId} not found or has no project associated.`,
-      );
-    }
-
-    const projectId = threadData.projectId;
+    const projectId = await this.getProjectIdForThreadWithRetry(threadId);
 
     // 1. Fetch project-specific LLM settings
     const project = await this.projectsService.findOne(projectId);
@@ -190,6 +179,49 @@ export class ThreadsService {
       agentUrl: project.agentUrl,
       customLlmParameters: project.customLlmParameters,
     });
+  }
+
+  private async getProjectIdForThreadWithRetry(
+    threadId: string,
+  ): Promise<string> {
+    const maxAttempts = 2;
+
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        const threadData = await this.getDb().query.threads.findFirst({
+          where: eq(schema.threads.id, threadId),
+          columns: { projectId: true },
+        });
+
+        if (!threadData?.projectId) {
+          throw new NotFoundException(
+            `Thread with ID ${threadId} not found or has no project associated.`,
+          );
+        }
+
+        return threadData.projectId;
+      } catch (error: unknown) {
+        if (
+          attempt < maxAttempts &&
+          error instanceof Error &&
+          error.message.includes("Connection terminated unexpectedly")
+        ) {
+          this.logger.warn({
+            message:
+              "DB connection dropped while fetching thread projectId; retrying",
+            attempt: attempt + 1,
+            maxAttempts,
+            threadId,
+          });
+          await new Promise((resolve) => setTimeout(resolve, 50 * attempt));
+          continue;
+        }
+
+        throw error;
+      }
+    }
+
+    throw new Error("Failed to resolve project ID for thread");
   }
 
   async createThread(
