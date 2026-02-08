@@ -184,8 +184,18 @@ export class ThreadsService {
   private async getProjectIdForThreadWithRetry(
     threadId: string,
   ): Promise<string> {
+    // Total attempts (initial try + retries)
     const maxAttempts = 2;
     const baseBackoffMs = 50;
+
+    const transientDbErrorCodes = new Set([
+      "ECONNRESET",
+      "ETIMEDOUT",
+      "EPIPE",
+      "57P01", // admin_shutdown
+      "57P02", // crash_shutdown
+      "57P03", // cannot_connect_now
+    ]);
 
     const isTransientDbError = (error: unknown): boolean => {
       if (!(error instanceof Error)) {
@@ -194,16 +204,7 @@ export class ThreadsService {
 
       const errorCode = (error as Error & { code?: unknown }).code;
       if (typeof errorCode === "string") {
-        const transientCodes = new Set([
-          "ECONNRESET",
-          "ETIMEDOUT",
-          "EPIPE",
-          "57P01", // admin_shutdown
-          "57P02", // crash_shutdown
-          "57P03", // cannot_connect_now
-        ]);
-
-        if (transientCodes.has(errorCode)) {
+        if (transientDbErrorCodes.has(errorCode)) {
           return true;
         }
       }
@@ -230,7 +231,8 @@ export class ThreadsService {
           this.logger.warn({
             message:
               "DB connection dropped while fetching thread projectId; retrying",
-            attempt: attempt + 1,
+            attempt,
+            nextAttempt: attempt + 1,
             maxAttempts,
             threadId,
           });
