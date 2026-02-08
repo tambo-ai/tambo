@@ -6,7 +6,10 @@ import type { HydraDatabase } from "./types";
 
 let globalPool: Pool | null = null;
 
-const MAX_POOL_SIZE = 50;
+// Max number of open connections in the app-side pg.Pool.
+// When behind a connection pooler (e.g. Supavisor), this limits how many
+// concurrent connections the app can hold to the pooler — not to Postgres directly. (For "medium" size postgres cluster, max is 600 from all sources, so this is our own extra limit and depends on how many our server can handle)
+const MAX_POOL_SIZE = 75;
 
 function getPool(databaseUrl: string): Pool {
   if (!globalPool) {
@@ -76,8 +79,8 @@ async function closeDb() {
   }
 }
 
-export * from "./oauth/OAuthLocalProvider";
-export * from "./types";
 export * from "./converters/message-converters";
+export * from "./oauth/OAuthLocalProvider";
 export { ThreadNotFoundError } from "./operations/thread";
+export * from "./types";
 export { closeDb, getDb, operations, schema }; // `withDbClient` exported above
