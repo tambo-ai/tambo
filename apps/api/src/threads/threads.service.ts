@@ -185,6 +185,31 @@ export class ThreadsService {
     threadId: string,
   ): Promise<string> {
     const maxAttempts = 2;
+    const baseBackoffMs = 50;
+
+    const isTransientDbError = (error: unknown): boolean => {
+      if (!(error instanceof Error)) {
+        return false;
+      }
+
+      const errorCode = (error as Error & { code?: unknown }).code;
+      if (typeof errorCode === "string") {
+        const transientCodes = new Set([
+          "ECONNRESET",
+          "ETIMEDOUT",
+          "EPIPE",
+          "57P01", // admin_shutdown
+          "57P02", // crash_shutdown
+          "57P03", // cannot_connect_now
+        ]);
+
+        if (transientCodes.has(errorCode)) {
+          return true;
+        }
+      }
+
+      return error.message.includes("Connection terminated unexpectedly");
+    };
 
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       try {
@@ -201,11 +226,7 @@ export class ThreadsService {
 
         return threadData.projectId;
       } catch (error: unknown) {
-        if (
-          attempt < maxAttempts &&
-          error instanceof Error &&
-          error.message.includes("Connection terminated unexpectedly")
-        ) {
+        if (attempt < maxAttempts && isTransientDbError(error)) {
           this.logger.warn({
             message:
               "DB connection dropped while fetching thread projectId; retrying",
@@ -213,7 +234,9 @@ export class ThreadsService {
             maxAttempts,
             threadId,
           });
-          await new Promise((resolve) => setTimeout(resolve, 50 * attempt));
+          await new Promise((resolve) =>
+            setTimeout(resolve, baseBackoffMs * attempt),
+          );
           continue;
         }
 
@@ -221,7 +244,9 @@ export class ThreadsService {
       }
     }
 
-    throw new Error("Failed to resolve project ID for thread");
+    throw new Error(
+      "Unreachable: thread project ID lookup retry loop exhausted",
+    );
   }
 
   async createThread(

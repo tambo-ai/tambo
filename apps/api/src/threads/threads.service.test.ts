@@ -578,6 +578,31 @@ describe("ThreadsService.advanceThread initialization", () => {
 
       expect(fakeDb.query.threads.findFirst).toHaveBeenCalledTimes(2);
     });
+
+    it("does not retry thread lookup for non-transient errors", async () => {
+      jest
+        .mocked(fakeDb.query.threads.findFirst)
+        .mockRejectedValueOnce(new Error("Some permanent error"));
+
+      await expect(
+        service.createTamboBackendForThread(threadId, "user_1"),
+      ).rejects.toThrow("Some permanent error");
+
+      expect(fakeDb.query.threads.findFirst).toHaveBeenCalledTimes(1);
+    });
+
+    it("throws after retrying once if the connection keeps dropping", async () => {
+      jest
+        .mocked(fakeDb.query.threads.findFirst)
+        .mockRejectedValueOnce(new Error("Connection terminated unexpectedly"))
+        .mockRejectedValueOnce(new Error("Connection terminated unexpectedly"));
+
+      await expect(
+        service.createTamboBackendForThread(threadId, "user_1"),
+      ).rejects.toThrow("Connection terminated unexpectedly");
+
+      expect(fakeDb.query.threads.findFirst).toHaveBeenCalledTimes(2);
+    });
   });
 
   describe("Queue-based streaming behavior", () => {
