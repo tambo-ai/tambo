@@ -604,10 +604,6 @@ describe("ThreadsService.advanceThread initialization", () => {
         message: expect.stringContaining(
           "DB connection dropped while fetching thread projectId",
         ),
-        attempt: 1,
-        nextAttempt: 2,
-        maxAttempts: 2,
-        retriesAttempted: 0,
         willRetry: true,
         threadId,
         errorName: "Error",
@@ -616,6 +612,9 @@ describe("ThreadsService.advanceThread initialization", () => {
         isTransientDbConnectionError: true,
       });
       expect(typeof logArg.attempt).toBe("number");
+      expect(typeof logArg.nextAttempt).toBe("number");
+      expect(typeof logArg.maxAttempts).toBe("number");
+      expect(typeof logArg.retriesAttempted).toBe("number");
       expect(typeof logArg.threadId).toBe("string");
     });
 

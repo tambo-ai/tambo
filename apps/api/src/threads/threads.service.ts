@@ -111,6 +111,7 @@ const TRANSIENT_DB_ERROR_CODES = new Set([
 const TRANSIENT_DB_ERROR_MESSAGE_SUBSTRINGS = [
   // All entries must be lowercase; `isTransientDbConnectionError` lowers the error message.
   // Intentionally narrow: only include connection-drop signatures we have observed.
+  // Only add new entries for verified transient connection drop patterns seen in production.
   "connection terminated unexpectedly",
   "server closed the connection unexpectedly",
 ] as const;
@@ -140,12 +141,16 @@ function isTransientDbConnectionError(error: unknown): boolean {
   );
 }
 
-function getErrorDetails(error: unknown): {
+function getErrorDetails(
+  error: unknown,
+  options?: { includeStack?: boolean },
+): {
   errorName?: string;
   errorMessage?: string;
   errorCode?: string;
   errorStack?: string;
 } {
+  const includeStack = options?.includeStack ?? false;
   const errorCode = getErrorCode(error);
 
   if (error instanceof Error) {
@@ -153,7 +158,7 @@ function getErrorDetails(error: unknown): {
       errorName: error.name,
       errorMessage: error.message,
       errorCode,
-      errorStack: error.stack,
+      errorStack: includeStack ? error.stack : undefined,
     };
   }
 
@@ -257,12 +262,11 @@ export class ThreadsService {
   private async getProjectIdForThreadWithRetry(
     threadId: string,
   ): Promise<string> {
-    // Total attempts (initial try + retries)
-    // Keep this intentionally low (1 retry) so we don't hide systemic DB issues.
-    const maxAttempts = THREAD_PROJECT_ID_LOOKUP_MAX_ATTEMPTS;
-    const baseBackoffMs = THREAD_PROJECT_ID_LOOKUP_BASE_BACKOFF_MS;
-
-    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    for (
+      let attempt = 1;
+      attempt <= THREAD_PROJECT_ID_LOOKUP_MAX_ATTEMPTS;
+      attempt++
+    ) {
       try {
         const threadData = await this.getDb().query.threads.findFirst({
           where: eq(schema.threads.id, threadId),
@@ -282,9 +286,10 @@ export class ThreadsService {
         }
 
         const isTransient = isTransientDbConnectionError(error);
-        const shouldRetry = attempt < maxAttempts && isTransient;
+        const shouldRetry =
+          attempt < THREAD_PROJECT_ID_LOOKUP_MAX_ATTEMPTS && isTransient;
         const { errorName, errorMessage, errorCode, errorStack } =
-          getErrorDetails(error);
+          getErrorDetails(error, { includeStack: !shouldRetry });
 
         if (shouldRetry) {
           this.logger.warn({
@@ -292,7 +297,7 @@ export class ThreadsService {
               "DB connection dropped while fetching thread projectId; retrying",
             attempt,
             nextAttempt: attempt + 1,
-            maxAttempts,
+            maxAttempts: THREAD_PROJECT_ID_LOOKUP_MAX_ATTEMPTS,
             retriesAttempted: attempt - 1,
             willRetry: true,
             threadId,
@@ -303,7 +308,7 @@ export class ThreadsService {
             isTransientDbConnectionError: isTransient,
           });
           const backoffMs = Math.min(
-            baseBackoffMs * attempt,
+            THREAD_PROJECT_ID_LOOKUP_BASE_BACKOFF_MS * attempt,
             THREAD_PROJECT_ID_LOOKUP_MAX_BACKOFF_MS,
           );
           await new Promise((resolve) => setTimeout(resolve, backoffMs));
@@ -313,7 +318,7 @@ export class ThreadsService {
         this.logger.error({
           message: "DB error while fetching thread projectId",
           attempt,
-          maxAttempts,
+          maxAttempts: THREAD_PROJECT_ID_LOOKUP_MAX_ATTEMPTS,
           retriesAttempted: attempt - 1,
           willRetry: false,
           threadId,
@@ -332,7 +337,7 @@ export class ThreadsService {
     }
 
     throw new Error(
-      "Unreachable: thread project ID lookup retry loop exhausted",
+      "Thread project ID lookup retry loop exhausted unexpectedly",
     );
   }
 
