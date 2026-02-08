@@ -37,8 +37,17 @@ jest.mock("@tambo-ai/react", () => ({
   }),
   useTamboCurrentComponent: () => null,
   useTambo: () => ({
-    sendThreadMessage: jest.fn(),
     isIdle: true,
+    messages: [],
+    isStreaming: false,
+  }),
+  useTamboThreadInput: () => ({
+    value: "",
+    setValue: jest.fn(),
+    submit: jest.fn(),
+  }),
+  useTamboInteractable: () => ({
+    setInteractableSelected: jest.fn(),
   }),
 }));
 
