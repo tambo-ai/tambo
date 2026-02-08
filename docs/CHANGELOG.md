@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.0-rc.1](https://github.com/tambo-ai/tambo/compare/docs-v1.26.0...docs-v1.0.0-rc.1) (2026-02-08)
+
+
+### Code Refactoring
+
+* **react-sdk:** promote V1 SDK to main export (1.0.0-rc.1) ([#2297](https://github.com/tambo-ai/tambo/issues/2297)) ([1799bce](https://github.com/tambo-ai/tambo/commit/1799bceecf412d1a4f263108dae75ddcb3fe7491))
+
 ## [1.26.0](https://github.com/tambo-ai/tambo/compare/docs-v1.25.0...docs-v1.26.0) (2026-02-07)
 
 
