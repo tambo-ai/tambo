@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.140.0](https://github.com/tambo-ai/tambo/compare/api-v0.139.0...api-v0.140.0) (2026-02-08)
+
+
+### Features
+
+* **api:** require userKey or bearer token in all V1 thread routes ([#2293](https://github.com/tambo-ai/tambo/issues/2293)) ([efe5eeb](https://github.com/tambo-ai/tambo/commit/efe5eeb9208403919bcf6663c98f3a14a5f80546))
+
+
+### Bug Fixes
+
+* **api,react-sdk:** route V1 initialMessages through ThreadsService and support system/assistant roles ([#2295](https://github.com/tambo-ai/tambo/issues/2295)) ([3df637d](https://github.com/tambo-ai/tambo/commit/3df637dd3719617baa9637e9e7538e7959e33e02))
+* **api:** reset generationStage on V1 run cancel and error ([#2289](https://github.com/tambo-ai/tambo/issues/2289)) ([a99e17d](https://github.com/tambo-ai/tambo/commit/a99e17d38e3fc9de6ed5d6f7454e3d4b6cf9c19a))
+* **api:** return thread name in V1 thread DTO        ([#2286](https://github.com/tambo-ai/tambo/issues/2286)) ([eeb1665](https://github.com/tambo-ai/tambo/commit/eeb16658a003f64cc7f95aeece2e55884b9f7c5b))
+
 ## [0.139.0](https://github.com/tambo-ai/tambo/compare/api-v0.138.0...api-v0.139.0) (2026-02-07)
 
 
