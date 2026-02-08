@@ -1,6 +1,7 @@
 {
   "name": "@tambo-ai/showcase",
   "version": "0.36.0",
+  "description": "Tambo AI component showcase",
   "private": true,
   "license": "MIT",
   "scripts": {
