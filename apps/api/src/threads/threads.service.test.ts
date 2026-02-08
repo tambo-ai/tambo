@@ -575,6 +575,11 @@ describe("ThreadsService.advanceThread initialization", () => {
   });
 
   describe("createTamboBackendForThread", () => {
+    beforeEach(() => {
+      logger.warn.mockClear();
+      logger.error.mockClear();
+    });
+
     it.each([
       "Connection terminated unexpectedly",
       "server closed the connection unexpectedly",
@@ -628,6 +633,29 @@ describe("ThreadsService.advanceThread initialization", () => {
       expect(typeof logArg.maxAttempts).toBe("number");
       expect(typeof logArg.retriesAttempted).toBe("number");
       expect(typeof logArg.threadId).toBe("string");
+    });
+
+    it("logs diagnostic fields when retrying a transient DB error detected by message", async () => {
+      jest
+        .mocked(fakeDb.query.threads.findFirst)
+        .mockRejectedValueOnce(
+          new Error("server closed the connection unexpectedly"),
+        )
+        .mockResolvedValueOnce({ projectId });
+
+      await service.createTamboBackendForThread(threadId, "user_1");
+
+      expect(logger.warn).toHaveBeenCalledTimes(1);
+      expect(logger.error).not.toHaveBeenCalled();
+      const logArg = (logger.warn.mock.calls[0]?.[0] ?? {}) as Record<
+        string,
+        unknown
+      >;
+      expect(logArg).toMatchObject({
+        isTransientDbConnectionError: true,
+        willRetry: true,
+        errorMessage: "server closed the connection unexpectedly",
+      });
     });
 
     it("retries thread lookup once when the DB error has a transient code", async () => {

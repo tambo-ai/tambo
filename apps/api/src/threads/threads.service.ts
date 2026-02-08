@@ -217,6 +217,9 @@ export class ThreadsService {
   ): Promise<ITamboBackend> {
     const chainId = await generateChainId(threadId);
 
+    // We intentionally scope transient DB retries to this initial lookup.
+    // If other DB reads fail, we want them to surface clearly (with logs/Sentry) rather than
+    // masking broader connectivity issues.
     const projectId = await this.getProjectIdForThreadWithRetry(threadId);
 
     // 1. Fetch project-specific LLM settings
