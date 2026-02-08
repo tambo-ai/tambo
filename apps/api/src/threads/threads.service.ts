@@ -105,9 +105,10 @@ const TRANSIENT_DB_ERROR_CODES = new Set([
 ]);
 
 const TRANSIENT_DB_ERROR_MESSAGE_SUBSTRINGS = [
+  // All entries must be lowercase; `isTransientDbConnectionError` lowers the error message.
   "connection terminated unexpectedly",
   "server closed the connection unexpectedly",
-];
+] as const;
 
 function getErrorCode(error: unknown): string | undefined {
   if (typeof error !== "object" || error === null) {
@@ -229,13 +230,24 @@ export class ThreadsService {
     const baseBackoffMs = 50;
 
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-      let threadData: { projectId: string } | undefined;
       try {
-        threadData = await this.getDb().query.threads.findFirst({
+        const threadData = await this.getDb().query.threads.findFirst({
           where: eq(schema.threads.id, threadId),
           columns: { projectId: true },
         });
+
+        if (!threadData?.projectId) {
+          throw new NotFoundException(
+            `Thread with ID ${threadId} not found or has no project associated.`,
+          );
+        }
+
+        return threadData.projectId;
       } catch (error: unknown) {
+        if (error instanceof NotFoundException) {
+          throw error;
+        }
+
         if (attempt < maxAttempts && isTransientDbConnectionError(error)) {
           const errorCode = getErrorCode(error);
           this.logger.warn({
@@ -260,14 +272,6 @@ export class ThreadsService {
 
         throw error;
       }
-
-      if (!threadData?.projectId) {
-        throw new NotFoundException(
-          `Thread with ID ${threadId} not found or has no project associated.`,
-        );
-      }
-
-      return threadData.projectId;
     }
 
     throw new Error(

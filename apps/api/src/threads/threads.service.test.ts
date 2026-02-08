@@ -202,6 +202,7 @@ describe("ThreadsService.advanceThread initialization", () => {
   let service: ThreadsService;
   let authService: AuthService;
   let _projectsService: ProjectsService;
+  let logger: { log: jest.Mock; warn: jest.Mock; error: jest.Mock };
 
   const projectId = "proj_1";
   const threadId = "thread_1";
@@ -418,6 +419,7 @@ describe("ThreadsService.advanceThread initialization", () => {
 
     service = module.get(ThreadsService);
     authService = module.get(AuthService);
+    logger = module.get(CorrelationLoggerService);
     _projectsService = module.get(ProjectsService);
   });
 
@@ -577,6 +579,35 @@ describe("ThreadsService.advanceThread initialization", () => {
       await service.createTamboBackendForThread(threadId, "user_1");
 
       expect(fakeDb.query.threads.findFirst).toHaveBeenCalledTimes(2);
+    });
+
+    it("logs diagnostic fields when retrying a transient DB error", async () => {
+      const errorWithCode = Object.assign(
+        new Error("Connection terminated unexpectedly"),
+        { code: "ECONNRESET" },
+      );
+
+      jest
+        .mocked(fakeDb.query.threads.findFirst)
+        .mockRejectedValueOnce(errorWithCode)
+        .mockResolvedValueOnce({ projectId });
+
+      await service.createTamboBackendForThread(threadId, "user_1");
+
+      expect(logger.warn).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message:
+            "DB connection dropped while fetching thread projectId; retrying",
+          attempt: 1,
+          nextAttempt: 2,
+          maxAttempts: 2,
+          threadId,
+          errorName: "Error",
+          errorMessage: errorWithCode.message,
+          errorCode: "ECONNRESET",
+          isTransientDbConnectionError: true,
+        }),
+      );
     });
 
     it("retries thread lookup once when the DB error message suggests a connection termination", async () => {
