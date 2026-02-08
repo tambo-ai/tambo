@@ -616,6 +616,11 @@ describe("ThreadsService.advanceThread initialization", () => {
       expect(typeof logArg.maxAttempts).toBe("number");
       expect(typeof logArg.retriesAttempted).toBe("number");
       expect(typeof logArg.threadId).toBe("string");
+
+      expect(logArg.attempt).toBe(1);
+      expect(logArg.nextAttempt).toBe(2);
+      expect(logArg.retriesAttempted).toBe(0);
+      expect(logArg.maxAttempts).toBe(2);
     });
 
     it("retries thread lookup once when the DB error message suggests a connection termination", async () => {

@@ -113,6 +113,7 @@ const TRANSIENT_DB_ERROR_MESSAGE_SUBSTRINGS = [
   // Intentionally narrow: only include connection-drop signatures we have observed.
   // Only add new entries for verified transient connection drop patterns seen in production.
   "connection terminated unexpectedly",
+  "connection reset by peer",
   "server closed the connection unexpectedly",
 ] as const;
 
@@ -288,8 +289,11 @@ export class ThreadsService {
         const isTransient = isTransientDbConnectionError(error);
         const shouldRetry =
           attempt < THREAD_PROJECT_ID_LOOKUP_MAX_ATTEMPTS && isTransient;
+        const includeStack =
+          !shouldRetry &&
+          (attempt === THREAD_PROJECT_ID_LOOKUP_MAX_ATTEMPTS || !isTransient);
         const { errorName, errorMessage, errorCode, errorStack } =
-          getErrorDetails(error, { includeStack: !shouldRetry });
+          getErrorDetails(error, { includeStack });
 
         if (shouldRetry) {
           this.logger.warn({
