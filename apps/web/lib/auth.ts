@@ -8,7 +8,7 @@ import {
 } from "@tambo-ai-cloud/core";
 import { getDb, schema } from "@tambo-ai-cloud/db";
 import { decodeJwt } from "jose";
-import { Account, AuthOptions as NextAuthOptions } from "next-auth";
+import { AuthOptions as NextAuthOptions } from "next-auth";
 import { JWT } from "next-auth/jwt";
 import Email from "next-auth/providers/email";
 import GitHub from "next-auth/providers/github";
@@ -228,14 +228,15 @@ export const authOptions: NextAuthOptions = {
     },
     async jwt({ token, account, user }) {
       // console.log("AUTH ROUTE: jwt callback with", token, account, user);
-      // Persist the OAuth access_token to the token right after signin
+      // Persist the OAuth access_token and refresh_token to the token right after signin
       if (account) {
         token.accessToken = account.access_token;
         token.provider = account.provider;
         token.idToken = account.id_token;
+        token.refreshToken = account.refresh_token;
       }
 
-      const refreshedToken = await refreshTokenIfNecessary(account, token);
+      const refreshedToken = await refreshTokenIfNecessary(token);
       // Add user ID to token
       if (user) {
         refreshedToken.id = user.id;
@@ -303,20 +304,16 @@ export const authOptions: NextAuthOptions = {
   secret: env.NEXTAUTH_SECRET,
 };
 /**
- * Refresh the token if it is expired, otherwise return the token as is
- * @param account - The account object
+ * Refresh the token if it is expired, otherwise return the token as is.
+ * Uses the refresh token stored in the JWT (persisted during initial sign-in).
  * @param token - The token to refresh
  * @returns The refreshed token
  */
-
-async function refreshTokenIfNecessary(
-  account: Account | null,
-  token: JWT,
-): Promise<JWT> {
+export async function refreshTokenIfNecessary(token: JWT): Promise<JWT> {
   if (!token.idToken) {
     return token;
   }
-  const refreshToken = account?.refresh_token;
+  const refreshToken = token.refreshToken;
   const idToken = decodeJwt(token.idToken);
 
   // Extract expiration and issued-at times (in seconds)
