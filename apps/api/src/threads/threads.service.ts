@@ -303,7 +303,7 @@ export class ThreadsService {
     const threads = await operations.getThreadsByProject(
       this.getDb(),
       projectId,
-      params,
+      { ...params, includeMessages: false },
     );
     return threads.map((thread) => ({
       id: thread.id,
