@@ -106,6 +106,7 @@ const TRANSIENT_DB_ERROR_CODES = new Set([
 
 const TRANSIENT_DB_ERROR_MESSAGE_SUBSTRINGS = [
   // All entries must be lowercase; `isTransientDbConnectionError` lowers the error message.
+  // Intentionally narrow: only include connection-drop signatures we have observed.
   "connection terminated unexpectedly",
   "server closed the connection unexpectedly",
 ] as const;
@@ -133,6 +134,33 @@ function isTransientDbConnectionError(error: unknown): boolean {
   return TRANSIENT_DB_ERROR_MESSAGE_SUBSTRINGS.some((substring) =>
     message.includes(substring),
   );
+}
+
+function getErrorDetails(error: unknown): {
+  errorName?: string;
+  errorMessage?: string;
+  errorCode?: string;
+  errorStack?: string;
+} {
+  const errorCode = getErrorCode(error);
+
+  if (error instanceof Error) {
+    return {
+      errorName: error.name,
+      errorMessage: error.message,
+      errorCode,
+      errorStack: error.stack,
+    };
+  }
+
+  let errorMessage: string | undefined;
+  try {
+    errorMessage = String(error);
+  } catch {
+    errorMessage = undefined;
+  }
+
+  return { errorCode, errorMessage };
 }
 
 @Injectable()
@@ -248,8 +276,12 @@ export class ThreadsService {
           throw error;
         }
 
-        if (attempt < maxAttempts && isTransientDbConnectionError(error)) {
-          const errorCode = getErrorCode(error);
+        const isTransient = isTransientDbConnectionError(error);
+        const shouldRetry = attempt < maxAttempts && isTransient;
+        const { errorName, errorMessage, errorCode, errorStack } =
+          getErrorDetails(error);
+
+        if (shouldRetry) {
           this.logger.warn({
             message:
               "DB connection dropped while fetching thread projectId; retrying",
@@ -257,18 +289,29 @@ export class ThreadsService {
             nextAttempt: attempt + 1,
             maxAttempts,
             threadId,
-            errorName: error instanceof Error ? error.name : undefined,
-            errorMessage:
-              error instanceof Error ? error.message : String(error),
+            errorName,
+            errorMessage,
             errorCode,
-            errorStack: error instanceof Error ? error.stack : undefined,
-            isTransientDbConnectionError: true,
+            errorStack,
+            isTransientDbConnectionError: isTransient,
           });
           await new Promise((resolve) =>
             setTimeout(resolve, baseBackoffMs * attempt),
           );
           continue;
         }
+
+        this.logger.error({
+          message: "DB error while fetching thread projectId",
+          attempt,
+          maxAttempts,
+          threadId,
+          errorName,
+          errorMessage,
+          errorCode,
+          errorStack,
+          isTransientDbConnectionError: isTransient,
+        });
 
         throw error;
       }

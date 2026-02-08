@@ -594,20 +594,23 @@ describe("ThreadsService.advanceThread initialization", () => {
 
       await service.createTamboBackendForThread(threadId, "user_1");
 
-      expect(logger.warn).toHaveBeenCalledWith(
-        expect.objectContaining({
-          message:
-            "DB connection dropped while fetching thread projectId; retrying",
-          attempt: 1,
-          nextAttempt: 2,
-          maxAttempts: 2,
-          threadId,
-          errorName: "Error",
-          errorMessage: errorWithCode.message,
-          errorCode: "ECONNRESET",
-          isTransientDbConnectionError: true,
-        }),
-      );
+      expect(logger.warn).toHaveBeenCalledTimes(1);
+      const [logArg] = logger.warn.mock.calls[0] ?? [];
+      expect(logArg).toMatchObject({
+        message:
+          "DB connection dropped while fetching thread projectId; retrying",
+        attempt: 1,
+        nextAttempt: 2,
+        maxAttempts: 2,
+        threadId,
+        errorName: "Error",
+        errorMessage: errorWithCode.message,
+        errorCode: "ECONNRESET",
+        isTransientDbConnectionError: true,
+      });
+      expect(typeof logArg.attempt).toBe("number");
+      expect(typeof logArg.maxAttempts).toBe("number");
+      expect(typeof logArg.threadId).toBe("string");
     });
 
     it("retries thread lookup once when the DB error message suggests a connection termination", async () => {
