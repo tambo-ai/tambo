@@ -11,7 +11,7 @@ jest.mock("../providers/tambo-v1-stream-context", () => ({
 }));
 
 jest.mock("../utils/component-renderer", () => ({
-  useV1ComponentContent: jest.fn(),
+  useV1ComponentContentOptional: jest.fn(),
 }));
 
 const mockSetInteractableState = jest.fn();
@@ -59,7 +59,7 @@ jest.mock("use-debounce", () => ({
 // Import the mocked modules
 import { useTamboClient } from "../../providers/tambo-client-provider";
 import { useStreamState } from "../providers/tambo-v1-stream-context";
-import { useV1ComponentContent } from "../utils/component-renderer";
+import { useV1ComponentContentOptional } from "../utils/component-renderer";
 import { useDebouncedCallback } from "use-debounce";
 import type { StreamState } from "../utils/event-accumulator";
 import type { V1ComponentContent } from "../types/message";
@@ -119,7 +119,7 @@ describe("useTamboV1ComponentState", () => {
       },
     } as unknown as ReturnType<typeof useTamboClient>);
 
-    jest.mocked(useV1ComponentContent).mockReturnValue({
+    jest.mocked(useV1ComponentContentOptional).mockReturnValue({
       componentId: mockComponentId,
       threadId: mockThreadId,
       messageId: mockMessageId,
@@ -435,18 +435,43 @@ describe("useTamboV1ComponentState", () => {
   });
 
   describe("Context Requirements", () => {
-    it("should throw when used outside component content context", () => {
-      jest.mocked(useV1ComponentContent).mockImplementation(() => {
-        throw new Error(
-          "useV1ComponentContent must be used within a rendered component",
-        );
+    it("should act as plain useState when component content context is missing", () => {
+      jest.mocked(useV1ComponentContentOptional).mockReturnValue(null);
+      jest.mocked(useStreamState).mockReturnValue({
+        threadMap: {},
+        currentThreadId: "",
       });
 
-      expect(() => {
-        renderHook(() => useTamboV1ComponentState("testKey", "initial"));
-      }).toThrow(
-        "useV1ComponentContent must be used within a rendered component",
+      const { result } = renderHook(() =>
+        useTamboV1ComponentState("testKey", "initial"),
       );
+
+      expect(result.current[0]).toBe("initial");
+
+      // No side effects when context is missing
+      expect(mockSetInteractableState).not.toHaveBeenCalled();
+      expect(mockUpdateState).not.toHaveBeenCalled();
+    });
+
+    it("should not trigger side effects on setState when context is missing", () => {
+      jest.mocked(useV1ComponentContentOptional).mockReturnValue(null);
+      jest.mocked(useStreamState).mockReturnValue({
+        threadMap: {},
+        currentThreadId: "",
+      });
+
+      const { result } = renderHook(() =>
+        useTamboV1ComponentState("testKey", "initial"),
+      );
+
+      act(() => {
+        result.current[1]("updated");
+      });
+
+      // Local state updates, but no server sync or interactable writes
+      expect(result.current[0]).toBe("updated");
+      expect(mockSetInteractableState).not.toHaveBeenCalled();
+      expect(mockUpdateState).not.toHaveBeenCalled();
     });
   });
 
@@ -455,7 +480,7 @@ describe("useTamboV1ComponentState", () => {
 
     beforeEach(() => {
       // Simulate interactable context: threadId="" signals interactable
-      jest.mocked(useV1ComponentContent).mockReturnValue({
+      jest.mocked(useV1ComponentContentOptional).mockReturnValue({
         componentId: interactableComponentId,
         threadId: "",
         messageId: "",
