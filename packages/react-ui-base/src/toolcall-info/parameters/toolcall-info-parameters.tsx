@@ -4,7 +4,6 @@ import { Slot } from "@radix-ui/react-slot";
 import * as React from "react";
 import { BasePropsWithChildrenOrRenderFunction } from "../../types/component-render-or-children";
 import { useRender } from "../../use-render/use-render";
-import { keyifyParameters } from "../root/keyify-parameters";
 import { useToolcallInfoContext } from "../root/toolcall-info-context";
 
 export interface ToolcallInfoParametersRenderProps {
@@ -26,13 +25,13 @@ export const ToolcallInfoParameters = React.forwardRef<
 >(({ asChild, ...props }, ref) => {
   const { toolCallRequest } = useToolcallInfoContext();
 
-  const keyifiedParams = keyifyParameters(toolCallRequest?.parameters);
+  const parameters = toolCallRequest?.input;
 
   const Comp = asChild ? Slot : "span";
 
   const { content, componentProps } = useRender(props, {
-    parameters: keyifiedParams,
-    parametersString: JSON.stringify(keyifiedParams, null, 2),
+    parameters,
+    parametersString: JSON.stringify(parameters, null, 2),
   });
   return (
     <Comp ref={ref} data-slot="toolcall-info-parameters" {...componentProps}>

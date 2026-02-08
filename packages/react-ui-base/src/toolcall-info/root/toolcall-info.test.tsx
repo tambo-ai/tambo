@@ -1,32 +1,57 @@
 import { describe, expect, it, jest } from "@jest/globals";
-import { useTambo, type TamboThreadMessage } from "@tambo-ai/react";
+import {
+  useTambo,
+  type TamboThreadMessage,
+  type TamboToolUseContent,
+} from "@tambo-ai/react";
 import { render } from "@testing-library/react";
 import { ToolcallInfo } from "../index";
 
+/**
+ * Creates a test message with a tool_use content block.
+ * In V1, tool calls are content blocks within messages.
+ */
 export function createToolCallMessage(
-  overrides: Partial<TamboThreadMessage> = {},
+  overrides: Partial<TamboThreadMessage> & {
+    toolUse?: Partial<TamboToolUseContent>;
+  } = {},
 ): TamboThreadMessage {
+  const { toolUse, ...messageOverrides } = overrides;
+  const toolUseBlock: TamboToolUseContent = {
+    type: "tool_use",
+    id: "tool-call-id",
+    name: "test-tool",
+    input: {},
+    ...toolUse,
+  };
   return {
     id: "test-message-id",
     role: "assistant",
-    content: [],
+    content: [toolUseBlock],
     createdAt: new Date().toISOString(),
-    toolCallRequest: {
-      id: "tool-call-id",
-      name: "test-tool",
-      parameters: {},
-    },
-    ...overrides,
-  } as TamboThreadMessage;
+    ...messageOverrides,
+  };
 }
 
+/**
+ * Creates a test message with tool_result content blocks.
+ * In V1, tool results are content blocks within user messages.
+ */
 export function createToolResponseMessage(
   content: TamboThreadMessage["content"],
 ): TamboThreadMessage {
   return {
     id: "tool-response-id",
-    role: "tool",
-    content,
+    role: "user",
+    content: content.map((block) =>
+      block.type === "text"
+        ? {
+            type: "tool_result" as const,
+            tool_use_id: "tool-call-id",
+            content: block.text,
+          }
+        : block,
+    ),
     createdAt: new Date().toISOString(),
   } as TamboThreadMessage;
 }
@@ -46,17 +71,15 @@ describe("formatToolResult in ToolcallInfo", () => {
       ]);
 
       mockUseTambo.mockReturnValue({
-        thread: {
-          messages: [toolCallMessage, toolResponse],
-          generationStage: "COMPLETE",
-        },
+        messages: [toolCallMessage, toolResponse],
+        isStreaming: false,
+        isIdle: true,
       } as never);
 
       const { container } = render(
         <ToolcallInfo.Root message={toolCallMessage} />,
       );
 
-      // The tool result should be rendered (need to expand the dropdown to see it)
       expect(
         container.querySelector('[data-slot="toolcall-info"]'),
       ).toBeTruthy();
@@ -69,63 +92,9 @@ describe("formatToolResult in ToolcallInfo", () => {
       ]);
 
       mockUseTambo.mockReturnValue({
-        thread: {
-          messages: [toolCallMessage, toolResponse],
-          generationStage: "COMPLETE",
-        },
-      } as never);
-
-      const { container } = render(
-        <ToolcallInfo.Root message={toolCallMessage} />,
-      );
-
-      expect(
-        container.querySelector('[data-slot="toolcall-info"]'),
-      ).toBeTruthy();
-    });
-  });
-
-  describe("image content", () => {
-    it("renders image_url content from tool result", () => {
-      const toolCallMessage = createToolCallMessage();
-      const toolResponse = createToolResponseMessage([
-        {
-          type: "image_url",
-          image_url: { url: "https://example.com/image.png" },
-        },
-      ]);
-
-      mockUseTambo.mockReturnValue({
-        thread: {
-          messages: [toolCallMessage, toolResponse],
-          generationStage: "COMPLETE",
-        },
-      } as never);
-
-      const { container } = render(
-        <ToolcallInfo.Root message={toolCallMessage} />,
-      );
-
-      expect(
-        container.querySelector('[data-slot="toolcall-info"]'),
-      ).toBeTruthy();
-    });
-
-    it("renders mixed text and image content", () => {
-      const toolCallMessage = createToolCallMessage();
-      const toolResponse = createToolResponseMessage([
-        { type: "text", text: "Here is the generated image:" },
-        {
-          type: "image_url",
-          image_url: { url: "https://example.com/chart.png" },
-        },
-      ]);
-
-      mockUseTambo.mockReturnValue({
-        thread: {
-          messages: [toolCallMessage, toolResponse],
-          generationStage: "COMPLETE",
-        },
+        messages: [toolCallMessage, toolResponse],
+        isStreaming: false,
+        isIdle: true,
       } as never);
 
       const { container } = render(
@@ -152,10 +121,9 @@ describe("formatToolResult in ToolcallInfo", () => {
       ]);
 
       mockUseTambo.mockReturnValue({
-        thread: {
-          messages: [toolCallMessage, toolResponse],
-          generationStage: "COMPLETE",
-        },
+        messages: [toolCallMessage, toolResponse],
+        isStreaming: false,
+        isIdle: true,
       } as never);
 
       const { container } = render(
@@ -180,10 +148,9 @@ describe("formatToolResult in ToolcallInfo", () => {
       ]);
 
       mockUseTambo.mockReturnValue({
-        thread: {
-          messages: [toolCallMessage, toolResponse],
-          generationStage: "COMPLETE",
-        },
+        messages: [toolCallMessage, toolResponse],
+        isStreaming: false,
+        isIdle: true,
       } as never);
 
       const { container } = render(
@@ -209,10 +176,9 @@ describe("formatToolResult in ToolcallInfo", () => {
       ]);
 
       mockUseTambo.mockReturnValue({
-        thread: {
-          messages: [toolCallMessage, toolResponse],
-          generationStage: "COMPLETE",
-        },
+        messages: [toolCallMessage, toolResponse],
+        isStreaming: false,
+        isIdle: true,
       } as never);
 
       const { container } = render(
@@ -226,14 +192,10 @@ describe("formatToolResult in ToolcallInfo", () => {
   });
 
   describe("mixed content types", () => {
-    it("renders text, image, and resource together", () => {
+    it("renders text and resource together", () => {
       const toolCallMessage = createToolCallMessage();
       const toolResponse = createToolResponseMessage([
         { type: "text", text: "Analysis complete." },
-        {
-          type: "image_url",
-          image_url: { url: "https://example.com/graph.png" },
-        },
         {
           type: "resource",
           resource: {
@@ -244,10 +206,9 @@ describe("formatToolResult in ToolcallInfo", () => {
       ]);
 
       mockUseTambo.mockReturnValue({
-        thread: {
-          messages: [toolCallMessage, toolResponse],
-          generationStage: "COMPLETE",
-        },
+        messages: [toolCallMessage, toolResponse],
+        isStreaming: false,
+        isIdle: true,
       } as never);
 
       const { container } = render(
@@ -266,10 +227,9 @@ describe("formatToolResult in ToolcallInfo", () => {
       const toolResponse = createToolResponseMessage([]);
 
       mockUseTambo.mockReturnValue({
-        thread: {
-          messages: [toolCallMessage, toolResponse],
-          generationStage: "COMPLETE",
-        },
+        messages: [toolCallMessage, toolResponse],
+        isStreaming: false,
+        isIdle: true,
       } as never);
 
       const { container } = render(
@@ -291,35 +251,9 @@ describe("formatToolResult in ToolcallInfo", () => {
       ]);
 
       mockUseTambo.mockReturnValue({
-        thread: {
-          messages: [toolCallMessage, toolResponse],
-          generationStage: "COMPLETE",
-        },
-      } as never);
-
-      const { container } = render(
-        <ToolcallInfo.Root message={toolCallMessage} />,
-      );
-
-      expect(
-        container.querySelector('[data-slot="toolcall-info"]'),
-      ).toBeTruthy();
-    });
-
-    it("handles image_url without url", () => {
-      const toolCallMessage = createToolCallMessage();
-      const toolResponse = createToolResponseMessage([
-        {
-          type: "image_url",
-          image_url: {},
-        } as TamboThreadMessage["content"][number],
-      ]);
-
-      mockUseTambo.mockReturnValue({
-        thread: {
-          messages: [toolCallMessage, toolResponse],
-          generationStage: "COMPLETE",
-        },
+        messages: [toolCallMessage, toolResponse],
+        isStreaming: false,
+        isIdle: true,
       } as never);
 
       const { container } = render(

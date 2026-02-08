@@ -121,54 +121,65 @@ describe("checkHasContent", () => {
     });
 
     it("returns false for text content part with undefined text", () => {
-      expect(checkHasContent([{ type: "text" }])).toBe(false);
+      // Test runtime behavior with malformed data
+      expect(
+        checkHasContent([
+          { type: "text" } as unknown as { type: "text"; text: string },
+        ]),
+      ).toBe(false);
     });
 
-    it("returns true for image_url content part with url", () => {
+    it("returns true for image_url-like content part with url", () => {
+      // Test runtime behavior with non-V1 content types
       expect(
         checkHasContent([
           {
             type: "image_url",
             image_url: { url: "https://example.com/img.png" },
-          },
+          } as unknown as { type: "text"; text: string },
         ]),
       ).toBe(true);
     });
 
-    it("returns false for image_url content part without url", () => {
-      // Test runtime behavior with malformed data (missing required url field)
+    it("returns false for image_url-like content part without url", () => {
+      // Test runtime behavior with malformed data
       expect(
         checkHasContent([
-          { type: "image_url", image_url: {} } as {
-            type: "image_url";
-            image_url: { url: string };
+          { type: "image_url", image_url: {} } as unknown as {
+            type: "text";
+            text: string;
           },
         ]),
       ).toBe(false);
     });
 
-    it("returns false for image_url content part with undefined image_url", () => {
-      expect(checkHasContent([{ type: "image_url" }])).toBe(false);
+    it("returns false for image_url-like content part with undefined image_url", () => {
+      expect(
+        checkHasContent([
+          { type: "image_url" } as unknown as { type: "text"; text: string },
+        ]),
+      ).toBe(false);
     });
 
-    it("returns true for input_audio content part with data", () => {
+    it("returns true for input_audio-like content part with data", () => {
+      // Test runtime behavior with non-V1 content types
       expect(
         checkHasContent([
           {
             type: "input_audio",
             input_audio: { data: "base64data", format: "wav" },
-          },
+          } as unknown as { type: "text"; text: string },
         ]),
       ).toBe(true);
     });
 
-    it("returns false for input_audio content part without data", () => {
-      // Test runtime behavior with malformed data (missing required fields)
+    it("returns false for input_audio-like content part without data", () => {
+      // Test runtime behavior with malformed data
       expect(
         checkHasContent([
-          { type: "input_audio", input_audio: {} } as {
-            type: "input_audio";
-            input_audio: { data: string; format: "wav" | "mp3" };
+          { type: "input_audio", input_audio: {} } as unknown as {
+            type: "text";
+            text: string;
           },
         ]),
       ).toBe(false);
@@ -204,7 +215,7 @@ describe("checkHasContent", () => {
     });
 
     it("returns false for unknown type content part", () => {
-      // Test runtime behavior with unknown type
+      // Test runtime behavior with unknown type (not a valid V1 Content type)
       expect(
         checkHasContent([
           { type: "unknown" } as unknown as { type: "text"; text: string },
