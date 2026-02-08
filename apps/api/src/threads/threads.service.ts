@@ -95,6 +95,9 @@ import { createAttachmentFetcher } from "./util/attachment-fetcher";
 
 const TAMBO_ANON_CONTEXT_KEY = "tambo:anon-user";
 
+const THREAD_PROJECT_ID_LOOKUP_MAX_ATTEMPTS = 2;
+const THREAD_PROJECT_ID_LOOKUP_BASE_BACKOFF_MS = 50;
+
 const TRANSIENT_DB_ERROR_CODES = new Set([
   "ECONNRESET",
   "ETIMEDOUT",
@@ -254,8 +257,9 @@ export class ThreadsService {
     threadId: string,
   ): Promise<string> {
     // Total attempts (initial try + retries)
-    const maxAttempts = 2;
-    const baseBackoffMs = 50;
+    // Keep this intentionally low (1 retry) so we don't hide systemic DB issues.
+    const maxAttempts = THREAD_PROJECT_ID_LOOKUP_MAX_ATTEMPTS;
+    const baseBackoffMs = THREAD_PROJECT_ID_LOOKUP_BASE_BACKOFF_MS;
 
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       try {
@@ -294,7 +298,6 @@ export class ThreadsService {
             errorName,
             errorMessage,
             errorCode,
-            errorStack,
             isTransientDbConnectionError: isTransient,
           });
           await new Promise((resolve) =>

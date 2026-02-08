@@ -419,9 +419,7 @@ describe("ThreadsService.advanceThread initialization", () => {
 
     service = module.get(ThreadsService);
     authService = module.get(AuthService);
-    logger = module.get(
-      CorrelationLoggerService,
-    );
+    logger = module.get(CorrelationLoggerService);
     _projectsService = module.get(ProjectsService);
   });
 
@@ -597,6 +595,7 @@ describe("ThreadsService.advanceThread initialization", () => {
       await service.createTamboBackendForThread(threadId, "user_1");
 
       expect(logger.warn).toHaveBeenCalledTimes(1);
+      expect(logger.error).not.toHaveBeenCalled();
       const logArg = (logger.warn.mock.calls[0]?.[0] ?? {}) as Record<
         string,
         unknown
