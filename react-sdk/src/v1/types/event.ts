@@ -1,5 +1,5 @@
 /**
- * Tambo-specific Custom Event Types for v1 Streaming API
+ * Tambo-specific Custom Event Types for Streaming API
  *
  * Defines custom events specific to Tambo functionality.
  * For standard AG-UI events, import directly from `@ag-ui/core`.

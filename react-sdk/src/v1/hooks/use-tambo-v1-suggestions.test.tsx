@@ -84,7 +84,7 @@ describe("useTamboSuggestions", () => {
     // Mock useTamboQueryClient to return the test's queryClient
     jest.mocked(useTamboQueryClient).mockReturnValue(queryClient);
 
-    // Default mock for v1 config
+    // Default mock for config
     jest.mocked(useTamboConfig).mockReturnValue({ userKey: "user_123" });
 
     // Default mock for thread input
@@ -134,7 +134,7 @@ describe("useTamboSuggestions", () => {
       setResourceSource: jest.fn(),
     } as any);
 
-    // Default mock for client - using v1 API structure
+    // Default mock for client - using API structure
     mockListSuggestions.mockResolvedValue({ suggestions: [], hasMore: false });
     mockCreateSuggestions.mockResolvedValue(mockSuggestionsResponse);
 

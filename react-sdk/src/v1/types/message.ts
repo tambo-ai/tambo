@@ -1,5 +1,5 @@
 /**
- * Message and Content Types for v1 API
+ * Message and Content Types
  *
  * Re-exports message and content types from `@tambo-ai/typescript-sdk`.
  * Messages use Anthropic-style content blocks pattern where a message
@@ -50,7 +50,7 @@ export type ComponentStreamingState = "started" | "streaming" | "done";
 
 /**
  * Extended ComponentContent with streaming state and rendered element.
- * Used by the v1 SDK to track component rendering lifecycle.
+ * Used by the SDK to track component rendering lifecycle.
  */
 export interface TamboComponentContent extends ComponentContent {
   /**
@@ -85,7 +85,7 @@ export interface TamboToolDisplayProps {
 
 /**
  * Extended ToolUseContent with computed state properties.
- * Used by the v1 SDK to provide pre-computed tool state to consumers.
+ * Used by the SDK to provide pre-computed tool state to consumers.
  *
  * Note: The computed properties are populated by `useTambo()` hook.
  * When accessed via lower-level APIs, they may be undefined.

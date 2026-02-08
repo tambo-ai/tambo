@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * V1 Component Renderer
+ * Component Renderer
  *
  * A wrapper component that renders a component from the registry based on
  * component content block data. Uses React's normal reconciliation to maintain
@@ -23,7 +23,7 @@ import { ComponentContentProvider } from "../utils/component-renderer";
 
 export interface ComponentRendererProps {
   /**
-   * The component content block from a v1 message
+   * The component content block from a message
    */
   content: TamboComponentContent;
 

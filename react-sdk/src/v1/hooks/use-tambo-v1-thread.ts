@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Thread Query Hook for v1 API
+ * Thread Query Hook
  *
  * React Query hook for fetching a single thread.
  */

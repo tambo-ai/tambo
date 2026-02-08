@@ -6,7 +6,7 @@ import { TamboConfigContext } from "../providers/tambo-v1-provider";
 import type { TamboAuthState } from "../types/auth";
 
 /**
- * Hook to compute the current authentication state for the v1 SDK.
+ * Hook to compute the current authentication state for the SDK.
  *
  * Reads from TamboClientContext and TamboConfigContext to determine
  * whether the SDK is ready to make API calls.

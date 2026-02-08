@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * useTamboThreadInput - Thread Input Hook for v1 API
+ * useTamboThreadInput - Thread Input Hook
  *
  * Re-exports the shared thread input hook from the provider.
  * This hook uses shared context, enabling features like suggestions

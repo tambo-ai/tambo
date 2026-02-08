@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Stream Context Provider for v1 API
+ * Stream Context Provider
  *
  * Manages streaming state using React Context and useReducer.
  * Provides state and dispatch to child components via separate contexts

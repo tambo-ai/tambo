@@ -1,5 +1,5 @@
 /**
- * Authentication state for the v1 SDK.
+ * Authentication state for the SDK.
  *
  * Discriminated union tracking the current auth lifecycle:
  * - `identified`: ready to make API calls (via userKey or successful token exchange)

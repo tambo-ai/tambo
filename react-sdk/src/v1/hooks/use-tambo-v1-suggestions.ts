@@ -1,10 +1,10 @@
 "use client";
 
 /**
- * useTamboSuggestions - Suggestions Hook for v1 API
+ * useTamboSuggestions - Suggestions Hook
  *
  * Manages AI-powered suggestions for thread messages.
- * Uses the v1 API endpoints for listing and creating suggestions.
+ * Uses the API endpoints for listing and creating suggestions.
  */
 
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -140,7 +140,7 @@ export interface UseTamboSuggestionsReturn {
 }
 
 /**
- * Hook for managing AI-powered suggestions in a v1 thread.
+ * Hook for managing AI-powered suggestions in a thread.
  *
  * Provides functionality to:
  * - Automatically generate suggestions when an assistant message arrives

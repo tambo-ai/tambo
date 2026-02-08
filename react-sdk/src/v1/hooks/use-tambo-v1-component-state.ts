@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * useTamboComponentState - Component State Hook for v1 API
+ * useTamboComponentState - Component State Hook
  *
  * Provides bidirectional state synchronization between React components
  * and the Tambo backend. State changes are debounced before syncing to
@@ -101,7 +101,7 @@ export function useTamboComponentState<S>(
   // neither interactable nor server-sync paths should run.
   const isInteractable = isContextAvailable && threadId === "";
 
-  // Find the component content to get server state (only for v1-rendered components)
+  // Find the component content to get server state (only for rendered components)
   const renderedContent = isInteractable
     ? undefined
     : findComponentContent(streamState, threadId, componentId);
@@ -133,7 +133,7 @@ export function useTamboComponentState<S>(
   // Track in-flight sync requests to avoid stale completions clearing pending state
   const syncSeqRef = useRef(0);
 
-  // Debounced function to sync state to server (only used for v1-rendered components)
+  // Debounced function to sync state to server (only used for rendered components)
   const syncToServer = useDebouncedCallback(async (newState: S) => {
     if (!isContextAvailable || isInteractable) return;
 
@@ -185,7 +185,7 @@ export function useTamboComponentState<S>(
           // For interactable components, update the interactable provider's state
           setInteractableState(componentId, keyName, nextState);
         } else {
-          // For v1-rendered components, trigger debounced sync to server
+          // For rendered components, trigger debounced sync to server
           hasPendingLocalChangeRef.current = true;
           void syncToServer(nextState);
         }
@@ -232,7 +232,7 @@ export function useTamboComponentState<S>(
     );
   }, [isInteractable, interactableState]);
 
-  // Sync from server state when it changes (e.g., from streaming events) - v1-rendered only
+  // Sync from server state when it changes (e.g., from streaming events) - rendered components only
   useEffect(() => {
     if (!isContextAvailable || isInteractable) return;
     if (serverValue === undefined) return;
@@ -255,7 +255,7 @@ export function useTamboComponentState<S>(
     );
   }, [isContextAvailable, isInteractable, serverValue]);
 
-  // Flush pending updates on unmount (only for v1-rendered components)
+  // Flush pending updates on unmount (only for rendered components)
   useEffect(() => {
     if (!isContextAvailable || isInteractable) return;
     return () => {

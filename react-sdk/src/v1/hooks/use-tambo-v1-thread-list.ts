@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Thread List Query Hook for v1 API
+ * Thread List Query Hook
  *
  * React Query hook for fetching a list of threads.
  */

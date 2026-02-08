@@ -1,5 +1,5 @@
 /**
- * Event Accumulation Logic for v1 Streaming API
+ * Event Accumulation Logic for Streaming API
  *
  * Implements a reducer that transforms AG-UI event streams into React state.
  * Used with useReducer to accumulate events into thread state.

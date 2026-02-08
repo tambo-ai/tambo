@@ -1,5 +1,5 @@
 /**
- * Tool Call Tracker for v1 API
+ * Tool Call Tracker
  *
  * Tracks tool calls during streaming, accumulating arguments until complete.
  * Used by the send message hook to collect tool call state for execution.

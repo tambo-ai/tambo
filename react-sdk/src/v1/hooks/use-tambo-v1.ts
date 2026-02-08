@@ -1,9 +1,9 @@
 "use client";
 
 /**
- * useTambo - Main Hook for v1 API
+ * useTambo - Main Hook
  *
- * Combines all v1 contexts into a single hook for convenient access
+ * Combines all contexts into a single hook for convenient access
  * to thread state, streaming status, registry, and client.
  */
 
@@ -153,7 +153,7 @@ export interface UseTamboReturn {
 }
 
 /**
- * Main hook for accessing Tambo v1 functionality.
+ * Main hook for accessing Tambo functionality.
  *
  * Combines thread state, streaming status, registry, and client
  * into a single convenient hook.
@@ -161,7 +161,7 @@ export interface UseTamboReturn {
  * Messages returned include renderedComponent on component content blocks,
  * allowing direct rendering via {content.renderedComponent}.
  * @param threadId - Optional thread ID to get state for
- * @returns Combined v1 context with thread state, messages, and utilities
+ * @returns Combined context with thread state, messages, and utilities
  * @example
  * ```tsx
  * function ChatInterface() {
