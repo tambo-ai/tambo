@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { TamboThread } from "@tambo-ai/react";
+import type { TamboThread } from "@tambo-ai/react";
 
 type Thread = Omit<TamboThread, "messages">;
 interface ThreadListProps {

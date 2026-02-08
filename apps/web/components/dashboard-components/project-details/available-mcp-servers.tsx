@@ -4,7 +4,7 @@ import { EditWithTamboButton } from "@/components/ui/tambo/edit-with-tambo-butto
 import { api } from "@/trpc/react";
 import { AiProviderType } from "@tambo-ai-cloud/core";
 import type { Suggestion } from "@tambo-ai/react";
-import { withInteractable } from "@tambo-ai/react";
+import { withTamboInteractable } from "@tambo-ai/react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { z } from "zod/v3";
@@ -244,7 +244,7 @@ export function AvailableMcpServers({
   );
 }
 
-export const InteractableAvailableMcpServers = withInteractable(
+export const InteractableAvailableMcpServers = withTamboInteractable(
   AvailableMcpServers,
   {
     componentName: COMPONENT_NAME,

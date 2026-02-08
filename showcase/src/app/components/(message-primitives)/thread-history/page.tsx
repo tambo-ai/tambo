@@ -14,37 +14,35 @@ import { TamboStubProvider, TamboThread } from "@tambo-ai/react";
 const mockThreads: TamboThread[] = [
   {
     id: "1",
-    name: "Mock Thread",
+    title: "Mock Thread",
     messages: [
       {
-        componentState: {},
         content: [{ type: "text", text: "Hello, world!" }],
         createdAt: new Date().toISOString(),
         id: "1",
         role: "user",
-        threadId: "1",
       },
     ],
+    status: "idle",
     createdAt: new Date().toISOString(),
-    projectId: "1",
     updatedAt: new Date().toISOString(),
+    lastRunCancelled: false,
   },
   {
     id: "2",
-    name: "Mock Thread 2",
+    title: "Mock Thread 2",
     messages: [
       {
-        componentState: {},
         content: [{ type: "text", text: "Hello, world!" }],
         createdAt: new Date().toISOString(),
         id: "2",
         role: "user",
-        threadId: "2",
       },
     ],
+    status: "idle",
     createdAt: new Date().toISOString(),
-    projectId: "1",
     updatedAt: new Date().toISOString(),
+    lastRunCancelled: false,
   },
 ];
 
@@ -70,17 +68,7 @@ export default function ThreadHistoryPage() {
             title="Left Position (Expanded)"
             component={
               <div className="relative h-96 bg-muted rounded-lg overflow-hidden border">
-                <TamboStubProvider
-                  thread={mockThreads[0]}
-                  threads={{
-                    items: mockThreads,
-                    total: 1,
-                    count: 1,
-                    hasNextPage: () => false,
-                  }}
-                  projectId="1"
-                  contextKey="demo-left"
-                >
+                <TamboStubProvider thread={mockThreads[0]}>
                   <ThreadHistory
                     position="left"
                     defaultCollapsed={false}
@@ -125,17 +113,7 @@ export function ChatSidebar() {
             title="Collapsed State"
             component={
               <div className="relative h-96 bg-muted rounded-lg overflow-hidden border">
-                <TamboStubProvider
-                  thread={mockThreads[0]}
-                  threads={{
-                    items: mockThreads,
-                    total: 1,
-                    count: 1,
-                    hasNextPage: () => false,
-                  }}
-                  projectId="1"
-                  contextKey="demo-collapsed"
-                >
+                <TamboStubProvider thread={mockThreads[0]}>
                   <ThreadHistory
                     position="left"
                     defaultCollapsed={true}
@@ -188,17 +166,7 @@ export function CollapsedSidebar() {
                     Main content area with right sidebar
                   </p>
                 </div>
-                <TamboStubProvider
-                  thread={mockThreads[0]}
-                  threads={{
-                    items: mockThreads,
-                    total: 1,
-                    count: 1,
-                    hasNextPage: () => false,
-                  }}
-                  projectId="1"
-                  contextKey="demo-right"
-                >
+                <TamboStubProvider thread={mockThreads[0]}>
                   <ThreadHistory
                     position="right"
                     defaultCollapsed={false}
@@ -249,16 +217,7 @@ export function RightSidebarLayout() {
             title="Minimal (Header Only)"
             component={
               <div className="relative h-64 bg-muted rounded-lg overflow-hidden border">
-                <TamboStubProvider
-                  thread={mockThreads[0]}
-                  threads={{
-                    items: mockThreads,
-                    total: 1,
-                    count: 1,
-                    hasNextPage: () => false,
-                  }}
-                  contextKey="demo-minimal"
-                >
+                <TamboStubProvider thread={mockThreads[0]}>
                   <ThreadHistory
                     position="left"
                     defaultCollapsed={false}

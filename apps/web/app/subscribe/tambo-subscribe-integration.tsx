@@ -20,17 +20,14 @@ import {
   ThreadContentMessages,
 } from "@tambo-ai/ui-registry/components/thread-content";
 import { ComponentsThemeProvider } from "@/providers/components-theme-provider";
-import { useTambo, useTamboThread, useTamboThreadInput } from "@tambo-ai/react";
+import { useTambo, useTamboThreadInput } from "@tambo-ai/react";
 import { useEffect, useRef, useState } from "react";
 import { zodToJsonSchema } from "zod-to-json-schema";
 import { SubscribeForm, SubscribeFormProps } from "./subscribe-form";
 
 export function TamboSubscribeIntegration() {
-  const { registerComponent, thread } = useTambo();
-  // This hook is still necessary even though we don't use its return values directly.
-  // It registers the thread input context with the Tambo system.
-  useTamboThreadInput();
-  const { sendThreadMessage } = useTamboThread();
+  const { registerComponent, messages } = useTambo();
+  const { setValue, submit } = useTamboThreadInput();
   const isRegistered = useRef(false);
   const hasMessageBeenSent = useRef(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -56,14 +53,15 @@ export function TamboSubscribeIntegration() {
   const handleWelcomeDialogClose = async () => {
     setShowWelcomeDialog(false);
     if (!hasMessageBeenSent.current) {
-      await sendThreadMessage("subscribe me pls.", { streamResponse: true });
+      setValue("subscribe me pls.");
+      await submit();
       hasMessageBeenSent.current = true;
     }
   };
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
-    if (scrollContainerRef.current && thread.messages.length) {
+    if (scrollContainerRef.current && messages.length) {
       const timeoutId = setTimeout(() => {
         if (scrollContainerRef.current) {
           scrollContainerRef.current.scrollTo({
@@ -75,7 +73,7 @@ export function TamboSubscribeIntegration() {
 
       return () => clearTimeout(timeoutId);
     }
-  }, [thread.messages]);
+  }, [messages]);
 
   return (
     <>

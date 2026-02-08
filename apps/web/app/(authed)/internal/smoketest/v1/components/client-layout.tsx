@@ -1,7 +1,7 @@
 "use client";
 
 import { env } from "@/lib/env";
-import { TamboV1Provider } from "@tambo-ai/react/v1";
+import { TamboProvider } from "@tambo-ai/react";
 import { useSearchParams } from "next/navigation";
 import { FC, PropsWithChildren } from "react";
 
@@ -15,13 +15,13 @@ export const ClientLayout: FC<
   const mcpServersArray = mcpServers.length > 0 ? mcpServers : [];
 
   return (
-    <TamboV1Provider
+    <TamboProvider
       tamboUrl={env.NEXT_PUBLIC_TAMBO_API_URL}
       apiKey={env.NEXT_PUBLIC_SMOKETEST_TAMBO_API_KEY!}
       userToken={userToken}
       mcpServers={mcpServersArray}
     >
       {children}
-    </TamboV1Provider>
+    </TamboProvider>
   );
 };

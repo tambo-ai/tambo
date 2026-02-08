@@ -14,7 +14,7 @@ import {
   DEFAULT_OPENAI_MODEL,
 } from "@tambo-ai-cloud/core";
 import type { Suggestion } from "@tambo-ai/react";
-import { withInteractable } from "@tambo-ai/react";
+import { withTamboInteractable } from "@tambo-ai/react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ExternalLinkIcon, InfoIcon, Loader2 } from "lucide-react";
 import {
@@ -1450,7 +1450,7 @@ export function ProviderKeySectionBase({
 }
 
 // Export the interactable version
-export const InteractableProviderKeySection = withInteractable(
+export const InteractableProviderKeySection = withTamboInteractable(
   ProviderKeySectionBase,
   {
     componentName: COMPONENT_NAME,

@@ -14,8 +14,8 @@ import {
   wrapApiCall,
 } from "@/components/smoketest";
 import { api } from "@/trpc/react";
-import type { TamboTool } from "@tambo-ai/react/v1";
-import { useTamboV1, useTamboV1ThreadList } from "@tambo-ai/react/v1";
+import type { TamboTool } from "@tambo-ai/react";
+import { useTambo, useTamboThreadList } from "@tambo-ai/react";
 import { TRPCClientErrorLike } from "@trpc/client";
 import { PlusCircle, RefreshCcw, X } from "lucide-react";
 import {
@@ -42,7 +42,7 @@ export default function SmokePageV1() {
     currentThreadId,
     switchThread,
     startNewThread,
-  } = useTamboV1();
+  } = useTambo();
 
   const { mutateAsync: getAirQuality, isPending: isAqiPending } =
     api.demo.aqi.useMutation({
@@ -287,7 +287,7 @@ export default function SmokePageV1() {
     data: threadInfo,
     isLoading: isThreadInfoLoading,
     refetch: refetchThreadInfo,
-  } = useTamboV1ThreadList();
+  } = useTamboThreadList();
 
   const isLoading =
     isAqiPending ||

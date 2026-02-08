@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useTamboThread, useTamboThreadInput } from "@tambo-ai/react";
+import { useTambo, useTamboThreadInput } from "@tambo-ai/react";
 import { FC, useState } from "react";
 
 interface ThreadMessageInputProps {
@@ -9,13 +9,13 @@ interface ThreadMessageInputProps {
 
 const ThreadMessageInput: FC<ThreadMessageInputProps> = ({ onSubmit }) => {
   const { value, setValue, submit, isPending, error } = useTamboThreadInput();
-  const { cancel } = useTamboThread();
+  const { cancelRun } = useTambo();
   const [streamEnabled, setStreamEnabled] = useState(true);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!value.trim()) return;
-    await submit({ streamResponse: streamEnabled });
+    await submit();
     onSubmit(value);
   };
 
@@ -52,7 +52,7 @@ const ThreadMessageInput: FC<ThreadMessageInputProps> = ({ onSubmit }) => {
             variant="outline"
             size="sm"
             disabled={!isPending}
-            onClick={async () => await cancel()}
+            onClick={async () => await cancelRun()}
           >
             Cancel
           </Button>

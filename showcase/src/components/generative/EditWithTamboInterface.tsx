@@ -7,7 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { withInteractable } from "@tambo-ai/react";
+import { withTamboInteractable } from "@tambo-ai/react";
 import { useCallback, useState } from "react";
 import { z } from "zod";
 
@@ -163,7 +163,7 @@ function ContactFormBase({
 }
 
 // Interactable wrapped component
-const ContactForm = withInteractable(ContactFormBase, {
+const ContactForm = withTamboInteractable(ContactFormBase, {
   componentName: "ContactForm",
   description:
     "A contact form with editable labels and text. You can modify the form heading, field labels, and button text.",

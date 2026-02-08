@@ -34,7 +34,7 @@ export default function EditWithTamboButtonPage() {
             title="Basic Usage"
             component={<EditWithTamboInterface />}
             code={`import { EditWithTamboButton } from "@/components/tambo/edit-with-tambo-button";
-import { withInteractable } from "@tambo-ai/react";
+import { withTamboInteractable } from "@tambo-ai/react";
 import { z } from "zod";
 
 function MyCardBase({ title, description }) {
@@ -51,7 +51,7 @@ function MyCardBase({ title, description }) {
   );
 }
 
-const MyCard = withInteractable(MyCardBase, {
+const MyCard = withTamboInteractable(MyCardBase, {
   componentName: "MyCard",
   propsSchema: z.object({
     title: z.string().describe("The card title"),
