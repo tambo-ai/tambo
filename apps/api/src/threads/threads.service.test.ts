@@ -340,13 +340,19 @@ describe("ThreadsService.advanceThread initialization", () => {
       }),
     );
 
+    logger = {
+      log: jest.fn(),
+      warn: jest.fn(),
+      error: jest.fn(),
+    } as unknown as jest.Mocked<CorrelationLoggerService>;
+
     module = await Test.createTestingModule({
       providers: [
         ThreadsService,
         { provide: DATABASE, useValue: fakeDb },
         {
           provide: CorrelationLoggerService,
-          useValue: { log: jest.fn(), warn: jest.fn(), error: jest.fn() },
+          useValue: logger,
         },
         {
           provide: EmailService,
@@ -419,7 +425,6 @@ describe("ThreadsService.advanceThread initialization", () => {
 
     service = module.get(ThreadsService);
     authService = module.get(AuthService);
-    logger = module.get(CorrelationLoggerService);
     _projectsService = module.get(ProjectsService);
   });
 

@@ -350,6 +350,7 @@ export class ThreadsService {
       }
     }
 
+    // Defensive safeguard: TypeScript can't prove every branch in the loop returns/throws.
     throw new Error(
       "Thread project ID lookup retry loop exhausted unexpectedly",
     );
