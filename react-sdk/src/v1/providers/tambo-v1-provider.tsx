@@ -240,7 +240,7 @@ function TamboAuthWarnings(): null {
  * @returns Provider component tree
  * @example
  * ```tsx
- * import { TamboProvider } from '@tambo-ai/react/v1';
+ * import { TamboProvider } from '@tambo-ai/react';
  *
  * function App() {
  *   return (
