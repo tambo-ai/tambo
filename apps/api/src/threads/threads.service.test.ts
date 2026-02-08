@@ -579,6 +579,19 @@ describe("ThreadsService.advanceThread initialization", () => {
       expect(fakeDb.query.threads.findFirst).toHaveBeenCalledTimes(2);
     });
 
+    it("retries thread lookup once when the DB error message suggests a connection termination", async () => {
+      jest
+        .mocked(fakeDb.query.threads.findFirst)
+        .mockRejectedValueOnce(
+          new Error("server closed the connection unexpectedly"),
+        )
+        .mockResolvedValueOnce({ projectId });
+
+      await service.createTamboBackendForThread(threadId, "user_1");
+
+      expect(fakeDb.query.threads.findFirst).toHaveBeenCalledTimes(2);
+    });
+
     it("retries thread lookup once when the DB error has a transient code", async () => {
       const errorWithCode = Object.assign(new Error("Some connection error"), {
         code: "ECONNRESET",

@@ -94,6 +94,46 @@ import {
 import { createAttachmentFetcher } from "./util/attachment-fetcher";
 
 const TAMBO_ANON_CONTEXT_KEY = "tambo:anon-user";
+
+const TRANSIENT_DB_ERROR_CODES = new Set([
+  "ECONNRESET",
+  "ETIMEDOUT",
+  "EPIPE",
+  "57P01", // admin_shutdown
+  "57P02", // crash_shutdown
+  "57P03", // cannot_connect_now
+]);
+
+const TRANSIENT_DB_ERROR_MESSAGE_SUBSTRINGS = [
+  "Connection terminated unexpectedly",
+  "server closed the connection unexpectedly",
+  "terminating connection due to administrator command",
+];
+
+function getErrorCode(error: unknown): string | undefined {
+  if (typeof error !== "object" || error === null) {
+    return undefined;
+  }
+
+  const errorCode = (error as { code?: unknown }).code;
+  return typeof errorCode === "string" ? errorCode : undefined;
+}
+
+function isTransientDbConnectionError(error: unknown): boolean {
+  const errorCode = getErrorCode(error);
+  if (errorCode && TRANSIENT_DB_ERROR_CODES.has(errorCode)) {
+    return true;
+  }
+
+  if (!(error instanceof Error)) {
+    return false;
+  }
+
+  return TRANSIENT_DB_ERROR_MESSAGE_SUBSTRINGS.some((substring) =>
+    error.message.includes(substring),
+  );
+}
+
 @Injectable()
 export class ThreadsService {
   constructor(
@@ -188,46 +228,16 @@ export class ThreadsService {
     const maxAttempts = 2;
     const baseBackoffMs = 50;
 
-    const transientDbErrorCodes = new Set([
-      "ECONNRESET",
-      "ETIMEDOUT",
-      "EPIPE",
-      "57P01", // admin_shutdown
-      "57P02", // crash_shutdown
-      "57P03", // cannot_connect_now
-    ]);
-
-    const isTransientDbError = (error: unknown): boolean => {
-      if (!(error instanceof Error)) {
-        return false;
-      }
-
-      const errorCode = (error as Error & { code?: unknown }).code;
-      if (typeof errorCode === "string") {
-        if (transientDbErrorCodes.has(errorCode)) {
-          return true;
-        }
-      }
-
-      return error.message.includes("Connection terminated unexpectedly");
-    };
-
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      let threadData: { projectId: string } | undefined;
       try {
-        const threadData = await this.getDb().query.threads.findFirst({
+        threadData = await this.getDb().query.threads.findFirst({
           where: eq(schema.threads.id, threadId),
           columns: { projectId: true },
         });
-
-        if (!threadData?.projectId) {
-          throw new NotFoundException(
-            `Thread with ID ${threadId} not found or has no project associated.`,
-          );
-        }
-
-        return threadData.projectId;
       } catch (error: unknown) {
-        if (attempt < maxAttempts && isTransientDbError(error)) {
+        if (attempt < maxAttempts && isTransientDbConnectionError(error)) {
+          const errorCode = getErrorCode(error);
           this.logger.warn({
             message:
               "DB connection dropped while fetching thread projectId; retrying",
@@ -235,6 +245,11 @@ export class ThreadsService {
             nextAttempt: attempt + 1,
             maxAttempts,
             threadId,
+            errorName: error instanceof Error ? error.name : undefined,
+            errorMessage:
+              error instanceof Error ? error.message : String(error),
+            errorCode,
+            errorStack: error instanceof Error ? error.stack : undefined,
           });
           await new Promise((resolve) =>
             setTimeout(resolve, baseBackoffMs * attempt),
@@ -244,6 +259,14 @@ export class ThreadsService {
 
         throw error;
       }
+
+      if (!threadData?.projectId) {
+        throw new NotFoundException(
+          `Thread with ID ${threadId} not found or has no project associated.`,
+        );
+      }
+
+      return threadData.projectId;
     }
 
     throw new Error(
