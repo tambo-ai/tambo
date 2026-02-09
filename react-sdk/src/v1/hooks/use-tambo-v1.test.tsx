@@ -1243,12 +1243,11 @@ describe("useTambo", () => {
       });
 
       expect(result.current.thread?.thread.title).toBe("My New Thread");
-      expect(invalidateQueriesSpy).toHaveBeenCalledWith({
-        queryKey: ["v1-threads", "list"],
-      });
-      expect(invalidateQueriesSpy).toHaveBeenCalledWith({
-        queryKey: ["v1-threads", "thread_456"],
-      });
+      const invalidatedKeys = invalidateQueriesSpy.mock.calls
+        .map(([arg]) => (arg as any).queryKey)
+        .filter(Boolean);
+      expect(invalidatedKeys).toContainEqual(["v1-threads", "list"]);
+      expect(invalidatedKeys).toContainEqual(["v1-threads", "thread_456"]);
     });
 
     it("does not create local thread state when thread isn't loaded", async () => {
@@ -1272,12 +1271,11 @@ describe("useTambo", () => {
       expect(mockUpdate).toHaveBeenCalledWith("thread_789", {
         name: "New Title",
       });
-      expect(invalidateQueriesSpy).toHaveBeenCalledWith({
-        queryKey: ["v1-threads", "list"],
-      });
-      expect(invalidateQueriesSpy).toHaveBeenCalledWith({
-        queryKey: ["v1-threads", "thread_789"],
-      });
+      const invalidatedKeys = invalidateQueriesSpy.mock.calls
+        .map(([arg]) => (arg as any).queryKey)
+        .filter(Boolean);
+      expect(invalidatedKeys).toContainEqual(["v1-threads", "list"]);
+      expect(invalidatedKeys).toContainEqual(["v1-threads", "thread_789"]);
 
       act(() => {
         result.current.switchThread("thread_789");

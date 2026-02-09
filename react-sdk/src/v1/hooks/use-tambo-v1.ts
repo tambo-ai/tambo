@@ -157,6 +157,7 @@ export interface UseTamboReturn {
   /**
    * Update a thread's name.
    * Useful for implementing manual thread renaming UI in history sidebars.
+   * Cache invalidation is best-effort; failures will be logged and won't reject.
    * @param threadId - ID of the thread to rename
    * @param name - New name for the thread
    * @returns Promise that resolves when the update completes
