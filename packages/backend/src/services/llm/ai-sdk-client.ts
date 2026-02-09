@@ -457,6 +457,7 @@ export class AISdkClient implements LLMClient {
       // Collect AG-UI events for this delta
       const aguiEvents: BaseEvent[] = [];
 
+      console.log("delta", delta);
       switch (delta.type) {
         case "text-start":
           accumulatedMessage = "";

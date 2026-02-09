@@ -54,6 +54,7 @@ export const ToolcallInfoRoot = React.forwardRef<
     }
     const [isExpanded, setIsExpanded] = React.useState(defaultExpanded);
     const { messages } = useTambo();
+    console.log("messages", messages);
     const detailsId = React.useId();
 
     // In V1, tool results are content blocks (type "tool_result") within messages,
