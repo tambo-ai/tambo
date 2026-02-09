@@ -7,6 +7,10 @@ import postcss from "postcss";
 import semver from "semver";
 import type { Config } from "tailwindcss";
 import { Project, ScriptKind } from "ts-morph";
+import {
+  detectFramework,
+  getDefaultCssPath,
+} from "../../utils/framework-detection.js";
 import { interactivePrompt, isInteractive } from "../../utils/interactive.js";
 import { parseConfigObject } from "./tailwind/config/parsing.js";
 import { showChangesSummary, showCssDiff } from "./tailwind/css/diff-viewer.js";
@@ -28,6 +32,7 @@ import {
   handleInlineTheme,
   preserveConfigDirectives,
 } from "./tailwind/v4/handlers.js";
+import { setupTailwindV4Toolchain } from "./tailwind/v4/toolchain-setup.js";
 import { detectTailwindVersion } from "./tailwind/version/detection.js";
 import { getRegistryBasePath } from "./utils.js";
 
@@ -50,22 +55,30 @@ export async function setupTailwindAndGlobals(projectRoot: string) {
     );
   }
 
+  const framework = detectFramework(projectRoot);
+
+  // For Tailwind v4, set up the build toolchain (Vite plugin or PostCSS config)
+  if (isV4) {
+    setupTailwindV4Toolchain(projectRoot, framework);
+  }
+
   // Find existing globals.css or determine where to create it
   // Check common locations in order of preference
   const possibleGlobalsPaths = [
     path.join(projectRoot, "src/app/globals.css"),
     path.join(projectRoot, "app/globals.css"),
+    path.join(projectRoot, "src/index.css"),
     path.join(projectRoot, "src/styles/globals.css"),
+    path.join(projectRoot, "src/styles/index.css"),
     path.join(projectRoot, "styles/globals.css"),
   ];
 
   let globalsPath = possibleGlobalsPaths.find((p) => fs.existsSync(p));
 
-  // If no existing globals.css found, create in the appropriate location
+  // If no existing globals.css found, create in the framework-appropriate location
   if (!globalsPath) {
-    const hasSrcDir = fs.existsSync(path.join(projectRoot, "src"));
-    const appPath = hasSrcDir ? "src/app" : "app";
-    globalsPath = path.join(projectRoot, appPath, "globals.css");
+    const defaultCssRelative = getDefaultCssPath(projectRoot, framework);
+    globalsPath = path.join(projectRoot, defaultCssRelative);
   }
 
   // Create the directory if it doesn't exist

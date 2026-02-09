@@ -1,4 +1,4 @@
-import { TamboComponent, TamboTool } from "../providers";
+import { TamboComponent, TamboTool } from "../model/component-metadata";
 import { isStandardSchema, safeSchemaToJsonSchema } from "../schema";
 import { mapTamboToolToContextTool } from "../util/registry";
 

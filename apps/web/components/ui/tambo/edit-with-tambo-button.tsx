@@ -9,7 +9,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tooltip, TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { useMessageThreadPanel } from "@/providers/message-thread-panel-provider";
-import { useTambo, useTamboCurrentComponent } from "@tambo-ai/react";
+import {
+  useTambo,
+  useTamboCurrentComponent,
+  useTamboInteractable,
+  useTamboThreadInput,
+} from "@tambo-ai/react";
 import { MessageGenerationStage } from "@tambo-ai/ui-registry/components/message-suggestions";
 import { Bot, ChevronDown, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -58,7 +63,9 @@ export function EditWithTamboButton({
   onOpenThread: onOpenThreadProp,
 }: EditWithTamboButtonProps) {
   const component = useTamboCurrentComponent();
-  const { sendThreadMessage, isIdle, setInteractableSelected } = useTambo();
+  const { isIdle } = useTambo();
+  const { setValue: setInputValue, submit } = useTamboThreadInput();
+  const { setInteractableSelected } = useTamboInteractable();
   const { setIsOpen: setThreadPanelOpen, editorRef } = useMessageThreadPanel();
 
   const [prompt, setPrompt] = useState("");
@@ -104,20 +111,12 @@ export function EditWithTamboButton({
 
     setShouldCloseOnComplete(true);
 
-    await sendThreadMessage(prompt.trim(), {
-      streamResponse: true,
-      additionalContext: {
-        inlineEdit: {
-          componentId: component.interactableId,
-          instruction:
-            "The user wants to edit this specific component inline. Please update the component's props to fulfill the user's request.",
-        },
-      },
-    });
+    setInputValue(prompt.trim());
+    await submit();
 
     // Clear the prompt after successful send
     setPrompt("");
-  }, [prompt, isGenerating, component, sendThreadMessage]);
+  }, [prompt, isGenerating, setInputValue, submit]);
 
   const handleSendInThread = useCallback(() => {
     if (!prompt.trim()) {

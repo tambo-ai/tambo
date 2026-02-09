@@ -24,7 +24,7 @@ import {
   type StreamState,
   type ThreadState,
 } from "./event-accumulator";
-import type { Content, V1ComponentContent } from "../types/message";
+import type { Content, TamboComponentContent } from "../types/message";
 
 /**
  * Helper to extract a ToolUseContent from a message content array.
@@ -37,16 +37,16 @@ function asToolUseContent(content: Content[], index: number): ToolUseContent {
 }
 
 /**
- * Helper to extract a V1ComponentContent from a message content array.
+ * Helper to extract a TamboComponentContent from a message content array.
  * @param content - Content array from a message
  * @param index - Index of the content item
- * @returns The content as V1ComponentContent
+ * @returns The content as TamboComponentContent
  */
 function asComponentContent(
   content: Content[],
   index: number,
-): V1ComponentContent {
-  return content[index] as V1ComponentContent;
+): TamboComponentContent {
+  return content[index] as TamboComponentContent;
 }
 
 // Helper to create a base thread state for testing
@@ -488,7 +488,7 @@ describe("streamReducer", () => {
   });
 
   describe("RUN_FINISHED event", () => {
-    it("updates thread status to complete", () => {
+    it("updates thread status to idle", () => {
       const state = createTestStreamState("thread_1");
       state.threadMap.thread_1.thread.status = "streaming";
       state.threadMap.thread_1.streaming.status = "streaming";
@@ -505,8 +505,8 @@ describe("streamReducer", () => {
         threadId: "thread_1",
       });
 
-      expect(result.threadMap.thread_1.thread.status).toBe("complete");
-      expect(result.threadMap.thread_1.streaming.status).toBe("complete");
+      expect(result.threadMap.thread_1.thread.status).toBe("idle");
+      expect(result.threadMap.thread_1.streaming.status).toBe("idle");
     });
 
     it("sets lastCompletedRunId from event.runId", () => {
@@ -558,7 +558,7 @@ describe("streamReducer", () => {
   });
 
   describe("RUN_ERROR event", () => {
-    it("updates thread status to error with details", () => {
+    it("updates thread status to idle with error details", () => {
       const state = createTestStreamState("thread_1");
       const event: RunErrorEvent = {
         type: EventType.RUN_ERROR,
@@ -572,8 +572,8 @@ describe("streamReducer", () => {
         threadId: "thread_1",
       });
 
-      expect(result.threadMap.thread_1.thread.status).toBe("error");
-      expect(result.threadMap.thread_1.streaming.status).toBe("error");
+      expect(result.threadMap.thread_1.thread.status).toBe("idle");
+      expect(result.threadMap.thread_1.streaming.status).toBe("idle");
       expect(result.threadMap.thread_1.streaming.error).toEqual({
         message: "Something went wrong",
         code: "ERR_001",
@@ -955,6 +955,45 @@ describe("streamReducer", () => {
       expect(messages[0].role).toBe("assistant");
       expect(messages[0].content).toHaveLength(1);
       expect(messages[0].content[0]).toMatchObject({
+        type: "tool_use",
+        id: "tool_1",
+        name: "get_weather",
+      });
+    });
+
+    it("creates synthetic assistant message when last message is user and no parentMessageId", () => {
+      const state = createTestStreamState("thread_1");
+      state.threadMap.thread_1.thread.messages = [
+        {
+          id: "user_msg_1",
+          role: "user",
+          content: [{ type: "text", text: "do something" }],
+          createdAt: "2024-01-01T00:00:00.000Z",
+        },
+      ];
+
+      const event: ToolCallStartEvent = {
+        type: EventType.TOOL_CALL_START,
+        toolCallId: "tool_1",
+        toolCallName: "get_weather",
+        // No parentMessageId - last message is user, should NOT append to it
+      };
+
+      const result = streamReducer(state, {
+        type: "EVENT",
+        event,
+        threadId: "thread_1",
+      });
+
+      const messages = result.threadMap.thread_1.thread.messages;
+      // Should create a new synthetic assistant message, not append to user message
+      expect(messages).toHaveLength(2);
+      expect(messages[0].id).toBe("user_msg_1");
+      expect(messages[0].role).toBe("user");
+      expect(messages[0].content).toHaveLength(1); // User message unchanged
+      expect(messages[1].role).toBe("assistant");
+      expect(messages[1].content).toHaveLength(1);
+      expect(messages[1].content[0]).toMatchObject({
         type: "tool_use",
         id: "tool_1",
         name: "get_weather",

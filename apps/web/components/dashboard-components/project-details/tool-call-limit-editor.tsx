@@ -14,7 +14,7 @@ import { EditWithTamboButton } from "@/components/ui/tambo/edit-with-tambo-butto
 import { useToast } from "@/hooks/use-toast";
 import { api } from "@/trpc/react";
 import type { Suggestion } from "@tambo-ai/react";
-import { withInteractable } from "@tambo-ai/react";
+import { withTamboInteractable } from "@tambo-ai/react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useId, useRef, useState } from "react";
 import { z } from "zod/v3";
@@ -257,7 +257,7 @@ export function ToolCallLimitEditor({
   );
 }
 
-export const InteractableToolCallLimitEditor = withInteractable(
+export const InteractableToolCallLimitEditor = withTamboInteractable(
   ToolCallLimitEditor,
   {
     componentName: COMPONENT_NAME,

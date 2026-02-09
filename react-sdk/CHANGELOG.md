@@ -1,5 +1,37 @@
 # Changelog
 
+## [1.0.0-rc.3](https://github.com/tambo-ai/tambo/compare/react-v1.0.0-rc.2...react-v1.0.0-rc.3) (2026-02-09)
+
+
+### Bug Fixes
+
+* **react-sdk:** fix tool call UI during streaming  ([#2320](https://github.com/tambo-ai/tambo/issues/2320)) ([7a2cd83](https://github.com/tambo-ai/tambo/commit/7a2cd83b3926e9fa5ee12b01d1a674c09f17f8a1))
+* **react-sdk:** small change to bump ([#2324](https://github.com/tambo-ai/tambo/issues/2324)) ([77e8648](https://github.com/tambo-ai/tambo/commit/77e864864db9832000175c91bc4d9ffbd4396030))
+
+
+### Miscellaneous Chores
+
+* **test:** bump coverage thresholds (2026-02-09) ([#2323](https://github.com/tambo-ai/tambo/issues/2323)) ([0aac70b](https://github.com/tambo-ai/tambo/commit/0aac70b23da7ae51d9d449b3692b765570af44f9))
+
+## [1.0.0-rc.2](https://github.com/tambo-ai/tambo/compare/react-v1.0.0-rc.1...react-v1.0.0-rc.2) (2026-02-08)
+
+
+### Documentation
+
+* **react-sdk:** remove V1 references from JSDoc and comments ([#2306](https://github.com/tambo-ai/tambo/issues/2306)) ([cbb64ad](https://github.com/tambo-ai/tambo/commit/cbb64ad736d42c5a7d95686c1bd282053f535be8))
+
+## [1.0.0-rc.1](https://github.com/tambo-ai/tambo/compare/react-v0.75.0...react-v1.0.0-rc.1) (2026-02-08)
+
+
+### Bug Fixes
+
+* **v1 sdk:** allow component state outside generated component ([#2298](https://github.com/tambo-ai/tambo/issues/2298)) ([37c935f](https://github.com/tambo-ai/tambo/commit/37c935f519076dbd26afb7552f71bbd93b51e541))
+
+
+### Code Refactoring
+
+* **react-sdk:** promote V1 SDK to main export (1.0.0-rc.1) ([#2297](https://github.com/tambo-ai/tambo/issues/2297)) ([1799bce](https://github.com/tambo-ai/tambo/commit/1799bceecf412d1a4f263108dae75ddcb3fe7491))
+
 ## [0.75.0](https://github.com/tambo-ai/tambo/compare/react-v0.74.1...react-v0.75.0) (2026-02-08)
 
 

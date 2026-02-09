@@ -85,7 +85,9 @@ export function updateImportPaths(
 export async function handleMigrate(options: MigrateOptions = {}) {
   try {
     const projectRoot = process.cwd();
-    const installPath = await getInstallationPath(options.yes);
+    const installPath = await getInstallationPath(
+      options.yes === true || options.dryRun === true,
+    );
     const legacyPath = getLegacyComponentDirectoryPath(
       projectRoot,
       installPath,

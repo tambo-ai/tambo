@@ -11,4 +11,5 @@ export interface ToolContext {
 /**
  * Tool registration function
  */
-export type { RegisterToolFn } from "@tambo-ai/react";
+import type { UseTamboReturn } from "@tambo-ai/react";
+export type RegisterToolFn = UseTamboReturn["registerTool"];

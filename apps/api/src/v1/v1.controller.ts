@@ -8,6 +8,7 @@ import {
   Logger,
   NotFoundException,
   Param,
+  Patch,
   Post,
   Query,
   Req,
@@ -48,6 +49,8 @@ import {
   V1GetThreadResponseDto,
   V1ListThreadsQueryDto,
   V1ListThreadsResponseDto,
+  V1UpdateThreadDto,
+  V1UpdateThreadResponseDto,
 } from "./dto/thread.dto";
 import { V1BaseEventDto } from "./dto/event.dto";
 import {
@@ -143,6 +146,47 @@ export class V1Controller {
   ): Promise<V1CreateThreadResponseDto> {
     const { projectId, contextKey } = getV1ContextInfo(request, dto.userKey);
     return await this.v1Service.createThread(projectId, contextKey, dto);
+  }
+
+  @Patch("threads/:threadId")
+  @UseGuards(V1ThreadInProjectGuard)
+  @ApiOperation({
+    summary: "Update thread",
+    description:
+      "Update thread metadata such as name. Useful for manual thread renaming.",
+  })
+  @ApiParam({
+    name: "threadId",
+    description: "Thread ID",
+    example: "thr_abc123xyz",
+  })
+  @ApiQuery({
+    name: "userKey",
+    description: "Optional user key for thread organization",
+    required: false,
+  })
+  @ApiResponse({
+    status: 200,
+    description: "Updated thread",
+    type: V1UpdateThreadResponseDto,
+  })
+  @ApiResponse({
+    status: 404,
+    description: "Thread not found",
+  })
+  async updateThread(
+    @Req() request: Request,
+    @Param("threadId") threadId: string,
+    @Body() dto: V1UpdateThreadDto,
+    @Query("userKey") userKey?: string,
+  ): Promise<V1UpdateThreadResponseDto> {
+    const { projectId, contextKey } = getV1ContextInfo(request, userKey);
+    return await this.v1Service.updateThread(
+      threadId,
+      projectId,
+      contextKey,
+      dto,
+    );
   }
 
   @Delete("threads/:threadId")

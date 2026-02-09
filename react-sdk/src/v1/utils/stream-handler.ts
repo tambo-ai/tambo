@@ -1,5 +1,5 @@
 /**
- * Stream Handler for v1 Streaming API
+ * Stream Handler for Streaming API
  *
  * Provides utilities for handling event streams from the TypeScript SDK.
  * The SDK's client.threads.runs.run() already returns an async iterable,

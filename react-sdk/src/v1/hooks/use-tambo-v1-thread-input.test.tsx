@@ -2,16 +2,16 @@ import { renderHook, act, waitFor } from "@testing-library/react";
 import React from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
-  TamboV1ThreadInputProvider,
-  useTamboV1ThreadInput,
+  TamboThreadInputProvider,
+  useTamboThreadInput,
 } from "../providers/tambo-v1-thread-input-provider";
-import { TamboV1StreamProvider } from "../providers/tambo-v1-stream-context";
-import { useTamboV1SendMessage } from "./use-tambo-v1-send-message";
+import { TamboStreamProvider } from "../providers/tambo-v1-stream-context";
+import { useTamboSendMessage } from "./use-tambo-v1-send-message";
 import type { StreamAction, StreamState } from "../utils/event-accumulator";
 
-// Mock useTamboV1SendMessage
+// Mock useTamboSendMessage
 jest.mock("./use-tambo-v1-send-message", () => ({
-  useTamboV1SendMessage: jest.fn(),
+  useTamboSendMessage: jest.fn(),
 }));
 
 // Mock useTamboQueryClient to avoid TamboClientProvider dependency
@@ -24,12 +24,12 @@ jest.mock("../providers/tambo-v1-provider", () => {
   const actual = jest.requireActual("../providers/tambo-v1-provider");
   return {
     ...actual,
-    useTamboV1Config: () => ({ userKey: undefined }),
+    useTamboConfig: () => ({ userKey: undefined }),
   };
 });
 
 jest.mock("./use-tambo-v1-auth-state", () => ({
-  useTamboV1AuthState: () => ({
+  useTamboAuthState: () => ({
     status: "identified",
     source: "userKey",
   }),
@@ -54,7 +54,7 @@ const createSuccessfulFileReader = () => {
 
 const originalFileReader = (global as any).FileReader;
 
-describe("useTamboV1ThreadInput", () => {
+describe("useTamboThreadInput", () => {
   const mockMutateAsync = jest.fn();
   let queryClient: QueryClient;
 
@@ -69,9 +69,9 @@ describe("useTamboV1ThreadInput", () => {
 
       return (
         <QueryClientProvider client={queryClient}>
-          <TamboV1StreamProvider {...streamProviderProps}>
-            <TamboV1ThreadInputProvider>{children}</TamboV1ThreadInputProvider>
-          </TamboV1StreamProvider>
+          <TamboStreamProvider {...streamProviderProps}>
+            <TamboThreadInputProvider>{children}</TamboThreadInputProvider>
+          </TamboStreamProvider>
         </QueryClientProvider>
       );
     };
@@ -88,7 +88,7 @@ describe("useTamboV1ThreadInput", () => {
       },
     });
     mockMutateAsync.mockResolvedValue({ threadId: "thread_123" });
-    jest.mocked(useTamboV1SendMessage).mockReturnValue({
+    jest.mocked(useTamboSendMessage).mockReturnValue({
       mutateAsync: mockMutateAsync,
       mutate: jest.fn(),
       isPending: false,
@@ -114,7 +114,7 @@ describe("useTamboV1ThreadInput", () => {
 
   describe("State Management", () => {
     it("initializes with empty value", () => {
-      const { result } = renderHook(() => useTamboV1ThreadInput(), {
+      const { result } = renderHook(() => useTamboThreadInput(), {
         wrapper: createWrapper(),
       });
 
@@ -122,7 +122,7 @@ describe("useTamboV1ThreadInput", () => {
     });
 
     it("updates value via setValue", () => {
-      const { result } = renderHook(() => useTamboV1ThreadInput(), {
+      const { result } = renderHook(() => useTamboThreadInput(), {
         wrapper: createWrapper(),
       });
 
@@ -134,7 +134,7 @@ describe("useTamboV1ThreadInput", () => {
     });
 
     it("supports functional updates for setValue", () => {
-      const { result } = renderHook(() => useTamboV1ThreadInput(), {
+      const { result } = renderHook(() => useTamboThreadInput(), {
         wrapper: createWrapper(),
       });
 
@@ -152,7 +152,7 @@ describe("useTamboV1ThreadInput", () => {
 
   describe("Submit Behavior", () => {
     it("submits message and clears input on success", async () => {
-      const { result } = renderHook(() => useTamboV1ThreadInput(), {
+      const { result } = renderHook(() => useTamboThreadInput(), {
         wrapper: createWrapper(),
       });
 
@@ -182,7 +182,7 @@ describe("useTamboV1ThreadInput", () => {
     });
 
     it("throws error when submitting empty message", async () => {
-      const { result } = renderHook(() => useTamboV1ThreadInput(), {
+      const { result } = renderHook(() => useTamboThreadInput(), {
         wrapper: createWrapper(),
       });
 
@@ -194,7 +194,7 @@ describe("useTamboV1ThreadInput", () => {
     });
 
     it("throws error when submitting whitespace-only message", async () => {
-      const { result } = renderHook(() => useTamboV1ThreadInput(), {
+      const { result } = renderHook(() => useTamboThreadInput(), {
         wrapper: createWrapper(),
       });
 
@@ -210,7 +210,7 @@ describe("useTamboV1ThreadInput", () => {
     });
 
     it("passes debug option to mutation", async () => {
-      const { result } = renderHook(() => useTamboV1ThreadInput(), {
+      const { result } = renderHook(() => useTamboThreadInput(), {
         wrapper: createWrapper(),
       });
 
@@ -233,7 +233,7 @@ describe("useTamboV1ThreadInput", () => {
     });
 
     it("submits image-only messages as resource content", async () => {
-      const { result } = renderHook(() => useTamboV1ThreadInput(), {
+      const { result } = renderHook(() => useTamboThreadInput(), {
         wrapper: createWrapper(),
       });
 
@@ -271,7 +271,7 @@ describe("useTamboV1ThreadInput", () => {
     });
 
     it("includes both text and image resource content when both are present", async () => {
-      const { result } = renderHook(() => useTamboV1ThreadInput(), {
+      const { result } = renderHook(() => useTamboThreadInput(), {
         wrapper: createWrapper(),
       });
 
@@ -312,7 +312,7 @@ describe("useTamboV1ThreadInput", () => {
 
   describe("Thread ID Management", () => {
     it("initializes with placeholder threadId for optimistic UI", () => {
-      const { result } = renderHook(() => useTamboV1ThreadInput(), {
+      const { result } = renderHook(() => useTamboThreadInput(), {
         wrapper: createWrapper(),
       });
 
@@ -321,7 +321,7 @@ describe("useTamboV1ThreadInput", () => {
     });
 
     it("uses currentThreadId from stream state", () => {
-      const { result } = renderHook(() => useTamboV1ThreadInput(), {
+      const { result } = renderHook(() => useTamboThreadInput(), {
         wrapper: createWrapper({
           streamState: { threadMap: {}, currentThreadId: "thread_stream" },
         }),
@@ -329,12 +329,12 @@ describe("useTamboV1ThreadInput", () => {
 
       expect(result.current.threadId).toBe("thread_stream");
       expect(
-        jest.mocked(useTamboV1SendMessage).mock.calls.map((call) => call[0]),
+        jest.mocked(useTamboSendMessage).mock.calls.map((call) => call[0]),
       ).toContain("thread_stream");
     });
 
     it("uses stream state threadId when submitting messages", async () => {
-      const { result } = renderHook(() => useTamboV1ThreadInput(), {
+      const { result } = renderHook(() => useTamboThreadInput(), {
         wrapper: createWrapper({
           streamState: { threadMap: {}, currentThreadId: "thread_stream" },
         }),
@@ -361,7 +361,7 @@ describe("useTamboV1ThreadInput", () => {
 
   describe("Image State", () => {
     it("initializes with empty images array", () => {
-      const { result } = renderHook(() => useTamboV1ThreadInput(), {
+      const { result } = renderHook(() => useTamboThreadInput(), {
         wrapper: createWrapper(),
       });
 
@@ -369,7 +369,7 @@ describe("useTamboV1ThreadInput", () => {
     });
 
     it("exposes image management functions", () => {
-      const { result } = renderHook(() => useTamboV1ThreadInput(), {
+      const { result } = renderHook(() => useTamboThreadInput(), {
         wrapper: createWrapper(),
       });
 
@@ -388,9 +388,9 @@ describe("useTamboV1ThreadInput", () => {
         .mockImplementation(() => {});
 
       expect(() => {
-        renderHook(() => useTamboV1ThreadInput());
+        renderHook(() => useTamboThreadInput());
       }).toThrow(
-        "useTamboV1ThreadInput must be used within TamboV1ThreadInputProvider",
+        "useTamboThreadInput must be used within TamboThreadInputProvider",
       );
 
       consoleSpy.mockRestore();
@@ -426,14 +426,12 @@ describe("useTamboV1ThreadInput", () => {
 
         return (
           <QueryClientProvider client={queryClient}>
-            <TamboV1StreamProvider
+            <TamboStreamProvider
               state={{ threadMap: {}, currentThreadId: threadId }}
               dispatch={noopDispatch}
             >
-              <TamboV1ThreadInputProvider>
-                {children}
-              </TamboV1ThreadInputProvider>
-            </TamboV1StreamProvider>
+              <TamboThreadInputProvider>{children}</TamboThreadInputProvider>
+            </TamboStreamProvider>
           </QueryClientProvider>
         );
       };
@@ -451,7 +449,7 @@ describe("useTamboV1ThreadInput", () => {
       mockMutateAsync.mockImplementation(async () => await threadAPromise);
 
       const { Wrapper, setThreadId } = createDynamicThreadWrapper("thread_A");
-      const { result, rerender } = renderHook(() => useTamboV1ThreadInput(), {
+      const { result, rerender } = renderHook(() => useTamboThreadInput(), {
         wrapper: Wrapper,
       });
 
@@ -512,7 +510,7 @@ describe("useTamboV1ThreadInput", () => {
       );
 
       const { Wrapper, setThreadId } = createDynamicThreadWrapper("thread_A");
-      const { result, rerender } = renderHook(() => useTamboV1ThreadInput(), {
+      const { result, rerender } = renderHook(() => useTamboThreadInput(), {
         wrapper: Wrapper,
       });
 

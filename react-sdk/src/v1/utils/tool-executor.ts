@@ -1,5 +1,5 @@
 /**
- * Tool Executor for v1 API
+ * Tool Executor
  *
  * Handles automatic execution of client-side tools when the model
  * requests them via `tambo.run.awaiting_input` events.
@@ -107,7 +107,7 @@ export async function executeClientTool(
     let content: (TextContent | ResourceContent)[];
     if (tool.transformToContent) {
       // transformToContent may return content parts in beta format
-      // Convert to v1 format (TextContent | ResourceContent)
+      // Convert to content format (TextContent | ResourceContent)
       const transformed = await tool.transformToContent(result);
       content = transformed.map((part) => {
         if (part.type === "text" && "text" in part && part.text) {

@@ -2,11 +2,11 @@
 
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { useTamboV1 } from "@tambo-ai/react/v1";
-import type {
-  TamboV1Message,
-  V1ToolUseContent,
-} from "@tambo-ai/react/v1/types/message";
+import {
+  useTambo,
+  type TamboThreadMessage,
+  type TamboToolUseContent,
+} from "@tambo-ai/react";
 import { Check, ChevronDown, Loader2, X } from "lucide-react";
 import { FC, useEffect, useRef, useState } from "react";
 import { formatToolResultContent } from "./tool-display-utils";
@@ -20,7 +20,7 @@ interface V1ThreadContentProps {
  * Displays messages from the V1 streaming state.
  */
 export const V1ThreadContent: FC<V1ThreadContentProps> = ({ className }) => {
-  const { messages, isStreaming } = useTamboV1();
+  const { messages, isStreaming } = useTambo();
 
   if (messages.length === 0) {
     return (
@@ -48,7 +48,7 @@ export const V1ThreadContent: FC<V1ThreadContentProps> = ({ className }) => {
 };
 
 interface V1MessageItemProps {
-  message: TamboV1Message;
+  message: TamboThreadMessage;
   isLoading?: boolean;
 }
 
@@ -117,7 +117,7 @@ const V1MessageItem: FC<V1MessageItemProps> = ({ message, isLoading }) => {
 };
 
 interface V1ContentPartProps {
-  content: TamboV1Message["content"][number];
+  content: TamboThreadMessage["content"][number];
 }
 
 const V1ContentPart: FC<V1ContentPartProps> = ({ content }) => {
@@ -152,7 +152,7 @@ const V1ContentPart: FC<V1ContentPartProps> = ({ content }) => {
 };
 
 interface ToolUseInfoProps {
-  content: V1ToolUseContent;
+  content: TamboToolUseContent;
 }
 
 const ToolUseInfo: FC<ToolUseInfoProps> = ({ content }) => {
@@ -201,7 +201,10 @@ const ToolUseInfo: FC<ToolUseInfoProps> = ({ content }) => {
 };
 
 interface ToolResultInfoProps {
-  content: Extract<TamboV1Message["content"][number], { type: "tool_result" }>;
+  content: Extract<
+    TamboThreadMessage["content"][number],
+    { type: "tool_result" }
+  >;
 }
 
 const ToolResultInfo: FC<ToolResultInfoProps> = ({ content }) => {

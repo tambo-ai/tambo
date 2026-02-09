@@ -1,11 +1,11 @@
 /**
- * Thread Types for v1 API
+ * Thread Types
  *
  * Re-exports thread types from `@tambo-ai/typescript-sdk` and defines
  * React-specific extensions for streaming state management.
  */
 
-import type { TamboV1Message } from "./message";
+import type { TamboThreadMessage } from "./message";
 
 // Re-export thread types from TypeScript SDK
 export type {
@@ -15,15 +15,17 @@ export type {
 } from "@tambo-ai/typescript-sdk/resources/threads/threads";
 
 /**
- * Run status indicates the current state of the thread
+ * Run status indicates the current state of the thread's run lifecycle.
+ * Matches the API's RunStatus — no "complete" or "error" variants.
+ * Error information is tracked separately in StreamingState.error.
  */
-export type RunStatus = "idle" | "waiting" | "streaming" | "complete" | "error";
+export type RunStatus = "idle" | "waiting" | "streaming";
 
 /**
  * Thread represents a conversation with the AI
  * Extended from SDK's ThreadRetrieveResponse with additional fields for React state
  */
-export interface TamboV1Thread {
+export interface TamboThread {
   /** Unique thread identifier */
   id: string;
 
@@ -31,7 +33,7 @@ export interface TamboV1Thread {
   title?: string;
 
   /** Messages in the thread */
-  messages: TamboV1Message[];
+  messages: TamboThreadMessage[];
 
   /** Current run status */
   status: RunStatus;

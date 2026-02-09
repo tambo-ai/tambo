@@ -1,5 +1,5 @@
 /**
- * Event Accumulation Logic for v1 Streaming API
+ * Event Accumulation Logic for Streaming API
  *
  * Implements a reducer that transforms AG-UI event streams into React state.
  * Used with useReducer to accumulate events into thread state.
@@ -34,9 +34,9 @@ import {
 import type {
   Content,
   InitialInputMessage,
-  TamboV1Message,
+  TamboThreadMessage,
 } from "../types/message";
-import type { StreamingState, TamboV1Thread } from "../types/thread";
+import type { StreamingState, TamboThread } from "../types/thread";
 import { parse as parsePartialJson } from "partial-json";
 import { applyJsonPatch } from "./json-patch";
 
@@ -56,7 +56,7 @@ export class UnreachableCaseError extends Error {
  * Tracks thread data, streaming status, and accumulating data.
  */
 export interface ThreadState {
-  thread: TamboV1Thread;
+  thread: TamboThread;
   streaming: StreamingState;
   /**
    * Accumulating tool call arguments as JSON strings (for streaming).
@@ -105,7 +105,7 @@ export interface EventAction {
 export interface InitThreadAction {
   type: "INIT_THREAD";
   threadId: string;
-  initialThread?: Partial<TamboV1Thread>;
+  initialThread?: Partial<TamboThread>;
 }
 
 /**
@@ -123,7 +123,7 @@ export interface SetCurrentThreadAction {
 export interface StartNewThreadAction {
   type: "START_NEW_THREAD";
   threadId: string;
-  initialThread?: Partial<TamboV1Thread>;
+  initialThread?: Partial<TamboThread>;
 }
 
 /**
@@ -133,7 +133,7 @@ export interface StartNewThreadAction {
 export interface LoadThreadMessagesAction {
   type: "LOAD_THREAD_MESSAGES";
   threadId: string;
-  messages: TamboV1Message[];
+  messages: TamboThreadMessage[];
   /**
    * If true, skip loading if the thread is currently streaming.
    * This prevents overwriting in-flight streaming messages.
@@ -234,7 +234,7 @@ export function createInitialState(): StreamState {
 
 /**
  * Create initial stream state with placeholder thread seeded with initial messages.
- * The messages are converted from InputMessage format to TamboV1Message format
+ * The messages are converted from InputMessage format to TamboThreadMessage format
  * for immediate UI display before any API call.
  * @param initialMessages - Messages to seed the placeholder thread with
  * @returns Initial stream state with messages in the placeholder thread
@@ -243,7 +243,7 @@ export function createInitialStateWithMessages(
   initialMessages: InitialInputMessage[],
 ): StreamState {
   const placeholderState = createInitialThreadState(PLACEHOLDER_THREAD_ID);
-  const messages: TamboV1Message[] = initialMessages.map((msg) => ({
+  const messages: TamboThreadMessage[] = initialMessages.map((msg) => ({
     id: `initial_${crypto.randomUUID()}`,
     role: msg.role,
     content: msg.content.map((c): Content => {
@@ -288,10 +288,10 @@ interface ContentLocation {
  * @returns New messages array with the message replaced
  */
 function updateMessageAtIndex(
-  messages: TamboV1Message[],
+  messages: TamboThreadMessage[],
   index: number,
-  updatedMessage: TamboV1Message,
-): TamboV1Message[] {
+  updatedMessage: TamboThreadMessage,
+): TamboThreadMessage[] {
   return [
     ...messages.slice(0, index),
     updatedMessage,
@@ -333,7 +333,7 @@ function updateContentAtIndex(
  * @throws {Error} If content not found
  */
 function findContentById(
-  messages: TamboV1Message[],
+  messages: TamboThreadMessage[],
   contentType: "component" | "tool_use",
   contentId: string,
   eventName: string,
@@ -357,7 +357,7 @@ function findContentById(
  */
 function updateThreadMessages(
   threadState: ThreadState,
-  messages: TamboV1Message[],
+  messages: TamboThreadMessage[],
 ): ThreadState {
   return {
     ...threadState,
@@ -705,12 +705,12 @@ function handleRunFinished(
       threadState.lastCompletedRunId,
     thread: {
       ...threadState.thread,
-      status: "complete",
+      status: "idle",
       updatedAt: new Date().toISOString(),
     },
     streaming: {
       ...threadState.streaming,
-      status: "complete",
+      status: "idle",
     },
   };
 }
@@ -732,15 +732,13 @@ function handleRunError(
     ...threadState,
     thread: {
       ...threadState.thread,
-      // Use "idle" status for cancelled runs (not a real error from user perspective)
-      status: isCancelled ? "idle" : "error",
+      status: "idle",
       updatedAt: new Date().toISOString(),
       lastRunCancelled: isCancelled,
     },
     streaming: {
       ...threadState.streaming,
-      // Use "idle" status for cancelled runs so UI shows as not streaming
-      status: isCancelled ? "idle" : "error",
+      status: "idle",
       error: isCancelled
         ? undefined
         : {
@@ -801,7 +799,7 @@ function handleTextMessageStart(
   }
 
   // No ephemeral message to reuse - create a new message
-  const newMessage: TamboV1Message = {
+  const newMessage: TamboThreadMessage = {
     id: event.messageId,
     role: isAssistant ? "assistant" : "user",
     content: [],
@@ -867,7 +865,7 @@ function handleTextMessageContent(
         },
       ];
 
-  const updatedMessage: TamboV1Message = {
+  const updatedMessage: TamboThreadMessage = {
     ...message,
     content: updatedContent,
   };
@@ -921,10 +919,22 @@ function handleToolCallStart(
   const messageId = event.parentMessageId;
   const messages = threadState.thread.messages;
 
-  // If no parent message ID, use the last message
-  const messageIndex = messageId
-    ? messages.findIndex((m) => m.id === messageId)
-    : messages.length - 1;
+  // Find the parent message for this tool call.
+  // If parentMessageId is provided, look it up directly.
+  // Otherwise fall back to the last message, but only if it's an assistant message.
+  // If the last message isn't assistant (e.g. it's the user message and the LLM
+  // didn't produce any text before the tool call), we'll create a synthetic
+  // assistant message below.
+  let messageIndex: number;
+  if (messageId) {
+    messageIndex = messages.findIndex((m) => m.id === messageId);
+  } else {
+    const lastIndex = messages.length - 1;
+    messageIndex =
+      lastIndex >= 0 && messages[lastIndex].role === "assistant"
+        ? lastIndex
+        : -1;
+  }
 
   const newContent: Content = {
     type: "tool_use",
@@ -933,10 +943,10 @@ function handleToolCallStart(
     input: {},
   };
 
-  // If no message found, create a synthetic assistant message for the tool call
+  // If no suitable assistant message found, create a synthetic one for the tool call
   if (messageIndex === -1) {
     const syntheticMessageId = messageId ?? `msg_tool_${event.toolCallId}`;
-    const syntheticMessage: TamboV1Message = {
+    const syntheticMessage: TamboThreadMessage = {
       id: syntheticMessageId,
       role: "assistant",
       content: [newContent],
@@ -959,7 +969,7 @@ function handleToolCallStart(
 
   const message = messages[messageIndex];
 
-  const updatedMessage: TamboV1Message = {
+  const updatedMessage: TamboThreadMessage = {
     ...message,
     content: [...message.content, newContent],
   };
@@ -1040,7 +1050,7 @@ function handleToolCallArgs(
     input: parsedInput,
   };
 
-  const updatedMessage: TamboV1Message = {
+  const updatedMessage: TamboThreadMessage = {
     ...message,
     content: updateContentAtIndex(
       message.content,
@@ -1112,7 +1122,7 @@ function handleToolCallEnd(
     input: parsedInput,
   };
 
-  const updatedMessage: TamboV1Message = {
+  const updatedMessage: TamboThreadMessage = {
     ...message,
     content: updateContentAtIndex(
       message.content,
@@ -1170,7 +1180,7 @@ function handleToolCallResult(
     ],
   };
 
-  const updatedMessage: TamboV1Message = {
+  const updatedMessage: TamboThreadMessage = {
     ...message,
     content: [...message.content, newContent],
   };
@@ -1245,7 +1255,7 @@ function handleComponentStart(
   let messageIndex = messages.findIndex((m) => m.id === messageId);
   if (messageIndex === -1) {
     // Create a new assistant message for this component
-    const newMessage: TamboV1Message = {
+    const newMessage: TamboThreadMessage = {
       id: messageId,
       role: "assistant",
       content: [],
@@ -1269,7 +1279,7 @@ function handleComponentStart(
     streamingState: "started",
   };
 
-  const updatedMessage: TamboV1Message = {
+  const updatedMessage: TamboThreadMessage = {
     ...message,
     content: [...message.content, newContent],
   };
@@ -1331,7 +1341,7 @@ function handleComponentDelta(
     streamingState: "streaming",
   };
 
-  const updatedMessage: TamboV1Message = {
+  const updatedMessage: TamboThreadMessage = {
     ...message,
     content: updateContentAtIndex(
       message.content,
@@ -1383,7 +1393,7 @@ function handleComponentEnd(
     streamingState: "done",
   };
 
-  const updatedMessage: TamboV1Message = {
+  const updatedMessage: TamboThreadMessage = {
     ...message,
     content: updateContentAtIndex(
       message.content,
@@ -1444,7 +1454,7 @@ function generateEphemeralMessageId(): string {
  */
 function findOrCreateMessageForReasoning(threadState: ThreadState): {
   messageIndex: number;
-  messages: TamboV1Message[];
+  messages: TamboThreadMessage[];
   threadState: ThreadState;
 } {
   const messageId = threadState.streaming.messageId;
@@ -1471,7 +1481,7 @@ function findOrCreateMessageForReasoning(threadState: ThreadState): {
 
   // No suitable assistant message - create an ephemeral one
   const ephemeralId = generateEphemeralMessageId();
-  const newMessage: TamboV1Message = {
+  const newMessage: TamboThreadMessage = {
     id: ephemeralId,
     role: "assistant",
     content: [],
@@ -1519,7 +1529,7 @@ function handleThinkingTextMessageStart(
   const message = messages[messageIndex];
   const existingReasoning = message.reasoning ?? [];
 
-  const updatedMessage: TamboV1Message = {
+  const updatedMessage: TamboThreadMessage = {
     ...message,
     reasoning: [...existingReasoning, ""],
   };
@@ -1563,7 +1573,7 @@ function handleThinkingTextMessageContent(
 
   if (existingReasoning.length === 0) {
     // No reasoning chunk started - start one implicitly
-    const updatedMessage: TamboV1Message = {
+    const updatedMessage: TamboThreadMessage = {
       ...message,
       reasoning: [event.delta],
     };
@@ -1589,7 +1599,7 @@ function handleThinkingTextMessageContent(
     existingReasoning[existingReasoning.length - 1] + event.delta,
   ];
 
-  const updatedMessage: TamboV1Message = {
+  const updatedMessage: TamboThreadMessage = {
     ...message,
     reasoning: updatedReasoning,
   };
@@ -1627,7 +1637,7 @@ function handleThinkingTextMessageEnd(
     ? endTime - reasoningStartTime
     : undefined;
 
-  const updatedMessage: TamboV1Message = {
+  const updatedMessage: TamboThreadMessage = {
     ...message,
     reasoningDurationMS:
       reasoningDurationMS ?? message.reasoningDurationMS ?? undefined,

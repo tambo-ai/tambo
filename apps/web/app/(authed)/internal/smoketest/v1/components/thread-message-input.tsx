@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useTamboV1ThreadInput } from "@tambo-ai/react/v1";
+import { useTamboThreadInput } from "@tambo-ai/react";
 import { FC } from "react";
 
 interface ThreadMessageInputProps {
@@ -8,7 +8,7 @@ interface ThreadMessageInputProps {
 }
 
 const ThreadMessageInput: FC<ThreadMessageInputProps> = ({ onSubmit }) => {
-  const { value, setValue, submit, isPending, error } = useTamboV1ThreadInput();
+  const { value, setValue, submit, isPending, error } = useTamboThreadInput();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

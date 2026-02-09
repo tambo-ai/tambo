@@ -1,5 +1,5 @@
 /**
- * Authentication state for the v1 SDK.
+ * Authentication state for the SDK.
  *
  * Discriminated union tracking the current auth lifecycle:
  * - `identified`: ready to make API calls (via userKey or successful token exchange)
@@ -8,7 +8,7 @@
  * - `invalid`: both userKey AND userToken provided (must choose one)
  * - `unauthenticated`: neither userKey nor userToken provided
  */
-export type TamboV1AuthState =
+export type TamboAuthState =
   | { status: "identified"; source: "userKey" | "tokenExchange" }
   | { status: "exchanging" }
   | { status: "error"; error: Error }

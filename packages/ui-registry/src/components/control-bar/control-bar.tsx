@@ -56,7 +56,7 @@ export const ControlBar = React.forwardRef<HTMLDivElement, ControlBarProps>(
     const [open, setOpen] = React.useState(false);
     const isMac =
       typeof navigator !== "undefined" && navigator.platform.startsWith("Mac");
-    const { thread } = useTambo();
+    const { messages } = useTambo();
 
     React.useEffect(() => {
       const down = (e: KeyboardEvent) => {
@@ -111,7 +111,7 @@ export const ControlBar = React.forwardRef<HTMLDivElement, ControlBarProps>(
                   </MessageInput>
                 </div>
               </div>
-              {thread?.messages?.length > 0 && (
+              {messages.length > 0 && (
                 <ScrollableMessageContainer className="bg-background border rounded-lg p-4 max-h-[500px]">
                   <ThreadContent variant={variant}>
                     <ThreadContentMessages />

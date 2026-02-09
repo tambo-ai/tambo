@@ -15,6 +15,7 @@ import {
 import {
   useTambo,
   useTamboCurrentComponent,
+  useTamboInteractable,
   useTamboThreadInput,
 } from "@tambo-ai/react";
 import { MessageGenerationStage } from "@tambo-ai/ui-registry/components/message-suggestions";
@@ -79,8 +80,9 @@ export function EditWithTamboButton({
   editorRef,
 }: EditWithTamboButtonProps) {
   const component = useTamboCurrentComponent();
-  const { sendThreadMessage, isIdle, setInteractableSelected } = useTambo();
-  const { setValue: setThreadInputValue } = useTamboThreadInput();
+  const { isIdle } = useTambo();
+  const { setInteractableSelected } = useTamboInteractable();
+  const { setValue: setThreadInputValue, submit } = useTamboThreadInput();
 
   const [prompt, setPrompt] = useState("");
   // NOTE: Using isIdle from useTambo() instead of tracking error/pending state locally.
@@ -111,20 +113,13 @@ export function EditWithTamboButton({
 
     setShouldCloseOnComplete(true);
 
-    await sendThreadMessage(prompt.trim(), {
-      streamResponse: true,
-      additionalContext: {
-        inlineEdit: {
-          componentId: component.interactableId,
-          instruction:
-            "The user wants to edit this specific component inline. Please update the component's props to fulfill the user's request.",
-        },
-      },
-    });
+    // Set value and submit via the thread input
+    setThreadInputValue(prompt.trim());
+    await submit();
 
     // Clear the prompt after successful send
     setPrompt("");
-  }, [prompt, isGenerating, component, sendThreadMessage]);
+  }, [prompt, isGenerating, component, setThreadInputValue, submit]);
 
   const handleSendInThread = useCallback(() => {
     if (!prompt.trim()) {
