@@ -224,6 +224,11 @@ export function useTambo(): UseTamboReturn {
   // Get thread state for the current thread
   const threadState = streamState.threadMap[streamState.currentThreadId];
 
+  // Keep a live snapshot of the threadMap for callbacks without forcing them to
+  // re-create on every stream state update.
+  const threadMapRef = useRef(streamState.threadMap);
+  threadMapRef.current = streamState.threadMap;
+
   // Cancel the current run on this thread
   const cancelRun = useCallback(async () => {
     const runId = threadState?.streaming.runId;
@@ -267,11 +272,13 @@ export function useTambo(): UseTamboReturn {
       // @ts-expect-error - TypeScript SDK will be updated to include this method
       await client.threads.update(threadId, { name });
 
-      dispatch({
-        type: "UPDATE_THREAD_TITLE",
-        threadId,
-        title: name,
-      });
+      if (threadMapRef.current[threadId]) {
+        dispatch({
+          type: "UPDATE_THREAD_TITLE",
+          threadId,
+          title: name,
+        });
+      }
 
       try {
         await Promise.all([

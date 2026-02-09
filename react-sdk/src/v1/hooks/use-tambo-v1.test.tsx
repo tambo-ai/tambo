@@ -107,13 +107,19 @@ describe("useTambo", () => {
   }
 
   // Wrapper that uses the real reducer so state updates properly
-  function createWrapperWithRealReducer(initialState: StreamState) {
+  function createWrapperWithRealReducer(
+    initialState: StreamState,
+    stateRef?: React.MutableRefObject<StreamState | undefined>,
+  ) {
     return function WrapperWithRealReducer({
       children,
     }: {
       children: React.ReactNode;
     }) {
       const [state, dispatch] = useReducer(streamReducer, initialState);
+      if (stateRef) {
+        stateRef.current = state;
+      }
       return (
         <QueryClientProvider client={queryClient}>
           <TamboRegistryContext.Provider value={mockRegistry}>
@@ -135,6 +141,7 @@ describe("useTambo", () => {
     jest.mocked(useTamboClient).mockReturnValue(mockTamboClient);
     jest.mocked(useTamboQueryClient).mockReturnValue(queryClient);
     jest.clearAllMocks();
+    delete (mockTamboClient.threads as any).update;
   });
 
   it("returns client from useTamboClient", () => {
@@ -1257,11 +1264,18 @@ describe("useTambo", () => {
 
       const invalidateQueriesSpy = jest.spyOn(queryClient, "invalidateQueries");
 
+      // Track the internal StreamState from the real reducer so we can assert we
+      // don't create a local thread entry for threads that haven't been loaded.
+      const stateRef: React.MutableRefObject<StreamState | undefined> = {
+        current: undefined,
+      };
+      const initialState: StreamState = {
+        threadMap: {},
+        currentThreadId: "placeholder",
+      };
+
       const { result } = renderHook(() => useTambo(), {
-        wrapper: createWrapperWithRealReducer({
-          threadMap: {},
-          currentThreadId: "placeholder",
-        }),
+        wrapper: createWrapperWithRealReducer(initialState, stateRef),
       });
 
       await act(async () => {
@@ -1276,6 +1290,8 @@ describe("useTambo", () => {
         .filter(Boolean);
       expect(invalidatedKeys).toContainEqual(["v1-threads", "list"]);
       expect(invalidatedKeys).toContainEqual(["v1-threads", "thread_789"]);
+
+      expect(stateRef.current?.threadMap.thread_789).toBeUndefined();
 
       act(() => {
         result.current.switchThread("thread_789");
