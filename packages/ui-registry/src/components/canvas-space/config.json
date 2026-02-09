@@ -2,7 +2,7 @@
   "name": "canvas-space",
   "description": "A canvas space component that displays rendered components from chat messages.",
   "componentName": "CanvasSpace",
-  "dependencies": ["@tambo-ai/react"],
+  "dependencies": ["@tambo-ai/react@rc"],
   "devDependencies": [],
   "requires": [],
   "files": [

@@ -3,7 +3,7 @@
   "description": "Displays message threads that can be expanded or collapsed",
   "componentName": "MessageThreadCollapsible",
   "dependencies": [
-    "@tambo-ai/react",
+    "@tambo-ai/react@rc",
     "radix-ui",
     "lucide-react",
     "class-variance-authority"

@@ -7,7 +7,7 @@
     "streamdown",
     "lucide-react",
     "highlight.js",
-    "@tambo-ai/react",
+    "@tambo-ai/react@rc",
     "@tambo-ai/react-ui-base@next",
     "@tambo-ai/typescript-sdk",
     "dompurify",
