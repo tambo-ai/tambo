@@ -14,8 +14,8 @@ import { getPositioning } from "../../utils/use-positioning";
 export type MessageThreadFullRootRenderProps = MessageThreadFullContextValue;
 
 export interface MessageThreadFullRootProps {
-  /** Optional className used for positioning detection (e.g., "right" class). */
-  className?: string;
+  /** Which side this panel is on. Defaults to "left". */
+  position?: "left" | "right";
   /** Children as ReactNode or render function receiving layout state. */
   children?:
     | React.ReactNode
@@ -29,13 +29,13 @@ export interface MessageThreadFullRootProps {
  * @returns Context provider wrapping children with layout state
  */
 export function MessageThreadFullRoot({
-  className,
+  position,
   children,
 }: MessageThreadFullRootProps) {
   const containerRef = React.useRef<HTMLDivElement>(null);
   const { hasCanvasSpace, canvasIsOnLeft } = useCanvasDetection(containerRef);
   const { isLeftPanel, historyPosition } = getPositioning(
-    className,
+    position,
     canvasIsOnLeft,
     hasCanvasSpace,
   );
