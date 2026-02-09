@@ -73,6 +73,16 @@
         "default": "./dist/cjs/toolcall-info/index.cjs"
       }
     },
+    "./graph": {
+      "import": {
+        "types": "./dist/esm/graph/index.d.ts",
+        "default": "./dist/esm/graph/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/graph/index.d.ts",
+        "default": "./dist/cjs/graph/index.cjs"
+      }
+    },
     "./types": {
       "import": {
         "types": "./dist/esm/types/index.d.ts",
