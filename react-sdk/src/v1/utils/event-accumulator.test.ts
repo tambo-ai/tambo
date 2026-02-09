@@ -960,6 +960,45 @@ describe("streamReducer", () => {
         name: "get_weather",
       });
     });
+
+    it("creates synthetic assistant message when last message is user and no parentMessageId", () => {
+      const state = createTestStreamState("thread_1");
+      state.threadMap.thread_1.thread.messages = [
+        {
+          id: "user_msg_1",
+          role: "user",
+          content: [{ type: "text", text: "do something" }],
+          createdAt: "2024-01-01T00:00:00.000Z",
+        },
+      ];
+
+      const event: ToolCallStartEvent = {
+        type: EventType.TOOL_CALL_START,
+        toolCallId: "tool_1",
+        toolCallName: "get_weather",
+        // No parentMessageId - last message is user, should NOT append to it
+      };
+
+      const result = streamReducer(state, {
+        type: "EVENT",
+        event,
+        threadId: "thread_1",
+      });
+
+      const messages = result.threadMap.thread_1.thread.messages;
+      // Should create a new synthetic assistant message, not append to user message
+      expect(messages).toHaveLength(2);
+      expect(messages[0].id).toBe("user_msg_1");
+      expect(messages[0].role).toBe("user");
+      expect(messages[0].content).toHaveLength(1); // User message unchanged
+      expect(messages[1].role).toBe("assistant");
+      expect(messages[1].content).toHaveLength(1);
+      expect(messages[1].content[0]).toMatchObject({
+        type: "tool_use",
+        id: "tool_1",
+        name: "get_weather",
+      });
+    });
   });
 
   describe("TOOL_CALL_ARGS and TOOL_CALL_END events", () => {
