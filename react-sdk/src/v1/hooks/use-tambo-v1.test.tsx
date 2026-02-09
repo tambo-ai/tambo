@@ -1211,7 +1211,7 @@ describe("useTambo", () => {
   });
 
   describe("updateThreadName", () => {
-    it("updates local thread title and invalidates caches on success", async () => {
+    it("updates local thread name and invalidates caches on success", async () => {
       const mockUpdate = jest.fn().mockResolvedValue({});
       // TypeScript SDK will be updated to include this method
       (mockTamboClient.threads as any).update = mockUpdate;
@@ -1228,7 +1228,7 @@ describe("useTambo", () => {
               createdAt: new Date().toISOString(),
               updatedAt: new Date().toISOString(),
               lastRunCancelled: false,
-              title: "Old Title",
+              name: "Old Name",
             },
             streaming: { status: "idle" },
             accumulatingToolArgs: new Map(),
@@ -1249,7 +1249,7 @@ describe("useTambo", () => {
         name: "My New Thread",
       });
 
-      expect(result.current.thread?.thread.title).toBe("My New Thread");
+      expect(result.current.thread?.thread.name).toBe("My New Thread");
       const invalidatedKeys = invalidateQueriesSpy.mock.calls
         .map(([arg]) => (arg as any).queryKey)
         .filter(Boolean);
@@ -1319,7 +1319,7 @@ describe("useTambo", () => {
               createdAt: new Date().toISOString(),
               updatedAt: new Date().toISOString(),
               lastRunCancelled: false,
-              title: "Old Title",
+              name: "Old Name",
             },
             streaming: { status: "idle" },
             accumulatingToolArgs: new Map(),
@@ -1343,7 +1343,7 @@ describe("useTambo", () => {
 
       expect(caughtError).toBeInstanceOf(Error);
       expect((caughtError as Error).message).toBe("Network error");
-      expect(result.current.thread?.thread.title).toBe("Old Title");
+      expect(result.current.thread?.thread.name).toBe("Old Name");
       expect(invalidateQueriesSpy).not.toHaveBeenCalled();
     });
   });
