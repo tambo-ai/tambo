@@ -159,20 +159,20 @@ export async function handleAuthLogin(
       ),
     );
 
+    // --no-browser when already authenticated is a clean no-op
+    if (options.noBrowser) {
+      console.log(chalk.gray("\nUse --force to re-authenticate.\n"));
+      return 0;
+    }
+
     if (!isInteractive()) {
       throw new GuidanceError(
         "Already authenticated. Re-authentication requires confirmation.",
         [
-          "npx tambo auth login --no-browser  # Print auth URL for manual login",
+          "npx tambo auth login --no-browser  # No-op when already authenticated",
           "npx tambo auth logout --force && npx tambo auth login --no-browser  # Force re-auth",
         ],
       );
-    }
-
-    // In non-interactive mode (--no-browser), skip the re-auth prompt
-    if (options.noBrowser) {
-      console.log(chalk.gray("\nUse --force to re-authenticate.\n"));
-      return 0;
     }
 
     const shouldReauth = await confirm({
@@ -465,18 +465,30 @@ async function revokeAllSessions(): Promise<number> {
     }
   }
 
-  const spinner = ora("Revoking all sessions...").start();
+  const interactive = isInteractive();
+  const spinner = ora({
+    text: "Revoking all sessions...",
+    isEnabled: interactive,
+  }).start();
 
   try {
     const result = await api.deviceAuth.revokeAllSessions.mutate();
 
     if (result.revokedCount === 0) {
-      spinner.info("No sessions to revoke");
+      if (interactive) {
+        spinner.info("No sessions to revoke");
+      } else {
+        console.log("No sessions to revoke");
+      }
       console.log();
       return 0;
     }
 
-    spinner.succeed(`Revoked ${result.revokedCount} session(s)`);
+    if (interactive) {
+      spinner.succeed(`Revoked ${result.revokedCount} session(s)`);
+    } else {
+      console.log(`Revoked ${result.revokedCount} session(s)`);
+    }
 
     // Clear local token since we revoked our own session
     clearToken();
@@ -487,7 +499,11 @@ async function revokeAllSessions(): Promise<number> {
     );
     return 0;
   } catch (error) {
-    spinner.fail("Failed to revoke sessions");
+    if (interactive) {
+      spinner.fail("Failed to revoke sessions");
+    } else {
+      console.error("Failed to revoke sessions");
+    }
 
     if (error instanceof ApiError) {
       console.log(chalk.red(`\nError: ${error.message}`));
