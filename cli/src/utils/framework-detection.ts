@@ -54,13 +54,15 @@ const FRAMEWORKS: FrameworkDefinition[] = [
       hasPackage("next") ||
       hasAnyFile(["next.config.js", "next.config.ts", "next.config.mjs"]),
   },
+  {
+    name: "vite",
+    displayName: "Vite",
+    envPrefix: "VITE_",
+    detect: () =>
+      hasPackage("vite") ||
+      hasAnyFile(["vite.config.js", "vite.config.ts", "vite.config.mjs"]),
+  },
   // Future frameworks can be added here:
-  // {
-  //   name: "vite",
-  //   displayName: "Vite",
-  //   envPrefix: "VITE_",
-  //   detect: () => hasPackage("vite") || hasAnyFile(["vite.config.js", "vite.config.ts"]),
-  // },
   // {
   //   name: "cra",
   //   displayName: "Create React App",

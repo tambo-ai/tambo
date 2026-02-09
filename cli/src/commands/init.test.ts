@@ -401,7 +401,7 @@ describe("handleInit", () => {
 
       // Verify error message
       const output = logs.join("\n");
-      expect(output).toContain("doesn't look like a valid");
+      expect(output).toContain("Could not find a valid package.json");
     });
 
     it("should error when package.json is invalid JSON", async () => {
@@ -415,7 +415,7 @@ describe("handleInit", () => {
 
       // Verify error message
       const output = logs.join("\n");
-      expect(output).toContain("doesn't look like a valid");
+      expect(output).toContain("Could not find a valid package.json");
     });
   });
 
