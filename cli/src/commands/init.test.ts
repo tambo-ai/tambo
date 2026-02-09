@@ -8,6 +8,7 @@ import {
 } from "@jest/globals";
 import { fs as memfsFs, vol } from "memfs";
 import { toTreeSync } from "memfs/lib/print";
+import type { FrameworkConfig } from "../utils/framework-detection.js";
 import {
   createBasicProject,
   createNextProject,
@@ -26,11 +27,7 @@ jest.unstable_mockModule("fs", () => ({
 
 // Mock framework detection to return Next.js by default (most tests expect this)
 // Tests can override this by setting mockDetectedFramework before running
-let mockDetectedFramework: {
-  name: string;
-  displayName: string;
-  envPrefix: string | null;
-} | null = {
+let mockDetectedFramework: FrameworkConfig | null = {
   name: "next",
   displayName: "Next.js",
   envPrefix: "NEXT_PUBLIC_",

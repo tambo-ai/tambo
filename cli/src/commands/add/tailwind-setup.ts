@@ -7,7 +7,10 @@ import postcss from "postcss";
 import semver from "semver";
 import type { Config } from "tailwindcss";
 import { Project, ScriptKind } from "ts-morph";
-import { detectFramework } from "../../utils/framework-detection.js";
+import {
+  detectFramework,
+  getDefaultCssPath,
+} from "../../utils/framework-detection.js";
 import { interactivePrompt, isInteractive } from "../../utils/interactive.js";
 import { parseConfigObject } from "./tailwind/config/parsing.js";
 import { showChangesSummary, showCssDiff } from "./tailwind/css/diff-viewer.js";
@@ -29,10 +32,7 @@ import {
   handleInlineTheme,
   preserveConfigDirectives,
 } from "./tailwind/v4/handlers.js";
-import {
-  getDefaultCssPath,
-  setupTailwindV4Toolchain,
-} from "./tailwind/v4/toolchain-setup.js";
+import { setupTailwindV4Toolchain } from "./tailwind/v4/toolchain-setup.js";
 import { detectTailwindVersion } from "./tailwind/version/detection.js";
 import { getRegistryBasePath } from "./utils.js";
 
@@ -59,7 +59,7 @@ export async function setupTailwindAndGlobals(projectRoot: string) {
 
   // For Tailwind v4, set up the build toolchain (Vite plugin or PostCSS config)
   if (isV4) {
-    await setupTailwindV4Toolchain(projectRoot, framework);
+    setupTailwindV4Toolchain(projectRoot, framework);
   }
 
   // Find existing globals.css or determine where to create it

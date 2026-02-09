@@ -25,8 +25,9 @@ jest.unstable_mockModule("../../../../utils/interactive.js", () => ({
 }));
 
 // Import after mocking
-const { setupTailwindV4Toolchain, getDefaultCssPath } =
-  await import("./toolchain-setup.js");
+const { setupTailwindV4Toolchain } = await import("./toolchain-setup.js");
+const { getDefaultCssPath } =
+  await import("../../../../utils/framework-detection.js");
 
 const NEXT_FRAMEWORK = {
   name: "next" as const,
@@ -74,7 +75,7 @@ describe("toolchain-setup", () => {
         }),
       });
 
-      await setupTailwindV4Toolchain("/mock-project", NEXT_FRAMEWORK);
+      setupTailwindV4Toolchain("/mock-project", NEXT_FRAMEWORK);
 
       // Next.js needs @tailwindcss/postcss for Tailwind v4
       expect(vol.existsSync("/mock-project/postcss.config.mjs")).toBe(true);
@@ -100,7 +101,7 @@ describe("toolchain-setup", () => {
 `,
       });
 
-      await setupTailwindV4Toolchain("/mock-project", NEXT_FRAMEWORK);
+      setupTailwindV4Toolchain("/mock-project", NEXT_FRAMEWORK);
 
       // Already configured — should not install anything
       expect(mockExecFileSync).not.toHaveBeenCalled();
@@ -121,7 +122,7 @@ export default defineConfig({
 `,
       });
 
-      await setupTailwindV4Toolchain("/mock-project", VITE_FRAMEWORK);
+      setupTailwindV4Toolchain("/mock-project", VITE_FRAMEWORK);
 
       // Should have updated vite.config.ts with tailwindcss import and plugin
       const updatedConfig = vol.readFileSync(
@@ -150,7 +151,7 @@ export default defineConfig({
 `,
       });
 
-      await setupTailwindV4Toolchain("/mock-project", VITE_FRAMEWORK);
+      setupTailwindV4Toolchain("/mock-project", VITE_FRAMEWORK);
 
       // Should NOT have installed anything (already configured)
       expect(mockExecFileSync).not.toHaveBeenCalled();
@@ -164,7 +165,7 @@ export default defineConfig({
         }),
       });
 
-      await setupTailwindV4Toolchain("/mock-project", null);
+      setupTailwindV4Toolchain("/mock-project", null);
 
       // Should have created postcss.config.mjs
       expect(vol.existsSync("/mock-project/postcss.config.mjs")).toBe(true);
@@ -192,7 +193,7 @@ export default defineConfig({
 `,
       });
 
-      await setupTailwindV4Toolchain("/mock-project", null);
+      setupTailwindV4Toolchain("/mock-project", null);
 
       // Should NOT install anything (already configured)
       expect(mockExecFileSync).not.toHaveBeenCalled();
@@ -212,7 +213,7 @@ export default defineConfig({
 `,
       });
 
-      await setupTailwindV4Toolchain("/mock-project", null);
+      setupTailwindV4Toolchain("/mock-project", null);
 
       // Should NOT create a new config file
       expect(vol.existsSync("/mock-project/postcss.config.mjs")).toBe(false);
@@ -231,7 +232,7 @@ export default defineConfig({
       });
 
       // Should not throw, just print instructions
-      await setupTailwindV4Toolchain("/mock-project", VITE_FRAMEWORK);
+      setupTailwindV4Toolchain("/mock-project", VITE_FRAMEWORK);
 
       // Config should not have been modified (no plugins array found)
       const config = vol.readFileSync(
@@ -260,7 +261,7 @@ export default defineConfig({
         throw new Error("npm install failed");
       });
 
-      await setupTailwindV4Toolchain("/mock-project", VITE_FRAMEWORK);
+      setupTailwindV4Toolchain("/mock-project", VITE_FRAMEWORK);
 
       // Config should NOT have been modified since install failed
       const config = vol.readFileSync(
@@ -283,10 +284,60 @@ export default defineConfig({
         throw new Error("npm install failed");
       });
 
-      await setupTailwindV4Toolchain("/mock-project", null);
+      setupTailwindV4Toolchain("/mock-project", null);
 
       // postcss.config.mjs should NOT have been created since install failed
       expect(vol.existsSync("/mock-project/postcss.config.mjs")).toBe(false);
+    });
+
+    it("handles Vite config with export default object (no defineConfig)", async () => {
+      vol.fromJSON({
+        "/mock-project/package.json": JSON.stringify({
+          name: "test-project",
+          devDependencies: { vite: "^5.0.0" },
+        }),
+        "/mock-project/vite.config.ts": `import react from "@vitejs/plugin-react";
+
+export default {
+  plugins: [react()],
+};
+`,
+      });
+
+      setupTailwindV4Toolchain("/mock-project", VITE_FRAMEWORK);
+
+      const updatedConfig = vol.readFileSync(
+        "/mock-project/vite.config.ts",
+        "utf-8",
+      ) as string;
+      expect(updatedConfig).toContain("@tailwindcss/vite");
+      expect(updatedConfig).toContain("tailwindcss()");
+      expect(wasPackageInstalled("@tailwindcss/vite")).toBe(true);
+    });
+
+    it("handles Vite config with .mjs extension", async () => {
+      vol.fromJSON({
+        "/mock-project/package.json": JSON.stringify({
+          name: "test-project",
+          devDependencies: { vite: "^5.0.0" },
+        }),
+        "/mock-project/vite.config.mjs": `import { defineConfig } from "vite";
+
+export default defineConfig({
+  plugins: [],
+});
+`,
+      });
+
+      setupTailwindV4Toolchain("/mock-project", VITE_FRAMEWORK);
+
+      const updatedConfig = vol.readFileSync(
+        "/mock-project/vite.config.mjs",
+        "utf-8",
+      ) as string;
+      expect(updatedConfig).toContain("@tailwindcss/vite");
+      expect(updatedConfig).toContain("tailwindcss()");
+      expect(wasPackageInstalled("@tailwindcss/vite")).toBe(true);
     });
 
     it("handles Vite config with .js extension", async () => {
@@ -303,7 +354,7 @@ export default defineConfig({
 `,
       });
 
-      await setupTailwindV4Toolchain("/mock-project", VITE_FRAMEWORK);
+      setupTailwindV4Toolchain("/mock-project", VITE_FRAMEWORK);
 
       const updatedConfig = vol.readFileSync(
         "/mock-project/vite.config.js",

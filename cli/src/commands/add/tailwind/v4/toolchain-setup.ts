@@ -2,20 +2,17 @@ import chalk from "chalk";
 import fs from "fs";
 import path from "path";
 import { Project, ScriptKind, SyntaxKind } from "ts-morph";
+import {
+  VITE_CONFIG_FILES,
+  type FrameworkConfig,
+} from "../../../../utils/framework-detection.js";
 import { execFileSync } from "../../../../utils/interactive.js";
-import type { FrameworkConfig } from "../../../../utils/framework-detection.js";
 import {
   detectPackageManager,
   formatPackageArgs,
   getDevFlag,
   getInstallCommand,
 } from "../../../../utils/package-manager.js";
-
-const VITE_CONFIG_FILES = [
-  "vite.config.ts",
-  "vite.config.js",
-  "vite.config.mjs",
-] as const;
 
 const POSTCSS_CONFIG_FILES = [
   "postcss.config.mjs",
@@ -348,23 +345,4 @@ function printManualViteInstructions(projectRoot: string): void {
   console.log(
     `${chalk.blue("ℹ")} Then install the plugin: ${[pm, ...args].join(" ")}`,
   );
-}
-
-/**
- * Gets the default CSS file path based on the detected framework.
- * @returns A relative path suitable for creating a new globals CSS file.
- */
-export function getDefaultCssPath(
-  projectRoot: string,
-  framework: FrameworkConfig | null,
-): string {
-  const hasSrcDir = fs.existsSync(path.join(projectRoot, "src"));
-
-  if (framework?.name === "vite") {
-    return hasSrcDir ? "src/index.css" : "index.css";
-  }
-
-  // Next.js or default
-  const appPath = hasSrcDir ? "src/app" : "app";
-  return path.join(appPath, "globals.css");
 }

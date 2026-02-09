@@ -4,6 +4,13 @@ import path from "path";
 /** Known framework identifiers */
 export type FrameworkName = "next" | "vite";
 
+/** Vite config filenames, checked during both detection and toolchain setup */
+export const VITE_CONFIG_FILES = [
+  "vite.config.ts",
+  "vite.config.js",
+  "vite.config.mjs",
+] as const;
+
 /**
  * Configuration for a detected framework
  */
@@ -65,16 +72,8 @@ const FRAMEWORKS: FrameworkDefinition[] = [
     displayName: "Vite",
     envPrefix: "VITE_",
     detect: (root) =>
-      hasPackage("vite", root) ||
-      hasAnyFile(["vite.config.js", "vite.config.ts", "vite.config.mjs"], root),
+      hasPackage("vite", root) || hasAnyFile([...VITE_CONFIG_FILES], root),
   },
-  // Future frameworks can be added here:
-  // {
-  //   name: "cra",
-  //   displayName: "Create React App",
-  //   envPrefix: "REACT_APP_",
-  //   detect: (root) => hasPackage("react-scripts", root),
-  // },
 ];
 
 /**
@@ -116,4 +115,25 @@ export function getEnvVarName(baseName: string): string {
  */
 export function getTamboApiKeyEnvVar(): string {
   return getEnvVarName("TAMBO_API_KEY");
+}
+
+/**
+ * Gets the default CSS file path based on the detected framework.
+ * @param projectRoot The root directory of the project
+ * @param framework The detected framework config, or null if unknown
+ * @returns A relative path suitable for creating a new globals CSS file.
+ */
+export function getDefaultCssPath(
+  projectRoot: string,
+  framework: FrameworkConfig | null,
+): string {
+  const hasSrcDir = fs.existsSync(path.join(projectRoot, "src"));
+
+  if (framework?.name === "vite") {
+    return hasSrcDir ? "src/index.css" : "index.css";
+  }
+
+  // Next.js or default
+  const appPath = hasSrcDir ? "src/app" : "app";
+  return path.join(appPath, "globals.css");
 }
