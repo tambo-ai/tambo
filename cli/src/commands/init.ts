@@ -854,20 +854,30 @@ async function handleFullSendInit(options: InitOptions): Promise<void> {
 function displayFullSendInstructions(selectedComponents: string[] = []): void {
   console.log(chalk.green("\n✨ Full-send initialization complete!"));
   console.log(chalk.blue("\nNext steps:"));
-  console.log(chalk.bold("\n1. Add the TamboProvider to your layout file"));
+  const framework = detectFramework();
+  const isVite = framework?.name === "vite";
 
-  // Determine the likely layout file paths
-  const possiblePaths = [
-    "app/layout.tsx",
-    "app/layout.jsx",
-    "src/app/layout.tsx",
-    "src/app/layout.jsx",
-  ];
+  if (isVite) {
+    console.log(chalk.bold("\n1. Add the TamboProvider to your app"));
+  } else {
+    console.log(chalk.bold("\n1. Add the TamboProvider to your layout file"));
+  }
 
+  // Determine the likely entry file paths
+  const possiblePaths = isVite
+    ? ["src/App.tsx", "src/App.jsx", "src/main.tsx", "src/main.jsx"]
+    : [
+        "app/layout.tsx",
+        "app/layout.jsx",
+        "src/app/layout.tsx",
+        "src/app/layout.jsx",
+      ];
+
+  const defaultEntryFile = isVite ? "src/App.tsx" : "app/layout.tsx";
   const layoutPath =
-    possiblePaths.find((path) => fs.existsSync(path)) ?? "app/layout.tsx";
-  console.log(chalk.gray(`\n   📁 Layout file location: ${layoutPath}`));
-  console.log(chalk.gray(`\n   Add the following code to your layout file:`));
+    possiblePaths.find((p) => fs.existsSync(p)) ?? defaultEntryFile;
+  console.log(chalk.gray(`\n   📁 File location: ${layoutPath}`));
+  console.log(chalk.gray(`\n   Add the following code:`));
 
   // Map component names to their capitalized versions
   const componentNameMap: Record<string, string> = {
@@ -896,21 +906,28 @@ function displayFullSendInstructions(selectedComponents: string[] = []): void {
     .join("\n");
 
   // Just the TamboProvider part for clipboard with all selected components
-  const framework = detectFramework();
   const envVarName = getTamboApiKeyEnvVar();
-  const providerSnippet = `"use client"; // Important!
-import { TamboProvider } from "@tambo-ai/react";
+
+  const useClientDirective = isVite ? "" : '"use client"; // Important!\n';
+  const envAccess = isVite
+    ? `import.meta.env.${envVarName} ?? ""`
+    : `process.env.${envVarName} ?? ""`;
+  const exportStatement = isVite
+    ? "export default function App() {"
+    : "export default function Page() {";
+
+  const providerSnippet = `${useClientDirective}import { TamboProvider } from "@tambo-ai/react";
 import { components } from "../../lib/tambo";
 ${importStatements}
 // other imports
 
-export default function Page() {
+${exportStatement}
   // other code
   return (
     <div>
       {/* other components */}
       <TamboProvider
-        apiKey={process.env.${envVarName} ?? ""}
+        apiKey={${envAccess}}
         components={components}
       >
         {/* Tambo components */}
@@ -1141,7 +1158,7 @@ function validateRootPackageJson(): boolean {
   } catch (_error) {
     console.log(
       chalk.yellow(
-        "This doesn't look like a valid Next.js project. Please run this command from the root of your project, where the `package.json` file is located.",
+        "Could not find a valid package.json. Please run this command from the root of your project.",
       ),
     );
     return false;

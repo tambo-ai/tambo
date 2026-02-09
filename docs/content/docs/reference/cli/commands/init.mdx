@@ -11,10 +11,15 @@ After obtaining your API key, you'll need to set it up in your project:
 
 <Callout type="info" title="API Key Setup">
   Create a `.env.local` file in the root of your project to store your Tambo API
-  key: ``` NEXT_PUBLIC_TAMBO_API_KEY=your_api_key_here ``` Replace
-  `your_api_key_here` with the actual API key you received during setup. This
-  file should not be committed to version control as it contains sensitive
-  information.
+  key. The variable name depends on your framework:
+
+- **Next.js:** `NEXT_PUBLIC_TAMBO_API_KEY=your_api_key_here`
+- **Vite:** `VITE_TAMBO_API_KEY=your_api_key_here`
+- **Other:** `TAMBO_API_KEY=your_api_key_here`
+
+The CLI detects your framework and uses the correct environment variable prefix
+automatically. This file should not be committed to version control.
+
 </Callout>
 
 **Examples:**

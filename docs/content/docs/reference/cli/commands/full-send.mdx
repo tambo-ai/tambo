@@ -76,8 +76,12 @@ npx tambo full-send --yes
 
 **Manual Provider Setup:**
 
-After running `full-send`, add the TamboProvider to your layout file:
+After running `full-send`, add the TamboProvider to your app. The CLI detects your framework and shows the appropriate setup code.
 
+import { Tab, Tabs } from "fumadocs-ui/components/tabs";
+
+<Tabs items={["Next.js", "Vite"]}>
+<Tab value="Next.js">
 ```tsx title="app/layout.tsx"
 "use client";
 import { TamboProvider } from "@tambo-ai/react";
@@ -98,6 +102,28 @@ export default function Layout({ children }) {
   );
 }
 ```
+</Tab>
+<Tab value="Vite">
+```tsx title="src/App.tsx"
+import { TamboProvider } from "@tambo-ai/react";
+import { components } from "./lib/tambo";
+import { MessageThreadFull } from "./components/tambo/message-thread-full";
+
+export default function App() {
+  return (
+    <div>
+      <TamboProvider
+        apiKey={import.meta.env.VITE_TAMBO_API_KEY ?? ""}
+        components={components}
+      >
+        <MessageThreadFull />
+      </TamboProvider>
+    </div>
+  );
+}
+```
+</Tab>
+</Tabs>
 
 ## Manual Styling Setup
 
@@ -105,9 +131,11 @@ The `full-send` command automatically configures your CSS and Tailwind based on 
 
 ### Tailwind CSS v3 Configuration
 
-**Check your `globals.css` file includes:**
+**Check your globals CSS file includes:**
 
-```css title="app/globals.css"
+The default file location is `app/globals.css` for Next.js or `src/index.css` for Vite.
+
+```css title="app/globals.css (Next.js) or src/index.css (Vite)"
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -208,9 +236,11 @@ export default config;
 
 ### Tailwind CSS v4 Configuration
 
-**For v4, check your `globals.css` includes:**
+**For v4, check your globals CSS includes:**
 
-```css title="app/globals.css"
+The default file location is `app/globals.css` for Next.js or `src/index.css` for Vite.
+
+```css title="app/globals.css (Next.js) or src/index.css (Vite)"
 @import "tailwindcss";
 
 @custom-variant dark (&:is(.dark *));
