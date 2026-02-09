@@ -16,7 +16,10 @@ import React, {
   useRef,
   type ReactElement,
 } from "react";
-import { useTamboClient } from "../../providers/tambo-client-provider";
+import {
+  useTamboClient,
+  useTamboQueryClient,
+} from "../../providers/tambo-client-provider";
 import { useTamboConfig } from "../providers/tambo-v1-provider";
 import { useTamboAuthState } from "./use-tambo-v1-auth-state";
 import type { TamboAuthState } from "../types/auth";
@@ -205,6 +208,7 @@ interface ComponentCacheEntry {
  */
 export function useTambo(): UseTamboReturn {
   const client = useTamboClient();
+  const queryClient = useTamboQueryClient();
   const { userKey } = useTamboConfig();
   const streamState = useStreamState();
   const dispatch = useStreamDispatch();
@@ -261,8 +265,23 @@ export function useTambo(): UseTamboReturn {
     async (threadId: string, name: string) => {
       // @ts-expect-error - TypeScript SDK will be updated to include this method
       await client.threads.update(threadId, { name });
+
+      dispatch({
+        type: "UPDATE_THREAD_TITLE",
+        threadId,
+        title: name,
+      });
+
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: ["v1-threads", "list"],
+        }),
+        queryClient.invalidateQueries({
+          queryKey: ["v1-threads", threadId],
+        }),
+      ]);
     },
-    [client],
+    [client, dispatch, queryClient],
   );
 
   // Memoize the return object to prevent unnecessary re-renders

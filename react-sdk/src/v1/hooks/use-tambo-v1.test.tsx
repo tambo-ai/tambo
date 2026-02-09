@@ -1204,16 +1204,34 @@ describe("useTambo", () => {
   });
 
   describe("updateThreadName", () => {
-    it("calls client.threads.update with thread ID and new name", async () => {
+    it("updates local thread title and invalidates caches on success", async () => {
       const mockUpdate = jest.fn().mockResolvedValue({});
       // TypeScript SDK will be updated to include this method
       (mockTamboClient.threads as any).update = mockUpdate;
 
+      const invalidateQueriesSpy = jest.spyOn(queryClient, "invalidateQueries");
+
+      const initialState: StreamState = {
+        threadMap: {
+          thread_456: {
+            thread: {
+              id: "thread_456",
+              messages: [],
+              status: "idle",
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+              lastRunCancelled: false,
+              title: "Old Title",
+            },
+            streaming: { status: "idle" },
+            accumulatingToolArgs: new Map(),
+          },
+        },
+        currentThreadId: "thread_456",
+      };
+
       const { result } = renderHook(() => useTambo(), {
-        wrapper: createWrapperWithState({
-          threadMap: {},
-          currentThreadId: "placeholder",
-        }),
+        wrapper: createWrapperWithRealReducer(initialState),
       });
 
       await act(async () => {
@@ -1223,6 +1241,96 @@ describe("useTambo", () => {
       expect(mockUpdate).toHaveBeenCalledWith("thread_456", {
         name: "My New Thread",
       });
+
+      expect(result.current.thread?.thread.title).toBe("My New Thread");
+      expect(invalidateQueriesSpy).toHaveBeenCalledWith({
+        queryKey: ["v1-threads", "list"],
+      });
+      expect(invalidateQueriesSpy).toHaveBeenCalledWith({
+        queryKey: ["v1-threads", "thread_456"],
+      });
+    });
+
+    it("does not create local thread state when thread isn't loaded", async () => {
+      const mockUpdate = jest.fn().mockResolvedValue({});
+      // TypeScript SDK will be updated to include this method
+      (mockTamboClient.threads as any).update = mockUpdate;
+
+      const invalidateQueriesSpy = jest.spyOn(queryClient, "invalidateQueries");
+
+      const { result } = renderHook(() => useTambo(), {
+        wrapper: createWrapperWithRealReducer({
+          threadMap: {},
+          currentThreadId: "placeholder",
+        }),
+      });
+
+      await act(async () => {
+        await result.current.updateThreadName("thread_789", "New Title");
+      });
+
+      expect(mockUpdate).toHaveBeenCalledWith("thread_789", {
+        name: "New Title",
+      });
+      expect(invalidateQueriesSpy).toHaveBeenCalledWith({
+        queryKey: ["v1-threads", "list"],
+      });
+      expect(invalidateQueriesSpy).toHaveBeenCalledWith({
+        queryKey: ["v1-threads", "thread_789"],
+      });
+
+      act(() => {
+        result.current.switchThread("thread_789");
+      });
+
+      expect(result.current.thread).toBeUndefined();
+    });
+
+    it("propagates errors and does not update local state", async () => {
+      const mockUpdate = jest
+        .fn()
+        .mockRejectedValue(new Error("Network error"));
+      // TypeScript SDK will be updated to include this method
+      (mockTamboClient.threads as any).update = mockUpdate;
+
+      const invalidateQueriesSpy = jest.spyOn(queryClient, "invalidateQueries");
+
+      const initialState: StreamState = {
+        threadMap: {
+          thread_456: {
+            thread: {
+              id: "thread_456",
+              messages: [],
+              status: "idle",
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+              lastRunCancelled: false,
+              title: "Old Title",
+            },
+            streaming: { status: "idle" },
+            accumulatingToolArgs: new Map(),
+          },
+        },
+        currentThreadId: "thread_456",
+      };
+
+      const { result } = renderHook(() => useTambo(), {
+        wrapper: createWrapperWithRealReducer(initialState),
+      });
+
+      let caughtError: unknown;
+      await act(async () => {
+        try {
+          await result.current.updateThreadName("thread_456", "My New Thread");
+        } catch (error) {
+          caughtError = error;
+        }
+      });
+
+      expect(caughtError).toBeInstanceOf(Error);
+      expect((caughtError as Error).message).toBe("Network error");
+      expect(result.current.thread?.thread.title).toBe("Old Title");
+      expect(invalidateQueriesSpy).not.toHaveBeenCalled();
     });
   });
 });
