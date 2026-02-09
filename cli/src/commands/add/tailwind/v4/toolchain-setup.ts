@@ -32,25 +32,25 @@ const POSTCSS_CONFIG_FILES = [
  * @param projectRoot The root directory of the project
  * @param framework The detected framework config, or null if unknown
  */
-export async function setupTailwindV4Toolchain(
+export function setupTailwindV4Toolchain(
   projectRoot: string,
   framework: FrameworkConfig | null,
-): Promise<void> {
+): void {
   if (framework?.name === "vite") {
-    await setupVitePlugin(projectRoot);
+    setupVitePlugin(projectRoot);
     return;
   }
 
-  await setupPostcssPlugin(projectRoot);
+  setupPostcssPlugin(projectRoot);
 }
 
 /**
  * Installs `@tailwindcss/vite` and adds it to the Vite config file.
  */
-async function setupVitePlugin(projectRoot: string): Promise<void> {
+function setupVitePlugin(projectRoot: string): void {
   const configFile = findViteConfig(projectRoot);
   if (!configFile) {
-    printManualViteInstructions();
+    printManualViteInstructions(projectRoot);
     return;
   }
 
@@ -66,7 +66,7 @@ async function setupVitePlugin(projectRoot: string): Promise<void> {
 
   const updated = addTailwindVitePlugin(content, configFile);
   if (!updated) {
-    printManualViteInstructions();
+    printManualViteInstructions(projectRoot);
     return;
   }
 
@@ -85,7 +85,7 @@ async function setupVitePlugin(projectRoot: string): Promise<void> {
 /**
  * Creates a `postcss.config.mjs` and installs `@tailwindcss/postcss`.
  */
-async function setupPostcssPlugin(projectRoot: string): Promise<void> {
+function setupPostcssPlugin(projectRoot: string): void {
   const existingConfig = POSTCSS_CONFIG_FILES.find((f) =>
     fs.existsSync(path.join(projectRoot, f)),
   );
@@ -111,6 +111,12 @@ async function setupPostcssPlugin(projectRoot: string): Promise<void> {
     return;
   }
 
+  // Install the dependency first so we don't leave a broken config if it fails
+  const installed = installDevDependency(projectRoot, "@tailwindcss/postcss");
+  if (!installed) {
+    return;
+  }
+
   const configPath = path.join(projectRoot, "postcss.config.mjs");
   fs.writeFileSync(
     configPath,
@@ -122,8 +128,6 @@ async function setupPostcssPlugin(projectRoot: string): Promise<void> {
 `,
   );
   console.log(`${chalk.green("✔")} Created postcss.config.mjs`);
-
-  installDevDependency(projectRoot, "@tailwindcss/postcss");
 }
 
 /**
@@ -315,7 +319,16 @@ function installDevDependency(
 /**
  * Prints manual instructions for adding the Tailwind Vite plugin.
  */
-function printManualViteInstructions(): void {
+function printManualViteInstructions(projectRoot: string): void {
+  const pm = detectPackageManager(projectRoot);
+  const installCmd = getInstallCommand(pm);
+  const devFlag = getDevFlag(pm);
+  const args = [
+    ...installCmd,
+    devFlag,
+    ...formatPackageArgs(pm, ["@tailwindcss/vite"]),
+  ];
+
   console.log(
     `${chalk.yellow("⚠")} Could not automatically update your Vite config.`,
   );
@@ -333,7 +346,7 @@ function printManualViteInstructions(): void {
 `),
   );
   console.log(
-    `${chalk.blue("ℹ")} Then install the plugin: npm install -D @tailwindcss/vite`,
+    `${chalk.blue("ℹ")} Then install the plugin: ${[pm, ...args].join(" ")}`,
   );
 }
 

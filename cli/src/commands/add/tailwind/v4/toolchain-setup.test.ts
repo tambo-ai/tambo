@@ -241,6 +241,54 @@ export default defineConfig({
       expect(config).toBe("export default {};");
     });
 
+    it("does not write Vite config when install fails", async () => {
+      vol.fromJSON({
+        "/mock-project/package.json": JSON.stringify({
+          name: "test-project",
+          devDependencies: { vite: "^5.0.0" },
+        }),
+        "/mock-project/vite.config.ts": `import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+
+export default defineConfig({
+  plugins: [react()],
+});
+`,
+      });
+
+      mockExecFileSync.mockImplementation(() => {
+        throw new Error("npm install failed");
+      });
+
+      await setupTailwindV4Toolchain("/mock-project", VITE_FRAMEWORK);
+
+      // Config should NOT have been modified since install failed
+      const config = vol.readFileSync(
+        "/mock-project/vite.config.ts",
+        "utf-8",
+      ) as string;
+      expect(config).not.toContain("@tailwindcss/vite");
+      expect(config).not.toContain("tailwindcss()");
+    });
+
+    it("does not write postcss config when install fails", async () => {
+      vol.fromJSON({
+        "/mock-project/package.json": JSON.stringify({
+          name: "test-project",
+          dependencies: { react: "^18.0.0" },
+        }),
+      });
+
+      mockExecFileSync.mockImplementation(() => {
+        throw new Error("npm install failed");
+      });
+
+      await setupTailwindV4Toolchain("/mock-project", null);
+
+      // postcss.config.mjs should NOT have been created since install failed
+      expect(vol.existsSync("/mock-project/postcss.config.mjs")).toBe(false);
+    });
+
     it("handles Vite config with .js extension", async () => {
       vol.fromJSON({
         "/mock-project/package.json": JSON.stringify({
