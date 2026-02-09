@@ -1,5 +1,5 @@
 import { LEGAL_CONFIG, needsLegalAcceptance } from "@/lib/legal-config";
-import { REFERRAL_SOURCES } from "@/lib/referral-sources";
+import { REFERRAL_SOURCES } from "@tambo-ai-cloud/core";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { operations, schema } from "@tambo-ai-cloud/db";
 import { z } from "zod/v3";

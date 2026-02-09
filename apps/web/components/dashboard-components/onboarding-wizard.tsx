@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { cn } from "@/lib/utils";
-import { REFERRAL_SOURCES, type ReferralSource } from "@/lib/referral-sources";
+import { REFERRAL_SOURCES, type ReferralSource } from "@tambo-ai-cloud/core";
 import { api } from "@/trpc/react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowLeft, ArrowRight } from "lucide-react";
