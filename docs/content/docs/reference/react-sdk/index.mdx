@@ -15,9 +15,9 @@ npm install @tambo-ai/react
 
 ```tsx
 import {
-  TamboV1Provider,
-  useTamboV1,
-  useTamboV1ThreadInput,
+  TamboProvider,
+  useTambo,
+  useTamboThreadInput,
 } from "@tambo-ai/react";
 ```
 
@@ -32,11 +32,11 @@ import {
 The React SDK is organized around a simplified provider hierarchy with React Query for data fetching:
 
 ```tsx
-import { TamboV1Provider } from "@tambo-ai/react";
+import { TamboProvider } from "@tambo-ai/react";
 
 function App() {
   return (
-    <TamboV1Provider
+    <TamboProvider
       apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY}
       userKey={userId}
       components={
@@ -51,7 +51,7 @@ function App() {
       }
     >
       <YourApp />
-    </TamboV1Provider>
+    </TamboProvider>
   );
 }
 ```
@@ -59,11 +59,11 @@ function App() {
 Inside the provider, use hooks to access Tambo functionality:
 
 ```tsx
-import { useTamboV1, useTamboV1ThreadInput } from "@tambo-ai/react";
+import { useTambo, useTamboThreadInput } from "@tambo-ai/react";
 
 function Chat() {
-  const { messages, isStreaming, startNewThread } = useTamboV1();
-  const { value, setValue, submit } = useTamboV1ThreadInput();
+  const { messages, isStreaming, startNewThread } = useTambo();
+  const { value, setValue, submit } = useTamboThreadInput();
 
   return (
     <div>
@@ -82,13 +82,13 @@ function Chat() {
 
 ## Key Features
 
-| Feature          | Implementation                                                                            |
-| ---------------- | ----------------------------------------------------------------------------------------- |
-| Import path      | `@tambo-ai/react`                                                                         |
-| Main hook        | `useTamboV1()`                                                                            |
-| User scoping     | `userKey` prop                                                                            |
-| Thread input     | `useTamboV1ThreadInput()`                                                                 |
-| Message format   | Content blocks (text, component, tool_use, etc.)                                          |
-| Component state  | `useTamboV1ComponentState()` (bidirectional sync)                                         |
+| Feature          | Implementation                                                                         |
+| ---------------- | -------------------------------------------------------------------------------------- |
+| Import path      | `@tambo-ai/react`                                                                      |
+| Main hook        | `useTambo()`                                                                           |
+| User scoping     | `userKey` prop                                                                         |
+| Thread input     | `useTamboThreadInput()`                                                                |
+| Message format   | Content blocks (text, component, tool_use, etc.)                                       |
+| Component state  | `useTamboComponentState()` (bidirectional sync)                                        |
 | Streaming status | `streamingState.status` (typed as [`RunStatus`](/reference/react-sdk/types#runstatus)) |
-| Data fetching    | React Query hooks                                                                         |
+| Data fetching    | React Query hooks                                                                      |

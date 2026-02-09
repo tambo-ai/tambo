@@ -1,27 +1,27 @@
 ---
 title: React SDK Providers
-description: Reference for TamboV1Provider and other provider components used to configure Tambo in your React application.
+description: Reference for TamboProvider and other provider components used to configure Tambo in your React application.
 ---
 
-Provider components configure Tambo V1 functionality and make hooks available throughout your component tree.
+Provider components configure Tambo functionality and make hooks available throughout your component tree.
 
-## TamboV1Provider
+## TamboProvider
 
-The main provider that wraps your application and provides access to the V1 API. This is the primary way to integrate Tambo V1 into your React app.
+The main provider that wraps your application and provides access to the Tambo API. This is the primary way to integrate Tambo into your React app.
 
 ```tsx
-import { TamboV1Provider } from "@tambo-ai/react";
+import { TamboProvider } from "@tambo-ai/react";
 
 function App() {
   return (
-    <TamboV1Provider
+    <TamboProvider
       apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY}
       userKey={userId}
       components={myComponents}
       tools={myTools}
     >
       <YourApp />
-    </TamboV1Provider>
+    </TamboProvider>
   );
 }
 ```
@@ -35,7 +35,7 @@ function App() {
 | `userKey`                   | `string`                                         | No\*     | Unique identifier for the current user                                 |
 | `tamboUrl`                  | `string`                                         | No       | Custom Tambo API URL                                                   |
 | `environment`               | `string`                                         | No       | Environment name                                                       |
-| `components`                | `TamboV1Component[]`                             | No       | Components to register                                                 |
+| `components`                | `TamboComponent[]`                             | No       | Components to register                                                 |
 | `tools`                     | `TamboTool[]`                                    | No       | Tools to register                                                      |
 | `mcpServers`                | `(McpServerInfo \| string)[]`                    | No       | MCP servers to connect                                                 |
 | `contextHelpers`            | `ContextHelpers`                                 | No       | Context helper functions                                               |
@@ -50,7 +50,7 @@ function App() {
 \*Exactly one of `userToken` or `userKey` is required to identify the current user.
 
 <Callout type="info" title="userKey vs contextKey">
-  In V1, threads are scoped per user. The user identity comes from either
+  Threads are scoped per user. The user identity comes from either
   `userKey` or the user derived from `userToken`. This replaces `contextKey`
   from the current SDK. The `userKey` is a unique identifier for the user, such
   as a user ID from your authentication system.
@@ -59,7 +59,7 @@ function App() {
 ### Example with All Options
 
 ```tsx
-import { TamboV1Provider, defineTool } from "@tambo-ai/react";
+import { TamboProvider, defineTool } from "@tambo-ai/react";
 import { z } from "zod";
 import { zodToJsonSchema } from "zod-to-json-schema";
 
@@ -87,7 +87,7 @@ const tools = [
   }),
 ];
 
-<TamboV1Provider
+<TamboProvider
   apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY}
   userKey={session.user.id}
   components={components}
@@ -97,32 +97,32 @@ const tools = [
   }}
 >
   <App />
-</TamboV1Provider>;
+</TamboProvider>;
 ```
 
 ### Provider Hierarchy
 
-`TamboV1Provider` internally composes several providers in this order:
+`TamboProvider` internally composes several providers in this order:
 
 1. `TamboClientProvider` - API client and authentication
 2. `TamboRegistryProvider` - Component and tool registration
 3. `TamboContextHelpersProvider` - Context helper management
 4. `TamboContextAttachmentProvider` - Context attachment state
 5. `TamboInteractableProvider` - Interactable component tracking
-6. `TamboV1ConfigContext` - V1 configuration (userKey, etc.)
-7. `TamboV1StreamProvider` - Streaming state management
-8. `TamboV1ThreadInputProvider` - Shared input state
+6. `TamboConfigContext` - V1 configuration (userKey, etc.)
+7. `TamboStreamProvider` - Streaming state management
+8. `TamboThreadInputProvider` - Shared input state
 
-## TamboV1StubProvider
+## TamboStubProvider
 
 A stub provider for testing and development that doesn't require API connectivity.
 
 ```tsx
-import { TamboV1StubProvider } from "@tambo-ai/react";
+import { TamboStubProvider } from "@tambo-ai/react";
 
 function TestApp() {
   return (
-    <TamboV1StubProvider
+    <TamboStubProvider
       initialMessages={[
         {
           id: "1",
@@ -140,7 +140,7 @@ function TestApp() {
       components={myComponents}
     >
       <YourComponent />
-    </TamboV1StubProvider>
+    </TamboStubProvider>
   );
 }
 ```
@@ -149,21 +149,21 @@ function TestApp() {
 
 | Prop              | Type                 | Description             |
 | ----------------- | -------------------- | ----------------------- |
-| `initialMessages` | `TamboV1Message[]`   | Pre-configured messages |
-| `components`      | `TamboV1Component[]` | Components to register  |
+| `initialMessages` | `TamboMessage[]`   | Pre-configured messages |
+| `components`      | `TamboComponent[]` | Components to register  |
 | `tools`           | `TamboTool[]`        | Tools to register       |
 
-## TamboV1ThreadInputProvider
+## TamboThreadInputProvider
 
-Provides shared input state across components. This is included in `TamboV1Provider` but can be used standalone for custom setups.
+Provides shared input state across components. This is included in `TamboProvider` but can be used standalone for custom setups.
 
 ```tsx
-import { TamboV1ThreadInputProvider } from "@tambo-ai/react";
+import { TamboThreadInputProvider } from "@tambo-ai/react";
 
-// Usually not needed directly - included in TamboV1Provider
-<TamboV1ThreadInputProvider>
+// Usually not needed directly - included in TamboProvider
+<TamboThreadInputProvider>
   <InputComponents />
-</TamboV1ThreadInputProvider>;
+</TamboThreadInputProvider>;
 ```
 
 The shared input state allows features like suggestions to update the input field directly, enabling seamless integration between different UI components.
@@ -221,15 +221,15 @@ import { TamboContextHelpersProvider } from "@tambo-ai/react";
 
 ## Configuration Hook
 
-### useTamboV1Config
+### useTamboConfig
 
 Access the V1 configuration from the provider.
 
 ```tsx
-import { useTamboV1Config } from "@tambo-ai/react";
+import { useTamboConfig } from "@tambo-ai/react";
 
 function MyComponent() {
-  const { userKey } = useTamboV1Config();
+  const { userKey } = useTamboConfig();
 
   return <div>User: {userKey}</div>;
 }

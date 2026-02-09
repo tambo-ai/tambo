@@ -92,18 +92,18 @@ The `TamboProvider` API is mostly the same, but `contextKey` is replaced by `use
 
 ### What changed
 
-| Legacy prop                 | Current prop                | Notes                                                                                  |
-| --------------------------- | --------------------------- | -------------------------------------------------------------------------------------- |
+| Legacy prop                 | Current prop                | Notes                                                                                                                                                                                                                  |
+| --------------------------- | --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `contextKey`                | `userKey`                   | **Semantic change**: `contextKey` was for logical grouping (e.g., "admin-panel"). `userKey` identifies a specific user (e.g., user ID from auth). All threads created within the provider are now scoped to this user. |
-| `userToken`                 | `userToken`                 | Still supported — provide either `userKey` or `userToken`, not both.                   |
-| `streaming`                 | _removed_                   | Streaming is always enabled.                                                           |
-| `autoGenerateThreadName`    | `autoGenerateThreadName`    | Same prop. Defaults to `true`.                                                         |
-| `autoGenerateNameThreshold` | `autoGenerateNameThreshold` | Same prop. Defaults to `3`.                                                            |
-| `initialMessages`           | `initialMessages`           | Same concept — accepts `InputMessage[]` with content blocks instead of simple strings. |
-| `components`                | `components`                | Same format.                                                                           |
-| `tools`                     | `tools`                     | Same format.                                                                           |
-| `mcpServers`                | `mcpServers`                | Same format.                                                                           |
-| `contextHelpers`            | `contextHelpers`            | Same format.                                                                           |
+| `userToken`                 | `userToken`                 | Still supported — provide either `userKey` or `userToken`, not both.                                                                                                                                                   |
+| `streaming`                 | _removed_                   | Streaming is always enabled.                                                                                                                                                                                           |
+| `autoGenerateThreadName`    | `autoGenerateThreadName`    | Same prop. Defaults to `true`.                                                                                                                                                                                         |
+| `autoGenerateNameThreshold` | `autoGenerateNameThreshold` | Same prop. Defaults to `3`.                                                                                                                                                                                            |
+| `initialMessages`           | `initialMessages`           | Same concept — accepts `InputMessage[]` with content blocks instead of simple strings.                                                                                                                                 |
+| `components`                | `components`                | Same format.                                                                                                                                                                                                           |
+| `tools`                     | `tools`                     | Same format.                                                                                                                                                                                                           |
+| `mcpServers`                | `mcpServers`                | Same format.                                                                                                                                                                                                           |
+| `contextHelpers`            | `contextHelpers`            | Same format.                                                                                                                                                                                                           |
 
 ## Step 3: Update the main hook
 
@@ -159,7 +159,7 @@ function Chat() {
 | Legacy                   | Current                             | Notes                                                                                 |
 | ------------------------ | ----------------------------------- | ------------------------------------------------------------------------------------- |
 | `generationStage` (enum) | `streamingState.status`             | A string union: `"idle"` \| `"waiting"` \| `"streaming"` \| `"complete"` \| `"error"` |
-| `isStreaming`            | `isStreaming`                       | Same, but current SDK also gives `isWaiting` and `isIdle`                            |
+| `isStreaming`            | `isStreaming`                       | Same, but current SDK also gives `isWaiting` and `isIdle`                             |
 | `isCancelling`           | `streamingState.status === "error"` | Check `streamingState.error?.code === "CANCELLED"` for cancel-specific handling       |
 | _n/a_                    | `cancelRun()`                       | New — cancels the active run                                                          |
 | _n/a_                    | `startNewThread()`                  | New — creates a new thread and returns its ID                                         |
@@ -279,23 +279,23 @@ function Message({
 
 ### Message fields
 
-| Field           | Type      | Description                                                                                       |
-| --------------- | --------- | ------------------------------------------------------------------------------------------------- |
-| `id`            | `string`  | Unique message ID                                                                                 |
-| `role`          | `string`  | `"user"` or `"assistant"`                                                                         |
-| `content`       | `array`   | Array of content blocks (see below)                                                               |
-| `wasCancelled`  | `boolean` | `true` if the run that generated this message was cancelled. Useful for showing cancellation UI.  |
-| `createdAt`     | `Date`    | When the message was created                                                                      |
+| Field          | Type      | Description                                                                                      |
+| -------------- | --------- | ------------------------------------------------------------------------------------------------ |
+| `id`           | `string`  | Unique message ID                                                                                |
+| `role`         | `string`  | `"user"` or `"assistant"`                                                                        |
+| `content`      | `array`   | Array of content blocks (see below)                                                              |
+| `wasCancelled` | `boolean` | `true` if the run that generated this message was cancelled. Useful for showing cancellation UI. |
+| `createdAt`    | `Date`    | When the message was created                                                                     |
 
 ### Content block types
 
-| Type          | Description                                                                                                      |
-| ------------- | ---------------------------------------------------------------------------------------------------------------- |
-| `text`        | Plain text content. Has a `text` field.                                                                          |
-| `component`   | An AI-generated component. Use `ComponentRenderer` to render it, or access `block.renderedComponent` directly.   |
+| Type          | Description                                                                                                        |
+| ------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `text`        | Plain text content. Has a `text` field.                                                                            |
+| `component`   | An AI-generated component. Use `ComponentRenderer` to render it, or access `block.renderedComponent` directly.     |
 | `tool_use`    | A tool call. Includes `name`, `input` (cleaned of internal `_tambo_*` props), `hasCompleted`, and `statusMessage`. |
-| `tool_result` | The result of a tool call. Usually you don't render these directly.                                              |
-| `resource`    | An attached resource (e.g., an image).                                                                           |
+| `tool_result` | The result of a tool call. Usually you don't render these directly.                                                |
+| `resource`    | An attached resource (e.g., an image).                                                                             |
 
 <Callout type="info" title="Rendered Components on Content Blocks">
   For convenience, `useTambo()` pre-renders component content blocks and

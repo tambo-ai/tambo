@@ -7,15 +7,15 @@ The `@tambo-ai/react` package exports TypeScript types and interfaces for buildi
 
 ## Thread Types
 
-### TamboV1Thread
+### TamboThread
 
 Represents a conversation thread with messages and metadata.
 
 ```typescript
-interface TamboV1Thread {
+interface TamboThread {
   id: string;
   title?: string;
-  messages: TamboV1Message[];
+  messages: TamboMessage[];
   status: RunStatus;
   metadata?: Record<string, unknown>;
   createdAt: string;
@@ -42,7 +42,7 @@ type RunStatus = "idle" | "waiting" | "streaming" | "complete" | "error";
 
 ### StreamingState
 
-Detailed streaming state returned by `useTamboV1()`.
+Detailed streaming state returned by `useTambo()`.
 
 ```typescript
 interface StreamingState {
@@ -59,12 +59,12 @@ interface StreamingState {
 
 ## Message Types
 
-### TamboV1Message
+### TamboMessage
 
-A message in a V1 thread, containing an array of content blocks.
+A message in a thread, containing an array of content blocks.
 
 ```typescript
-interface TamboV1Message {
+interface TamboMessage {
   id: string;
   role: MessageRole;
   content: Content[];
@@ -95,8 +95,8 @@ Messages contain an array of typed content blocks:
 ```typescript
 type Content =
   | TextContent
-  | V1ComponentContent
-  | V1ToolUseContent
+  | ComponentContent
+  | ToolUseContent
   | ToolResultContent
   | ResourceContent;
 ```
@@ -112,12 +112,12 @@ interface TextContent {
 }
 ```
 
-#### V1ComponentContent
+#### ComponentContent
 
 A rendered component with streaming state.
 
 ```typescript
-interface V1ComponentContent {
+interface ComponentContent {
   type: "component";
   id: string;
   name: string;
@@ -129,12 +129,12 @@ interface V1ComponentContent {
 
 The `renderedComponent` property contains the pre-rendered React element for the component, looked up from the registry.
 
-#### V1ToolUseContent
+#### ToolUseContent
 
 A tool invocation with display metadata.
 
 ```typescript
-interface V1ToolUseContent {
+interface ToolUseContent {
   type: "tool_use";
   id: string;
   name: string;
@@ -190,12 +190,12 @@ interface ResourceContent {
 
 ## Component Types
 
-### TamboV1Component
+### TamboComponent
 
-Configuration for registering a component with Tambo V1.
+Configuration for registering a component with Tambo.
 
 ```typescript
-interface TamboV1Component {
+interface TamboComponent {
   name: string;
   description: string;
   component: ComponentType<any>;
@@ -228,7 +228,7 @@ const WeatherCardSchema = z.object({
   condition: z.string().describe("Weather condition"),
 });
 
-const components: TamboV1Component[] = [
+const components: TamboComponent[] = [
   {
     name: "WeatherCard",
     description: "Displays current weather for a city",
@@ -255,7 +255,7 @@ interface TamboComponentProps<TProps, TState> {
 
 ### TamboTool
 
-The same `TamboTool` interface from the base SDK is used in V1.
+The same `TamboTool` interface from the base SDK is used.
 
 ```typescript
 interface TamboTool {
@@ -369,7 +369,7 @@ function asTamboCustomEvent(event: CustomEvent): TamboCustomEvent | undefined;
 
 ### SubmitOptions
 
-Options passed to `useTamboV1ThreadInput().submit()`.
+Options passed to `useTamboThreadInput().submit()`.
 
 ```typescript
 interface SubmitOptions {
@@ -402,7 +402,7 @@ type ToolChoice = "auto" | "required" | "none" | { name: string };
 
 ### StreamStatus
 
-Overall streaming status for a component, returned by `useTamboV1StreamStatus()`.
+Overall streaming status for a component, returned by `useTamboStreamStatus()`.
 
 ```typescript
 interface StreamStatus {
@@ -424,7 +424,7 @@ interface StreamStatus {
 
 ### PropStatus
 
-Per-prop streaming status, returned by `useTamboV1StreamStatus()`.
+Per-prop streaming status, returned by `useTamboStreamStatus()`.
 
 ```typescript
 interface PropStatus {
