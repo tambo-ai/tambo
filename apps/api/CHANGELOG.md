@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.141.0](https://github.com/tambo-ai/tambo/compare/api-v0.140.1...api-v0.141.0) (2026-02-09)
+
+
+### Features
+
+* **react-sdk:** expose updateThreadName for manual thread renaming ([#2328](https://github.com/tambo-ai/tambo/issues/2328)) ([3a60a65](https://github.com/tambo-ai/tambo/commit/3a60a65ba19aeb9d3ca7e39fa9aeea33557f5959))
+
+
+### Miscellaneous Chores
+
+* **test:** bump coverage thresholds (2026-02-09) ([#2323](https://github.com/tambo-ai/tambo/issues/2323)) ([0aac70b](https://github.com/tambo-ai/tambo/commit/0aac70b23da7ae51d9d449b3692b765570af44f9))
+
 ## [0.140.1](https://github.com/tambo-ai/tambo/compare/api-v0.140.0...api-v0.140.1) (2026-02-08)
 
 
