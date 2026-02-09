@@ -94,6 +94,16 @@ export type {
   ToolcallInfoTriggerProps,
 } from "./toolcall-info";
 
+// ScrollableMessageContainer components
+export { ScrollableMessageContainer } from "./scrollable-message-container";
+export type {
+  ScrollableMessageContainerRootContextValue,
+  ScrollableMessageContainerRootProps,
+  ScrollableMessageContainerScrollToBottomProps,
+  ScrollableMessageContainerScrollToBottomRenderProps,
+  ScrollableMessageContainerViewportProps,
+} from "./scrollable-message-container";
+
 // Types
 export type {
   BaseProps,
