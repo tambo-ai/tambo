@@ -16,7 +16,10 @@ import React, {
   useRef,
   type ReactElement,
 } from "react";
-import { useTamboClient } from "../../providers/tambo-client-provider";
+import {
+  useTamboClient,
+  useTamboQueryClient,
+} from "../../providers/tambo-client-provider";
 import { useTamboConfig } from "../providers/tambo-v1-provider";
 import { useTamboAuthState } from "./use-tambo-v1-auth-state";
 import type { TamboAuthState } from "../types/auth";
@@ -150,6 +153,16 @@ export interface UseTamboReturn {
    * When true, the SDK is ready to make API calls.
    */
   isIdentified: boolean;
+
+  /**
+   * Update a thread's name.
+   * Useful for implementing manual thread renaming UI in history sidebars.
+   * Cache invalidation is best-effort; failures will be logged and won't reject.
+   * @param threadId - ID of the thread to rename
+   * @param name - New name for the thread
+   * @returns Promise that resolves when the update completes
+   */
+  updateThreadName: (threadId: string, name: string) => Promise<void>;
 }
 
 /**
@@ -196,6 +209,7 @@ interface ComponentCacheEntry {
  */
 export function useTambo(): UseTamboReturn {
   const client = useTamboClient();
+  const queryClient = useTamboQueryClient();
   const { userKey } = useTamboConfig();
   const streamState = useStreamState();
   const dispatch = useStreamDispatch();
@@ -209,6 +223,11 @@ export function useTambo(): UseTamboReturn {
 
   // Get thread state for the current thread
   const threadState = streamState.threadMap[streamState.currentThreadId];
+
+  // Keep a live snapshot of the threadMap for callbacks without forcing them to
+  // re-create on every stream state update.
+  const threadMapRef = useRef(streamState.threadMap);
+  threadMapRef.current = streamState.threadMap;
 
   // Cancel the current run on this thread
   const cancelRun = useCallback(async () => {
@@ -246,6 +265,39 @@ export function useTambo(): UseTamboReturn {
     threadState?.streaming.runId,
     dispatch,
   ]);
+
+  // Update a thread's name
+  const updateThreadName = useCallback(
+    async (threadId: string, name: string) => {
+      // @ts-expect-error - TypeScript SDK will be updated to include this method
+      await client.threads.update(threadId, { name });
+
+      if (threadMapRef.current[threadId]) {
+        dispatch({
+          type: "UPDATE_THREAD_TITLE",
+          threadId,
+          title: name,
+        });
+      }
+
+      try {
+        await Promise.all([
+          queryClient.invalidateQueries({
+            queryKey: ["v1-threads", "list"],
+          }),
+          queryClient.invalidateQueries({
+            queryKey: ["v1-threads", threadId],
+          }),
+        ]);
+      } catch (error) {
+        console.warn(
+          "[useTambo] Failed to invalidate thread queries after rename:",
+          error,
+        );
+      }
+    },
+    [client, dispatch, queryClient],
+  );
 
   // Memoize the return object to prevent unnecessary re-renders
   return useMemo(() => {
@@ -376,9 +428,11 @@ export function useTambo(): UseTamboReturn {
       cancelRun,
       authState,
       isIdentified: authState.status === "identified",
+      updateThreadName,
     };
   }, [
     cancelRun,
+    updateThreadName,
     client,
     threadState,
     registry,

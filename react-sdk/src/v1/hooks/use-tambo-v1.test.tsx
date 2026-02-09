@@ -107,13 +107,19 @@ describe("useTambo", () => {
   }
 
   // Wrapper that uses the real reducer so state updates properly
-  function createWrapperWithRealReducer(initialState: StreamState) {
+  function createWrapperWithRealReducer(
+    initialState: StreamState,
+    stateRef?: React.MutableRefObject<StreamState | undefined>,
+  ) {
     return function WrapperWithRealReducer({
       children,
     }: {
       children: React.ReactNode;
     }) {
       const [state, dispatch] = useReducer(streamReducer, initialState);
+      if (stateRef) {
+        stateRef.current = state;
+      }
       return (
         <QueryClientProvider client={queryClient}>
           <TamboRegistryContext.Provider value={mockRegistry}>
@@ -135,6 +141,7 @@ describe("useTambo", () => {
     jest.mocked(useTamboClient).mockReturnValue(mockTamboClient);
     jest.mocked(useTamboQueryClient).mockReturnValue(queryClient);
     jest.clearAllMocks();
+    delete (mockTamboClient.threads as any).update;
   });
 
   it("returns client from useTamboClient", () => {
@@ -1200,6 +1207,144 @@ describe("useTambo", () => {
       );
 
       consoleWarnSpy.mockRestore();
+    });
+  });
+
+  describe("updateThreadName", () => {
+    it("updates local thread title and invalidates caches on success", async () => {
+      const mockUpdate = jest.fn().mockResolvedValue({});
+      // TypeScript SDK will be updated to include this method
+      (mockTamboClient.threads as any).update = mockUpdate;
+
+      const invalidateQueriesSpy = jest.spyOn(queryClient, "invalidateQueries");
+
+      const initialState: StreamState = {
+        threadMap: {
+          thread_456: {
+            thread: {
+              id: "thread_456",
+              messages: [],
+              status: "idle",
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+              lastRunCancelled: false,
+              title: "Old Title",
+            },
+            streaming: { status: "idle" },
+            accumulatingToolArgs: new Map(),
+          },
+        },
+        currentThreadId: "thread_456",
+      };
+
+      const { result } = renderHook(() => useTambo(), {
+        wrapper: createWrapperWithRealReducer(initialState),
+      });
+
+      await act(async () => {
+        await result.current.updateThreadName("thread_456", "My New Thread");
+      });
+
+      expect(mockUpdate).toHaveBeenCalledWith("thread_456", {
+        name: "My New Thread",
+      });
+
+      expect(result.current.thread?.thread.title).toBe("My New Thread");
+      const invalidatedKeys = invalidateQueriesSpy.mock.calls
+        .map(([arg]) => (arg as any).queryKey)
+        .filter(Boolean);
+      expect(invalidatedKeys).toContainEqual(["v1-threads", "list"]);
+      expect(invalidatedKeys).toContainEqual(["v1-threads", "thread_456"]);
+    });
+
+    it("does not create local thread state when thread isn't loaded", async () => {
+      const mockUpdate = jest.fn().mockResolvedValue({});
+      // TypeScript SDK will be updated to include this method
+      (mockTamboClient.threads as any).update = mockUpdate;
+
+      const invalidateQueriesSpy = jest.spyOn(queryClient, "invalidateQueries");
+
+      // Track the internal StreamState from the real reducer so we can assert we
+      // don't create a local thread entry for threads that haven't been loaded.
+      const stateRef: React.MutableRefObject<StreamState | undefined> = {
+        current: undefined,
+      };
+      const initialState: StreamState = {
+        threadMap: {},
+        currentThreadId: "placeholder",
+      };
+
+      const { result } = renderHook(() => useTambo(), {
+        wrapper: createWrapperWithRealReducer(initialState, stateRef),
+      });
+
+      await act(async () => {
+        await result.current.updateThreadName("thread_789", "New Title");
+      });
+
+      expect(mockUpdate).toHaveBeenCalledWith("thread_789", {
+        name: "New Title",
+      });
+      const invalidatedKeys = invalidateQueriesSpy.mock.calls
+        .map(([arg]) => (arg as any).queryKey)
+        .filter(Boolean);
+      expect(invalidatedKeys).toContainEqual(["v1-threads", "list"]);
+      expect(invalidatedKeys).toContainEqual(["v1-threads", "thread_789"]);
+
+      expect(stateRef.current?.threadMap.thread_789).toBeUndefined();
+
+      act(() => {
+        result.current.switchThread("thread_789");
+      });
+
+      expect(result.current.thread).toBeUndefined();
+    });
+
+    it("propagates errors and does not update local state", async () => {
+      const mockUpdate = jest
+        .fn()
+        .mockRejectedValue(new Error("Network error"));
+      // TypeScript SDK will be updated to include this method
+      (mockTamboClient.threads as any).update = mockUpdate;
+
+      const invalidateQueriesSpy = jest.spyOn(queryClient, "invalidateQueries");
+
+      const initialState: StreamState = {
+        threadMap: {
+          thread_456: {
+            thread: {
+              id: "thread_456",
+              messages: [],
+              status: "idle",
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+              lastRunCancelled: false,
+              title: "Old Title",
+            },
+            streaming: { status: "idle" },
+            accumulatingToolArgs: new Map(),
+          },
+        },
+        currentThreadId: "thread_456",
+      };
+
+      const { result } = renderHook(() => useTambo(), {
+        wrapper: createWrapperWithRealReducer(initialState),
+      });
+
+      let caughtError: unknown;
+      await act(async () => {
+        try {
+          await result.current.updateThreadName("thread_456", "My New Thread");
+        } catch (error) {
+          caughtError = error;
+        }
+      });
+
+      expect(caughtError).toBeInstanceOf(Error);
+      expect((caughtError as Error).message).toBe("Network error");
+      expect(result.current.thread?.thread.title).toBe("Old Title");
+      expect(invalidateQueriesSpy).not.toHaveBeenCalled();
     });
   });
 });
