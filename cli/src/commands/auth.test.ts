@@ -95,6 +95,20 @@ jest.unstable_mockModule("@inquirer/prompts", () => ({
   select: async () => mockSelectResult,
 }));
 
+// Mock interactive utilities
+let mockIsInteractive = true;
+jest.unstable_mockModule("../utils/interactive.js", () => ({
+  isInteractive: () => mockIsInteractive,
+  GuidanceError: class GuidanceError extends Error {
+    guidance: string[];
+    constructor(message: string, guidance: string[]) {
+      super(message);
+      this.name = "GuidanceError";
+      this.guidance = guidance;
+    }
+  },
+}));
+
 // Mock ora spinner
 jest.unstable_mockModule("ora", () => ({
   default: () => ({
@@ -163,6 +177,7 @@ describe("auth commands", () => {
     mockDeviceAuthSuccess = true;
     mockConfirmResult = true;
     mockSelectResult = "__cancel__";
+    mockIsInteractive = true;
 
     // Capture console.log
     consoleLogs = [];
@@ -290,6 +305,15 @@ describe("auth commands", () => {
       );
     });
 
+    it("throws GuidanceError when already authenticated in non-interactive mode", async () => {
+      mockHasStoredToken = true;
+      mockIsTokenValid = true;
+      mockCurrentUser = { id: "user-1", email: "test@example.com" };
+      mockIsInteractive = false;
+
+      await expect(handleAuthLogin()).rejects.toThrow("Already authenticated");
+    });
+
     it("re-authenticates when user confirms", async () => {
       mockHasStoredToken = true;
       mockIsTokenValid = true;
@@ -340,6 +364,16 @@ describe("auth commands", () => {
       expect(result).toBe(0);
       expect(mockClearTokenCalled).toBe(false);
       expect(consoleLogs.some((l) => l.includes("Cancelled"))).toBe(true);
+    });
+
+    it("throws GuidanceError in non-interactive mode without --force", async () => {
+      mockHasStoredToken = true;
+      mockCurrentUser = { id: "user-1", email: "test@example.com" };
+      mockIsInteractive = false;
+
+      await expect(handleAuthLogout({})).rejects.toThrow(
+        "Logout requires confirmation",
+      );
     });
 
     it("skips confirmation with force flag", async () => {
@@ -444,6 +478,27 @@ describe("auth commands", () => {
 
       // Just verify successful return code
       expect(result).toBe(0);
+    });
+
+    it("throws GuidanceError in non-interactive mode without --all", async () => {
+      mockHasStoredToken = true;
+      mockIsTokenValid = true;
+      mockIsInteractive = false;
+
+      await expect(handleAuthRevokeSession({})).rejects.toThrow(
+        "Session selection requires interactive mode",
+      );
+    });
+
+    it("revokes all sessions in non-interactive mode with --all (skips confirm)", async () => {
+      mockHasStoredToken = true;
+      mockIsTokenValid = true;
+      mockIsInteractive = false;
+
+      const result = await handleAuthRevokeSession({ all: true });
+
+      expect(result).toBe(0);
+      expect(mockClearTokenCalled).toBe(true);
     });
 
     it("handles revoke all with confirmation", async () => {
