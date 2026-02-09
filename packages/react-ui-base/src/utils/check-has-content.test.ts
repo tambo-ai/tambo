@@ -222,6 +222,86 @@ describe("checkHasContent", () => {
         ]),
       ).toBe(false);
     });
+
+    it("returns true for tool_use content part", () => {
+      expect(
+        checkHasContent([
+          {
+            type: "tool_use",
+            id: "tool_1",
+            name: "get_weather",
+            input: { city: "SF" },
+          } as unknown as { type: "text"; text: string },
+        ]),
+      ).toBe(true);
+    });
+
+    it("returns true for tool_use content part with empty input", () => {
+      expect(
+        checkHasContent([
+          {
+            type: "tool_use",
+            id: "tool_1",
+            name: "get_weather",
+            input: {},
+          } as unknown as { type: "text"; text: string },
+        ]),
+      ).toBe(true);
+    });
+
+    it("returns true for component content part", () => {
+      expect(
+        checkHasContent([
+          {
+            type: "component",
+            id: "comp_1",
+            name: "WeatherCard",
+            props: { city: "SF" },
+          } as unknown as { type: "text"; text: string },
+        ]),
+      ).toBe(true);
+    });
+
+    it("returns true for component content part with empty props", () => {
+      expect(
+        checkHasContent([
+          {
+            type: "component",
+            id: "comp_1",
+            name: "WeatherCard",
+            props: {},
+          } as unknown as { type: "text"; text: string },
+        ]),
+      ).toBe(true);
+    });
+
+    it("returns true for mixed tool_use and empty text content parts", () => {
+      expect(
+        checkHasContent([
+          { type: "text", text: "" },
+          {
+            type: "tool_use",
+            id: "tool_1",
+            name: "search",
+            input: {},
+          } as unknown as { type: "text"; text: string },
+        ]),
+      ).toBe(true);
+    });
+
+    it("returns true for mixed component and empty text content parts", () => {
+      expect(
+        checkHasContent([
+          { type: "text", text: "" },
+          {
+            type: "component",
+            id: "comp_1",
+            name: "Chart",
+            props: {},
+          } as unknown as { type: "text"; text: string },
+        ]),
+      ).toBe(true);
+    });
   });
 
   describe("boolean content", () => {
