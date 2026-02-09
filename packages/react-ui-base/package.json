@@ -42,6 +42,16 @@
         "default": "./dist/cjs/edit-with-tambo-button/index.cjs"
       }
     },
+    "./message-thread-collapsible": {
+      "import": {
+        "types": "./dist/esm/message-thread-collapsible/index.d.ts",
+        "default": "./dist/esm/message-thread-collapsible/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/message-thread-collapsible/index.d.ts",
+        "default": "./dist/cjs/message-thread-collapsible/index.cjs"
+      }
+    },
     "./control-bar": {
       "import": {
         "types": "./dist/esm/control-bar/index.d.ts",
@@ -180,6 +190,26 @@
       "require": {
         "types": "./dist/cjs/map/index.d.ts",
         "default": "./dist/cjs/map/index.cjs"
+      }
+    },
+    "./message-thread-full": {
+      "import": {
+        "types": "./dist/esm/message-thread-full/index.d.ts",
+        "default": "./dist/esm/message-thread-full/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/message-thread-full/index.d.ts",
+        "default": "./dist/cjs/message-thread-full/index.cjs"
+      }
+    },
+    "./message-thread-panel": {
+      "import": {
+        "types": "./dist/esm/message-thread-panel/index.d.ts",
+        "default": "./dist/esm/message-thread-panel/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/message-thread-panel/index.d.ts",
+        "default": "./dist/cjs/message-thread-panel/index.cjs"
       }
     },
     "./thread-history": {

@@ -64,6 +64,20 @@ export type {
   CanvasSpaceViewportProps,
 } from "./canvas-space";
 
+// MessageThreadCollapsible components
+export { MessageThreadCollapsible } from "./message-thread-collapsible";
+export type {
+  MessageThreadCollapsibleContentProps,
+  MessageThreadCollapsibleContentRenderProps,
+  MessageThreadCollapsibleContextValue,
+  MessageThreadCollapsibleHeaderProps,
+  MessageThreadCollapsibleHeaderRenderProps,
+  MessageThreadCollapsibleRootProps,
+  MessageThreadCollapsibleRootRenderProps,
+  MessageThreadCollapsibleTriggerProps,
+  MessageThreadCollapsibleTriggerRenderProps,
+} from "./message-thread-collapsible";
+
 // ControlBar components
 export { ControlBar } from "./control-bar";
 export type {
@@ -293,6 +307,29 @@ export type {
   ScrollableMessageContainerScrollToBottomRenderProps,
   ScrollableMessageContainerViewportProps,
 } from "./scrollable-message-container";
+
+// MessageThreadFull components
+export { MessageThreadFull } from "./message-thread-full";
+export type {
+  MessageThreadFullContainerProps,
+  MessageThreadFullContainerRenderProps,
+  MessageThreadFullContextValue,
+  MessageThreadFullRootProps,
+  MessageThreadFullRootRenderProps,
+  MessageThreadFullSidebarProps,
+} from "./message-thread-full";
+
+// MessageThreadPanel components
+export { MessageThreadPanel } from "./message-thread-panel";
+export type {
+  MessageThreadPanelContentProps,
+  MessageThreadPanelContextValue,
+  MessageThreadPanelResizableProps,
+  MessageThreadPanelResizableRenderProps,
+  MessageThreadPanelRootProps,
+  MessageThreadPanelRootRenderProps,
+  MessageThreadPanelSidebarProps,
+} from "./message-thread-panel";
 
 // Types
 export type {

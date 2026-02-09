@@ -61,7 +61,7 @@ export const CanvasChatInterface = () => {
   return (
     <div className="rounded-lg border border-border/40 h-full relative flex flex-row overflow-hidden">
       <CanvasSpace className="bg-background rounded-l-lg flex-1" />
-      <MessageThreadPanel className="right rounded-r-lg" />
+      <MessageThreadPanel position="right" className="rounded-r-lg" />
     </div>
   );
 };

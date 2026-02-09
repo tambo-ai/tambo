@@ -145,40 +145,22 @@ export function useCanvasDetection(
 }
 
 /**
- * Utility to check if a className string contains the "right" class
- * @param className - The className string to check
- * @returns true if the className contains "right", false otherwise
- */
-export function hasRightClass(className?: string): boolean {
-  return className ? /(?:^|\s)right(?:\s|$)/i.test(className) : false;
-}
-
-/**
- * Hook to calculate sidebar and history positions based on className and canvas position
- * @param className - Component's className string
+ * Calculates sidebar and history positions based on panel position and canvas layout.
+ *
+ * @param position - Which side this panel is on ("left" or "right", defaults to "left")
  * @param canvasIsOnLeft - Whether the canvas is on the left
+ * @param hasCanvasSpace - Whether a canvas space element exists
  * @returns Object with isLeftPanel and historyPosition values
  */
 export function usePositioning(
-  className?: string,
+  position: "left" | "right" = "left",
   canvasIsOnLeft = false,
   hasCanvasSpace = false,
 ) {
-  const isRightClass = hasRightClass(className);
-  const isLeftPanel = !isRightClass;
+  const isLeftPanel = position === "left";
 
-  // Determine history position
-  // If panel has right class, history should be on right
-  // If canvas is on left, history should be on right
-  // Otherwise, history should be on left
-  let historyPosition: "left" | "right";
-  if (isRightClass) {
-    historyPosition = "right";
-  } else if (hasCanvasSpace && canvasIsOnLeft) {
-    historyPosition = "right";
-  } else {
-    historyPosition = "left";
-  }
+  const historyPosition: "left" | "right" =
+    !isLeftPanel || (hasCanvasSpace && canvasIsOnLeft) ? "right" : "left";
 
   return { isLeftPanel, historyPosition };
 }

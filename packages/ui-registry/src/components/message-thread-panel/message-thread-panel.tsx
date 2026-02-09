@@ -45,6 +45,8 @@ import type { Suggestion } from "@tambo-ai/react";
  * @interface
  */
 export interface MessageThreadPanelProps extends React.HTMLAttributes<HTMLDivElement> {
+  /** Which side this panel is on. Defaults to "left". */
+  position?: "left" | "right";
   /**
    * Controls the visual styling of messages in the thread.
    * Possible values include: "default", "compact", etc.
@@ -173,17 +175,17 @@ ResizablePanel.displayName = "ResizablePanel";
  * <MessageThreadPanel />
  *
  * // Explicit right positioning
- * <MessageThreadPanel className="right" />
+ * <MessageThreadPanel position="right" />
  * ```
  */
 export const MessageThreadPanel = React.forwardRef<
   HTMLDivElement,
   MessageThreadPanelProps
->(({ className, variant, ...props }, ref) => {
+>(({ className, position, variant, ...props }, ref) => {
   const panelRef = useRef<HTMLDivElement>(null);
   const { hasCanvasSpace, canvasIsOnLeft } = useCanvasDetection(panelRef);
   const { isLeftPanel, historyPosition } = usePositioning(
-    className,
+    position,
     canvasIsOnLeft,
     hasCanvasSpace,
   );
