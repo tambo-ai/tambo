@@ -55,12 +55,12 @@ export async function setupTailwindAndGlobals(projectRoot: string) {
     );
   }
 
+  const framework = detectFramework();
+
   // For Tailwind v4, set up the build toolchain (Vite plugin or PostCSS config)
   if (isV4) {
-    await setupTailwindV4Toolchain(projectRoot);
+    await setupTailwindV4Toolchain(projectRoot, framework);
   }
-
-  const framework = detectFramework();
 
   // Find existing globals.css or determine where to create it
   // Check common locations in order of preference

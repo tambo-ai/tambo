@@ -3,10 +3,7 @@ import fs from "fs";
 import path from "path";
 import { Project, ScriptKind, SyntaxKind } from "ts-morph";
 import { execFileSync } from "../../../../utils/interactive.js";
-import {
-  detectFramework,
-  type FrameworkConfig,
-} from "../../../../utils/framework-detection.js";
+import type { FrameworkConfig } from "../../../../utils/framework-detection.js";
 import {
   detectPackageManager,
   formatPackageArgs,
@@ -33,12 +30,12 @@ const POSTCSS_CONFIG_FILES = [
  * - Next.js/Other: installs `@tailwindcss/postcss` and creates `postcss.config.mjs`
  *
  * @param projectRoot The root directory of the project
+ * @param framework The detected framework config, or null if unknown
  */
 export async function setupTailwindV4Toolchain(
   projectRoot: string,
+  framework: FrameworkConfig | null,
 ): Promise<void> {
-  const framework = detectFramework();
-
   if (framework?.name === "vite") {
     await setupVitePlugin(projectRoot);
     return;
@@ -73,12 +70,16 @@ async function setupVitePlugin(projectRoot: string): Promise<void> {
     return;
   }
 
+  // Install the dependency first so we don't leave a broken config if it fails
+  const installed = installDevDependency(projectRoot, "@tailwindcss/vite");
+  if (!installed) {
+    return;
+  }
+
   fs.writeFileSync(configPath, updated);
   console.log(
     `${chalk.green("✔")} Added @tailwindcss/vite plugin to ${configFile}`,
   );
-
-  installDevDependency(projectRoot, "@tailwindcss/vite");
 }
 
 /**
@@ -275,8 +276,12 @@ function findPluginsArray(sourceFile: ReturnType<Project["createSourceFile"]>) {
 
 /**
  * Installs a package as a dev dependency using the detected package manager.
+ * @returns Whether the installation succeeded.
  */
-function installDevDependency(projectRoot: string, packageName: string): void {
+function installDevDependency(
+  projectRoot: string,
+  packageName: string,
+): boolean {
   const pm = detectPackageManager(projectRoot);
   const installCmd = getInstallCommand(pm);
   const devFlag = getDevFlag(pm);
@@ -295,13 +300,15 @@ function installDevDependency(projectRoot: string, packageName: string): void {
       allowNonInteractive: true,
     });
     console.log(`${chalk.green("✔")} Installed ${packageName}`);
+    return true;
   } catch (error) {
     console.error(
       `${chalk.red("✖")} Failed to install ${packageName}: ${error}`,
     );
     console.log(
-      `${chalk.blue("ℹ")} Please install it manually: ${pm} ${installCmd.join(" ")} ${devFlag} ${packageName}`,
+      `${chalk.blue("ℹ")} Please install it manually: ${[pm, ...args].join(" ")}`,
     );
+    return false;
   }
 }
 
