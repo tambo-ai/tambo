@@ -1,33 +1,13 @@
 ---
 title: Migrating to the React SDK 1.0
-description: Step-by-step guide for migrating from @tambo-ai/react to the new @tambo-ai/react/v1 API.
+description: Step-by-step guide for migrating from @tambo-ai/react/legacy to @tambo-ai/react.
 ---
 
-import { Callout } from "fumadocs-ui/components/callout";
-
-<Callout type="warn" title="Preview Documentation">
-  This migration guide is for the upcoming React SDK 1.0, currently in preview.
-  The API may change before the stable release.
-</Callout>
-
-<Callout type="info" title="About the V1 Naming">
-  During the preview period, all v1 APIs live under `@tambo-ai/react/v1` and
-  have a "V1" suffix (e.g., `useTamboV1`, `TamboV1Provider`). When the stable
-  1.0 release ships, these will be renamed to their final forms (`useTambo`,
-  `TamboProvider`, etc.) and become the primary exports from `@tambo-ai/react`.
-  The current SDK will then move to a `/legacy` subpath.
-
-**This guide uses the preview-period names.** We'll update it at stable release
-to reflect the final names. Everywhere you see `V1` in a name, imagine that
-suffix removed — that's what the final API will look like.
-
-</Callout>
-
-This guide walks you through migrating from the current React SDK (`@tambo-ai/react`) to the v1 SDK (`@tambo-ai/react/v1`). Follow the steps in order — each one builds on the previous.
+This guide walks you through migrating from the legacy React SDK (`@tambo-ai/react/legacy`) to the current SDK (`@tambo-ai/react`). Follow the steps in order — each one builds on the previous.
 
 ## Overview of changes
 
-The v1 SDK is a ground-up redesign focused on explicit control and composability. The main shifts are:
+The v1 SDK is a redesign focused on explicit control and composability. The main shifts are:
 
 - **Explicit thread management** — you control when threads are created and switched, instead of the provider doing it implicitly
 - **Content blocks** — messages use Anthropic-style content blocks (text, component, tool_use, tool_result) instead of simple text arrays
@@ -37,7 +17,7 @@ The v1 SDK is a ground-up redesign focused on explicit control and composability
 
 ## Step 1: Update imports
 
-Change your import path from `@tambo-ai/react` to `@tambo-ai/react/v1`:
+Change your import path from `@tambo-ai/react/legacy` to `@tambo-ai/react`:
 
 ```tsx title="Before"
 import {
@@ -47,7 +27,7 @@ import {
   useTamboComponentState,
   useTamboStreamStatus,
   useTamboThreadList,
-} from "@tambo-ai/react";
+} from "@tambo-ai/react/legacy";
 ```
 
 ```tsx title="After"
@@ -58,13 +38,12 @@ import {
   useTamboV1ComponentState,
   useTamboV1StreamStatus,
   useTamboV1ThreadList,
-} from "@tambo-ai/react/v1";
+} from "@tambo-ai/react";
 ```
 
-Some shared utilities are re-exported from the v1 subpath for convenience:
+Some shared utilities are available from the main package:
 
 ```tsx
-// These work from either import path
 import {
   defineTool,
   useTamboClient,
@@ -72,7 +51,7 @@ import {
   useMessageImages,
   currentPageContextHelper,
   currentTimeContextHelper,
-} from "@tambo-ai/react/v1";
+} from "@tambo-ai/react";
 ```
 
 ## Step 2: Update the provider
@@ -250,7 +229,7 @@ function Message({ message }: { message: TamboThreadMessage }) {
 ```
 
 ```tsx title="After"
-import { V1ComponentRenderer, type TamboV1Message } from "@tambo-ai/react/v1";
+import { V1ComponentRenderer, type TamboV1Message } from "@tambo-ai/react";
 
 function Message({
   message,
@@ -401,7 +380,7 @@ import { TamboStubProvider } from "@tambo-ai/react";
 ```
 
 ```tsx title="After"
-import { TamboV1StubProvider } from "@tambo-ai/react/v1";
+import { TamboV1StubProvider } from "@tambo-ai/react";
 
 <TamboV1StubProvider
   thread={mockThread}
@@ -419,14 +398,14 @@ import { TamboV1StubProvider } from "@tambo-ai/react/v1";
 
 ## Step 11: Update interactable components
 
-The interactable HOC and hooks are available in V1 with the same names:
+The interactable HOC and hooks are available with updated names:
 
 ```tsx title="Before"
 import {
   withInteractable,
   useTamboInteractable,
   useCurrentInteractablesSnapshot,
-} from "@tambo-ai/react";
+} from "@tambo-ai/react/legacy";
 ```
 
 ```tsx title="After"
@@ -434,7 +413,7 @@ import {
   withTamboInteractable,
   useTamboInteractable,
   useCurrentInteractablesSnapshot,
-} from "@tambo-ai/react/v1";
+} from "@tambo-ai/react";
 ```
 
 The HOC was renamed from `withInteractable` to `withTamboInteractable` for consistency with the SDK naming convention. Usage is otherwise unchanged:
@@ -451,15 +430,15 @@ const InteractableNote = withTamboInteractable(Note, {
 
 ### Context attachments
 
-The `TamboContextAttachmentProvider` is included in the V1 provider hierarchy, and the `useTamboContextAttachment` hook is re-exported from the v1 subpath:
+The `TamboContextAttachmentProvider` is included in the V1 provider hierarchy, and the `useTamboContextAttachment` hook is available from the main package:
 
 ```tsx
-import { useTamboContextAttachment } from "@tambo-ai/react/v1";
+import { useTamboContextAttachment } from "@tambo-ai/react";
 ```
 
 ## Quick reference: API name mapping
 
-| Pre-v1 (`@tambo-ai/react`)        | V1 preview (`@tambo-ai/react/v1`)     | V1 stable (future `@tambo-ai/react`)  |
+| Legacy (`@tambo-ai/react/legacy`) | V1 preview (`@tambo-ai/react`)        | V1 stable (future `@tambo-ai/react`)  |
 | --------------------------------- | ------------------------------------- | ------------------------------------- |
 | `TamboProvider`                   | `TamboV1Provider`                     | `TamboProvider`                       |
 | `TamboStubProvider`               | `TamboV1StubProvider`                 | `TamboStubProvider`                   |

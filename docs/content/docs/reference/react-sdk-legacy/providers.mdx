@@ -1,0 +1,297 @@
+---
+title: Provider Components
+description: Reference for TamboProvider and other provider components used to configure Tambo in your React application.
+---
+
+Provider components configure Tambo functionality and make hooks available throughout your component tree.
+
+## TamboProvider
+
+The main provider that wraps your application and provides access to the full Tambo API. This is the primary way to integrate Tambo into your React app.
+
+```tsx
+import { TamboProvider } from "@tambo-ai/react";
+
+function App() {
+  return (
+    <TamboProvider
+      apiKey={process.env.TAMBO_API_KEY}
+      components={myComponents}
+      tools={myTools}
+    >
+      <YourApp />
+    </TamboProvider>
+  );
+}
+```
+
+### Props
+
+| Prop                        | Type                          | Required | Description                                      |
+| --------------------------- | ----------------------------- | -------- | ------------------------------------------------ |
+| `apiKey`                    | `string`                      | Yes\*    | Your Tambo API key                               |
+| `userToken`                 | `string`                      | No       | OAuth token for user authentication              |
+| `tamboUrl`                  | `string`                      | No       | Custom Tambo API URL                             |
+| `environment`               | `string`                      | No       | Environment name                                 |
+| `components`                | `TamboComponent[]`            | No       | Components to register                           |
+| `tools`                     | `TamboTool[]`                 | No       | Tools to register                                |
+| `mcpServers`                | `McpServerInfo[]`             | No       | MCP servers to connect                           |
+| `contextHelpers`            | `ContextHelpers`              | No       | Context helper functions                         |
+| `contextKey`                | `string`                      | No       | Key for thread scoping                           |
+| `streaming`                 | `boolean`                     | No       | Enable streaming (default: `true`)               |
+| `autoGenerateThreadName`    | `boolean`                     | No       | Auto-generate thread names (default: `true`)     |
+| `autoGenerateNameThreshold` | `number`                      | No       | Message count for name generation (default: `3`) |
+| `initialMessages`           | `InitialTamboThreadMessage[]` | No       | Initial messages for new threads                 |
+| `onCallUnregisteredTool`    | `function`                    | No       | Callback for unregistered tool calls             |
+| `resources`                 | `ListResourceItem[]`          | No       | Static resources for MCP                         |
+| `listResources`             | `function`                    | No       | Dynamic resource listing                         |
+| `getResource`               | `function`                    | No       | Resource content resolver                        |
+
+\*Either `apiKey` or `userToken` is required for authentication.
+
+### Example with All Options
+
+```tsx
+import {
+  TamboProvider,
+  currentPageContextHelper,
+  type TamboComponent,
+  type TamboTool,
+} from "@tambo-ai/react";
+
+const components: TamboComponent[] = [
+  {
+    name: "WeatherCard",
+    description: "Displays weather information",
+    component: WeatherCard,
+    propsSchema: z.object({
+      city: z.string(),
+      temperature: z.number(),
+    }),
+  },
+];
+
+const tools: TamboTool[] = [
+  {
+    name: "get_weather",
+    description: "Fetch weather for a city",
+    tool: async ({ city }) => fetchWeather(city),
+    inputSchema: z.object({ city: z.string() }),
+    outputSchema: z.object({ temperature: z.number() }),
+  },
+];
+
+<TamboProvider
+  apiKey={process.env.TAMBO_API_KEY}
+  components={components}
+  tools={tools}
+  contextHelpers={{
+    currentPage: currentPageContextHelper,
+  }}
+  streaming={true}
+  autoGenerateThreadName={true}
+  autoGenerateNameThreshold={3}
+>
+  <App />
+</TamboProvider>;
+```
+
+### Provider Hierarchy
+
+`TamboProvider` internally nests several sub-providers in this order:
+
+1. `TamboClientProvider` - API client and authentication
+2. `TamboRegistryProvider` - Component and tool registration
+3. `TamboContextHelpersProvider` - Context helper management
+4. `TamboThreadProvider` - Thread state and messaging
+5. `TamboMcpTokenProvider` - MCP token management
+6. `TamboMcpProvider` - MCP server connections
+7. `TamboContextAttachmentProvider` - Context attachments
+8. `TamboComponentProvider` - Component lifecycle
+9. `TamboInteractableProvider` - Interactable components
+10. `TamboThreadInputProvider` - Input handling
+
+For advanced use cases, you can use individual providers directly instead of `TamboProvider`.
+
+## TamboStubProvider
+
+A stub provider for testing and development that doesn't require API connectivity.
+
+```tsx
+import { TamboStubProvider } from "@tambo-ai/react";
+
+function TestApp() {
+  return (
+    <TamboStubProvider
+      stubResponses={[
+        {
+          component: {
+            componentName: "WeatherCard",
+            props: { city: "Seattle", temperature: 65 },
+          },
+        },
+      ]}
+    >
+      <YourComponent />
+    </TamboStubProvider>
+  );
+}
+```
+
+### Props
+
+| Prop             | Type                   | Description              |
+| ---------------- | ---------------------- | ------------------------ |
+| `stubResponses`  | `TamboThreadMessage[]` | Pre-configured responses |
+| `components`     | `TamboComponent[]`     | Components to register   |
+| `tools`          | `TamboTool[]`          | Tools to register        |
+| `contextHelpers` | `ContextHelpers`       | Context helpers          |
+
+## TamboMcpProvider
+
+Provider for Model Context Protocol (MCP) server connections. Required when using MCP features.
+
+```tsx
+import { TamboMcpProvider } from "@tambo-ai/react/mcp";
+
+// Inside TamboProvider
+<TamboMcpProvider
+  handlers={{
+    elicitation: async (request, extra, serverInfo) => {
+      // Handle elicitation requests
+      return { action: "accept", content: {} };
+    },
+  }}
+  contextKey="my-context"
+>
+  <App />
+</TamboMcpProvider>;
+```
+
+### Props
+
+| Prop         | Type                  | Description                           |
+| ------------ | --------------------- | ------------------------------------- |
+| `handlers`   | `ProviderMCPHandlers` | Optional handlers for all MCP servers |
+| `contextKey` | `string`              | Context key for threadless MCP tokens |
+| `children`   | `ReactNode`           | Child components                      |
+
+**Note**: MCP servers are configured on `TamboProvider` via the `mcpServers` prop. `TamboMcpProvider` manages the connections and provides hooks to interact with them.
+
+### MCP Server Configuration
+
+Configure MCP servers on `TamboProvider`:
+
+```tsx
+<TamboProvider
+  apiKey={process.env.TAMBO_API_KEY}
+  mcpServers={[
+    {
+      name: "linear",
+      url: "https://linear-mcp.example.com",
+      transport: "http",
+      serverKey: "linear",
+    },
+    {
+      name: "github",
+      url: "https://github-mcp.example.com",
+      transport: "http",
+      serverKey: "github",
+      customHeaders: {
+        Authorization: `Bearer ${githubToken}`,
+      },
+    },
+  ]}
+>
+  <TamboMcpProvider>
+    <App />
+  </TamboMcpProvider>
+</TamboProvider>
+```
+
+See the [MCP reference](/reference/react-sdk/mcp) for hooks and types related to MCP functionality.
+
+## Individual Providers
+
+For advanced use cases, you can use individual providers directly:
+
+### TamboClientProvider
+
+Provides the API client and authentication context.
+
+```tsx
+import { TamboClientProvider, useTamboClient } from "@tambo-ai/react";
+
+<TamboClientProvider
+  apiKey={process.env.TAMBO_API_KEY}
+  tamboUrl="https://api.tambo.co"
+>
+  <App />
+</TamboClientProvider>;
+```
+
+### TamboRegistryProvider
+
+Manages component and tool registration.
+
+```tsx
+import { TamboRegistryProvider, useTamboRegistry } from "@tambo-ai/react";
+
+<TamboRegistryProvider
+  components={components}
+  tools={tools}
+  mcpServers={mcpServers}
+>
+  <App />
+</TamboRegistryProvider>;
+```
+
+### TamboThreadProvider
+
+Manages thread state and message sending.
+
+```tsx
+import { TamboThreadProvider, useTamboThread } from "@tambo-ai/react";
+
+<TamboThreadProvider
+  contextKey="chat"
+  streaming={true}
+  autoGenerateThreadName={true}
+>
+  <App />
+</TamboThreadProvider>;
+```
+
+### TamboContextHelpersProvider
+
+Manages context helpers that provide additional information to the AI.
+
+```tsx
+import {
+  TamboContextHelpersProvider,
+  useTamboContextHelpers,
+} from "@tambo-ai/react";
+
+<TamboContextHelpersProvider
+  contextHelpers={{
+    currentPage: () => ({ url: window.location.href }),
+  }}
+>
+  <App />
+</TamboContextHelpersProvider>;
+```
+
+### TamboInteractableProvider
+
+Manages interactable component registration and state.
+
+```tsx
+import {
+  TamboInteractableProvider,
+  useTamboInteractable,
+} from "@tambo-ai/react";
+
+<TamboInteractableProvider>
+  <App />
+</TamboInteractableProvider>;
+```

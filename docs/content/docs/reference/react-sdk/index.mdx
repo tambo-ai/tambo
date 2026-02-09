@@ -1,9 +1,9 @@
 ---
 title: React SDK Reference
-description: Complete API reference for @tambo-ai/react - hooks, types, utilities, and providers for building AI-powered React applications.
+description: API reference for @tambo-ai/react - Tambo's React SDK with streaming-first architecture and explicit thread management.
 ---
 
-The `@tambo-ai/react` package is Tambo's official React SDK for building AI-powered generative UI applications. This reference documents all public APIs including hooks, types, utilities, and provider components.
+The `@tambo-ai/react` package is Tambo's React SDK, featuring a streaming-first architecture, explicit thread management, and React Query integration.
 
 ## Installation
 
@@ -11,25 +11,34 @@ The `@tambo-ai/react` package is Tambo's official React SDK for building AI-powe
 npm install @tambo-ai/react
 ```
 
+## Quick Start
+
+```tsx
+import {
+  TamboV1Provider,
+  useTamboV1,
+  useTamboV1ThreadInput,
+} from "@tambo-ai/react";
+```
+
 ## Quick Links
 
-- [Hooks](/reference/react-sdk/hooks) - React hooks for thread management, component state, streaming, and more
-- [Types](/reference/react-sdk/types) - TypeScript interfaces and types for type-safe development
-- [Utilities](/reference/react-sdk/utilities) - Helper functions like `defineTool()` and `withInteractable()`
-- [Providers](/reference/react-sdk/providers) - Provider components for configuring Tambo in your app
-- [MCP](/reference/react-sdk/mcp) - Model Context Protocol hooks and types
+- [Hooks](/reference/react-sdk/hooks) - React hooks for thread management, messaging, suggestions, and component state
+- [Types](/reference/react-sdk/types) - TypeScript interfaces and types
+- [Providers](/reference/react-sdk/providers) - Provider components for configuring Tambo
 
 ## Overview
 
-The SDK is organized around a provider hierarchy that manages AI state and configuration:
+The React SDK is organized around a simplified provider hierarchy with React Query for data fetching:
 
 ```tsx
-import { TamboProvider } from "@tambo-ai/react";
+import { TamboV1Provider } from "@tambo-ai/react";
 
 function App() {
   return (
-    <TamboProvider
-      apiKey={process.env.TAMBO_API_KEY}
+    <TamboV1Provider
+      apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY}
+      userKey={userId}
       components={
         [
           /* your components */
@@ -42,7 +51,7 @@ function App() {
       }
     >
       <YourApp />
-    </TamboProvider>
+    </TamboV1Provider>
   );
 }
 ```
@@ -50,25 +59,36 @@ function App() {
 Inside the provider, use hooks to access Tambo functionality:
 
 ```tsx
-import {
-  useTambo,
-  useTamboThread,
-  useTamboStreamStatus,
-} from "@tambo-ai/react";
+import { useTamboV1, useTamboV1ThreadInput } from "@tambo-ai/react";
 
 function Chat() {
-  const { sendThreadMessage, thread } = useTamboThread();
-  const { streamStatus } = useTamboStreamStatus();
-  // Build your UI
+  const { messages, isStreaming, startNewThread } = useTamboV1();
+  const { value, setValue, submit } = useTamboV1ThreadInput();
+
+  return (
+    <div>
+      {messages.map((msg) => (
+        <Message key={msg.id} message={msg} />
+      ))}
+      <input
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        onKeyDown={(e) => e.key === "Enter" && submit()}
+      />
+    </div>
+  );
 }
 ```
 
-## MCP Support
+## Key Features
 
-For Model Context Protocol integrations, import from the `/mcp` subpath:
-
-```tsx
-import { TamboMcpProvider, useTamboMcpServers } from "@tambo-ai/react/mcp";
-```
-
-MCP requires additional peer dependencies. See the [MCP reference](/reference/react-sdk/mcp) for setup instructions.
+| Feature          | Implementation                                                                            |
+| ---------------- | ----------------------------------------------------------------------------------------- |
+| Import path      | `@tambo-ai/react`                                                                         |
+| Main hook        | `useTamboV1()`                                                                            |
+| User scoping     | `userKey` prop                                                                            |
+| Thread input     | `useTamboV1ThreadInput()`                                                                 |
+| Message format   | Content blocks (text, component, tool_use, etc.)                                          |
+| Component state  | `useTamboV1ComponentState()` (bidirectional sync)                                         |
+| Streaming status | `streamingState.status` (typed as [`RunStatus`](/reference/react-sdk/types#runstatus)) |
+| Data fetching    | React Query hooks                                                                         |
