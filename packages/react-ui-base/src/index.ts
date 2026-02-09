@@ -94,6 +94,36 @@ export type {
   ToolcallInfoTriggerProps,
 } from "./toolcall-info";
 
+// ElicitationUI components
+export {
+  ElicitationUIBase,
+  getInputType,
+  getValidationError,
+  isSingleEntryMode,
+  validateField,
+} from "./elicitation-ui";
+export type {
+  ElicitationUIActionsProps,
+  ElicitationUIActionsRenderProps,
+  ElicitationUIBooleanFieldProps,
+  ElicitationUIBooleanFieldRenderProps,
+  ElicitationUIContextValue,
+  ElicitationUIEnumFieldProps,
+  ElicitationUIEnumFieldRenderProps,
+  ElicitationUIEnumOption,
+  ElicitationUIFieldProps,
+  ElicitationUIFieldRenderProps,
+  ElicitationUIFieldType,
+  ElicitationUINumberFieldProps,
+  ElicitationUINumberFieldRenderProps,
+  ElicitationUIRootProps,
+  ElicitationUIStringFieldProps,
+  ElicitationUIStringFieldRenderProps,
+  ElicitationUITitleProps,
+  ElicitationUITitleRenderProps,
+  FieldSchema,
+} from "./elicitation-ui";
+
 // Types
 export type {
   BaseProps,
