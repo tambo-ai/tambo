@@ -125,9 +125,19 @@ const ThreadContentMessages = React.forwardRef<
 >(({ className, ...props }, ref) => {
   const { messages, isGenerating, variant } = useThreadContentContext();
 
-  const filteredMessages = messages.filter(
-    (message) => message.role !== "system",
-  );
+  const filteredMessages = messages.filter((message) => {
+    if (message.role === "system") return false;
+    // Hide messages that only contain tool_result content blocks.
+    // These are consumed by ToolcallInfo on the preceding tool_use message
+    // and shouldn't render as standalone message bubbles.
+    if (
+      message.content.length > 0 &&
+      message.content.every((block) => block.type === "tool_result")
+    ) {
+      return false;
+    }
+    return true;
+  });
 
   return (
     <div
