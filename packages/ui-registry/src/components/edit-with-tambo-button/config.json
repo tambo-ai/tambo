@@ -3,7 +3,7 @@
   "description": "Inline AI editor button with floating popover for interactable components",
   "componentName": "EditWithTamboButton",
   "dependencies": [
-    "@tambo-ai/react",
+    "@tambo-ai/react@rc",
     "lucide-react",
     "@radix-ui/react-popover",
     "@radix-ui/react-tooltip"
