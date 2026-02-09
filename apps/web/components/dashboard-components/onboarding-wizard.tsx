@@ -13,6 +13,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { cn } from "@/lib/utils";
+import { REFERRAL_SOURCES } from "@/lib/referral-sources";
+import { api } from "@/trpc/react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import Image from "next/image";
@@ -167,6 +171,13 @@ const templates = [
     recommended: true,
   },
   {
+    id: "vite",
+    name: "Vite",
+    description: "Tambo + TanStack Router + Vite for fast, lightweight apps",
+    command: "npx create-tambo-app@latest my-app --template=vite",
+    recommended: false,
+  },
+  {
     id: "analytics",
     name: "Analytics",
     description:
@@ -184,12 +195,16 @@ export function OnboardingWizard({
   const [currentStepId, setCurrentStepId] =
     useState<OnboardingStepId>("welcome");
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
+  const [referralSource, setReferralSource] = useState<string>("");
+
+  const saveReferralMutation = api.user.saveReferralSource.useMutation();
 
   // Reset state when dialog opens to ensure users always start from the beginning
   useEffect(() => {
     if (open) {
       setCurrentStepId("welcome");
       setSelectedTemplate(null);
+      setReferralSource("");
     }
   }, [open]);
 
@@ -207,6 +222,13 @@ export function OnboardingWizard({
   };
 
   const handleNext = () => {
+    // Save referral source when leaving the welcome step (fire-and-forget)
+    if (currentStepId === "welcome" && referralSource) {
+      void saveReferralMutation.mutateAsync({
+        source: referralSource as (typeof REFERRAL_SOURCES)[number],
+      });
+    }
+
     if (currentStep?.nextStep) {
       setCurrentStepId(currentStep.nextStep);
     }
@@ -235,6 +257,38 @@ export function OnboardingWizard({
         <p className="text-sm font-sans text-foreground">
           {currentStep?.description}
         </p>
+      </div>
+
+      <div className="space-y-3 text-left">
+        <p className="text-sm text-muted-foreground">
+          How did you hear about us?{" "}
+          <span className="text-muted-foreground/60">(optional)</span>
+        </p>
+        <RadioGroup
+          value={referralSource}
+          onValueChange={setReferralSource}
+          className="grid grid-cols-2 gap-2"
+        >
+          {REFERRAL_SOURCES.map((source) => (
+            <label
+              key={source}
+              htmlFor={`referral-${source}`}
+              className={cn(
+                "flex items-center gap-2 rounded-lg border px-3 py-2 text-sm cursor-pointer transition-colors",
+                referralSource === source
+                  ? "border-primary bg-primary/5 text-foreground"
+                  : "border-border hover:border-primary/50 text-foreground",
+              )}
+            >
+              <RadioGroupItem
+                value={source}
+                id={`referral-${source}`}
+                className="shrink-0"
+              />
+              {source}
+            </label>
+          ))}
+        </RadioGroup>
       </div>
 
       <Button onClick={handleNext} className="w-full">

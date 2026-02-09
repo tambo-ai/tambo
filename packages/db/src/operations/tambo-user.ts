@@ -73,6 +73,18 @@ export async function acceptLegalTerms(
 }
 
 /**
+ * Save the referral source for a user (how they heard about Tambo).
+ * @returns the updated user record
+ */
+export async function saveReferralSource(
+  db: HydraDb,
+  userId: string,
+  source: string,
+): Promise<typeof schema.tamboUsers.$inferSelect> {
+  return await updateTamboUser(db, userId, { referralSource: source });
+}
+
+/**
  * Track a welcome email sent to a user.
  */
 export async function trackWelcomeEmail(

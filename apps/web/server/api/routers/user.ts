@@ -1,4 +1,5 @@
 import { LEGAL_CONFIG, needsLegalAcceptance } from "@/lib/legal-config";
+import { REFERRAL_SOURCES } from "@/lib/referral-sources";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { operations, schema } from "@tambo-ai-cloud/db";
 import { z } from "zod/v3";
@@ -54,6 +55,19 @@ export const userRouter = createTRPCRouter({
         userId,
         input.version || LEGAL_CONFIG.CURRENT_VERSION,
       );
+      return { success: true };
+    }),
+
+  // Save referral source (how the user heard about Tambo)
+  saveReferralSource: protectedProcedure
+    .input(
+      z.object({
+        source: z.enum(REFERRAL_SOURCES),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const userId = ctx.user.id;
+      await operations.saveReferralSource(ctx.db, userId, input.source);
       return { success: true };
     }),
 });
