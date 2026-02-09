@@ -27,8 +27,8 @@ export interface MessageThreadPanelRootRenderProps {
 }
 
 export interface MessageThreadPanelRootProps {
-  /** Optional className used for positioning detection (e.g., "right" class). */
-  className?: string;
+  /** Which side this panel is on. Defaults to "left". */
+  position?: "left" | "right";
   /** Initial panel width in pixels. Defaults to 956. */
   defaultWidth?: number;
   /** Children as ReactNode or render function receiving layout state. */
@@ -45,7 +45,7 @@ export interface MessageThreadPanelRootProps {
  * @returns Context provider wrapping children with layout and resize state
  */
 export function MessageThreadPanelRoot({
-  className,
+  position,
   defaultWidth = 956,
   children,
 }: MessageThreadPanelRootProps) {
@@ -53,7 +53,7 @@ export function MessageThreadPanelRoot({
   const [width, setWidth] = React.useState(defaultWidth);
   const { hasCanvasSpace, canvasIsOnLeft } = useCanvasDetection(panelRef);
   const { isLeftPanel, historyPosition } = getPositioning(
-    className,
+    position,
     canvasIsOnLeft,
     hasCanvasSpace,
   );
