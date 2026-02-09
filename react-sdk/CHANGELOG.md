@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.0.0-rc.3](https://github.com/tambo-ai/tambo/compare/react-v1.0.0-rc.2...react-v1.0.0-rc.3) (2026-02-09)
+
+
+### Bug Fixes
+
+* **react-sdk:** fix tool call UI during streaming  ([#2320](https://github.com/tambo-ai/tambo/issues/2320)) ([7a2cd83](https://github.com/tambo-ai/tambo/commit/7a2cd83b3926e9fa5ee12b01d1a674c09f17f8a1))
+* **react-sdk:** small change to bump ([#2324](https://github.com/tambo-ai/tambo/issues/2324)) ([77e8648](https://github.com/tambo-ai/tambo/commit/77e864864db9832000175c91bc4d9ffbd4396030))
+
+
+### Miscellaneous Chores
+
+* **test:** bump coverage thresholds (2026-02-09) ([#2323](https://github.com/tambo-ai/tambo/issues/2323)) ([0aac70b](https://github.com/tambo-ai/tambo/commit/0aac70b23da7ae51d9d449b3692b765570af44f9))
+
 ## [1.0.0-rc.2](https://github.com/tambo-ai/tambo/compare/react-v1.0.0-rc.1...react-v1.0.0-rc.2) (2026-02-08)
 
 
