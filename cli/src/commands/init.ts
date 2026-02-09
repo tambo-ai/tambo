@@ -81,7 +81,10 @@ interface InitOptions {
  * Handles overwrite confirmation when a key already exists
  * Automatically detects framework and uses appropriate env var prefix
  */
-async function writeApiKeyToEnv(apiKey: string): Promise<boolean> {
+async function writeApiKeyToEnv(
+  apiKey: string,
+  { force = false }: { force?: boolean } = {},
+): Promise<boolean> {
   try {
     // use `.env.local` by default or fall back to .env if it exists and .env.local does not
     let targetEnvFile = ".env.local";
@@ -112,7 +115,7 @@ async function writeApiKeyToEnv(apiKey: string): Promise<boolean> {
     const existingContent = fs.readFileSync(targetEnvFile, "utf8");
     const existingKeyNames = findAllTamboApiKeys(existingContent);
 
-    if (existingKeyNames.length > 0) {
+    if (existingKeyNames.length > 0 && !force) {
       // Build appropriate warning message
       const warningMessage =
         existingKeyNames.length === 1
@@ -991,7 +994,7 @@ export async function handleInit({
     if (apiKey) {
       // Write the API key and continue
       if (!validateRootPackageJson()) return;
-      const saved = await writeApiKeyToEnv(apiKey);
+      const saved = await writeApiKeyToEnv(apiKey, { force: true });
       if (!saved) {
         throw new Error("Failed to write API key to .env file");
       }

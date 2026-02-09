@@ -50,7 +50,10 @@ export async function handleAddComponents(
 
     // 2. Get installation path if not provided
     let installPath =
-      options.installPath ?? (await getInstallationPath(options.yes));
+      options.installPath ??
+      (await getInstallationPath(
+        options.yes === true || options.dryRun === true,
+      ));
     // Respect explicitly set isExplicitPrefix, otherwise infer from installPath being provided
     let isExplicitPrefix =
       options.isExplicitPrefix ?? Boolean(options.installPath);
