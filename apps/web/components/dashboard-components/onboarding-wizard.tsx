@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { cn } from "@/lib/utils";
-import { REFERRAL_SOURCES } from "@/lib/referral-sources";
+import { REFERRAL_SOURCES, type ReferralSource } from "@/lib/referral-sources";
 import { api } from "@/trpc/react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowLeft, ArrowRight } from "lucide-react";
@@ -195,7 +195,7 @@ export function OnboardingWizard({
   const [currentStepId, setCurrentStepId] =
     useState<OnboardingStepId>("welcome");
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
-  const [referralSource, setReferralSource] = useState<string>("");
+  const [referralSource, setReferralSource] = useState<ReferralSource | "">("");
 
   const saveReferralMutation = api.user.saveReferralSource.useMutation();
 
@@ -222,11 +222,20 @@ export function OnboardingWizard({
   };
 
   const handleNext = () => {
-    // Save referral source when leaving the welcome step (fire-and-forget)
-    if (currentStepId === "welcome" && referralSource) {
-      void saveReferralMutation.mutateAsync({
-        source: referralSource as (typeof REFERRAL_SOURCES)[number],
-      });
+    // Save referral source when leaving the welcome step (fire-and-forget, write-once)
+    if (
+      currentStepId === "welcome" &&
+      referralSource &&
+      !saveReferralMutation.isPending
+    ) {
+      saveReferralMutation.mutate(
+        { source: referralSource },
+        {
+          onError: (error) => {
+            console.error("Failed to save referral source:", error);
+          },
+        },
+      );
     }
 
     if (currentStep?.nextStep) {
@@ -266,28 +275,27 @@ export function OnboardingWizard({
         </p>
         <RadioGroup
           value={referralSource}
-          onValueChange={setReferralSource}
+          onValueChange={(value) => setReferralSource(value as ReferralSource)}
           className="grid grid-cols-2 gap-2"
         >
-          {REFERRAL_SOURCES.map((source) => (
-            <label
-              key={source}
-              htmlFor={`referral-${source}`}
-              className={cn(
-                "flex items-center gap-2 rounded-lg border px-3 py-2 text-sm cursor-pointer transition-colors",
-                referralSource === source
-                  ? "border-primary bg-primary/5 text-foreground"
-                  : "border-border hover:border-primary/50 text-foreground",
-              )}
-            >
-              <RadioGroupItem
-                value={source}
-                id={`referral-${source}`}
-                className="shrink-0"
-              />
-              {source}
-            </label>
-          ))}
+          {REFERRAL_SOURCES.map((source, i) => {
+            const id = `referral-source-${i}`;
+            return (
+              <label
+                key={source}
+                htmlFor={id}
+                className={cn(
+                  "flex items-center gap-2 rounded-lg border px-3 py-2 text-sm cursor-pointer transition-colors",
+                  referralSource === source
+                    ? "border-primary bg-primary/5 text-foreground"
+                    : "border-border hover:border-primary/50 text-foreground",
+                )}
+              >
+                <RadioGroupItem value={source} id={id} className="shrink-0" />
+                {source}
+              </label>
+            );
+          })}
         </RadioGroup>
       </div>
 

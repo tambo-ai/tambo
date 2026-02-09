@@ -1,3 +1,4 @@
+import { type ReferralSource } from "@tambo-ai-cloud/core";
 import { eq, inArray, lt, sql } from "drizzle-orm";
 import * as schema from "../schema";
 import type { HydraDb } from "../types";
@@ -74,13 +75,20 @@ export async function acceptLegalTerms(
 
 /**
  * Save the referral source for a user (how they heard about Tambo).
- * @returns the updated user record
+ * Write-once: only sets the value if not already recorded.
+ * @returns the updated user record, or the existing one if already set
  */
 export async function saveReferralSource(
   db: HydraDb,
   userId: string,
-  source: string,
+  source: ReferralSource,
 ): Promise<typeof schema.tamboUsers.$inferSelect> {
+  const existing = await getTamboUser(db, userId);
+
+  if (existing?.referralSource) {
+    return existing;
+  }
+
   return await updateTamboUser(db, userId, { referralSource: source });
 }
 
