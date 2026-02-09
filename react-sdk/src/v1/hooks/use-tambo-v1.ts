@@ -272,14 +272,21 @@ export function useTambo(): UseTamboReturn {
         title: name,
       });
 
-      await Promise.all([
-        queryClient.invalidateQueries({
-          queryKey: ["v1-threads", "list"],
-        }),
-        queryClient.invalidateQueries({
-          queryKey: ["v1-threads", threadId],
-        }),
-      ]);
+      try {
+        await Promise.all([
+          queryClient.invalidateQueries({
+            queryKey: ["v1-threads", "list"],
+          }),
+          queryClient.invalidateQueries({
+            queryKey: ["v1-threads", threadId],
+          }),
+        ]);
+      } catch (error) {
+        console.warn(
+          "[useTambo] Failed to invalidate thread queries after rename:",
+          error,
+        );
+      }
     },
     [client, dispatch, queryClient],
   );
