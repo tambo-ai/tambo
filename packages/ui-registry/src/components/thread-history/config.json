@@ -2,7 +2,7 @@
   "name": "thread-history",
   "description": "Displays the chronological history of a conversation thread",
   "componentName": "ThreadHistory",
-  "dependencies": ["lucide-react", "@tambo-ai/react", "radix-ui"],
+  "dependencies": ["lucide-react", "@tambo-ai/react@rc", "radix-ui"],
   "devDependencies": [],
   "requires": [],
   "files": [
