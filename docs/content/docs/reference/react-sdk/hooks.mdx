@@ -54,7 +54,7 @@ function Chat() {
 | Value             | Type                       | Description                                                      |
 | ----------------- | -------------------------- | ---------------------------------------------------------------- |
 | `thread`          | `ThreadState \| undefined` | Current thread state including messages and metadata             |
-| `messages`        | `TamboMessage[]`         | Array of messages in the current thread with computed properties |
+| `messages`        | `TamboMessage[]`           | Array of messages in the current thread with computed properties |
 | `currentThreadId` | `string`                   | ID of the currently active thread                                |
 
 #### Streaming Status
@@ -74,21 +74,21 @@ function Chat() {
 
 #### Thread Management
 
-| Value            | Type                                                                 | Description                                     |
-| ---------------- | -------------------------------------------------------------------- | ----------------------------------------------- |
+| Value            | Type                                                               | Description                                     |
+| ---------------- | ------------------------------------------------------------------ | ----------------------------------------------- |
 | `initThread`     | `(threadId: string, initialThread?: Partial<TamboThread>) => void` | Initialize a thread with optional initial state |
-| `switchThread`   | `(threadId: string) => void`                                         | Switch to a different thread by ID              |
-| `startNewThread` | `() => string`                                                       | Create a new thread and return its ID           |
+| `switchThread`   | `(threadId: string) => void`                                       | Switch to a different thread by ID              |
+| `startNewThread` | `() => string`                                                     | Create a new thread and return its ID           |
 
 #### Registry
 
-| Value               | Type                                    | Description                      |
-| ------------------- | --------------------------------------- | -------------------------------- |
+| Value               | Type                                  | Description                      |
+| ------------------- | ------------------------------------- | -------------------------------- |
 | `registerComponent` | `(component: TamboComponent) => void` | Register a component dynamically |
-| `registerTool`      | `(tool: TamboTool) => void`             | Register a single tool           |
-| `registerTools`     | `(tools: TamboTool[]) => void`          | Register multiple tools          |
-| `componentList`     | `ComponentRegistry`                     | Map of registered components     |
-| `toolRegistry`      | `Map<string, TamboTool>`                | Map of registered tools          |
+| `registerTool`      | `(tool: TamboTool) => void`           | Register a single tool           |
+| `registerTools`     | `(tools: TamboTool[]) => void`        | Register multiple tools          |
+| `componentList`     | `ComponentRegistry`                   | Map of registered components     |
+| `toolRegistry`      | `Map<string, TamboTool>`              | Map of registered tools          |
 
 ### Example: Basic Chat
 
@@ -285,8 +285,10 @@ Bidirectional state synchronization between component and server. Similar to Rea
 import { useTamboComponentState } from "@tambo-ai/react";
 
 function Counter() {
-  const [count, setCount, { isPending, error, flush }] =
-    useTamboComponentState("count", 0);
+  const [count, setCount, { isPending, error, flush }] = useTamboComponentState(
+    "count",
+    0,
+  );
 
   return (
     <div>

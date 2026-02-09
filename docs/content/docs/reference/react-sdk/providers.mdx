@@ -35,7 +35,7 @@ function App() {
 | `userKey`                   | `string`                                         | No\*     | Unique identifier for the current user                                 |
 | `tamboUrl`                  | `string`                                         | No       | Custom Tambo API URL                                                   |
 | `environment`               | `string`                                         | No       | Environment name                                                       |
-| `components`                | `TamboComponent[]`                             | No       | Components to register                                                 |
+| `components`                | `TamboComponent[]`                               | No       | Components to register                                                 |
 | `tools`                     | `TamboTool[]`                                    | No       | Tools to register                                                      |
 | `mcpServers`                | `(McpServerInfo \| string)[]`                    | No       | MCP servers to connect                                                 |
 | `contextHelpers`            | `ContextHelpers`                                 | No       | Context helper functions                                               |
@@ -50,10 +50,10 @@ function App() {
 \*Exactly one of `userToken` or `userKey` is required to identify the current user.
 
 <Callout type="info" title="userKey vs contextKey">
-  Threads are scoped per user. The user identity comes from either
-  `userKey` or the user derived from `userToken`. This replaces `contextKey`
-  from the current SDK. The `userKey` is a unique identifier for the user, such
-  as a user ID from your authentication system.
+  Threads are scoped per user. The user identity comes from either `userKey` or
+  the user derived from `userToken`. This replaces `contextKey` from the current
+  SDK. The `userKey` is a unique identifier for the user, such as a user ID from
+  your authentication system.
 </Callout>
 
 ### Example with All Options
@@ -147,11 +147,11 @@ function TestApp() {
 
 ### Props
 
-| Prop              | Type                 | Description             |
-| ----------------- | -------------------- | ----------------------- |
+| Prop              | Type               | Description             |
+| ----------------- | ------------------ | ----------------------- |
 | `initialMessages` | `TamboMessage[]`   | Pre-configured messages |
 | `components`      | `TamboComponent[]` | Components to register  |
-| `tools`           | `TamboTool[]`        | Tools to register       |
+| `tools`           | `TamboTool[]`      | Tools to register       |
 
 ## TamboThreadInputProvider
 
