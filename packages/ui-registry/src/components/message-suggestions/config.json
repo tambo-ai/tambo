@@ -2,7 +2,7 @@
   "name": "message-suggestions",
   "description": "Displays AI-generated message suggestions to help users compose responses",
   "componentName": "MessageSuggestions",
-  "dependencies": ["lucide-react", "@tambo-ai/react", "radix-ui"],
+  "dependencies": ["lucide-react", "@tambo-ai/react@rc", "radix-ui"],
   "devDependencies": [],
   "requires": [],
   "files": [
