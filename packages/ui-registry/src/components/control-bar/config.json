@@ -2,7 +2,11 @@
   "name": "control-bar",
   "description": "Provides controls and actions in the interface",
   "componentName": "ControlBar",
-  "dependencies": ["@tambo-ai/react", "radix-ui", "class-variance-authority"],
+  "dependencies": [
+    "@tambo-ai/react@rc",
+    "radix-ui",
+    "class-variance-authority"
+  ],
   "devDependencies": [],
   "requires": [
     "thread-content",
