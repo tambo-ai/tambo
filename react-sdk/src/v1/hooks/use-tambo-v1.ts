@@ -150,6 +150,15 @@ export interface UseTamboReturn {
    * When true, the SDK is ready to make API calls.
    */
   isIdentified: boolean;
+
+  /**
+   * Update a thread's name.
+   * Useful for implementing manual thread renaming UI in history sidebars.
+   * @param threadId - ID of the thread to rename
+   * @param name - New name for the thread
+   * @returns Promise that resolves when the update completes
+   */
+  updateThreadName: (threadId: string, name: string) => Promise<void>;
 }
 
 /**
@@ -246,6 +255,15 @@ export function useTambo(): UseTamboReturn {
     threadState?.streaming.runId,
     dispatch,
   ]);
+
+  // Update a thread's name
+  const updateThreadName = useCallback(
+    async (threadId: string, name: string) => {
+      // @ts-expect-error - TypeScript SDK will be updated to include this method
+      await client.threads.update(threadId, { name });
+    },
+    [client],
+  );
 
   // Memoize the return object to prevent unnecessary re-renders
   return useMemo(() => {
@@ -376,9 +394,11 @@ export function useTambo(): UseTamboReturn {
       cancelRun,
       authState,
       isIdentified: authState.status === "identified",
+      updateThreadName,
     };
   }, [
     cancelRun,
+    updateThreadName,
     client,
     threadState,
     registry,

@@ -1202,4 +1202,27 @@ describe("useTambo", () => {
       consoleWarnSpy.mockRestore();
     });
   });
+
+  describe("updateThreadName", () => {
+    it("calls client.threads.update with thread ID and new name", async () => {
+      const mockUpdate = jest.fn().mockResolvedValue({});
+      // TypeScript SDK will be updated to include this method
+      (mockTamboClient.threads as any).update = mockUpdate;
+
+      const { result } = renderHook(() => useTambo(), {
+        wrapper: createWrapperWithState({
+          threadMap: {},
+          currentThreadId: "placeholder",
+        }),
+      });
+
+      await act(async () => {
+        await result.current.updateThreadName("thread_456", "My New Thread");
+      });
+
+      expect(mockUpdate).toHaveBeenCalledWith("thread_456", {
+        name: "My New Thread",
+      });
+    });
+  });
 });
