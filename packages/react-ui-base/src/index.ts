@@ -94,6 +94,21 @@ export type {
   ToolcallInfoTriggerProps,
 } from "./toolcall-info";
 
+// InputFields components
+export { fieldSchema, InputFields, inputFieldsSchema } from "./input-fields";
+export type {
+  Field,
+  InputFieldsDescriptionProps,
+  InputFieldsErrorProps,
+  InputFieldsFieldProps,
+  InputFieldsInputProps,
+  InputFieldsLabelProps,
+  InputFieldsProps,
+  InputFieldsRootProps,
+  InputFieldsRootRenderProps,
+  InputFieldsState,
+} from "./input-fields";
+
 // Types
 export type {
   BaseProps,
