@@ -1,9 +1,9 @@
 ---
 title: Migrating to the React SDK 1.0
-description: Step-by-step guide for migrating from @tambo-ai/react/legacy to @tambo-ai/react.
+description: Step-by-step guide for migrating from @tambo-ai/react (pre-1.0.0) to @tambo-ai/react 1.0.
 ---
 
-This guide walks you through migrating from the legacy React SDK (`@tambo-ai/react/legacy`) to the current SDK (`@tambo-ai/react`). Follow the steps in order — each one builds on the previous.
+This guide walks you through migrating from `@tambo-ai/react` version 0.x to version 1.0. Follow the steps in order — each one builds on the previous.
 
 ## Overview of changes
 
@@ -15,22 +15,17 @@ The current SDK is a redesign focused on explicit control and composability. The
 - **Simplified provider tree** — fewer nested providers, with React Query under the hood for data fetching
 - **Manual component rendering** — you render AI-generated components explicitly using `ComponentRenderer`, giving you full control over layout
 
-## Step 1: Update imports
+## Step 1: Update package version
 
-Change your import path from `@tambo-ai/react/legacy` to `@tambo-ai/react`:
+Upgrade `@tambo-ai/react` from version 0.x to version 1.0:
 
-```tsx title="Before"
-import {
-  TamboProvider,
-  useTambo,
-  useTamboThreadInput,
-  useTamboComponentState,
-  useTamboStreamStatus,
-  useTamboThreadList,
-} from "@tambo-ai/react/legacy";
+```bash
+npm install @tambo-ai/react@latest
 ```
 
-```tsx title="After"
+Your imports stay the same — both versions use `@tambo-ai/react`:
+
+```tsx
 import {
   TamboProvider,
   useTambo,
@@ -92,7 +87,7 @@ The `TamboProvider` API is mostly the same, but `contextKey` is replaced by `use
 
 ### What changed
 
-| Legacy prop                 | Current prop                | Notes                                                                                                                                                                                                                  |
+| Pre-1.0.0                   | 1.0                         | Notes                                                                                                                                                                                                                  |
 | --------------------------- | --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `contextKey`                | `userKey`                   | **Semantic change**: `contextKey` was for logical grouping (e.g., "admin-panel"). `userKey` identifies a specific user (e.g., user ID from auth). All threads created within the provider are now scoped to this user. |
 | `userToken`                 | `userToken`                 | Still supported — provide either `userKey` or `userToken`, not both.                                                                                                                                                   |
@@ -156,7 +151,7 @@ function Chat() {
 
 ### Key differences
 
-| Legacy                   | Current                             | Notes                                                                                 |
+| Pre-1.0.0                | 1.0                                 | Notes                                                                                 |
 | ------------------------ | ----------------------------------- | ------------------------------------------------------------------------------------- |
 | `generationStage` (enum) | `streamingState.status`             | A string union: `"idle"` \| `"waiting"` \| `"streaming"` \| `"complete"` \| `"error"` |
 | `isStreaming`            | `isStreaming`                       | Same, but current SDK also gives `isWaiting` and `isIdle`                             |
@@ -214,7 +209,7 @@ The image handling API (`addImage`, `removeImage`, `clearImages`, `images`) is u
 
 ## Step 5: Handle content blocks in messages
 
-This is the biggest conceptual change. Legacy messages had a simple structure — each message contained an array of `{ type: "text", text: string }` content blocks. The current SDK uses rich content blocks:
+This is the biggest conceptual change. In version 0.x, messages had a simple structure — each message contained an array of `{ type: "text", text: string }` content blocks. Version 1.0 uses rich content blocks:
 
 ```tsx title="Before"
 function Message({ message }: { message: TamboThreadMessage }) {
@@ -386,15 +381,15 @@ The current SDK adds `accept()` for directly accepting a suggestion into the inp
 
 The `TamboStubProvider` API is more explicit about what state it provides:
 
-```tsx title="Before"
-import { TamboStubProvider } from "@tambo-ai/react/legacy";
+```tsx title="Before (0.x)"
+import { TamboStubProvider } from "@tambo-ai/react";
 
 <TamboStubProvider>
   <ComponentUnderTest />
 </TamboStubProvider>;
 ```
 
-```tsx title="After"
+```tsx title="After (1.0)"
 import { TamboStubProvider } from "@tambo-ai/react";
 
 <TamboStubProvider
@@ -413,17 +408,17 @@ import { TamboStubProvider } from "@tambo-ai/react";
 
 ## Step 11: Update interactable components
 
-The interactable HOC and hooks are available with updated names:
+The interactable HOC was renamed in version 1.0:
 
-```tsx title="Before"
+```tsx title="Before (0.x)"
 import {
   withInteractable,
   useTamboInteractable,
   useCurrentInteractablesSnapshot,
-} from "@tambo-ai/react/legacy";
+} from "@tambo-ai/react";
 ```
 
-```tsx title="After"
+```tsx title="After (1.0)"
 import {
   withTamboInteractable,
   useTamboInteractable,
@@ -453,9 +448,9 @@ import { useTamboContextAttachment } from "@tambo-ai/react";
 
 ## Quick reference: API name mapping
 
-| Legacy (`@tambo-ai/react/legacy`) | Current (`@tambo-ai/react`)           |
-| --------------------------------- | ------------------------------------- |
-| `TamboProvider`                   | `TamboProvider`                       |
+| Pre-1.0.0                 | 1.0                                   |
+| ------------------------- | ------------------------------------- |
+| `TamboProvider`           | `TamboProvider`                       |
 | `TamboStubProvider`               | `TamboStubProvider`                   |
 | `useTambo()`                      | `useTambo()`                          |
 | `useTamboThreadInput()`           | `useTamboThreadInput()`               |
