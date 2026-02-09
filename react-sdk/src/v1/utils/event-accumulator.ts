@@ -919,10 +919,22 @@ function handleToolCallStart(
   const messageId = event.parentMessageId;
   const messages = threadState.thread.messages;
 
-  // If no parent message ID, use the last message
-  const messageIndex = messageId
-    ? messages.findIndex((m) => m.id === messageId)
-    : messages.length - 1;
+  // Find the parent message for this tool call.
+  // If parentMessageId is provided, look it up directly.
+  // Otherwise fall back to the last message, but only if it's an assistant message.
+  // If the last message isn't assistant (e.g. it's the user message and the LLM
+  // didn't produce any text before the tool call), we'll create a synthetic
+  // assistant message below.
+  let messageIndex: number;
+  if (messageId) {
+    messageIndex = messages.findIndex((m) => m.id === messageId);
+  } else {
+    const lastIndex = messages.length - 1;
+    messageIndex =
+      lastIndex >= 0 && messages[lastIndex].role === "assistant"
+        ? lastIndex
+        : -1;
+  }
 
   const newContent: Content = {
     type: "tool_use",
@@ -931,7 +943,7 @@ function handleToolCallStart(
     input: {},
   };
 
-  // If no message found, create a synthetic assistant message for the tool call
+  // If no suitable assistant message found, create a synthetic one for the tool call
   if (messageIndex === -1) {
     const syntheticMessageId = messageId ?? `msg_tool_${event.toolCallId}`;
     const syntheticMessage: TamboThreadMessage = {
