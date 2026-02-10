@@ -28,7 +28,10 @@ import {
   V1RunStatus,
   type UnsavedThreadToolMessage,
 } from "@tambo-ai-cloud/core";
-import { sanitizeEvent } from "@tambo-ai-cloud/backend";
+import {
+  sanitizeEvent,
+  createMessageParentEvent,
+} from "@tambo-ai-cloud/backend";
 import type { HydraDatabase, HydraDb } from "@tambo-ai-cloud/db";
 import {
   dbMessageToThreadMessage,
@@ -808,6 +811,17 @@ export class V1Service {
             const realMessageId = item.response?.responseMessageDto?.id;
             if (realMessageId) {
               currentMessageId = realMessageId;
+            }
+
+            // Emit parent message relationship event before AG-UI events
+            const parentMsgId =
+              item.response?.responseMessageDto?.parentMessageId;
+            if (parentMsgId && realMessageId) {
+              const parentEvent = createMessageParentEvent({
+                messageId: realMessageId,
+                parentMessageId: parentMsgId,
+              });
+              this.emitEvent(response, parentEvent);
             }
 
             if (item.aguiEvents) {
