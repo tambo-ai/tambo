@@ -24,6 +24,7 @@ import {
   type StreamState,
   type ThreadState,
 } from "./event-accumulator";
+import type { JSONSchema7 } from "json-schema";
 import type { Content, TamboComponentContent } from "../types/message";
 
 /**
@@ -1240,6 +1241,144 @@ describe("streamReducer", () => {
       );
       // Should use the pre-parsed value, not the incomplete delta
       expect(toolContent.input).toEqual(preParsed);
+    });
+
+    it("unstrictifies streamed tool args on every TOOL_CALL_ARGS event", () => {
+      const schema: JSONSchema7 = {
+        type: "object",
+        properties: {
+          required_string: { type: "string" },
+          optional_string: { type: "string" },
+        },
+        required: ["required_string"],
+      };
+      const toolSchemas = new Map<string, JSONSchema7>([["my_tool", schema]]);
+
+      let state = createTestStreamState("thread_1");
+      state.threadMap.thread_1.thread.messages = [
+        {
+          id: "msg_1",
+          role: "assistant",
+          content: [
+            {
+              type: "tool_use",
+              id: "tool_1",
+              name: "my_tool",
+              input: {},
+            },
+          ],
+          createdAt: "2024-01-01T00:00:00.000Z",
+        },
+      ];
+
+      // Simulate the strict LLM output: optional_string sent as null
+      const fullJson = '{"required_string":"required","optional_string":null}';
+
+      // Stream raw AG-UI events in 3-character deltas — no parsedToolArgs
+      const chunkSize = 3;
+      for (let i = 0; i < fullJson.length; i += chunkSize) {
+        const delta = fullJson.slice(i, i + chunkSize);
+        state = streamReducer(state, {
+          type: "EVENT",
+          event: {
+            type: EventType.TOOL_CALL_ARGS,
+            toolCallId: "tool_1",
+            delta,
+          } satisfies ToolCallArgsEvent,
+          threadId: "thread_1",
+          toolSchemas,
+        });
+
+        const toolContent = asToolUseContent(
+          state.threadMap.thread_1.thread.messages[0].content,
+          0,
+        );
+        // The reducer state must never contain optional_string
+        expect(toolContent.input).not.toHaveProperty("optional_string");
+      }
+
+      // After all TOOL_CALL_ARGS chunks: should have the required param
+      const finalStreaming = asToolUseContent(
+        state.threadMap.thread_1.thread.messages[0].content,
+        0,
+      );
+      expect(finalStreaming.input).toEqual({ required_string: "required" });
+
+      // TOOL_CALL_END — final authoritative parse + unstrictify
+      state = streamReducer(state, {
+        type: "EVENT",
+        event: {
+          type: EventType.TOOL_CALL_END,
+          toolCallId: "tool_1",
+        } satisfies ToolCallEndEvent,
+        threadId: "thread_1",
+        toolSchemas,
+      });
+
+      const finalContent = asToolUseContent(
+        state.threadMap.thread_1.thread.messages[0].content,
+        0,
+      );
+      expect(finalContent.input).toEqual({ required_string: "required" });
+      expect(finalContent.input).not.toHaveProperty("optional_string");
+    });
+
+    it("unstrictifies tool args at TOOL_CALL_END when toolSchemas is provided", () => {
+      const schema: JSONSchema7 = {
+        type: "object",
+        properties: {
+          required_string: { type: "string" },
+          optional_string: { type: "string" },
+        },
+        required: ["required_string"],
+      };
+      const toolSchemas = new Map<string, JSONSchema7>([["my_tool", schema]]);
+
+      const state = createTestStreamState("thread_1");
+      state.threadMap.thread_1.thread.messages = [
+        {
+          id: "msg_1",
+          role: "assistant",
+          content: [
+            {
+              type: "tool_use",
+              id: "tool_1",
+              name: "my_tool",
+              input: {},
+            },
+          ],
+          createdAt: "2024-01-01T00:00:00.000Z",
+        },
+      ];
+
+      // Stream the strict args (optional_string sent as null by LLM)
+      let result = streamReducer(state, {
+        type: "EVENT",
+        event: {
+          type: EventType.TOOL_CALL_ARGS,
+          toolCallId: "tool_1",
+          delta: '{"required_string":"required","optional_string":null}',
+        } satisfies ToolCallArgsEvent,
+        threadId: "thread_1",
+      });
+
+      // End the tool call with schemas attached
+      result = streamReducer(result, {
+        type: "EVENT",
+        event: {
+          type: EventType.TOOL_CALL_END,
+          toolCallId: "tool_1",
+        } satisfies ToolCallEndEvent,
+        threadId: "thread_1",
+        toolSchemas,
+      });
+
+      const toolContent = asToolUseContent(
+        result.threadMap.thread_1.thread.messages[0].content,
+        0,
+      );
+      // optional_string was null and not required, so it should be stripped
+      expect(toolContent.input).toEqual({ required_string: "required" });
     });
   });
 
