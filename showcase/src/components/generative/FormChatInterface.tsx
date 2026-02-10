@@ -7,7 +7,7 @@ import { useTambo } from "@tambo-ai/react";
 import { useEffect } from "react";
 
 export const FormChatInterface = () => {
-  const { registerComponent, thread } = useTambo();
+  const { registerComponent, currentThreadId } = useTambo();
 
   useEffect(() => {
     registerComponent({
@@ -34,7 +34,7 @@ export const FormChatInterface = () => {
       component: FormComponent,
       propsSchema: formSchema,
     });
-  }, [registerComponent, thread.id]);
+  }, [registerComponent, currentThreadId]);
 
   return (
     <div className="flex flex-col" style={{ height: "700px" }}>

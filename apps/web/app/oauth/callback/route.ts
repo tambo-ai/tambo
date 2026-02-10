@@ -1,5 +1,6 @@
 import { getBaseUrl } from "@/lib/base-url";
 import { env } from "@/lib/env";
+import { createFetchWithTimeout } from "@/lib/fetch-with-timeout";
 import { auth } from "@modelcontextprotocol/sdk/client/auth.js";
 import { getDb, OAuthLocalProvider, schema } from "@tambo-ai-cloud/db";
 import { eq } from "drizzle-orm";
@@ -58,16 +59,11 @@ export async function GET(request: NextRequest) {
         clientInformation: oauthClient.sessionInfo.clientInformation,
         serverUrl: oauthClient.sessionInfo.serverUrl,
         sessionId,
+        baseUrl: getBaseUrl(),
       },
     );
 
-    console.log("--> /oauth/callback", url.toString(), queryParams);
-    const result = await auth(oauthProvider, {
-      serverUrl: oauthClient.sessionInfo.serverUrl,
-      authorizationCode: code,
-    });
-    console.log("--> result", result);
-    // Check for errors returned from OAuth provider
+    // Check for errors returned from OAuth provider before attempting token exchange
     if (validatedParams.error) {
       console.error("OAuth error:", validatedParams.error);
       return NextResponse.redirect(
@@ -77,6 +73,12 @@ export async function GET(request: NextRequest) {
         ),
       );
     }
+
+    await auth(oauthProvider, {
+      serverUrl: oauthClient.sessionInfo.serverUrl,
+      authorizationCode: code,
+      fetchFn: createFetchWithTimeout(10_000),
+    });
     const { projectId } = oauthClient.toolProviderUserContext.toolProvider;
 
     // Handle redirect after successful authentication
@@ -103,8 +105,13 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    const errorMessage =
+      error instanceof Error ? error.message : "unknown_error";
     return NextResponse.redirect(
-      new URL("/auth/error?error=unknown_error", request.url),
+      new URL(
+        `/auth/error?error=${encodeURIComponent(errorMessage)}`,
+        request.url,
+      ),
     );
   }
 }
@@ -122,6 +129,6 @@ function getPostAuthRedirect(
       return url.toString();
     }
   }
-  // just fall back to the project dashboard
-  return new URL(`/dashboard/${projectId}`, baseUrl).toString();
+  // fall back to the project settings page where MCP servers are configured
+  return new URL(`/${projectId}/settings`, baseUrl).toString();
 }

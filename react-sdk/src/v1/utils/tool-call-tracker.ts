@@ -1,5 +1,5 @@
 /**
- * Tool Call Tracker for v1 API
+ * Tool Call Tracker
  *
  * Tracks tool calls during streaming, accumulating arguments until complete.
  * Used by the send message hook to collect tool call state for execution.
@@ -67,6 +67,21 @@ export class ToolCallTracker {
         // Other event types are ignored - only tool call events are tracked
         break;
     }
+  }
+
+  /**
+   * Gets the name and accumulated args for a tool call that is still accumulating.
+   * Used by the event loop to get tool state for partial JSON parsing.
+   * @param toolCallId - ID of the tool call to look up
+   * @returns The tool name and raw accumulated args string, or undefined if not found
+   */
+  getAccumulatingToolCall(
+    toolCallId: string,
+  ): { name: string; accumulatedArgs: string } | undefined {
+    const toolCall = this.pendingToolCalls.get(toolCallId);
+    const args = this.accumulatingArgs.get(toolCallId);
+    if (!toolCall || args === undefined) return undefined;
+    return { name: toolCall.name, accumulatedArgs: args };
   }
 
   /**

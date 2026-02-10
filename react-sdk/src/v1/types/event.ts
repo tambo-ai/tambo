@@ -1,5 +1,5 @@
 /**
- * Tambo-specific Custom Event Types for v1 Streaming API
+ * Tambo-specific Custom Event Types for Streaming API
  *
  * Defines custom events specific to Tambo functionality.
  * For standard AG-UI events, import directly from `@ag-ui/core`.
@@ -63,13 +63,35 @@ export type ComponentEndEvent = TamboCustomEventEnvelope<
 >;
 
 /**
+ * Pending tool call information from awaiting_input event
+ */
+export interface PendingToolCall {
+  toolCallId: string;
+  toolName: string;
+  arguments: string;
+}
+
+/**
  * Run awaiting input event (custom: tambo.run.awaiting_input)
  * Signals that the run is paused waiting for client-side tool execution
  */
 export type RunAwaitingInputEvent = TamboCustomEventEnvelope<
   "tambo.run.awaiting_input",
   {
-    pendingToolCallIds: string[];
+    pendingToolCalls: PendingToolCall[];
+  }
+>;
+
+/**
+ * Message parent event (custom: tambo.message.parent)
+ * Emitted when a message was created during the generation of another message
+ * (e.g., MCP sampling or elicitation).
+ */
+export type MessageParentEvent = TamboCustomEventEnvelope<
+  "tambo.message.parent",
+  {
+    messageId: string;
+    parentMessageId: string;
   }
 >;
 
@@ -81,7 +103,8 @@ export type TamboCustomEvent =
   | ComponentPropsDeltaEvent
   | ComponentStateDeltaEvent
   | ComponentEndEvent
-  | RunAwaitingInputEvent;
+  | RunAwaitingInputEvent
+  | MessageParentEvent;
 
 /**
  * Known Tambo custom event names for type narrowing
@@ -92,6 +115,7 @@ const TAMBO_CUSTOM_EVENT_NAMES = [
   "tambo.component.state_delta",
   "tambo.component.end",
   "tambo.run.awaiting_input",
+  "tambo.message.parent",
 ] as const;
 
 /**
@@ -130,6 +154,8 @@ export function asTamboCustomEvent(
       return event as ComponentEndEvent;
     case "tambo.run.awaiting_input":
       return event as RunAwaitingInputEvent;
+    case "tambo.message.parent":
+      return event as MessageParentEvent;
     default:
       return undefined;
   }

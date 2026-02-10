@@ -1,14 +1,16 @@
 "use client";
 
 /**
- * Thread Query Hook for v1 API
+ * Thread Query Hook
  *
  * React Query hook for fetching a single thread.
  */
 
-import { useQuery, type UseQueryOptions } from "@tanstack/react-query";
+import type { UseQueryOptions } from "@tanstack/react-query";
 import type { ThreadRetrieveResponse } from "@tambo-ai/typescript-sdk/resources/threads/threads";
 import { useTamboClient } from "../../providers/tambo-client-provider";
+import { useTamboQuery } from "../../hooks/react-query-hooks";
+import { useTamboAuthState } from "./use-tambo-v1-auth-state";
 
 /**
  * Hook to fetch a single thread by ID.
@@ -24,7 +26,7 @@ import { useTamboClient } from "../../providers/tambo-client-provider";
  * @example
  * ```tsx
  * function ThreadView({ threadId }: { threadId: string }) {
- *   const { data: thread, isLoading, isError } = useTamboV1Thread(threadId);
+ *   const { data: thread, isLoading, isError } = useTamboThread(threadId);
  *
  *   if (isLoading) return <Spinner />;
  *   if (isError) return <Error />;
@@ -38,7 +40,7 @@ import { useTamboClient } from "../../providers/tambo-client-provider";
  * }
  * ```
  */
-export function useTamboV1Thread(
+export function useTamboThread(
   threadId: string,
   options?: Omit<
     UseQueryOptions<ThreadRetrieveResponse>,
@@ -46,11 +48,14 @@ export function useTamboV1Thread(
   >,
 ) {
   const client = useTamboClient();
+  const authState = useTamboAuthState();
+  const isIdentified = authState.status === "identified";
 
-  return useQuery({
+  return useTamboQuery({
     queryKey: ["v1-threads", threadId],
     queryFn: async () => await client.threads.retrieve(threadId),
     staleTime: 1000, // Consider stale after 1s (real-time data)
     ...options,
+    enabled: isIdentified && (options?.enabled ?? true),
   });
 }

@@ -1,5 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
+import { render } from "@react-email/components";
 import { isResendEmailUnsubscribed, maskEmail } from "@tambo-ai-cloud/core";
 import { Resend } from "resend";
 import { FREE_MESSAGE_LIMIT } from "../../threads/types/errors";
@@ -137,16 +138,20 @@ export class EmailService {
     }
 
     try {
+      const html = await render(
+        messageLimitEmail.component({
+          projectId,
+          projectName,
+          messageLimit: FREE_MESSAGE_LIMIT,
+        }),
+      );
+
       await ch.resend.emails.send({
         from: ch.from,
         to: userEmail,
         replyTo: ch.replyTo,
         subject: messageLimitEmail.subject,
-        html: messageLimitEmail.html({
-          projectId,
-          projectName,
-          messageLimit: FREE_MESSAGE_LIMIT,
-        }),
+        html,
       });
       return { success: true };
     } catch (error) {
@@ -162,7 +167,7 @@ export class EmailService {
     userEmail: string,
     firstName?: string | null,
   ): Promise<{ success: boolean; error?: string }> {
-    const ch = this.requireChannel("personal");
+    const ch = this.requireChannel("default");
     if (!ch.success) {
       const error = ch.error;
       console.warn(
@@ -178,14 +183,15 @@ export class EmailService {
         });
         return { success: true };
       }
+
+      const html = await render(welcomeEmail.component({ firstName }));
+
       const result = await ch.resend.emails.send({
         from: ch.from,
         to: userEmail,
         replyTo: ch.replyTo,
         subject: welcomeEmail.subject,
-        html: welcomeEmail.html({
-          firstName,
-        }),
+        html,
       });
 
       const masked = maskEmail(userEmail);
@@ -218,15 +224,16 @@ export class EmailService {
     }
 
     try {
+      const html = await render(
+        firstMessageEmail.component({ firstName, projectName }),
+      );
+
       const result = await ch.resend.emails.send({
         from: ch.from,
         to: userEmail,
         replyTo: ch.replyTo,
         subject: firstMessageEmail.subject,
-        html: firstMessageEmail.html({
-          firstName,
-          projectName,
-        }),
+        html,
       });
 
       const masked = maskEmail(userEmail);

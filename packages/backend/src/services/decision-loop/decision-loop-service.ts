@@ -1,4 +1,4 @@
-import type { BaseEvent } from "@ag-ui/core";
+import { EventType, type BaseEvent } from "@ag-ui/core";
 import {
   ContentPartType,
   getToolName,
@@ -48,6 +48,40 @@ export interface DecisionStreamItem {
   aguiEvents: BaseEvent[];
 }
 
+const TOOL_CHOICE_KEYWORDS = ["auto", "required", "none"] as const;
+type ToolChoiceKeyword = (typeof TOOL_CHOICE_KEYWORDS)[number];
+const TOOL_CHOICE_KEYWORDS_SET: ReadonlySet<string> = new Set(
+  TOOL_CHOICE_KEYWORDS,
+);
+
+function isToolChoiceKeyword(value: string): value is ToolChoiceKeyword {
+  return TOOL_CHOICE_KEYWORDS_SET.has(value);
+}
+
+/**
+ * Converts a forceToolChoice string to the OpenAI tool_choice parameter format.
+ *
+ * Supports keyword values ("auto", "required", "none") which pass through
+ * directly, and tool name strings which are wrapped in the function call format.
+ * @param forceToolChoice - "auto", "required", "none", a tool name, or undefined
+ * @returns OpenAI-compatible tool_choice value
+ */
+function convertToolChoice(
+  forceToolChoice: string | undefined,
+):
+  | "auto"
+  | "required"
+  | "none"
+  | { type: "function"; function: { name: string } } {
+  if (forceToolChoice === undefined) {
+    return "auto";
+  }
+  if (isToolChoiceKeyword(forceToolChoice)) {
+    return forceToolChoice;
+  }
+  return { type: "function", function: { name: forceToolChoice } };
+}
+
 /**
  * Run the decision loop for processing ThreadMessages and generating component
  * decisions.
@@ -66,7 +100,8 @@ export interface DecisionStreamItem {
  * @param strictTools - Array of available tools in OpenAI format
  * @param customInstructions - Optional custom instructions to add to the system
  *   prompt
- * @param forceToolChoice - Optional tool name to force the LLM to use
+ * @param forceToolChoice - Tool choice override: "auto", "required", "none",
+ *   or a specific tool name
  * @param resourceFetchers - Map of serverKey to resource fetcher functions for
  *   fetching MCP resources
  * @returns Async iterator of component decisions
@@ -78,6 +113,7 @@ export async function* runDecisionLoop(
   customInstructions: string | undefined,
   forceToolChoice: string | undefined,
   resourceFetchers: ResourceFetcherMap,
+  abortSignal?: AbortSignal,
 ): AsyncIterableIterator<DecisionStreamItem> {
   const componentTools = strictTools.filter((tool) =>
     isUiToolName(getToolName(tool)),
@@ -90,6 +126,7 @@ export async function* runDecisionLoop(
 
   if (
     forceToolChoice &&
+    !isToolChoiceKeyword(forceToolChoice) &&
     !toolsWithStandardParameters.find(
       (tool) => getToolName(tool) === forceToolChoice,
     )
@@ -138,9 +175,8 @@ export async function* runDecisionLoop(
     promptTemplateName: "decision-loop",
     promptTemplateParams: systemPromptArgs,
     stream: true,
-    tool_choice: forceToolChoice
-      ? { type: "function", function: { name: forceToolChoice } }
-      : "auto",
+    tool_choice: convertToolChoice(forceToolChoice),
+    abortSignal,
   });
 
   const initialDecision: LegacyComponentDecision = {
@@ -178,7 +214,6 @@ export async function* runDecisionLoop(
           // Ignore parse errors for incomplete JSON
         }
       }
-      const paramDisplayMessage = toolArgs._tambo_displayMessage;
       const statusMessage = toolArgs._tambo_statusMessage;
       const completionStatusMessage = toolArgs._tambo_completionStatusMessage;
 
@@ -207,9 +242,15 @@ export async function* runDecisionLoop(
       }
 
       const displayMessage = extractMessageContent(
-        message.length > 0 ? message.trim() : paramDisplayMessage || " ",
+        message.length > 0 ? message.trim() : " ",
         false,
       );
+
+      // Extract componentId from tambo.component.start event if present.
+      // This ID is generated during streaming and used by V1 API for component
+      // state updates. The start event is only emitted once (on the first delta),
+      // so we preserve the accumulated componentId if we don't have a new one.
+      const componentId = extractComponentIdFromEvents(streamItem.aguiEvents);
 
       const parsedChunk: Partial<LegacyComponentDecision> = {
         // For LLM responses, we can always assume the role is assistant
@@ -218,6 +259,9 @@ export async function* runDecisionLoop(
         componentName: isUITool
           ? toolCall.function.name.slice(UI_TOOLNAME_PREFIX.length)
           : "",
+        componentId: isUITool
+          ? (componentId ?? accumulatedDecision.componentId)
+          : undefined,
         props: isUITool ? filteredToolArgs : null,
         toolCallRequest: clientToolRequest,
         toolCallId: toolCall
@@ -299,4 +343,32 @@ function buildToolCallRequest(
     toolName: toolCall.function.name,
     parameters: filteredArgs,
   };
+}
+
+/**
+ * Extract componentId from tambo.component.start event if present.
+ *
+ * The componentId is generated during streaming by ComponentStreamTracker
+ * and emitted in tambo.component.start custom events. This ID is used by
+ * V1 API to reference components for state updates.
+ *
+ * @param events - AG-UI events from the current stream item
+ * @returns The componentId if a tambo.component.start event is present
+ */
+function extractComponentIdFromEvents(events: BaseEvent[]): string | undefined {
+  for (const event of events) {
+    if (event.type === EventType.CUSTOM) {
+      const customEvent = event as BaseEvent & {
+        name?: string;
+        value?: { componentId?: string };
+      };
+      if (
+        customEvent.name === "tambo.component.start" &&
+        customEvent.value?.componentId
+      ) {
+        return customEvent.value.componentId;
+      }
+    }
+  }
+  return undefined;
 }

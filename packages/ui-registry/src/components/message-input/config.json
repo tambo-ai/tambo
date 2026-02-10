@@ -5,7 +5,8 @@
   "dependencies": [
     "class-variance-authority",
     "@radix-ui/react-popover",
-    "@tambo-ai/react",
+    "@tambo-ai/react@rc",
+    "@tambo-ai/react-ui-base@next",
     "@tiptap/extension-document",
     "@tiptap/extension-hard-break",
     "@tiptap/extension-mention",
@@ -21,7 +22,12 @@
     "use-debounce"
   ],
   "devDependencies": [],
-  "requires": ["elicitation-ui", "mcp-components"],
+  "requires": [
+    "elicitation-ui",
+    "mcp-components",
+    "message",
+    "message-suggestions"
+  ],
   "files": [
     {
       "name": "message-input.tsx",

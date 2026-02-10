@@ -13,6 +13,7 @@ exports[`streamReducer snapshot tests for complex state transitions matches snap
       "thread": {
         "createdAt": "[TIMESTAMP]",
         "id": "thread_1",
+        "lastRunCancelled": false,
         "messages": [
           {
             "content": [
@@ -46,15 +47,17 @@ exports[`streamReducer snapshot tests for complex state transitions matches snap
   "threadMap": {
     "thread_1": {
       "accumulatingToolArgs": Map {},
+      "lastCompletedRunId": "run_1",
       "streaming": {
         "messageId": undefined,
         "runId": "run_1",
         "startTime": 1704067200000,
-        "status": "complete",
+        "status": "idle",
       },
       "thread": {
         "createdAt": "[TIMESTAMP]",
         "id": "thread_1",
+        "lastRunCancelled": false,
         "messages": [
           {
             "content": [
@@ -68,7 +71,7 @@ exports[`streamReducer snapshot tests for complex state transitions matches snap
             "role": "assistant",
           },
         ],
-        "status": "complete",
+        "status": "idle",
         "updatedAt": "[TIMESTAMP]",
       },
     },
@@ -89,6 +92,7 @@ exports[`streamReducer snapshot tests for complex state transitions matches snap
       "thread": {
         "createdAt": "[TIMESTAMP]",
         "id": "thread_1",
+        "lastRunCancelled": false,
         "messages": [
           {
             "content": [
@@ -114,6 +118,46 @@ exports[`streamReducer snapshot tests for complex state transitions matches snap
             ],
             "createdAt": "[TIMESTAMP]",
             "id": "msg_1",
+            "role": "assistant",
+          },
+        ],
+        "status": "idle",
+        "updatedAt": "[TIMESTAMP]",
+      },
+    },
+  },
+}
+`;
+
+exports[`streamReducer thinking events matches snapshot for full thinking flow 1`] = `
+{
+  "currentThreadId": "thread_1",
+  "threadMap": {
+    "thread_1": {
+      "accumulatingToolArgs": Map {},
+      "streaming": {
+        "messageId": "msg_1",
+        "reasoningStartTime": "[TIMESTAMP]",
+        "status": "streaming",
+      },
+      "thread": {
+        "createdAt": "[TIMESTAMP]",
+        "id": "thread_1",
+        "lastRunCancelled": false,
+        "messages": [
+          {
+            "content": [
+              {
+                "text": "Based on my analysis, here's what I think...",
+                "type": "text",
+              },
+            ],
+            "createdAt": "[TIMESTAMP]",
+            "id": "msg_1",
+            "reasoning": [
+              "Let me analyze this step by step...",
+            ],
+            "reasoningDurationMS": undefined,
             "role": "assistant",
           },
         ],

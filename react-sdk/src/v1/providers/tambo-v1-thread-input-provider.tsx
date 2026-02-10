@@ -1,12 +1,12 @@
 "use client";
 
 /**
- * TamboV1ThreadInputProvider - Shared Thread Input Context for v1 API
+ * TamboThreadInputProvider - Shared Thread Input Context
  *
  * Provides shared input state across all components, enabling features like
  * suggestions to update the input field directly.
  *
- * This mirrors the beta SDK's TamboThreadInputProvider pattern.
+ * This mirrors the TamboThreadInputProvider pattern from the legacy beta SDK.
  */
 
 import React, {
@@ -24,9 +24,12 @@ import {
   useTamboMutation,
   type UseTamboMutationResult,
 } from "../../hooks/react-query-hooks";
-import { useTamboV1SendMessage } from "../hooks/use-tambo-v1-send-message";
+import { useTamboSendMessage } from "../hooks/use-tambo-v1-send-message";
 import type { InputMessage } from "../types/message";
-import { useStreamState } from "./tambo-v1-stream-context";
+import type { ToolChoice } from "../types/tool-choice";
+import { isPlaceholderThreadId } from "../utils/event-accumulator";
+import { useTamboAuthState } from "../hooks/use-tambo-v1-auth-state";
+import { useStreamDispatch, useStreamState } from "./tambo-v1-stream-context";
 
 // Error messages for various input-related error scenarios.
 // TODO: Reintroduce explicit `NETWORK` and `SERVER` keys once `submit()` maps
@@ -77,12 +80,21 @@ export interface SubmitOptions {
    * Enable debug logging for the stream
    */
   debug?: boolean;
+
+  /**
+   * How the model should use tools. Defaults to "auto".
+   * - "auto": Model decides whether to use tools
+   * - "required": Model must use at least one tool
+   * - "none": Model cannot use tools
+   * - { name: "toolName" }: Model must use the specified tool
+   */
+  toolChoice?: ToolChoice;
 }
 
 /**
  * Context props for thread input state
  */
-export interface TamboV1ThreadInputContextProps extends Omit<
+export interface TamboThreadInputContextProps extends Omit<
   UseTamboMutationResult<
     { threadId: string | undefined },
     Error,
@@ -123,50 +135,56 @@ export interface TamboV1ThreadInputContextProps extends Omit<
   /** Clear all staged images */
   clearImages: () => void;
 
-  /** Current thread ID being used for input */
+  /** Current thread ID being used for input (from stream state) */
   threadId: string | undefined;
 
-  /**
-   * Set the thread ID for input submission.
-   * If not set, a new thread will be created on submit.
-   */
-  setThreadId: React.Dispatch<React.SetStateAction<string | undefined>>;
+  /** Whether the input should be disabled (pending submission or not authenticated) */
+  isDisabled: boolean;
 }
 
 /**
  * Context for thread input state.
  * @internal
  */
-export const TamboV1ThreadInputContext = createContext<
-  TamboV1ThreadInputContextProps | undefined
+export const TamboThreadInputContext = createContext<
+  TamboThreadInputContextProps | undefined
 >(undefined);
 
 /**
  * Provider that manages shared thread input state across all components.
  *
- * This ensures that useTamboV1ThreadInput, useTamboV1Suggestions, and other components
+ * This ensures that useTamboThreadInput, useTamboSuggestions, and other components
  * all share the same input state.
  * @param props - Provider props
  * @param props.children - Child components
  * @returns Thread input context provider
  */
-export function TamboV1ThreadInputProvider({ children }: PropsWithChildren) {
+export function TamboThreadInputProvider({ children }: PropsWithChildren) {
   const [inputValue, setInputValue] = useState("");
-  const [threadId, setThreadId] = useState<string | undefined>(undefined);
   const imageState = useMessageImages();
   const streamState = useStreamState();
+  const dispatch = useStreamDispatch();
+  const authState = useTamboAuthState();
 
-  // Use the current thread from stream state if no explicit threadId is set
-  const inheritedThreadId = streamState.currentThreadId ?? undefined;
-  const effectiveThreadId = threadId ?? inheritedThreadId;
-  const shouldAdoptThreadId =
-    threadId === undefined && inheritedThreadId === undefined;
-  const sendMessage = useTamboV1SendMessage(effectiveThreadId);
+  // Use the current thread from stream state directly
+  // Placeholder ID indicates a new thread should be created
+  const currentThreadId = streamState.currentThreadId ?? undefined;
+  const isNewThread = isPlaceholderThreadId(currentThreadId);
+  const sendMessage = useTamboSendMessage(currentThreadId);
+
+  const isIdentified = authState.status === "identified";
 
   const submitFn = useCallback(
     async (
       options?: SubmitOptions,
     ): Promise<{ threadId: string | undefined }> => {
+      if (!isIdentified) {
+        throw new Error(
+          "Cannot submit: authentication is not ready. " +
+            "Ensure a valid userKey or userToken is provided.",
+        );
+      }
+
       const trimmedValue = inputValue.trim();
 
       // Check if we have content to send
@@ -189,22 +207,24 @@ export function TamboV1ThreadInputProvider({ children }: PropsWithChildren) {
           role: "user",
           content,
         },
+        userMessageText: trimmedValue, // Pass text for optimistic display
         debug: options?.debug,
+        toolChoice: options?.toolChoice,
       });
 
       // Clear input and images after successful submission
       setInputValue("");
       imageState.clearImages();
 
-      // Update threadId if a new thread was created
-      if (result.threadId && shouldAdoptThreadId) {
-        setThreadId(result.threadId);
+      // Update stream context's currentThreadId if a new thread was created
+      if (result.threadId && isNewThread) {
+        dispatch({ type: "SET_CURRENT_THREAD", threadId: result.threadId });
       }
 
       return result;
     },
     // `stagedImageToResourceContent` is a pure module-level helper (not a hook value).
-    [inputValue, imageState, sendMessage, shouldAdoptThreadId],
+    [inputValue, imageState, sendMessage, isNewThread, dispatch, isIdentified],
   );
 
   const {
@@ -212,10 +232,11 @@ export function TamboV1ThreadInputProvider({ children }: PropsWithChildren) {
     mutate: _unusedSubmit,
     ...mutationState
   } = useTamboMutation({
+    mutationKey: ["v1-thread-input", currentThreadId],
     mutationFn: submitFn,
   });
 
-  const contextValue: TamboV1ThreadInputContextProps = {
+  const contextValue: TamboThreadInputContextProps = {
     ...mutationState,
     value: inputValue,
     setValue: setInputValue,
@@ -225,14 +246,14 @@ export function TamboV1ThreadInputProvider({ children }: PropsWithChildren) {
     addImages: imageState.addImages,
     removeImage: imageState.removeImage,
     clearImages: imageState.clearImages,
-    threadId: effectiveThreadId,
-    setThreadId,
+    threadId: currentThreadId,
+    isDisabled: mutationState.isPending || !isIdentified,
   };
 
   return (
-    <TamboV1ThreadInputContext.Provider value={contextValue}>
+    <TamboThreadInputContext.Provider value={contextValue}>
       {children}
-    </TamboV1ThreadInputContext.Provider>
+    </TamboThreadInputContext.Provider>
   );
 }
 
@@ -242,11 +263,11 @@ export function TamboV1ThreadInputProvider({ children }: PropsWithChildren) {
  * All components using this hook share the same input state, enabling
  * features like suggestions to update the input field directly.
  * @returns The shared thread input context
- * @throws {Error} If used outside TamboV1ThreadInputProvider
+ * @throws {Error} If used outside TamboThreadInputProvider
  * @example
  * ```tsx
  * function ChatInput() {
- *   const { value, setValue, submit, isPending } = useTamboV1ThreadInput();
+ *   const { value, setValue, submit, isPending } = useTamboThreadInput();
  *
  *   return (
  *     <form onSubmit={(e) => { e.preventDefault(); submit(); }}>
@@ -261,11 +282,11 @@ export function TamboV1ThreadInputProvider({ children }: PropsWithChildren) {
  * }
  * ```
  */
-export function useTamboV1ThreadInput(): TamboV1ThreadInputContextProps {
-  const context = useContext(TamboV1ThreadInputContext);
+export function useTamboThreadInput(): TamboThreadInputContextProps {
+  const context = useContext(TamboThreadInputContext);
   if (!context) {
     throw new Error(
-      "useTamboV1ThreadInput must be used within TamboV1ThreadInputProvider",
+      "useTamboThreadInput must be used within TamboThreadInputProvider",
     );
   }
   return context;

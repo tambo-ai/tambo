@@ -7,9 +7,12 @@ import {
   IsObject,
   IsBoolean,
   ValidateNested,
+  IsInt,
+  Min,
+  Max,
 } from "class-validator";
 import { Type } from "class-transformer";
-import { V1InputMessageDto, V1MessageDto } from "./message.dto";
+import { V1InitialMessageDto, V1MessageDto } from "./message.dto";
 import { V1RunStatus } from "@tambo-ai-cloud/core";
 
 /**
@@ -52,6 +55,14 @@ export class V1ThreadDto {
   })
   @IsString()
   id!: string;
+
+  @ApiProperty({
+    description: "Thread name (auto-generated or user-set)",
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  name?: string;
 
   @ApiProperty({
     description: "Optional user key for thread organization",
@@ -202,14 +213,14 @@ export class V1CreateThreadDto {
 
   @ApiProperty({
     description: "Initial messages to seed the thread with",
-    type: [V1InputMessageDto],
+    type: [V1InitialMessageDto],
     required: false,
   })
   @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
-  @Type(() => V1InputMessageDto)
-  initialMessages?: V1InputMessageDto[];
+  @Type(() => V1InitialMessageDto)
+  initialMessages?: V1InitialMessageDto[];
 }
 
 /**
@@ -233,10 +244,14 @@ export class V1ListThreadsQueryDto {
     description: "Maximum number of threads to return",
     required: false,
     default: 20,
+    type: Number,
   })
   @IsOptional()
-  @IsString()
-  limit?: string;
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(100)
+  limit?: number;
 
   @ApiProperty({
     description: "Cursor for pagination",
@@ -280,3 +295,31 @@ export class V1ListThreadsResponseDto {
   })
   hasMore!: boolean;
 }
+
+/**
+ * Request DTO for updating a thread.
+ */
+@ApiSchema({ name: "UpdateThreadRequest" })
+export class V1UpdateThreadDto {
+  @ApiProperty({
+    description: "Thread name (for manual renaming)",
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  name?: string;
+
+  @ApiProperty({
+    description: "Additional metadata to update",
+    required: false,
+  })
+  @IsOptional()
+  @IsObject()
+  metadata?: Record<string, unknown>;
+}
+
+/**
+ * Response DTO for updating a thread.
+ */
+@ApiSchema({ name: "UpdateThreadResponse" })
+export class V1UpdateThreadResponseDto extends V1ThreadDto {}

@@ -1,25 +1,29 @@
 "use client";
 
 /**
- * TamboV1Provider - Main Provider for v1 API
+ * TamboProvider - Main Provider
  *
- * Composes the necessary providers for the v1 SDK:
+ * Composes the necessary providers for the SDK:
  * - TamboClientProvider: API client and authentication
  * - TamboRegistryProvider: Component and tool registration
  * - TamboContextHelpersProvider: Context helper functions
- * - TamboV1StreamProvider: Streaming state management
+ * - TamboMcpTokenProvider: MCP access token management
+ * - TamboMcpProvider: MCP server connections and tool discovery
+ * - TamboContextAttachmentProvider: Single-message context attachments
+ * - TamboInteractableProvider: Interactive component tracking
+ * - TamboStreamProvider: Streaming state management
  *
  * This provider should wrap your entire application or the portion
- * that needs access to Tambo v1 functionality.
+ * that needs access to Tambo functionality.
  */
 
 import React, {
   createContext,
   useContext,
+  useEffect,
   type PropsWithChildren,
-  useState,
 } from "react";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { useTamboAuthState } from "../hooks/use-tambo-v1-auth-state";
 import {
   TamboClientProvider,
   type TamboClientProviderProps,
@@ -28,48 +32,62 @@ import {
   TamboRegistryProvider,
   type TamboRegistryProviderProps,
 } from "../../providers/tambo-registry-provider";
+import { TamboContextAttachmentProvider } from "../../providers/tambo-context-attachment-provider";
 import { TamboContextHelpersProvider } from "../../providers/tambo-context-helpers-provider";
+import { TamboInteractableProvider } from "../../providers/tambo-interactable-provider";
+import { TamboMcpTokenProvider } from "../../providers/tambo-mcp-token-provider";
+import { TamboMcpProvider } from "../../mcp/tambo-mcp-provider";
 import type { ContextHelpers } from "../../context-helpers";
 import type { McpServerInfo } from "../../model/mcp-server-info";
 import type {
   ListResourceItem,
   ResourceSource,
 } from "../../model/resource-info";
-import { TamboV1StreamProvider } from "./tambo-v1-stream-context";
-import { TamboV1ThreadInputProvider } from "./tambo-v1-thread-input-provider";
+import type { InitialInputMessage } from "../types/message";
+import { TamboStreamProvider } from "./tambo-v1-stream-context";
+import { TamboThreadInputProvider } from "./tambo-v1-thread-input-provider";
 
 /**
- * Configuration values for v1 SDK.
+ * Configuration values for the SDK.
  * These are static values that don't change during the session.
  */
-export interface TamboV1Config {
+export interface TamboConfig {
   /** User key for thread ownership and scoping */
   userKey?: string;
+  /** Whether to automatically generate thread names after a threshold of messages. Defaults to true. */
+  autoGenerateThreadName?: boolean;
+  /** The message count threshold at which the thread name will be auto-generated. Defaults to 3. */
+  autoGenerateNameThreshold?: number;
+  /**
+   * Initial messages to seed new threads with.
+   * These are displayed in the UI immediately and sent to the API on first message.
+   */
+  initialMessages?: InitialInputMessage[];
 }
 
 /**
- * Context for v1 SDK configuration.
+ * Context for SDK configuration.
  * @internal
  */
-export const TamboV1ConfigContext = createContext<TamboV1Config | null>(null);
+export const TamboConfigContext = createContext<TamboConfig | null>(null);
 
 /**
- * Hook to access v1 SDK configuration.
+ * Hook to access SDK configuration.
  * @returns Configuration values including userKey
- * @throws {Error} If used outside TamboV1Provider
+ * @throws {Error} If used outside TamboProvider
  */
-export function useTamboV1Config(): TamboV1Config {
-  const config = useContext(TamboV1ConfigContext);
+export function useTamboConfig(): TamboConfig {
+  const config = useContext(TamboConfigContext);
   if (!config) {
-    throw new Error("useTamboV1Config must be used within TamboV1Provider");
+    throw new Error("useTamboConfig must be used within TamboProvider");
   }
   return config;
 }
 
 /**
- * Props for TamboV1Provider
+ * Props for TamboProvider
  */
-export interface TamboV1ProviderProps extends Pick<
+export interface TamboProviderProps extends Pick<
   TamboClientProviderProps,
   "apiKey" | "tamboUrl" | "environment" | "userToken"
 > {
@@ -136,10 +154,23 @@ export interface TamboV1ProviderProps extends Pick<
   userKey?: string;
 
   /**
-   * Optional custom QueryClient instance.
-   * If not provided, a default client will be created.
+   * Whether to automatically generate thread names after a threshold of messages.
+   * Defaults to true.
    */
-  queryClient?: QueryClient;
+  autoGenerateThreadName?: boolean;
+
+  /**
+   * The message count threshold at which the thread name will be auto-generated.
+   * Defaults to 3.
+   */
+  autoGenerateNameThreshold?: number;
+
+  /**
+   * Initial messages to seed new threads with.
+   * These are displayed in the UI immediately (before the first API call)
+   * and sent to the API when the first message is sent to create the thread.
+   */
+  initialMessages?: InitialInputMessage[];
 
   /**
    * Children components
@@ -148,12 +179,44 @@ export interface TamboV1ProviderProps extends Pick<
 }
 
 /**
- * Main provider for the Tambo v1 SDK.
+ * Internal component that emits console warnings for auth misconfiguration.
+ * Rendered inside the provider tree so both TamboClientContext and
+ * TamboConfigContext are available.
+ */
+function TamboAuthWarnings(): null {
+  const authState = useTamboAuthState();
+  const authError = authState.status === "error" ? authState.error : null;
+
+  useEffect(() => {
+    switch (authState.status) {
+      case "unauthenticated":
+        console.warn(
+          "[TamboProvider] Neither userKey nor userToken provided. " +
+            "API requests will be blocked until authentication is configured.",
+        );
+        break;
+      case "invalid":
+        console.warn(
+          "[TamboProvider] Both userKey and userToken were provided. " +
+            "You must provide one or the other, not both.",
+        );
+        break;
+      case "error":
+        console.warn("[TamboProvider] Token exchange failed:", authError);
+        break;
+    }
+  }, [authState.status, authError]);
+
+  return null;
+}
+
+/**
+ * Main provider for the Tambo SDK.
  *
- * Composes TamboClientProvider, TamboRegistryProvider, and TamboV1StreamProvider
+ * Composes TamboClientProvider, TamboRegistryProvider, and TamboStreamProvider
  * to provide a complete context for building AI-powered applications.
  *
- * Threads are managed dynamically through useTamboV1() hook functions:
+ * Threads are managed dynamically through useTambo() hook functions:
  * - startNewThread() - Begin a new conversation
  * - switchThread(threadId) - Switch to an existing thread
  * - initThread(threadId) - Initialize a thread for receiving events
@@ -171,27 +234,28 @@ export interface TamboV1ProviderProps extends Pick<
  * @param props.getResource - Dynamic resource fetch function (must be paired with listResources)
  * @param props.contextHelpers - Configuration for context helper functions
  * @param props.userKey - User key for thread ownership (required if not using userToken)
- * @param props.queryClient - Optional custom React Query client
+ * @param props.autoGenerateThreadName - Whether to automatically generate thread names. Defaults to true.
+ * @param props.autoGenerateNameThreshold - The message count threshold at which the thread name will be auto-generated. Defaults to 3.
  * @param props.children - Child components
  * @returns Provider component tree
  * @example
  * ```tsx
- * import { TamboV1Provider } from '@tambo-ai/react/v1';
+ * import { TamboProvider } from '@tambo-ai/react';
  *
  * function App() {
  *   return (
- *     <TamboV1Provider
+ *     <TamboProvider
  *       apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY!}
  *       components={[WeatherCard, StockChart]}
  *       tools={[searchTool, calculatorTool]}
  *     >
  *       <ChatInterface />
- *     </TamboV1Provider>
+ *     </TamboProvider>
  *   );
  * }
  * ```
  */
-export function TamboV1Provider({
+export function TamboProvider({
   apiKey,
   tamboUrl,
   environment,
@@ -205,56 +269,55 @@ export function TamboV1Provider({
   getResource,
   contextHelpers,
   userKey,
-  queryClient,
+  autoGenerateThreadName,
+  autoGenerateNameThreshold,
+  initialMessages,
   children,
-}: PropsWithChildren<TamboV1ProviderProps>) {
-  // Create a stable default QueryClient if none provided.
-  // Using useState to avoid SSR issues with module-level singletons.
-  const [defaultQueryClient] = useState(
-    () =>
-      new QueryClient({
-        defaultOptions: {
-          queries: {
-            staleTime: 1000,
-            retry: 1,
-          },
-        },
-      }),
-  );
-
-  const client = queryClient ?? defaultQueryClient;
-
+}: PropsWithChildren<TamboProviderProps>) {
   // Config is static - created once and never changes
-  const config: TamboV1Config = { userKey };
+  const config: TamboConfig = {
+    userKey,
+    autoGenerateThreadName,
+    autoGenerateNameThreshold,
+    initialMessages,
+  };
 
   return (
-    <QueryClientProvider client={client}>
-      <TamboClientProvider
-        apiKey={apiKey}
-        tamboUrl={tamboUrl}
-        environment={environment}
-        userToken={userToken}
+    <TamboClientProvider
+      apiKey={apiKey}
+      tamboUrl={tamboUrl}
+      environment={environment}
+      userToken={userToken}
+      userKey={userKey}
+    >
+      <TamboRegistryProvider
+        components={components}
+        tools={tools}
+        mcpServers={mcpServers}
+        onCallUnregisteredTool={onCallUnregisteredTool}
+        resources={resources}
+        listResources={listResources}
+        getResource={getResource}
       >
-        <TamboRegistryProvider
-          components={components}
-          tools={tools}
-          mcpServers={mcpServers}
-          onCallUnregisteredTool={onCallUnregisteredTool}
-          resources={resources}
-          listResources={listResources}
-          getResource={getResource}
-        >
-          <TamboContextHelpersProvider contextHelpers={contextHelpers}>
-            <TamboV1ConfigContext.Provider value={config}>
-              <TamboV1StreamProvider>
-                <TamboV1ThreadInputProvider>
-                  {children}
-                </TamboV1ThreadInputProvider>
-              </TamboV1StreamProvider>
-            </TamboV1ConfigContext.Provider>
-          </TamboContextHelpersProvider>
-        </TamboRegistryProvider>
-      </TamboClientProvider>
-    </QueryClientProvider>
+        <TamboContextHelpersProvider contextHelpers={contextHelpers}>
+          <TamboMcpTokenProvider>
+            <TamboMcpProvider>
+              <TamboContextAttachmentProvider>
+                <TamboInteractableProvider>
+                  <TamboConfigContext.Provider value={config}>
+                    <TamboAuthWarnings />
+                    <TamboStreamProvider initialMessages={initialMessages}>
+                      <TamboThreadInputProvider>
+                        {children}
+                      </TamboThreadInputProvider>
+                    </TamboStreamProvider>
+                  </TamboConfigContext.Provider>
+                </TamboInteractableProvider>
+              </TamboContextAttachmentProvider>
+            </TamboMcpProvider>
+          </TamboMcpTokenProvider>
+        </TamboContextHelpersProvider>
+      </TamboRegistryProvider>
+    </TamboClientProvider>
   );
 }

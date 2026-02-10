@@ -106,7 +106,7 @@ export function SpeechTranscription({
           Transcript: "${transcript}"`,
         );
 
-        await submit({ streamResponse: true });
+        await submit();
       } else if (!transcript) {
         // Provide feedback if no transcript was detected
         setError("No speech detected. Please try recording again.");

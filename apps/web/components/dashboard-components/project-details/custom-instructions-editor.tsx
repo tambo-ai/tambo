@@ -12,7 +12,7 @@ import { EditWithTamboButton } from "@/components/ui/tambo/edit-with-tambo-butto
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { api } from "@/trpc/react";
-import { withInteractable, type Suggestion } from "@tambo-ai/react";
+import { withTamboInteractable, type Suggestion } from "@tambo-ai/react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Loader2 } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
@@ -360,7 +360,7 @@ export function CustomInstructionsEditor({
   );
 }
 
-export const InteractableCustomInstructionsEditor = withInteractable(
+export const InteractableCustomInstructionsEditor = withTamboInteractable(
   CustomInstructionsEditor,
   {
     componentName: COMPONENT_NAME,

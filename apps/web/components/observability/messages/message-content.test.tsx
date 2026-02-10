@@ -1,6 +1,5 @@
 import { MessageContent } from "@/components/observability/messages/message-content";
 import { ChatCompletionContentPart, MessageRole } from "@tambo-ai-cloud/core";
-import { TamboContextAttachmentProvider } from "@tambo-ai/react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import React from "react";
@@ -53,11 +52,6 @@ jest.mock("@tambo-ai/react", () => ({
     removeContextAttachment: jest.fn(),
   }),
   useCurrentInteractablesSnapshot: () => [],
-  TamboContextAttachmentProvider: ({
-    children,
-  }: {
-    children: React.ReactNode;
-  }): React.ReactElement => children as React.ReactElement,
 }));
 
 // Get the clipboard mock from navigator (set up in jest.setup.ts)
@@ -65,9 +59,7 @@ const mockWriteText = navigator.clipboard.writeText as jest.Mock;
 
 // Test wrapper component that provides necessary contexts
 function TestWrapper({ children }: { children: React.ReactNode }) {
-  return (
-    <TamboContextAttachmentProvider>{children}</TamboContextAttachmentProvider>
-  );
+  return <>{children}</>;
 }
 
 // Helper function to render with providers
@@ -108,6 +100,7 @@ describe("MessageContent", () => {
     isCancelled: false,
     reasoning: null,
     reasoningDurationMS: null,
+    sdkVersion: null,
   };
 
   it("renders user message content", () => {

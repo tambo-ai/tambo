@@ -98,7 +98,10 @@ const CollapsibleContainer = React.forwardRef<
             // Tablet and up: Floating panel
             "sm:inset-auto sm:bottom-4 sm:right-4 sm:rounded-lg",
             "sm:w-md md:w-lg lg:w-160 xl:w-3xl 2xl:w-4xl",
-            "sm:h-auto sm:max-w-[90vw]",
+            "sm:h-150 md:h-162.5 lg:h-175 xl:h-187.5 2xl:h-200",
+            "max-h-[calc(100svh-var(--header-height)-(var(--spacing)*4))]",
+            "flex flex-col overflow-hidden",
+            "sm:max-w-[90vw]",
           )
         : "bottom-4 right-4 rounded-full w-16 h-16 p-0 flex items-center justify-center",
       className,
@@ -218,7 +221,7 @@ export const MessageThreadCollapsible = React.forwardRef<
       },
     };
 
-    const { thread } = useTambo();
+    const { messages } = useTambo();
 
     // Starter message for when the thread is empty
     const starterMessage: TamboThreadMessage = {
@@ -226,9 +229,6 @@ export const MessageThreadCollapsible = React.forwardRef<
       role: "assistant",
       content: [{ type: "text", text: "Ask me anything about tambo." }],
       createdAt: new Date().toISOString(),
-      actionType: undefined,
-      componentState: {},
-      threadId: "",
     };
 
     const defaultSuggestions: Suggestion[] = [
@@ -266,12 +266,12 @@ export const MessageThreadCollapsible = React.forwardRef<
           onThreadChange={handleThreadChange}
           config={THREAD_CONFIG}
         />
-        <Collapsible.Content>
-          <div className="h-[calc(100vh-8rem)] sm:h-150 md:h-162.5 lg:h-175 xl:h-187.5 2xl:h-200 max-h-[90vh] flex flex-col">
+        <Collapsible.Content className="flex-1 min-h-0">
+          <div className="h-full flex flex-col min-h-0">
             {/* Message thread content */}
             <ScrollableMessageContainer className="p-2 sm:p-3 md:p-4">
               {/* Conditionally render the starter message */}
-              {thread.messages.length === 0 && (
+              {messages.length === 0 && (
                 <Message role="assistant" message={starterMessage}>
                   <MessageContent />
                 </Message>

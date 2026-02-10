@@ -321,7 +321,10 @@ export class AISdkClient implements LLMClient {
 
     if (params.stream) {
       // added explicit await even though types say it isn't necessary
-      const result = await streamText(baseConfig);
+      const result = await streamText({
+        ...baseConfig,
+        abortSignal: params.abortSignal,
+      });
       return this.handleStreamingResponse(result);
     } else {
       const result = await generateText(baseConfig);
@@ -446,9 +449,6 @@ export class AISdkClient implements LLMClient {
 
     // Track message ID for AG-UI events
     let textMessageId: string | undefined;
-    // Local mutable accumulator for tool call args deltas (reset per tool call);
-    // do not reuse outside this scope.
-    let toolCallArgDeltas: string[] = [];
 
     // Track component streaming for UI tools (show_component_*)
     let componentTracker: ComponentStreamTracker | undefined;
@@ -493,25 +493,36 @@ export class AISdkClient implements LLMClient {
           accumulatedToolCall.name = delta.toolName;
           accumulatedToolCall.arguments = "";
           accumulatedToolCall.id = undefined;
-          toolCallArgDeltas = [];
 
-          // Initialize component tracker for UI tools
-          // Component streaming is only emitted for valid `show_component_*` tool names.
+          // Initialize component tracker for UI tools (show_component_* tools).
+          // Component tools emit tambo.component.* custom events instead of
+          // TOOL_CALL_* events - the tool mechanism is an internal detail.
           const componentName = tryExtractComponentName(delta.toolName);
           if (componentName) {
+            // Generate a message ID for component events. The SDK will create
+            // the message on-demand when it receives tambo.component.start.
+            const componentMessageId = generateMessageId();
             const componentId = generateMessageId();
             componentTracker = new ComponentStreamTracker(
+              componentMessageId,
               componentId,
               componentName,
             );
           } else {
             componentTracker = undefined;
+            // V1: emit TOOL_CALL_START immediately — delta.id is the toolCallId
+            aguiEvents.push({
+              type: EventType.TOOL_CALL_START,
+              toolCallId: delta.id,
+              toolCallName: delta.toolName,
+              parentMessageId: textMessageId,
+              timestamp: Date.now(),
+            } as ToolCallStartEvent);
           }
           break;
         }
         case "tool-input-delta":
           accumulatedToolCall.arguments += delta.delta;
-          toolCallArgDeltas.push(delta.delta);
 
           // Emit component streaming events for UI tools
           if (componentTracker) {
@@ -519,45 +530,33 @@ export class AISdkClient implements LLMClient {
               delta.delta,
             );
             aguiEvents.push(...componentEvents);
+          } else {
+            // V1: emit TOOL_CALL_ARGS immediately — delta.id is the toolCallId
+            aguiEvents.push({
+              type: EventType.TOOL_CALL_ARGS,
+              toolCallId: delta.id,
+              delta: delta.delta,
+              timestamp: Date.now(),
+            } as ToolCallArgsEvent);
           }
           break;
         case "tool-input-end":
           break;
         case "tool-call":
           accumulatedToolCall.id = delta.toolCallId;
-          if (accumulatedToolCall.name) {
-            aguiEvents.push({
-              type: EventType.TOOL_CALL_START,
-              toolCallId: delta.toolCallId,
-              toolCallName: accumulatedToolCall.name,
-              parentMessageId: textMessageId,
-              timestamp: Date.now(),
-            } as ToolCallStartEvent);
-
-            for (const toolCallArgDelta of toolCallArgDeltas) {
-              aguiEvents.push({
-                type: EventType.TOOL_CALL_ARGS,
-                toolCallId: delta.toolCallId,
-                delta: toolCallArgDelta,
-                timestamp: Date.now(),
-              } as ToolCallArgsEvent);
-            }
-
+          if (componentTracker) {
+            // Finalize component tracker and emit end event
+            const endEvents = componentTracker.finalize();
+            aguiEvents.push(...endEvents);
+            componentTracker = undefined;
+          } else if (accumulatedToolCall.name) {
+            // V1: only emit TOOL_CALL_END — START and ARGS already emitted above
             aguiEvents.push({
               type: EventType.TOOL_CALL_END,
               toolCallId: delta.toolCallId,
               timestamp: Date.now(),
             } as ToolCallEndEvent);
-
-            // Finalize component tracker and emit end event
-            if (componentTracker) {
-              const endEvents = componentTracker.finalize();
-              aguiEvents.push(...endEvents);
-              componentTracker = undefined;
-            }
           }
-
-          toolCallArgDeltas = [];
           break;
         case "tool-result":
           // Tambo should be handling all tool results, not operating like an agent

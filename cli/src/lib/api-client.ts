@@ -88,7 +88,7 @@ interface StubRouter {
 // ============================================================================
 
 /**
- * Returns the base URL for the Tambo Console API (apps/web at app.tambo.co).
+ * Returns the base URL for the Tambo Console API (apps/web at console.tambo.co).
  * Note: This is NOT the NestJS REST API at api.tambo.co.
  */
 export function getConsoleBaseUrl(): string {

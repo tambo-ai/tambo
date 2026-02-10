@@ -1,5 +1,6 @@
 import "@/app/global.css";
 import { WebVitalsReporter } from "@/components/web-vitals";
+import { cn } from "@/lib/utils";
 import {
   PostHogPageview,
   PostHogRootProvider,
@@ -13,28 +14,25 @@ import { Suspense } from "react";
 
 const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://docs.tambo.co";
 const docsDescription =
-  "Official Tambo AI documentation for building generative UI in React with MCP-native tools, streaming components, and the Tambo React SDK.";
+  "Tambo is an open-source generative UI toolkit for React. Register your components—the agent renders them based on user messages.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(baseUrl),
   title: {
-    default: "Tambo AI Documentation",
-    template: "%s | Tambo AI Docs",
+    default: "Tambo Docs",
+    template: "%s | Tambo Docs",
   },
   description: docsDescription,
-  alternates: {
-    canonical: "/",
-  },
   openGraph: {
-    title: "Tambo AI Documentation",
+    title: "Tambo Docs",
     description: docsDescription,
     url: baseUrl,
-    siteName: "Tambo AI Docs",
+    siteName: "Tambo Docs",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Tambo AI Documentation",
+    title: "Tambo Docs",
     description: docsDescription,
   },
   robots: {
@@ -56,7 +54,11 @@ const inter = Inter({
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={inter.className} suppressHydrationWarning>
+    <html
+      lang="en"
+      className={cn(inter.className, "tambo-theme")}
+      suppressHydrationWarning
+    >
       <body className="flex flex-col min-h-screen">
         <TamboRootProvider>
           <Suspense>

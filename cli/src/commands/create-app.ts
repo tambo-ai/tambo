@@ -28,6 +28,11 @@ const templates: Record<string, Template> = {
     description: "Tambo + Tools + MCP (recommended)",
     repository: "https://github.com/tambo-ai/tambo-template.git",
   },
+  vite: {
+    name: "vite",
+    description: "Tambo + TanStack Router + Vite",
+    repository: "https://github.com/tambo-ai/tambo-template-vite.git",
+  },
   analytics: {
     name: "analytics",
     description: "Generative UI Analytics Template",
@@ -106,6 +111,7 @@ export async function handleCreateApp(
       "App name and template required in non-interactive mode",
       [
         "npx tambo create-app my-app --template=standard  # Recommended",
+        "npx tambo create-app my-app --template=vite      # Vite + TanStack Router",
         "npx tambo create-app my-app --template=analytics # Analytics template",
         "npx tambo create-app . --template=standard       # Current directory",
       ],

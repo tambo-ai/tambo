@@ -104,8 +104,10 @@ In general, try to fit changes into the following categories. If you can't find 
      - generative-components
      - interactable-components
      - component-state
-   - **model-context-protocol/** (2 pages including index)
+   - **model-context-protocol/** (4 pages including index)
      - features - Tools, prompts, resources, elicitations, sampling
+     - clientside-mcp-connection (compat)
+     - serverside-mcp-connection (compat)
    - tools - Function calling, schemas, orchestration
    - additional-context - Configuration, custom helpers, context attachments
    - conversation-storage - Message threads, history management, status tracking
@@ -137,7 +139,7 @@ In general, try to fit changes into the following categories. If you can't find 
    - coding-agent-generative-ui-rules
    - component-data-props - Optimization guidance
 
-5. **Reference** (5 subsections)
+5. **Reference** (6 subsections)
    - **react-sdk/** (6 pages including index)
      - hooks - React hooks for thread management, component state, streaming
      - types - TypeScript interfaces and types
@@ -146,6 +148,10 @@ In general, try to fit changes into the following categories. If you can't find 
      - mcp - Model Context Protocol hooks and types
      - **migration/** (1 page)
        - toolschema - Migration guide for tool schemas
+   - **react-sdk-v1/** (4 pages including index) - Coming Soon
+     - hooks - V1 hooks for thread management, messaging, suggestions
+     - types - V1 TypeScript interfaces and types
+     - providers - V1 provider components
    - rest-api - OpenAPI specification for Tambo Cloud REST API
    - **problems/** (1 page)
      - endpoint-deprecated - Documentation for endpoint deprecation errors (410 Gone)

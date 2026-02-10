@@ -1,5 +1,66 @@
 # Changelog
 
+## [0.132.0](https://github.com/tambo-ai/tambo/compare/web-v0.131.0...web-v0.132.0) (2026-02-07)
+
+
+### Features
+
+* **api:** add SDK version tracking to messages and threads ([#2255](https://github.com/tambo-ai/tambo/issues/2255)) ([36a47bd](https://github.com/tambo-ai/tambo/commit/36a47bdf3cd7b7de8411a6d26ed100ffb5d48f90))
+* **web:** add delete button for MCP server custom headers ([#2224](https://github.com/tambo-ai/tambo/issues/2224)) ([ef71ebb](https://github.com/tambo-ai/tambo/commit/ef71ebb58a8196806314ebc986d3192e4b6a9e34))
+* **web:** move dashboard from /dashboard to root path ([#2232](https://github.com/tambo-ai/tambo/issues/2232)) ([9aec81d](https://github.com/tambo-ai/tambo/commit/9aec81d5e3017d4de5eb83d020bad4a9d401d70f))
+* **web:** track api_key_generated event in PostHog ([#2266](https://github.com/tambo-ai/tambo/issues/2266)) ([f64a037](https://github.com/tambo-ai/tambo/commit/f64a037be70bba4d08e674f6e2612c30b02f50ea))
+
+
+### Bug Fixes
+
+* **docs:** add CI validation for docs.tambo.co links and fix broken links ([#2136](https://github.com/tambo-ai/tambo/issues/2136)) ([6a9ba62](https://github.com/tambo-ai/tambo/commit/6a9ba62cffc42b0b5bc2f646f6ec0b8e3eb394ea))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump @types/node from 22.19.7 to 22.19.8 ([#2249](https://github.com/tambo-ai/tambo/issues/2249)) ([aed1ae6](https://github.com/tambo-ai/tambo/commit/aed1ae6a83a35f74e3c4d919f5ee266206711880))
+* **deps:** bump tailwind-merge from 2.6.0 to 2.6.1 in the tailwind group ([#2247](https://github.com/tambo-ai/tambo/issues/2247)) ([723185c](https://github.com/tambo-ai/tambo/commit/723185cc510bbe164677e7e371924cb1cfc24c0e))
+* **deps:** bump the small-safe-packages group with 2 updates ([#2246](https://github.com/tambo-ai/tambo/issues/2246)) ([89cb632](https://github.com/tambo-ai/tambo/commit/89cb63280b5909b6f4158dcf87000d0b6abfcfba))
+
+## [0.131.0](https://github.com/tambo-ai/tambo/compare/web-v0.130.0...web-v0.131.0) (2026-02-05)
+
+
+### Features
+
+* **react-sdk:** add reasoning message support in v1 SDK ([#2204](https://github.com/tambo-ai/tambo/issues/2204)) ([5cb35fb](https://github.com/tambo-ai/tambo/commit/5cb35fb147aaf2d5060ab431e986365691648100))
+
+
+### Bug Fixes
+
+* **web:** persist MCP server custom headers on save ([#2220](https://github.com/tambo-ai/tambo/issues/2220)) ([e21c081](https://github.com/tambo-ai/tambo/commit/e21c0815291851a3391a9e4aba531066cfcead1b))
+
+## [0.130.0](https://github.com/tambo-ai/tambo/compare/web-v0.129.0...web-v0.130.0) (2026-02-04)
+
+
+### Features
+
+* **react-sdk:** v1 SDK tool state improvements ([#2169](https://github.com/tambo-ai/tambo/issues/2169)) ([356e2c5](https://github.com/tambo-ai/tambo/commit/356e2c56fe798dc6b0bce37162652cdfb1722356))
+* **web:** add V1 SDK smoketest ([#2134](https://github.com/tambo-ai/tambo/issues/2134)) ([bfaadbd](https://github.com/tambo-ai/tambo/commit/bfaadbd4eb80b35d5aead97e9f8f4270756435f8))
+
+
+### Bug Fixes
+
+* **api:** remove deprecated claude models ([#2197](https://github.com/tambo-ai/tambo/issues/2197)) ([fa37182](https://github.com/tambo-ai/tambo/commit/fa37182eb0b7e7cdd7acc3a76fa7c9a0273bb877))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump @types/node from 22.19.5 to 22.19.7 ([#2181](https://github.com/tambo-ai/tambo/issues/2181)) ([2dbb652](https://github.com/tambo-ai/tambo/commit/2dbb652293255c5f1baf370a87c0760567eb441e))
+* **deps:** bump @modelcontextprotocol/sdk from 1.25.2 to 1.26.0 ([#2199](https://github.com/tambo-ai/tambo/issues/2199)) ([8884ac7](https://github.com/tambo-ai/tambo/commit/8884ac7b3c800aedb6ed18b934d0f4db98e74e38))
+* **deps:** bump autoprefixer from 10.4.23 to 10.4.24 ([#2184](https://github.com/tambo-ai/tambo/issues/2184)) ([cbf94e8](https://github.com/tambo-ai/tambo/commit/cbf94e8cb96a6db9297925d81734f12f15ab0e97))
+* **deps:** bump react-hook-form from 7.66.1 to 7.71.1 ([#2180](https://github.com/tambo-ai/tambo/issues/2180)) ([2bf86ba](https://github.com/tambo-ai/tambo/commit/2bf86bafa6f0b57b96da31faf8c52b5e4aff816f))
+* **deps:** bump resend from 6.8.0 to 6.9.1 ([#2186](https://github.com/tambo-ai/tambo/issues/2186)) ([9c2268f](https://github.com/tambo-ai/tambo/commit/9c2268f7b6cf6c6aa2c9d5b340154f87f50c55d1))
+* **deps:** bump the next group with 2 updates ([#2160](https://github.com/tambo-ai/tambo/issues/2160)) ([83bee7f](https://github.com/tambo-ai/tambo/commit/83bee7f11708aeb487bcc3c3cbd1473a9beea3c6))
+* **deps:** bump the sentry group with 3 updates ([#2162](https://github.com/tambo-ai/tambo/issues/2162)) ([78c36d2](https://github.com/tambo-ai/tambo/commit/78c36d26ccbb1c9e92b53293345be2fcb2bd4acd))
+* **deps:** bump the small-safe-packages group with 4 updates ([#2161](https://github.com/tambo-ai/tambo/issues/2161)) ([5e4022e](https://github.com/tambo-ai/tambo/commit/5e4022e5697e8607abc0b85a9b28f96f4260ba31))
+* **deps:** bump the trpc group with 3 updates ([#2152](https://github.com/tambo-ai/tambo/issues/2152)) ([f12e01c](https://github.com/tambo-ai/tambo/commit/f12e01c1daf1121efbb5a29dc141103f5e1a0abb))
+* **deps:** bump typescript sdk to 0.89 ([#2203](https://github.com/tambo-ai/tambo/issues/2203)) ([22130d4](https://github.com/tambo-ai/tambo/commit/22130d4cfe7951343bea660e8f64f2a2161fd38a))
+
 ## [0.129.0](https://github.com/tambo-ai/tambo/compare/web-v0.128.0...web-v0.129.0) (2026-01-29)
 
 

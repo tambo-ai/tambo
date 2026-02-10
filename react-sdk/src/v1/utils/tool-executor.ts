@@ -1,5 +1,5 @@
 /**
- * Tool Executor for v1 API
+ * Tool Executor
  *
  * Handles automatic execution of client-side tools when the model
  * requests them via `tambo.run.awaiting_input` events.
@@ -11,6 +11,8 @@ import type {
   TextContent,
   ResourceContent,
 } from "@tambo-ai/typescript-sdk/resources/threads/threads";
+import type { ToolCallTracker } from "./tool-call-tracker";
+import { createKeyedThrottle, type KeyedThrottle } from "./keyed-throttle";
 
 /**
  * Pending tool call from the stream accumulator
@@ -18,6 +20,72 @@ import type {
 export interface PendingToolCall {
   name: string;
   input: Record<string, unknown>;
+}
+
+/**
+ * Execute a streamable tool call during streaming with pre-parsed partial args.
+ *
+ * Called on each TOOL_CALL_ARGS event for tools annotated with
+ * `tamboStreamableHint: true`. Enables incremental UI updates while
+ * the model is still generating arguments.
+ *
+ * Errors are caught silently — streaming tool execution is non-fatal since
+ * the final execution via `awaiting_input` is what matters.
+ * @param toolCallId - The tool call ID being accumulated
+ * @param parsedArgs - Pre-parsed partial JSON args
+ * @param toolTracker - Tracker holding pending tool call state
+ * @param toolRegistry - Record of tool name to tool definition
+ */
+export async function executeStreamableToolCall(
+  toolCallId: string,
+  parsedArgs: Record<string, unknown>,
+  toolTracker: ToolCallTracker,
+  toolRegistry: Record<string, TamboTool>,
+): Promise<void> {
+  const accumulating = toolTracker.getAccumulatingToolCall(toolCallId);
+  if (!accumulating) return;
+
+  const tool = toolRegistry[accumulating.name];
+  if (!tool?.annotations?.tamboStreamableHint) return;
+
+  try {
+    await tool.tool(parsedArgs);
+  } catch (error) {
+    console.warn(
+      `[ToolExecutor] Non-fatal error in streamable tool "${accumulating.name}" ` +
+        `(toolCallId: ${toolCallId}). This likely indicates a bug in the tool ` +
+        `implementation; fix the tool to avoid repeated warnings.`,
+      error,
+    );
+  }
+}
+
+const DEFAULT_STREAMABLE_THROTTLE_MS = 100;
+
+/**
+ * Creates a throttled wrapper around executeStreamableToolCall.
+ *
+ * Each tool call ID gets its own independent leading+trailing throttle via
+ * {@link createKeyedThrottle}. The first call for a tool ID fires immediately
+ * (leading edge). Subsequent calls during the cooldown window update the
+ * stored args. After `delay` ms, if new args arrived, the tool re-executes
+ * with the latest args (trailing edge). This repeats as long as new args
+ * keep arriving — roughly one execution per `delay` ms during streaming.
+ *
+ * Call `flush()` to force-execute all pending trailing calls and reset to idle.
+ * @param toolTracker - Tracker holding pending tool call state
+ * @param toolRegistry - Record of tool name to tool definition
+ * @param delay - Throttle interval in milliseconds
+ * @returns Keyed throttle controller (schedule / flush)
+ */
+export function createThrottledStreamableExecutor(
+  toolTracker: ToolCallTracker,
+  toolRegistry: Record<string, TamboTool>,
+  delay = DEFAULT_STREAMABLE_THROTTLE_MS,
+): KeyedThrottle<Record<string, unknown>> {
+  return createKeyedThrottle<Record<string, unknown>>((toolCallId, args) => {
+    void executeStreamableToolCall(toolCallId, args, toolTracker, toolRegistry);
+  }, delay);
 }
 
 /**
@@ -39,7 +107,7 @@ export async function executeClientTool(
     let content: (TextContent | ResourceContent)[];
     if (tool.transformToContent) {
       // transformToContent may return content parts in beta format
-      // Convert to v1 format (TextContent | ResourceContent)
+      // Convert to content format (TextContent | ResourceContent)
       const transformed = await tool.transformToContent(result);
       content = transformed.map((part) => {
         if (part.type === "text" && "text" in part && part.text) {
@@ -70,6 +138,7 @@ export async function executeClientTool(
     return {
       type: "tool_result",
       toolUseId: toolCallId,
+      isError: true,
       content: [
         {
           type: "text" as const,
@@ -109,6 +178,7 @@ export async function executeAllPendingTools(
       results.push({
         type: "tool_result",
         toolUseId: toolCallId,
+        isError: true,
         content: [
           {
             type: "text" as const,

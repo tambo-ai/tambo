@@ -4,23 +4,63 @@ import {
   type TextMessageContentEvent,
   type TextMessageEndEvent,
 } from "@ag-ui/core";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { renderHook, act } from "@testing-library/react";
 import React from "react";
 import {
-  TamboV1StreamProvider,
+  TamboStreamProvider,
   useStreamDispatch,
 } from "../providers/tambo-v1-stream-context";
-import { useTamboV1Messages } from "./use-tambo-v1-messages";
+import { useTamboMessages } from "./use-tambo-v1-messages";
 
-describe("useTamboV1Messages", () => {
+// Mock useTamboClient and useTamboQueryClient to avoid TamboClientProvider dependency
+jest.mock("../../providers/tambo-client-provider", () => ({
+  useTamboClient: jest.fn(() => ({
+    threads: {
+      messages: {
+        list: jest.fn().mockResolvedValue({ messages: [], hasMore: false }),
+      },
+      retrieve: jest.fn().mockResolvedValue({}),
+    },
+  })),
+  useTamboQueryClient: jest.fn(),
+}));
+
+jest.mock("../providers/tambo-v1-provider", () => {
+  const actual = jest.requireActual("../providers/tambo-v1-provider");
+  return {
+    ...actual,
+    useTamboConfig: () => ({ userKey: undefined }),
+  };
+});
+
+import { useTamboQueryClient } from "../../providers/tambo-client-provider";
+
+describe("useTamboMessages", () => {
+  let queryClient: QueryClient;
+
+  beforeEach(() => {
+    queryClient = new QueryClient({
+      defaultOptions: {
+        queries: { retry: false },
+      },
+    });
+    // Configure mock to return the test's queryClient
+    jest.mocked(useTamboQueryClient).mockReturnValue(queryClient);
+  });
+
   function TestWrapper({ children }: { children: React.ReactNode }) {
-    return <TamboV1StreamProvider>{children}</TamboV1StreamProvider>;
+    return (
+      <QueryClientProvider client={queryClient}>
+        <TamboStreamProvider>{children}</TamboStreamProvider>
+      </QueryClientProvider>
+    );
   }
 
   it("returns empty messages when thread has no messages", () => {
     const { result } = renderHook(
       () => ({
-        messages: useTamboV1Messages("thread_123"),
+        messages: useTamboMessages("thread_123"),
         dispatch: useStreamDispatch(),
       }),
       { wrapper: TestWrapper },
@@ -42,7 +82,7 @@ describe("useTamboV1Messages", () => {
   it("returns messages after events are dispatched", () => {
     const { result } = renderHook(
       () => ({
-        messages: useTamboV1Messages("thread_123"),
+        messages: useTamboMessages("thread_123"),
         dispatch: useStreamDispatch(),
       }),
       { wrapper: TestWrapper },
@@ -101,7 +141,7 @@ describe("useTamboV1Messages", () => {
   it("filters user and assistant messages correctly", () => {
     const { result } = renderHook(
       () => ({
-        messages: useTamboV1Messages("thread_123"),
+        messages: useTamboMessages("thread_123"),
         dispatch: useStreamDispatch(),
       }),
       { wrapper: TestWrapper },
@@ -172,7 +212,7 @@ describe("useTamboV1Messages", () => {
 
   it("returns empty messages when threadId does not exist in threadMap", () => {
     const { result } = renderHook(
-      () => useTamboV1Messages("nonexistent_thread"),
+      () => useTamboMessages("nonexistent_thread"),
       {
         wrapper: TestWrapper,
       },

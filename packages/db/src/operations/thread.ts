@@ -47,11 +47,13 @@ export async function createThread(
     contextKey,
     metadata,
     name,
+    sdkVersion,
   }: {
     projectId: string;
     contextKey?: string;
     metadata?: ThreadMetadata;
     name?: string;
+    sdkVersion?: string;
   },
 ) {
   const [thread] = await db
@@ -61,6 +63,7 @@ export async function createThread(
       contextKey,
       metadata,
       name,
+      sdkVersion,
     })
     .returning();
 
@@ -238,12 +241,14 @@ export async function updateThread(
     generationStage,
     statusMessage,
     name,
+    sdkVersion,
   }: {
     contextKey?: string | null;
     metadata?: ThreadMetadata;
     generationStage?: GenerationStage;
     statusMessage?: string;
     name?: string;
+    sdkVersion?: string;
   },
 ): Promise<schema.DBThreadWithMessages> {
   const [updated] = await db
@@ -255,6 +260,7 @@ export async function updateThread(
       generationStage,
       statusMessage,
       name,
+      ...(sdkVersion ? { sdkVersion } : {}),
     })
     .where(eq(schema.threads.id, threadId))
     .returning();
@@ -307,6 +313,7 @@ export async function addMessage(
   db: HydraDb,
   threadId: string,
   messageInput: UnsavedThreadMessage,
+  sdkVersion?: string,
 ): Promise<typeof schema.messages.$inferSelect> {
   // TODO: Handle File types in message content
   // When File content parts are present:
@@ -322,13 +329,16 @@ export async function addMessage(
 
   const [message] = await db
     .insert(schema.messages)
-    .values(insertable)
+    .values({ ...insertable, sdkVersion })
     .returning();
 
-  // Update the thread's updatedAt timestamp
+  // Update the thread's updatedAt timestamp and sdkVersion
   await db
     .update(schema.threads)
-    .set({ updatedAt: sql`now()` })
+    .set({
+      updatedAt: sql`now()`,
+      ...(sdkVersion ? { sdkVersion } : {}),
+    })
     .where(eq(schema.threads.id, message.threadId));
 
   return message;
@@ -405,6 +415,7 @@ export async function updateMessage(
   messageInput: Partial<
     Omit<typeof schema.messages.$inferInsert, "id" | "createdAt" | "threadId">
   >,
+  sdkVersion?: string,
 ): Promise<typeof schema.messages.$inferSelect> {
   // TODO: Handle File types in message content updates
   // When updating content with File parts:
@@ -420,10 +431,13 @@ export async function updateMessage(
     .where(eq(schema.messages.id, messageId))
     .returning();
 
-  // Update the thread's updatedAt timestamp
+  // Update the thread's updatedAt timestamp and sdkVersion
   await db
     .update(schema.threads)
-    .set({ updatedAt: sql`now()` })
+    .set({
+      updatedAt: sql`now()`,
+      ...(sdkVersion ? { sdkVersion } : {}),
+    })
     .where(eq(schema.threads.id, updatedMessage.threadId));
 
   return updatedMessage;
@@ -472,7 +486,19 @@ export async function ensureThreadByProjectId(
     contextKey,
   );
   if (!thread) {
-    throw new Error("Thread not found");
+    throw new ThreadNotFoundError(threadId, projectId);
+  }
+}
+
+export class ThreadNotFoundError extends Error {
+  constructor(
+    public readonly threadId: string,
+    public readonly projectId: string,
+  ) {
+    super(
+      `Thread ${threadId} not found or does not belong to project ${projectId}`,
+    );
+    this.name = "ThreadNotFoundError";
   }
 }
 

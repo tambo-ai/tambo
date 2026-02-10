@@ -33,6 +33,12 @@ export interface TamboClientProviderProps {
    * These will be merged with the default headers.
    */
   additionalHeaders?: Record<string, string>;
+
+  /**
+   * User key sent as a default query parameter on all API requests.
+   * Required if no bearer token (userToken) is provided.
+   */
+  userKey?: string;
 }
 
 export interface TamboClientContextProps {
@@ -44,6 +50,12 @@ export interface TamboClientContextProps {
   isUpdatingToken: boolean;
   /** Additional headers to include in all requests */
   additionalHeaders?: Record<string, string>;
+  /** Error from token exchange, if any */
+  tokenExchangeError: Error | null;
+  /** The raw userToken value passed to the provider */
+  userToken: string | undefined;
+  /** Whether the token exchange succeeded */
+  hasValidToken: boolean;
 }
 
 export const TamboClientContext = createContext<
@@ -60,6 +72,7 @@ export const TamboClientContext = createContext<
  * @param props.environment - The environment to use for the Tambo API
  * @param props.userToken - The oauth access token to use to identify the user in the Tambo API
  * @param props.additionalHeaders - Additional headers to include in all requests
+ * @param props.userKey - User key sent as a default query parameter on all API requests
  * @returns The TamboClientProvider component
  */
 export const TamboClientProvider: React.FC<
@@ -71,6 +84,7 @@ export const TamboClientProvider: React.FC<
   environment,
   userToken,
   additionalHeaders,
+  userKey,
 }) => {
   const tamboConfig = useMemo(
     () =>
@@ -80,21 +94,22 @@ export const TamboClientProvider: React.FC<
           "X-Tambo-React-Version": packageJson.version,
           ...additionalHeaders,
         },
+        defaultQuery: userKey ? { userKey } : undefined,
         baseURL: tamboUrl ?? undefined,
         environment: environment ?? undefined,
       }) satisfies ClientOptions,
-    [additionalHeaders, apiKey, tamboUrl, environment],
+    [additionalHeaders, apiKey, tamboUrl, environment, userKey],
   );
 
   const client = useMemo(() => new TamboAI(tamboConfig), [tamboConfig]);
   const queryClient = useMemo(() => new QueryClient(), []);
 
   // Keep the session token updated and get the updating state
-  const { isFetching: isUpdatingToken } = useTamboSessionToken(
-    client,
-    queryClient,
-    userToken,
-  );
+  const {
+    isFetching: isUpdatingToken,
+    error: tokenExchangeError,
+    data: tokenData,
+  } = useTamboSessionToken(client, queryClient, userToken);
 
   return (
     <TamboClientContext.Provider
@@ -103,6 +118,9 @@ export const TamboClientProvider: React.FC<
         queryClient,
         isUpdatingToken,
         additionalHeaders: tamboConfig.defaultHeaders,
+        tokenExchangeError: tokenExchangeError ?? null,
+        userToken,
+        hasValidToken: !!tokenData?.access_token,
       }}
     >
       {children}

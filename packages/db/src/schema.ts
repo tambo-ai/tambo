@@ -568,6 +568,7 @@ export const threads = pgTable(
     updatedAt: timestamp("updated_at", { withTimezone: true })
       .defaultNow()
       .notNull(),
+    sdkVersion: text("sdk_version"),
 
     // ==========================================
     // V1 API run lifecycle fields
@@ -606,6 +607,10 @@ export const threads = pgTable(
       index("threads_project_id_idx").on(table.projectId),
       // Stand-alone index on created_at for sorting/filtering by creation time.
       index("threads_created_at_idx").on(table.createdAt),
+      // SDK version index for analytics/reporting queries
+      index("threads_sdk_version_idx")
+        .on(table.sdkVersion)
+        .where(sql`${table.sdkVersion} IS NOT NULL`),
       // Note: threads.current_run_id -> runs.id FK is added via migration SQL
       // to avoid circular type inference issues between threads and runs tables
     ];
@@ -729,6 +734,7 @@ export const messages = pgTable(
     error: text("error"),
     metadata: customJsonb<Record<string, unknown>>("metadata"),
     isCancelled: boolean("is_cancelled").default(false).notNull(),
+    sdkVersion: text("sdk_version"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .default(sql`clock_timestamp()`)
       .notNull(),
@@ -752,6 +758,9 @@ export const messages = pgTable(
         table.threadId,
         table.parentMessageId,
       ),
+      index("messages_sdk_version_idx")
+        .on(table.sdkVersion)
+        .where(sql`${table.sdkVersion} IS NOT NULL`),
       // Ensure a parent belongs to the same thread by:
       // 1) creating a unique constraint on (thread_id, id)
       // 2) adding a composite FK (thread_id, parent_message_id) -> (thread_id, id)
@@ -1087,6 +1096,9 @@ export const tamboUsers = pgTable(
     legalAccepted: boolean("legal_accepted").notNull().default(false),
     legalAcceptedAt: timestamp("legal_accepted_at", { withTimezone: true }),
     legalVersion: text("legal_version"),
+
+    // Referral source tracking
+    referralSource: text("referral_source"),
 
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()

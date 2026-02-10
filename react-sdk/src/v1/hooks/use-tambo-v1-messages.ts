@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * useTamboV1Messages - Messages Hook for v1 API
+ * useTamboMessages - Messages Hook
  *
  * Provides access to messages in a thread with streaming state awareness.
  * Messages are accumulated from AG-UI events during streaming.
@@ -9,31 +9,31 @@
 
 import { useMemo } from "react";
 import { useStreamState } from "../providers/tambo-v1-stream-context";
-import type { TamboV1Message } from "../types/message";
+import type { TamboThreadMessage } from "../types/message";
 
 /**
- * Return type for useTamboV1Messages hook
+ * Return type for useTamboMessages hook
  */
-export interface UseTamboV1MessagesReturn {
+export interface UseTamboThreadMessagesReturn {
   /**
    * All messages in the thread
    */
-  messages: TamboV1Message[];
+  messages: TamboThreadMessage[];
 
   /**
    * The most recent message (last in the list)
    */
-  lastMessage: TamboV1Message | undefined;
+  lastMessage: TamboThreadMessage | undefined;
 
   /**
    * User messages only
    */
-  userMessages: TamboV1Message[];
+  userMessages: TamboThreadMessage[];
 
   /**
    * Assistant messages only
    */
-  assistantMessages: TamboV1Message[];
+  assistantMessages: TamboThreadMessage[];
 
   /**
    * Whether there are any messages
@@ -56,7 +56,7 @@ export interface UseTamboV1MessagesReturn {
  * @example
  * ```tsx
  * function MessageList({ threadId }: { threadId: string }) {
- *   const { messages, hasMessages, lastMessage } = useTamboV1Messages(threadId);
+ *   const { messages, hasMessages, lastMessage } = useTamboMessages(threadId);
  *
  *   if (!hasMessages) {
  *     return <EmptyState />;
@@ -72,7 +72,9 @@ export interface UseTamboV1MessagesReturn {
  * }
  * ```
  */
-export function useTamboV1Messages(threadId: string): UseTamboV1MessagesReturn {
+export function useTamboMessages(
+  threadId: string,
+): UseTamboThreadMessagesReturn {
   const streamState = useStreamState();
   const threadState = streamState.threadMap[threadId];
 

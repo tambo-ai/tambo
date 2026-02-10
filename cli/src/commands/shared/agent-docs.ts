@@ -4,6 +4,7 @@ import inquirer from "inquirer";
 import ora from "ora";
 import path from "path";
 import { COMPONENT_SUBDIR } from "../../constants/paths.js";
+import { isInteractive } from "../../utils/interactive.js";
 
 const TAMBO_SECTION_VERSION = "v1.0";
 const VERSION_MARKER = `<!-- tambo-docs-${TAMBO_SECTION_VERSION} -->`;
@@ -120,7 +121,11 @@ export async function handleAgentDocsUpdate(
     }
   }
 
-  const spinner = ora("Setting up agent documentation...").start();
+  const interactive = isInteractive();
+  const spinner = ora({
+    text: "Setting up agent documentation...",
+    isEnabled: interactive,
+  }).start();
 
   try {
     const updates: string[] = [];
@@ -174,11 +179,21 @@ export async function handleAgentDocsUpdate(
       }
     }
 
-    spinner.succeed(`Agent docs: ${updates.join(", ")}`);
+    if (interactive) {
+      spinner.succeed(`Agent docs: ${updates.join(", ")}`);
+    } else {
+      console.log(`Agent docs: ${updates.join(", ")}`);
+    }
   } catch (error) {
-    spinner.fail(
-      `Failed: ${error instanceof Error ? error.message : String(error)}`,
-    );
+    if (interactive) {
+      spinner.fail(
+        `Failed: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    } else {
+      console.error(
+        `Agent docs failed: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
     throw error;
   }
 }

@@ -2,14 +2,25 @@ import TamboAI from "@tambo-ai/typescript-sdk";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { renderHook, waitFor } from "@testing-library/react";
 import React from "react";
-import { useTamboClient } from "../../providers/tambo-client-provider";
-import { useTamboV1Thread } from "./use-tambo-v1-thread";
+import {
+  useTamboClient,
+  useTamboQueryClient,
+} from "../../providers/tambo-client-provider";
+import { useTamboThread } from "./use-tambo-v1-thread";
 
 jest.mock("../../providers/tambo-client-provider", () => ({
   useTamboClient: jest.fn(),
+  useTamboQueryClient: jest.fn(),
 }));
 
-describe("useTamboV1Thread", () => {
+jest.mock("./use-tambo-v1-auth-state", () => ({
+  useTamboAuthState: () => ({
+    status: "identified",
+    source: "userKey",
+  }),
+}));
+
+describe("useTamboThread", () => {
   const mockThread = {
     id: "thread_123",
     runStatus: "idle",
@@ -45,13 +56,14 @@ describe("useTamboV1Thread", () => {
       },
     });
     jest.mocked(useTamboClient).mockReturnValue(mockTamboAI);
+    jest.mocked(useTamboQueryClient).mockReturnValue(queryClient);
     mockThreadsApi.retrieve.mockReset();
   });
 
   it("fetches thread by ID", async () => {
     mockThreadsApi.retrieve.mockResolvedValue(mockThread);
 
-    const { result } = renderHook(() => useTamboV1Thread("thread_123"), {
+    const { result } = renderHook(() => useTamboThread("thread_123"), {
       wrapper: TestWrapper,
     });
 
@@ -69,7 +81,7 @@ describe("useTamboV1Thread", () => {
     });
     mockThreadsApi.retrieve.mockReturnValue(promise);
 
-    const { result } = renderHook(() => useTamboV1Thread("thread_123"), {
+    const { result } = renderHook(() => useTamboThread("thread_123"), {
       wrapper: TestWrapper,
     });
 
@@ -86,7 +98,7 @@ describe("useTamboV1Thread", () => {
     const mockError = new Error("Thread not found");
     mockThreadsApi.retrieve.mockRejectedValue(mockError);
 
-    const { result } = renderHook(() => useTamboV1Thread("thread_123"), {
+    const { result } = renderHook(() => useTamboThread("thread_123"), {
       wrapper: TestWrapper,
     });
 

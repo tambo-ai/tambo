@@ -1,25 +1,52 @@
 import TamboAI from "@tambo-ai/typescript-sdk";
-import { QueryClient, useQueryClient } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { renderHook, act } from "@testing-library/react";
 import React from "react";
 import { z } from "zod";
-import { useTamboClient } from "../../providers/tambo-client-provider";
+import {
+  useTamboClient,
+  useTamboQueryClient,
+} from "../../providers/tambo-client-provider";
 import { useTamboRegistry } from "../../providers/tambo-registry-provider";
 import { useTamboContextHelpers } from "../../providers/tambo-context-helpers-provider";
 import { useStreamState, useThreadManagement } from "./tambo-v1-stream-context";
-import { TamboV1Provider, useTamboV1Config } from "./tambo-v1-provider";
+import { TamboProvider, useTamboConfig } from "./tambo-v1-provider";
+
+// Module-level QueryClient for tests - created lazily
+let testQueryClient: QueryClient | null = null;
 
 // Mock the client provider to capture the apiKey
-jest.mock("../../providers/tambo-client-provider", () => ({
-  useTamboClient: jest.fn(),
-  useTamboQueryClient: jest.fn(() => new QueryClient()),
-  TamboClientProvider: ({ children }: { children: React.ReactNode }) =>
+jest.mock("../../providers/tambo-client-provider", () => {
+  return {
+    useTamboClient: jest.fn(),
+    useTamboQueryClient: jest.fn(),
+    TamboClientProvider: jest.fn(
+      ({ children }: { children: React.ReactNode }) => children,
+    ),
+  };
+});
+
+// Mock MCP providers to avoid TamboClientContext dependency
+jest.mock("../../providers/tambo-mcp-token-provider", () => ({
+  TamboMcpTokenProvider: ({ children }: { children: React.ReactNode }) =>
     children,
 }));
 
-// Mock useTamboV1SendMessage to avoid complex dependencies
+jest.mock("../../mcp/tambo-mcp-provider", () => ({
+  TamboMcpProvider: ({ children }: { children: React.ReactNode }) => children,
+}));
+
+// Mock auth state to avoid TamboClientContext dependency
+jest.mock("../hooks/use-tambo-v1-auth-state", () => ({
+  useTamboAuthState: () => ({
+    status: "identified",
+    source: "userKey",
+  }),
+}));
+
+// Mock useTamboSendMessage to avoid complex dependencies
 jest.mock("../hooks/use-tambo-v1-send-message", () => ({
-  useTamboV1SendMessage: jest.fn(() => ({
+  useTamboSendMessage: jest.fn(() => ({
     mutateAsync: jest.fn(),
     mutate: jest.fn(),
     isPending: false,
@@ -30,7 +57,7 @@ jest.mock("../hooks/use-tambo-v1-send-message", () => ({
   })),
 }));
 
-describe("TamboV1Provider", () => {
+describe("TamboProvider", () => {
   const mockFetch: typeof fetch = async (..._args) => {
     throw new Error("fetch not implemented");
   };
@@ -41,12 +68,33 @@ describe("TamboV1Provider", () => {
   });
 
   beforeEach(() => {
+    // Create a fresh QueryClient for each test
+    testQueryClient = new QueryClient({
+      defaultOptions: {
+        queries: { retry: false },
+        mutations: { retry: false },
+      },
+    });
+
     jest.mocked(useTamboClient).mockReturnValue(mockClient);
+    jest.mocked(useTamboQueryClient).mockReturnValue(testQueryClient);
+
+    // Mock TamboClientProvider to wrap children with QueryClientProvider
+    const { TamboClientProvider } = jest.requireMock(
+      "../../providers/tambo-client-provider",
+    );
+    jest
+      .mocked(TamboClientProvider)
+      .mockImplementation(({ children }: { children: React.ReactNode }) => (
+        <QueryClientProvider client={testQueryClient!}>
+          {children}
+        </QueryClientProvider>
+      ));
   });
 
   it("provides access to registry context", () => {
     const wrapper = ({ children }: { children: React.ReactNode }) => (
-      <TamboV1Provider apiKey="test-api-key">{children}</TamboV1Provider>
+      <TamboProvider apiKey="test-api-key">{children}</TamboProvider>
     );
 
     const { result } = renderHook(() => useTamboRegistry(), { wrapper });
@@ -57,20 +105,22 @@ describe("TamboV1Provider", () => {
     expect(typeof result.current.registerTool).toBe("function");
   });
 
-  it("provides access to stream context", () => {
+  it("provides access to stream context with placeholder thread ready", () => {
     const wrapper = ({ children }: { children: React.ReactNode }) => (
-      <TamboV1Provider apiKey="test-api-key">{children}</TamboV1Provider>
+      <TamboProvider apiKey="test-api-key">{children}</TamboProvider>
     );
 
     const { result } = renderHook(() => useStreamState(), { wrapper });
 
     expect(result.current.threadMap).toBeDefined();
-    expect(result.current.currentThreadId).toBeNull();
+    // Initial state has placeholder thread for optimistic UI
+    expect(result.current.currentThreadId).toBe("placeholder");
+    expect(result.current.threadMap.placeholder).toBeDefined();
   });
 
   it("manages threads via useThreadManagement", () => {
     const wrapper = ({ children }: { children: React.ReactNode }) => (
-      <TamboV1Provider apiKey="test-api-key">{children}</TamboV1Provider>
+      <TamboProvider apiKey="test-api-key">{children}</TamboProvider>
     );
 
     const { result } = renderHook(
@@ -81,10 +131,10 @@ describe("TamboV1Provider", () => {
       { wrapper },
     );
 
-    // Initially no thread
-    expect(result.current.state.currentThreadId).toBeNull();
+    // Initially has placeholder thread for optimistic UI
+    expect(result.current.state.currentThreadId).toBe("placeholder");
 
-    // Initialize and switch to a thread
+    // Initialize and switch to a different thread
     act(() => {
       result.current.management.initThread("thread_123");
       result.current.management.switchThread("thread_123");
@@ -94,27 +144,14 @@ describe("TamboV1Provider", () => {
     expect(result.current.state.threadMap.thread_123).toBeDefined();
   });
 
-  it("provides access to query client", () => {
+  it("provides access to query client via useTamboQueryClient", () => {
     const wrapper = ({ children }: { children: React.ReactNode }) => (
-      <TamboV1Provider apiKey="test-api-key">{children}</TamboV1Provider>
+      <TamboProvider apiKey="test-api-key">{children}</TamboProvider>
     );
 
-    const { result } = renderHook(() => useQueryClient(), { wrapper });
+    const { result } = renderHook(() => useTamboQueryClient(), { wrapper });
 
     expect(result.current).toBeInstanceOf(QueryClient);
-  });
-
-  it("uses custom query client when provided", () => {
-    const customClient = new QueryClient();
-    const wrapper = ({ children }: { children: React.ReactNode }) => (
-      <TamboV1Provider apiKey="test-api-key" queryClient={customClient}>
-        {children}
-      </TamboV1Provider>
-    );
-
-    const { result } = renderHook(() => useQueryClient(), { wrapper });
-
-    expect(result.current).toBe(customClient);
   });
 
   it("registers components when provided", () => {
@@ -132,9 +169,9 @@ describe("TamboV1Provider", () => {
     ];
 
     const wrapper = ({ children }: { children: React.ReactNode }) => (
-      <TamboV1Provider apiKey="test-api-key" components={components}>
+      <TamboProvider apiKey="test-api-key" components={components}>
         {children}
-      </TamboV1Provider>
+      </TamboProvider>
     );
 
     const { result } = renderHook(() => useTamboRegistry(), { wrapper });
@@ -161,9 +198,9 @@ describe("TamboV1Provider", () => {
     ];
 
     const wrapper = ({ children }: { children: React.ReactNode }) => (
-      <TamboV1Provider apiKey="test-api-key" tools={tools}>
+      <TamboProvider apiKey="test-api-key" tools={tools}>
         {children}
-      </TamboV1Provider>
+      </TamboProvider>
     );
 
     const { result } = renderHook(() => useTamboRegistry(), { wrapper });
@@ -178,9 +215,9 @@ describe("TamboV1Provider", () => {
     ];
 
     const wrapper = ({ children }: { children: React.ReactNode }) => (
-      <TamboV1Provider apiKey="test-api-key" mcpServers={mcpServers}>
+      <TamboProvider apiKey="test-api-key" mcpServers={mcpServers}>
         {children}
-      </TamboV1Provider>
+      </TamboProvider>
     );
 
     const { result } = renderHook(() => useTamboRegistry(), { wrapper });
@@ -197,12 +234,12 @@ describe("TamboV1Provider", () => {
       .mockResolvedValue("fallback result");
 
     const wrapper = ({ children }: { children: React.ReactNode }) => (
-      <TamboV1Provider
+      <TamboProvider
         apiKey="test-api-key"
         onCallUnregisteredTool={onCallUnregisteredTool}
       >
         {children}
-      </TamboV1Provider>
+      </TamboProvider>
     );
 
     const { result } = renderHook(() => useTamboRegistry(), { wrapper });
@@ -221,9 +258,9 @@ describe("TamboV1Provider", () => {
     ];
 
     const wrapper = ({ children }: { children: React.ReactNode }) => (
-      <TamboV1Provider apiKey="test-api-key" resources={resources}>
+      <TamboProvider apiKey="test-api-key" resources={resources}>
         {children}
-      </TamboV1Provider>
+      </TamboProvider>
     );
 
     const { result } = renderHook(() => useTamboRegistry(), { wrapper });
@@ -238,13 +275,13 @@ describe("TamboV1Provider", () => {
     const getResource = jest.fn().mockResolvedValue({ contents: [] });
 
     const wrapper = ({ children }: { children: React.ReactNode }) => (
-      <TamboV1Provider
+      <TamboProvider
         apiKey="test-api-key"
         listResources={listResources}
         getResource={getResource}
       >
         {children}
-      </TamboV1Provider>
+      </TamboProvider>
     );
 
     const { result } = renderHook(() => useTamboRegistry(), { wrapper });
@@ -254,24 +291,24 @@ describe("TamboV1Provider", () => {
     expect(result.current.resourceSource?.getResource).toBe(getResource);
   });
 
-  it("provides userKey via useTamboV1Config", () => {
+  it("provides userKey via useTamboConfig", () => {
     const wrapper = ({ children }: { children: React.ReactNode }) => (
-      <TamboV1Provider apiKey="test-api-key" userKey="my-user-key">
+      <TamboProvider apiKey="test-api-key" userKey="my-user-key">
         {children}
-      </TamboV1Provider>
+      </TamboProvider>
     );
 
-    const { result } = renderHook(() => useTamboV1Config(), { wrapper });
+    const { result } = renderHook(() => useTamboConfig(), { wrapper });
 
     expect(result.current.userKey).toBe("my-user-key");
   });
 
-  it("returns undefined userKey from useTamboV1Config when no userKey provided", () => {
+  it("returns undefined userKey from useTamboConfig when no userKey provided", () => {
     const wrapper = ({ children }: { children: React.ReactNode }) => (
-      <TamboV1Provider apiKey="test-api-key">{children}</TamboV1Provider>
+      <TamboProvider apiKey="test-api-key">{children}</TamboProvider>
     );
 
-    const { result } = renderHook(() => useTamboV1Config(), { wrapper });
+    const { result } = renderHook(() => useTamboConfig(), { wrapper });
 
     expect(result.current.userKey).toBeUndefined();
   });
@@ -283,9 +320,9 @@ describe("TamboV1Provider", () => {
     };
 
     const wrapper = ({ children }: { children: React.ReactNode }) => (
-      <TamboV1Provider apiKey="test-api-key" contextHelpers={contextHelpers}>
+      <TamboProvider apiKey="test-api-key" contextHelpers={contextHelpers}>
         {children}
-      </TamboV1Provider>
+      </TamboProvider>
     );
 
     const { result, rerender } = renderHook(() => useTamboContextHelpers(), {
@@ -302,14 +339,18 @@ describe("TamboV1Provider", () => {
     expect(helpers.getCurrentTime).toBe(contextHelpers.getCurrentTime);
   });
 
-  it("returns empty contextHelpers when none provided", async () => {
+  it("returns only interactables contextHelper when none explicitly provided", async () => {
     const wrapper = ({ children }: { children: React.ReactNode }) => (
-      <TamboV1Provider apiKey="test-api-key">{children}</TamboV1Provider>
+      <TamboProvider apiKey="test-api-key">{children}</TamboProvider>
     );
 
     const { result } = renderHook(() => useTamboContextHelpers(), { wrapper });
 
     const helpers = result.current.getContextHelpers();
-    expect(Object.keys(helpers)).toHaveLength(0);
+    // TamboInteractableProvider registers "interactables" and TamboContextAttachmentProvider registers "contextAttachments"
+    expect(Object.keys(helpers)).toEqual([
+      "interactables",
+      "contextAttachments",
+    ]);
   });
 });

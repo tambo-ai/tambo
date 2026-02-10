@@ -5,7 +5,11 @@ const config: Config = {
   testEnvironment: "jsdom",
   extensionsToTreatAsEsm: [".ts", ".tsx"],
   // Only match test files ending in .test.ts or .test.tsx
-  testMatch: ["<rootDir>/src/**/*.test.ts", "<rootDir>/src/**/*.test.tsx"],
+  testMatch: [
+    "<rootDir>/src/**/*.test.ts",
+    "<rootDir>/src/**/*.test.tsx",
+    "<rootDir>/scripts/**/*.test.ts",
+  ],
   moduleNameMapper: {
     // Ensure single React instance - point to monorepo root node_modules
     "^react$": "<rootDir>/../../node_modules/react",
@@ -23,6 +27,9 @@ const config: Config = {
     // Mock @tambo-ai/react/mcp
     "^@tambo-ai/react/mcp$":
       "<rootDir>/__tests__/__mocks__/@tambo-ai-react-mcp.ts",
+    // Map @tambo-ai/react-ui-base subpath exports to source
+    "^@tambo-ai/react-ui-base/(.*)$":
+      "<rootDir>/../react-ui-base/src/$1/index.tsx",
     // Mock CSS imports
     "\\.(css|less|scss|sass)$": "<rootDir>/__tests__/__mocks__/styleMock.js",
     // Mock react-media-recorder - uses browser APIs not available in jsdom

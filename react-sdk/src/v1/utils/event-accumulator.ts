@@ -1,5 +1,5 @@
 /**
- * Event Accumulation Logic for v1 Streaming API
+ * Event Accumulation Logic for Streaming API
  *
  * Implements a reducer that transforms AG-UI event streams into React state.
  * Used with useReducer to accumulate events into thread state.
@@ -14,6 +14,9 @@ import type {
   TextMessageContentEvent,
   TextMessageEndEvent,
   TextMessageStartEvent,
+  ThinkingTextMessageContentEvent,
+  ThinkingTextMessageEndEvent,
+  ThinkingTextMessageStartEvent,
   ToolCallArgsEvent,
   ToolCallEndEvent,
   ToolCallResultEvent,
@@ -26,10 +29,16 @@ import {
   type ComponentPropsDeltaEvent,
   type ComponentStartEvent,
   type ComponentStateDeltaEvent,
+  type MessageParentEvent,
   type RunAwaitingInputEvent,
 } from "../types/event";
-import type { Content, TamboV1Message } from "../types/message";
-import type { StreamingState, TamboV1Thread } from "../types/thread";
+import type {
+  Content,
+  InitialInputMessage,
+  TamboThreadMessage,
+} from "../types/message";
+import type { StreamingState, TamboThread } from "../types/thread";
+import { parse as parsePartialJson } from "partial-json";
 import { applyJsonPatch } from "./json-patch";
 
 /**
@@ -48,13 +57,20 @@ export class UnreachableCaseError extends Error {
  * Tracks thread data, streaming status, and accumulating data.
  */
 export interface ThreadState {
-  thread: TamboV1Thread;
+  thread: TamboThread;
   streaming: StreamingState;
   /**
    * Accumulating tool call arguments as JSON strings (for streaming).
    * Maps tool call ID to accumulated JSON string.
    */
   accumulatingToolArgs: Map<string, string>;
+  /**
+   * ID of the last completed run. Persists across the session so it's
+   * available as `previousRunId` when sending follow-up messages, even
+   * after the streaming state has been cleared (e.g., after page reload
+   * and thread re-fetch).
+   */
+  lastCompletedRunId?: string;
 }
 
 /**
@@ -70,7 +86,7 @@ export interface StreamState {
   /**
    * Current active thread ID (for UI context)
    */
-  currentThreadId: string | null;
+  currentThreadId: string;
 }
 
 /**
@@ -80,6 +96,8 @@ export interface EventAction {
   type: "EVENT";
   event: AGUIEvent;
   threadId: string;
+  /** Pre-parsed partial JSON args for TOOL_CALL_ARGS events. Avoids double-parsing. */
+  parsedToolArgs?: Record<string, unknown>;
 }
 
 /**
@@ -88,7 +106,7 @@ export interface EventAction {
 export interface InitThreadAction {
   type: "INIT_THREAD";
   threadId: string;
-  initialThread?: Partial<TamboV1Thread>;
+  initialThread?: Partial<TamboThread>;
 }
 
 /**
@@ -96,7 +114,7 @@ export interface InitThreadAction {
  */
 export interface SetCurrentThreadAction {
   type: "SET_CURRENT_THREAD";
-  threadId: string | null;
+  threadId: string;
 }
 
 /**
@@ -106,7 +124,42 @@ export interface SetCurrentThreadAction {
 export interface StartNewThreadAction {
   type: "START_NEW_THREAD";
   threadId: string;
-  initialThread?: Partial<TamboV1Thread>;
+  initialThread?: Partial<TamboThread>;
+}
+
+/**
+ * Load thread messages action - loads messages from API into stream state.
+ * Used when switching to an existing thread to populate its messages.
+ */
+export interface LoadThreadMessagesAction {
+  type: "LOAD_THREAD_MESSAGES";
+  threadId: string;
+  messages: TamboThreadMessage[];
+  /**
+   * If true, skip loading if the thread is currently streaming.
+   * This prevents overwriting in-flight streaming messages.
+   */
+  skipIfStreaming?: boolean;
+}
+
+/**
+ * Set last completed run ID action - stores metadata from the API
+ * so it can be used as `previousRunId` for follow-up messages.
+ */
+export interface SetLastCompletedRunIdAction {
+  type: "SET_LAST_COMPLETED_RUN_ID";
+  threadId: string;
+  lastCompletedRunId: string;
+}
+
+/**
+ * Update thread name action - sets the name on a thread.
+ * Used after auto-generating a thread name via the API.
+ */
+export interface UpdateThreadNameAction {
+  type: "UPDATE_THREAD_NAME";
+  threadId: string;
+  name: string;
 }
 
 /**
@@ -116,7 +169,10 @@ export type StreamAction =
   | EventAction
   | InitThreadAction
   | SetCurrentThreadAction
-  | StartNewThreadAction;
+  | StartNewThreadAction
+  | LoadThreadMessagesAction
+  | SetLastCompletedRunIdAction
+  | UpdateThreadNameAction;
 
 /**
  * Initial streaming state.
@@ -139,6 +195,7 @@ export function createInitialThreadState(threadId: string): ThreadState {
       status: "idle",
       createdAt: now,
       updatedAt: now,
+      lastRunCancelled: false,
     },
     streaming: initialStreamingState,
     accumulatingToolArgs: new Map(),
@@ -146,13 +203,69 @@ export function createInitialThreadState(threadId: string): ThreadState {
 }
 
 /**
- * Create initial stream state with empty threadMap.
+ * Placeholder thread ID used for new threads before they get a real ID from the server.
+ * This allows optimistic UI updates (showing user messages immediately) before the
+ * server responds with the actual thread ID.
+ */
+export const PLACEHOLDER_THREAD_ID = "placeholder";
+
+/**
+ * Check if a thread ID is a placeholder (not a real API thread ID).
+ * @param threadId - Thread ID to check
+ * @returns True if this is a placeholder thread ID
+ */
+export function isPlaceholderThreadId(
+  threadId: string | null | undefined,
+): boolean {
+  return threadId === PLACEHOLDER_THREAD_ID;
+}
+
+/**
+ * Create initial stream state with placeholder thread.
  * @returns Initial stream state
  */
 export function createInitialState(): StreamState {
   return {
-    threadMap: {},
-    currentThreadId: null,
+    threadMap: {
+      [PLACEHOLDER_THREAD_ID]: createInitialThreadState(PLACEHOLDER_THREAD_ID),
+    },
+    currentThreadId: PLACEHOLDER_THREAD_ID,
+  };
+}
+
+/**
+ * Create initial stream state with placeholder thread seeded with initial messages.
+ * The messages are converted from InputMessage format to TamboThreadMessage format
+ * for immediate UI display before any API call.
+ * @param initialMessages - Messages to seed the placeholder thread with
+ * @returns Initial stream state with messages in the placeholder thread
+ */
+export function createInitialStateWithMessages(
+  initialMessages: InitialInputMessage[],
+): StreamState {
+  const placeholderState = createInitialThreadState(PLACEHOLDER_THREAD_ID);
+  const messages: TamboThreadMessage[] = initialMessages.map((msg) => ({
+    id: `initial_${crypto.randomUUID()}`,
+    role: msg.role,
+    content: msg.content.map((c): Content => {
+      if (c.type === "text") {
+        return { type: "text" as const, text: c.text };
+      }
+      return c as Content;
+    }),
+  }));
+
+  return {
+    threadMap: {
+      [PLACEHOLDER_THREAD_ID]: {
+        ...placeholderState,
+        thread: {
+          ...placeholderState.thread,
+          messages,
+        },
+      },
+    },
+    currentThreadId: PLACEHOLDER_THREAD_ID,
   };
 }
 
@@ -176,10 +289,10 @@ interface ContentLocation {
  * @returns New messages array with the message replaced
  */
 function updateMessageAtIndex(
-  messages: TamboV1Message[],
+  messages: TamboThreadMessage[],
   index: number,
-  updatedMessage: TamboV1Message,
-): TamboV1Message[] {
+  updatedMessage: TamboThreadMessage,
+): TamboThreadMessage[] {
   return [
     ...messages.slice(0, index),
     updatedMessage,
@@ -221,7 +334,7 @@ function updateContentAtIndex(
  * @throws {Error} If content not found
  */
 function findContentById(
-  messages: TamboV1Message[],
+  messages: TamboThreadMessage[],
   contentType: "component" | "tool_use",
   contentId: string,
   eventName: string,
@@ -245,7 +358,7 @@ function findContentById(
  */
 function updateThreadMessages(
   threadState: ThreadState,
-  messages: TamboV1Message[],
+  messages: TamboThreadMessage[],
 ): ThreadState {
   return {
     ...threadState,
@@ -337,6 +450,46 @@ export function streamReducer(
       };
     }
 
+    case "LOAD_THREAD_MESSAGES": {
+      return handleLoadThreadMessages(state, action);
+    }
+
+    case "SET_LAST_COMPLETED_RUN_ID": {
+      const threadState =
+        state.threadMap[action.threadId] ??
+        createInitialThreadState(action.threadId);
+      return {
+        ...state,
+        threadMap: {
+          ...state.threadMap,
+          [action.threadId]: {
+            ...threadState,
+            lastCompletedRunId: action.lastCompletedRunId,
+          },
+        },
+      };
+    }
+
+    case "UPDATE_THREAD_NAME": {
+      const threadState = state.threadMap[action.threadId];
+      if (!threadState) {
+        return state;
+      }
+      return {
+        ...state,
+        threadMap: {
+          ...state.threadMap,
+          [action.threadId]: {
+            ...threadState,
+            thread: {
+              ...threadState.thread,
+              name: action.name,
+            },
+          },
+        },
+      };
+    }
+
     case "EVENT":
       // Fall through to event handling below
       break;
@@ -344,23 +497,63 @@ export function streamReducer(
 
   // Handle EVENT action
   const { event, threadId } = action;
+  const effectiveThreadId =
+    event.type === EventType.RUN_STARTED ? event.threadId : threadId;
 
   // Get the current thread state, auto-initializing if needed
   // Auto-initialization handles the case where events arrive before explicit thread init
   // (e.g., when creating a new thread and RUN_STARTED is the first event)
-  let threadState = state.threadMap[threadId];
+  let threadState = state.threadMap[effectiveThreadId];
   let updatedState = state;
 
   if (!threadState) {
     // Auto-initialize the thread to avoid dropping events
-    threadState = createInitialThreadState(threadId);
+    threadState = createInitialThreadState(effectiveThreadId);
     updatedState = {
       ...state,
       threadMap: {
         ...state.threadMap,
-        [threadId]: threadState,
+        [effectiveThreadId]: threadState,
       },
     };
+  }
+
+  // Handle placeholder thread migration for RUN_STARTED events
+  // When a new thread is created, messages may have been added to the placeholder thread
+  // for immediate UI feedback. Now that we have the real threadId, migrate those messages.
+  if (
+    event.type === EventType.RUN_STARTED &&
+    effectiveThreadId !== PLACEHOLDER_THREAD_ID
+  ) {
+    const placeholderState = updatedState.threadMap[PLACEHOLDER_THREAD_ID];
+    if (placeholderState?.thread.messages.length) {
+      // Prepend placeholder thread messages to the real thread
+      threadState = {
+        ...threadState,
+        thread: {
+          ...threadState.thread,
+          messages: [
+            ...placeholderState.thread.messages,
+            ...threadState.thread.messages,
+          ],
+        },
+      };
+
+      // Reset placeholder thread to empty state
+      const resetPlaceholder = createInitialThreadState(PLACEHOLDER_THREAD_ID);
+      updatedState = {
+        ...updatedState,
+        threadMap: {
+          ...updatedState.threadMap,
+          [PLACEHOLDER_THREAD_ID]: resetPlaceholder,
+          [effectiveThreadId]: threadState,
+        },
+        // Only switch selection if the user is currently on the placeholder thread
+        currentThreadId: isPlaceholderThreadId(updatedState.currentThreadId)
+          ? effectiveThreadId
+          : updatedState.currentThreadId,
+      };
+    }
   }
 
   // Process the event for this specific thread
@@ -398,7 +591,11 @@ export function streamReducer(
       break;
 
     case EventType.TOOL_CALL_ARGS:
-      updatedThreadState = handleToolCallArgs(threadState, event);
+      updatedThreadState = handleToolCallArgs(
+        threadState,
+        event,
+        action.parsedToolArgs,
+      );
       break;
 
     case EventType.TOOL_CALL_END:
@@ -413,11 +610,20 @@ export function streamReducer(
       updatedThreadState = handleCustomEvent(threadState, event);
       break;
 
+    case EventType.THINKING_TEXT_MESSAGE_START:
+      updatedThreadState = handleThinkingTextMessageStart(threadState, event);
+      break;
+
+    case EventType.THINKING_TEXT_MESSAGE_CONTENT:
+      updatedThreadState = handleThinkingTextMessageContent(threadState, event);
+      break;
+
+    case EventType.THINKING_TEXT_MESSAGE_END:
+      updatedThreadState = handleThinkingTextMessageEnd(threadState, event);
+      break;
+
     // Unsupported AG-UI event types - may be added in future phases
     case EventType.TEXT_MESSAGE_CHUNK:
-    case EventType.THINKING_TEXT_MESSAGE_START:
-    case EventType.THINKING_TEXT_MESSAGE_CONTENT:
-    case EventType.THINKING_TEXT_MESSAGE_END:
     case EventType.TOOL_CALL_CHUNK:
     case EventType.THINKING_START:
     case EventType.THINKING_END:
@@ -450,7 +656,7 @@ export function streamReducer(
     ...updatedState,
     threadMap: {
       ...updatedState.threadMap,
-      [threadId]: updatedThreadState,
+      [effectiveThreadId]: updatedThreadState,
     },
   };
 }
@@ -471,6 +677,8 @@ function handleRunStarted(
       ...threadState.thread,
       status: "streaming",
       updatedAt: new Date().toISOString(),
+      // Reset lastRunCancelled when a new run starts
+      lastRunCancelled: false,
     },
     streaming: {
       status: "streaming",
@@ -483,29 +691,34 @@ function handleRunStarted(
 /**
  * Handle RUN_FINISHED event.
  * @param threadState - Current thread state
- * @param _event - Run finished event (unused)
+ * @param event - Run finished event containing the completed run's ID
  * @returns Updated thread state
  */
 function handleRunFinished(
   threadState: ThreadState,
-  _event: RunFinishedEvent,
+  event: RunFinishedEvent,
 ): ThreadState {
   return {
     ...threadState,
+    lastCompletedRunId:
+      event.runId ??
+      threadState.streaming.runId ??
+      threadState.lastCompletedRunId,
     thread: {
       ...threadState.thread,
-      status: "complete",
+      status: "idle",
       updatedAt: new Date().toISOString(),
     },
     streaming: {
       ...threadState.streaming,
-      status: "complete",
+      status: "idle",
     },
   };
 }
 
 /**
  * Handle RUN_ERROR event.
+ * Sets lastRunCancelled if the error code is "CANCELLED".
  * @param threadState - Current thread state
  * @param event - Run error event
  * @returns Updated thread state
@@ -514,27 +727,32 @@ function handleRunError(
   threadState: ThreadState,
   event: RunErrorEvent,
 ): ThreadState {
+  const isCancelled = event.code === "CANCELLED";
+
   return {
     ...threadState,
     thread: {
       ...threadState.thread,
-      status: "error",
+      status: "idle",
       updatedAt: new Date().toISOString(),
+      lastRunCancelled: isCancelled,
     },
     streaming: {
       ...threadState.streaming,
-      status: "error",
-      error: {
-        message: event.message,
-        code: event.code,
-      },
+      status: "idle",
+      error: isCancelled
+        ? undefined
+        : {
+            message: event.message,
+            code: event.code,
+          },
     },
   };
 }
 
 /**
  * Handle TEXT_MESSAGE_START event.
- * Creates a new message in the thread.
+ * Creates a new message or reuses an ephemeral reasoning message.
  * @param threadState - Current thread state
  * @param event - Text message start event
  * @returns Updated thread state
@@ -543,9 +761,65 @@ function handleTextMessageStart(
   threadState: ThreadState,
   event: TextMessageStartEvent,
 ): ThreadState {
-  const newMessage: TamboV1Message = {
+  const isAssistant = event.role !== "user";
+  const messages = threadState.thread.messages;
+
+  // For assistant messages, check if there's an ephemeral message with reasoning
+  // that we should merge into instead of creating a new message.
+  if (isAssistant) {
+    const ephemeralIndex = messages.findIndex(
+      (m) =>
+        m.role === "assistant" &&
+        m.id.startsWith("ephemeral_") &&
+        m.reasoning &&
+        m.reasoning.length > 0,
+    );
+
+    if (ephemeralIndex !== -1) {
+      // Update the ephemeral message with the real ID
+      const ephemeralMessage = messages[ephemeralIndex];
+      const updatedMessages = [...messages];
+      updatedMessages[ephemeralIndex] = {
+        ...ephemeralMessage,
+        id: event.messageId,
+      };
+
+      return {
+        ...threadState,
+        thread: {
+          ...threadState.thread,
+          messages: updatedMessages,
+          updatedAt: new Date().toISOString(),
+        },
+        streaming: {
+          ...threadState.streaming,
+          messageId: event.messageId,
+        },
+      };
+    }
+  }
+
+  // Check if a message with this ID already exists (e.g., created by
+  // handleMessageParent). If so, just update streaming state to track it.
+  const existingIndex = messages.findIndex((m) => m.id === event.messageId);
+  if (existingIndex !== -1) {
+    return {
+      ...threadState,
+      thread: {
+        ...threadState.thread,
+        updatedAt: new Date().toISOString(),
+      },
+      streaming: {
+        ...threadState.streaming,
+        messageId: event.messageId,
+      },
+    };
+  }
+
+  // No existing message to reuse - create a new message
+  const newMessage: TamboThreadMessage = {
     id: event.messageId,
-    role: event.role === "user" ? "user" : "assistant",
+    role: isAssistant ? "assistant" : "user",
     content: [],
     createdAt: new Date().toISOString(),
   };
@@ -554,7 +828,7 @@ function handleTextMessageStart(
     ...threadState,
     thread: {
       ...threadState.thread,
-      messages: [...threadState.thread.messages, newMessage],
+      messages: [...messages, newMessage],
       updatedAt: new Date().toISOString(),
     },
     streaming: {
@@ -609,7 +883,7 @@ function handleTextMessageContent(
         },
       ];
 
-  const updatedMessage: TamboV1Message = {
+  const updatedMessage: TamboThreadMessage = {
     ...message,
     content: updatedContent,
   };
@@ -651,6 +925,7 @@ function handleTextMessageEnd(
 /**
  * Handle TOOL_CALL_START event.
  * Adds a tool use content block to the current message.
+ * If no message exists, creates a synthetic assistant message to hold the tool call.
  * @param threadState - Current thread state
  * @param event - Tool call start event
  * @returns Updated thread state
@@ -662,20 +937,23 @@ function handleToolCallStart(
   const messageId = event.parentMessageId;
   const messages = threadState.thread.messages;
 
-  // If no parent message ID, use the last message
-  const messageIndex = messageId
-    ? messages.findIndex((m) => m.id === messageId)
-    : messages.length - 1;
-
-  if (messageIndex === -1) {
-    throw new Error(
-      messageId
-        ? `Message ${messageId} not found for TOOL_CALL_START event`
-        : `No messages exist for TOOL_CALL_START event`,
-    );
+  // Find the parent message for this tool call.
+  // If parentMessageId is provided, look it up directly.
+  // Otherwise fall back to the last message, but only if it's an assistant message.
+  // If the last message isn't assistant (e.g. it's the user message and the LLM
+  // didn't produce any text before the tool call), we'll create a synthetic
+  // assistant message below.
+  let messageIndex: number;
+  if (messageId) {
+    messageIndex = messages.findIndex((m) => m.id === messageId);
+  } else {
+    const lastIndex = messages.length - 1;
+    messageIndex =
+      lastIndex >= 0 && messages[lastIndex].role === "assistant"
+        ? lastIndex
+        : -1;
   }
 
-  const message = messages[messageIndex];
   const newContent: Content = {
     type: "tool_use",
     id: event.toolCallId,
@@ -683,7 +961,33 @@ function handleToolCallStart(
     input: {},
   };
 
-  const updatedMessage: TamboV1Message = {
+  // If no suitable assistant message found, create a synthetic one for the tool call
+  if (messageIndex === -1) {
+    const syntheticMessageId = messageId ?? `msg_tool_${event.toolCallId}`;
+    const syntheticMessage: TamboThreadMessage = {
+      id: syntheticMessageId,
+      role: "assistant",
+      content: [newContent],
+      createdAt: new Date().toISOString(),
+    };
+
+    return {
+      ...threadState,
+      thread: {
+        ...threadState.thread,
+        messages: [...messages, syntheticMessage],
+        updatedAt: new Date().toISOString(),
+      },
+      streaming: {
+        ...threadState.streaming,
+        messageId: syntheticMessageId,
+      },
+    };
+  }
+
+  const message = messages[messageIndex];
+
+  const updatedMessage: TamboThreadMessage = {
     ...message,
     content: [...message.content, newContent],
   };
@@ -696,8 +1000,9 @@ function handleToolCallStart(
 
 /**
  * Handle TOOL_CALL_ARGS event.
- * Accumulates JSON string deltas for tool call arguments.
- * The accumulated string will be parsed at TOOL_CALL_END.
+ * Accumulates JSON string deltas for tool call arguments and optimistically
+ * parses the partial JSON to update the tool_use content block in real-time.
+ * The final authoritative parse still happens at TOOL_CALL_END.
  * @param threadState - Current thread state
  * @param event - Tool call args event
  * @returns Updated thread state
@@ -705,17 +1010,78 @@ function handleToolCallStart(
 function handleToolCallArgs(
   threadState: ThreadState,
   event: ToolCallArgsEvent,
+  parsedToolArgs?: Record<string, unknown>,
 ): ThreadState {
   const toolCallId = event.toolCallId;
 
   // Accumulate the JSON string delta
   const accumulatedArgs = threadState.accumulatingToolArgs;
   const existingArgs = accumulatedArgs.get(toolCallId) ?? "";
+  const newAccumulatedJson = existingArgs + event.delta;
   const newAccumulatedArgs = new Map(accumulatedArgs);
-  newAccumulatedArgs.set(toolCallId, existingArgs + event.delta);
+  newAccumulatedArgs.set(toolCallId, newAccumulatedJson);
+
+  // Use pre-parsed args if provided, otherwise parse partial JSON ourselves
+  let parsedInput: Record<string, unknown> | undefined = parsedToolArgs;
+  if (!parsedInput) {
+    try {
+      const parsed: unknown = parsePartialJson(newAccumulatedJson);
+      if (
+        typeof parsed === "object" &&
+        parsed !== null &&
+        !Array.isArray(parsed)
+      ) {
+        parsedInput = parsed as Record<string, unknown>;
+      }
+    } catch {
+      // Partial JSON not parseable yet — leave input unchanged
+    }
+  }
+
+  if (!parsedInput) {
+    return {
+      ...threadState,
+      accumulatingToolArgs: newAccumulatedArgs,
+    };
+  }
+
+  // Update the tool_use content block with partially parsed input
+  const messages = threadState.thread.messages;
+  const { messageIndex, contentIndex } = findContentById(
+    messages,
+    "tool_use",
+    toolCallId,
+    "TOOL_CALL_ARGS event",
+  );
+
+  const message = messages[messageIndex];
+  const toolUseContent = message.content[contentIndex];
+
+  if (toolUseContent.type !== "tool_use") {
+    throw new Error(
+      `Content at index ${contentIndex} is not a tool_use block for TOOL_CALL_ARGS event`,
+    );
+  }
+
+  const updatedContent: Content = {
+    ...toolUseContent,
+    input: parsedInput,
+  };
+
+  const updatedMessage: TamboThreadMessage = {
+    ...message,
+    content: updateContentAtIndex(
+      message.content,
+      contentIndex,
+      updatedContent,
+    ),
+  };
 
   return {
-    ...threadState,
+    ...updateThreadMessages(
+      threadState,
+      updateMessageAtIndex(messages, messageIndex, updatedMessage),
+    ),
     accumulatingToolArgs: newAccumulatedArgs,
   };
 }
@@ -741,10 +1107,10 @@ function handleToolCallEnd(
     return threadState;
   }
 
-  // Parse the accumulated JSON
-  let parsedInput: unknown;
+  // Parse the accumulated JSON - tool inputs are always objects
+  let parsedInput: Record<string, unknown>;
   try {
-    parsedInput = JSON.parse(accumulatedJson);
+    parsedInput = JSON.parse(accumulatedJson) as Record<string, unknown>;
   } catch (error) {
     throw new Error(
       `Failed to parse tool call arguments for ${toolCallId}: ${error instanceof Error ? error.message : String(error)}. JSON: ${accumulatedJson}`,
@@ -774,7 +1140,7 @@ function handleToolCallEnd(
     input: parsedInput,
   };
 
-  const updatedMessage: TamboV1Message = {
+  const updatedMessage: TamboThreadMessage = {
     ...message,
     content: updateContentAtIndex(
       message.content,
@@ -798,7 +1164,7 @@ function handleToolCallEnd(
 
 /**
  * Handle TOOL_CALL_RESULT event.
- * Adds tool result to the message.
+ * Adds tool result to the specified message.
  * @param threadState - Current thread state
  * @param event - Tool call result event
  * @returns Updated thread state
@@ -832,7 +1198,7 @@ function handleToolCallResult(
     ],
   };
 
-  const updatedMessage: TamboV1Message = {
+  const updatedMessage: TamboThreadMessage = {
     ...message,
     content: [...message.content, newContent],
   };
@@ -878,6 +1244,9 @@ function handleCustomEvent(
     case "tambo.run.awaiting_input":
       return handleRunAwaitingInput(threadState, customEvent);
 
+    case "tambo.message.parent":
+      return handleMessageParent(threadState, customEvent);
+
     default: {
       // Exhaustiveness check: if a new event type is added to TamboCustomEvent
       // and not handled here, TypeScript will error
@@ -899,14 +1268,25 @@ function handleComponentStart(
   event: ComponentStartEvent,
 ): ThreadState {
   const messageId = event.value.messageId;
-  const messages = threadState.thread.messages;
+  let messages = threadState.thread.messages;
 
-  // Find the message
-  const messageIndex = messages.findIndex((m) => m.id === messageId);
+  // Find the message, or create it if it doesn't exist.
+  // The backend may emit component events before TEXT_MESSAGE_START when
+  // the LLM outputs a component tool call without preceding text.
+  let messageIndex = messages.findIndex((m) => m.id === messageId);
   if (messageIndex === -1) {
-    throw new Error(
-      `Message ${messageId} not found for tambo.component.start event`,
-    );
+    // Create a new assistant message for this component
+    const newMessage: TamboThreadMessage = {
+      id: messageId,
+      role: "assistant",
+      content: [],
+      createdAt: new Date().toISOString(),
+    };
+    messages = [...messages, newMessage];
+    messageIndex = messages.length - 1;
+
+    // Update thread state with the new message before adding the component
+    threadState = updateThreadMessages(threadState, messages);
   }
 
   const message = messages[messageIndex];
@@ -920,7 +1300,7 @@ function handleComponentStart(
     streamingState: "started",
   };
 
-  const updatedMessage: TamboV1Message = {
+  const updatedMessage: TamboThreadMessage = {
     ...message,
     content: [...message.content, newContent],
   };
@@ -982,7 +1362,7 @@ function handleComponentDelta(
     streamingState: "streaming",
   };
 
-  const updatedMessage: TamboV1Message = {
+  const updatedMessage: TamboThreadMessage = {
     ...message,
     content: updateContentAtIndex(
       message.content,
@@ -1034,7 +1414,7 @@ function handleComponentEnd(
     streamingState: "done",
   };
 
-  const updatedMessage: TamboV1Message = {
+  const updatedMessage: TamboThreadMessage = {
     ...message,
     content: updateContentAtIndex(
       message.content,
@@ -1070,6 +1450,354 @@ function handleRunAwaitingInput(
     streaming: {
       ...threadState.streaming,
       status: "waiting",
+    },
+  };
+}
+
+/**
+ * Handle tambo.message.parent event.
+ * Sets parentMessageId on the target message, creating a new empty assistant
+ * message if one doesn't already exist with the given ID.
+ *
+ * This event fires BEFORE TEXT_MESSAGE_START, so when handleTextMessageStart
+ * later finds/creates the message with the same ID, the parentMessageId will
+ * already be set.
+ * @param threadState - Current thread state
+ * @param event - Message parent event
+ * @returns Updated thread state
+ */
+function handleMessageParent(
+  threadState: ThreadState,
+  event: MessageParentEvent,
+): ThreadState {
+  const { messageId, parentMessageId } = event.value;
+  const messages = threadState.thread.messages;
+
+  // Find existing message or create a new empty assistant message
+  const messageIndex = messages.findIndex((m) => m.id === messageId);
+
+  if (messageIndex !== -1) {
+    // Message already exists - set parentMessageId on it
+    const message = messages[messageIndex];
+    const updatedMessage: TamboThreadMessage = {
+      ...message,
+      parentMessageId,
+    };
+    return updateThreadMessages(
+      threadState,
+      updateMessageAtIndex(messages, messageIndex, updatedMessage),
+    );
+  }
+
+  // Message doesn't exist yet - create a new empty assistant message
+  const newMessage: TamboThreadMessage = {
+    id: messageId,
+    role: "assistant",
+    content: [],
+    createdAt: new Date().toISOString(),
+    parentMessageId,
+  };
+
+  return updateThreadMessages(threadState, [...messages, newMessage]);
+}
+
+// ============================================================================
+// Reasoning Event Handlers (currently mapped from THINKING_TEXT_MESSAGE_* events)
+// ============================================================================
+
+/**
+ * Generate an ephemeral message ID for reasoning messages that arrive before TEXT_MESSAGE_START.
+ * Uses crypto.randomUUID() which is available in Node.js 19+ and modern browsers.
+ */
+function generateEphemeralMessageId(): string {
+  return `ephemeral_${crypto.randomUUID()}`;
+}
+
+/**
+ * Find or create an assistant message for reasoning events.
+ * Reasoning should only be attached to assistant messages.
+ * If no suitable assistant message exists, creates an ephemeral one.
+ * @param threadState - Current thread state
+ * @returns Object with messageIndex, messages array, and updated threadState
+ */
+function findOrCreateMessageForReasoning(threadState: ThreadState): {
+  messageIndex: number;
+  messages: TamboThreadMessage[];
+  threadState: ThreadState;
+} {
+  const messageId = threadState.streaming.messageId;
+  let messages = threadState.thread.messages;
+
+  // If we have an active streaming messageId, try to find it
+  if (messageId) {
+    const messageIndex = messages.findIndex((m) => m.id === messageId);
+    if (messageIndex !== -1 && messages[messageIndex].role === "assistant") {
+      return { messageIndex, messages, threadState };
+    }
+  }
+
+  // Look for the last assistant message
+  const lastAssistantIndex = messages.findLastIndex(
+    (m) => m.role === "assistant",
+  );
+
+  // If there's an assistant message and it's the most recent message, use it
+  // (Don't attach reasoning to an old assistant message if user message came after)
+  if (lastAssistantIndex !== -1 && lastAssistantIndex === messages.length - 1) {
+    return { messageIndex: lastAssistantIndex, messages, threadState };
+  }
+
+  // No suitable assistant message - create an ephemeral one
+  const ephemeralId = generateEphemeralMessageId();
+  const newMessage: TamboThreadMessage = {
+    id: ephemeralId,
+    role: "assistant",
+    content: [],
+    createdAt: new Date().toISOString(),
+  };
+  messages = [...messages, newMessage];
+  const messageIndex = messages.length - 1;
+
+  // Update thread state with new message
+  threadState = {
+    ...threadState,
+    thread: {
+      ...threadState.thread,
+      messages,
+      updatedAt: new Date().toISOString(),
+    },
+    streaming: {
+      ...threadState.streaming,
+      messageId: ephemeralId,
+    },
+  };
+
+  return { messageIndex, messages, threadState };
+}
+
+/**
+ * Handle THINKING_TEXT_MESSAGE_START event (will become REASONING_MESSAGE_START).
+ * Starts a new reasoning chunk by appending an empty string to the message's reasoning array.
+ * Records the start time for duration calculation.
+ * @param threadState - Current thread state
+ * @param event - Thinking text message start event
+ * @returns Updated thread state
+ */
+function handleThinkingTextMessageStart(
+  threadState: ThreadState,
+  event: ThinkingTextMessageStartEvent,
+): ThreadState {
+  const {
+    messageIndex,
+    messages,
+    threadState: updatedThreadState,
+  } = findOrCreateMessageForReasoning(threadState);
+  threadState = updatedThreadState;
+
+  const message = messages[messageIndex];
+  const existingReasoning = message.reasoning ?? [];
+
+  const updatedMessage: TamboThreadMessage = {
+    ...message,
+    reasoning: [...existingReasoning, ""],
+  };
+
+  // Record reasoning start time if this is the first reasoning chunk
+  const reasoningStartTime =
+    threadState.streaming.reasoningStartTime ?? event.timestamp ?? Date.now();
+
+  return {
+    ...updateThreadMessages(
+      threadState,
+      updateMessageAtIndex(messages, messageIndex, updatedMessage),
+    ),
+    streaming: {
+      ...threadState.streaming,
+      reasoningStartTime,
+    },
+  };
+}
+
+/**
+ * Handle THINKING_TEXT_MESSAGE_CONTENT event (will become REASONING_MESSAGE_CONTENT).
+ * Appends delta text to the last reasoning chunk.
+ * @param threadState - Current thread state
+ * @param event - Thinking text message content event
+ * @returns Updated thread state
+ */
+function handleThinkingTextMessageContent(
+  threadState: ThreadState,
+  event: ThinkingTextMessageContentEvent,
+): ThreadState {
+  const {
+    messageIndex,
+    messages,
+    threadState: updatedThreadState,
+  } = findOrCreateMessageForReasoning(threadState);
+  threadState = updatedThreadState;
+
+  const message = messages[messageIndex];
+  const existingReasoning = message.reasoning ?? [];
+
+  if (existingReasoning.length === 0) {
+    // No reasoning chunk started - start one implicitly
+    const updatedMessage: TamboThreadMessage = {
+      ...message,
+      reasoning: [event.delta],
+    };
+
+    return {
+      ...updateThreadMessages(
+        threadState,
+        updateMessageAtIndex(messages, messageIndex, updatedMessage),
+      ),
+      streaming: {
+        ...threadState.streaming,
+        reasoningStartTime:
+          threadState.streaming.reasoningStartTime ??
+          event.timestamp ??
+          Date.now(),
+      },
+    };
+  }
+
+  // Append to the last reasoning chunk
+  const updatedReasoning = [
+    ...existingReasoning.slice(0, -1),
+    existingReasoning[existingReasoning.length - 1] + event.delta,
+  ];
+
+  const updatedMessage: TamboThreadMessage = {
+    ...message,
+    reasoning: updatedReasoning,
+  };
+
+  return updateThreadMessages(
+    threadState,
+    updateMessageAtIndex(messages, messageIndex, updatedMessage),
+  );
+}
+
+/**
+ * Handle THINKING_TEXT_MESSAGE_END event (will become REASONING_MESSAGE_END).
+ * Calculates and stores the reasoning duration.
+ * @param threadState - Current thread state
+ * @param event - Thinking text message end event
+ * @returns Updated thread state
+ */
+function handleThinkingTextMessageEnd(
+  threadState: ThreadState,
+  event: ThinkingTextMessageEndEvent,
+): ThreadState {
+  const {
+    messageIndex,
+    messages,
+    threadState: updatedThreadState,
+  } = findOrCreateMessageForReasoning(threadState);
+  threadState = updatedThreadState;
+
+  const message = messages[messageIndex];
+
+  // Calculate duration if we have a start time
+  const reasoningStartTime = threadState.streaming.reasoningStartTime;
+  const endTime = event.timestamp ?? Date.now();
+  const reasoningDurationMS = reasoningStartTime
+    ? endTime - reasoningStartTime
+    : undefined;
+
+  const updatedMessage: TamboThreadMessage = {
+    ...message,
+    reasoningDurationMS:
+      reasoningDurationMS ?? message.reasoningDurationMS ?? undefined,
+  };
+
+  return updateThreadMessages(
+    threadState,
+    updateMessageAtIndex(messages, messageIndex, updatedMessage),
+  );
+}
+
+/**
+ * Handle LOAD_THREAD_MESSAGES action.
+ * Loads messages from API into stream state for an existing thread.
+ * Deduplicates by message ID, keeping existing messages (they may have in-flight updates).
+ * Sorts merged messages by createdAt to ensure chronological order.
+ * @param state - Current stream state
+ * @param action - Load thread messages action
+ * @returns Updated stream state
+ */
+function handleLoadThreadMessages(
+  state: StreamState,
+  action: LoadThreadMessagesAction,
+): StreamState {
+  const { threadId, messages, skipIfStreaming } = action;
+
+  // Get or create thread state
+  let threadState = state.threadMap[threadId];
+  if (!threadState) {
+    threadState = createInitialThreadState(threadId);
+  }
+
+  // Skip if streaming and skipIfStreaming is true
+  if (skipIfStreaming && threadState.streaming.status === "streaming") {
+    return state;
+  }
+
+  const existingMessages = threadState.thread.messages;
+
+  // Build a set of existing message IDs for fast lookup
+  const existingIds = new Set(existingMessages.map((m) => m.id));
+
+  // Filter out messages that already exist (keep existing, add new).
+  // API-loaded messages are by definition fully complete, so stamp
+  // streamingState: "done" on all component content blocks. This is
+  // required by downstream hooks (usePropsStreamingStatus) which check
+  // streamingState === "done" to report isSuccess: true.
+  const newMessages = messages
+    .filter((m) => !existingIds.has(m.id))
+    .map((m) => ({
+      ...m,
+      content: m.content.map((block): Content => {
+        if (block.type !== "component") return block;
+        if (
+          block.streamingState !== undefined &&
+          block.streamingState !== "done"
+        ) {
+          console.warn(
+            `LOAD_THREAD_MESSAGES: component "${block.id}" has unexpected ` +
+              `streamingState "${block.streamingState}". API-loaded messages ` +
+              `should not have in-flight streaming state.`,
+          );
+        }
+        return { ...block, streamingState: "done" as const };
+      }),
+    }));
+
+  // Merge and sort by createdAt
+  const mergedMessages = [...existingMessages, ...newMessages].toSorted(
+    (a, b) => {
+      // Messages without createdAt go to the end
+      if (!a.createdAt && !b.createdAt) return 0;
+      if (!a.createdAt) return 1;
+      if (!b.createdAt) return -1;
+      return a.createdAt.localeCompare(b.createdAt);
+    },
+  );
+
+  const updatedThreadState: ThreadState = {
+    ...threadState,
+    thread: {
+      ...threadState.thread,
+      messages: mergedMessages,
+      updatedAt: new Date().toISOString(),
+    },
+  };
+
+  return {
+    ...state,
+    threadMap: {
+      ...state.threadMap,
+      [threadId]: updatedThreadState,
     },
   };
 }

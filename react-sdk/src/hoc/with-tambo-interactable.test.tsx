@@ -1,7 +1,7 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import React from "react";
 import { z } from "zod/v3";
-import { useTamboCurrentComponent } from "../hooks/use-current-message";
+import { useTamboCurrentComponent } from "../v1/hooks/use-tambo-current-message";
 import { TamboInteractableProvider } from "../providers/tambo-interactable-provider";
 import { withTamboInteractable } from "./with-tambo-interactable";
 
@@ -259,6 +259,26 @@ describe("withTamboInteractable", () => {
     // These props should be filtered out
     expect(screen.getByTestId("has-ready")).toHaveTextContent("no");
     expect(screen.getByTestId("has-update")).toHaveTextContent("no");
+  });
+
+  it("should pass annotations config to addInteractableComponent", () => {
+    const InteractableComponent = withTamboInteractable(TestComponent, {
+      componentName: "TestComponent",
+      description: "A test component",
+      annotations: { tamboStreamableHint: false },
+    });
+
+    render(
+      <TamboInteractableProvider>
+        <InteractableComponent title="Test" />
+      </TamboInteractableProvider>,
+    );
+
+    expect(mockAddInteractableComponent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        annotations: { tamboStreamableHint: false },
+      }),
+    );
   });
 
   it("should work without propsSchema", () => {

@@ -5,7 +5,12 @@ import {
   IsNotEmpty,
   IsIn,
   IsObject,
+  IsInt,
+  IsBoolean,
+  Min,
+  Max,
 } from "class-validator";
+import { Type } from "class-transformer";
 import {
   V1ContentBlock,
   V1TextContentDto,
@@ -78,6 +83,27 @@ export class V1MessageDto {
   @IsOptional()
   @IsObject()
   metadata?: Record<string, unknown>;
+
+  @ApiProperty({
+    description:
+      "The id of the parent message, if the message was created during the " +
+      "generation of another message, such as during an agent call, MCP Elicitation, or MCP Sample",
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  parentMessageId?: string;
+
+  @ApiProperty({
+    description:
+      "Whether this message was interrupted by a run cancellation. " +
+      "When true, the message content may be incomplete.",
+    required: false,
+    example: false,
+  })
+  @IsOptional()
+  @IsBoolean()
+  isCancelled?: boolean;
 }
 
 /**
@@ -127,6 +153,59 @@ export class V1InputMessageDto {
   @IsOptional()
   @IsObject()
   metadata?: Record<string, unknown>;
+
+  @ApiProperty({
+    description:
+      "Additional context to provide to the AI beyond the user query, such as current page URL or application state",
+    required: false,
+  })
+  @IsOptional()
+  @IsObject()
+  additionalContext?: Record<string, unknown>;
+}
+
+/**
+ * Content types allowed in initial messages (text and resource only).
+ */
+export type V1InitialContent = V1TextContentDto | V1ResourceContentDto;
+
+/**
+ * Initial message for thread creation.
+ * Supports "user", "system", and "assistant" roles (unlike input messages which are user-only).
+ */
+@ApiSchema({ name: "InitialMessage" })
+@ApiExtraModels(V1TextContentDto, V1ResourceContentDto)
+export class V1InitialMessageDto {
+  @ApiProperty({
+    description:
+      "Message role - 'user', 'system', or 'assistant' for initial messages",
+    enum: ["user", "system", "assistant"],
+    example: "user",
+  })
+  @IsIn(["user", "system", "assistant"])
+  role!: "user" | "system" | "assistant";
+
+  @ApiDiscriminatedUnion({
+    types: [
+      { dto: V1TextContentDto, name: "text" },
+      { dto: V1ResourceContentDto, name: "resource" },
+    ],
+    description: "Content blocks (text or resource)",
+    isArray: true,
+    additionalOptions: {
+      required: true,
+    },
+  })
+  @IsNotEmpty()
+  content!: V1InitialContent[];
+
+  @ApiProperty({
+    description: "Additional metadata to attach to the message",
+    required: false,
+  })
+  @IsOptional()
+  @IsObject()
+  metadata?: Record<string, unknown>;
 }
 
 /**
@@ -163,10 +242,14 @@ export class V1ListMessagesQueryDto {
     description: "Maximum number of messages to return",
     required: false,
     default: 50,
+    type: Number,
   })
   @IsOptional()
-  @IsString()
-  limit?: string;
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(100)
+  limit?: number;
 
   @ApiProperty({
     description: "Cursor for pagination",

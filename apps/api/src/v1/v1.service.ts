@@ -8,6 +8,12 @@ import {
   Logger,
   NotFoundException,
 } from "@nestjs/common";
+
+/**
+ * Interval in milliseconds for checking run cancellation status during streaming.
+ * Set to 500ms as a balance between responsiveness and database load.
+ */
+const CANCEL_CHECK_INTERVAL_MS = 500;
 import * as Sentry from "@sentry/nestjs";
 import {
   EventType,
@@ -18,12 +24,14 @@ import {
 } from "@ag-ui/core";
 import {
   AsyncQueue,
-  ContentPartType,
-  MessageRole,
+  GenerationStage,
   V1RunStatus,
   type UnsavedThreadToolMessage,
 } from "@tambo-ai-cloud/core";
-import { sanitizeEvent } from "@tambo-ai-cloud/backend";
+import {
+  sanitizeEvent,
+  createMessageParentEvent,
+} from "@tambo-ai-cloud/backend";
 import type { HydraDatabase, HydraDb } from "@tambo-ai-cloud/db";
 import {
   dbMessageToThreadMessage,
@@ -45,6 +53,7 @@ import {
 import { V1CreateRunDto } from "./dto/run.dto";
 import {
   convertV1ComponentsToInternal,
+  convertV1ToolChoiceToInternal,
   convertV1ToolsToInternal,
 } from "./v1-tool-conversions";
 import {
@@ -59,7 +68,6 @@ import {
 } from "./v1-tool-results";
 import type { StreamQueueItem } from "../threads/dto/stream-queue-item";
 import { ThreadsService } from "../threads/threads.service";
-import type { MessageRequest } from "../threads/dto/message.dto";
 import { DATABASE } from "../common/middleware/db-transaction-middleware";
 import {
   V1GetMessageResponseDto,
@@ -72,11 +80,16 @@ import {
   V1GetThreadResponseDto,
   V1ListThreadsQueryDto,
   V1ListThreadsResponseDto,
+  V1UpdateThreadDto,
+  V1UpdateThreadResponseDto,
 } from "./dto/thread.dto";
 import {
   threadToDto,
   messageToDto,
+  isHiddenUiToolResponse,
   ContentConversionOptions,
+  convertV1InputMessageToInternal,
+  convertV1InitialMessageToMessageRequest,
 } from "./v1-conversions";
 import { encodeV1CompoundCursor, parseV1CompoundCursor } from "./v1-pagination";
 import {
@@ -122,17 +135,12 @@ export class V1Service {
     private readonly threadsService: ThreadsService,
   ) {}
 
-  private parseLimit(raw: string | undefined, fallback: number): number {
-    if (raw !== undefined && raw.trim() === "") {
+  private parseLimit(raw: number | undefined, fallback: number): number {
+    const value = raw ?? fallback;
+    if (!Number.isFinite(value) || !Number.isInteger(value)) {
       throw new BadRequestException("Invalid limit");
     }
-
-    const parsed = raw === undefined ? fallback : Number(raw);
-    if (!Number.isInteger(parsed)) {
-      throw new BadRequestException("Invalid limit");
-    }
-
-    return Math.min(Math.max(1, parsed), 100);
+    return Math.min(Math.max(1, value), 100);
   }
 
   /**
@@ -194,42 +202,78 @@ export class V1Service {
       throw new NotFoundException(`Thread ${threadId} not found`);
     }
 
+    // Filter out hidden UI tool response messages
+    const visibleMessages = thread.messages.filter(
+      (m) => !isHiddenUiToolResponse(m),
+    );
+
     return {
       ...threadToDto(thread),
-      messages: thread.messages.map((m) =>
+      messages: visibleMessages.map((m) =>
         messageToDto(m, this.contentConversionOptions),
       ),
     };
   }
 
   /**
-   * Create a new empty thread.
+   * Create a new thread, optionally seeded with initial messages.
+   *
+   * Routes through ThreadsService.createThread so that system prompt injection,
+   * validation, and customInstructions logic apply automatically.
    */
   async createThread(
     projectId: string,
     contextKey: string,
     dto: V1CreateThreadDto,
   ): Promise<V1CreateThreadResponseDto> {
-    if (dto.initialMessages?.length) {
-      throw new BadRequestException(
-        "initialMessages is not supported yet. Create the thread first, then add messages via runs/message endpoints.",
-      );
-    }
+    const initialMessages = dto.initialMessages?.map(
+      convertV1InitialMessageToMessageRequest,
+    );
 
-    const thread = await operations.createThread(this.db, {
+    const thread = await this.threadsService.createThread(
+      { projectId, metadata: dto.metadata },
+      contextKey,
+      initialMessages,
+    );
+
+    return {
+      id: thread.id,
+      name: thread.name ?? undefined,
+      userKey: contextKey,
+      runStatus: V1RunStatus.IDLE,
+      metadata: thread.metadata ?? undefined,
+      createdAt: thread.createdAt.toISOString(),
+      updatedAt: thread.updatedAt.toISOString(),
+    };
+  }
+
+  /**
+   * Update thread metadata such as name.
+   */
+  async updateThread(
+    threadId: string,
+    projectId: string,
+    contextKey: string,
+    dto: V1UpdateThreadDto,
+  ): Promise<V1UpdateThreadResponseDto> {
+    // Verify thread exists and belongs to project
+    const existing = await operations.getThreadForProjectId(
+      this.db,
+      threadId,
       projectId,
       contextKey,
+      false, // includeSystem
+    );
+    if (!existing) {
+      throw new NotFoundException(`Thread ${threadId} not found`);
+    }
+
+    const updated = await operations.updateThread(this.db, threadId, {
+      name: dto.name,
       metadata: dto.metadata,
     });
 
-    if (!thread) {
-      throw new Error(
-        `Failed to create thread for project ${projectId}. ` +
-          `Database insert did not return created record.`,
-      );
-    }
-
-    return threadToDto(thread);
+    return threadToDto(updated);
   }
 
   /**
@@ -244,6 +288,14 @@ export class V1Service {
 
   /**
    * List messages in a thread with cursor-based pagination.
+   *
+   * Filters out hidden UI tool response messages (show_component_* tool results)
+   * which are internal implementation details.
+   *
+   * To handle pagination correctly with filtered messages, we fetch more messages
+   * than requested (2x limit) to ensure we have enough visible messages after
+   * filtering. This prevents incorrect hasMore values when hidden messages fall
+   * on page boundaries.
    */
   async listMessages(
     threadId: string,
@@ -260,33 +312,45 @@ export class V1Service {
       ? parseV1CompoundCursor(query.cursor)
       : undefined;
 
+    // Fetch more messages than needed to account for hidden messages that will
+    // be filtered out. We fetch 2x the limit (plus 1 for hasMore detection) to
+    // ensure we have enough visible messages after filtering.
+    const fetchLimit = Math.min((effectiveLimit + 1) * 2, 200);
     const messages = await operations.listMessagesPaginated(this.db, threadId, {
       cursor,
-      limit: effectiveLimit + 1,
+      limit: fetchLimit,
       order,
     });
 
-    const hasMore = messages.length > effectiveLimit;
+    // Filter out hidden UI tool response messages
+    const visibleMessages = messages.filter((m) => !isHiddenUiToolResponse(m));
+
+    // Determine hasMore based on whether we have more visible messages than requested
+    const hasMore = visibleMessages.length > effectiveLimit;
     const resultMessages = hasMore
-      ? messages.slice(0, effectiveLimit)
-      : messages;
+      ? visibleMessages.slice(0, effectiveLimit)
+      : visibleMessages;
 
     return {
       messages: resultMessages.map((m) =>
         messageToDto(m, this.contentConversionOptions),
       ),
-      nextCursor: hasMore
-        ? encodeV1CompoundCursor({
-            createdAt: resultMessages[resultMessages.length - 1].createdAt,
-            id: resultMessages[resultMessages.length - 1].id,
-          })
-        : undefined,
+      nextCursor:
+        hasMore && resultMessages.length > 0
+          ? encodeV1CompoundCursor({
+              createdAt: resultMessages[resultMessages.length - 1].createdAt,
+              id: resultMessages[resultMessages.length - 1].id,
+            })
+          : undefined,
       hasMore,
     };
   }
 
   /**
    * Get a single message by ID.
+   *
+   * Returns 404 for hidden UI tool response messages (show_component_* tool results)
+   * as they are internal implementation details.
    */
   async getMessage(
     threadId: string,
@@ -299,6 +363,13 @@ export class V1Service {
     );
 
     if (!message) {
+      throw new NotFoundException(
+        `Message ${messageId} not found in thread ${threadId}`,
+      );
+    }
+
+    // Treat hidden UI tool responses as not found
+    if (isHiddenUiToolResponse(message)) {
       throw new NotFoundException(
         `Message ${messageId} not found in thread ${threadId}`,
       );
@@ -343,7 +414,7 @@ export class V1Service {
       };
     }
 
-    if (hasMessages && !dto.previousRunId) {
+    if (hasMessages && !dto.previousRunId && thread.lastCompletedRunId) {
       return {
         success: false,
         error: new HttpException(
@@ -512,7 +583,8 @@ export class V1Service {
   /**
    * Cancel an active run.
    *
-   * Sets the thread status back to IDLE and marks the run as cancelled.
+   * Sets the thread status back to IDLE, marks the run as cancelled,
+   * and marks the latest assistant message as cancelled (if any).
    *
    * @returns The cancelled run info
    */
@@ -540,6 +612,28 @@ export class V1Service {
       }
 
       await operations.markRunCancelled(tx, runId);
+
+      // Reset generationStage so the thread isn't stuck in a processing state.
+      // The V1 runStatus lock is released above, but the legacy generationStage
+      // (checked by addMessageToThreadAndStream) must also be cleared.
+      await operations.updateThreadGenerationStatus(
+        tx,
+        threadId,
+        GenerationStage.CANCELLED,
+      );
+
+      // Use the "latest message" fallback here since we don't have access to the
+      // streaming context's message ID. This is called from connection close handlers
+      // and the DELETE endpoint. The streaming loop uses markMessageCancelled()
+      // directly when it detects cancellation since it knows the exact message ID.
+      const cancelledMessageId =
+        await operations.markLatestAssistantMessageCancelled(tx, threadId);
+      if (cancelledMessageId) {
+        this.logger.log(
+          `Marked message ${cancelledMessageId} as cancelled for run ${runId}`,
+        );
+      }
+
       return true;
     });
 
@@ -580,6 +674,7 @@ export class V1Service {
     dto: V1CreateRunDto,
     projectId: string,
     contextKey: string,
+    sdkVersion?: string,
   ): Promise<void> {
     return await Sentry.startSpan(
       {
@@ -618,7 +713,7 @@ export class V1Service {
 
         try {
           // 2. Convert V1 message to internal format
-          const messageToAppend = this.convertV1MessageToInternal(dto.message);
+          const messageToAppend = convertV1InputMessageToInternal(dto.message);
 
           // 3. Create streaming infrastructure
           const queue = new AsyncQueue<StreamQueueItem>();
@@ -635,31 +730,112 @@ export class V1Service {
           );
           const clientTools = convertV1ToolsToInternal(dto.tools);
 
+          // Create abort controller to stop LLM stream on cancellation
+          const abortController = new AbortController();
+
+          const forceToolChoice = convertV1ToolChoiceToInternal(dto.toolChoice);
+
           const streamingPromise = this.threadsService.advanceThread(
-            projectId,
+            { projectId, contextKey, sdkVersion },
             {
               messageToAppend,
               availableComponents,
               clientTools,
+              forceToolChoice,
             },
             threadId,
             {}, // toolCallCounts - start fresh for V1 API
             undefined, // cachedSystemTools
             queue,
-            contextKey,
+            abortController.signal,
           );
+
+          // Handle expected abort rejection when we cancel the stream
+          void streamingPromise.catch((error: unknown) => {
+            if (abortController.signal.aborted) {
+              this.logger.log(`LLM stream aborted for cancelled run ${runId}`);
+              return;
+            }
+            this.logger.error(`Streaming error for run ${runId}: ${error}`);
+          });
 
           // 5. Consume queue and emit AG-UI events, tracking tool calls
           const clientToolNames = new Set(dto.tools?.map((t) => t.name) ?? []);
           const toolCallTracker = new ClientToolCallTracker(clientToolNames);
 
+          // Track temp→real message ID mapping. The LLM client generates temporary
+          // IDs (e.g., "message-xyz") because it doesn't have DB access. advanceThread
+          // creates the real message in DB with IDs like "msg_abc123". We map temp IDs
+          // to real IDs so the client SDK can reference messages correctly.
+          const messageIdMapping = new Map<string, string>();
+
+          // Throttled cancellation check - poll database for run cancellation status
+          // at most once per CANCEL_CHECK_INTERVAL_MS to balance responsiveness vs DB load
+          let lastCancelCheckTime = Date.now();
+
+          // Track current message ID for precise cancellation marking
+          let currentMessageId: string | undefined;
+
           for await (const item of queue) {
-            // Emit all AG-UI events from this stream item
+            // Check for cancellation periodically (throttled to avoid excessive DB queries)
+            const now = Date.now();
+            if (now - lastCancelCheckTime >= CANCEL_CHECK_INTERVAL_MS) {
+              lastCancelCheckTime = now;
+              const run = await operations.getRun(this.db, threadId, runId);
+              if (run?.isCancelled) {
+                abortController.abort();
+                // Mark the specific message we know is being streamed
+                if (currentMessageId) {
+                  await operations.markMessageCancelled(
+                    this.db,
+                    currentMessageId,
+                  );
+                  this.logger.log(
+                    `Marked message ${currentMessageId} as cancelled for run ${runId}`,
+                  );
+                }
+                const cancelErrorEvent: RunErrorEvent = {
+                  type: EventType.RUN_ERROR,
+                  message: "Run cancelled",
+                  code: "CANCELLED",
+                  timestamp: Date.now(),
+                };
+                this.emitEvent(response, cancelErrorEvent);
+                this.logger.log(
+                  `Run ${runId} cancelled during streaming on thread ${threadId}`,
+                );
+                return;
+              }
+            }
+            // Extract real message ID from the response (persisted by advanceThread)
+            const realMessageId = item.response?.responseMessageDto?.id;
+            if (realMessageId) {
+              currentMessageId = realMessageId;
+            }
+
+            // Emit parent message relationship event before AG-UI events
+            const parentMsgId =
+              item.response?.responseMessageDto?.parentMessageId;
+            if (parentMsgId && realMessageId) {
+              const parentEvent = createMessageParentEvent({
+                messageId: realMessageId,
+                parentMessageId: parentMsgId,
+              });
+              this.emitEvent(response, parentEvent);
+            }
+
             if (item.aguiEvents) {
               for (const event of item.aguiEvents) {
+                // Transform temp IDs to real DB IDs
+                const transformedEvent = transformEventMessageIds(
+                  event,
+                  realMessageId,
+                  messageIdMapping,
+                );
+
                 // Track tool calls to detect pending client-side tools
-                toolCallTracker.processEvent(event);
-                this.emitEvent(response, event);
+                toolCallTracker.processEvent(transformedEvent);
+                this.emitEvent(response, transformedEvent);
               }
             }
           }
@@ -739,6 +915,12 @@ export class V1Service {
           // Update run and thread with error
           const didReleaseLock = await this.db.transaction(async (tx) => {
             await operations.completeRun(tx, runId, { error: errorInfo });
+            // Reset generationStage so the thread isn't stuck in a processing state
+            await operations.updateThreadGenerationStatus(
+              tx,
+              threadId,
+              GenerationStage.ERROR,
+            );
             return await operations.releaseRunLockIfCurrent(
               tx,
               threadId,
@@ -768,44 +950,6 @@ export class V1Service {
   private emitEvent(response: Response, event: BaseEvent): void {
     const sanitized = sanitizeEvent(event);
     response.write(`data: ${JSON.stringify(sanitized)}\n\n`);
-  }
-
-  /**
-   * Convert V1 input message to internal MessageRequest format.
-   *
-   * Note: tool_result blocks are filtered out because they are processed
-   * separately in startRun and saved as Tool role messages before this
-   * conversion happens.
-   */
-  private convertV1MessageToInternal(
-    message: V1CreateRunDto["message"],
-  ): MessageRequest {
-    // Filter out tool_result blocks - they're already saved as separate Tool messages
-    const nonToolResultContent = message.content.filter(
-      (block) => block.type !== "tool_result",
-    );
-
-    return {
-      role: MessageRole.User,
-      content: nonToolResultContent.map((block) => {
-        switch (block.type) {
-          case "text":
-            return {
-              type: ContentPartType.Text,
-              text: block.text,
-            };
-          case "resource":
-            return {
-              type: ContentPartType.Resource,
-              resource: block.resource,
-            };
-          default:
-            throw new Error(
-              `Unknown content type: ${(block as { type: string }).type}`,
-            );
-        }
-      }),
-    };
   }
 
   // ==========================================
@@ -1042,7 +1186,8 @@ export class V1Service {
     | Pick<typeof schema.messages.$inferSelect, "id" | "componentState">
     | undefined
   > {
-    // `content` is expected to be a JSON array of blocks. Non-array content is treated as empty.
+    // `content` is stored in SuperJSON format: {"json": [...], "meta": {...}}
+    // We need to access content->'json' to get the actual content array.
     const messages = await db
       .select({
         id: schema.messages.id,
@@ -1055,7 +1200,7 @@ export class V1Service {
           sql`exists (
             select 1
             from jsonb_array_elements(
-              case when jsonb_typeof(content) = 'array' then content else '[]'::jsonb end
+              case when jsonb_typeof(content->'json') = 'array' then content->'json' else '[]'::jsonb end
             ) as elem
             where elem->>'type' = 'component'
               and elem->>'id' = ${componentId}
@@ -1339,4 +1484,70 @@ export class V1Service {
       createdAt: suggestion.createdAt.toISOString(),
     };
   }
+}
+
+/**
+ * Transform temporary message IDs in AG-UI events to real database IDs.
+ *
+ * The LLM client (ai-sdk-client) generates temporary IDs like "message-xyz"
+ * because it doesn't have database access. advanceThread creates real messages
+ * in the DB with IDs like "msg_abc123". This function maps temp IDs to real IDs
+ * so the client SDK can correctly reference messages for operations like
+ * component state updates.
+ *
+ * @param event - The AG-UI event to transform
+ * @param realMessageId - The real DB message ID from advanceThread
+ * @param mapping - Map tracking temp→real ID associations
+ * @returns The event with real message IDs
+ */
+function transformEventMessageIds(
+  event: BaseEvent,
+  realMessageId: string | undefined,
+  mapping: Map<string, string>,
+): BaseEvent {
+  if (!realMessageId) {
+    return event;
+  }
+
+  // Handle TEXT_MESSAGE_* events (messageId at top level)
+  if ("messageId" in event && typeof event.messageId === "string") {
+    const tempId = event.messageId;
+
+    // Record mapping on first encounter
+    if (!mapping.has(tempId)) {
+      mapping.set(tempId, realMessageId);
+    }
+
+    return { ...event, messageId: mapping.get(tempId) ?? tempId };
+  }
+
+  // Handle tambo.component.start custom event (messageId in value)
+  if (event.type === EventType.CUSTOM) {
+    const customEvent = event as BaseEvent & {
+      name?: string;
+      value?: { messageId?: string };
+    };
+
+    if (
+      customEvent.name === "tambo.component.start" &&
+      customEvent.value?.messageId
+    ) {
+      const tempId = customEvent.value.messageId;
+
+      // Record mapping on first encounter
+      if (!mapping.has(tempId)) {
+        mapping.set(tempId, realMessageId);
+      }
+
+      return {
+        ...event,
+        value: {
+          ...customEvent.value,
+          messageId: mapping.get(tempId) ?? tempId,
+        },
+      };
+    }
+  }
+
+  return event;
 }

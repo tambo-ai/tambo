@@ -5,16 +5,21 @@ description: Use the `tambo init` command to create a Tambo project, get an API 
 
 `npx tambo init`
 
-Walks you through creating a Tambo project and getting your free API Key. If you don't already have an account, <a href="https://tambo.co/dashboard" className="text-secondary hover:underline font-medium">sign up for free</a> to get your API key.
+Walks you through creating a Tambo project and getting your free API Key. If you don't already have an account, <a href="https://console.tambo.co" className="text-secondary hover:underline font-medium">sign up for free</a> to get your API key.
 
 After obtaining your API key, you'll need to set it up in your project:
 
 <Callout type="info" title="API Key Setup">
   Create a `.env.local` file in the root of your project to store your Tambo API
-  key: ``` NEXT_PUBLIC_TAMBO_API_KEY=your_api_key_here ``` Replace
-  `your_api_key_here` with the actual API key you received during setup. This
-  file should not be committed to version control as it contains sensitive
-  information.
+  key. The variable name depends on your framework:
+
+- **Next.js:** `NEXT_PUBLIC_TAMBO_API_KEY=your_api_key_here`
+- **Vite:** `VITE_TAMBO_API_KEY=your_api_key_here`
+- **Other:** `TAMBO_API_KEY=your_api_key_here`
+
+The CLI detects your framework and uses the correct environment variable prefix
+automatically. This file should not be committed to version control.
+
 </Callout>
 
 **Examples:**
@@ -29,6 +34,65 @@ npx tambo init --yes
 # Use legacy peer deps
 npx tambo init --legacy-peer-deps
 ```
+
+## Non-Interactive Mode (CI/CD and AI Agents)
+
+When running in CI/CD pipelines, AI coding assistants (Claude Code, Cursor), or other non-interactive environments, use these flags to provide required input without prompts:
+
+### `--api-key`
+
+Directly set the API key without prompts. The simplest option for CI/CD:
+
+```bash
+npx tambo init --api-key="$TAMBO_API_KEY"
+```
+
+### `--project-name`
+
+Create a new Tambo Cloud project and generate an API key. Requires authentication:
+
+```bash
+npx tambo init --project-name=myapp
+```
+
+### `--project-id`
+
+Use an existing project by ID and generate an API key. Requires authentication:
+
+```bash
+npx tambo init --project-id=abc123
+```
+
+### `--no-browser`
+
+When authentication is needed but you can't open a browser (headless CI), this flag prints the auth URL instead:
+
+```bash
+npx tambo init --project-name=myapp --no-browser
+# Prints: Visit https://tambo.co/device?code=XXXX to authenticate
+```
+
+### CI/CD Examples
+
+**GitHub Actions:**
+
+```yaml
+- name: Initialize Tambo
+  run: npx tambo init --api-key="${{ secrets.TAMBO_API_KEY }}"
+```
+
+**Direct API key setup (any CI):**
+
+```bash
+export TAMBO_API_KEY=sk_...
+npx tambo init --api-key="$TAMBO_API_KEY"
+```
+
+<Callout type="info" title="Exit Codes">
+  In non-interactive mode, if required arguments are missing, the CLI exits with
+  code 2 and prints guidance on what flags to provide. See [global
+  options](/reference/cli/global-options#exit-codes) for details.
+</Callout>
 
 ## Hosting Options
 

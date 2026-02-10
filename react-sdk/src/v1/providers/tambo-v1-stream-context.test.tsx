@@ -1,14 +1,61 @@
 import { EventType, type RunStartedEvent } from "@ag-ui/core";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { renderHook, act } from "@testing-library/react";
 import React from "react";
 import {
-  TamboV1StreamProvider,
+  TamboStreamProvider,
   useStreamState,
   useStreamDispatch,
   useThreadManagement,
 } from "./tambo-v1-stream-context";
 
-describe("TamboV1StreamProvider", () => {
+// Mock useTamboClient and useTamboQueryClient to avoid TamboClientProvider dependency
+jest.mock("../../providers/tambo-client-provider", () => ({
+  useTamboClient: jest.fn(() => ({
+    threads: {
+      messages: {
+        list: jest.fn().mockResolvedValue({ messages: [], hasMore: false }),
+      },
+      retrieve: jest.fn().mockResolvedValue({}),
+    },
+  })),
+  useTamboQueryClient: jest.fn(),
+}));
+
+// Mock useTamboConfig to avoid TamboProvider dependency
+jest.mock("./tambo-v1-provider", () => {
+  const actual = jest.requireActual("./tambo-v1-provider");
+  return {
+    ...actual,
+    useTamboConfig: () => ({ userKey: undefined }),
+  };
+});
+
+// Import for mocking
+import { useTamboQueryClient } from "../../providers/tambo-client-provider";
+
+describe("TamboStreamProvider", () => {
+  let queryClient: QueryClient;
+
+  beforeEach(() => {
+    queryClient = new QueryClient({
+      defaultOptions: {
+        queries: { retry: false },
+      },
+    });
+    // Configure mock to return the test's queryClient
+    jest.mocked(useTamboQueryClient).mockReturnValue(queryClient);
+  });
+
+  const createWrapper = () => {
+    return function Wrapper({ children }: { children: React.ReactNode }) {
+      return (
+        <QueryClientProvider client={queryClient}>
+          <TamboStreamProvider>{children}</TamboStreamProvider>
+        </QueryClientProvider>
+      );
+    };
+  };
   describe("useStreamState", () => {
     it("throws when used outside provider", () => {
       // Suppress console.error for expected error
@@ -18,33 +65,35 @@ describe("TamboV1StreamProvider", () => {
 
       expect(() => {
         renderHook(() => useStreamState());
-      }).toThrow("useStreamState must be used within TamboV1StreamProvider");
+      }).toThrow("useStreamState must be used within TamboStreamProvider");
 
       consoleSpy.mockRestore();
     });
 
-    it("returns initial state with empty threadMap", () => {
-      const wrapper = ({ children }: { children: React.ReactNode }) => (
-        <TamboV1StreamProvider>{children}</TamboV1StreamProvider>
+    it("returns initial state with placeholder thread ready for new messages", () => {
+      const { result } = renderHook(() => useStreamState(), {
+        wrapper: createWrapper(),
+      });
+
+      // Initial state should have placeholder thread ready for optimistic UI
+      expect(result.current.currentThreadId).toBe("placeholder");
+      expect(result.current.threadMap.placeholder).toBeDefined();
+      expect(result.current.threadMap.placeholder.thread.id).toBe(
+        "placeholder",
       );
-
-      const { result } = renderHook(() => useStreamState(), { wrapper });
-
-      expect(result.current.threadMap).toEqual({});
-      expect(result.current.currentThreadId).toBeNull();
+      expect(result.current.threadMap.placeholder.thread.messages).toEqual([]);
+      expect(result.current.threadMap.placeholder.streaming.status).toBe(
+        "idle",
+      );
     });
 
     it("initializes thread via dispatch", () => {
-      const wrapper = ({ children }: { children: React.ReactNode }) => (
-        <TamboV1StreamProvider>{children}</TamboV1StreamProvider>
-      );
-
       const { result } = renderHook(
         () => ({
           state: useStreamState(),
           dispatch: useStreamDispatch(),
         }),
-        { wrapper },
+        { wrapper: createWrapper() },
       );
 
       act(() => {
@@ -67,16 +116,12 @@ describe("TamboV1StreamProvider", () => {
     });
 
     it("initializes thread with initial data via dispatch", () => {
-      const wrapper = ({ children }: { children: React.ReactNode }) => (
-        <TamboV1StreamProvider>{children}</TamboV1StreamProvider>
-      );
-
       const { result } = renderHook(
         () => ({
           state: useStreamState(),
           dispatch: useStreamDispatch(),
         }),
-        { wrapper },
+        { wrapper: createWrapper() },
       );
 
       act(() => {
@@ -84,13 +129,13 @@ describe("TamboV1StreamProvider", () => {
           type: "INIT_THREAD",
           threadId: "thread_123",
           initialThread: {
-            title: "Test Thread",
+            name: "Test Thread",
             metadata: { key: "value" },
           },
         });
       });
 
-      expect(result.current.state.threadMap.thread_123.thread.title).toBe(
+      expect(result.current.state.threadMap.thread_123.thread.name).toBe(
         "Test Thread",
       );
       expect(result.current.state.threadMap.thread_123.thread.metadata).toEqual(
@@ -113,22 +158,18 @@ describe("TamboV1StreamProvider", () => {
 
       expect(() => {
         renderHook(() => useStreamDispatch());
-      }).toThrow("useStreamDispatch must be used within TamboV1StreamProvider");
+      }).toThrow("useStreamDispatch must be used within TamboStreamProvider");
 
       consoleSpy.mockRestore();
     });
 
     it("dispatches events to update state", () => {
-      const wrapper = ({ children }: { children: React.ReactNode }) => (
-        <TamboV1StreamProvider>{children}</TamboV1StreamProvider>
-      );
-
       const { result } = renderHook(
         () => ({
           state: useStreamState(),
           dispatch: useStreamDispatch(),
         }),
-        { wrapper },
+        { wrapper: createWrapper() },
       );
 
       // Initialize the thread first
@@ -173,24 +214,18 @@ describe("TamboV1StreamProvider", () => {
 
       expect(() => {
         renderHook(() => useThreadManagement());
-      }).toThrow(
-        "useThreadManagement must be used within TamboV1StreamProvider",
-      );
+      }).toThrow("useThreadManagement must be used within TamboStreamProvider");
 
       consoleSpy.mockRestore();
     });
 
     it("initThread creates a new thread", () => {
-      const wrapper = ({ children }: { children: React.ReactNode }) => (
-        <TamboV1StreamProvider>{children}</TamboV1StreamProvider>
-      );
-
       const { result } = renderHook(
         () => ({
           state: useStreamState(),
           management: useThreadManagement(),
         }),
-        { wrapper },
+        { wrapper: createWrapper() },
       );
 
       act(() => {
@@ -204,16 +239,12 @@ describe("TamboV1StreamProvider", () => {
     });
 
     it("switchThread changes currentThreadId", () => {
-      const wrapper = ({ children }: { children: React.ReactNode }) => (
-        <TamboV1StreamProvider>{children}</TamboV1StreamProvider>
-      );
-
       const { result } = renderHook(
         () => ({
           state: useStreamState(),
           management: useThreadManagement(),
         }),
-        { wrapper },
+        { wrapper: createWrapper() },
       );
 
       // Initialize and switch to a thread
@@ -226,16 +257,12 @@ describe("TamboV1StreamProvider", () => {
     });
 
     it("startNewThread creates temp thread and switches to it", () => {
-      const wrapper = ({ children }: { children: React.ReactNode }) => (
-        <TamboV1StreamProvider>{children}</TamboV1StreamProvider>
-      );
-
       const { result } = renderHook(
         () => ({
           state: useStreamState(),
           management: useThreadManagement(),
         }),
-        { wrapper },
+        { wrapper: createWrapper() },
       );
 
       let tempId: string;
@@ -243,9 +270,9 @@ describe("TamboV1StreamProvider", () => {
         tempId = result.current.management.startNewThread();
       });
 
-      expect(tempId!).toMatch(/^temp_/);
-      expect(result.current.state.currentThreadId).toBe(tempId!);
-      expect(result.current.state.threadMap[tempId!]).toBeDefined();
+      expect(tempId!).toBe("placeholder");
+      expect(result.current.state.currentThreadId).toBe("placeholder");
+      expect(result.current.state.threadMap.placeholder).toBeDefined();
     });
   });
 });

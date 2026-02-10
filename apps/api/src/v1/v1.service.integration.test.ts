@@ -217,8 +217,15 @@ describe("V1Service Integration", () => {
         }
       });
 
-      it("requires previousRunId when thread has messages", async () => {
-        const mockThread = createMockDBThread("thread_123", "project_123");
+      it("requires previousRunId when thread has messages from a prior run", async () => {
+        const mockThread = createMockDBThread(
+          "thread_123",
+          "project_123",
+          undefined,
+          {
+            lastCompletedRunId: "run_previous",
+          },
+        );
 
         mockGetThreadForRunStart.mockResolvedValue({
           thread: mockThread,
@@ -238,6 +245,32 @@ describe("V1Service Integration", () => {
           expect(result.error.getStatus()).toBe(HttpStatus.BAD_REQUEST);
           const response = result.error.getResponse() as { type: string };
           expect(response.type).toContain("invalid_previous_run");
+        }
+      });
+
+      it("allows omitting previousRunId when messages are from initialMessages (no prior run)", async () => {
+        const mockThread = createMockDBThread("thread_123", "project_123");
+        // lastCompletedRunId defaults to null — no run has ever completed
+
+        mockGetThreadForRunStart.mockResolvedValue({
+          thread: mockThread,
+          hasMessages: true,
+        });
+
+        // Mock the transaction to simulate a successful run creation
+        mockDb.transaction.mockResolvedValue("run_new");
+
+        const result = await service.startRun("thread_123", {
+          message: {
+            role: "user",
+            content: [{ type: "text" as const, text: "hello" }],
+          },
+          // No previousRunId — thread has messages from initialMessages only
+        });
+
+        expect(result.success).toBe(true);
+        if (result.success) {
+          expect(result.runId).toBe("run_new");
         }
       });
 

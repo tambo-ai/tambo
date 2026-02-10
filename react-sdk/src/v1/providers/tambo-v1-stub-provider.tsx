@@ -1,9 +1,9 @@
 "use client";
 
 /**
- * TamboV1StubProvider - Mock Provider for Testing
+ * TamboStubProvider - Mock Provider for Testing
  *
- * Provides stubbed versions of all v1 contexts for testing components
+ * Provides stubbed versions of all contexts for testing components
  * that use Tambo hooks without making real API calls.
  * @example
  * ```tsx
@@ -20,9 +20,9 @@
  *
  * function TestComponent() {
  *   return (
- *     <TamboV1StubProvider thread={mockThread}>
+ *     <TamboStubProvider thread={mockThread}>
  *       <MyComponent />
- *     </TamboV1StubProvider>
+ *     </TamboStubProvider>
  *   );
  * }
  * ```
@@ -38,32 +38,32 @@ import type {
 } from "../../model/component-metadata";
 import { TamboClientContext } from "../../providers/tambo-client-provider";
 import { TamboRegistryContext } from "../../providers/tambo-registry-provider";
-import type { TamboV1Message } from "../types/message";
-import type { TamboV1Thread } from "../types/thread";
+import type { TamboThreadMessage } from "../types/message";
+import type { TamboThread } from "../types/thread";
 import type {
   StreamAction,
   StreamState,
   ThreadState,
 } from "../utils/event-accumulator";
-import { TamboV1ConfigContext, type TamboV1Config } from "./tambo-v1-provider";
+import { TamboConfigContext, type TamboConfig } from "./tambo-v1-provider";
 import {
-  TamboV1StreamProvider,
+  TamboStreamProvider,
   type ThreadManagement,
 } from "./tambo-v1-stream-context";
 import {
-  TamboV1ThreadInputContext,
-  type TamboV1ThreadInputContextProps,
+  TamboThreadInputContext,
+  type TamboThreadInputContextProps,
 } from "./tambo-v1-thread-input-provider";
 
 /**
- * Props for TamboV1StubProvider
+ * Props for TamboStubProvider
  */
-export interface TamboV1StubProviderProps {
+export interface TamboStubProviderProps {
   /**
    * Thread data to display.
-   * Can be a full TamboV1Thread or just an array of messages.
+   * Can be a full TamboThread or just an array of messages.
    */
-  thread?: TamboV1Thread | { messages: TamboV1Message[] };
+  thread?: TamboThread | { messages: TamboThreadMessage[] };
 
   /**
    * Optional thread ID. Defaults to "stub_thread" or thread.id if provided.
@@ -123,13 +123,13 @@ export interface TamboV1StubProviderProps {
 }
 
 /**
- * Creates a default TamboV1Thread from messages or returns the full thread.
+ * Creates a default TamboThread from messages or returns the full thread.
  * @returns A normalized thread object
  */
 function normalizeThread(
-  threadData: TamboV1Thread | { messages: TamboV1Message[] } | undefined,
+  threadData: TamboThread | { messages: TamboThreadMessage[] } | undefined,
   threadId: string,
-): TamboV1Thread {
+): TamboThread {
   if (!threadData) {
     return {
       id: threadId,
@@ -137,6 +137,7 @@ function normalizeThread(
       status: "idle",
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
+      lastRunCancelled: false,
     };
   }
 
@@ -150,11 +151,12 @@ function normalizeThread(
     status: "idle",
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
+    lastRunCancelled: false,
   };
 }
 
 /**
- * TamboV1StubProvider provides mock implementations of all v1 contexts
+ * TamboStubProvider provides mock implementations of all contexts
  * for testing components that use Tambo hooks.
  *
  * All operations are no-ops by default, returning stub data.
@@ -162,7 +164,7 @@ function normalizeThread(
  * Stream state is derived once from props and is not updated by thread management.
  * @returns A provider wrapper suitable for tests
  */
-export function TamboV1StubProvider({
+export function TamboStubProvider({
   children,
   thread: threadData,
   threadId: providedThreadId,
@@ -176,7 +178,7 @@ export function TamboV1StubProvider({
   onStartNewThread,
   onSwitchThread,
   onInitThread,
-}: PropsWithChildren<TamboV1StubProviderProps>) {
+}: PropsWithChildren<TamboStubProviderProps>) {
   // Determine thread ID
   const threadId =
     providedThreadId ??
@@ -264,17 +266,17 @@ export function TamboV1StubProvider({
   );
 
   // Config context
-  const config = useMemo<TamboV1Config>(() => ({ userKey }), [userKey]);
+  const config = useMemo<TamboConfig>(() => ({ userKey }), [userKey]);
 
   // Input state (managed internally for stub)
   const [inputValue, setInputValueInternal] = React.useState(initialInputValue);
 
   // Thread input context
-  const threadInputContext = useMemo<TamboV1ThreadInputContextProps>(() => {
+  const threadInputContext = useMemo<TamboThreadInputContextProps>(() => {
     const setValue: React.Dispatch<React.SetStateAction<string>> =
       onSetValue ?? setInputValueInternal;
 
-    const submit: TamboV1ThreadInputContextProps["submit"] =
+    const submit: TamboThreadInputContextProps["submit"] =
       onSubmit ??
       (async () => {
         return { threadId };
@@ -305,6 +307,7 @@ export function TamboV1StubProvider({
       context: undefined,
       submittedAt: 0,
       isPaused: false,
+      isDisabled: false,
     };
   }, [inputValue, threadId, onSubmit, onSetValue, setInputValueInternal]);
 
@@ -337,6 +340,9 @@ export function TamboV1StubProvider({
       client: stubClient,
       queryClient,
       isUpdatingToken: false,
+      tokenExchangeError: null,
+      userToken: undefined,
+      hasValidToken: false,
     }),
     [stubClient, queryClient],
   );
@@ -345,17 +351,17 @@ export function TamboV1StubProvider({
     <QueryClientProvider client={queryClient}>
       <TamboClientContext.Provider value={clientContext}>
         <TamboRegistryContext.Provider value={registryContext}>
-          <TamboV1ConfigContext.Provider value={config}>
-            <TamboV1StreamProvider
+          <TamboConfigContext.Provider value={config}>
+            <TamboStreamProvider
               state={streamState}
               dispatch={streamDispatch}
               threadManagement={threadManagement}
             >
-              <TamboV1ThreadInputContext.Provider value={threadInputContext}>
+              <TamboThreadInputContext.Provider value={threadInputContext}>
                 {children}
-              </TamboV1ThreadInputContext.Provider>
-            </TamboV1StreamProvider>
-          </TamboV1ConfigContext.Provider>
+              </TamboThreadInputContext.Provider>
+            </TamboStreamProvider>
+          </TamboConfigContext.Provider>
         </TamboRegistryContext.Provider>
       </TamboClientContext.Provider>
     </QueryClientProvider>

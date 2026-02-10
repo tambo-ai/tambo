@@ -67,7 +67,7 @@ const OPTION_DOCS: Record<string, string> = {
   yes: `${chalk.yellow("--yes, -y")}            Auto-answer yes to all prompts`,
   "skip-agent-docs": `${chalk.yellow("--skip-agent-docs")}     Skip creating/updating agent docs`,
   "legacy-peer-deps": `${chalk.yellow("--legacy-peer-deps")}   Use --legacy-peer-deps flag for npm install`,
-  template: `${chalk.yellow("--template, -t <name>")}  Template to use: standard, analytics`,
+  template: `${chalk.yellow("--template, -t <name>")}  Template to use: standard, vite, analytics`,
   "init-git": `${chalk.yellow("--init-git")}           Initialize git repository automatically`,
   "dry-run": `${chalk.yellow("--dry-run")}            Preview changes without applying them`,
   quiet: `${chalk.yellow("--quiet, -q")}          Exit code 0 if authenticated, 1 otherwise`,
@@ -204,6 +204,7 @@ const COMMAND_HELP_CONFIGS: Record<string, CommandHelp> = {
       console.log(`
 ${chalk.bold("Templates")}
   ${chalk.cyan("standard")}    - Tambo + Tools + MCP (recommended)
+  ${chalk.cyan("vite")}        - Tambo + TanStack Router + Vite
   ${chalk.cyan("analytics")}   - Generative UI Analytics Template`);
     },
   },
@@ -382,7 +383,7 @@ const cli = meow(generateGlobalHelp(), {
     },
     template: {
       type: "string",
-      description: "Specify template to use (standard, analytics)",
+      description: "Specify template to use (standard, vite, analytics)",
       shortFlag: "t",
     },
     prefix: {

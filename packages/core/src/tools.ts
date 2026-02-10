@@ -11,6 +11,10 @@ export enum ToolProviderType {
 
 const mcpAuthSupportMessage =
   "Server requires authentication. Tambo support for MCP Auth is coming soon!";
+
+function normalizeStatusCode(code: number | undefined): number {
+  return typeof code === "number" && code >= 100 && code <= 599 ? code : 500;
+}
 export async function validateMcpServer({
   url,
   customHeaders,
@@ -54,15 +58,23 @@ export async function validateMcpServer({
       return {
         valid: false as const,
         error: `Not a valid MCP SSE server: ${error.message}`,
-        statusCode: error.code,
+        statusCode: normalizeStatusCode(error.code),
         requiresAuth: !!oauthProvider,
       };
     }
     if (error instanceof StreamableHTTPError) {
+      if (error.code === 401) {
+        return {
+          valid: true as const,
+          error: mcpAuthSupportMessage,
+          statusCode: 401,
+          requiresAuth: true,
+        };
+      }
       return {
         valid: false as const,
         error: `Not a valid MCP Streamable HTTP server: ${error.message}`,
-        statusCode: 500,
+        statusCode: normalizeStatusCode(error.code),
         requiresAuth: !!oauthProvider,
       };
     }

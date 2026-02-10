@@ -1,5 +1,145 @@
 # Changelog
 
+## [0.143.0](https://github.com/tambo-ai/tambo/compare/api-v0.142.0...api-v0.143.0) (2026-02-10)
+
+
+### Features
+
+* **api:** convert emails to React Email, rewrite welcome copy ([#2350](https://github.com/tambo-ai/tambo/issues/2350)) ([c014c10](https://github.com/tambo-ai/tambo/commit/c014c10c8d0ad35777323e39b8226c9cb41d240e))
+
+## [0.142.0](https://github.com/tambo-ai/tambo/compare/api-v0.141.1...api-v0.142.0) (2026-02-10)
+
+
+### Features
+
+* **api:** expose parentMessageId on V1 messages and SDK ([#2349](https://github.com/tambo-ai/tambo/issues/2349)) ([fcd9ffc](https://github.com/tambo-ai/tambo/commit/fcd9ffcd0da0b23cece51f3b87a9b5deca73dd63))
+
+## [0.141.1](https://github.com/tambo-ai/tambo/compare/api-v0.141.0...api-v0.141.1) (2026-02-10)
+
+
+### Bug Fixes
+
+* **api:** skip previousRunId check for threads with only initialMessages ([#2347](https://github.com/tambo-ai/tambo/issues/2347)) ([9780eca](https://github.com/tambo-ai/tambo/commit/9780eca754e51842231e7d6a2d3046554fc0fa10))
+* remove displayMessage tambo param ([#2346](https://github.com/tambo-ai/tambo/issues/2346)) ([a9b3d4d](https://github.com/tambo-ai/tambo/commit/a9b3d4d6d3e8ac415e828d902a5e4810d9220169))
+
+## [0.141.0](https://github.com/tambo-ai/tambo/compare/api-v0.140.1...api-v0.141.0) (2026-02-09)
+
+
+### Features
+
+* **react-sdk:** expose updateThreadName for manual thread renaming ([#2328](https://github.com/tambo-ai/tambo/issues/2328)) ([3a60a65](https://github.com/tambo-ai/tambo/commit/3a60a65ba19aeb9d3ca7e39fa9aeea33557f5959))
+
+
+### Miscellaneous Chores
+
+* **test:** bump coverage thresholds (2026-02-09) ([#2323](https://github.com/tambo-ai/tambo/issues/2323)) ([0aac70b](https://github.com/tambo-ai/tambo/commit/0aac70b23da7ae51d9d449b3692b765570af44f9))
+
+## [0.140.1](https://github.com/tambo-ai/tambo/compare/api-v0.140.0...api-v0.140.1) (2026-02-08)
+
+
+### Bug Fixes
+
+* bump self-enforced max client connections ([#2300](https://github.com/tambo-ai/tambo/issues/2300)) ([7bca6e1](https://github.com/tambo-ai/tambo/commit/7bca6e1b324e3358010832cf2fe7678b906e44a5))
+
+## [0.140.0](https://github.com/tambo-ai/tambo/compare/api-v0.139.0...api-v0.140.0) (2026-02-08)
+
+
+### Features
+
+* **api:** require userKey or bearer token in all V1 thread routes ([#2293](https://github.com/tambo-ai/tambo/issues/2293)) ([efe5eeb](https://github.com/tambo-ai/tambo/commit/efe5eeb9208403919bcf6663c98f3a14a5f80546))
+
+
+### Bug Fixes
+
+* **api,react-sdk:** route V1 initialMessages through ThreadsService and support system/assistant roles ([#2295](https://github.com/tambo-ai/tambo/issues/2295)) ([3df637d](https://github.com/tambo-ai/tambo/commit/3df637dd3719617baa9637e9e7538e7959e33e02))
+* **api:** reset generationStage on V1 run cancel and error ([#2289](https://github.com/tambo-ai/tambo/issues/2289)) ([a99e17d](https://github.com/tambo-ai/tambo/commit/a99e17d38e3fc9de6ed5d6f7454e3d4b6cf9c19a))
+* **api:** return thread name in V1 thread DTO        ([#2286](https://github.com/tambo-ai/tambo/issues/2286)) ([eeb1665](https://github.com/tambo-ai/tambo/commit/eeb16658a003f64cc7f95aeece2e55884b9f7c5b))
+
+## [0.139.0](https://github.com/tambo-ai/tambo/compare/api-v0.138.0...api-v0.139.0) (2026-02-07)
+
+
+### Features
+
+* **api,react-sdk:** wire up toolChoice support end-to-end ([#2260](https://github.com/tambo-ai/tambo/issues/2260)) ([3106ab6](https://github.com/tambo-ai/tambo/commit/3106ab64a21a6086e5bea699936438a7a97b8580))
+* **react-sdk,api:** support initialMessages in V1 stack and add maxCalls to tool DTO ([#2264](https://github.com/tambo-ai/tambo/issues/2264)) ([872af14](https://github.com/tambo-ai/tambo/commit/872af14ee4054357b5e06fee5bab9236b9d50fc5))
+* **web:** move dashboard from /dashboard to root path ([#2232](https://github.com/tambo-ai/tambo/issues/2232)) ([9aec81d](https://github.com/tambo-ai/tambo/commit/9aec81d5e3017d4de5eb83d020bad4a9d401d70f))
+* **web:** track api_key_generated event in PostHog ([#2266](https://github.com/tambo-ai/tambo/issues/2266)) ([f64a037](https://github.com/tambo-ai/tambo/commit/f64a037be70bba4d08e674f6e2612c30b02f50ea))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump @types/node from 22.19.7 to 22.19.8 ([#2249](https://github.com/tambo-ai/tambo/issues/2249)) ([aed1ae6](https://github.com/tambo-ai/tambo/commit/aed1ae6a83a35f74e3c4d919f5ee266206711880))
+* **deps:** bump posthog-node from 5.24.1 to 5.24.9 ([#2248](https://github.com/tambo-ai/tambo/issues/2248)) ([87bfe9d](https://github.com/tambo-ai/tambo/commit/87bfe9ddc6f3eb4aca7e39ad4f786ce0ddd9e9d7))
+* **deps:** bump the nestjs group with 7 updates ([#2242](https://github.com/tambo-ai/tambo/issues/2242)) ([e4cb91d](https://github.com/tambo-ai/tambo/commit/e4cb91d465b30affc09db86a48e65be2636032b6))
+
+## [0.138.0](https://github.com/tambo-ai/tambo/compare/api-v0.137.0...api-v0.138.0) (2026-02-06)
+
+
+### Features
+
+* **api:** add SDK version tracking to messages and threads ([#2255](https://github.com/tambo-ai/tambo/issues/2255)) ([36a47bd](https://github.com/tambo-ai/tambo/commit/36a47bdf3cd7b7de8411a6d26ed100ffb5d48f90))
+
+
+### Bug Fixes
+
+* **api,react-sdk:** prevent MCP "Method not found" error when no servers configured ([#2223](https://github.com/tambo-ai/tambo/issues/2223)) ([1363bde](https://github.com/tambo-ai/tambo/commit/1363bde8668012734c5fb83cacbe6792352c2c89))
+
+## [0.137.0](https://github.com/tambo-ai/tambo/compare/api-v0.136.1...api-v0.137.0) (2026-02-06)
+
+
+### Features
+
+* **v1:** add run cancellation support ([#2213](https://github.com/tambo-ai/tambo/issues/2213)) ([27e6ac2](https://github.com/tambo-ai/tambo/commit/27e6ac2ecfd0b47d8cf683288bcdfe13d96ba014))
+
+
+### Bug Fixes
+
+* **api:** abort LLM HTTP stream when run is cancelled ([#2236](https://github.com/tambo-ai/tambo/issues/2236)) ([a96d856](https://github.com/tambo-ai/tambo/commit/a96d856e643b0aabd2c1ef2d9af20e549d3f01a1))
+* **api:** add PostHog env vars to turbo globalEnv for production analytics ([#2239](https://github.com/tambo-ai/tambo/issues/2239)) ([47cac2d](https://github.com/tambo-ai/tambo/commit/47cac2d62f16e63ab4e94465740900b296060ded))
+* **v1:** set isError flag on tool result errors ([#2229](https://github.com/tambo-ai/tambo/issues/2229)) ([1aa04ad](https://github.com/tambo-ai/tambo/commit/1aa04adf6817d51e9457de61904da8b096b2783b))
+
+## [0.136.1](https://github.com/tambo-ai/tambo/compare/api-v0.136.0...api-v0.136.1) (2026-02-05)
+
+
+### Bug Fixes
+
+* **api:** use computed component ID in content block for V1 API ([#2191](https://github.com/tambo-ai/tambo/issues/2191)) ([6d0a007](https://github.com/tambo-ai/tambo/commit/6d0a0074c74af79ad6d3f2cd18142f7cebe62715))
+* **api:** use real user ID for PostHog message_sent analytics ([#2212](https://github.com/tambo-ai/tambo/issues/2212)) ([2bea1e1](https://github.com/tambo-ai/tambo/commit/2bea1e1b4ea0f5e08ed0f06d92bf0902f7d565ae))
+* **api:** warn instead of throw for invalid componentDecision ([#2209](https://github.com/tambo-ai/tambo/issues/2209)) ([d7b5406](https://github.com/tambo-ai/tambo/commit/d7b5406703fefa7d62da70b5d4d826d1360ca750))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump @types/node from 22.19.5 to 22.19.7 ([#2181](https://github.com/tambo-ai/tambo/issues/2181)) ([2dbb652](https://github.com/tambo-ai/tambo/commit/2dbb652293255c5f1baf370a87c0760567eb441e))
+* **deps:** bump resend from 6.8.0 to 6.9.1 ([#2186](https://github.com/tambo-ai/tambo/issues/2186)) ([9c2268f](https://github.com/tambo-ai/tambo/commit/9c2268f7b6cf6c6aa2c9d5b340154f87f50c55d1))
+
+## [0.136.0](https://github.com/tambo-ai/tambo/compare/api-v0.135.0...api-v0.136.0) (2026-02-04)
+
+
+### Features
+
+* **api,react-sdk:** V1 API message loading improvements ([#2190](https://github.com/tambo-ai/tambo/issues/2190)) ([53eb5ad](https://github.com/tambo-ai/tambo/commit/53eb5ad852c7c4b02845af8c326c1e4007eca521))
+* **api:** add additionalContext to V1 API and fix limit type ([#2193](https://github.com/tambo-ai/tambo/issues/2193)) ([f6707d7](https://github.com/tambo-ai/tambo/commit/f6707d7d96f970add58dface84d721cdf20b959a))
+
+
+### Bug Fixes
+
+* **api:** use DEFAULT_OPENAI_MODEL constant in threads service tests ([#2173](https://github.com/tambo-ai/tambo/issues/2173)) ([e401583](https://github.com/tambo-ai/tambo/commit/e401583e93fbbbec8134757abd71e451db0f2c08))
+* update sentry config for db spans ([#2166](https://github.com/tambo-ai/tambo/issues/2166)) ([c6c212a](https://github.com/tambo-ai/tambo/commit/c6c212acde1c76e16a1dc9ed62d9a726e9fc1025))
+
+## [0.135.0](https://github.com/tambo-ai/tambo/compare/api-v0.134.0...api-v0.135.0) (2026-02-03)
+
+
+### Features
+
+* **backend:** V1 streaming API improvements for component rendering ([#2133](https://github.com/tambo-ai/tambo/issues/2133)) ([b84de33](https://github.com/tambo-ai/tambo/commit/b84de33d40d06e41c75b7479b70627d3eba0ed08))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump the sentry group with 3 updates ([#2162](https://github.com/tambo-ai/tambo/issues/2162)) ([78c36d2](https://github.com/tambo-ai/tambo/commit/78c36d26ccbb1c9e92b53293345be2fcb2bd4acd))
+* **test:** bump coverage thresholds (2026-02-02) ([#2139](https://github.com/tambo-ai/tambo/issues/2139)) ([0f16ec3](https://github.com/tambo-ai/tambo/commit/0f16ec33bb8cfcbd598dbb847589b0c44a423232))
+
 ## [0.134.0](https://github.com/tambo-ai/tambo/compare/api-v0.133.4...api-v0.134.0) (2026-01-30)
 
 

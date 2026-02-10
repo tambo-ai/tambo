@@ -17,6 +17,18 @@ import {
   parseV1CompoundCursor,
 } from "../v1-pagination";
 
+// Minimal mock for the subset of Sentry APIs exercised by `V1Service`.
+jest.mock("@sentry/nestjs", () => ({
+  startSpan: (_ctx: unknown, maybeCallback?: unknown, ..._rest: unknown[]) => {
+    if (typeof maybeCallback === "function") {
+      return maybeCallback();
+    }
+    return undefined;
+  },
+  setContext: jest.fn(),
+  captureException: jest.fn(),
+}));
+
 // Mock the database operations module
 jest.mock("@tambo-ai-cloud/db", () => ({
   operations: {
@@ -29,11 +41,15 @@ jest.mock("@tambo-ai-cloud/db", () => ({
     setCurrentRunId: jest.fn(),
     getRun: jest.fn(),
     markRunCancelled: jest.fn(),
+    markMessageCancelled: jest.fn(),
+    markLatestAssistantMessageCancelled: jest.fn(),
+    addMessage: jest.fn(),
     releaseRunLockIfCurrent: jest.fn(),
     updateRunStatus: jest.fn(),
     updateThreadRunStatus: jest.fn(),
     completeRun: jest.fn(),
     updateMessage: jest.fn(),
+    updateThreadGenerationStatus: jest.fn(),
     listThreadsPaginated: jest.fn(),
     listMessagesPaginated: jest.fn(),
     getMessageByIdInThread: jest.fn(),
@@ -89,6 +105,7 @@ type MockDb = {
 // Mock ThreadsService type for testing
 type MockThreadsService = {
   advanceThread: jest.Mock;
+  createThread: jest.Mock;
 };
 
 describe("V1Service", () => {
@@ -117,6 +134,7 @@ describe("V1Service", () => {
     pendingToolCallIds: null,
     lastCompletedRunId: null,
     metadata: { key: "value" },
+    sdkVersion: null,
     createdAt: new Date("2024-01-01T00:00:00Z"),
     updatedAt: new Date("2024-01-01T00:00:00Z"),
   };
@@ -142,6 +160,7 @@ describe("V1Service", () => {
     tokenUsage: null,
     llmModel: null,
     suggestions: [],
+    sdkVersion: null,
   };
 
   beforeEach(() => {
@@ -196,6 +215,7 @@ describe("V1Service", () => {
 
     mockThreadsService = {
       advanceThread: jest.fn(),
+      createThread: jest.fn(),
     };
 
     // Create service with mock database and threads service (cast to unknown first to satisfy constructor type)
@@ -226,6 +246,53 @@ describe("V1Service", () => {
       expect(result.hasMore).toBe(false);
     });
 
+    it("should clamp negative limits", async () => {
+      mockOperations.listThreadsPaginated.mockResolvedValue([]);
+
+      await service.listThreads("prj_123", "user_456", { limit: -5 } as any);
+
+      const normalizedLimit = 1;
+
+      expect(mockOperations.listThreadsPaginated).toHaveBeenCalledWith(
+        mockDb,
+        "prj_123",
+        "user_456",
+        { cursor: undefined, limit: normalizedLimit + 1 },
+      );
+    });
+
+    it("should clamp large limits to 100", async () => {
+      mockOperations.listThreadsPaginated.mockResolvedValue([]);
+
+      await service.listThreads("prj_123", "user_456", { limit: 1000 } as any);
+
+      const normalizedLimit = 100;
+
+      expect(mockOperations.listThreadsPaginated).toHaveBeenCalledWith(
+        mockDb,
+        "prj_123",
+        "user_456",
+        { cursor: undefined, limit: normalizedLimit + 1 },
+      );
+    });
+
+    it("should throw for non-finite limits", async () => {
+      await expect(
+        service.listThreads("prj_123", "user_456", { limit: NaN } as any),
+      ).rejects.toThrow(BadRequestException);
+      await expect(
+        service.listThreads("prj_123", "user_456", {
+          limit: Number.POSITIVE_INFINITY,
+        } as any),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it("should throw for non-integer limits", async () => {
+      await expect(
+        service.listThreads("prj_123", "user_456", { limit: 2.5 } as any),
+      ).rejects.toThrow(BadRequestException);
+    });
+
     it("should filter by context key", async () => {
       mockOperations.listThreadsPaginated.mockResolvedValue([mockThread]);
 
@@ -251,7 +318,7 @@ describe("V1Service", () => {
 
       const result = await service.listThreads("prj_123", "user_456", {
         cursor,
-        limit: "10",
+        limit: 10,
       });
 
       expect(mockOperations.listThreadsPaginated).toHaveBeenCalledWith(
@@ -275,17 +342,7 @@ describe("V1Service", () => {
       ).rejects.toThrow(BadRequestException);
     });
 
-    it("should reject an invalid limit", async () => {
-      await expect(
-        service.listThreads("prj_123", "user_456", { limit: "not-a-number" }),
-      ).rejects.toThrow(BadRequestException);
-    });
-
-    it("should reject an empty limit", async () => {
-      await expect(
-        service.listThreads("prj_123", "user_456", { limit: "" }),
-      ).rejects.toThrow(BadRequestException);
-    });
+    // Note: Invalid limit validation is now handled at the DTO layer via class-validator
 
     it("should indicate hasMore when more results exist", async () => {
       // Return 21 results when limit is 20 (default)
@@ -327,7 +384,7 @@ describe("V1Service", () => {
       mockOperations.listThreadsPaginated.mockResolvedValue([t1, t2]);
 
       const result = await service.listThreads("prj_123", "user_456", {
-        limit: "1",
+        limit: 1,
       });
 
       expect(result.hasMore).toBe(true);
@@ -406,23 +463,33 @@ describe("V1Service", () => {
   });
 
   describe("createThread", () => {
+    const mockThreadsServiceThread = {
+      id: "thr_123",
+      name: null as string | null,
+      metadata: { key: "value" } as Record<string, unknown> | null,
+      createdAt: new Date("2024-01-01T00:00:00Z"),
+      updatedAt: new Date("2024-01-01T00:00:00Z"),
+    };
+
     it("should create a thread with minimal data", async () => {
-      mockOperations.createThread.mockResolvedValue(mockThread);
+      mockThreadsService.createThread.mockResolvedValue(
+        mockThreadsServiceThread,
+      );
 
       const result = await service.createThread("prj_123", "user_456", {});
 
-      expect(mockOperations.createThread).toHaveBeenCalledWith(mockDb, {
-        projectId: "prj_123",
-        contextKey: "user_456",
-        metadata: undefined,
-      });
+      expect(mockThreadsService.createThread).toHaveBeenCalledWith(
+        { projectId: "prj_123", metadata: undefined },
+        "user_456",
+        undefined,
+      );
       expect(result.id).toBe("thr_123");
+      expect(result.runStatus).toBe(V1RunStatus.IDLE);
     });
 
     it("should create a thread with context key and metadata", async () => {
-      mockOperations.createThread.mockResolvedValue({
-        ...mockThread,
-        contextKey: "user_456",
+      mockThreadsService.createThread.mockResolvedValue({
+        ...mockThreadsServiceThread,
         metadata: { custom: "data" },
       });
 
@@ -430,19 +497,112 @@ describe("V1Service", () => {
         metadata: { custom: "data" },
       });
 
+      expect(mockThreadsService.createThread).toHaveBeenCalledWith(
+        { projectId: "prj_123", metadata: { custom: "data" } },
+        "user_456",
+        undefined,
+      );
       expect(result.userKey).toBe("user_456");
       expect(result.metadata).toEqual({ custom: "data" });
     });
 
-    it("should reject initialMessages for now", async () => {
-      await expect(
-        service.createThread("prj_123", "user_456", {
-          initialMessages: [
-            { role: "user", content: [{ type: "text", text: "Hi" }] },
-          ],
-        }),
-      ).rejects.toThrow(BadRequestException);
-      expect(mockOperations.createThread).not.toHaveBeenCalled();
+    it("should pass converted initialMessages to threadsService.createThread", async () => {
+      mockThreadsService.createThread.mockResolvedValue(
+        mockThreadsServiceThread,
+      );
+
+      const result = await service.createThread("prj_123", "user_456", {
+        initialMessages: [
+          { role: "user", content: [{ type: "text", text: "Hi" }] },
+        ],
+      });
+
+      expect(mockThreadsService.createThread).toHaveBeenCalledWith(
+        { projectId: "prj_123", metadata: undefined },
+        "user_456",
+        [
+          expect.objectContaining({
+            role: MessageRole.User,
+            content: [expect.objectContaining({ type: "text", text: "Hi" })],
+          }),
+        ],
+      );
+      expect(result.id).toBe("thr_123");
+    });
+
+    it("should not pass initialMessages when none provided", async () => {
+      mockThreadsService.createThread.mockResolvedValue(
+        mockThreadsServiceThread,
+      );
+
+      await service.createThread("prj_123", "user_456", {});
+
+      expect(mockThreadsService.createThread).toHaveBeenCalledWith(
+        { projectId: "prj_123", metadata: undefined },
+        "user_456",
+        undefined,
+      );
+    });
+
+    it("should support system role in initialMessages", async () => {
+      mockThreadsService.createThread.mockResolvedValue(
+        mockThreadsServiceThread,
+      );
+
+      await service.createThread("prj_123", "user_456", {
+        initialMessages: [
+          {
+            role: "system",
+            content: [{ type: "text", text: "You are helpful" }],
+          },
+        ],
+      });
+
+      expect(mockThreadsService.createThread).toHaveBeenCalledWith(
+        expect.any(Object),
+        "user_456",
+        [
+          expect.objectContaining({
+            role: MessageRole.System,
+          }),
+        ],
+      );
+    });
+
+    it("should support assistant role in initialMessages", async () => {
+      mockThreadsService.createThread.mockResolvedValue(
+        mockThreadsServiceThread,
+      );
+
+      await service.createThread("prj_123", "user_456", {
+        initialMessages: [
+          {
+            role: "assistant",
+            content: [{ type: "text", text: "How can I help?" }],
+          },
+        ],
+      });
+
+      expect(mockThreadsService.createThread).toHaveBeenCalledWith(
+        expect.any(Object),
+        "user_456",
+        [
+          expect.objectContaining({
+            role: MessageRole.Assistant,
+          }),
+        ],
+      );
+    });
+
+    it("should map createdAt and updatedAt to ISO strings", async () => {
+      mockThreadsService.createThread.mockResolvedValue(
+        mockThreadsServiceThread,
+      );
+
+      const result = await service.createThread("prj_123", "user_456", {});
+
+      expect(result.createdAt).toBe("2024-01-01T00:00:00.000Z");
+      expect(result.updatedAt).toBe("2024-01-01T00:00:00.000Z");
     });
   });
 
@@ -470,10 +630,11 @@ describe("V1Service", () => {
 
       const result = await service.listMessages("thr_123", {});
 
+      // fetchLimit = (effectiveLimit + 1) * 2 = (50 + 1) * 2 = 102
       expect(mockOperations.listMessagesPaginated).toHaveBeenCalledWith(
         mockDb,
         "thr_123",
-        { cursor: undefined, limit: 51, order: "asc" },
+        { cursor: undefined, limit: 102, order: "asc" },
       );
       expect(result.messages).toHaveLength(1);
       expect(result.messages[0].role).toBe("user");
@@ -514,9 +675,10 @@ describe("V1Service", () => {
 
       await service.listMessages("thr_123", {
         cursor,
-        limit: "10",
+        limit: 10,
       });
 
+      // fetchLimit = (limit + 1) * 2 = (10 + 1) * 2 = 22
       expect(mockOperations.listMessagesPaginated).toHaveBeenCalledWith(
         mockDb,
         "thr_123",
@@ -525,7 +687,7 @@ describe("V1Service", () => {
             createdAt: new Date("2024-01-01T00:00:00Z"),
             id: "msg_000",
           },
-          limit: 11,
+          limit: 22,
           order: "asc",
         },
       );
@@ -537,17 +699,7 @@ describe("V1Service", () => {
       ).rejects.toThrow(BadRequestException);
     });
 
-    it("should reject an invalid limit", async () => {
-      await expect(
-        service.listMessages("thr_123", { limit: "not-a-number" }),
-      ).rejects.toThrow(BadRequestException);
-    });
-
-    it("should reject an empty limit", async () => {
-      await expect(
-        service.listMessages("thr_123", { limit: "" }),
-      ).rejects.toThrow(BadRequestException);
-    });
+    // Note: Invalid limit validation is now handled at the DTO layer via class-validator
 
     it("should set nextCursor for both asc and desc", async () => {
       const msg1 = {
@@ -572,7 +724,7 @@ describe("V1Service", () => {
         msg3,
       ]);
       const ascPage = await service.listMessages("thr_123", {
-        limit: "2",
+        limit: 2,
         order: "asc",
       });
       expect(ascPage.hasMore).toBe(true);
@@ -585,7 +737,7 @@ describe("V1Service", () => {
         msg1,
       ]);
       const descPage = await service.listMessages("thr_123", {
-        limit: "2",
+        limit: 2,
         order: "desc",
       });
       expect(descPage.hasMore).toBe(true);
@@ -715,6 +867,234 @@ describe("V1Service", () => {
       expect(result.content).toEqual([]);
     });
 
+    it("should convert tool role messages to tool_result content blocks", async () => {
+      const toolMessage = {
+        ...mockMessage,
+        role: "tool",
+        content: [{ type: "text", text: '{"temperature": 72, "unit": "F"}' }],
+        toolCallId: "call_xyz789",
+      };
+      mockOperations.getMessageByIdInThread.mockResolvedValue(
+        toolMessage as any,
+      );
+
+      const result = await service.getMessage("thr_123", "msg_123");
+
+      // Role should be mapped to assistant
+      expect(result.role).toBe("assistant");
+      // Content should be a single tool_result block
+      expect(result.content).toHaveLength(1);
+      expect(result.content[0].type).toBe("tool_result");
+      const toolResultBlock = result.content[0] as any;
+      expect(toolResultBlock.toolUseId).toBe("call_xyz789");
+      expect(toolResultBlock.content).toHaveLength(1);
+      expect(toolResultBlock.content[0]).toEqual({
+        type: "text",
+        text: '{"temperature": 72, "unit": "F"}',
+      });
+    });
+
+    it("should hide tool messages with componentDecision.componentName (UI tool responses)", async () => {
+      // Tool messages with componentDecision.componentName are UI tool responses
+      // (show_component_* tools) and should be hidden from the API.
+      // They return 404 to indicate they're not accessible.
+      const toolMessageWithComponent = {
+        ...mockMessage,
+        role: "tool",
+        content: [{ type: "text", text: "Component was rendered" }],
+        componentDecision: {
+          componentName: "WeatherCard",
+          props: { temperature: 72 },
+        },
+        toolCallId: "call_xyz789",
+      };
+      mockOperations.getMessageByIdInThread.mockResolvedValue(
+        toolMessageWithComponent as any,
+      );
+
+      // UI tool responses are hidden and return 404
+      await expect(service.getMessage("thr_123", "msg_123")).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+
+    it("should include tool_use content block when toolCallRequest exists", async () => {
+      const messageWithToolCall = {
+        ...mockMessage,
+        role: "assistant",
+        content: [{ type: "text", text: "Let me fetch the weather" }],
+        toolCallRequest: {
+          toolName: "getWeather",
+          parameters: [
+            { parameterName: "location", parameterValue: "San Francisco" },
+            { parameterName: "unit", parameterValue: "celsius" },
+          ],
+        },
+        toolCallId: "call_abc123",
+      };
+      mockOperations.getMessageByIdInThread.mockResolvedValue(
+        messageWithToolCall as any,
+      );
+
+      const result = await service.getMessage("thr_123", "msg_123");
+
+      expect(result.content).toHaveLength(2);
+      const toolUseBlock = result.content.find((c) => c.type === "tool_use");
+      expect(toolUseBlock).toBeDefined();
+      expect((toolUseBlock as any).id).toBe("call_abc123");
+      expect((toolUseBlock as any).name).toBe("getWeather");
+      expect((toolUseBlock as any).input).toEqual({
+        location: "San Francisco",
+        unit: "celsius",
+      });
+    });
+
+    it("should not include tool_use block when toolCallId is missing", async () => {
+      const messageWithToolCallNoId = {
+        ...mockMessage,
+        role: "assistant",
+        content: [{ type: "text", text: "Let me fetch the weather" }],
+        toolCallRequest: {
+          toolName: "getWeather",
+          parameters: [
+            { parameterName: "location", parameterValue: "San Francisco" },
+          ],
+        },
+        toolCallId: null,
+      };
+      mockOperations.getMessageByIdInThread.mockResolvedValue(
+        messageWithToolCallNoId as any,
+      );
+
+      const result = await service.getMessage("thr_123", "msg_123");
+
+      expect(result.content).toHaveLength(1);
+      expect(result.content[0].type).toBe("text");
+    });
+
+    it("should include _tambo_* status params in tool_use input from componentDecision", async () => {
+      const messageWithToolCallAndStatus = {
+        ...mockMessage,
+        role: "assistant",
+        content: [{ type: "text", text: "Let me fetch the weather" }],
+        toolCallRequest: {
+          toolName: "getWeather",
+          parameters: [
+            { parameterName: "location", parameterValue: "San Francisco" },
+          ],
+        },
+        toolCallId: "call_abc123",
+        componentDecision: {
+          componentName: null, // Not a UI tool
+          props: {},
+          message: "Fetching weather data",
+          statusMessage: "Getting weather for San Francisco...",
+          completionStatusMessage: "Got weather for San Francisco",
+        },
+      };
+      mockOperations.getMessageByIdInThread.mockResolvedValue(
+        messageWithToolCallAndStatus as any,
+      );
+
+      const result = await service.getMessage("thr_123", "msg_123");
+
+      const toolUseBlock = result.content.find((c) => c.type === "tool_use");
+      expect(toolUseBlock).toBeDefined();
+      expect((toolUseBlock as any).input).toEqual({
+        location: "San Francisco",
+        _tambo_statusMessage: "Getting weather for San Francisco...",
+        _tambo_completionStatusMessage: "Got weather for San Francisco",
+      });
+    });
+
+    it("should not include _tambo_* params when componentDecision is missing", async () => {
+      const messageWithToolCallNoDecision = {
+        ...mockMessage,
+        role: "assistant",
+        content: [{ type: "text", text: "Let me fetch the weather" }],
+        toolCallRequest: {
+          toolName: "getWeather",
+          parameters: [{ parameterName: "location", parameterValue: "NYC" }],
+        },
+        toolCallId: "call_xyz789",
+        componentDecision: null,
+      };
+      mockOperations.getMessageByIdInThread.mockResolvedValue(
+        messageWithToolCallNoDecision as any,
+      );
+
+      const result = await service.getMessage("thr_123", "msg_123");
+
+      const toolUseBlock = result.content.find((c) => c.type === "tool_use");
+      expect(toolUseBlock).toBeDefined();
+      expect((toolUseBlock as any).input).toEqual({
+        location: "NYC",
+      });
+      expect((toolUseBlock as any).input._tambo_statusMessage).toBeUndefined();
+    });
+
+    it("should skip empty displayMessage in tool_use input", async () => {
+      const messageWithEmptyDisplayMessage = {
+        ...mockMessage,
+        role: "assistant",
+        content: [{ type: "text", text: "Let me fetch the weather" }],
+        toolCallRequest: {
+          toolName: "getWeather",
+          parameters: [{ parameterName: "location", parameterValue: "LA" }],
+        },
+        toolCallId: "call_empty",
+        componentDecision: {
+          componentName: null,
+          props: {},
+          message: "   ", // Whitespace-only message
+          statusMessage: "Getting weather...",
+          componentState: null,
+        },
+      };
+      mockOperations.getMessageByIdInThread.mockResolvedValue(
+        messageWithEmptyDisplayMessage as any,
+      );
+
+      const result = await service.getMessage("thr_123", "msg_123");
+
+      const toolUseBlock = result.content.find((c) => c.type === "tool_use");
+      expect((toolUseBlock as any).input).toEqual({
+        location: "LA",
+        _tambo_statusMessage: "Getting weather...",
+      });
+      // Empty/whitespace displayMessage should NOT be included
+      expect((toolUseBlock as any).input._tambo_displayMessage).toBeUndefined();
+    });
+
+    it("should NOT include tool_use block for show_component_* UI tools", async () => {
+      // UI tool calls (show_component_*) should not generate tool_use blocks
+      // as they're internal implementation details
+      const messageWithUiToolCall = {
+        ...mockMessage,
+        role: "assistant",
+        content: [{ type: "text", text: "Here's the weather" }],
+        toolCallRequest: {
+          toolName: "show_component_WeatherCard",
+          parameters: [{ parameterName: "temperature", parameterValue: 72 }],
+        },
+        toolCallId: "call_ui_123",
+        componentDecision: {
+          componentName: "WeatherCard",
+          props: { temperature: 72 },
+        },
+      };
+      mockOperations.getMessageByIdInThread.mockResolvedValue(
+        messageWithUiToolCall as any,
+      );
+
+      const result = await service.getMessage("thr_123", "msg_123");
+
+      // Should have text and component blocks, but NO tool_use block
+      expect(result.content.find((c) => c.type === "text")).toBeDefined();
+      expect(result.content.find((c) => c.type === "component")).toBeDefined();
+      expect(result.content.find((c) => c.type === "tool_use")).toBeUndefined();
+    });
+
     it("should skip unknown content types without error", async () => {
       const warnSpy = jest
         .spyOn(Logger.prototype, "warn")
@@ -745,22 +1125,287 @@ describe("V1Service", () => {
       warnSpy.mockRestore();
     });
 
-    it("should throw error when componentDecision has no componentName", async () => {
+    it("should warn when componentDecision has no componentName and no toolCallRequest", async () => {
+      const warnSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
+
       const messageWithBadComponent = {
         ...mockMessage,
-        content: [],
+        content: [{ type: "text", text: "Hello" }],
         componentDecision: {
           componentName: null,
           props: { foo: "bar" },
         },
+        toolCallRequest: null, // No tool call - this is a data integrity issue
       };
       mockOperations.getMessageByIdInThread.mockResolvedValue(
         messageWithBadComponent as any,
       );
 
-      await expect(service.getMessage("thr_123", "msg_123")).rejects.toThrow(
-        /Component decision in message msg_123 has no componentName/,
+      // Should succeed but log a warning
+      const result = await service.getMessage("thr_123", "msg_123");
+      expect(result).toBeDefined();
+      expect(warnSpy).toHaveBeenCalledWith(
+        expect.stringMatching(
+          /Component decision in message msg_123 has no componentName/,
+        ),
       );
+
+      warnSpy.mockRestore();
+    });
+  });
+
+  describe("UI tool response filtering", () => {
+    it("should throw NotFoundException for getMessage when message is a UI tool response", async () => {
+      const uiToolResponseMessage = {
+        ...mockMessage,
+        id: "msg_ui_tool",
+        role: "tool",
+        content: [{ type: "text", text: "Component was rendered" }],
+        toolCallId: "call_ui_123",
+        componentDecision: {
+          componentName: "AirQualityCard",
+          props: { city: "NYC" },
+        },
+      };
+      mockOperations.getMessageByIdInThread.mockResolvedValue(
+        uiToolResponseMessage as any,
+      );
+
+      await expect(
+        service.getMessage("thr_123", "msg_ui_tool"),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it("should filter out UI tool responses from listMessages", async () => {
+      const regularMessage = {
+        ...mockMessage,
+        id: "msg_regular",
+        role: "assistant",
+        content: [{ type: "text", text: "Hello" }],
+      };
+      const uiToolResponseMessage = {
+        ...mockMessage,
+        id: "msg_ui_tool",
+        role: "tool",
+        content: [{ type: "text", text: "Component was rendered" }],
+        toolCallId: "call_ui_123",
+        componentDecision: {
+          componentName: "AirQualityCard",
+          props: { city: "NYC" },
+        },
+      };
+      mockOperations.listMessagesPaginated.mockResolvedValue([
+        regularMessage,
+        uiToolResponseMessage,
+      ] as any);
+
+      const result = await service.listMessages("thr_123", {});
+
+      // Should only return the regular message, not the UI tool response
+      expect(result.messages).toHaveLength(1);
+      expect(result.messages[0].id).toBe("msg_regular");
+    });
+
+    it("should filter out UI tool responses from getThread messages", async () => {
+      const regularMessage = {
+        ...mockMessage,
+        id: "msg_regular",
+        role: "assistant",
+        content: [{ type: "text", text: "Hello" }],
+      };
+      const uiToolResponseMessage = {
+        ...mockMessage,
+        id: "msg_ui_tool",
+        role: "tool",
+        content: [{ type: "text", text: "Component was rendered" }],
+        toolCallId: "call_ui_123",
+        componentDecision: {
+          componentName: "AirQualityCard",
+          props: { city: "NYC" },
+        },
+      };
+      const mockThread = {
+        id: "thr_123",
+        projectId: "proj_123",
+        contextKey: "user_123",
+        runStatus: "idle",
+        sdkVersion: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        messages: [regularMessage, uiToolResponseMessage],
+      };
+      mockOperations.getThreadForProjectId.mockResolvedValue(mockThread as any);
+
+      const result = await service.getThread("thr_123", "proj_123", "user_123");
+
+      // Should only return the regular message, not the UI tool response
+      expect(result.messages).toHaveLength(1);
+      expect(result.messages[0].id).toBe("msg_regular");
+    });
+
+    it("should NOT filter regular tool responses (non-UI tool)", async () => {
+      const regularToolResponse = {
+        ...mockMessage,
+        id: "msg_tool",
+        role: "tool",
+        content: [{ type: "text", text: "Weather is sunny" }],
+        toolCallId: "call_regular_123",
+        componentDecision: null, // No componentDecision or null componentName
+      };
+      mockOperations.getMessageByIdInThread.mockResolvedValue(
+        regularToolResponse as any,
+      );
+
+      // Should NOT throw - regular tool responses are visible
+      const result = await service.getMessage("thr_123", "msg_tool");
+      expect(result.id).toBe("msg_tool");
+    });
+
+    it("should NOT filter tool responses with componentDecision but no componentName", async () => {
+      const toolResponseNoComponentName = {
+        ...mockMessage,
+        id: "msg_tool_no_name",
+        role: "tool",
+        content: [{ type: "text", text: "Some result" }],
+        toolCallId: "call_123",
+        componentDecision: {
+          componentName: null, // Explicitly null
+          props: {},
+        },
+      };
+      mockOperations.getMessageByIdInThread.mockResolvedValue(
+        toolResponseNoComponentName as any,
+      );
+
+      // Should NOT throw - componentName is null, so this is visible
+      const result = await service.getMessage("thr_123", "msg_tool_no_name");
+      expect(result.id).toBe("msg_tool_no_name");
+    });
+
+    it("should correctly determine hasMore when many hidden messages exist", async () => {
+      // Create a scenario where user requests limit=3, but many hidden messages exist
+      // This tests that we fetch enough messages and correctly set hasMore
+      const visibleMessage1 = {
+        ...mockMessage,
+        id: "msg_visible_1",
+        role: "assistant",
+        content: [{ type: "text", text: "Hello 1" }],
+        createdAt: new Date("2024-01-01T00:00:01Z"),
+      };
+      const hiddenMessage1 = {
+        ...mockMessage,
+        id: "msg_hidden_1",
+        role: "tool",
+        content: [{ type: "text", text: "Component rendered" }],
+        toolCallId: "call_ui_1",
+        componentDecision: { componentName: "Card", props: {} },
+        createdAt: new Date("2024-01-01T00:00:02Z"),
+      };
+      const hiddenMessage2 = {
+        ...mockMessage,
+        id: "msg_hidden_2",
+        role: "tool",
+        content: [{ type: "text", text: "Component rendered" }],
+        toolCallId: "call_ui_2",
+        componentDecision: { componentName: "Card", props: {} },
+        createdAt: new Date("2024-01-01T00:00:03Z"),
+      };
+      const visibleMessage2 = {
+        ...mockMessage,
+        id: "msg_visible_2",
+        role: "assistant",
+        content: [{ type: "text", text: "Hello 2" }],
+        createdAt: new Date("2024-01-01T00:00:04Z"),
+      };
+      const hiddenMessage3 = {
+        ...mockMessage,
+        id: "msg_hidden_3",
+        role: "tool",
+        content: [{ type: "text", text: "Component rendered" }],
+        toolCallId: "call_ui_3",
+        componentDecision: { componentName: "Card", props: {} },
+        createdAt: new Date("2024-01-01T00:00:05Z"),
+      };
+      const visibleMessage3 = {
+        ...mockMessage,
+        id: "msg_visible_3",
+        role: "assistant",
+        content: [{ type: "text", text: "Hello 3" }],
+        createdAt: new Date("2024-01-01T00:00:06Z"),
+      };
+      const visibleMessage4 = {
+        ...mockMessage,
+        id: "msg_visible_4",
+        role: "assistant",
+        content: [{ type: "text", text: "Hello 4" }],
+        createdAt: new Date("2024-01-01T00:00:07Z"),
+      };
+
+      // Mock returns 7 messages (3 hidden, 4 visible)
+      mockOperations.listMessagesPaginated.mockResolvedValue([
+        visibleMessage1,
+        hiddenMessage1,
+        hiddenMessage2,
+        visibleMessage2,
+        hiddenMessage3,
+        visibleMessage3,
+        visibleMessage4,
+      ] as any);
+
+      // Request limit=3
+      const result = await service.listMessages("thr_123", { limit: 3 });
+
+      // Should return exactly 3 visible messages
+      expect(result.messages).toHaveLength(3);
+      expect(result.messages.map((m) => m.id)).toEqual([
+        "msg_visible_1",
+        "msg_visible_2",
+        "msg_visible_3",
+      ]);
+
+      // hasMore should be true because there's a 4th visible message
+      expect(result.hasMore).toBe(true);
+      expect(result.nextCursor).toBeDefined();
+    });
+
+    it("should set hasMore=false when all visible messages fit in limit", async () => {
+      const visibleMessage1 = {
+        ...mockMessage,
+        id: "msg_visible_1",
+        role: "assistant",
+        content: [{ type: "text", text: "Hello 1" }],
+      };
+      const hiddenMessage1 = {
+        ...mockMessage,
+        id: "msg_hidden_1",
+        role: "tool",
+        content: [{ type: "text", text: "Component rendered" }],
+        toolCallId: "call_ui_1",
+        componentDecision: { componentName: "Card", props: {} },
+      };
+      const visibleMessage2 = {
+        ...mockMessage,
+        id: "msg_visible_2",
+        role: "assistant",
+        content: [{ type: "text", text: "Hello 2" }],
+      };
+
+      // Mock returns 3 messages (1 hidden, 2 visible)
+      mockOperations.listMessagesPaginated.mockResolvedValue([
+        visibleMessage1,
+        hiddenMessage1,
+        visibleMessage2,
+      ] as any);
+
+      // Request limit=3 (more than visible count)
+      const result = await service.listMessages("thr_123", { limit: 3 });
+
+      // Should return 2 visible messages
+      expect(result.messages).toHaveLength(2);
+
+      // hasMore should be false - we have fewer visible messages than the limit
+      expect(result.hasMore).toBe(false);
+      expect(result.nextCursor).toBeUndefined();
     });
   });
 
@@ -810,14 +1455,14 @@ describe("V1Service", () => {
   });
 
   describe("createThread error handling", () => {
-    it("should throw error if database returns null", async () => {
-      mockOperations.createThread.mockResolvedValue(
-        null as unknown as typeof mockThread,
+    it("should propagate errors from threadsService.createThread", async () => {
+      mockThreadsService.createThread.mockRejectedValue(
+        new Error("Failed to create thread"),
       );
 
       await expect(
         service.createThread("prj_123", "user_456", {}),
-      ).rejects.toThrow(/Failed to create thread for project prj_123/);
+      ).rejects.toThrow(/Failed to create thread/);
     });
   });
 
@@ -971,6 +1616,338 @@ describe("V1Service", () => {
     });
   });
 
+  describe("executeRun", () => {
+    const createMockResponse = () => ({
+      write: jest.fn(),
+    });
+
+    const setupAdvanceThreadMock = () => {
+      mockThreadsService.advanceThread.mockImplementation(
+        async (
+          _projectId,
+          _advanceRequest,
+          _threadId,
+          _toolCallCounts,
+          _cached,
+          queue,
+        ) => {
+          queue.finish();
+        },
+      );
+      mockOperations.releaseRunLockIfCurrent.mockResolvedValue(true);
+    };
+
+    const mockRunDtoBase = {
+      message: {
+        role: "user",
+        content: [{ type: "text" as const, text: "Hi" }],
+      },
+      tools: [],
+      availableComponents: [],
+    };
+
+    it("should pass additionalContext through to threadsService.advanceThread", async () => {
+      setupAdvanceThreadMock();
+
+      const response = createMockResponse();
+
+      const additionalContext = {
+        currentPage: "/dashboard",
+        userPreferences: { theme: "dark" },
+        nestedObject: { deeply: { nested: { value: 123 } } },
+      };
+
+      await service.executeRun(
+        response as any,
+        "thr_123",
+        "run_123",
+        {
+          ...mockRunDtoBase,
+          message: {
+            ...mockRunDtoBase.message,
+            additionalContext,
+          },
+        } as any,
+        "prj_123",
+        "user_456",
+      );
+
+      expect(mockThreadsService.advanceThread).toHaveBeenCalledTimes(1);
+      const advanceRequest = mockThreadsService.advanceThread.mock.calls[0][1];
+      expect(advanceRequest.messageToAppend.additionalContext).toEqual(
+        additionalContext,
+      );
+      expect(response.write).toHaveBeenCalled();
+    });
+
+    it("should work without additionalContext", async () => {
+      setupAdvanceThreadMock();
+
+      const response = createMockResponse();
+
+      await service.executeRun(
+        response as any,
+        "thr_123",
+        "run_123",
+        mockRunDtoBase as any,
+        "prj_123",
+        "user_456",
+      );
+
+      expect(mockThreadsService.advanceThread).toHaveBeenCalledTimes(1);
+      const advanceRequest = mockThreadsService.advanceThread.mock.calls[0][1];
+      expect(advanceRequest.messageToAppend.additionalContext).toBeUndefined();
+      expect(response.write).toHaveBeenCalled();
+    });
+
+    it("should write a RUN_ERROR event when streaming fails", async () => {
+      mockOperations.releaseRunLockIfCurrent.mockResolvedValue(true);
+      mockThreadsService.advanceThread.mockImplementation(
+        async (
+          _projectId,
+          _advanceRequest,
+          _threadId,
+          _toolCallCounts,
+          _cached,
+          queue,
+        ) => {
+          queue.finish();
+          throw new Error("boom");
+        },
+      );
+
+      const response = createMockResponse();
+
+      await expect(
+        service.executeRun(
+          response as any,
+          "thr_123",
+          "run_123",
+          mockRunDtoBase as any,
+          "prj_123",
+          "user_456",
+        ),
+      ).rejects.toThrow("boom");
+
+      const writes = response.write.mock.calls.map(([value]) => `${value}`);
+      expect(writes.some((w) => w.includes('"type":"RUN_ERROR"'))).toBe(true);
+    });
+
+    it("should write a RUN_ERROR event when the queue fails", async () => {
+      mockOperations.releaseRunLockIfCurrent.mockResolvedValue(true);
+      mockThreadsService.advanceThread.mockImplementation(
+        async (
+          _projectId,
+          _advanceRequest,
+          _threadId,
+          _toolCallCounts,
+          _cached,
+          queue,
+        ) => {
+          queue.fail(new Error("boom-early"));
+        },
+      );
+
+      const response = createMockResponse();
+
+      await expect(
+        service.executeRun(
+          response as any,
+          "thr_123",
+          "run_123",
+          mockRunDtoBase as any,
+          "prj_123",
+          "user_456",
+        ),
+      ).rejects.toThrow("boom-early");
+
+      const writes = response.write.mock.calls.map(([value]) => `${value}`);
+      expect(writes.some((w) => w.includes('"type":"RUN_ERROR"'))).toBe(true);
+    });
+
+    describe("periodic cancellation check", () => {
+      it("should emit RUN_ERROR with CANCELLED code and mark specific message when run is cancelled during streaming", async () => {
+        const response = createMockResponse();
+
+        // Mock Date.now to simulate time passing
+        let currentTime = 1000;
+        const originalDateNow = Date.now;
+        Date.now = jest.fn(() => {
+          // Advance time by 600ms on each call to ensure the check interval is triggered
+          currentTime += 600;
+          return currentTime;
+        });
+
+        // Track how many times getRun is called and return isCancelled on second call
+        let getRunCallCount = 0;
+        mockOperations.getRun.mockImplementation(async () => {
+          getRunCallCount++;
+          // First call returns not cancelled, second call returns cancelled
+          return {
+            id: "run_123",
+            threadId: "thr_123",
+            isCancelled: getRunCallCount > 1,
+          } as any;
+        });
+        mockOperations.releaseRunLockIfCurrent.mockResolvedValue(true);
+        mockOperations.markMessageCancelled.mockResolvedValue(undefined);
+
+        // Mock advanceThread to push multiple items with responseMessageDto
+        mockThreadsService.advanceThread.mockImplementation(
+          async (
+            _projectId,
+            _advanceRequest,
+            _threadId,
+            _toolCallCounts,
+            _cached,
+            queue,
+          ) => {
+            // Push first item with responseMessageDto - first cancellation check will pass
+            queue.push({
+              aguiEvents: [{ type: "TEXT_MESSAGE_START", messageId: "msg_1" }],
+              response: { responseMessageDto: { id: "msg_real_123" } },
+            });
+
+            // Push second item - second cancellation check will detect isCancelled: true
+            queue.push({
+              aguiEvents: [
+                {
+                  type: "TEXT_MESSAGE_CONTENT",
+                  messageId: "msg_1",
+                  delta: "Hello",
+                },
+              ],
+            });
+
+            // Push third item - should never be processed
+            queue.push({
+              aguiEvents: [{ type: "TEXT_MESSAGE_END", messageId: "msg_1" }],
+            });
+
+            queue.finish();
+          },
+        );
+
+        try {
+          await service.executeRun(
+            response as any,
+            "thr_123",
+            "run_123",
+            mockRunDtoBase as any,
+            "prj_123",
+            "user_456",
+          );
+        } finally {
+          Date.now = originalDateNow;
+        }
+
+        const writes = response.write.mock.calls.map(([value]) => `${value}`);
+
+        // Should have emitted a RUN_ERROR event with CANCELLED code
+        const cancelEvent = writes.find(
+          (w) =>
+            w.includes('"type":"RUN_ERROR"') &&
+            w.includes('"code":"CANCELLED"'),
+        );
+        expect(cancelEvent).toBeDefined();
+
+        // Verify getRun was called at least twice (for the cancellation checks)
+        expect(getRunCallCount).toBeGreaterThanOrEqual(2);
+
+        // Verify markMessageCancelled was called with the specific message ID
+        expect(mockOperations.markMessageCancelled).toHaveBeenCalledWith(
+          expect.anything(),
+          "msg_real_123",
+        );
+      });
+
+      it("should stop emitting events after cancellation is detected", async () => {
+        const response = createMockResponse();
+
+        // Mock Date.now to simulate time passing past the check interval
+        let currentTime = 1000;
+        const originalDateNow = Date.now;
+        Date.now = jest.fn(() => {
+          currentTime += 600; // Each call advances by 600ms
+          return currentTime;
+        });
+
+        // Return isCancelled: true on the first check
+        mockOperations.getRun.mockResolvedValue({
+          id: "run_123",
+          threadId: "thr_123",
+          isCancelled: true,
+        } as any);
+        mockOperations.releaseRunLockIfCurrent.mockResolvedValue(true);
+
+        mockThreadsService.advanceThread.mockImplementation(
+          async (
+            _projectId,
+            _advanceRequest,
+            _threadId,
+            _toolCallCounts,
+            _cached,
+            queue,
+          ) => {
+            // Push multiple items - only first should be processed before cancellation
+            queue.push({
+              aguiEvents: [{ type: "TEXT_MESSAGE_START", messageId: "msg_1" }],
+            });
+            queue.push({
+              aguiEvents: [
+                {
+                  type: "TEXT_MESSAGE_CONTENT",
+                  messageId: "msg_1",
+                  delta: "Hello",
+                },
+              ],
+            });
+            queue.push({
+              aguiEvents: [
+                {
+                  type: "TEXT_MESSAGE_CONTENT",
+                  messageId: "msg_1",
+                  delta: " World",
+                },
+              ],
+            });
+            queue.push({
+              aguiEvents: [{ type: "TEXT_MESSAGE_END", messageId: "msg_1" }],
+            });
+            queue.finish();
+          },
+        );
+
+        try {
+          await service.executeRun(
+            response as any,
+            "thr_123",
+            "run_123",
+            mockRunDtoBase as any,
+            "prj_123",
+            "user_456",
+          );
+        } finally {
+          Date.now = originalDateNow;
+        }
+
+        const writes = response.write.mock.calls.map(([value]) => `${value}`);
+
+        // Should have the RUN_ERROR CANCELLED event
+        expect(
+          writes.some(
+            (w) =>
+              w.includes('"type":"RUN_ERROR"') &&
+              w.includes('"code":"CANCELLED"'),
+          ),
+        ).toBe(true);
+
+        // Should NOT have TEXT_MESSAGE_END (stream stopped before completion)
+        expect(writes.some((w) => w.includes("TEXT_MESSAGE_END"))).toBe(false);
+      });
+    });
+  });
+
   describe("cancelRun", () => {
     it("should throw NotFoundException for non-existent run", async () => {
       mockOperations.getRun.mockResolvedValue(null);
@@ -994,6 +1971,9 @@ describe("V1Service", () => {
 
       expect(mockDb.transaction).toHaveBeenCalledTimes(1);
       expect(mockOperations.markRunCancelled).not.toHaveBeenCalled();
+      expect(
+        mockOperations.updateThreadGenerationStatus,
+      ).not.toHaveBeenCalled();
     });
 
     it("should successfully cancel an existing run", async () => {
@@ -1004,6 +1984,10 @@ describe("V1Service", () => {
       } as any);
       mockOperations.releaseRunLockIfCurrent.mockResolvedValue(true);
       mockOperations.markRunCancelled.mockResolvedValue(undefined);
+      mockOperations.updateThreadGenerationStatus.mockResolvedValue({} as any);
+      mockOperations.markLatestAssistantMessageCancelled.mockResolvedValue(
+        "msg_123",
+      );
 
       const result = await service.cancelRun(
         "thr_123",
@@ -1017,6 +2001,11 @@ describe("V1Service", () => {
       expect(mockDb.transaction).toHaveBeenCalledTimes(1);
       expect(mockOperations.releaseRunLockIfCurrent).toHaveBeenCalledTimes(1);
       expect(mockOperations.markRunCancelled).toHaveBeenCalledTimes(1);
+      expect(mockOperations.updateThreadGenerationStatus).toHaveBeenCalledWith(
+        expect.anything(),
+        "thr_123",
+        GenerationStage.CANCELLED,
+      );
     });
   });
 
@@ -1054,6 +2043,7 @@ describe("V1Service", () => {
       updatedAt: new Date(),
       actionType: null,
       toolCallId: null,
+      sdkVersion: null,
     };
 
     describe("updateComponentState", () => {

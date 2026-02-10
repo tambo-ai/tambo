@@ -6,8 +6,17 @@
   "bootstrap-sha": "afad6013a55f7614de2c2e5c9b090d271e821e01",
   "commit-search-depth": 50,
   "packages": {
+    "packages/react-ui-base": {
+      "component": "@tambo-ai/react-ui-base",
+      "versioning": "prerelease",
+      "prerelease": true,
+      "prerelease-type": "alpha"
+    },
     "react-sdk": {
-      "component": "react"
+      "component": "react",
+      "include-component-in-tag": true,
+      "include-v-in-tag": true,
+      "force-tag-creation": true
     },
     "showcase": {},
     "cli": {

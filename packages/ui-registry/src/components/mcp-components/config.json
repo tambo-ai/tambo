@@ -3,12 +3,12 @@
   "description": "MCP prompt and resource picker buttons for message input",
   "componentName": "MCPComponents",
   "dependencies": [
-    "@tambo-ai/react",
+    "@tambo-ai/react@rc",
     "lucide-react",
     "@radix-ui/react-dropdown-menu"
   ],
   "devDependencies": [],
-  "requires": [],
+  "requires": ["message-suggestions"],
   "files": [
     {
       "name": "mcp-components.tsx",

@@ -1,5 +1,8 @@
 import { z } from "zod";
-import type { TamboComponent, TamboTool } from "../../model/component-metadata";
+import type {
+  RegisteredComponent,
+  TamboTool,
+} from "../../model/component-metadata";
 import {
   toAvailableComponent,
   toAvailableComponents,
@@ -9,15 +12,21 @@ import {
 
 describe("registry-conversion", () => {
   describe("toAvailableComponent", () => {
-    it("converts a component with propsSchema", () => {
-      const component: TamboComponent = {
+    it("converts a component with props (JSON Schema)", () => {
+      // RegisteredComponent has props already converted to JSON Schema
+      const component: RegisteredComponent = {
         name: "WeatherCard",
         description: "Displays weather information",
         component: () => null,
-        propsSchema: z.object({
-          city: z.string(),
-          temperature: z.number(),
-        }),
+        props: {
+          type: "object",
+          properties: {
+            city: { type: "string" },
+            temperature: { type: "number" },
+          },
+          required: ["city", "temperature"],
+        },
+        contextTools: [],
       };
 
       const result = toAvailableComponent(component);
@@ -30,33 +39,44 @@ describe("registry-conversion", () => {
       );
     });
 
-    it("throws when propsSchema is missing", () => {
+    it("throws when props is missing", () => {
       const component = {
         name: "BadComponent",
         description: "Missing schema",
         component: () => null,
-      } as TamboComponent;
+        contextTools: [],
+      } as unknown as RegisteredComponent;
 
       expect(() => toAvailableComponent(component)).toThrow(
-        'Component "BadComponent" missing propsSchema',
+        'Component "BadComponent" missing props',
       );
     });
   });
 
   describe("toAvailableComponents", () => {
     it("converts a Record of components", () => {
-      const components: Record<string, TamboComponent> = {
+      const components: Record<string, RegisteredComponent> = {
         Card: {
           name: "Card",
           description: "A card component",
           component: () => null,
-          propsSchema: z.object({ title: z.string() }),
+          props: {
+            type: "object",
+            properties: { title: { type: "string" } },
+            required: ["title"],
+          },
+          contextTools: [],
         },
         Button: {
           name: "Button",
           description: "A button component",
           component: () => null,
-          propsSchema: z.object({ label: z.string() }),
+          props: {
+            type: "object",
+            properties: { label: { type: "string" } },
+            required: ["label"],
+          },
+          contextTools: [],
         },
       };
 
@@ -68,14 +88,19 @@ describe("registry-conversion", () => {
     });
 
     it("converts a Map of components", () => {
-      const components = new Map<string, TamboComponent>([
+      const components = new Map<string, RegisteredComponent>([
         [
           "Card",
           {
             name: "Card",
             description: "A card",
             component: () => null,
-            propsSchema: z.object({ title: z.string() }),
+            props: {
+              type: "object",
+              properties: { title: { type: "string" } },
+              required: ["title"],
+            },
+            contextTools: [],
           },
         ],
       ]);
@@ -89,18 +114,24 @@ describe("registry-conversion", () => {
     it("skips invalid components and logs warning", () => {
       const warnSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
 
-      const components: Record<string, TamboComponent> = {
+      const components: Record<string, RegisteredComponent> = {
         Valid: {
           name: "Valid",
           description: "Valid component",
           component: () => null,
-          propsSchema: z.object({ x: z.string() }),
+          props: {
+            type: "object",
+            properties: { x: { type: "string" } },
+            required: ["x"],
+          },
+          contextTools: [],
         },
         Invalid: {
           name: "Invalid",
           description: "Missing schema",
           component: () => null,
-        } as TamboComponent,
+          contextTools: [],
+        } as unknown as RegisteredComponent,
       };
 
       const result = toAvailableComponents(components);
@@ -133,6 +164,35 @@ describe("registry-conversion", () => {
       expect((result.inputSchema as Record<string, unknown>).type).toBe(
         "object",
       );
+    });
+
+    it("includes maxCalls when set", () => {
+      const tool: TamboTool = {
+        name: "limited_tool",
+        description: "Tool with call limit",
+        tool: async () => ({}),
+        inputSchema: z.object({ x: z.string() }),
+        outputSchema: z.any(),
+        maxCalls: 3,
+      };
+
+      const result = toAvailableTool(tool);
+
+      expect(result.maxCalls).toBe(3);
+    });
+
+    it("omits maxCalls when not set", () => {
+      const tool: TamboTool = {
+        name: "unlimited_tool",
+        description: "Tool without call limit",
+        tool: async () => ({}),
+        inputSchema: z.object({ x: z.string() }),
+        outputSchema: z.any(),
+      };
+
+      const result = toAvailableTool(tool);
+
+      expect(result).not.toHaveProperty("maxCalls");
     });
 
     it("throws when schema is missing", () => {

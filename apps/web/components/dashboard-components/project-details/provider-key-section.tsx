@@ -14,7 +14,7 @@ import {
   DEFAULT_OPENAI_MODEL,
 } from "@tambo-ai-cloud/core";
 import type { Suggestion } from "@tambo-ai/react";
-import { withInteractable } from "@tambo-ai/react";
+import { withTamboInteractable } from "@tambo-ai/react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ExternalLinkIcon, InfoIcon, Loader2 } from "lucide-react";
 import {
@@ -73,7 +73,7 @@ export const InteractableProviderKeySectionProps = z.object({
         .string()
         .optional()
         .describe(
-          "The model API name (e.g., 'gpt-4o', 'claude-3-5-sonnet-20241022'). Use 'custom' or omit for custom providers.",
+          "The model API name (e.g., 'gpt-5.2', 'claude-sonnet-4-5-20250929'). Use 'custom' or omit for custom providers.",
         ),
     })
     .optional()
@@ -1156,7 +1156,7 @@ export function ProviderKeySectionBase({
                             </a>
                           )}
                           <a
-                            href="https://docs.tambo.co/models/labels"
+                            href="https://docs.tambo.co/reference/llm-providers/labels"
                             target="_blank"
                             rel="noopener noreferrer"
                             className="inline-flex items-center text-link text-xs hover:underline"
@@ -1450,7 +1450,7 @@ export function ProviderKeySectionBase({
 }
 
 // Export the interactable version
-export const InteractableProviderKeySection = withInteractable(
+export const InteractableProviderKeySection = withTamboInteractable(
   ProviderKeySectionBase,
   {
     componentName: COMPONENT_NAME,

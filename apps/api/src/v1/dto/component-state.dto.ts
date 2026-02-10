@@ -55,6 +55,15 @@ export class JsonPatchOperationDto {
 @ApiSchema({ name: "UpdateComponentState" })
 export class UpdateComponentStateDto {
   @ApiProperty({
+    description:
+      "Identifier for a user in your system. Required if no bearer token is provided.",
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  userKey?: string;
+
+  @ApiProperty({
     description: "Full replacement state object",
     required: false,
     example: { loading: false, data: [1, 2, 3] },

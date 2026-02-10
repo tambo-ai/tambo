@@ -1,14 +1,14 @@
 import { renderHook } from "@testing-library/react";
 import React from "react";
-import { TamboV1StubProvider } from "./tambo-v1-stub-provider";
-import { useTamboV1 } from "../hooks/use-tambo-v1";
-import { useTamboV1ThreadInput } from "../hooks/use-tambo-v1-thread-input";
+import { TamboStubProvider } from "./tambo-v1-stub-provider";
+import { useTambo } from "../hooks/use-tambo-v1";
+import { useTamboThreadInput } from "../hooks/use-tambo-v1-thread-input";
 import { useTamboRegistry } from "../../providers/tambo-registry-provider";
 import { useTamboClient } from "../../providers/tambo-client-provider";
-import type { TamboV1Thread } from "../types/thread";
+import type { TamboThread } from "../types/thread";
 
-describe("TamboV1StubProvider", () => {
-  const mockThread: TamboV1Thread = {
+describe("TamboStubProvider", () => {
+  const mockThread: TamboThread = {
     id: "thread_123",
     messages: [
       {
@@ -27,17 +27,16 @@ describe("TamboV1StubProvider", () => {
     status: "idle",
     createdAt: "2024-01-01T00:00:00Z",
     updatedAt: "2024-01-01T00:00:01Z",
+    lastRunCancelled: false,
   };
 
-  describe("useTamboV1", () => {
-    it("provides thread data via useTamboV1", () => {
+  describe("useTambo", () => {
+    it("provides thread data via useTambo", () => {
       const wrapper = ({ children }: { children: React.ReactNode }) => (
-        <TamboV1StubProvider thread={mockThread}>
-          {children}
-        </TamboV1StubProvider>
+        <TamboStubProvider thread={mockThread}>{children}</TamboStubProvider>
       );
 
-      const { result } = renderHook(() => useTamboV1("thread_123"), {
+      const { result } = renderHook(() => useTambo(), {
         wrapper,
       });
 
@@ -50,10 +49,10 @@ describe("TamboV1StubProvider", () => {
 
     it("returns empty messages when no thread provided", () => {
       const wrapper = ({ children }: { children: React.ReactNode }) => (
-        <TamboV1StubProvider>{children}</TamboV1StubProvider>
+        <TamboStubProvider>{children}</TamboStubProvider>
       );
 
-      const { result } = renderHook(() => useTamboV1("stub_thread"), {
+      const { result } = renderHook(() => useTambo(), {
         wrapper,
       });
 
@@ -63,12 +62,12 @@ describe("TamboV1StubProvider", () => {
 
     it("shows streaming state when isStreaming prop is true", () => {
       const wrapper = ({ children }: { children: React.ReactNode }) => (
-        <TamboV1StubProvider thread={mockThread} isStreaming>
+        <TamboStubProvider thread={mockThread} isStreaming>
           {children}
-        </TamboV1StubProvider>
+        </TamboStubProvider>
       );
 
-      const { result } = renderHook(() => useTamboV1("thread_123"), {
+      const { result } = renderHook(() => useTambo(), {
         wrapper,
       });
 
@@ -77,15 +76,13 @@ describe("TamboV1StubProvider", () => {
     });
   });
 
-  describe("useTamboV1ThreadInput", () => {
+  describe("useTamboThreadInput", () => {
     it("provides thread input context", () => {
       const wrapper = ({ children }: { children: React.ReactNode }) => (
-        <TamboV1StubProvider thread={mockThread}>
-          {children}
-        </TamboV1StubProvider>
+        <TamboStubProvider thread={mockThread}>{children}</TamboStubProvider>
       );
 
-      const { result } = renderHook(() => useTamboV1ThreadInput(), { wrapper });
+      const { result } = renderHook(() => useTamboThreadInput(), { wrapper });
 
       expect(result.current.value).toBe("");
       expect(result.current.threadId).toBe("thread_123");
@@ -95,12 +92,12 @@ describe("TamboV1StubProvider", () => {
 
     it("uses initial input value when provided", () => {
       const wrapper = ({ children }: { children: React.ReactNode }) => (
-        <TamboV1StubProvider thread={mockThread} inputValue="Hello world">
+        <TamboStubProvider thread={mockThread} inputValue="Hello world">
           {children}
-        </TamboV1StubProvider>
+        </TamboStubProvider>
       );
 
-      const { result } = renderHook(() => useTamboV1ThreadInput(), { wrapper });
+      const { result } = renderHook(() => useTamboThreadInput(), { wrapper });
 
       expect(result.current.value).toBe("Hello world");
     });
@@ -111,12 +108,12 @@ describe("TamboV1StubProvider", () => {
         .mockResolvedValue({ threadId: "new_thread" });
 
       const wrapper = ({ children }: { children: React.ReactNode }) => (
-        <TamboV1StubProvider thread={mockThread} onSubmit={mockOnSubmit}>
+        <TamboStubProvider thread={mockThread} onSubmit={mockOnSubmit}>
           {children}
-        </TamboV1StubProvider>
+        </TamboStubProvider>
       );
 
-      const { result } = renderHook(() => useTamboV1ThreadInput(), { wrapper });
+      const { result } = renderHook(() => useTamboThreadInput(), { wrapper });
 
       const response = await result.current.submit();
 
@@ -137,9 +134,9 @@ describe("TamboV1StubProvider", () => {
       ];
 
       const wrapper = ({ children }: { children: React.ReactNode }) => (
-        <TamboV1StubProvider thread={mockThread} components={components}>
+        <TamboStubProvider thread={mockThread} components={components}>
           {children}
-        </TamboV1StubProvider>
+        </TamboStubProvider>
       );
 
       const { result } = renderHook(() => useTamboRegistry(), { wrapper });
@@ -160,9 +157,9 @@ describe("TamboV1StubProvider", () => {
       ];
 
       const wrapper = ({ children }: { children: React.ReactNode }) => (
-        <TamboV1StubProvider thread={mockThread} tools={tools as any}>
+        <TamboStubProvider thread={mockThread} tools={tools as any}>
           {children}
-        </TamboV1StubProvider>
+        </TamboStubProvider>
       );
 
       const { result } = renderHook(() => useTamboRegistry(), { wrapper });
@@ -175,9 +172,7 @@ describe("TamboV1StubProvider", () => {
   describe("Client", () => {
     it("provides stub client", () => {
       const wrapper = ({ children }: { children: React.ReactNode }) => (
-        <TamboV1StubProvider thread={mockThread}>
-          {children}
-        </TamboV1StubProvider>
+        <TamboStubProvider thread={mockThread}>{children}</TamboStubProvider>
       );
 
       const { result } = renderHook(() => useTamboClient(), { wrapper });
@@ -189,12 +184,10 @@ describe("TamboV1StubProvider", () => {
   describe("Thread management", () => {
     it("provides thread management functions", () => {
       const wrapper = ({ children }: { children: React.ReactNode }) => (
-        <TamboV1StubProvider thread={mockThread}>
-          {children}
-        </TamboV1StubProvider>
+        <TamboStubProvider thread={mockThread}>{children}</TamboStubProvider>
       );
 
-      const { result } = renderHook(() => useTamboV1("thread_123"), {
+      const { result } = renderHook(() => useTambo(), {
         wrapper,
       });
 
@@ -207,15 +200,15 @@ describe("TamboV1StubProvider", () => {
       const mockStartNewThread = jest.fn().mockReturnValue("custom_thread_id");
 
       const wrapper = ({ children }: { children: React.ReactNode }) => (
-        <TamboV1StubProvider
+        <TamboStubProvider
           thread={mockThread}
           onStartNewThread={mockStartNewThread}
         >
           {children}
-        </TamboV1StubProvider>
+        </TamboStubProvider>
       );
 
-      const { result } = renderHook(() => useTamboV1("thread_123"), {
+      const { result } = renderHook(() => useTambo(), {
         wrapper,
       });
 
@@ -238,12 +231,12 @@ describe("TamboV1StubProvider", () => {
       ];
 
       const wrapper = ({ children }: { children: React.ReactNode }) => (
-        <TamboV1StubProvider thread={{ messages }} threadId="custom_id">
+        <TamboStubProvider thread={{ messages }} threadId="custom_id">
           {children}
-        </TamboV1StubProvider>
+        </TamboStubProvider>
       );
 
-      const { result } = renderHook(() => useTamboV1("custom_id"), { wrapper });
+      const { result } = renderHook(() => useTambo(), { wrapper });
 
       expect(result.current.messages).toHaveLength(1);
       expect(result.current.messages[0].id).toBe("msg_1");

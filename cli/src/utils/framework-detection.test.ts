@@ -114,6 +114,84 @@ describe("framework-detection", () => {
       expect(result?.name).toBe("next");
     });
 
+    it("detects Vite via package.json dependencies", () => {
+      vol.fromJSON({
+        "/mock-project/package.json": JSON.stringify({
+          name: "test-project",
+          dependencies: {
+            react: "^18.0.0",
+          },
+          devDependencies: {
+            vite: "^5.0.0",
+          },
+        }),
+      });
+
+      const result = detectFramework();
+      expect(result).not.toBeNull();
+      expect(result?.name).toBe("vite");
+      expect(result?.displayName).toBe("Vite");
+      expect(result?.envPrefix).toBe("VITE_");
+    });
+
+    it("detects Vite via vite.config.ts file", () => {
+      vol.fromJSON({
+        "/mock-project/package.json": JSON.stringify({
+          name: "test-project",
+          dependencies: { react: "^18.0.0" },
+        }),
+        "/mock-project/vite.config.ts": "export default {};",
+      });
+
+      const result = detectFramework();
+      expect(result).not.toBeNull();
+      expect(result?.name).toBe("vite");
+    });
+
+    it("detects Vite via vite.config.js file", () => {
+      vol.fromJSON({
+        "/mock-project/package.json": JSON.stringify({
+          name: "test-project",
+          dependencies: { react: "^18.0.0" },
+        }),
+        "/mock-project/vite.config.js": "export default {};",
+      });
+
+      const result = detectFramework();
+      expect(result?.name).toBe("vite");
+    });
+
+    it("detects Vite via vite.config.mjs file", () => {
+      vol.fromJSON({
+        "/mock-project/package.json": JSON.stringify({
+          name: "test-project",
+          dependencies: { react: "^18.0.0" },
+        }),
+        "/mock-project/vite.config.mjs": "export default {};",
+      });
+
+      const result = detectFramework();
+      expect(result?.name).toBe("vite");
+    });
+
+    it("Next.js takes priority over Vite when both are present", () => {
+      vol.fromJSON({
+        "/mock-project/package.json": JSON.stringify({
+          name: "test-project",
+          dependencies: {
+            next: "^14.0.0",
+            react: "^18.0.0",
+          },
+          devDependencies: {
+            vite: "^5.0.0",
+          },
+        }),
+      });
+
+      const result = detectFramework();
+      expect(result?.name).toBe("next");
+    });
+
     it("returns null when no framework is detected", () => {
       vol.fromJSON({
         "/mock-project/package.json": JSON.stringify({
@@ -158,6 +236,18 @@ describe("framework-detection", () => {
 
       const result = getEnvVarName("TAMBO_API_KEY");
       expect(result).toBe("NEXT_PUBLIC_TAMBO_API_KEY");
+    });
+
+    it("adds VITE_ prefix for Vite projects", () => {
+      vol.fromJSON({
+        "/mock-project/package.json": JSON.stringify({
+          name: "test-project",
+          devDependencies: { vite: "^5.0.0" },
+        }),
+      });
+
+      const result = getEnvVarName("TAMBO_API_KEY");
+      expect(result).toBe("VITE_TAMBO_API_KEY");
     });
 
     it("returns base name without prefix for non-framework projects", () => {

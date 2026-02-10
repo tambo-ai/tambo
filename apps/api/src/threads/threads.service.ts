@@ -39,6 +39,7 @@ import {
 import { eq } from "drizzle-orm";
 import OpenAI from "openai";
 import { DATABASE } from "../common/middleware/db-transaction-middleware";
+import { ContextInfo } from "../common/utils/extract-context-info";
 import { AuthService } from "../common/services/auth.service";
 import { EmailService } from "../common/services/email.service";
 import { AnalyticsService } from "../common/services/analytics.service";
@@ -53,7 +54,11 @@ import { ProjectsService } from "../projects/projects.service";
 import { AdvanceThreadDto } from "./dto/advance-thread.dto";
 import type { StreamQueueItem } from "./dto/stream-queue-item";
 import { ComponentDecisionV2Dto } from "./dto/component-decision.dto";
-import { MessageRequest, ThreadMessageDto } from "./dto/message.dto";
+import {
+  ChatCompletionContentPartDto,
+  MessageRequest,
+  ThreadMessageDto,
+} from "./dto/message.dto";
 import { SuggestionDto } from "./dto/suggestion.dto";
 import { SuggestionsGenerateDto } from "./dto/suggestions-generate.dto";
 import { Thread, ThreadRequest, ThreadWithMessagesDto } from "./dto/thread.dto";
@@ -64,7 +69,7 @@ import {
   SuggestionGenerationError,
   SuggestionNotFoundException,
 } from "./types/errors";
-import { convertContentPartToDto } from "./util/content";
+import { contentPartToDbFormat, convertContentPartToDto } from "./util/content";
 import { addMessage, threadMessageToDto, updateMessage } from "./util/messages";
 import { mapSuggestionToDto } from "./util/suggestions";
 import { createMcpHandlers } from "./util/thread-mcp-handlers";
@@ -298,7 +303,7 @@ export class ThreadsService {
     const threads = await operations.getThreadsByProject(
       this.getDb(),
       projectId,
-      params,
+      { ...params, includeMessages: false },
     );
     return threads.map((thread) => ({
       id: thread.id,
@@ -899,34 +904,32 @@ export class ThreadsService {
    * await p;
    * ```
    *
-   * @param projectId - The project ID.
+   * @param contextInfo - Project ID, context key, and SDK version from the request.
    * @param advanceRequestDto - The advance request DTO, including optional
    *   message to append, context key, and available components.
    * @param unresolvedThreadId - The thread ID, if any
-   * @param stream - Whether to stream the response.
    * @param toolCallCounts - Dictionary mapping tool call signatures to their
    *   counts for loop prevention.
    * @param cachedSystemTools - The system tools loaded from MCP - if included,
    *   it is a cache to avoid re-fetching them.
-   * @param contextKey - The context key, if any
    * @returns The the generated response thread message, generation stage, and
    *   status message.
    */
   async advanceThread(
-    projectId: string,
+    contextInfo: ContextInfo,
     advanceRequestDto: Omit<AdvanceThreadDto, "contextKey">,
     unresolvedThreadId?: string,
     toolCallCounts: Record<string, number> = {},
     cachedSystemTools?: McpToolRegistry,
     queue?: AsyncQueue<StreamQueueItem>,
-    contextKey?: string,
+    abortSignal?: AbortSignal,
   ): Promise<void> {
     await Sentry.startSpan(
       {
         name: "threads.advance",
         op: "threads.process",
         attributes: {
-          projectId,
+          projectId: contextInfo.projectId,
           threadId: unresolvedThreadId,
           hasMessage: !!advanceRequestDto.messageToAppend,
           toolCallCount: Object.keys(toolCallCounts).length,
@@ -934,26 +937,27 @@ export class ThreadsService {
       },
       async () =>
         await this.advanceThread_(
-          projectId,
+          contextInfo,
           advanceRequestDto,
           unresolvedThreadId,
           toolCallCounts,
           cachedSystemTools,
           queue,
-          contextKey,
+          abortSignal,
         ),
     );
   }
 
   private async advanceThread_(
-    projectId: string,
+    contextInfo: ContextInfo,
     advanceRequestDto: Omit<AdvanceThreadDto, "contextKey">,
     unresolvedThreadId?: string,
     toolCallCounts: Record<string, number> = {},
     cachedSystemTools?: McpToolRegistry,
     queue?: AsyncQueue<StreamQueueItem>,
-    contextKey?: string,
+    abortSignal?: AbortSignal,
   ): Promise<void> {
+    const { projectId, contextKey, sdkVersion } = contextInfo;
     const db = this.getDb();
     queue = queue ?? new AsyncQueue<StreamQueueItem>();
 
@@ -1022,23 +1026,33 @@ export class ThreadsService {
       }
 
       // Ensure only one request per thread adds its user message and continues
-      const userMessage = await addUserMessage(
-        db,
-        thread.id,
-        advanceRequestDto.messageToAppend,
-        this.logger,
-      );
+      // Skip adding empty messages (V1 API sends empty content when only tool_results are provided)
+      const hasMessageContent =
+        advanceRequestDto.messageToAppend.content.length > 0;
 
-      // Track user messages (not tool responses)
-      // Use contextKey (user identifier) if available, otherwise use TAMBO_ANON_CONTEXT_KEY
-      if (advanceRequestDto.messageToAppend.role === MessageRole.User) {
-        this.analytics.capture(
-          contextKey ?? TAMBO_ANON_CONTEXT_KEY,
-          "message_sent",
-          {
-            projectId,
-            threadId: thread.id,
-          },
+      let userMessage: ThreadMessage;
+      if (hasMessageContent) {
+        userMessage = await addUserMessage(
+          db,
+          thread.id,
+          advanceRequestDto.messageToAppend,
+          this.logger,
+          sdkVersion,
+        );
+      } else {
+        // No message content to add - get the latest message from the thread
+        // This happens in V1 API when only tool_result blocks are provided
+        // (tool results are saved separately in startRun before executeRun is called)
+        const existingMessages = await operations.getMessages(db, thread.id);
+        const latestMessage = existingMessages[existingMessages.length - 1];
+        if (!latestMessage) {
+          throw new Error(
+            `Cannot continue thread ${thread.id} with empty message: no existing messages found`,
+          );
+        }
+        userMessage = dbMessageToThreadMessage(latestMessage);
+        this.logger.log(
+          `Skipping empty message insertion for thread ${thread.id}, using latest message ${latestMessage.id}`,
         );
       }
 
@@ -1053,6 +1067,21 @@ export class ThreadsService {
         includeSystem: true,
       });
       const project = await operations.getProject(db, projectId);
+
+      // Track user messages (not tool responses) using already-fetched project data
+      if (advanceRequestDto.messageToAppend.role === MessageRole.User) {
+        const projectOwnerUserId = project?.members[0]?.userId;
+        this.analytics.capture(
+          projectOwnerUserId ?? contextKey ?? TAMBO_ANON_CONTEXT_KEY,
+          "message_sent",
+          {
+            projectId,
+            threadId: thread.id,
+            userId: projectOwnerUserId,
+            contextKey,
+          },
+        );
+      }
 
       if (messages.length === 0) {
         throw new Error("No messages found");
@@ -1099,7 +1128,7 @@ export class ThreadsService {
       const mcpAccessToken = mcpAccessTokenResult?.token;
 
       await this.generateStreamingResponse(
-        projectId,
+        contextInfo,
         thread.id,
         db,
         tamboBackend,
@@ -1112,6 +1141,7 @@ export class ThreadsService {
         mcpAccessToken,
         project?.maxToolCallLimit ?? DEFAULT_MAX_TOTAL_TOOL_CALLS,
         mcpClients,
+        abortSignal,
       );
     } catch (error) {
       queue.fail(error);
@@ -1139,7 +1169,7 @@ export class ThreadsService {
     allTools: McpToolRegistry,
     componentDecision: LegacyComponentDecision,
     advanceRequestDto: AdvanceThreadDto,
-    projectId: string,
+    contextInfo: ContextInfo,
     threadId: string,
     toolCallCounts: Record<string, number>,
     queue: AsyncQueue<StreamQueueItem>,
@@ -1151,7 +1181,7 @@ export class ThreadsService {
         attributes: {
           toolName: toolCallRequest.toolName,
           toolCallId,
-          projectId,
+          projectId: contextInfo.projectId,
           threadId,
         },
       },
@@ -1163,7 +1193,7 @@ export class ThreadsService {
           allTools,
           componentDecision,
           advanceRequestDto,
-          projectId,
+          contextInfo,
           threadId,
           toolCallCounts,
           queue,
@@ -1178,7 +1208,7 @@ export class ThreadsService {
     allTools: McpToolRegistry,
     componentDecision: LegacyComponentDecision,
     advanceRequestDto: AdvanceThreadDto,
-    projectId: string,
+    contextInfo: ContextInfo,
     threadId: string,
     toolCallCounts: Record<string, number>,
     queue: AsyncQueue<StreamQueueItem>,
@@ -1213,7 +1243,7 @@ export class ThreadsService {
 
       // This effectively recurses back into the decision loop with the tool response
       await this.advanceThread(
-        projectId,
+        contextInfo,
         messageWithToolResponse,
         threadId,
         updatedToolCallCounts,
@@ -1224,7 +1254,7 @@ export class ThreadsService {
       Sentry.captureException(error, {
         tags: {
           toolName: toolCallRequest.toolName,
-          projectId,
+          projectId: contextInfo.projectId,
           threadId,
         },
       });
@@ -1233,7 +1263,7 @@ export class ThreadsService {
   }
 
   private async generateStreamingResponse(
-    projectId: string,
+    contextInfo: ContextInfo,
     threadId: string,
     db: HydraDatabase,
     tamboBackend: ITamboBackend,
@@ -1251,13 +1281,14 @@ export class ThreadsService {
       url: string;
       serverId: string;
     }>,
+    abortSignal?: AbortSignal,
   ): Promise<void> {
     return await Sentry.startSpan(
       {
         name: "threads.generateStreamingResponse",
         op: "stream.generate",
         attributes: {
-          projectId,
+          projectId: contextInfo.projectId,
           threadId,
           messageCount: messages.length,
           hasCustomInstructions: messages.some(
@@ -1268,7 +1299,7 @@ export class ThreadsService {
       },
       async () =>
         await this.generateStreamingResponse_(
-          projectId,
+          contextInfo,
           threadId,
           db,
           tamboBackend,
@@ -1281,12 +1312,13 @@ export class ThreadsService {
           mcpAccessToken,
           maxToolCallLimit,
           mcpClients,
+          abortSignal,
         ),
     );
   }
 
   private async generateStreamingResponse_(
-    projectId: string,
+    contextInfo: ContextInfo,
     threadId: string,
     db: HydraDatabase,
     tamboBackend: ITamboBackend,
@@ -1304,7 +1336,25 @@ export class ThreadsService {
       url: string;
       serverId: string;
     }>,
+    abortSignal?: AbortSignal,
   ): Promise<void> {
+    const { projectId } = contextInfo;
+    // Create internal abort controller for this streaming session.
+    // This allows both external callers (V1 executeRun) and internal
+    // cancellation detection (handleAdvanceThreadStream) to sever the
+    // LLM HTTP connection.
+    const abortController = new AbortController();
+    const onExternalAbort = () => abortController.abort(abortSignal?.reason);
+    if (abortSignal) {
+      if (abortSignal.aborted) {
+        abortController.abort(abortSignal.reason);
+      } else {
+        abortSignal.addEventListener("abort", onExternalAbort, {
+          once: true,
+        });
+      }
+    }
+
     try {
       const latestMessage = messages[messages.length - 1];
 
@@ -1382,12 +1432,13 @@ export class ThreadsService {
           messages,
           strictTools,
           resourceFetchers,
+          abortSignal: abortController.signal,
         });
 
         decisionLoopSpan.end();
 
         await this.handleAdvanceThreadStream(
-          projectId,
+          contextInfo,
           threadId,
           messageStream,
           queue,
@@ -1400,6 +1451,7 @@ export class ThreadsService {
           mcpAccessToken,
           maxToolCallLimit,
           tamboBackend.modelOptions,
+          abortController,
         );
 
         return;
@@ -1465,6 +1517,7 @@ export class ThreadsService {
         strictTools,
         forceToolChoice: advanceRequestDto.forceToolChoice,
         resourceFetchers,
+        abortSignal: abortController.signal,
       });
 
       decisionLoopSpan.end();
@@ -1481,7 +1534,7 @@ export class ThreadsService {
       });
 
       await this.handleAdvanceThreadStream(
-        projectId,
+        contextInfo,
         threadId,
         streamedResponseMessages,
         queue,
@@ -1494,6 +1547,7 @@ export class ThreadsService {
         mcpAccessToken,
         maxToolCallLimit,
         tamboBackend.modelOptions,
+        abortController,
       );
     } catch (error) {
       // Capture streaming generation errors with context
@@ -1514,11 +1568,17 @@ export class ThreadsService {
         Sentry.captureException(error);
       });
       throw error;
+    } finally {
+      // Clean up: remove listener to avoid leaks, and ensure the LLM
+      // HTTP connection is severed on all termination paths (success,
+      // error, or cancellation).
+      abortSignal?.removeEventListener("abort", onExternalAbort);
+      abortController.abort();
     }
   }
 
   private async handleAdvanceThreadStream(
-    projectId: string,
+    contextInfo: ContextInfo,
     threadId: string,
     stream: AsyncIterableIterator<DecisionStreamItem>,
     queue: AsyncQueue<StreamQueueItem>,
@@ -1531,7 +1591,9 @@ export class ThreadsService {
     mcpAccessToken: string | undefined,
     maxToolCallLimit: number,
     modelOptions: ModelOptions,
+    abortController: AbortController,
   ): Promise<void> {
+    const { projectId, sdkVersion } = contextInfo;
     const db = this.getDb();
     const logger = this.logger;
 
@@ -1633,7 +1695,10 @@ export class ThreadsService {
           if (currentThreadMessage) {
             await updateMessage(db, currentThreadMessage.id, {
               ...currentThreadMessage,
-              content: convertContentPartToDto(currentThreadMessage.content),
+              // Preserve all content types for DB storage (V1 types like component are needed)
+              content: contentPartToDbFormat(
+                currentThreadMessage.content,
+              ) as ChatCompletionContentPartDto[],
               toolCallRequest: currentThreadMessage.toolCallRequest,
               tool_call_id: currentThreadMessage.tool_call_id,
               actionType: currentThreadMessage.toolCallRequest
@@ -1653,6 +1718,7 @@ export class ThreadsService {
             legacyDecision.role,
             legacyDecision.message,
             logger,
+            sdkVersion,
           );
 
           currentLegacyDecisionId = legacyDecision.id;
@@ -1699,6 +1765,7 @@ export class ThreadsService {
         );
         if (cancelledMessage) {
           queue.push(cancelledMessage);
+          abortController.abort();
           return;
         }
 
@@ -1842,7 +1909,7 @@ export class ThreadsService {
           allTools,
           componentDecision,
           originalRequest,
-          projectId,
+          contextInfo,
           threadId,
           toolCallCounts,
           queue,
@@ -1919,7 +1986,7 @@ export class ThreadsService {
         };
 
         await this.advanceThread(
-          projectId,
+          contextInfo,
           toolResponseAdvanceDto,
           threadId,
           updatedToolCallCounts,
@@ -2263,7 +2330,10 @@ async function syncThreadStatus(
 
       await updateMessage(db, messageId, {
         ...currentThreadMessage,
-        content: convertContentPartToDto(currentThreadMessage.content),
+        // Preserve all content types for DB storage (V1 types like component are needed)
+        content: contentPartToDbFormat(
+          currentThreadMessage.content,
+        ) as ChatCompletionContentPartDto[],
         component: currentThreadMessage.component as ComponentDecisionV2Dto,
       });
     },

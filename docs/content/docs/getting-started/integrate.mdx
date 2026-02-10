@@ -1,33 +1,34 @@
 ---
-title: Integrate Tambo into an existing React app
+title: Add Tambo to an existing app
 description: Add Tambo generative UI to an existing React or Next.js application.
 icon: Blocks
 ---
 
-<Callout type="info">
-  This example assumes an application using NextJs, but NextJs is not required.
-</Callout>
+import LearnMore from "@/components/learn-more";
 
-If you have an existing React application and want to add Tambo functionality, follow these steps:
+Tambo works with Next.js, Vite, and other React frameworks. The CLI detects your framework automatically.
 
-## Step 1: Install tambo-ai
+## 1. Install
 
 ```bash
 npx tambo full-send
 ```
 
-This command will:
+This command:
 
-- Setup Tambo in your existing project and get you an API key
-- Install components that are hooked up to tambo-ai
-- Show you how to wrap your app with the `<TamboProvider>`
+- Sets up Tambo and gets you an API key
+- Detects your framework and configures the build toolchain
+- Installs pre-built chat components
+- Shows how to wrap your app with `TamboProvider`
 
-If you prefer manual setup, you can run `npx tambo init` which will just get you set up with an API key. If you don't have an account yet, <a href="https://tambo.co/dashboard" className="font-medium underline underline-offset-4 decoration-muted-foreground hover:text-foreground hover:decoration-foreground transition-colors">sign up for free</a> first.
+For manual setup, run `npx tambo init` instead (just the API key). If you don't have an account, <a href="https://console.tambo.co" className="font-medium underline underline-offset-4 decoration-muted-foreground hover:text-foreground hover:decoration-foreground transition-colors">sign up free</a>.
 
-## Step 2: Add the TamboProvider
+## 2. Add the provider
 
-Once the installation completes, update your `src/app/layout.tsx` file to enable Tambo:
+import { Tab, Tabs } from "fumadocs-ui/components/tabs";
 
+<Tabs items={["Next.js", "Vite"]}>
+<Tab value="Next.js">
 ```tsx title="src/app/layout.tsx"
 "use client";
 
@@ -39,29 +40,67 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <TamboProvider apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY!}>
+    <TamboProvider
+      apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY!}
+      userKey="user-1"
+    >
       {children}
     </TamboProvider>
   );
 }
 ```
 
-<Callout type="info" title="API Key Setup">
-  You need to create a `.env.local` file in the root of your project to store
-  your Tambo API key: ``` NEXT_PUBLIC_TAMBO_API_KEY=your_api_key_here ```
-  Replace `your_api_key_here` with the actual API key you received during setup.
-  This file should not be committed to version control as it contains sensitive
-  information.
+<Callout type="info" title="API key setup">
+  Create a `.env.local` file in your project root:
+
+```bash
+NEXT_PUBLIC_TAMBO_API_KEY=your_api_key_here
+```
+
+Don't commit this file to version control.
+
 </Callout>
 
-Note that the `TamboProvider` only works in the browser. On Next.js, specify
-`"use client"` at the top of your file to ensure that the `TamboProvider` is
-rendered in the browser.
+The `TamboProvider` only works in the browser. On Next.js, add `"use client"` at the top of the file.
 
-## Step 3: Add the MessageThreadCollapsible component
+The `userKey` identifies the current user — threads are scoped per user. Replace `"user-1"` with a real user ID from your auth system. See [User Authentication](/concepts/user-authentication) for details.
 
-The `<MessageThreadCollapsible>` component that the `full-send` command installed provides a complete chat interface for your AI assistant. Here's how to add it to your `src/app/page.tsx` file:
+</Tab>
+<Tab value="Vite">
+```tsx title="src/App.tsx"
+import { TamboProvider } from "@tambo-ai/react";
 
+export default function App() {
+  return (
+    <TamboProvider
+      apiKey={import.meta.env.VITE_TAMBO_API_KEY!}
+      userKey="user-1"
+    >
+      {/* your app content */}
+    </TamboProvider>
+  );
+}
+```
+
+<Callout type="info" title="API key setup">
+  Create a `.env.local` file in your project root:
+
+```bash
+VITE_TAMBO_API_KEY=your_api_key_here
+```
+
+Don't commit this file to version control.
+
+</Callout>
+</Tab>
+</Tabs>
+
+## 3. Add the chat component
+
+The `full-send` command installed a `MessageThreadCollapsible` component. Add it to your main page:
+
+<Tabs items={["Next.js", "Vite"]}>
+<Tab value="Next.js">
 ```tsx title="src/app/page.tsx"
 "use client";
 import { MessageThreadCollapsible } from "../source/components/message-thread-collapsible";
@@ -74,14 +113,27 @@ export default function Home() {
   );
 }
 ```
+</Tab>
+<Tab value="Vite">
+```tsx title="src/App.tsx"
+import { MessageThreadCollapsible } from "./components/tambo/message-thread-collapsible";
 
-## Step 4: Run your app
+export default function App() {
+  return (
+    <main>
+      <MessageThreadCollapsible />
+    </main>
+  );
+}
+```
+</Tab>
+</Tabs>
+
+## 4. Run
 
 ```bash
 npm run dev
 ```
-
-When you are done, you should see a chat interface like this:
 
 <div className="flex justify-center my-6">
   <video
@@ -94,3 +146,23 @@ When you are done, you should see a chat interface like this:
     Your browser does not support the video tag.
   </video>
 </div>
+
+## Next steps
+
+<LearnMore
+  title="Register components"
+  description="Give the agent access to your own React components"
+  href="/concepts/generative-interfaces/generative-components"
+/>
+
+<LearnMore
+  title="Add tools"
+  description="Let the agent call functions and fetch data"
+  href="/concepts/tools"
+/>
+
+<LearnMore
+  title="Connect MCP servers"
+  description="Integrate external systems with Model Context Protocol"
+  href="/concepts/model-context-protocol"
+/>

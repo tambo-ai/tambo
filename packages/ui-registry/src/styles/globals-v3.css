@@ -6,6 +6,16 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+/* TipTap editor placeholder - required for @tiptap/extension-placeholder to display */
+.tiptap p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: hsl(var(--muted-foreground));
+  opacity: 0.5;
+  pointer-events: none;
+  height: 0;
+}
+
 @layer base {
   :root {
     /* Default Tailwind CSS Variables customized with tambo colors */

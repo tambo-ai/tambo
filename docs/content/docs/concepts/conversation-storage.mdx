@@ -29,16 +29,16 @@ Messages can also include additional context that was provided when they were se
 
 ### Through the React SDK
 
-The React SDK provides hooks for accessing stored conversations. Use `useTamboThread()` to work with the current thread, or `useTamboThreads()` to access all threads for a user:
+The React SDK provides hooks for accessing stored conversations. Use `useTambo()` to work with the current thread, or `useTamboThreadList()` to access all threads for a user:
 
 ```tsx
-import { useTamboThread, useTamboThreads } from "@tambo-ai/react";
+import { useTambo, useTamboThreadList } from "@tambo-ai/react";
 
 // Access current thread and its messages
-const { thread } = useTamboThread();
+const { thread, messages } = useTambo();
 
-// Access all stored threads for the current project
-const { data: threads, isLoading, error, refetch } = useTamboThreadList();
+// Access all stored threads for the current user
+const { data, isLoading, error, refetch } = useTamboThreadList();
 ```
 
 The SDK automatically fetches thread data, provides real-time updates as new messages arrive, caches data to minimize network requests, and triggers re-renders when thread state changes.

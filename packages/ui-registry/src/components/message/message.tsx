@@ -1,29 +1,28 @@
 "use client";
 
-import { TamboThreadMessage, useTambo } from "@tambo-ai/react";
+import { TamboThreadMessage } from "@tambo-ai/react";
+import {
+  Message as MessageBase,
+  type MessageContentProps as MessageBaseContentProps,
+  type MessageContentRenderProps as MessageBaseContentRenderProps,
+  type MessageImagesProps as MessageBaseImagesProps,
+  type MessageRenderedComponentProps as MessageBaseRenderedComponentProps,
+  type MessageLoadingIndicatorProps,
+  type MessageRootProps,
+} from "@tambo-ai/react-ui-base/message";
+import {
+  ReasoningInfo as ReasoningInfoBase,
+  type ReasoningInfoRootProps,
+} from "@tambo-ai/react-ui-base/reasoning-info";
+import {
+  ToolcallInfo as ToolcallInfoBase,
+  type ToolcallInfoRootProps as ToolcallInfoBaseRootProps,
+} from "@tambo-ai/react-ui-base/toolcall-info";
 import { cn } from "@tambo-ai/ui-registry/utils";
 import { cva, type VariantProps } from "class-variance-authority";
 import { Check, ChevronDown, ExternalLink, Loader2, X } from "lucide-react";
 import * as React from "react";
 import { Streamdown } from "streamdown";
-import {
-  Message as MessageBase,
-  MessageContentProps as MessageBaseContentProps,
-  MessageContentRenderProps as MessageBaseContentRenderProps,
-  MessageImagesProps as MessageBaseImagesProps,
-  MessageRenderedComponentProps as MessageBaseRenderedComponentProps,
-} from "../../base/message";
-import { MessageLoadingIndicatorProps } from "../../base/message/loading-indicator/message-loading-indicator";
-import { MessageRootProps } from "../../base/message/root/message-root";
-import { useMessageRootContext } from "../../base/message/root/message-root-context";
-import {
-  ReasoningInfo as ReasoningInfoBase,
-  ReasoningInfoRootProps,
-} from "../../base/reasoning-info";
-import {
-  ToolcallInfo as ToolcallInfoBase,
-  type ToolcallInfoRootProps as ToolcallInfoBaseRootProps,
-} from "../../base/toolcall-info";
 import { getSafeContent } from "../../lib/thread-hooks";
 import {
   createMarkdownComponents,
@@ -318,13 +317,7 @@ function ToolResultDisplay({
   );
 }
 
-function ToolcallInfoContent({
-  markdown,
-  message,
-}: {
-  markdown: boolean;
-  message: TamboThreadMessage;
-}) {
+function ToolcallInfoContent({ markdown }: { markdown: boolean }) {
   return (
     <ToolcallInfoBase.Content
       forceMount
@@ -334,29 +327,35 @@ function ToolcallInfoContent({
         "data-[state=closed]:max-h-0 data-[state=closed]:opacity-0 data-[state=closed]:p-0",
       )}
     >
-      <ToolcallInfoBase.ToolName
-        className="whitespace-pre-wrap pl-2"
-        render={({ toolName }) => `tool: ${toolName}`}
-      />
-      <ToolcallInfoBase.Parameters
-        className="whitespace-pre-wrap pl-2"
-        render={({ parametersString }) => `parameters:\n${parametersString}`}
-      />
-      <SamplingSubThread parentMessageId={message.id} />
-      <ToolcallInfoBase.Result className="pl-2">
-        {({ content, hasResult }) => (
-          <>
-            <span className="whitespace-pre-wrap">result:</span>
-            <div>
-              <ToolResultDisplay
-                content={content}
-                hasResult={hasResult}
-                enableMarkdown={markdown}
-              />
-            </div>
-          </>
-        )}
-      </ToolcallInfoBase.Result>
+      {({ message }) => (
+        <>
+          <ToolcallInfoBase.ToolName
+            className="whitespace-pre-wrap pl-2"
+            render={({ toolName }) => `tool: ${toolName}`}
+          />
+          <ToolcallInfoBase.Parameters
+            className="whitespace-pre-wrap pl-2"
+            render={({ parametersString }) =>
+              `parameters:\n${parametersString}`
+            }
+          />
+          <SamplingSubThread parentMessageId={message.id} />
+          <ToolcallInfoBase.Result className="pl-2">
+            {({ content, hasResult }) => (
+              <>
+                <span className="whitespace-pre-wrap">result:</span>
+                <div>
+                  <ToolResultDisplay
+                    content={content}
+                    hasResult={hasResult}
+                    enableMarkdown={markdown}
+                  />
+                </div>
+              </>
+            )}
+          </ToolcallInfoBase.Result>
+        </>
+      )}
     </ToolcallInfoBase.Content>
   );
 }
@@ -390,11 +389,9 @@ ToolcallInfoTrigger.displayName = "ToolcallInfoTrigger";
  */
 const ToolcallInfo = React.forwardRef<HTMLDivElement, ToolcallInfoProps>(
   ({ className, markdown = true, ...props }, ref) => {
-    const { message } = useMessageRootContext();
     return (
       <ToolcallInfoBase.Root
         ref={ref}
-        message={message}
         className={cn(
           "flex flex-col items-start text-xs opacity-50",
           className,
@@ -407,7 +404,7 @@ const ToolcallInfo = React.forwardRef<HTMLDivElement, ToolcallInfoProps>(
             <ToolcallInfoBase.StatusText />
             <ChevronDown className="h-3 w-3 transition-transform duration-200 group-data-[state=closed]/trigger:-rotate-90" />
           </ToolcallInfoTrigger>
-          <ToolcallInfoContent markdown={markdown} message={message} />
+          <ToolcallInfoContent markdown={markdown} />
         </div>
       </ToolcallInfoBase.Root>
     );
@@ -419,23 +416,20 @@ ToolcallInfo.displayName = "ToolcallInfo";
  * Used for MCP sampling sub-threads.
  */
 const SamplingSubThread = ({
-  parentMessageId,
+  parentMessageId: _parentMessageId,
   titleText = "finished additional work",
 }: {
   parentMessageId: string;
   titleText?: string;
 }) => {
-  const { thread } = useTambo();
   const [isExpanded, setIsExpanded] = React.useState(false);
   const samplingDetailsId = React.useId();
 
-  const childMessages = React.useMemo(() => {
-    return thread?.messages?.filter(
-      (m: TamboThreadMessage) => m.parentMessageId === parentMessageId,
-    );
-  }, [thread?.messages, parentMessageId]);
+  // In V1, messages no longer have parentMessageId, so sub-threads are not supported.
+  // Render nothing until a V1 equivalent is available.
+  const childMessages: TamboThreadMessage[] = [];
 
-  if (!childMessages?.length) return null;
+  if (!childMessages.length) return null;
 
   return (
     <div className="flex flex-col gap-1">
@@ -504,7 +498,6 @@ export type ReasoningInfoProps = Omit<
  */
 const ReasoningInfo = React.forwardRef<HTMLDivElement, ReasoningInfoProps>(
   ({ className, ...props }, ref) => {
-    const { message, isLoading } = useMessageRootContext();
     return (
       <ReasoningInfoBase.Root
         ref={ref}
@@ -512,8 +505,6 @@ const ReasoningInfo = React.forwardRef<HTMLDivElement, ReasoningInfoProps>(
           "flex flex-col items-start text-xs opacity-50",
           className,
         )}
-        isLoading={isLoading}
-        message={message}
         {...props}
       >
         <div className="flex flex-col w-full">
@@ -677,8 +668,6 @@ function ToolResultContent({
 
       if (item.type === "text" && item.text) {
         textParts.push(item.text);
-      } else if (item.type === "image_url" && item.image_url?.url) {
-        nonTextItems.push({ type: "image", url: item.image_url.url, index });
       } else if (item.type === "resource" && item.resource) {
         nonTextItems.push({ type: "resource", resource: item.resource, index });
       }

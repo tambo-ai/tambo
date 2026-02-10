@@ -1,12 +1,11 @@
 import {
   ChatCompletionContentPart,
   ContentPartType,
-  LegacyComponentDecision,
   MessageRole,
   Resource,
   ThreadMessage,
+  stringifyJsonForMarkup,
   tryParseJson,
-  type ComponentDecisionV2,
 } from "@tambo-ai-cloud/core";
 import type {
   AssistantModelMessage,
@@ -228,23 +227,15 @@ export function convertAssistantMessage(
   // came from the tool call itself. We handle this as a normal tool call.
   const content: (ToolCallPart | { type: "text"; text: string })[] = [];
 
-  // Add text content if present
-  if (message.component) {
-    const combinedComponent = combineComponentWithState(
-      message.component,
-      message.componentState ?? {},
-    );
-    content.push({
-      type: "text",
-      text: JSON.stringify(combinedComponent),
-    });
-  } else {
-    message.content.forEach((part) => {
-      if (part.type === ContentPartType.Text) {
-        content.push({ type: "text", text: part.text });
-      }
-    });
-  }
+  // Add text content from message.content
+  // Note: message.component is UI metadata about what React component to render,
+  // not the text content to send to the LLM. Always use message.content for the
+  // actual text content.
+  message.content.forEach((part) => {
+    if (part.type === ContentPartType.Text) {
+      content.push({ type: "text", text: part.text });
+    }
+  });
 
   // Add tool calls if present
   const toolCallId = message.tool_call_id ?? "";
@@ -259,6 +250,18 @@ export function convertAssistantMessage(
           input: tryParseJson(call.function.arguments),
         } satisfies ToolCallPart);
       }
+    });
+  }
+
+  // Include component state so the LLM can see it on follow-up messages
+  if (
+    message.componentState &&
+    Object.keys(message.componentState).length > 0
+  ) {
+    const safeJson = stringifyJsonForMarkup(message.componentState);
+    content.push({
+      type: "text",
+      text: `<component_state>${safeJson}</component_state>`,
     });
   }
 
@@ -500,24 +503,4 @@ function makeSafeMLValue(value: string): string {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&apos;");
-}
-
-/**
- * Combine component decision with state
- * Port from thread-message-conversion.ts:244-258
- */
-function combineComponentWithState(
-  component: LegacyComponentDecision,
-  componentState: Record<string, unknown>,
-): ComponentDecisionV2 {
-  return {
-    ...component,
-    componentState: {
-      instructions:
-        "\nThe following values represent the current internal state of the component attached to this message. These values may have been updated by the user.",
-      ...component.componentState,
-      ...componentState,
-    },
-    props: component.props ?? {},
-  };
 }

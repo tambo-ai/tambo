@@ -20,6 +20,7 @@ import {
   isTokenValid,
   loadToken,
 } from "../lib/token-storage.js";
+import { GuidanceError, isInteractive } from "../utils/interactive.js";
 
 export interface AuthStatusOptions {
   quiet?: boolean;
@@ -158,10 +159,20 @@ export async function handleAuthLogin(
       ),
     );
 
-    // In non-interactive mode (--no-browser), skip the re-auth prompt
+    // --no-browser when already authenticated is a clean no-op
     if (options.noBrowser) {
       console.log(chalk.gray("\nUse --force to re-authenticate.\n"));
       return 0;
+    }
+
+    if (!isInteractive()) {
+      throw new GuidanceError(
+        "Already authenticated. Re-authentication requires confirmation.",
+        [
+          "npx tambo auth login --no-browser  # No-op when already authenticated",
+          "npx tambo auth logout --force && npx tambo auth login --no-browser  # Force re-auth",
+        ],
+      );
     }
 
     const shouldReauth = await confirm({
@@ -207,6 +218,13 @@ export async function handleAuthLogout(
   const userLabel = user?.email ? ` (${user.email})` : "";
 
   if (!options.force) {
+    if (!isInteractive()) {
+      throw new GuidanceError(
+        "Logout requires confirmation in non-interactive mode.",
+        ["npx tambo auth logout --force  # Skip confirmation"],
+      );
+    }
+
     const shouldLogout = await confirm({
       message: `Log out${userLabel}? This will clear your stored credentials.`,
       default: true,
@@ -252,6 +270,12 @@ export async function handleAuthRevokeSession(
 
   if (options.all) {
     return await revokeAllSessions();
+  }
+
+  if (!isInteractive()) {
+    throw new GuidanceError("Session selection requires interactive mode.", [
+      "npx tambo auth revoke-session --all  # Revoke all sessions",
+    ]);
   }
 
   // Show interactive picker
@@ -427,30 +451,44 @@ async function revokeSessionById(sessionId: string): Promise<number> {
 async function revokeAllSessions(): Promise<number> {
   console.log(chalk.bold("\n🗑️  Revoke All Sessions\n"));
 
-  // Confirm before revoking all
-  const shouldRevoke = await confirm({
-    message:
-      "This will revoke ALL CLI sessions including this one. You will need to re-authenticate. Continue?",
-    default: false,
-  });
+  // In non-interactive mode, --all flag is sufficient intent
+  if (isInteractive()) {
+    const shouldRevoke = await confirm({
+      message:
+        "This will revoke ALL CLI sessions including this one. You will need to re-authenticate. Continue?",
+      default: false,
+    });
 
-  if (!shouldRevoke) {
-    console.log(chalk.gray("\nCancelled.\n"));
-    return 0;
+    if (!shouldRevoke) {
+      console.log(chalk.gray("\nCancelled.\n"));
+      return 0;
+    }
   }
 
-  const spinner = ora("Revoking all sessions...").start();
+  const interactive = isInteractive();
+  const spinner = ora({
+    text: "Revoking all sessions...",
+    isEnabled: interactive,
+  }).start();
 
   try {
     const result = await api.deviceAuth.revokeAllSessions.mutate();
 
     if (result.revokedCount === 0) {
-      spinner.info("No sessions to revoke");
+      if (interactive) {
+        spinner.info("No sessions to revoke");
+      } else {
+        console.log("No sessions to revoke");
+      }
       console.log();
       return 0;
     }
 
-    spinner.succeed(`Revoked ${result.revokedCount} session(s)`);
+    if (interactive) {
+      spinner.succeed(`Revoked ${result.revokedCount} session(s)`);
+    } else {
+      console.log(`Revoked ${result.revokedCount} session(s)`);
+    }
 
     // Clear local token since we revoked our own session
     clearToken();
@@ -461,7 +499,11 @@ async function revokeAllSessions(): Promise<number> {
     );
     return 0;
   } catch (error) {
-    spinner.fail("Failed to revoke sessions");
+    if (interactive) {
+      spinner.fail("Failed to revoke sessions");
+    } else {
+      console.error("Failed to revoke sessions");
+    }
 
     if (error instanceof ApiError) {
       console.log(chalk.red(`\nError: ${error.message}`));
