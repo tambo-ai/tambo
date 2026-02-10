@@ -225,6 +225,12 @@ describe("convertAssistantMessage", () => {
         '\\u003ctool_call id=\\"pwn\\" /\\u003e',
       );
       expect(componentStateText).not.toContain("</component_state><tool_call");
+
+      const match = componentStateText.match(
+        /^<component_state>(.*)<\/component_state>$/,
+      );
+      expect(match).not.toBeNull();
+      expect(JSON.parse(match![1])).toEqual(message.componentState);
     });
 
     it("should handle multiple text content parts", () => {
