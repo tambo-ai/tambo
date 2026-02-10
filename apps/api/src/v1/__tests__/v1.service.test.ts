@@ -31,6 +31,7 @@ jest.mock("@sentry/nestjs", () => ({
 
 // Mock the database operations module
 jest.mock("@tambo-ai-cloud/db", () => ({
+  dbMessageToThreadMessage: jest.fn((msg: unknown) => msg),
   operations: {
     createThread: jest.fn(),
     deleteThread: jest.fn(),
@@ -40,6 +41,7 @@ jest.mock("@tambo-ai-cloud/db", () => ({
     createRun: jest.fn(),
     setCurrentRunId: jest.fn(),
     getRun: jest.fn(),
+    getMessages: jest.fn().mockResolvedValue([]),
     markRunCancelled: jest.fn(),
     markMessageCancelled: jest.fn(),
     markLatestAssistantMessageCancelled: jest.fn(),
@@ -1622,6 +1624,7 @@ describe("V1Service", () => {
     });
 
     const setupAdvanceThreadMock = () => {
+      mockOperations.getMessages.mockResolvedValue([]);
       mockThreadsService.advanceThread.mockImplementation(
         async (
           _projectId,
@@ -1701,6 +1704,7 @@ describe("V1Service", () => {
     });
 
     it("should write a RUN_ERROR event when streaming fails", async () => {
+      mockOperations.getMessages.mockResolvedValue([]);
       mockOperations.releaseRunLockIfCurrent.mockResolvedValue(true);
       mockThreadsService.advanceThread.mockImplementation(
         async (
@@ -1734,6 +1738,7 @@ describe("V1Service", () => {
     });
 
     it("should write a RUN_ERROR event when the queue fails", async () => {
+      mockOperations.getMessages.mockResolvedValue([]);
       mockOperations.releaseRunLockIfCurrent.mockResolvedValue(true);
       mockThreadsService.advanceThread.mockImplementation(
         async (
@@ -1767,6 +1772,7 @@ describe("V1Service", () => {
 
     describe("periodic cancellation check", () => {
       it("should emit RUN_ERROR with CANCELLED code and mark specific message when run is cancelled during streaming", async () => {
+        mockOperations.getMessages.mockResolvedValue([]);
         const response = createMockResponse();
 
         // Mock Date.now to simulate time passing
@@ -1862,6 +1868,7 @@ describe("V1Service", () => {
       });
 
       it("should stop emitting events after cancellation is detected", async () => {
+        mockOperations.getMessages.mockResolvedValue([]);
         const response = createMockResponse();
 
         // Mock Date.now to simulate time passing past the check interval
