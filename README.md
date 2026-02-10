@@ -25,6 +25,10 @@
 
 ---
 
+> **Tambo 1.0 is here!** Read the announcement: [Introducing Tambo: Generative UI for React](https://tambo.co/blog/posts/introducing-tambo-generative-ui)
+
+---
+
 ## Table of Contents
 
 - [What is Tambo?](#what-is-tambo)
@@ -125,11 +129,12 @@ Docs: [generative components](https://docs.tambo.co/concepts/generative-interfac
 
 ### The Provider
 
-Wrap your app with `TamboProvider`.
+Wrap your app with `TamboProvider`. You must provide either `userKey` or `userToken` to identify the thread owner.
 
 ```tsx
 <TamboProvider
   apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY!}
+  userKey={currentUserId}
   components={components}
 >
   <Chat />
@@ -137,17 +142,17 @@ Wrap your app with `TamboProvider`.
 </TamboProvider>
 ```
 
-For apps with signed-in users, pass a per-user `userToken` (OAuth access token) to `TamboProvider` to enable per-user auth and connect Tambo to your app's end-user identity. See [User Authentication](https://docs.tambo.co/concepts/user-authentication) for details.
+Use `userKey` for server-side or trusted environments. Use `userToken` (OAuth access token) for client-side apps where the token contains the user identity. See [User Authentication](https://docs.tambo.co/concepts/user-authentication) for details.
 
 Docs: [provider options](https://docs.tambo.co/reference/react-sdk/providers)
 
 ### Hooks
 
-Send messages with `useTamboThreadInput`. `useTamboThread` handles streaming, including props for generated components and tool calls.
+`useTambo()` is the primary hook — it gives you messages, streaming state, and thread management. `useTamboThreadInput()` handles user input and message submission.
 
 ```tsx
+const { messages, isStreaming } = useTambo();
 const { value, setValue, submit, isPending } = useTamboThreadInput();
-const { thread } = useTamboThread();
 ```
 
 Docs: [threads and messages](https://docs.tambo.co/concepts/conversation-storage), [streaming status](https://docs.tambo.co/concepts/generative-interfaces/component-state), [full tutorial](https://docs.tambo.co/getting-started/quickstart)
@@ -169,7 +174,12 @@ const mcpServers = [
   },
 ];
 
-<TamboProvider components={components} mcpServers={mcpServers}>
+<TamboProvider
+  apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY!}
+  userKey={currentUserId}
+  components={components}
+  mcpServers={mcpServers}
+>
   <App />
 </TamboProvider>;
 ```
@@ -202,7 +212,12 @@ const tools: TamboTool[] = [
   },
 ];
 
-<TamboProvider tools={tools} components={components}>
+<TamboProvider
+  apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY!}
+  userKey={currentUserId}
+  tools={tools}
+  components={components}
+>
   <App />
 </TamboProvider>;
 ```
@@ -215,6 +230,7 @@ Docs: [local tools](https://docs.tambo.co/guides/take-actions/register-tools)
 
 ```tsx
 <TamboProvider
+  apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY!}
   userToken={userToken}
   contextHelpers={{
     selectedItems: () => ({
