@@ -328,10 +328,6 @@ export function useTambo(): UseTamboReturn {
 
           // Extract Tambo display props from input
           const tamboDisplayProps: TamboToolDisplayProps = {
-            _tambo_displayMessage:
-              typeof input._tambo_displayMessage === "string"
-                ? input._tambo_displayMessage
-                : undefined,
             _tambo_statusMessage:
               typeof input._tambo_statusMessage === "string"
                 ? input._tambo_statusMessage

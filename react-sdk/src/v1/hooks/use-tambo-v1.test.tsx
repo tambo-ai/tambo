@@ -849,7 +849,6 @@ describe("useTambo", () => {
                         units: "celsius",
                         _tambo_statusMessage: "Fetching...",
                         _tambo_completionStatusMessage: "Done",
-                        _tambo_displayMessage: "Weather lookup",
                       },
                     },
                   ],
@@ -878,7 +877,6 @@ describe("useTambo", () => {
       expect(content.input).toEqual({ location: "NYC", units: "celsius" });
       expect(content.input._tambo_statusMessage).toBeUndefined();
       expect(content.input._tambo_completionStatusMessage).toBeUndefined();
-      expect(content.input._tambo_displayMessage).toBeUndefined();
     });
 
     it("handles tool_use with empty input", () => {

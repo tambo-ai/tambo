@@ -1004,7 +1004,6 @@ describe("V1Service", () => {
         location: "San Francisco",
         _tambo_statusMessage: "Getting weather for San Francisco...",
         _tambo_completionStatusMessage: "Got weather for San Francisco",
-        _tambo_displayMessage: "Fetching weather data",
       });
     });
 
