@@ -663,12 +663,31 @@ export function useTamboSendMessage(threadId?: string) {
               throttledStreamable.schedule(event.toolCallId, parsedToolArgs);
             }
 
-            // Check for awaiting_input - if found, break to execute tools
+            // Handle custom events
             if (event.type === EventType.CUSTOM) {
               const customEvent = asTamboCustomEvent(event);
+
               if (customEvent?.name === "tambo.run.awaiting_input") {
                 pendingAwaitingInput = customEvent;
                 break; // Exit stream loop to handle tool execution
+              }
+
+              // Apply JSON Patch args to tracker and schedule streamable execution
+              if (customEvent?.name === "tambo.tool_call.args_delta") {
+                const { toolCallId, operations } = customEvent.value;
+                const updatedInput = toolTracker.applyArgsPatch(
+                  toolCallId,
+                  operations,
+                );
+                if (updatedInput) {
+                  throttledStreamable.schedule(toolCallId, updatedInput);
+                }
+              }
+
+              // Set final clean args on tracker
+              if (customEvent?.name === "tambo.tool_call.end") {
+                const { toolCallId, finalArgs } = customEvent.value;
+                toolTracker.setFinalArgs(toolCallId, finalArgs);
               }
             }
           }

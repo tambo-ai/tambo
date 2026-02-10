@@ -6,6 +6,7 @@
  */
 
 import { EventType, type AGUIEvent } from "@ag-ui/core";
+import { applyPatch, type Operation } from "fast-json-patch";
 import type { PendingToolCall } from "./tool-executor";
 
 /**
@@ -98,6 +99,36 @@ export class ToolCallTracker {
       }
     }
     return result;
+  }
+
+  /**
+   * Apply JSON Patch operations to a tool call's input, building up args
+   * incrementally from `tambo.tool_call.args_delta` events.
+   * @param toolCallId - ID of the tool call to patch
+   * @param operations - RFC 6902 JSON Patch operations to apply
+   * @returns The updated input after applying patches, or undefined if not found
+   */
+  applyArgsPatch(
+    toolCallId: string,
+    operations: Operation[],
+  ): Record<string, unknown> | undefined {
+    const toolCall = this.pendingToolCalls.get(toolCallId);
+    if (!toolCall) return undefined;
+
+    const result = applyPatch(toolCall.input, operations, false, false);
+    toolCall.input = result.newDocument;
+    return toolCall.input;
+  }
+
+  /**
+   * Set the final clean args for a tool call from a `tambo.tool_call.end` event.
+   * @param toolCallId - ID of the tool call
+   * @param finalArgs - The final unstrictified arguments
+   */
+  setFinalArgs(toolCallId: string, finalArgs: Record<string, unknown>): void {
+    const toolCall = this.pendingToolCalls.get(toolCallId);
+    if (!toolCall) return;
+    toolCall.input = finalArgs;
   }
 
   /**

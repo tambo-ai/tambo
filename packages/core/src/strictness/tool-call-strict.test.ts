@@ -1,7 +1,11 @@
 import { JSONSchema7, JSONSchema7Definition } from "json-schema";
 import OpenAI from "openai";
 import type { ToolCallRequest } from "../ComponentDecision";
-import { canBeNull, unstrictifyToolCallRequest } from "./tool-call-strict";
+import {
+  canBeNull,
+  unstrictifyToolCallRequest,
+  unstrictifyToolCallParamsFromSchema,
+} from "./tool-call-strict";
 
 describe("unstrictifyToolCallRequest", () => {
   it("should return the original request if originalTool is undefined", () => {
@@ -538,5 +542,114 @@ describe("canBeNull", () => {
       anyOf: [{ type: "string" }, { type: "number" }],
     };
     expect(canBeNull(schema)).toBe(false);
+  });
+});
+
+describe("unstrictifyToolCallParamsFromSchema", () => {
+  it("should strip null values for optional non-nullable params", () => {
+    const schema: JSONSchema7 = {
+      type: "object",
+      properties: {
+        name: { type: "string" },
+        age: { type: "number" },
+      },
+      required: ["name"],
+    };
+
+    const result = unstrictifyToolCallParamsFromSchema(schema, {
+      name: "John",
+      age: null,
+    });
+
+    expect(result).toEqual({ name: "John" });
+  });
+
+  it("should preserve pass-through params not in original schema", () => {
+    const schema: JSONSchema7 = {
+      type: "object",
+      properties: {
+        name: { type: "string" },
+      },
+      required: ["name"],
+    };
+
+    const result = unstrictifyToolCallParamsFromSchema(schema, {
+      name: "John",
+      _tambo_statusMessage: "Processing...",
+      _tambo_displayMessage: "Hello",
+    });
+
+    expect(result).toEqual({
+      name: "John",
+      _tambo_statusMessage: "Processing...",
+      _tambo_displayMessage: "Hello",
+    });
+  });
+
+  it("should handle nested object unstrictification with pass-through params", () => {
+    const schema: JSONSchema7 = {
+      type: "object",
+      properties: {
+        user: {
+          type: "object",
+          properties: {
+            name: { type: "string" },
+            email: { type: "string" },
+          },
+          required: ["name"],
+        },
+      },
+      required: ["user"],
+    };
+
+    const result = unstrictifyToolCallParamsFromSchema(schema, {
+      user: { name: "John", email: null },
+      _tambo_statusMessage: "Updating user",
+    });
+
+    expect(result).toEqual({
+      user: { name: "John" },
+      _tambo_statusMessage: "Updating user",
+    });
+  });
+
+  it("should return params as-is for non-object schemas", () => {
+    const schema: JSONSchema7 = { type: "string" };
+    const params = { name: "John", _tambo_foo: "bar" };
+
+    const result = unstrictifyToolCallParamsFromSchema(schema, params);
+
+    expect(result).toEqual(params);
+  });
+
+  it("should handle empty params", () => {
+    const schema: JSONSchema7 = {
+      type: "object",
+      properties: {
+        name: { type: "string" },
+      },
+      required: [],
+    };
+
+    const result = unstrictifyToolCallParamsFromSchema(schema, {});
+
+    expect(result).toEqual({});
+  });
+
+  it("should handle schema with no properties defined", () => {
+    const schema: JSONSchema7 = {
+      type: "object",
+    };
+
+    const result = unstrictifyToolCallParamsFromSchema(schema, {
+      anything: "value",
+      _tambo_status: "ok",
+    });
+
+    // Everything is pass-through when no properties are defined in schema
+    expect(result).toEqual({
+      anything: "value",
+      _tambo_status: "ok",
+    });
   });
 });

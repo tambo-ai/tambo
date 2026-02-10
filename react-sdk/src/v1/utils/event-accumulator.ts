@@ -31,6 +31,8 @@ import {
   type ComponentStateDeltaEvent,
   type MessageParentEvent,
   type RunAwaitingInputEvent,
+  type ToolCallArgsDeltaEvent,
+  type ToolCallEndEvent as TamboToolCallEndEvent,
 } from "../types/event";
 import type {
   Content,
@@ -1247,6 +1249,12 @@ function handleCustomEvent(
     case "tambo.message.parent":
       return handleMessageParent(threadState, customEvent);
 
+    case "tambo.tool_call.args_delta":
+      return handleToolCallArgsDelta(threadState, customEvent);
+
+    case "tambo.tool_call.end":
+      return handleToolCallEndCustom(threadState, customEvent);
+
     default: {
       // Exhaustiveness check: if a new event type is added to TamboCustomEvent
       // and not handled here, TypeScript will error
@@ -1499,6 +1507,114 @@ function handleMessageParent(
   };
 
   return updateThreadMessages(threadState, [...messages, newMessage]);
+}
+
+// ============================================================================
+// Tool Call Streaming Event Handlers (tambo.tool_call.args_delta / end)
+// ============================================================================
+
+/**
+ * Handle tambo.tool_call.args_delta event.
+ * Applies JSON Patch operations to the tool_use content block's input,
+ * providing incremental unstrictified updates during streaming.
+ * @param threadState - Current thread state
+ * @param event - Tool call args delta event
+ * @returns Updated thread state
+ */
+function handleToolCallArgsDelta(
+  threadState: ThreadState,
+  event: ToolCallArgsDeltaEvent,
+): ThreadState {
+  const { toolCallId, operations } = event.value;
+  const messages = threadState.thread.messages;
+
+  const { messageIndex, contentIndex } = findContentById(
+    messages,
+    "tool_use",
+    toolCallId,
+    "tambo.tool_call.args_delta event",
+  );
+
+  const message = messages[messageIndex];
+  const toolUseContent = message.content[contentIndex];
+
+  if (toolUseContent.type !== "tool_use") {
+    throw new Error(
+      `Content at index ${contentIndex} is not a tool_use block for tambo.tool_call.args_delta event`,
+    );
+  }
+
+  const currentInput = toolUseContent.input ?? {};
+  const updatedInput = applyJsonPatch(currentInput, operations);
+
+  const updatedContent: Content = {
+    ...toolUseContent,
+    input: updatedInput,
+  };
+
+  const updatedMessage: TamboThreadMessage = {
+    ...message,
+    content: updateContentAtIndex(
+      message.content,
+      contentIndex,
+      updatedContent,
+    ),
+  };
+
+  return updateThreadMessages(
+    threadState,
+    updateMessageAtIndex(messages, messageIndex, updatedMessage),
+  );
+}
+
+/**
+ * Handle tambo.tool_call.end custom event.
+ * Sets the final unstrictified args on the tool_use content block.
+ * @param threadState - Current thread state
+ * @param event - Tool call end event
+ * @returns Updated thread state
+ */
+function handleToolCallEndCustom(
+  threadState: ThreadState,
+  event: TamboToolCallEndEvent,
+): ThreadState {
+  const { toolCallId, finalArgs } = event.value;
+  const messages = threadState.thread.messages;
+
+  const { messageIndex, contentIndex } = findContentById(
+    messages,
+    "tool_use",
+    toolCallId,
+    "tambo.tool_call.end event",
+  );
+
+  const message = messages[messageIndex];
+  const toolUseContent = message.content[contentIndex];
+
+  if (toolUseContent.type !== "tool_use") {
+    throw new Error(
+      `Content at index ${contentIndex} is not a tool_use block for tambo.tool_call.end event`,
+    );
+  }
+
+  const updatedContent: Content = {
+    ...toolUseContent,
+    input: finalArgs,
+  };
+
+  const updatedMessage: TamboThreadMessage = {
+    ...message,
+    content: updateContentAtIndex(
+      message.content,
+      contentIndex,
+      updatedContent,
+    ),
+  };
+
+  return updateThreadMessages(
+    threadState,
+    updateMessageAtIndex(messages, messageIndex, updatedMessage),
+  );
 }
 
 // ============================================================================

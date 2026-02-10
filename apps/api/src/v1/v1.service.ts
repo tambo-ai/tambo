@@ -32,6 +32,7 @@ import {
   sanitizeEvent,
   createMessageParentEvent,
 } from "@tambo-ai-cloud/backend";
+import type { JSONSchema7 } from "json-schema";
 import type { HydraDatabase, HydraDb } from "@tambo-ai-cloud/db";
 import {
   dbMessageToThreadMessage,
@@ -761,7 +762,16 @@ export class V1Service {
 
           // 5. Consume queue and emit AG-UI events, tracking tool calls
           const clientToolNames = new Set(dto.tools?.map((t) => t.name) ?? []);
-          const toolCallTracker = new ClientToolCallTracker(clientToolNames);
+          const originalSchemas = new Map<string, JSONSchema7>(
+            (dto.tools ?? []).map((t) => [
+              t.name,
+              t.inputSchema as JSONSchema7,
+            ]),
+          );
+          const toolCallTracker = new ClientToolCallTracker(
+            clientToolNames,
+            originalSchemas,
+          );
 
           // Track temp→real message ID mapping. The LLM client generates temporary
           // IDs (e.g., "message-xyz") because it doesn't have DB access. advanceThread
@@ -833,9 +843,31 @@ export class V1Service {
                   messageIdMapping,
                 );
 
-                // Track tool calls to detect pending client-side tools
-                toolCallTracker.processEvent(transformedEvent);
-                this.emitEvent(response, transformedEvent);
+                // Track tool calls and collect custom events (JSON Patch deltas)
+                const customEvents =
+                  toolCallTracker.processEvent(transformedEvent);
+
+                // Suppress raw TOOL_CALL_ARGS for client tools — the custom
+                // args_delta events (with unstrictified JSON Patch ops) replace them.
+                const shouldSuppressRawArgs =
+                  (transformedEvent.type === EventType.TOOL_CALL_ARGS ||
+                    transformedEvent.type === EventType.TOOL_CALL_CHUNK) &&
+                  toolCallTracker.isClientToolCall(
+                    (
+                      transformedEvent as unknown as {
+                        toolCallId: string;
+                      }
+                    ).toolCallId,
+                  );
+
+                if (!shouldSuppressRawArgs) {
+                  this.emitEvent(response, transformedEvent);
+                }
+
+                // Emit custom events (args_delta, tool_call.end)
+                for (const customEvent of customEvents) {
+                  this.emitEvent(response, customEvent);
+                }
               }
             }
           }

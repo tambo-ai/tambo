@@ -63,6 +63,32 @@ export type ComponentEndEvent = TamboCustomEventEnvelope<
 >;
 
 /**
+ * Tool call args delta event (custom: tambo.tool_call.args_delta)
+ * Uses JSON Patch (RFC 6902) to incrementally update client tool call arguments,
+ * with strictification-induced nulls already stripped.
+ */
+export type ToolCallArgsDeltaEvent = TamboCustomEventEnvelope<
+  "tambo.tool_call.args_delta",
+  {
+    toolCallId: string;
+    operations: Operation[];
+    streamingStatus: Record<string, string>;
+  }
+>;
+
+/**
+ * Tool call end event (custom: tambo.tool_call.end)
+ * Emitted when tool call argument streaming completes with final clean args.
+ */
+export type ToolCallEndEvent = TamboCustomEventEnvelope<
+  "tambo.tool_call.end",
+  {
+    toolCallId: string;
+    finalArgs: Record<string, unknown>;
+  }
+>;
+
+/**
  * Pending tool call information from awaiting_input event
  */
 export interface PendingToolCall {
@@ -103,6 +129,8 @@ export type TamboCustomEvent =
   | ComponentPropsDeltaEvent
   | ComponentStateDeltaEvent
   | ComponentEndEvent
+  | ToolCallArgsDeltaEvent
+  | ToolCallEndEvent
   | RunAwaitingInputEvent
   | MessageParentEvent;
 
@@ -114,6 +142,8 @@ const TAMBO_CUSTOM_EVENT_NAMES = [
   "tambo.component.props_delta",
   "tambo.component.state_delta",
   "tambo.component.end",
+  "tambo.tool_call.args_delta",
+  "tambo.tool_call.end",
   "tambo.run.awaiting_input",
   "tambo.message.parent",
 ] as const;
@@ -152,6 +182,10 @@ export function asTamboCustomEvent(
       return event as ComponentStateDeltaEvent;
     case "tambo.component.end":
       return event as ComponentEndEvent;
+    case "tambo.tool_call.args_delta":
+      return event as ToolCallArgsDeltaEvent;
+    case "tambo.tool_call.end":
+      return event as ToolCallEndEvent;
     case "tambo.run.awaiting_input":
       return event as RunAwaitingInputEvent;
     case "tambo.message.parent":

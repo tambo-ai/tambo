@@ -5,9 +5,11 @@ import {
   type CustomEvent,
   type ToolCallStartEvent,
   type ToolCallArgsEvent,
-  type ToolCallEndEvent,
+  type ToolCallEndEvent as AguiToolCallEndEvent,
   type ToolCallResultEvent,
 } from "@ag-ui/client";
+import { JSONSchema7 } from "json-schema";
+import { ToolCallStreamTracker } from "@tambo-ai-cloud/backend";
 
 const logger = new Logger("ClientToolCallTracker");
 
@@ -53,6 +55,7 @@ export interface PendingToolCall {
  */
 export class ClientToolCallTracker {
   private readonly clientToolNames: ReadonlySet<string>;
+  private readonly originalSchemas: ReadonlyMap<string, JSONSchema7>;
 
   /**
    * Client tool calls (names in `clientToolNames`) that have started and have
@@ -72,14 +75,23 @@ export class ClientToolCallTracker {
   /** Track accumulated size per tool call to enforce limits */
   private toolCallArgumentSizes: Map<string, number> = new Map();
 
-  constructor(clientToolNames: ReadonlySet<string>) {
+  /** Per-tool-call stream trackers for JSON Patch emission + unstrictification */
+  private streamTrackers: Map<string, ToolCallStreamTracker> = new Map();
+
+  constructor(
+    clientToolNames: ReadonlySet<string>,
+    originalSchemas?: ReadonlyMap<string, JSONSchema7>,
+  ) {
     this.clientToolNames = clientToolNames;
+    this.originalSchemas = originalSchemas ?? new Map();
   }
 
   /**
    * Process an AG-UI event and update tracking state.
+   * @returns Custom events to emit (tool call args delta / end events). Empty
+   * array when there are no custom events to emit.
    */
-  processEvent(event: BaseEvent): void {
+  processEvent(event: BaseEvent): BaseEvent[] {
     switch (event.type) {
       case EventType.TOOL_CALL_START: {
         const e = event as unknown as ToolCallStartEvent;
@@ -92,6 +104,15 @@ export class ClientToolCallTracker {
         });
         this.toolCallArgumentChunks.set(e.toolCallId, []);
         this.toolCallArgumentSizes.set(e.toolCallId, 0);
+
+        // Create a stream tracker if we have the original schema
+        const schema = this.originalSchemas.get(e.toolCallName);
+        if (schema) {
+          this.streamTrackers.set(
+            e.toolCallId,
+            new ToolCallStreamTracker(e.toolCallId, schema),
+          );
+        }
         break;
       }
       case EventType.TOOL_CALL_ARGS:
@@ -122,13 +143,57 @@ export class ClientToolCallTracker {
           e.toolCallId,
           currentSize + e.delta.length,
         );
+
+        // Feed the delta to the stream tracker for JSON Patch emission
+        const streamTracker = this.streamTrackers.get(e.toolCallId);
+        if (streamTracker) {
+          return streamTracker.processJsonDelta(e.delta) as BaseEvent[];
+        }
         break;
       }
       case EventType.TOOL_CALL_END: {
-        const e = event as unknown as ToolCallEndEvent;
+        const e = event as unknown as AguiToolCallEndEvent;
         const toolCall = this.pendingClientToolCalls.get(e.toolCallId);
-        if (toolCall) {
-          // Join accumulated chunks into final arguments string
+
+        // Finalize the stream tracker first to get clean args
+        const streamTracker = this.streamTrackers.get(e.toolCallId);
+        const customEvents: BaseEvent[] = [];
+
+        if (streamTracker) {
+          try {
+            const endEvents = streamTracker.finalize();
+            customEvents.push(...(endEvents as BaseEvent[]));
+
+            // Use the finalized clean args for the pending tool call
+            if (toolCall) {
+              const endEvent = endEvents.find(
+                (ev) => ev.name === "tambo.tool_call.end",
+              );
+              if (endEvent) {
+                toolCall.arguments = JSON.stringify(
+                  (
+                    endEvent.value as {
+                      finalArgs: Record<string, unknown>;
+                    }
+                  ).finalArgs,
+                );
+              }
+            }
+          } catch (error) {
+            logger.warn(
+              `Failed to finalize stream tracker for tool call ${e.toolCallId}: ${error}`,
+            );
+            // Fall back to raw accumulated args
+            if (toolCall) {
+              const chunks =
+                this.toolCallArgumentChunks.get(e.toolCallId) ?? [];
+              toolCall.arguments = chunks.join("");
+            }
+          }
+
+          this.streamTrackers.delete(e.toolCallId);
+        } else if (toolCall) {
+          // No stream tracker — join accumulated chunks as before
           const chunks = this.toolCallArgumentChunks.get(e.toolCallId) ?? [];
           toolCall.arguments = chunks.join("");
         }
@@ -136,16 +201,26 @@ export class ClientToolCallTracker {
         // Free memory for completed args once we have the final string
         this.toolCallArgumentChunks.delete(e.toolCallId);
         this.toolCallArgumentSizes.delete(e.toolCallId);
-        break;
+
+        return customEvents;
       }
       case EventType.TOOL_CALL_RESULT: {
         const e = event as unknown as ToolCallResultEvent;
         this.pendingClientToolCalls.delete(e.toolCallId);
         this.toolCallArgumentChunks.delete(e.toolCallId);
         this.toolCallArgumentSizes.delete(e.toolCallId);
+        this.streamTrackers.delete(e.toolCallId);
         break;
       }
     }
+    return [];
+  }
+
+  /**
+   * Check if a tool call ID belongs to a tracked client tool call.
+   */
+  isClientToolCall(toolCallId: string): boolean {
+    return this.pendingClientToolCalls.has(toolCallId);
   }
 
   /**
