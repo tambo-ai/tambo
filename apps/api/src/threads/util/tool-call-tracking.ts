@@ -43,6 +43,39 @@ function createToolCallSignature(toolCallRequest: ToolCallRequest): string {
 }
 
 /**
+ * Builds tool call counts from message history, scoped to the current "round"
+ * (since the last user message). This reconstructs the counts that would have
+ * accumulated if all tool calls in this round had happened in a single
+ * advanceThread invocation.
+ * @param messages - Thread messages ordered ascending by createdAt
+ * @returns Signature-based counts dict (same shape advanceThread expects)
+ */
+export function buildToolCallCountsFromMessages(
+  messages: ThreadMessage[],
+): Record<string, number> {
+  // Walk backward to find the last user message (start of current round)
+  let roundStartIndex = 0;
+  for (let i = messages.length - 1; i >= 0; i--) {
+    if (messages[i].role === MessageRole.User) {
+      roundStartIndex = i + 1;
+      break;
+    }
+  }
+
+  // Count all assistant messages with toolCallRequest from that point forward
+  const counts: Record<string, number> = {};
+  for (let i = roundStartIndex; i < messages.length; i++) {
+    const msg = messages[i];
+    if (msg.role === MessageRole.Assistant && msg.toolCallRequest) {
+      const signature = createToolCallSignature(msg.toolCallRequest);
+      counts[signature] = (counts[signature] || 0) + 1;
+    }
+  }
+
+  return counts;
+}
+
+/**
  * Validates tool call limits to prevent infinite loops.
  * @param finalThreadMessage - The final thread message that will be added to the thread
  * @param messages - All messages in the thread (usually from the db)
