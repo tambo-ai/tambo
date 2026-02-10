@@ -21,6 +21,8 @@ const { MCPClient } = jest.requireMock<{
   };
 }>("./mcp-client");
 
+const dummyEvent = {} as ErrorEvent;
+
 const baseArgs = {
   url: "https://example.com/mcp",
   mcpTransport: MCPTransport.HTTP,
@@ -67,7 +69,9 @@ describe("validateMcpServer", () => {
 
   describe("SseError handling", () => {
     it("returns valid with requiresAuth on 401", async () => {
-      MCPClient.create.mockRejectedValue(new SseError(401, "unauthorized"));
+      MCPClient.create.mockRejectedValue(
+        new SseError(401, "unauthorized", dummyEvent),
+      );
 
       const result = await validateMcpServer(baseArgs);
 
@@ -80,7 +84,9 @@ describe("validateMcpServer", () => {
     });
 
     it("returns invalid with normalized status code for non-401", async () => {
-      MCPClient.create.mockRejectedValue(new SseError(403, "forbidden"));
+      MCPClient.create.mockRejectedValue(
+        new SseError(403, "forbidden", dummyEvent),
+      );
 
       const result = await validateMcpServer(baseArgs);
 
@@ -90,7 +96,11 @@ describe("validateMcpServer", () => {
     });
 
     it("normalizes undefined status code to 500", async () => {
-      const err = new SseError(undefined as unknown as number, "bad");
+      const err = new SseError(
+        undefined as unknown as number,
+        "bad",
+        dummyEvent,
+      );
 
       MCPClient.create.mockRejectedValue(err);
 
