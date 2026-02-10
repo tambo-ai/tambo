@@ -2,7 +2,8 @@
 
 import { Slot } from "@radix-ui/react-slot";
 import * as React from "react";
-import { MAX_IMAGES, useMessageInputContext } from "./message-input-context";
+import { MAX_IMAGES } from "./constants";
+import { useMessageInputContext } from "./message-input-context";
 
 /**
  * Render props for the FileButton component.
@@ -41,7 +42,14 @@ export const MessageInputFileButton = React.forwardRef<
   MessageInputFileButtonProps
 >(
   (
-    { asChild, accept = "image/*", multiple = true, children, ...props },
+    {
+      asChild,
+      accept = "image/*",
+      multiple = true,
+      children,
+      onClick,
+      ...props
+    },
     ref,
   ) => {
     const { addImages, images, setImageError } = useMessageInputContext();
@@ -50,6 +58,14 @@ export const MessageInputFileButton = React.forwardRef<
     const openFilePicker = React.useCallback(() => {
       fileInputRef.current?.click();
     }, []);
+
+    const handleClick = React.useCallback(
+      (event: React.MouseEvent<HTMLButtonElement>) => {
+        onClick?.(event);
+        openFilePicker();
+      },
+      [onClick, openFilePicker],
+    );
 
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
       const files = Array.from(e.target.files ?? []);
@@ -84,7 +100,7 @@ export const MessageInputFileButton = React.forwardRef<
         <Comp
           ref={ref}
           type="button"
-          onClick={openFilePicker}
+          onClick={handleClick}
           aria-label="Attach Images"
           data-slot="message-input-file-button"
           {...props}

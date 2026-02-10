@@ -11,8 +11,8 @@ import {
   type TamboElicitationResponse,
 } from "@tambo-ai/react/mcp";
 import * as React from "react";
+import { MAX_IMAGES } from "./constants";
 import {
-  MAX_IMAGES,
   MessageInputContext,
   type MessageInputContextValue,
   type TamboEditor,
