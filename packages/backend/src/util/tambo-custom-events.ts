@@ -138,51 +138,6 @@ export type ComponentEndEvent = TamboCustomEventEnvelope<
 >;
 
 // =============================================================================
-// Tool Call Streaming Events
-// =============================================================================
-
-/**
- * Value payload for tool call args delta event.
- */
-export interface ToolCallArgsDeltaEventValue {
-  /** ID of the tool call being streamed */
-  toolCallId: string;
-  /** JSON Patch operations (RFC 6902) to apply to tool call arguments */
-  operations: Operation[];
-  /** Current streaming status of each argument property */
-  streamingStatus: Record<string, PropStreamingStatus>;
-}
-
-/**
- * Tool call args delta event (custom: tambo.tool_call.args_delta)
- * Uses JSON Patch (RFC 6902) to incrementally update client tool call arguments,
- * with strictification-induced nulls already stripped.
- */
-export type ToolCallArgsDeltaEvent = TamboCustomEventEnvelope<
-  "tambo.tool_call.args_delta",
-  ToolCallArgsDeltaEventValue
->;
-
-/**
- * Value payload for tool call end event.
- */
-export interface ToolCallEndEventValue {
-  /** ID of the tool call that finished streaming */
-  toolCallId: string;
-  /** Final unstrictified arguments for the tool call */
-  finalArgs: Record<string, unknown>;
-}
-
-/**
- * Tool call end event (custom: tambo.tool_call.end)
- * Emitted when tool call argument streaming completes with final clean args.
- */
-export type ToolCallEndEvent = TamboCustomEventEnvelope<
-  "tambo.tool_call.end",
-  ToolCallEndEventValue
->;
-
-// =============================================================================
 // Run Lifecycle Events
 // =============================================================================
 
@@ -251,8 +206,6 @@ export type TamboCustomEvent =
   | ComponentPropsDeltaEvent
   | ComponentStateDeltaEvent
   | ComponentEndEvent
-  | ToolCallArgsDeltaEvent
-  | ToolCallEndEvent
   | RunAwaitingInputEvent
   | MessageParentEvent;
 
@@ -264,8 +217,6 @@ export const TAMBO_CUSTOM_EVENT_NAMES = [
   "tambo.component.props_delta",
   "tambo.component.state_delta",
   "tambo.component.end",
-  "tambo.tool_call.args_delta",
-  "tambo.tool_call.end",
   "tambo.run.awaiting_input",
   "tambo.message.parent",
 ] as const;
@@ -327,34 +278,6 @@ export function createComponentEndEvent(
   return {
     type: EventType.CUSTOM,
     name: "tambo.component.end",
-    value,
-    timestamp: Date.now(),
-  };
-}
-
-/**
- * Create a tool call args delta event.
- */
-export function createToolCallArgsDeltaEvent(
-  value: ToolCallArgsDeltaEventValue,
-): ToolCallArgsDeltaEvent {
-  return {
-    type: EventType.CUSTOM,
-    name: "tambo.tool_call.args_delta",
-    value,
-    timestamp: Date.now(),
-  };
-}
-
-/**
- * Create a tool call end event.
- */
-export function createToolCallEndEvent(
-  value: ToolCallEndEventValue,
-): ToolCallEndEvent {
-  return {
-    type: EventType.CUSTOM,
-    name: "tambo.tool_call.end",
     value,
     timestamp: Date.now(),
   };

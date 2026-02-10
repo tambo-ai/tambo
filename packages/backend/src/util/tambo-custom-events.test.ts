@@ -168,8 +168,6 @@ describe("tambo-custom-events", () => {
         "tambo.component.props_delta",
         "tambo.component.state_delta",
         "tambo.component.end",
-        "tambo.tool_call.args_delta",
-        "tambo.tool_call.end",
         "tambo.run.awaiting_input",
         "tambo.message.parent",
       ]);
@@ -178,7 +176,7 @@ describe("tambo-custom-events", () => {
     it("should be readonly", () => {
       // TypeScript ensures this at compile time, but we can verify the array structure
       expect(Array.isArray(TAMBO_CUSTOM_EVENT_NAMES)).toBe(true);
-      expect(TAMBO_CUSTOM_EVENT_NAMES.length).toBe(8);
+      expect(TAMBO_CUSTOM_EVENT_NAMES.length).toBe(6);
     });
   });
 });
