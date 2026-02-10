@@ -1,5 +1,29 @@
 # Changelog
 
+## [1.0.0-rc.4](https://github.com/tambo-ai/tambo/compare/react-v1.0.0-rc.3...react-v1.0.0-rc.4) (2026-02-10)
+
+
+### Features
+
+* **react-sdk:** expose updateThreadName for manual thread renaming ([#2328](https://github.com/tambo-ai/tambo/issues/2328)) ([3a60a65](https://github.com/tambo-ai/tambo/commit/3a60a65ba19aeb9d3ca7e39fa9aeea33557f5959))
+* **react-sdk:** normalize thread field from title to name ([#2332](https://github.com/tambo-ai/tambo/issues/2332)) ([b940aa4](https://github.com/tambo-ai/tambo/commit/b940aa40e769ed019b08a916fccea812d97e3ce9))
+
+
+### Bug Fixes
+
+* remove displayMessage tambo param ([#2346](https://github.com/tambo-ai/tambo/issues/2346)) ([a9b3d4d](https://github.com/tambo-ai/tambo/commit/a9b3d4d6d3e8ac415e828d902a5e4810d9220169))
+
+
+### Miscellaneous Chores
+
+* bump to typescript-sdk 0.92 ([#2334](https://github.com/tambo-ai/tambo/issues/2334)) ([3767c6c](https://github.com/tambo-ai/tambo/commit/3767c6c0e12c9862afd992b6f18bc3338ea4201d))
+* **deps-dev:** bump eslint-plugin-jsdoc from 62.5.1 to 62.5.4 in the eslint group ([#2335](https://github.com/tambo-ai/tambo/issues/2335)) ([0e32eb9](https://github.com/tambo-ai/tambo/commit/0e32eb9ef1d53a7a9ad08bf86c75e02b56c9ae33))
+
+
+### Documentation
+
+* **docs:** finalize v1 SDK documentation for 1.0 release ([#2327](https://github.com/tambo-ai/tambo/issues/2327)) ([a63c1a7](https://github.com/tambo-ai/tambo/commit/a63c1a79972cece79f0c22462084b201b1fad1c8))
+
 ## [1.0.0-rc.3](https://github.com/tambo-ai/tambo/compare/react-v1.0.0-rc.2...react-v1.0.0-rc.3) (2026-02-09)
 
 
