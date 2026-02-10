@@ -646,10 +646,30 @@ describe("unstrictifyToolCallParamsFromSchema", () => {
       _tambo_status: "ok",
     });
 
-    // Everything is pass-through when no properties are defined in schema
+    // Only _tambo_* keys pass through; unknown keys are dropped
     expect(result).toEqual({
-      anything: "value",
       _tambo_status: "ok",
+    });
+  });
+
+  it("should drop hallucinated keys not in schema or _tambo_* prefix", () => {
+    const schema: JSONSchema7 = {
+      type: "object",
+      properties: {
+        city: { type: "string" },
+      },
+      required: ["city"],
+    };
+
+    const result = unstrictifyToolCallParamsFromSchema(schema, {
+      city: "NYC",
+      temperatur: "celsius",
+      _tambo_statusMessage: "Fetching",
+    });
+
+    expect(result).toEqual({
+      city: "NYC",
+      _tambo_statusMessage: "Fetching",
     });
   });
 });
