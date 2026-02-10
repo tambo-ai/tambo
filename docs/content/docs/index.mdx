@@ -132,12 +132,12 @@ For apps with signed-in users, pass a `userToken` to enable per-user auth. See [
 Send messages and render responses:
 
 ```tsx
-const { thread } = useTamboThread();
+const { messages } = useTambo();
 const { value, setValue, submit, isPending } = useTamboThreadInput();
 
 // Render messages with components
 {
-  thread.messages.map((message) => (
+  messages.map((message) => (
     <div key={message.id}>
       {Array.isArray(message.content) ? (
         message.content.map((part, i) =>
