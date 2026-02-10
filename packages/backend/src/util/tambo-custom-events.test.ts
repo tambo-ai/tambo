@@ -4,6 +4,7 @@ import {
   createComponentPropsDeltaEvent,
   createComponentStartEvent,
   createComponentStateDeltaEvent,
+  createMessageParentEvent,
   createRunAwaitingInputEvent,
   TAMBO_CUSTOM_EVENT_NAMES,
 } from "./tambo-custom-events";
@@ -144,6 +145,22 @@ describe("tambo-custom-events", () => {
     });
   });
 
+  describe("createMessageParentEvent", () => {
+    it("should create a message parent event with correct structure", () => {
+      const value = {
+        messageId: "msg-child",
+        parentMessageId: "msg-parent",
+      };
+
+      const event = createMessageParentEvent(value);
+
+      expect(event.type).toBe(EventType.CUSTOM);
+      expect(event.name).toBe("tambo.message.parent");
+      expect(event.value).toEqual(value);
+      expect(typeof event.timestamp).toBe("number");
+    });
+  });
+
   describe("TAMBO_CUSTOM_EVENT_NAMES", () => {
     it("should contain all expected event names", () => {
       expect(TAMBO_CUSTOM_EVENT_NAMES).toEqual([
@@ -152,13 +169,14 @@ describe("tambo-custom-events", () => {
         "tambo.component.state_delta",
         "tambo.component.end",
         "tambo.run.awaiting_input",
+        "tambo.message.parent",
       ]);
     });
 
     it("should be readonly", () => {
       // TypeScript ensures this at compile time, but we can verify the array structure
       expect(Array.isArray(TAMBO_CUSTOM_EVENT_NAMES)).toBe(true);
-      expect(TAMBO_CUSTOM_EVENT_NAMES.length).toBe(5);
+      expect(TAMBO_CUSTOM_EVENT_NAMES.length).toBe(6);
     });
   });
 });
