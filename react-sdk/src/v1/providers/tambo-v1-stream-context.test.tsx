@@ -129,13 +129,13 @@ describe("TamboStreamProvider", () => {
           type: "INIT_THREAD",
           threadId: "thread_123",
           initialThread: {
-            title: "Test Thread",
+            name: "Test Thread",
             metadata: { key: "value" },
           },
         });
       });
 
-      expect(result.current.state.threadMap.thread_123.thread.title).toBe(
+      expect(result.current.state.threadMap.thread_123.thread.name).toBe(
         "Test Thread",
       );
       expect(result.current.state.threadMap.thread_123.thread.metadata).toEqual(

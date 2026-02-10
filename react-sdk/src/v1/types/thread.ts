@@ -29,8 +29,8 @@ export interface TamboThread {
   /** Unique thread identifier */
   id: string;
 
-  /** Thread title/name */
-  title?: string;
+  /** Thread name */
+  name?: string;
 
   /** Messages in the thread */
   messages: TamboThreadMessage[];

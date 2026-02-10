@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.141.1](https://github.com/tambo-ai/tambo/compare/api-v0.141.0...api-v0.141.1) (2026-02-10)
+
+
+### Bug Fixes
+
+* **api:** skip previousRunId check for threads with only initialMessages ([#2347](https://github.com/tambo-ai/tambo/issues/2347)) ([9780eca](https://github.com/tambo-ai/tambo/commit/9780eca754e51842231e7d6a2d3046554fc0fa10))
+* remove displayMessage tambo param ([#2346](https://github.com/tambo-ai/tambo/issues/2346)) ([a9b3d4d](https://github.com/tambo-ai/tambo/commit/a9b3d4d6d3e8ac415e828d902a5e4810d9220169))
+
 ## [0.141.0](https://github.com/tambo-ai/tambo/compare/api-v0.140.1...api-v0.141.0) (2026-02-09)
 
 

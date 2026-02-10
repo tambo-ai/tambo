@@ -1,0 +1,1 @@
+ALTER TABLE "tambo_users" ADD COLUMN "referral_source" text;

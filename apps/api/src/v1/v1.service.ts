@@ -411,7 +411,7 @@ export class V1Service {
       };
     }
 
-    if (hasMessages && !dto.previousRunId) {
+    if (hasMessages && !dto.previousRunId && thread.lastCompletedRunId) {
       return {
         success: false,
         error: new HttpException(

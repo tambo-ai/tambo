@@ -15,18 +15,12 @@ import { ToolRegistry } from "../../systemTools";
 export interface TamboToolParameters {
   _tambo_statusMessage: string;
   _tambo_completionStatusMessage: string;
-  _tambo_displayMessage: string;
 }
 
 // Standard parameters to be added to all tools
 export const standardToolParameters: FunctionParameters = {
   type: "object",
   properties: {
-    _tambo_displayMessage: {
-      type: "string",
-      description:
-        "A message to be displayed before the tool is called. This should be a natural language response to the previous message to describe what you are about to do. For example, `First, let me <do something>` or 'Great, I can see <something>, let me <do something>'. Get creative, this is what will make the user feel like they are having a conversation with you. You can and should use markdown formatting (code blocks with language specification, bold, lists) when showing examples or code.",
-    },
     _tambo_statusMessage: {
       type: "string",
       description:
@@ -38,11 +32,7 @@ export const standardToolParameters: FunctionParameters = {
         "A message that will be displayed to the user to explain in a few words what the tool has done, to replace the statusMessage when the tool has completed its task. For example, 'looked for <something>' or 'created <something>'",
     },
   },
-  required: [
-    "_tambo_statusMessage",
-    "_tambo_displayMessage",
-    "_tambo_completionStatusMessage",
-  ],
+  required: ["_tambo_statusMessage", "_tambo_completionStatusMessage"],
   additionalProperties: false,
 };
 

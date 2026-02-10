@@ -1097,6 +1097,9 @@ export const tamboUsers = pgTable(
     legalAcceptedAt: timestamp("legal_accepted_at", { withTimezone: true }),
     legalVersion: text("legal_version"),
 
+    // Referral source tracking
+    referralSource: text("referral_source"),
+
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),

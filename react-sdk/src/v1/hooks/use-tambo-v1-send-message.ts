@@ -147,19 +147,19 @@ function dispatchToolResults(
  * Checks whether a thread name should be auto-generated based on config
  * and the current thread state.
  * @param threadId - The thread ID (undefined or placeholder means no)
- * @param threadAlreadyHasTitle - Whether the thread already has a title
+ * @param threadAlreadyHasName - Whether the thread already has a name
  * @param preMutationMessageCount - Message count before the current mutation
  * @param autoGenerateNameThreshold - Minimum message count to trigger generation
  * @returns Whether to generate a thread name
  */
 function shouldGenerateThreadName(
   threadId: string | undefined,
-  threadAlreadyHasTitle: boolean,
+  threadAlreadyHasName: boolean,
   preMutationMessageCount: number,
   autoGenerateNameThreshold: number,
 ): threadId is string {
   return (
-    !threadAlreadyHasTitle &&
+    !threadAlreadyHasName &&
     !!threadId &&
     !isPlaceholderThreadId(threadId) &&
     // +2 accounts for the user message and assistant response just added
@@ -200,7 +200,7 @@ function parseToolCallArgs(
 }
 
 /**
- * Generates a thread name via the beta API, dispatches the title update,
+ * Generates a thread name via the beta API, dispatches the name update,
  * and invalidates the thread list cache. Errors are logged, never thrown.
  * @param client - The Tambo API client
  * @param dispatch - Stream state dispatcher
@@ -217,9 +217,9 @@ async function generateThreadName(
     const threadWithName = await client.beta.threads.generateName(threadId);
     if (threadWithName.name) {
       dispatch({
-        type: "UPDATE_THREAD_TITLE",
+        type: "UPDATE_THREAD_NAME",
         threadId,
-        title: threadWithName.name,
+        name: threadWithName.name,
       });
       await queryClient.invalidateQueries({
         queryKey: ["v1-threads", "list"],
@@ -562,7 +562,7 @@ export function useTamboSendMessage(threadId?: string) {
       const existingThread = streamState.threadMap[apiThreadId ?? ""];
       const preMutationMessageCount =
         existingThread?.thread.messages.length ?? 0;
-      const threadAlreadyHasTitle = !!existingThread?.thread.title;
+      const threadAlreadyHasName = !!existingThread?.thread.name;
 
       const toolTracker = new ToolCallTracker();
       const throttledStreamable = createThrottledStreamableExecutor(
@@ -710,7 +710,7 @@ export function useTamboSendMessage(threadId?: string) {
         return {
           threadId: actualThreadId,
           preMutationMessageCount,
-          threadAlreadyHasTitle,
+          threadAlreadyHasName,
         };
       } catch (error) {
         // Dispatch a synthetic RUN_ERROR event to clean up thread state
@@ -740,7 +740,7 @@ export function useTamboSendMessage(threadId?: string) {
         autoGenerateThreadName &&
         shouldGenerateThreadName(
           result.threadId,
-          result.threadAlreadyHasTitle,
+          result.threadAlreadyHasName,
           result.preMutationMessageCount,
           autoGenerateNameThreshold,
         )

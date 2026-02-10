@@ -269,14 +269,13 @@ export function useTambo(): UseTamboReturn {
   // Update a thread's name
   const updateThreadName = useCallback(
     async (threadId: string, name: string) => {
-      // @ts-expect-error - TypeScript SDK will be updated to include this method
       await client.threads.update(threadId, { name });
 
       if (threadMapRef.current[threadId]) {
         dispatch({
-          type: "UPDATE_THREAD_TITLE",
+          type: "UPDATE_THREAD_NAME",
           threadId,
-          title: name,
+          name: name,
         });
       }
 
@@ -328,10 +327,6 @@ export function useTambo(): UseTamboReturn {
 
           // Extract Tambo display props from input
           const tamboDisplayProps: TamboToolDisplayProps = {
-            _tambo_displayMessage:
-              typeof input._tambo_displayMessage === "string"
-                ? input._tambo_displayMessage
-                : undefined,
             _tambo_statusMessage:
               typeof input._tambo_statusMessage === "string"
                 ? input._tambo_statusMessage

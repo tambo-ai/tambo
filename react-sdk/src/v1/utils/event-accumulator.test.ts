@@ -2721,32 +2721,32 @@ describe("streamReducer", () => {
     });
   });
 
-  describe("UPDATE_THREAD_TITLE action", () => {
-    it("updates the title on an existing thread", () => {
+  describe("UPDATE_THREAD_NAME action", () => {
+    it("updates the name on an existing thread", () => {
       const state = createTestStreamState("thread_1");
 
       const result = streamReducer(state, {
-        type: "UPDATE_THREAD_TITLE",
+        type: "UPDATE_THREAD_NAME",
         threadId: "thread_1",
-        title: "My Chat Thread",
+        name: "My Chat Thread",
       });
 
-      expect(result.threadMap.thread_1.thread.title).toBe("My Chat Thread");
+      expect(result.threadMap.thread_1.thread.name).toBe("My Chat Thread");
     });
 
     it("returns unchanged state when thread does not exist", () => {
       const state = createTestStreamState("thread_1");
 
       const result = streamReducer(state, {
-        type: "UPDATE_THREAD_TITLE",
+        type: "UPDATE_THREAD_NAME",
         threadId: "nonexistent_thread",
-        title: "My Chat Thread",
+        name: "My Chat Thread",
       });
 
       expect(result).toBe(state);
     });
 
-    it("preserves other thread properties when updating title", () => {
+    it("preserves other thread properties when updating name", () => {
       const state = createTestStreamState("thread_1");
       state.threadMap.thread_1.thread.messages = [
         {
@@ -2758,12 +2758,12 @@ describe("streamReducer", () => {
       ];
 
       const result = streamReducer(state, {
-        type: "UPDATE_THREAD_TITLE",
+        type: "UPDATE_THREAD_NAME",
         threadId: "thread_1",
-        title: "My Chat Thread",
+        name: "My Chat Thread",
       });
 
-      expect(result.threadMap.thread_1.thread.title).toBe("My Chat Thread");
+      expect(result.threadMap.thread_1.thread.name).toBe("My Chat Thread");
       expect(result.threadMap.thread_1.thread.messages).toHaveLength(1);
       expect(result.threadMap.thread_1.thread.id).toBe("thread_1");
     });
