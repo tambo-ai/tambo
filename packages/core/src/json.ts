@@ -36,3 +36,25 @@ export function tryParseJsonArray(
   }
   return tryParseJson(text) as Array<unknown> | null;
 }
+
+/**
+ * Stringify a value as JSON, but escape characters that can break out of
+ * markup-like wrappers (e.g., when embedding JSON inside an XML/HTML tag).
+ *
+ * This keeps the output valid JSON while preventing `<`, `>`, and `&` from
+ * appearing literally.
+ *
+ * @param value - The value to stringify
+ * @returns A JSON string safe to embed in markup-like wrappers
+ */
+export function stringifyJsonForMarkup(value: unknown): string {
+  const json = JSON.stringify(value);
+  if (json === undefined) {
+    throw new Error("Value is not JSON-serializable");
+  }
+
+  return json
+    .replaceAll("<", "\\u003c")
+    .replaceAll(">", "\\u003e")
+    .replaceAll("&", "\\u0026");
+}

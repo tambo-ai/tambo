@@ -4,6 +4,7 @@ import {
   MessageRole,
   Resource,
   ThreadMessage,
+  stringifyJsonForMarkup,
   tryParseJson,
 } from "@tambo-ai-cloud/core";
 import type {
@@ -257,9 +258,10 @@ export function convertAssistantMessage(
     message.componentState &&
     Object.keys(message.componentState).length > 0
   ) {
+    const safeJson = stringifyJsonForMarkup(message.componentState);
     content.push({
       type: "text",
-      text: `<component_state>${JSON.stringify(message.componentState)}</component_state>`,
+      text: `<component_state>${safeJson}</component_state>`,
     });
   }
 
