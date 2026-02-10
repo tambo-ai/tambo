@@ -22,9 +22,11 @@ import { cn } from "@tambo-ai/ui-registry/utils";
 import { cva, type VariantProps } from "class-variance-authority";
 import { Check, ChevronDown, ExternalLink, Loader2, X } from "lucide-react";
 import * as React from "react";
-import { Streamdown, defaultRehypePlugins } from "streamdown";
-import { defaultSchema } from "rehype-sanitize";
-import type { Pluggable, PluggableList } from "unified";
+import { harden } from "rehype-harden";
+import rehypeRaw from "rehype-raw";
+import rehypeSanitize, { defaultSchema } from "rehype-sanitize";
+import { Streamdown } from "streamdown";
+import type { PluggableList } from "unified";
 import { getSafeContent } from "../../lib/thread-hooks";
 import {
   createMarkdownComponents,
@@ -39,16 +41,19 @@ const streamdownSanitizeSchema = {
   },
 };
 
-const streamdownSanitizePlugin: Pluggable = Array.isArray(
-  defaultRehypePlugins.sanitize,
-)
-  ? (defaultRehypePlugins.sanitize[0] as Pluggable)
-  : (defaultRehypePlugins.sanitize as Pluggable);
-
 const streamdownRehypePlugins: PluggableList = [
-  defaultRehypePlugins.raw,
-  [streamdownSanitizePlugin, streamdownSanitizeSchema] as Pluggable,
-  defaultRehypePlugins.harden,
+  rehypeRaw,
+  [rehypeSanitize, streamdownSanitizeSchema],
+  [
+    harden,
+    {
+      allowedImagePrefixes: ["*"],
+      allowedLinkPrefixes: ["*"],
+      allowedProtocols: ["*"],
+      defaultOrigin: undefined,
+      allowDataImages: true,
+    },
+  ],
 ];
 
 /**
