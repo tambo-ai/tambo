@@ -14,7 +14,7 @@ import { TamboStubProvider, TamboThread } from "@tambo-ai/react";
 const mockThreads: TamboThread[] = [
   {
     id: "1",
-    title: "Mock Thread",
+    name: "Mock Thread",
     messages: [
       {
         content: [{ type: "text", text: "Hello, world!" }],
@@ -30,7 +30,7 @@ const mockThreads: TamboThread[] = [
   },
   {
     id: "2",
-    title: "Mock Thread 2",
+    name: "Mock Thread 2",
     messages: [
       {
         content: [{ type: "text", text: "Hello, world!" }],

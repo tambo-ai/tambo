@@ -152,13 +152,13 @@ export interface SetLastCompletedRunIdAction {
 }
 
 /**
- * Update thread title action - sets the title on a thread.
+ * Update thread name action - sets the name on a thread.
  * Used after auto-generating a thread name via the API.
  */
-export interface UpdateThreadTitleAction {
-  type: "UPDATE_THREAD_TITLE";
+export interface UpdateThreadNameAction {
+  type: "UPDATE_THREAD_NAME";
   threadId: string;
-  title: string;
+  name: string;
 }
 
 /**
@@ -171,7 +171,7 @@ export type StreamAction =
   | StartNewThreadAction
   | LoadThreadMessagesAction
   | SetLastCompletedRunIdAction
-  | UpdateThreadTitleAction;
+  | UpdateThreadNameAction;
 
 /**
  * Initial streaming state.
@@ -469,7 +469,7 @@ export function streamReducer(
       };
     }
 
-    case "UPDATE_THREAD_TITLE": {
+    case "UPDATE_THREAD_NAME": {
       const threadState = state.threadMap[action.threadId];
       if (!threadState) {
         return state;
@@ -482,7 +482,7 @@ export function streamReducer(
             ...threadState,
             thread: {
               ...threadState.thread,
-              title: action.title,
+              name: action.name,
             },
           },
         },

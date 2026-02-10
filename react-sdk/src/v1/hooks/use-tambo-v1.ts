@@ -274,9 +274,9 @@ export function useTambo(): UseTamboReturn {
 
       if (threadMapRef.current[threadId]) {
         dispatch({
-          type: "UPDATE_THREAD_TITLE",
+          type: "UPDATE_THREAD_NAME",
           threadId,
-          title: name,
+          name: name,
         });
       }
 
