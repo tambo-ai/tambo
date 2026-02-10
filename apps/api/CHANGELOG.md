@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.143.0](https://github.com/tambo-ai/tambo/compare/api-v0.142.0...api-v0.143.0) (2026-02-10)
+
+
+### Features
+
+* **api:** convert emails to React Email, rewrite welcome copy ([#2350](https://github.com/tambo-ai/tambo/issues/2350)) ([c014c10](https://github.com/tambo-ai/tambo/commit/c014c10c8d0ad35777323e39b8226c9cb41d240e))
+
 ## [0.142.0](https://github.com/tambo-ai/tambo/compare/api-v0.141.1...api-v0.142.0) (2026-02-10)
 
 

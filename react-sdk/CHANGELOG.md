@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.0-rc.5](https://github.com/tambo-ai/tambo/compare/react-v1.0.0-rc.4...react-v1.0.0-rc.5) (2026-02-10)
+
+
+### Features
+
+* **api:** expose parentMessageId on V1 messages and SDK ([#2349](https://github.com/tambo-ai/tambo/issues/2349)) ([fcd9ffc](https://github.com/tambo-ai/tambo/commit/fcd9ffcd0da0b23cece51f3b87a9b5deca73dd63))
+
 ## [1.0.0-rc.4](https://github.com/tambo-ai/tambo/compare/react-v1.0.0-rc.3...react-v1.0.0-rc.4) (2026-02-10)
 
 

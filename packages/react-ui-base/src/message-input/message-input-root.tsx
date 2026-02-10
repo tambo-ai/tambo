@@ -11,8 +11,8 @@ import {
   type TamboElicitationResponse,
 } from "@tambo-ai/react/mcp";
 import * as React from "react";
+import { MAX_IMAGES } from "./constants";
 import {
-  MAX_IMAGES,
   MessageInputContext,
   type MessageInputContextValue,
   type TamboEditor,
@@ -80,6 +80,10 @@ export const MessageInputRoot = React.forwardRef<
   const [isDragging, setIsDragging] = React.useState(false);
   const editorRef = React.useRef<TamboEditor | null>(null);
   const dragCounter = React.useRef(0);
+  // Tracks whether a submission is in-flight. Used to prevent the display-value
+  // sync effect from restoring the old input text when `currentThreadId` changes
+  // mid-submission (e.g. placeholder → real thread ID migration).
+  const submittingRef = React.useRef(false);
   const isUpdatingToken = useIsTamboTokenUpdating();
 
   // Use elicitation context (optional)
@@ -99,6 +103,11 @@ export const MessageInputRoot = React.forwardRef<
   }, [setValue, currentThreadId]);
 
   React.useEffect(() => {
+    // While a submission is in-flight, displayValue has been intentionally
+    // cleared. Don't overwrite it when currentThreadId changes (e.g.
+    // placeholder → real thread ID migration triggers this effect).
+    if (submittingRef.current) return;
+
     setDisplayValue(value);
     storeValueInSessionStorage(currentThreadId, value);
     if (value && editorRef.current) {
@@ -114,6 +123,7 @@ export const MessageInputRoot = React.forwardRef<
     setImageError(null);
     setDisplayValue("");
     storeValueInSessionStorage(currentThreadId);
+    submittingRef.current = true;
     setIsSubmitting(true);
 
     const imageIdsAtSubmitTime = images.map((image) => image.id);
@@ -144,6 +154,7 @@ export const MessageInputRoot = React.forwardRef<
       // Cancel the thread to reset loading state
       await cancel();
     } finally {
+      submittingRef.current = false;
       setIsSubmitting(false);
     }
   }, [

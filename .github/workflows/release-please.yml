@@ -65,7 +65,7 @@ jobs:
 
       - name: Publish @tambo-ai/react to npm
         working-directory: ./react-sdk
-        run: npm publish --access public --tag rc
+        run: npm publish --access public
 
   # NPM Package Publishing - CLI
   publish-cli:

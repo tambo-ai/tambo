@@ -1,6 +1,7 @@
 {
   "extends": "@tambo-ai/typescript-config/base",
   "compilerOptions": {
+    "jsx": "react-jsx",
     "target": "es2023",
     "lib": ["es2024", "ESNext.Array", "ESNext.Collection", "ESNext.Iterator"],
     "emitDecoratorMetadata": true,

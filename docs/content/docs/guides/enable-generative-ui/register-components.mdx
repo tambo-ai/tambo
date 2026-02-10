@@ -161,15 +161,15 @@ function App() {
 
 ### Option B: Dynamic Registration
 
-Register components at runtime using the `registerComponent` function from `useTamboRegistry`:
+Register components at runtime using the `registerComponent` function from `useTambo`:
 
 ```tsx
-import { useTamboRegistry } from "@tambo-ai/react";
+import { useTambo } from "@tambo-ai/react";
 import { useEffect } from "react";
 import { weatherCardComponent } from "@/components/WeatherCard";
 
 function MyComponent() {
-  const { registerComponent } = useTamboRegistry();
+  const { registerComponent } = useTambo();
 
   useEffect(() => {
     registerComponent(weatherCardComponent);

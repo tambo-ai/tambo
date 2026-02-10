@@ -5,7 +5,6 @@ import { Tooltip, TooltipProvider } from "./suggestions-tooltip";
 import { cn } from "@tambo-ai/ui-registry/utils";
 import type { Suggestion, TamboThreadMessage } from "@tambo-ai/react";
 import { useTambo, useTamboSuggestions } from "@tambo-ai/react";
-import { Loader2Icon } from "lucide-react";
 import * as React from "react";
 import { useEffect, useRef } from "react";
 
@@ -265,39 +264,12 @@ const MessageSuggestionsStatus = React.forwardRef<
 
       {/* Always render a container for generation stage to prevent layout shifts */}
       <div className="generation-stage-container">
-        <GenerationStageContent
-          isStreaming={isStreaming}
-          isGenerating={isGenerating}
-        />
+        {isStreaming && <MessageGenerationStage />}
       </div>
     </div>
   );
 });
 MessageSuggestionsStatus.displayName = "MessageSuggestions.Status";
-
-/**
- * Internal component to render generation stage content
- */
-function GenerationStageContent({
-  isStreaming,
-  isGenerating,
-}: {
-  isStreaming: boolean;
-  isGenerating: boolean;
-}) {
-  if (isStreaming) {
-    return <MessageGenerationStage />;
-  }
-  if (isGenerating) {
-    return (
-      <div className="flex items-center gap-2 text-muted-foreground">
-        <Loader2Icon className="h-4 w-4 animate-spin" />
-        <p>Generating suggestions...</p>
-      </div>
-    );
-  }
-  return null;
-}
 
 /**
  * Props for the MessageSuggestionsList component.
