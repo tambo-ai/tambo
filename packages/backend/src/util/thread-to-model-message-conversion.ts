@@ -252,6 +252,17 @@ export function convertAssistantMessage(
     });
   }
 
+  // Include component state so the LLM can see it on follow-up messages
+  if (
+    message.componentState &&
+    Object.keys(message.componentState).length > 0
+  ) {
+    content.push({
+      type: "text",
+      text: `<component_state>${JSON.stringify(message.componentState)}</component_state>`,
+    });
+  }
+
   const assistantMessage: AssistantModelMessage = {
     role: "assistant",
     content,
