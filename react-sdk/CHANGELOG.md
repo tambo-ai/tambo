@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.1-rc.5](https://github.com/tambo-ai/tambo/compare/react-v1.0.0-rc.5...react-v1.0.1-rc.5) (2026-02-10)
+
+
+### Bug Fixes
+
+* small change to bump ([#2363](https://github.com/tambo-ai/tambo/issues/2363)) Release as: 1.0.0 ([6f54c45](https://github.com/tambo-ai/tambo/commit/6f54c459a1186d42331e3b28360647729f2ef017))
+
 ## [1.0.0-rc.5](https://github.com/tambo-ai/tambo/compare/react-v1.0.0-rc.4...react-v1.0.0-rc.5) (2026-02-10)
 
 
