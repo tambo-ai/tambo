@@ -58,7 +58,7 @@
     "react-leaflet": "^4.2.1",
     "react-markdown": "^10.1.0",
     "recharts": "^3.6.0",
-    "streamdown": "^1.6.10",
+    "streamdown": "^2.1.0",
     "tailwindcss": "^4.1.18",
     "tailwindcss-animate": "^1.0.7",
     "tippy.js": "^6.3.7",
