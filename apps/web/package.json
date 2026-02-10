@@ -109,7 +109,7 @@
     "tippy.js": "^6.3.7",
     "tldts": "^7.0.19",
     "unified": "^11.0.5",
-    "unist-util-visit": "5.0.0",
+    "unist-util-visit": "5.1.0",
     "use-debounce": "^10.0.6",
     "usehooks-ts": "^3.1.1",
     "vaul": "^1.1.1",
