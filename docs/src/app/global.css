@@ -161,3 +161,13 @@ Animated gradient for thinking text, creates a shimmering effect that moves acro
   -webkit-text-fill-color: transparent;
   animation: thinking-gradient 2s linear infinite;
 }
+
+/* TipTap editor placeholder - required for @tiptap/extension-placeholder to display */
+.tiptap p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: var(--muted-foreground);
+  opacity: 0.5;
+  pointer-events: none;
+  height: 0;
+}
