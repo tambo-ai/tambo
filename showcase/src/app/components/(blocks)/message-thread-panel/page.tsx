@@ -56,11 +56,7 @@ export function DashboardWithChat() {
       </div>
 
       {/* Chat panel on the right */}
-      <MessageThreadPanel
-        contextKey="dashboard-assistant"
-        className="right"
-        style={{ width: "400px" }}
-      />
+      <MessageThreadPanel className="right" style={{ width: "400px" }} />
     </div>
   );
 }`}
@@ -95,10 +91,12 @@ export function DashboardWithChat() {
             </thead>
             <tbody>
               <tr>
-                <td>contextKey</td>
-                <td>string</td>
-                <td>-</td>
-                <td>Unique identifier for the conversation thread</td>
+                <td>variant</td>
+                <td>
+                  &quot;default&quot; | &quot;compact&quot; | &quot;solid&quot;
+                </td>
+                <td>&quot;default&quot;</td>
+                <td>Visual style variant for messages in the thread</td>
               </tr>
               <tr>
                 <td>className</td>
