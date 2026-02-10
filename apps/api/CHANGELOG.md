@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.142.0](https://github.com/tambo-ai/tambo/compare/api-v0.141.1...api-v0.142.0) (2026-02-10)
+
+
+### Features
+
+* **api:** expose parentMessageId on V1 messages and SDK ([#2349](https://github.com/tambo-ai/tambo/issues/2349)) ([fcd9ffc](https://github.com/tambo-ai/tambo/commit/fcd9ffcd0da0b23cece51f3b87a9b5deca73dd63))
+
 ## [0.141.1](https://github.com/tambo-ai/tambo/compare/api-v0.141.0...api-v0.141.1) (2026-02-10)
 
 
