@@ -249,7 +249,7 @@ function ThreadSidebar() {
   return (
     <ul>
       {data?.threads.map((thread) => (
-        <li key={thread.id}>{thread.title || "Untitled"}</li>
+        <li key={thread.id}>{thread.name || "Untitled"}</li>
       ))}
     </ul>
   );
