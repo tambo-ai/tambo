@@ -254,7 +254,7 @@ export type TamboToolStandardSchema<
  * inputSchema and outputSchema with either Standard Schema compliant validators
  * (like Zod 3.25.76, Zod 4.x) or raw JSON Schema objects.
  * @deprecated replace `toolSchema` with `inputSchema` and `outputSchema` instead.
- * @see {@link https://docs.tambo.co/reference/react-sdk/migration/toolschema}
+ * @see {@link https://docs.tambo.co/reference/react-sdk/migration}
  */
 export type UnsupportedSchemaTamboTool = Omit<
   TamboTool,
@@ -348,7 +348,7 @@ type OptionalSchemaProps<T> = Omit<T, "inputSchema" | "outputSchema"> & {
  */
 export interface RegisterToolsFn {
   /**
-   * @deprecated Follow the {@link https://docs.tambo.co/reference/react-sdk/migration/toolschema | Migration Guide} to update
+   * @deprecated Follow the {@link https://docs.tambo.co/reference/react-sdk/migration | Migration Guide} to update
    * your tool definitions to use `inputSchema` and `outputSchema` instead.
    */
   (tools: UnsupportedSchemaTamboTool[], warnOnOverwrite?: boolean): void;
@@ -386,7 +386,7 @@ export interface RegisterToolFn {
   (tool: TamboToolUnknown, warnOnOverwrite?: boolean): void;
   (tool: TamboTool, warnOnOverwrite?: boolean): void;
   /**
-   * @deprecated Follow the {@link https://docs.tambo.co/reference/react-sdk/migration/toolschema | Migration Guide} to update
+   * @deprecated Follow the {@link https://docs.tambo.co/reference/react-sdk/migration | Migration Guide} to update
    * your tool definitions to use `inputSchema` and `outputSchema` instead.
    * @param tool - The unsupported schema Tambo tool to register
    * @param warnOnOverwrite - Whether to warn if the tool is being overwritten
@@ -400,7 +400,7 @@ export interface RegisterToolFn {
  */
 export interface DefineToolFn {
   /**
-   * @deprecated Follow the {@link https://docs.tambo.co/reference/react-sdk/migration/toolschema | Migration Guide} to update
+   * @deprecated Follow the {@link https://docs.tambo.co/reference/react-sdk/migration | Migration Guide} to update
    * your tool definitions to use `inputSchema` and `outputSchema` instead.
    * @param tool The tool definition to register
    * @returns The registered tool definition
