@@ -44,6 +44,9 @@ export function tryParseJsonArray(
  * This keeps the output valid JSON while preventing `<`, `>`, and `&` from
  * appearing literally.
  *
+ * Throws if the value is not JSON-serializable (for example, circular
+ * references).
+ *
  * @param value - The value to stringify
  * @returns A JSON string safe to embed in markup-like wrappers
  */
