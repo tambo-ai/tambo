@@ -23,6 +23,16 @@
         "default": "./dist/cjs/index.cjs"
       }
     },
+    "./message-suggestions": {
+      "import": {
+        "types": "./dist/esm/message-suggestions/index.d.ts",
+        "default": "./dist/esm/message-suggestions/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/message-suggestions/index.d.ts",
+        "default": "./dist/cjs/message-suggestions/index.cjs"
+      }
+    },
     "./message": {
       "import": {
         "types": "./dist/esm/message/index.d.ts",
