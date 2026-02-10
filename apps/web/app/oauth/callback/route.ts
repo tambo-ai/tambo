@@ -58,13 +58,23 @@ export async function GET(request: NextRequest) {
         clientInformation: oauthClient.sessionInfo.clientInformation,
         serverUrl: oauthClient.sessionInfo.serverUrl,
         sessionId,
+        baseUrl: getBaseUrl(),
       },
     );
 
     console.log("--> /oauth/callback", url.toString(), queryParams);
+
+    const MCP_AUTH_FETCH_TIMEOUT_MS = 10_000;
+    const fetchWithTimeout: typeof fetch = async (input, init) =>
+      await fetch(input, {
+        ...init,
+        signal: AbortSignal.timeout(MCP_AUTH_FETCH_TIMEOUT_MS),
+      });
+
     const result = await auth(oauthProvider, {
       serverUrl: oauthClient.sessionInfo.serverUrl,
       authorizationCode: code,
+      fetchFn: fetchWithTimeout,
     });
     console.log("--> result", result);
     // Check for errors returned from OAuth provider
@@ -103,8 +113,13 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    const errorMessage =
+      error instanceof Error ? error.message : "unknown_error";
     return NextResponse.redirect(
-      new URL("/auth/error?error=unknown_error", request.url),
+      new URL(
+        `/auth/error?error=${encodeURIComponent(errorMessage)}`,
+        request.url,
+      ),
     );
   }
 }

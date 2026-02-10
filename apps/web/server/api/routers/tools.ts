@@ -217,7 +217,18 @@ export const toolsRouter = createTRPCRouter({
           serverUrl: url,
         },
       );
-      const result = await auth(localProvider, { serverUrl: url });
+
+      const MCP_AUTH_FETCH_TIMEOUT_MS = 5_000;
+      const fetchWithTimeout: typeof fetch = async (input, init) =>
+        await fetch(input, {
+          ...init,
+          signal: AbortSignal.timeout(MCP_AUTH_FETCH_TIMEOUT_MS),
+        });
+
+      const result = await auth(localProvider, {
+        serverUrl: url,
+        fetchFn: fetchWithTimeout,
+      });
       if (result === "AUTHORIZED") {
         return {
           success: true,

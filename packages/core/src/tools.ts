@@ -59,10 +59,18 @@ export async function validateMcpServer({
       };
     }
     if (error instanceof StreamableHTTPError) {
+      if (error.code === 401) {
+        return {
+          valid: true as const,
+          error: mcpAuthSupportMessage,
+          statusCode: 401,
+          requiresAuth: true,
+        };
+      }
       return {
         valid: false as const,
         error: `Not a valid MCP Streamable HTTP server: ${error.message}`,
-        statusCode: 500,
+        statusCode: error.code,
         requiresAuth: !!oauthProvider,
       };
     }
