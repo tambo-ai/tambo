@@ -2768,4 +2768,139 @@ describe("streamReducer", () => {
       expect(result.threadMap.thread_1.thread.id).toBe("thread_1");
     });
   });
+
+  describe("tambo.message.parent event", () => {
+    it("creates message with parentMessageId when message does not exist", () => {
+      const state = createTestStreamState("thread_1");
+
+      const event: CustomEvent = {
+        type: EventType.CUSTOM,
+        name: "tambo.message.parent",
+        value: {
+          messageId: "msg_child",
+          parentMessageId: "msg_parent",
+        },
+      };
+
+      const result = streamReducer(state, {
+        type: "EVENT",
+        event,
+        threadId: "thread_1",
+      });
+
+      const messages = result.threadMap.thread_1.thread.messages;
+      expect(messages).toHaveLength(1);
+      expect(messages[0].id).toBe("msg_child");
+      expect(messages[0].role).toBe("assistant");
+      expect(messages[0].parentMessageId).toBe("msg_parent");
+      expect(messages[0].content).toEqual([]);
+    });
+
+    it("sets parentMessageId on existing message", () => {
+      const state = createTestStreamState("thread_1");
+      state.threadMap.thread_1.thread.messages = [
+        {
+          id: "msg_child",
+          role: "assistant",
+          content: [{ type: "text", text: "Hello" }],
+          createdAt: "2024-01-01T00:00:00.000Z",
+        },
+      ];
+
+      const event: CustomEvent = {
+        type: EventType.CUSTOM,
+        name: "tambo.message.parent",
+        value: {
+          messageId: "msg_child",
+          parentMessageId: "msg_parent",
+        },
+      };
+
+      const result = streamReducer(state, {
+        type: "EVENT",
+        event,
+        threadId: "thread_1",
+      });
+
+      const messages = result.threadMap.thread_1.thread.messages;
+      expect(messages).toHaveLength(1);
+      expect(messages[0].id).toBe("msg_child");
+      expect(messages[0].parentMessageId).toBe("msg_parent");
+      // Existing content preserved
+      expect(messages[0].content).toEqual([{ type: "text", text: "Hello" }]);
+    });
+
+    it("preserves parentMessageId when TEXT_MESSAGE_START follows with same messageId", () => {
+      const state = createTestStreamState("thread_1");
+      state.threadMap.thread_1.streaming = {
+        status: "streaming",
+        runId: "run_1",
+      };
+
+      // First: tambo.message.parent creates message with parentMessageId
+      const parentEvent: CustomEvent = {
+        type: EventType.CUSTOM,
+        name: "tambo.message.parent",
+        value: {
+          messageId: "msg_child",
+          parentMessageId: "msg_parent",
+        },
+      };
+
+      const afterParent = streamReducer(state, {
+        type: "EVENT",
+        event: parentEvent,
+        threadId: "thread_1",
+      });
+
+      // Then: TEXT_MESSAGE_START with the same messageId
+      const textStartEvent: TextMessageStartEvent = {
+        type: EventType.TEXT_MESSAGE_START,
+        messageId: "msg_child",
+        role: "assistant",
+      };
+
+      const result = streamReducer(afterParent, {
+        type: "EVENT",
+        event: textStartEvent,
+        threadId: "thread_1",
+      });
+
+      const messages = result.threadMap.thread_1.thread.messages;
+      expect(messages).toHaveLength(1);
+      expect(messages[0].id).toBe("msg_child");
+      expect(messages[0].parentMessageId).toBe("msg_parent");
+      // Streaming state should now track this message
+      expect(result.threadMap.thread_1.streaming.messageId).toBe("msg_child");
+    });
+
+    it("preserves parentMessageId through LOAD_THREAD_MESSAGES", () => {
+      const state = createTestStreamState("thread_1");
+
+      const result = streamReducer(state, {
+        type: "LOAD_THREAD_MESSAGES",
+        threadId: "thread_1",
+        messages: [
+          {
+            id: "msg_1",
+            role: "user",
+            content: [{ type: "text", text: "Hello" }],
+            createdAt: "2024-01-01T00:00:00.000Z",
+          },
+          {
+            id: "msg_child",
+            role: "assistant",
+            content: [{ type: "text", text: "Hi there" }],
+            createdAt: "2024-01-01T00:00:01.000Z",
+            parentMessageId: "msg_1",
+          },
+        ],
+      });
+
+      const messages = result.threadMap.thread_1.thread.messages;
+      expect(messages).toHaveLength(2);
+      expect(messages[1].id).toBe("msg_child");
+      expect(messages[1].parentMessageId).toBe("msg_1");
+    });
+  });
 });

@@ -29,6 +29,7 @@ import {
   type ComponentPropsDeltaEvent,
   type ComponentStartEvent,
   type ComponentStateDeltaEvent,
+  type MessageParentEvent,
   type RunAwaitingInputEvent,
 } from "../types/event";
 import type {
@@ -798,7 +799,24 @@ function handleTextMessageStart(
     }
   }
 
-  // No ephemeral message to reuse - create a new message
+  // Check if a message with this ID already exists (e.g., created by
+  // handleMessageParent). If so, just update streaming state to track it.
+  const existingIndex = messages.findIndex((m) => m.id === event.messageId);
+  if (existingIndex !== -1) {
+    return {
+      ...threadState,
+      thread: {
+        ...threadState.thread,
+        updatedAt: new Date().toISOString(),
+      },
+      streaming: {
+        ...threadState.streaming,
+        messageId: event.messageId,
+      },
+    };
+  }
+
+  // No existing message to reuse - create a new message
   const newMessage: TamboThreadMessage = {
     id: event.messageId,
     role: isAssistant ? "assistant" : "user",
@@ -1226,6 +1244,9 @@ function handleCustomEvent(
     case "tambo.run.awaiting_input":
       return handleRunAwaitingInput(threadState, customEvent);
 
+    case "tambo.message.parent":
+      return handleMessageParent(threadState, customEvent);
+
     default: {
       // Exhaustiveness check: if a new event type is added to TamboCustomEvent
       // and not handled here, TypeScript will error
@@ -1431,6 +1452,53 @@ function handleRunAwaitingInput(
       status: "waiting",
     },
   };
+}
+
+/**
+ * Handle tambo.message.parent event.
+ * Sets parentMessageId on the target message, creating a new empty assistant
+ * message if one doesn't already exist with the given ID.
+ *
+ * This event fires BEFORE TEXT_MESSAGE_START, so when handleTextMessageStart
+ * later finds/creates the message with the same ID, the parentMessageId will
+ * already be set.
+ * @param threadState - Current thread state
+ * @param event - Message parent event
+ * @returns Updated thread state
+ */
+function handleMessageParent(
+  threadState: ThreadState,
+  event: MessageParentEvent,
+): ThreadState {
+  const { messageId, parentMessageId } = event.value;
+  const messages = threadState.thread.messages;
+
+  // Find existing message or create a new empty assistant message
+  const messageIndex = messages.findIndex((m) => m.id === messageId);
+
+  if (messageIndex !== -1) {
+    // Message already exists - set parentMessageId on it
+    const message = messages[messageIndex];
+    const updatedMessage: TamboThreadMessage = {
+      ...message,
+      parentMessageId,
+    };
+    return updateThreadMessages(
+      threadState,
+      updateMessageAtIndex(messages, messageIndex, updatedMessage),
+    );
+  }
+
+  // Message doesn't exist yet - create a new empty assistant message
+  const newMessage: TamboThreadMessage = {
+    id: messageId,
+    role: "assistant",
+    content: [],
+    createdAt: new Date().toISOString(),
+    parentMessageId,
+  };
+
+  return updateThreadMessages(threadState, [...messages, newMessage]);
 }
 
 // ============================================================================

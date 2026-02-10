@@ -155,6 +155,12 @@ export interface TamboThreadMessage {
   metadata?: Record<string, unknown>;
 
   /**
+   * The id of the parent message, if this message was created during
+   * generation of another message (e.g., MCP sampling or elicitation).
+   */
+  parentMessageId?: string;
+
+  /**
    * Reasoning content from the model (transient - only during streaming).
    * Each element is a reasoning "chunk" - models may emit multiple reasoning blocks.
    * This data is not persisted to the database and will not be present in
