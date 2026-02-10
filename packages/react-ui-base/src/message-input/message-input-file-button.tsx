@@ -62,6 +62,7 @@ export const MessageInputFileButton = React.forwardRef<
     const handleClick = React.useCallback(
       (event: React.MouseEvent<HTMLButtonElement>) => {
         onClick?.(event);
+        if (event.defaultPrevented) return;
         openFilePicker();
       },
       [onClick, openFilePicker],
