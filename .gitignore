@@ -38,6 +38,9 @@ coverage
 .plans/
 .playwright-mcp/
 
+# git worktrees
+.worktrees/
+
 # misc
 .DS_Store
 *.pem
