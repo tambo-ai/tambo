@@ -129,6 +129,6 @@ function getPostAuthRedirect(
       return url.toString();
     }
   }
-  // just fall back to the project page
-  return new URL(`/${projectId}`, baseUrl).toString();
+  // fall back to the project settings page where MCP servers are configured
+  return new URL(`/${projectId}/settings`, baseUrl).toString();
 }
