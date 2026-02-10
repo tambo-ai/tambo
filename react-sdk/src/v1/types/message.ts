@@ -75,8 +75,6 @@ export interface TamboComponentContent extends ComponentContent {
  * These are used to customize tool status messages shown in the UI.
  */
 export interface TamboToolDisplayProps {
-  /** Generic display message for the tool */
-  _tambo_displayMessage?: string;
   /** Message shown while the tool is executing */
   _tambo_statusMessage?: string;
   /** Message shown after the tool completes */
