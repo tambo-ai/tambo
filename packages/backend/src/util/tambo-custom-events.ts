@@ -171,6 +171,30 @@ export type RunAwaitingInputEvent = TamboCustomEventEnvelope<
 >;
 
 // =============================================================================
+// Message Parent Events
+// =============================================================================
+
+/**
+ * Value payload for message parent event.
+ */
+export interface MessageParentEventValue {
+  /** ID of the child message */
+  messageId: string;
+  /** ID of the parent message that spawned this message */
+  parentMessageId: string;
+}
+
+/**
+ * Message parent event (custom: tambo.message.parent)
+ * Emitted when a message was created during the generation of another message
+ * (e.g., MCP sampling or elicitation).
+ */
+export type MessageParentEvent = TamboCustomEventEnvelope<
+  "tambo.message.parent",
+  MessageParentEventValue
+>;
+
+// =============================================================================
 // Union Types and Constants
 // =============================================================================
 
@@ -182,7 +206,8 @@ export type TamboCustomEvent =
   | ComponentPropsDeltaEvent
   | ComponentStateDeltaEvent
   | ComponentEndEvent
-  | RunAwaitingInputEvent;
+  | RunAwaitingInputEvent
+  | MessageParentEvent;
 
 /**
  * Known Tambo custom event names.
@@ -193,6 +218,7 @@ export const TAMBO_CUSTOM_EVENT_NAMES = [
   "tambo.component.state_delta",
   "tambo.component.end",
   "tambo.run.awaiting_input",
+  "tambo.message.parent",
 ] as const;
 
 export type TamboCustomEventName = (typeof TAMBO_CUSTOM_EVENT_NAMES)[number];
@@ -266,6 +292,20 @@ export function createRunAwaitingInputEvent(
   return {
     type: EventType.CUSTOM,
     name: "tambo.run.awaiting_input",
+    value,
+    timestamp: Date.now(),
+  };
+}
+
+/**
+ * Create a message parent event.
+ */
+export function createMessageParentEvent(
+  value: MessageParentEventValue,
+): MessageParentEvent {
+  return {
+    type: EventType.CUSTOM,
+    name: "tambo.message.parent",
     value,
     timestamp: Date.now(),
   };

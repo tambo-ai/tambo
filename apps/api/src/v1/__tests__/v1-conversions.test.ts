@@ -494,6 +494,26 @@ describe("v1-conversions", () => {
 
       expect(result.isCancelled).toBeUndefined();
     });
+
+    it("should include parentMessageId when present", () => {
+      const message = {
+        ...baseMessage,
+        parentMessageId: "parent_msg_456",
+      } as unknown as DbMessage;
+      const result = messageToDto(message);
+
+      expect(result.parentMessageId).toBe("parent_msg_456");
+    });
+
+    it("should omit parentMessageId when null", () => {
+      const message = {
+        ...baseMessage,
+        parentMessageId: null,
+      } as unknown as DbMessage;
+      const result = messageToDto(message);
+
+      expect(result.parentMessageId).toBeUndefined();
+    });
   });
 
   describe("convertV1InputMessageToInternal", () => {
