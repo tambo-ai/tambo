@@ -1,5 +1,29 @@
 # Changelog
 
+## [1.26.1](https://github.com/tambo-ai/tambo/compare/docs-v1.26.0...docs-v1.26.1) (2026-02-10)
+
+
+### Features
+
+* **cli:** add Vite support — Tailwind v4 toolchain, framework detection, and Vite template ([#2322](https://github.com/tambo-ai/tambo/issues/2322)) ([5b544ac](https://github.com/tambo-ai/tambo/commit/5b544acb960e7869600411f7d300f6422aca05de))
+
+
+### Miscellaneous Chores
+
+* bump to typescript-sdk 0.92 ([#2334](https://github.com/tambo-ai/tambo/issues/2334)) ([3767c6c](https://github.com/tambo-ai/tambo/commit/3767c6c0e12c9862afd992b6f18bc3338ea4201d))
+* **docs:** add package description ([#2308](https://github.com/tambo-ai/tambo/issues/2308)) ([1352c50](https://github.com/tambo-ai/tambo/commit/1352c50179b17c49f7f7186dc8bdcad1b0b4f13c))
+* **docs:** update doc content to reflect sdk updates ([#2356](https://github.com/tambo-ai/tambo/issues/2356)) ([05d6cda](https://github.com/tambo-ai/tambo/commit/05d6cdafde2fcd73a13222a1acb6d546f57bca5d))
+
+
+### Documentation
+
+* **docs:** finalize v1 SDK documentation for 1.0 release ([#2327](https://github.com/tambo-ai/tambo/issues/2327)) ([a63c1a7](https://github.com/tambo-ai/tambo/commit/a63c1a79972cece79f0c22462084b201b1fad1c8))
+
+
+### Code Refactoring
+
+* **react-sdk:** promote V1 SDK to main export (1.0.0-rc.1) ([#2297](https://github.com/tambo-ai/tambo/issues/2297)) ([1799bce](https://github.com/tambo-ai/tambo/commit/1799bceecf412d1a4f263108dae75ddcb3fe7491))
+
 ## [1.26.0](https://github.com/tambo-ai/tambo/compare/docs-v1.25.0...docs-v1.26.0) (2026-02-07)
 
 
