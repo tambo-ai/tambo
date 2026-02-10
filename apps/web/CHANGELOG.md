@@ -1,5 +1,30 @@
 # Changelog
 
+## [0.132.1](https://github.com/tambo-ai/tambo/compare/web-v0.132.0...web-v0.132.1) (2026-02-10)
+
+
+### Features
+
+* **web:** add referral source tracking to onboarding wizard ([#2331](https://github.com/tambo-ai/tambo/issues/2331)) ([39a4cef](https://github.com/tambo-ai/tambo/commit/39a4cefbcd78bb45308f0a45bea63ea454b34140))
+
+
+### Bug Fixes
+
+* **web:** fix MCP OAuth flow for Streamable HTTP servers ([#2339](https://github.com/tambo-ai/tambo/issues/2339)) ([6d1829e](https://github.com/tambo-ai/tambo/commit/6d1829efd275a735aba1cc60dedb15f50092dce5))
+
+
+### Miscellaneous Chores
+
+* bump to typescript-sdk 0.92 ([#2334](https://github.com/tambo-ai/tambo/issues/2334)) ([3767c6c](https://github.com/tambo-ai/tambo/commit/3767c6c0e12c9862afd992b6f18bc3338ea4201d))
+* **deps:** bump unist-util-visit from 5.0.0 to 5.1.0 ([#2345](https://github.com/tambo-ai/tambo/issues/2345)) ([8e95ed0](https://github.com/tambo-ai/tambo/commit/8e95ed0dd91ebc589c6bac72c91ec9af5c68ab53))
+* **test:** bump coverage thresholds (2026-02-09) ([#2323](https://github.com/tambo-ai/tambo/issues/2323)) ([0aac70b](https://github.com/tambo-ai/tambo/commit/0aac70b23da7ae51d9d449b3692b765570af44f9))
+* **web:** add package description ([#2309](https://github.com/tambo-ai/tambo/issues/2309)) ([920ef61](https://github.com/tambo-ai/tambo/commit/920ef6100445174d200f7acb96e4cd736b110315))
+
+
+### Code Refactoring
+
+* **react-sdk:** promote V1 SDK to main export (1.0.0-rc.1) ([#2297](https://github.com/tambo-ai/tambo/issues/2297)) ([1799bce](https://github.com/tambo-ai/tambo/commit/1799bceecf412d1a4f263108dae75ddcb3fe7491))
+
 ## [0.132.0](https://github.com/tambo-ai/tambo/compare/web-v0.131.0...web-v0.132.0) (2026-02-07)
 
 
