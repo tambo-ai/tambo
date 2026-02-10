@@ -269,7 +269,6 @@ export function useTambo(): UseTamboReturn {
   // Update a thread's name
   const updateThreadName = useCallback(
     async (threadId: string, name: string) => {
-      // @ts-expect-error - TypeScript SDK will be updated to include this method
       await client.threads.update(threadId, { name });
 
       if (threadMapRef.current[threadId]) {
