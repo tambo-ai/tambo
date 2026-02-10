@@ -1,5 +1,6 @@
 import { getBaseUrl } from "@/lib/base-url";
 import { env } from "@/lib/env";
+import { createFetchWithTimeout } from "@/lib/fetch-with-timeout";
 import { auth } from "@modelcontextprotocol/sdk/client/auth.js";
 import { getDb, OAuthLocalProvider, schema } from "@tambo-ai-cloud/db";
 import { eq } from "drizzle-orm";
@@ -62,24 +63,7 @@ export async function GET(request: NextRequest) {
       },
     );
 
-    console.log("--> /oauth/callback", url.toString(), queryParams);
-
-    const MCP_AUTH_FETCH_TIMEOUT_MS = 10_000;
-    const fetchWithTimeout: typeof fetch = async (input, init) => {
-      const timeoutSignal = AbortSignal.timeout(MCP_AUTH_FETCH_TIMEOUT_MS);
-      const signal = init?.signal
-        ? AbortSignal.any([init.signal, timeoutSignal])
-        : timeoutSignal;
-      return await fetch(input, { ...init, signal });
-    };
-
-    const result = await auth(oauthProvider, {
-      serverUrl: oauthClient.sessionInfo.serverUrl,
-      authorizationCode: code,
-      fetchFn: fetchWithTimeout,
-    });
-    console.log("--> result", result);
-    // Check for errors returned from OAuth provider
+    // Check for errors returned from OAuth provider before attempting token exchange
     if (validatedParams.error) {
       console.error("OAuth error:", validatedParams.error);
       return NextResponse.redirect(
@@ -89,6 +73,12 @@ export async function GET(request: NextRequest) {
         ),
       );
     }
+
+    await auth(oauthProvider, {
+      serverUrl: oauthClient.sessionInfo.serverUrl,
+      authorizationCode: code,
+      fetchFn: createFetchWithTimeout(10_000),
+    });
     const { projectId } = oauthClient.toolProviderUserContext.toolProvider;
 
     // Handle redirect after successful authentication
