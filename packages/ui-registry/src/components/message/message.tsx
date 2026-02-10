@@ -41,6 +41,15 @@ const streamdownSanitizeSchema = {
   },
 };
 
+const streamdownAllowedProtocols = streamdownSanitizeSchema.protocols.href.map(
+  (protocol) => {
+    const normalized = protocol.endsWith(":")
+      ? protocol.slice(0, -1)
+      : protocol;
+    return `${normalized}:`;
+  },
+);
+
 const streamdownRehypePlugins: PluggableList = [
   rehypeRaw,
   [rehypeSanitize, streamdownSanitizeSchema],
@@ -49,7 +58,7 @@ const streamdownRehypePlugins: PluggableList = [
     {
       allowedImagePrefixes: ["*"],
       allowedLinkPrefixes: ["*"],
-      allowedProtocols: ["*"],
+      allowedProtocols: streamdownAllowedProtocols,
       defaultOrigin: undefined,
       allowDataImages: true,
     },
