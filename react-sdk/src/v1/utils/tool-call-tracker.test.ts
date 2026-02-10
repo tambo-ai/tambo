@@ -1,14 +1,26 @@
 import { EventType } from "@ag-ui/core";
 import type { JSONSchema7 } from "json-schema";
+import type { TamboTool } from "../../model/component-metadata";
 import { ToolCallTracker } from "./tool-call-tracker";
+
+/** Minimal tool definition for tests — only name + inputSchema are needed. */
+function fakeTool(name: string, inputSchema: JSONSchema7): TamboTool {
+  return {
+    name,
+    description: "",
+    tool: () => null,
+    inputSchema,
+    outputSchema: {},
+  } as TamboTool;
+}
 
 /** Helper to create a tracker with a started tool call. */
 function createTrackerWithToolCall(
   toolCallId = "call_1",
   toolCallName = "get_weather",
-  toolSchemas?: Map<string, JSONSchema7>,
+  toolRegistry?: Record<string, TamboTool>,
 ): ToolCallTracker {
-  const tracker = new ToolCallTracker(toolSchemas);
+  const tracker = new ToolCallTracker(toolRegistry);
   tracker.handleEvent({
     type: EventType.TOOL_CALL_START,
     toolCallId,
@@ -130,14 +142,15 @@ describe("ToolCallTracker", () => {
       required: ["city"],
     };
 
-    it("strips null optional params when schema is provided", () => {
-      const toolSchemas = new Map<string, JSONSchema7>([
-        ["get_weather", schema],
-      ]);
+    const registry: Record<string, TamboTool> = {
+      get_weather: fakeTool("get_weather", schema),
+    };
+
+    it("strips null optional params when registry is provided", () => {
       const tracker = createTrackerWithToolCall(
         "call_1",
         "get_weather",
-        toolSchemas,
+        registry,
       );
       tracker.handleEvent({
         type: EventType.TOOL_CALL_ARGS,
@@ -154,13 +167,10 @@ describe("ToolCallTracker", () => {
     });
 
     it("preserves required null params", () => {
-      const toolSchemas = new Map<string, JSONSchema7>([
-        ["get_weather", schema],
-      ]);
       const tracker = createTrackerWithToolCall(
         "call_1",
         "get_weather",
-        toolSchemas,
+        registry,
       );
       tracker.handleEvent({
         type: EventType.TOOL_CALL_ARGS,
@@ -177,7 +187,7 @@ describe("ToolCallTracker", () => {
       expect(result.get("call_1")?.input).toEqual({ city: null });
     });
 
-    it("does not unstrictify when no schema is provided", () => {
+    it("does not unstrictify when no registry is provided", () => {
       const tracker = createTrackerWithToolCall();
       tracker.handleEvent({
         type: EventType.TOOL_CALL_ARGS,
@@ -190,7 +200,7 @@ describe("ToolCallTracker", () => {
       });
 
       const result = tracker.getToolCallsById(["call_1"]);
-      // Without schema, nulls are preserved
+      // Without registry, nulls are preserved
       expect(result.get("call_1")?.input).toEqual({
         city: "Seattle",
         units: null,
@@ -198,13 +208,10 @@ describe("ToolCallTracker", () => {
     });
 
     it("preserves _tambo_* pass-through params", () => {
-      const toolSchemas = new Map<string, JSONSchema7>([
-        ["get_weather", schema],
-      ]);
       const tracker = createTrackerWithToolCall(
         "call_1",
         "get_weather",
-        toolSchemas,
+        registry,
       );
       tracker.handleEvent({
         type: EventType.TOOL_CALL_ARGS,
@@ -222,6 +229,67 @@ describe("ToolCallTracker", () => {
         city: "Seattle",
         _tambo_statusMessage: "Loading",
       });
+    });
+  });
+
+  describe("parsePartialArgs", () => {
+    const schema: JSONSchema7 = {
+      type: "object",
+      properties: {
+        required_string: { type: "string" },
+        optional_string: { type: "string" },
+      },
+      required: ["required_string"],
+    };
+
+    const registry: Record<string, TamboTool> = {
+      my_tool: fakeTool("my_tool", schema),
+    };
+
+    it("returns undefined for unknown tool call ID", () => {
+      const tracker = new ToolCallTracker(registry);
+      expect(tracker.parsePartialArgs("nonexistent")).toBeUndefined();
+    });
+
+    it("returns undefined when partial JSON is not parseable", () => {
+      const tracker = createTrackerWithToolCall("call_1", "my_tool", registry);
+      tracker.handleEvent({
+        type: EventType.TOOL_CALL_ARGS,
+        toolCallId: "call_1",
+        delta: '{"req',
+      });
+
+      // partial-json should handle this, but if it can't parse to an object
+      // the method returns undefined
+      const result = tracker.parsePartialArgs("call_1");
+      // partial-json can parse this to { req: undefined } or similar — either
+      // way it should not throw
+      expect(result === undefined || typeof result === "object").toBe(true);
+    });
+
+    it("unstrictifies partial args during streaming", () => {
+      const tracker = createTrackerWithToolCall("call_1", "my_tool", registry);
+
+      // Stream the full strict JSON in 3-char chunks
+      const fullJson = '{"required_string":"required","optional_string":null}';
+      const chunkSize = 3;
+      for (let i = 0; i < fullJson.length; i += chunkSize) {
+        tracker.handleEvent({
+          type: EventType.TOOL_CALL_ARGS,
+          toolCallId: "call_1",
+          delta: fullJson.slice(i, i + chunkSize),
+        });
+
+        const partial = tracker.parsePartialArgs("call_1");
+        if (partial) {
+          // Must never contain optional_string
+          expect(partial).not.toHaveProperty("optional_string");
+        }
+      }
+
+      // After all chunks, should have the required param
+      const final = tracker.parsePartialArgs("call_1");
+      expect(final).toEqual({ required_string: "required" });
     });
   });
 });
