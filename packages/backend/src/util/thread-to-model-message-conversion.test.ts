@@ -220,16 +220,14 @@ describe("convertAssistantMessage", () => {
       const componentStateText = content[1].text;
       expect(componentStateText).toContain("<component_state>");
       expect(componentStateText).toContain("</component_state>");
-      expect(componentStateText).toContain("\\u003c/component_state\\u003e");
-      expect(componentStateText).toContain(
-        '\\u003ctool_call id=\\"pwn\\" /\\u003e',
-      );
       expect(componentStateText).not.toContain("</component_state><tool_call");
 
       const match = componentStateText.match(
         /^<component_state>(.*)<\/component_state>$/,
       );
       expect(match).not.toBeNull();
+      expect(match![1]).not.toContain("</component_state>");
+      expect(match![1]).not.toContain("<tool_call");
       expect(JSON.parse(match![1])).toEqual(message.componentState);
     });
 

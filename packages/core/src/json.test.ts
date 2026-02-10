@@ -75,12 +75,18 @@ describe("JSON utilities", () => {
       };
 
       const result = stringifyJsonForMarkup(value);
-      expect(result).toContain("\\u003c/component_state\\u003e");
-      expect(result).toContain("\\u0026");
-      expect(result).toContain("\\u003ctag\\u003e");
       expect(result).not.toContain("</component_state>");
+      expect(result).not.toContain("<tag>");
+      expect(result).not.toContain("&");
 
       expect(JSON.parse(result)).toEqual(value);
+    });
+
+    it("should throw when the value is not JSON-serializable", () => {
+      const value: Record<string, unknown> = {};
+      value.self = value;
+
+      expect(() => stringifyJsonForMarkup(value)).toThrow();
     });
   });
 });
