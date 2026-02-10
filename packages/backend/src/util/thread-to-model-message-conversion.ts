@@ -4,6 +4,7 @@ import {
   MessageRole,
   Resource,
   ThreadMessage,
+  stringifyJsonForMarkup,
   tryParseJson,
 } from "@tambo-ai-cloud/core";
 import type {
@@ -249,6 +250,18 @@ export function convertAssistantMessage(
           input: tryParseJson(call.function.arguments),
         } satisfies ToolCallPart);
       }
+    });
+  }
+
+  // Include component state so the LLM can see it on follow-up messages
+  if (
+    message.componentState &&
+    Object.keys(message.componentState).length > 0
+  ) {
+    const safeJson = stringifyJsonForMarkup(message.componentState);
+    content.push({
+      type: "text",
+      text: `<component_state>${safeJson}</component_state>`,
     });
   }
 
