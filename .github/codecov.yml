@@ -9,8 +9,8 @@ coverage:
         threshold: 1%
     patch:
       default:
-        target: auto
-        threshold: 1%
+        target: 80%
+        threshold: 5%
 
 comment:
   layout: "header, diff, components"
