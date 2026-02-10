@@ -65,11 +65,13 @@ export async function GET(request: NextRequest) {
     console.log("--> /oauth/callback", url.toString(), queryParams);
 
     const MCP_AUTH_FETCH_TIMEOUT_MS = 10_000;
-    const fetchWithTimeout: typeof fetch = async (input, init) =>
-      await fetch(input, {
-        ...init,
-        signal: AbortSignal.timeout(MCP_AUTH_FETCH_TIMEOUT_MS),
-      });
+    const fetchWithTimeout: typeof fetch = async (input, init) => {
+      const timeoutSignal = AbortSignal.timeout(MCP_AUTH_FETCH_TIMEOUT_MS);
+      const signal = init?.signal
+        ? AbortSignal.any([init.signal, timeoutSignal])
+        : timeoutSignal;
+      return await fetch(input, { ...init, signal });
+    };
 
     const result = await auth(oauthProvider, {
       serverUrl: oauthClient.sessionInfo.serverUrl,
