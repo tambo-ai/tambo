@@ -38,6 +38,9 @@ coverage
 .plans/
 .playwright-mcp/
 
+# git worktrees
+.worktrees/
+
 # misc
 .DS_Store
 *.pem
@@ -56,3 +59,7 @@ next-env.d.ts
 react-sdk/dist/**
 
 /test
+
+# Agents
+.claude/settings.local.json
+.claude/**/*.local.md

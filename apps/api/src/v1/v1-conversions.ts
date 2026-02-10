@@ -299,10 +299,6 @@ export function contentToV1Blocks(
       if (typeof decision.completionStatusMessage === "string") {
         input._tambo_completionStatusMessage = decision.completionStatusMessage;
       }
-      // The display message is stored as 'message' in componentDecision
-      if (typeof decision.message === "string" && decision.message.trim()) {
-        input._tambo_displayMessage = decision.message;
-      }
     }
 
     const toolUseBlock: V1ToolUseContentDto = {
@@ -351,6 +347,7 @@ export function messageToDto(
     content,
     createdAt: message.createdAt.toISOString(),
     metadata: message.metadata ?? undefined,
+    parentMessageId: message.parentMessageId ?? undefined,
     // Only include isCancelled if true (to keep response size minimal)
     isCancelled: message.isCancelled || undefined,
   };

@@ -86,6 +86,16 @@ export class V1MessageDto {
 
   @ApiProperty({
     description:
+      "The id of the parent message, if the message was created during the " +
+      "generation of another message, such as during an agent call, MCP Elicitation, or MCP Sample",
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  parentMessageId?: string;
+
+  @ApiProperty({
+    description:
       "Whether this message was interrupted by a run cancellation. " +
       "When true, the message content may be incomplete.",
     required: false,

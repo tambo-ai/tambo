@@ -1,508 +1,541 @@
 ---
 title: React SDK Hooks
-description: Complete reference for @tambo-ai/react hooks - thread management, component state, streaming, voice, and more.
+description: Complete reference for @tambo-ai/react hooks - thread management, messaging, suggestions, and component state.
 ---
 
-The `@tambo-ai/react` package provides hooks that expose state values and functions to make building AI apps with Tambo simple.
-
-Here you'll find a description of each state value and function, organized by hook.
+The `@tambo-ai/react` package provides hooks for building AI-powered applications with explicit thread management and React Query integration.
 
 ## useTambo
 
-The primary entrypoint for the Tambo React SDK. This hook provides access to all Tambo functionality including the client, component registry, thread context, and interactable component management.
+The primary hook for the React SDK. Provides access to thread state, messages, streaming status, and registry functions.
 
 ```tsx
-const tambo = useTambo();
+import { useTambo } from "@tambo-ai/react";
+
+function Chat() {
+  const {
+    // Thread state
+    thread,
+    messages,
+    currentThreadId,
+
+    // Streaming status
+    streamingState,
+    isStreaming,
+    isWaiting,
+    isIdle,
+
+    // Thread management
+    initThread,
+    switchThread,
+    startNewThread,
+
+    // Run control
+    cancelRun,
+
+    // Registry
+    registerComponent,
+    registerTool,
+    registerTools,
+    componentList,
+    toolRegistry,
+
+    // API client
+    client,
+    dispatch,
+  } = useTambo();
+}
 ```
 
-This hook returns a composite of all context values from the nested providers, including:
-
-- **Client context**: `client`, `queryClient`, `isUpdatingToken`
-- **Thread context**: `thread`, `sendThreadMessage`, `generationStage`, `isIdle`, etc.
-- **Component context**: `currentMessage`, `currentComponent`
-- **Interactable context**: `interactableComponents`, `addInteractableComponent`, etc.
-- **Context helpers**: `getContextHelpers`, `addContextHelper`, `removeContextHelper`
-- **Context attachments**: `attachments`, `addContextAttachment`, `removeContextAttachment`
-
-For most use cases, prefer using the more specific hooks (like `useTamboThread` or `useTamboRegistry`) to access only what you need.
-
-## useTamboRegistry
-
-This hook provides helpers for component and tool registration.
-
-### registerComponent
-
-`const { registerComponent } = useTamboRegistry()`
-
-This function is used to register components with Tambo, allowing them to be potentially used in Tambo's responses.
-
-### registerTool
-
-`const { registerTool } = useTamboRegistry()`
-
-This function is used to register tools with Tambo.
-
-### registerTools
-
-`const { registerTools } = useTamboRegistry()`
-
-This function allows registering multiple tools at once.
-
-### addToolAssociation
-
-`const { addToolAssociation } = useTamboRegistry()`
-
-This function creates an association between components and tools.
-
-### componentList
-
-`const { componentList } = useTamboRegistry()`
-
-This value provides access to the list of registered components.
-
-### toolRegistry
-
-`const { toolRegistry } = useTamboRegistry()`
-
-This value provides access to the registry of all registered tools.
-
-### componentToolAssociations
-
-`const { componentToolAssociations } = useTamboRegistry()`
-
-This value provides access to the associations between components and tools.
-
-## useTamboThread
-
-This hook provides access to the current thread and functions for managing thread interactions.
-
-### thread
-
-`const { thread } = useTamboThread()`
-
-The current thread object containing messages and metadata. Messages can be accessed via `thread.messages`. This value is kept up-to-date automatically by Tambo when messages are sent or received.
-
-### sendThreadMessage
-
-`const { sendThreadMessage } = useTamboThread()`
-
-Function to send a user message to Tambo and receive a response. A call to this function will update the provided `thread` state value.
-
-To have the response streamed, use `sendThreadMessage(message, {streamResponse: true})`.
-
-### generationStage
-
-`const { generationStage } = useTamboThread()`
-
-Current stage of message generation. Possible values are:
-
-- `IDLE`: The thread is not currently generating any response (Initial stage)
-- `CHOOSING_COMPONENT`: Tambo is determining which component to use for the response
-- `FETCHING_CONTEXT`: Gathering necessary context for the response by calling a registered tool
-- `HYDRATING_COMPONENT`: Generating the props for a chosen component
-- `STREAMING_RESPONSE`: Actively streaming the response
-- `COMPLETE`: Generation process has finished successfully
-- `ERROR`: An error occurred during the generation process
-
-### inputValue
-
-`const { inputValue } = useTamboThread()`
-
-Current value of the thread input field.
-
-### generationStatusMessage
-
-`const { generationStatusMessage } = useTamboThread()`
-
-Status message describing the current generation state, as generated by Tambo.
-
-### isIdle
-
-`const { isIdle } = useTamboThread()`
-
-Boolean indicating whether the thread is in an idle state (`generationStage` is `IDLE`, `COMPLETE`, or `ERROR`).
-
-### switchCurrentThread
-
-`const { switchCurrentThread } = useTamboThread()`
-
-Function to change the active thread by id. This will update the `thread` state value to the fetched thread.
-
-### addThreadMessage
-
-`const { addThreadMessage } = useTamboThread()`
-
-Function to append a new message to the thread.
-
-### updateThreadMessage
-
-`const { updateThreadMessage } = useTamboThread()`
-
-Function to modify an existing thread message.
-
-### setLastThreadStatus
-
-`const { setLastThreadStatus } = useTamboThread()`
-
-Function to update the status of the most recent thread message.
-
-### setInputValue
-
-`const { setInputValue } = useTamboThread()`
-
-Function to update the input field value.
-
-## useTamboThreadList
-
-This hook provides access to the list of all threads for a project and their loading states.
-
-### data
-
-`const { data } = useTamboThreadList()`
-
-Array of threads or null if not yet loaded.
-
-### isPending
-
-`const { isPending } = useTamboThreadList()`
-
-Boolean indicating if threads are currently being fetched.
-
-### isSuccess
-
-`const { isSuccess } = useTamboThreadList()`
-
-Boolean indicating if threads were successfully fetched.
-
-### isError
-
-`const { isError } = useTamboThreadList()`
-
-Boolean indicating if an error occurred while fetching threads.
-
-### error
-
-`const { error } = useTamboThreadList()`
-
-Error object containing details if the fetch failed.
+### Return Values
+
+#### Thread State
+
+| Value             | Type                       | Description                                                      |
+| ----------------- | -------------------------- | ---------------------------------------------------------------- |
+| `thread`          | `ThreadState \| undefined` | Current thread state including messages and metadata             |
+| `messages`        | `TamboMessage[]`           | Array of messages in the current thread with computed properties |
+| `currentThreadId` | `string`                   | ID of the currently active thread                                |
+
+#### Streaming Status
+
+| Value            | Type             | Description                                             |
+| ---------------- | ---------------- | ------------------------------------------------------- |
+| `streamingState` | `StreamingState` | Detailed streaming state including status, runId, error |
+| `isStreaming`    | `boolean`        | `true` when actively streaming a response               |
+| `isWaiting`      | `boolean`        | `true` when waiting for server response                 |
+| `isIdle`         | `boolean`        | `true` when no generation is in progress                |
+
+#### Run Control
+
+| Value       | Type                  | Description                                                                       |
+| ----------- | --------------------- | --------------------------------------------------------------------------------- |
+| `cancelRun` | `() => Promise<void>` | Cancel the active run. No-op if there's no active run or thread is a placeholder. |
+
+#### Thread Management
+
+| Value            | Type                                                               | Description                                     |
+| ---------------- | ------------------------------------------------------------------ | ----------------------------------------------- |
+| `initThread`     | `(threadId: string, initialThread?: Partial<TamboThread>) => void` | Initialize a thread with optional initial state |
+| `switchThread`   | `(threadId: string) => void`                                       | Switch to a different thread by ID              |
+| `startNewThread` | `() => string`                                                     | Create a new thread and return its ID           |
+
+#### Registry
+
+| Value               | Type                                  | Description                      |
+| ------------------- | ------------------------------------- | -------------------------------- |
+| `registerComponent` | `(component: TamboComponent) => void` | Register a component dynamically |
+| `registerTool`      | `(tool: TamboTool) => void`           | Register a single tool           |
+| `registerTools`     | `(tools: TamboTool[]) => void`        | Register multiple tools          |
+| `componentList`     | `ComponentRegistry`                   | Map of registered components     |
+| `toolRegistry`      | `Map<string, TamboTool>`              | Map of registered tools          |
+
+### Example: Basic Chat
+
+```tsx
+import { useTambo, useTamboThreadInput } from "@tambo-ai/react";
+
+function ChatInterface() {
+  const { messages, isStreaming, startNewThread } = useTambo();
+  const { value, setValue, submit } = useTamboThreadInput();
+
+  return (
+    <div>
+      <button onClick={() => startNewThread()}>New Chat</button>
+
+      <div className="messages">
+        {messages.map((msg) => (
+          <MessageBubble key={msg.id} message={msg} />
+        ))}
+        {isStreaming && <LoadingIndicator />}
+      </div>
+
+      <input
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && submit()}
+        disabled={isStreaming}
+      />
+    </div>
+  );
+}
+```
 
 ## useTamboThreadInput
 
-This hook provides utilities for building an input interface that sends messages to Tambo.
+Provides shared input state management across components. Input state is shared via the `TamboThreadInputProvider`, allowing features like suggestions to update the input directly.
 
-### value
+```tsx
+import { useTamboThreadInput } from "@tambo-ai/react";
 
-`const { value } = useTamboThreadInput()`
+function MessageInput() {
+  const {
+    value,
+    setValue,
+    submit,
+    images,
+    addImage,
+    addImages,
+    removeImage,
+    clearImages,
+    threadId,
+    isPending,
+    isError,
+    error,
+  } = useTamboThreadInput();
+}
+```
 
-Current value of the input field.
+### Return Values
 
-### setValue
+| Value         | Type                                                                      | Description                                                                              |
+| ------------- | ------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| `value`       | `string`                                                                  | Current input value                                                                      |
+| `setValue`    | `Dispatch<SetStateAction<string>>`                                        | Update the input value                                                                   |
+| `submit`      | `(options?: SubmitOptions) => Promise<{ threadId: string \| undefined }>` | Submit the current input (see [SubmitOptions](/reference/react-sdk/types#submitoptions)) |
+| `images`      | `StagedImage[]`                                                           | Array of staged images                                                                   |
+| `addImage`    | `(file: File) => Promise<void>`                                           | Add a single image                                                                       |
+| `addImages`   | `(files: File[]) => Promise<void>`                                        | Add multiple images                                                                      |
+| `removeImage` | `(id: string) => void`                                                    | Remove a staged image                                                                    |
+| `clearImages` | `() => void`                                                              | Clear all staged images                                                                  |
+| `threadId`    | `string \| undefined`                                                     | Current thread ID                                                                        |
+| `isPending`   | `boolean`                                                                 | `true` while submission is in progress                                                   |
+| `isError`     | `boolean`                                                                 | `true` if submission failed                                                              |
+| `error`       | `Error \| null`                                                           | Error details if submission failed                                                       |
 
-`const { setValue } = useTamboThreadInput()`
+### Example: Input with Images
 
-Function to update the input field value.
+```tsx
+function RichInput() {
+  const { value, setValue, submit, images, addImage, removeImage, isPending } =
+    useTamboThreadInput();
 
-### submit
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    for (const file of files) {
+      await addImage(file);
+    }
+  };
 
-`const { submit } = useTamboThreadInput()`
+  return (
+    <div>
+      <div className="staged-images">
+        {images.map((img) => (
+          <div key={img.id}>
+            <img src={img.dataUrl} alt={img.name} />
+            <button onClick={() => removeImage(img.id)}>Remove</button>
+          </div>
+        ))}
+      </div>
 
-Function to submit the current input value, with optional context and streaming configuration.
+      <input type="file" accept="image/*" onChange={handleFileChange} />
 
-### isPending
+      <textarea
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        disabled={isPending}
+      />
 
-`const { isPending } = useTamboThreadInput()`
+      <button onClick={() => submit()} disabled={isPending || !value.trim()}>
+        Send
+      </button>
+    </div>
+  );
+}
+```
 
-Boolean indicating if a submission is in progress.
+## useTamboThread
 
-### isSuccess
+React Query hook to fetch a single thread by ID.
 
-`const { isSuccess } = useTamboThreadInput()`
+```tsx
+import { useTamboThread } from "@tambo-ai/react";
 
-Boolean indicating if the last submission was successful.
+function ThreadLoader({ threadId }: { threadId: string }) {
+  const { data, isLoading, isError, error } = useTamboThread(threadId);
 
-### isError
+  if (isLoading) return <Loading />;
+  if (isError) return <Error message={error.message} />;
 
-`const { isError } = useTamboThreadInput()`
+  return <ThreadView thread={data} />;
+}
+```
 
-Boolean indicating if the last submission failed.
+### Parameters
 
-### error
+| Parameter  | Type              | Description                  |
+| ---------- | ----------------- | ---------------------------- |
+| `threadId` | `string`          | The thread ID to fetch       |
+| `options`  | `UseQueryOptions` | Optional React Query options |
 
-`const { error } = useTamboThreadInput()`
+### Return Values
 
-Error object containing details if the submission failed.
+Returns a standard React Query `UseQueryResult<ThreadRetrieveResponse>`.
 
-## useTamboSuggestions
+The query has a `staleTime` of 1000ms by default for real-time data freshness.
 
-This hook provides utilities for managing AI-generated message suggestions.
+## useTamboThreadList
 
-### suggestions
+React Query hook to list threads for the current user.
 
-`const { suggestions } = useTamboSuggestions()`
+```tsx
+import { useTamboThreadList } from "@tambo-ai/react";
 
-List of available AI-generated suggestions for the next message.
+function ThreadSidebar() {
+  const { data, isLoading } = useTamboThreadList();
 
-### selectedSuggestionId
+  if (isLoading) return <Loading />;
 
-`const { selectedSuggestionId } = useTamboSuggestions()`
+  return (
+    <ul>
+      {data?.threads.map((thread) => (
+        <li key={thread.id}>{thread.name || "Untitled"}</li>
+      ))}
+    </ul>
+  );
+}
+```
 
-ID of the currently selected suggestion.
+### Parameters
 
-### accept
+| Parameter      | Type                | Description                  |
+| -------------- | ------------------- | ---------------------------- |
+| `listOptions`  | `ThreadListOptions` | Optional filtering options   |
+| `queryOptions` | `UseQueryOptions`   | Optional React Query options |
 
-`const { accept } = useTamboSuggestions()`
+#### ThreadListOptions
 
-Function to accept and apply a suggestion, with an option for automatic submission.
+| Property  | Type     | Description                             |
+| --------- | -------- | --------------------------------------- |
+| `userKey` | `string` | User key (defaults to provider context) |
+| `limit`   | `number` | Maximum threads to return               |
+| `cursor`  | `string` | Pagination cursor                       |
 
-### acceptResult
+### Return Values
 
-`const { acceptResult } = useTamboSuggestions()`
+Returns a standard React Query `UseQueryResult<ThreadListResponse>`.
 
-Detailed mutation result for accepting a suggestion.
-
-### generateResult
-
-`const { generateResult } = useTamboSuggestions()`
-
-Detailed mutation result for generating new suggestions.
-
-### isPending
-
-`const { isPending } = useTamboSuggestions()`
-
-Boolean indicating if a suggestion operation is in progress.
-
-### isSuccess
-
-`const { isSuccess } = useTamboSuggestions()`
-
-Boolean indicating if the last operation was successful.
-
-### isError
-
-`const { isError } = useTamboSuggestions()`
-
-Boolean indicating if the last operation resulted in an error.
-
-### error
-
-`const { error } = useTamboSuggestions()`
-
-Error object containing details if the operation failed.
-
-## useTamboClient
-
-This hook provides direct access to the Tambo client instance.
-
-### client
-
-`const { client } = useTamboClient()`
-
-The Tambo client instance for direct API access.
+The query has a `staleTime` of 5000ms by default.
 
 ## useTamboComponentState
 
-This hook is similar to React's `useState`, but allows Tambo to see the state values to help respond to later messages.
-
-`const [myValue, setMyValue] = useTamboComponentState(keyName, initialValue, setFromProp)`
-
-For streaming components, use the third parameter (`setFromProp`) to seed
-editable state from AI-generated props. Combined with `useTamboStreamStatus`,
-this lets you disable inputs while streaming and hand control to the user once
-complete.
-
-### value and setValue
-
-`const { value } = useTamboComponentState()`
-
-Current state value stored in the thread message for the given key.
-
-### setValue
-
-`const { setValue } = useTamboComponentState()`
-
-Function to update the state value, synchronizing both local state and server state.
-
-## useTamboContextHelpers
-
-This hook provides dynamic control over context helpers.
-
-### getContextHelpers
-
-`const { getContextHelpers } = useTamboContextHelpers()`
-
-Returns the current map of registered helper functions keyed by name.
-
-### addContextHelper
-
-`const { addContextHelper } = useTamboContextHelpers()`
-
-Adds or replaces a helper at the given key.
-
-### removeContextHelper
-
-`const { removeContextHelper } = useTamboContextHelpers()`
-
-Removes a helper by key so it is no longer included in outgoing messages.
-
-## useTamboContextAttachment
-
-This hook provides utilities for managing context attachments that will be sent with the next user message.
-
-### attachments
-
-`const { attachments } = useTamboContextAttachment()`
-
-Array of active context attachments that will be included in `additionalContext` when the next message is sent.
-
-### addContextAttachment
-
-`const { addContextAttachment } = useTamboContextAttachment()`
-
-Function to add a new context attachment. Accepts an object with `context` (string), optional `displayName` (string), and optional `type` (string). Returns the `ContextAttachment` object with an auto-generated `id`. All attachments are automatically registered together as a single merged context helper (key: `contextAttachments`) that returns an array of all active attachments.
+Bidirectional state synchronization between component and server. Similar to React's `useState`, but syncs state changes with the Tambo server.
 
 ```tsx
-// Without displayName
-const attachment = addContextAttachment({
-  context: "The contents of File.txt",
-});
+import { useTamboComponentState } from "@tambo-ai/react";
 
-// With displayName
-const attachment = addContextAttachment({
-  context: "The contents of File.txt",
-  displayName: "File.txt",
-});
+function Counter() {
+  const [count, setCount, { isPending, error, flush }] = useTamboComponentState(
+    "count",
+    0,
+  );
 
-// With displayName and type
-const attachment = addContextAttachment({
-  context: "The contents of File.txt",
-  displayName: "File.txt",
-  type: "file",
-});
+  return (
+    <div>
+      <span>{count}</span>
+      <button onClick={() => setCount((c) => c + 1)} disabled={isPending}>
+        Increment
+      </button>
+    </div>
+  );
+}
 ```
 
-### removeContextAttachment
+### Parameters
 
-`const { removeContextAttachment } = useTamboContextAttachment()`
+| Parameter      | Type     | Default  | Description                             |
+| -------------- | -------- | -------- | --------------------------------------- |
+| `keyName`      | `string` | Required | Unique key identifying this state       |
+| `initialValue` | `S`      | Required | Initial state value                     |
+| `debounceTime` | `number` | `500`    | Milliseconds to debounce server updates |
 
-Function to remove a specific context attachment by its ID. The context helper automatically updates to reflect the change.
+### Return Values
 
-### clearContextAttachments
+Returns a tuple: `[currentState, setState, meta]`
 
-`const { clearContextAttachments } = useTamboContextAttachment()`
+| Value            | Type                                        | Description                                |
+| ---------------- | ------------------------------------------- | ------------------------------------------ |
+| `currentState`   | `S`                                         | Current state value                        |
+| `setState`       | `(newState: S \| ((prev: S) => S)) => void` | State setter (supports functional updates) |
+| `meta.isPending` | `boolean`                                   | `true` while syncing with server           |
+| `meta.error`     | `Error \| null`                             | Error if sync failed                       |
+| `meta.flush`     | `() => void`                                | Immediately flush pending updates          |
 
-Function to remove all active context attachments at once. The context helper automatically updates to reflect the change. Context attachments are automatically cleared after message submission (one-time use), so you typically don't need to call this manually.
+<Callout type="info">
+  This hook only works within components rendered via `ComponentRenderer` or
+  components that are part of the message rendering pipeline.
+</Callout>
 
-## useCurrentInteractablesSnapshot
+### Example: Editable Card
 
-`const snapshot = useCurrentInteractablesSnapshot()`
+```tsx
+function EditableCard({ title: initialTitle }: { title: string }) {
+  const [title, setTitle, { isPending }] = useTamboComponentState(
+    "title",
+    initialTitle,
+    300, // debounce 300ms
+  );
 
-Returns a cloned snapshot of the current interactable components.
-
-## useTamboCurrentMessage
-
-`const message = useTamboCurrentMessage()`
-
-Returns the complete `TamboThreadMessage` object for the current message, including thread ID, component data, state, and timestamps. Must be used within a component rendered as part of a message thread.
-
-Use when you need full message/thread context. For component metadata only, see [`useTamboCurrentComponent`](#usetambocurrentcomponent).
-
-## useTamboCurrentComponent
-
-`const component = useTamboCurrentComponent()`
-
-Returns component metadata (`componentName`, `props`, `interactableId`, `description`, `threadId`) from the parent component context. Returns `null` if used outside a component. Works with both inline rendered and interactable components.
-
-Use when you need component information or thread ID without full message context. For complete message data, see [`useTamboCurrentMessage`](#usetambocurrentmessage).
-
-See [Interactable Components](/concepts/generative-interfaces/interactable-components) for detailed patterns and examples.
+  return (
+    <div>
+      <input
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+        className={isPending ? "saving" : ""}
+      />
+      {isPending && <span>Saving...</span>}
+    </div>
+  );
+}
+```
 
 ## useTamboStreamStatus
 
-Track streaming status for Tambo component props. Returns both global stream status and per-prop status flags.
-
-```tsx
-const { streamStatus, propStatus } = useTamboStreamStatus<Props>();
-```
+Track streaming status for components rendered via `ComponentRenderer`. Provides both overall stream status and per-prop granularity.
 
 **Important**: Props update repeatedly during streaming and may be partial. Use `propStatus.<field>?.isSuccess` before treating a prop as complete.
 
-### streamStatus
-
-Global stream status flags for the component:
-
 ```tsx
-interface StreamStatus {
-  isPending: boolean; // No tokens received yet, generation not active
-  isStreaming: boolean; // Active streaming - generation or props still streaming
-  isSuccess: boolean; // Complete - all props finished without error
-  isError: boolean; // Fatal error occurred
-  streamError?: Error; // First error encountered (if any)
+import { useTamboStreamStatus } from "@tambo-ai/react";
+
+function MyComponent(props: MyProps) {
+  const { streamStatus, propStatus } = useTamboStreamStatus<MyProps>();
+
+  if (streamStatus.isPending) return <Skeleton />;
+
+  return (
+    <div>
+      <h2 className={propStatus.title?.isStreaming ? "animate-pulse" : ""}>
+        {props.title}
+      </h2>
+      {streamStatus.isSuccess && <p>Stream complete</p>}
+    </div>
+  );
 }
 ```
 
-### propStatus
+### Return Values
 
-Per-prop streaming status:
+| Value          | Type                                                      | Description                                                                                                                                    |
+| -------------- | --------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `streamStatus` | [`StreamStatus`](/reference/react-sdk/types#streamstatus) | Overall streaming status for the component                                                                                                     |
+| `propStatus`   | `Partial<Record<keyof Props, PropStatus>>`                | Per-prop streaming status. Keys are absent until the prop receives its first token. See [`PropStatus`](/reference/react-sdk/types#propstatus). |
+
+<Callout type="info">
+  This hook only works inside components rendered via `ComponentRenderer`. The
+  renderer provides the necessary context for tracking streaming state.
+</Callout>
+
+## useTamboSuggestions
+
+Generate and manage AI-powered message suggestions.
 
 ```tsx
-interface PropStatus {
-  isPending: boolean; // No tokens received for this prop yet
-  isStreaming: boolean; // Prop has partial content, still updating
-  isSuccess: boolean; // Prop finished streaming successfully
-  error?: Error; // Error during streaming (if any)
+import { useTamboSuggestions } from "@tambo-ai/react";
+
+function SuggestionChips() {
+  const {
+    suggestions,
+    accept,
+    generate,
+    isLoading,
+    isGenerating,
+    isAccepting,
+  } = useTamboSuggestions();
+
+  return (
+    <div>
+      {suggestions.map((suggestion) => (
+        <button
+          key={suggestion.id}
+          onClick={() => accept({ suggestion, shouldSubmit: true })}
+          disabled={isAccepting}
+        >
+          {suggestion.text}
+        </button>
+      ))}
+
+      <button onClick={() => generate()} disabled={isGenerating}>
+        Refresh Suggestions
+      </button>
+    </div>
+  );
 }
 ```
 
-### Example: Wait for entire stream
+### Options
 
 ```tsx
-const { streamStatus } = useTamboStreamStatus();
+const result = useTamboSuggestions({
+  maxSuggestions: 3, // 1-10, default 3
+  autoGenerate: true, // auto-generate on mount, default true
+  queryOptions: {}, // React Query options
+});
+```
 
-if (!streamStatus.isSuccess) {
-  return <Spinner />;
+### Return Values
+
+| Value                  | Type                                                   | Description                            |
+| ---------------------- | ------------------------------------------------------ | -------------------------------------- |
+| `data`                 | `SuggestionsQueryResponse \| undefined`                | Raw query response                     |
+| `suggestions`          | `Suggestion[]`                                         | Array of suggestion objects            |
+| `isLoading`            | `boolean`                                              | Initial loading state                  |
+| `isSuccess`            | `boolean`                                              | Query succeeded                        |
+| `isError`              | `boolean`                                              | Query failed                           |
+| `error`                | `Error \| null`                                        | Query error                            |
+| `isFetching`           | `boolean`                                              | Fetching (includes background refetch) |
+| `generate`             | `() => Promise<SuggestionCreateResponse \| undefined>` | Generate new suggestions               |
+| `isGenerating`         | `boolean`                                              | Generation in progress                 |
+| `generateError`        | `Error \| null`                                        | Generation error                       |
+| `accept`               | `(options: AcceptSuggestionOptions) => Promise<void>`  | Accept a suggestion                    |
+| `isAccepting`          | `boolean`                                              | Accept in progress                     |
+| `acceptError`          | `Error \| null`                                        | Accept error                           |
+| `selectedSuggestionId` | `string \| null`                                       | Currently selected suggestion          |
+
+### AcceptSuggestionOptions
+
+| Property       | Type         | Description                        |
+| -------------- | ------------ | ---------------------------------- |
+| `suggestion`   | `Suggestion` | The suggestion to accept           |
+| `shouldSubmit` | `boolean`    | Submit immediately after accepting |
+
+## useTamboSendMessage
+
+Low-level hook for sending messages with streaming. Most applications should use `useTamboThreadInput` instead.
+
+```tsx
+import { useTamboSendMessage } from "@tambo-ai/react";
+
+function CustomSendButton({ threadId }: { threadId: string }) {
+  const { mutate, isPending } = useTamboSendMessage(threadId);
+
+  const handleSend = () => {
+    mutate({
+      message: {
+        role: "user",
+        content: [{ type: "text", text: "Hello!" }],
+      },
+      userMessageText: "Hello!", // For optimistic UI
+    });
+  };
+
+  return (
+    <button onClick={handleSend} disabled={isPending}>
+      Send
+    </button>
+  );
 }
-
-return <Card {...props} />;
 ```
 
-### Example: Highlight in-flight props
+### Parameters
+
+| Parameter  | Type                  | Description                                  |
+| ---------- | --------------------- | -------------------------------------------- |
+| `threadId` | `string \| undefined` | Thread to send to (creates new if undefined) |
+
+### Return Values
+
+Returns a React Query `UseMutationResult`.
+
+## Re-exported Hooks
+
+The following hooks are re-exported from the base SDK for convenience:
+
+### useTamboClient
+
+Access the Tambo API client directly.
 
 ```tsx
-const { propStatus } = useTamboStreamStatus<Props>();
+import { useTamboClient } from "@tambo-ai/react";
 
-return (
-  <h2 className={propStatus.title?.isStreaming ? "animate-pulse" : ""}>
-    {title}
-  </h2>
-);
+function ApiExample() {
+  const client = useTamboClient();
+
+  const fetchData = async () => {
+    const threads = await client.beta.threads.list();
+    // ...
+  };
+}
 ```
 
-## useTamboStreamingProps
+### useMessageImages
 
-**Deprecated**: Use `useTamboComponentState` with `setFromProp` instead. This hook will be removed in 1.0.0.
-
-Low-level helper that merges streamed props into state.
+Manage staged images for message input.
 
 ```tsx
-useTamboStreamingProps(currentState, setState, streamingProps);
+import { useMessageImages } from "@tambo-ai/react";
+
+const { images, addImage, addImages, removeImage, clearImages } =
+  useMessageImages();
 ```
 
-## useTamboGenerationStage
+### useTamboVoice
 
-Access the current generation stage from the thread context.
-
-```tsx
-const { generationStage } = useTamboGenerationStage();
-```
-
-Returns the current `GenerationStage` enum value. See [GenerationStage](/reference/react-sdk/types#generationstage) for possible values.
-
-## useTamboVoice
-
-Exposes functionality to record speech and transcribe it using the Tambo API.
+Record and transcribe speech.
 
 ```tsx
+import { useTamboVoice } from "@tambo-ai/react";
+
 const {
   startRecording,
   stopRecording,
@@ -513,160 +546,3 @@ const {
   mediaAccessError,
 } = useTamboVoice();
 ```
-
-### Return values
-
-| Value                | Type             | Description                                            |
-| -------------------- | ---------------- | ------------------------------------------------------ |
-| `startRecording`     | `() => void`     | Start recording audio and reset the current transcript |
-| `stopRecording`      | `() => void`     | Stop recording and automatically start transcription   |
-| `isRecording`        | `boolean`        | Whether the user is currently recording                |
-| `isTranscribing`     | `boolean`        | Whether audio is being transcribed                     |
-| `transcript`         | `string \| null` | The transcript of the recorded audio                   |
-| `transcriptionError` | `string \| null` | Error message if transcription fails                   |
-| `mediaAccessError`   | `string \| null` | Error message if microphone access fails               |
-
-### Example
-
-```tsx
-function VoiceInput() {
-  const {
-    startRecording,
-    stopRecording,
-    isRecording,
-    isTranscribing,
-    transcript,
-  } = useTamboVoice();
-
-  return (
-    <div>
-      <button onClick={isRecording ? stopRecording : startRecording}>
-        {isRecording ? "Stop" : "Record"}
-      </button>
-      {isTranscribing && <span>Transcribing...</span>}
-      {transcript && <p>{transcript}</p>}
-    </div>
-  );
-}
-```
-
-## useTamboInteractable
-
-Provides access to the interactable component management functions.
-
-```tsx
-const {
-  interactableComponents,
-  addInteractableComponent,
-  removeInteractableComponent,
-  updateInteractableComponentProps,
-  getInteractableComponent,
-  getInteractableComponentsByName,
-  clearAllInteractableComponents,
-  setInteractableState,
-  getInteractableComponentState,
-  setInteractableSelected,
-  clearInteractableSelections,
-} = useTamboInteractable();
-```
-
-### interactableComponents
-
-`TamboInteractableComponent[]` - Array of currently registered interactable components.
-
-### addInteractableComponent
-
-`(component: Omit<TamboInteractableComponent, "id" | "createdAt">) => string`
-
-Registers a new interactable component. Returns the generated component ID.
-
-### removeInteractableComponent
-
-`(id: string) => void`
-
-Removes an interactable component by ID.
-
-### updateInteractableComponentProps
-
-`(id: string, newProps: Record<string, any>) => string`
-
-Updates the props of an interactable component. Returns a status message.
-
-### getInteractableComponent
-
-`<P, S>(id: string) => TamboInteractableComponent<P, S> | undefined`
-
-Gets a specific interactable component by ID.
-
-### getInteractableComponentsByName
-
-`(componentName: string) => TamboInteractableComponent[]`
-
-Gets all interactable components with the given name.
-
-### clearAllInteractableComponents
-
-`() => void`
-
-Removes all interactable components.
-
-### setInteractableState
-
-`(componentId: string, key: string, value: unknown) => void`
-
-Sets a specific state value for an interactable component.
-
-### getInteractableComponentState
-
-`(componentId: string) => Record<string, unknown> | undefined`
-
-Gets the current state of an interactable component.
-
-### setInteractableSelected
-
-`(componentId: string, isSelected: boolean) => void`
-
-Sets the selected state of an interactable component.
-
-### clearInteractableSelections
-
-`() => void`
-
-Clears all component selections.
-
-## useMessageImages
-
-Hook for managing images in message input.
-
-```tsx
-const { images, addImage, addImages, removeImage, clearImages } =
-  useMessageImages();
-```
-
-### images
-
-`StagedImage[]` - Array of staged images ready to be sent with a message.
-
-### addImage
-
-`(file: File) => Promise<void>`
-
-Add a single image file. Throws if the file is not an image.
-
-### addImages
-
-`(files: File[]) => Promise<void>`
-
-Add multiple image files. Only valid image files will be added.
-
-### removeImage
-
-`(id: string) => void`
-
-Remove a staged image by ID.
-
-### clearImages
-
-`() => void`
-
-Remove all staged images.

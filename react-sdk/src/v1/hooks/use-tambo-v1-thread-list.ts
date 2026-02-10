@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Thread List Query Hook for v1 API
+ * Thread List Query Hook
  *
  * React Query hook for fetching a list of threads.
  */
@@ -13,13 +13,13 @@ import type {
 } from "@tambo-ai/typescript-sdk/resources/threads/threads";
 import { useTamboClient } from "../../providers/tambo-client-provider";
 import { useTamboQuery } from "../../hooks/react-query-hooks";
-import { useTamboV1Config } from "../providers/tambo-v1-provider";
-import { useTamboV1AuthState } from "./use-tambo-v1-auth-state";
+import { useTamboConfig } from "../providers/tambo-v1-provider";
+import { useTamboAuthState } from "./use-tambo-v1-auth-state";
 
 /**
  * Options for fetching thread list.
  * Re-exported from SDK for convenience.
- * Note: userKey can also be provided via TamboV1Provider context.
+ * Note: userKey can also be provided via TamboProvider context.
  */
 export type { ThreadListParams as ThreadListOptions };
 
@@ -37,7 +37,7 @@ export type { ThreadListParams as ThreadListOptions };
  * @example
  * ```tsx
  * function ThreadList({ userKey }: { userKey?: string }) {
- *   const { data, isLoading, isError } = useTamboV1ThreadList({
+ *   const { data, isLoading, isError } = useTamboThreadList({
  *     userKey,
  *     limit: 20,
  *   });
@@ -58,7 +58,7 @@ export type { ThreadListParams as ThreadListOptions };
  * }
  * ```
  */
-export function useTamboV1ThreadList(
+export function useTamboThreadList(
   listOptions?: ThreadListParams,
   queryOptions?: Omit<
     UseQueryOptions<ThreadListResponse>,
@@ -66,8 +66,8 @@ export function useTamboV1ThreadList(
   >,
 ) {
   const client = useTamboClient();
-  const { userKey: contextUserKey } = useTamboV1Config();
-  const authState = useTamboV1AuthState();
+  const { userKey: contextUserKey } = useTamboConfig();
+  const authState = useTamboAuthState();
   const isIdentified = authState.status === "identified";
 
   // Merge userKey from context with provided options (explicit option takes precedence)

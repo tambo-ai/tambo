@@ -1,10 +1,10 @@
 import React from "react";
 import { render, screen } from "@testing-library/react";
 import { z } from "zod";
-import { V1ComponentRenderer } from "./v1-component-renderer";
+import { ComponentRenderer } from "./v1-component-renderer";
 import { TamboRegistryContext } from "../../providers/tambo-registry-provider";
 import type { TamboRegistryContext as TamboRegistryContextType } from "../../providers/tambo-registry-provider";
-import type { V1ComponentContent } from "../types/message";
+import type { TamboComponentContent } from "../types/message";
 
 // Simple test component
 const TestComponent: React.FC<{ title: string; count?: number }> = ({
@@ -56,7 +56,7 @@ function createMockRegistry(
   };
 }
 
-describe("V1ComponentRenderer", () => {
+describe("ComponentRenderer", () => {
   function withMockedConsoleError<T>(
     fn: (consoleErrorSpy: jest.SpyInstance) => T,
   ): T {
@@ -68,7 +68,7 @@ describe("V1ComponentRenderer", () => {
     }
   }
 
-  const baseContent: V1ComponentContent = {
+  const baseContent: TamboComponentContent = {
     type: "component",
     id: "comp_123",
     name: "TestComponent",
@@ -89,7 +89,7 @@ describe("V1ComponentRenderer", () => {
 
     render(
       <TamboRegistryContext.Provider value={registry}>
-        <V1ComponentRenderer
+        <ComponentRenderer
           content={baseContent}
           threadId="thread_123"
           messageId="msg_456"
@@ -107,7 +107,7 @@ describe("V1ComponentRenderer", () => {
     withMockedConsoleError((consoleErrorSpy) => {
       render(
         <TamboRegistryContext.Provider value={registry}>
-          <V1ComponentRenderer
+          <ComponentRenderer
             content={baseContent}
             threadId="thread_123"
             messageId="msg_456"
@@ -120,7 +120,7 @@ describe("V1ComponentRenderer", () => {
       expect(screen.queryByTestId("test-component")).not.toBeInTheDocument();
 
       expect(consoleErrorSpy).toHaveBeenCalledWith(
-        "[V1ComponentRenderer] Failed to render component",
+        "[ComponentRenderer] Failed to render component",
         expect.objectContaining({
           componentId: baseContent.id,
           componentName: baseContent.name,
@@ -135,7 +135,7 @@ describe("V1ComponentRenderer", () => {
     withMockedConsoleError((consoleErrorSpy) => {
       const { container } = render(
         <TamboRegistryContext.Provider value={registry}>
-          <V1ComponentRenderer
+          <ComponentRenderer
             content={baseContent}
             threadId="thread_123"
             messageId="msg_456"
@@ -146,7 +146,7 @@ describe("V1ComponentRenderer", () => {
       expect(container.firstChild).toBeNull();
 
       expect(consoleErrorSpy).toHaveBeenCalledWith(
-        "[V1ComponentRenderer] Failed to render component",
+        "[ComponentRenderer] Failed to render component",
         expect.objectContaining({
           componentId: baseContent.id,
           componentName: baseContent.name,
@@ -166,7 +166,7 @@ describe("V1ComponentRenderer", () => {
       },
     });
 
-    const content: V1ComponentContent = {
+    const content: TamboComponentContent = {
       type: "component",
       id: "comp_123",
       name: "TestComponent",
@@ -176,7 +176,7 @@ describe("V1ComponentRenderer", () => {
 
     render(
       <TamboRegistryContext.Provider value={registry}>
-        <V1ComponentRenderer
+        <ComponentRenderer
           content={content}
           threadId="thread_123"
           messageId="msg_456"
@@ -199,7 +199,7 @@ describe("V1ComponentRenderer", () => {
       },
     });
 
-    const content: V1ComponentContent = {
+    const content: TamboComponentContent = {
       type: "component",
       id: "comp_123",
       name: "TestComponent",
@@ -209,7 +209,7 @@ describe("V1ComponentRenderer", () => {
 
     render(
       <TamboRegistryContext.Provider value={registry}>
-        <V1ComponentRenderer
+        <ComponentRenderer
           content={content}
           threadId="thread_123"
           messageId="msg_456"
@@ -233,7 +233,7 @@ describe("V1ComponentRenderer", () => {
       },
     });
 
-    const content: V1ComponentContent = {
+    const content: TamboComponentContent = {
       type: "component",
       id: "comp_123",
       name: "ValidatedComponent",
@@ -243,7 +243,7 @@ describe("V1ComponentRenderer", () => {
 
     render(
       <TamboRegistryContext.Provider value={registry}>
-        <V1ComponentRenderer
+        <ComponentRenderer
           content={content}
           threadId="thread_123"
           messageId="msg_456"
@@ -269,7 +269,7 @@ describe("V1ComponentRenderer", () => {
       },
     });
 
-    const content: V1ComponentContent = {
+    const content: TamboComponentContent = {
       type: "component",
       id: "comp_123",
       name: "ValidatedComponent",
@@ -279,7 +279,7 @@ describe("V1ComponentRenderer", () => {
 
     render(
       <TamboRegistryContext.Provider value={registry}>
-        <V1ComponentRenderer
+        <ComponentRenderer
           content={content}
           threadId="thread_123"
           messageId="msg_456"
@@ -325,7 +325,7 @@ describe("V1ComponentRenderer", () => {
 
     render(
       <TamboRegistryContext.Provider value={registry}>
-        <V1ComponentRenderer
+        <ComponentRenderer
           content={baseContent}
           threadId="thread_123"
           messageId="msg_456"
@@ -352,7 +352,7 @@ describe("V1ComponentRenderer", () => {
     });
 
     // partial-json library handles incomplete JSON gracefully
-    const content: V1ComponentContent = {
+    const content: TamboComponentContent = {
       type: "component",
       id: "comp_123",
       name: "TestComponent",
@@ -362,7 +362,7 @@ describe("V1ComponentRenderer", () => {
 
     render(
       <TamboRegistryContext.Provider value={registry}>
-        <V1ComponentRenderer
+        <ComponentRenderer
           content={content}
           threadId="thread_123"
           messageId="msg_456"
@@ -373,10 +373,10 @@ describe("V1ComponentRenderer", () => {
     expect(screen.getByTestId("title")).toHaveTextContent("Partial");
   });
 
-  it("provides component context to rendered components via V1ComponentContentProvider", () => {
+  it("provides component context to rendered components via TamboComponentContentProvider", () => {
     // Create a component that uses the context
     const ContextAwareComponent: React.FC = () => {
-      // We can't directly test the context without importing useV1ComponentContent
+      // We can't directly test the context without importing useTamboComponentContent
       // but we can verify the component renders which means the provider works
       return <div data-testid="context-aware">Rendered</div>;
     };
@@ -391,7 +391,7 @@ describe("V1ComponentRenderer", () => {
       },
     });
 
-    const content: V1ComponentContent = {
+    const content: TamboComponentContent = {
       type: "component",
       id: "comp_789",
       name: "ContextAwareComponent",
@@ -401,7 +401,7 @@ describe("V1ComponentRenderer", () => {
 
     render(
       <TamboRegistryContext.Provider value={registry}>
-        <V1ComponentRenderer
+        <ComponentRenderer
           content={content}
           threadId="thread_abc"
           messageId="msg_def"

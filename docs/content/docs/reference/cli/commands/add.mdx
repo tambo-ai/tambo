@@ -53,10 +53,13 @@ npx tambo add form graph --yes --prefix=src/components/tambo
 
 ## Automatic Configuration
 
-The `add` command automatically configures your CSS and Tailwind setup based on your project's Tailwind CSS version:
+The `add` command automatically configures your CSS and Tailwind setup based on your project's framework and Tailwind CSS version:
 
-- **Detects your Tailwind version** (v3 or v4) automatically
-- **Updates your `globals.css`** with required CSS variables
+- **Detects your framework** (Next.js, Vite, or other) and Tailwind version (v3 or v4) automatically
+- **Sets up the build toolchain** for Tailwind v4:
+  - **Vite**: Installs `@tailwindcss/vite` and adds it to your Vite config
+  - **Next.js and other frameworks**: Installs `@tailwindcss/postcss` and creates `postcss.config.mjs`
+- **Updates your globals CSS** with required CSS variables (framework-aware path detection)
 - **Updates your `tailwind.config.ts`** (v3 only) with basic configuration
 - **Preserves your existing styles** and configuration
 

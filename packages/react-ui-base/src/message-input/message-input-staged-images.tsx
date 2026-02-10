@@ -2,8 +2,8 @@
 
 import { Slot } from "@radix-ui/react-slot";
 import * as React from "react";
+import { IS_PASTED_IMAGE } from "./constants";
 import {
-  IS_PASTED_IMAGE,
   useMessageInputContext,
   type StagedImage,
 } from "./message-input-context";

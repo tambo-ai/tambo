@@ -1082,7 +1082,7 @@ describe("ThreadsService.advanceThread initialization", () => {
         expect(operations.getThreadsByProject).toHaveBeenCalledWith(
           fakeDb,
           projectId,
-          {},
+          { includeMessages: false },
         );
       });
 
@@ -1102,6 +1102,7 @@ describe("ThreadsService.advanceThread initialization", () => {
             offset: 10,
             limit: 20,
             contextKey: "ctx_123",
+            includeMessages: false,
           },
         );
       });

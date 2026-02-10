@@ -1,9 +1,9 @@
 "use client";
 
 /**
- * TamboV1Provider - Main Provider for v1 API
+ * TamboProvider - Main Provider
  *
- * Composes the necessary providers for the v1 SDK:
+ * Composes the necessary providers for the SDK:
  * - TamboClientProvider: API client and authentication
  * - TamboRegistryProvider: Component and tool registration
  * - TamboContextHelpersProvider: Context helper functions
@@ -11,10 +11,10 @@
  * - TamboMcpProvider: MCP server connections and tool discovery
  * - TamboContextAttachmentProvider: Single-message context attachments
  * - TamboInteractableProvider: Interactive component tracking
- * - TamboV1StreamProvider: Streaming state management
+ * - TamboStreamProvider: Streaming state management
  *
  * This provider should wrap your entire application or the portion
- * that needs access to Tambo v1 functionality.
+ * that needs access to Tambo functionality.
  */
 
 import React, {
@@ -23,7 +23,7 @@ import React, {
   useEffect,
   type PropsWithChildren,
 } from "react";
-import { useTamboV1AuthState } from "../hooks/use-tambo-v1-auth-state";
+import { useTamboAuthState } from "../hooks/use-tambo-v1-auth-state";
 import {
   TamboClientProvider,
   type TamboClientProviderProps,
@@ -44,14 +44,14 @@ import type {
   ResourceSource,
 } from "../../model/resource-info";
 import type { InitialInputMessage } from "../types/message";
-import { TamboV1StreamProvider } from "./tambo-v1-stream-context";
-import { TamboV1ThreadInputProvider } from "./tambo-v1-thread-input-provider";
+import { TamboStreamProvider } from "./tambo-v1-stream-context";
+import { TamboThreadInputProvider } from "./tambo-v1-thread-input-provider";
 
 /**
- * Configuration values for v1 SDK.
+ * Configuration values for the SDK.
  * These are static values that don't change during the session.
  */
-export interface TamboV1Config {
+export interface TamboConfig {
   /** User key for thread ownership and scoping */
   userKey?: string;
   /** Whether to automatically generate thread names after a threshold of messages. Defaults to true. */
@@ -66,28 +66,28 @@ export interface TamboV1Config {
 }
 
 /**
- * Context for v1 SDK configuration.
+ * Context for SDK configuration.
  * @internal
  */
-export const TamboV1ConfigContext = createContext<TamboV1Config | null>(null);
+export const TamboConfigContext = createContext<TamboConfig | null>(null);
 
 /**
- * Hook to access v1 SDK configuration.
+ * Hook to access SDK configuration.
  * @returns Configuration values including userKey
- * @throws {Error} If used outside TamboV1Provider
+ * @throws {Error} If used outside TamboProvider
  */
-export function useTamboV1Config(): TamboV1Config {
-  const config = useContext(TamboV1ConfigContext);
+export function useTamboConfig(): TamboConfig {
+  const config = useContext(TamboConfigContext);
   if (!config) {
-    throw new Error("useTamboV1Config must be used within TamboV1Provider");
+    throw new Error("useTamboConfig must be used within TamboProvider");
   }
   return config;
 }
 
 /**
- * Props for TamboV1Provider
+ * Props for TamboProvider
  */
-export interface TamboV1ProviderProps extends Pick<
+export interface TamboProviderProps extends Pick<
   TamboClientProviderProps,
   "apiKey" | "tamboUrl" | "environment" | "userToken"
 > {
@@ -181,28 +181,28 @@ export interface TamboV1ProviderProps extends Pick<
 /**
  * Internal component that emits console warnings for auth misconfiguration.
  * Rendered inside the provider tree so both TamboClientContext and
- * TamboV1ConfigContext are available.
+ * TamboConfigContext are available.
  */
-function TamboV1AuthWarnings(): null {
-  const authState = useTamboV1AuthState();
+function TamboAuthWarnings(): null {
+  const authState = useTamboAuthState();
   const authError = authState.status === "error" ? authState.error : null;
 
   useEffect(() => {
     switch (authState.status) {
       case "unauthenticated":
         console.warn(
-          "[TamboV1Provider] Neither userKey nor userToken provided. " +
+          "[TamboProvider] Neither userKey nor userToken provided. " +
             "API requests will be blocked until authentication is configured.",
         );
         break;
       case "invalid":
         console.warn(
-          "[TamboV1Provider] Both userKey and userToken were provided. " +
+          "[TamboProvider] Both userKey and userToken were provided. " +
             "You must provide one or the other, not both.",
         );
         break;
       case "error":
-        console.warn("[TamboV1Provider] Token exchange failed:", authError);
+        console.warn("[TamboProvider] Token exchange failed:", authError);
         break;
     }
   }, [authState.status, authError]);
@@ -211,12 +211,12 @@ function TamboV1AuthWarnings(): null {
 }
 
 /**
- * Main provider for the Tambo v1 SDK.
+ * Main provider for the Tambo SDK.
  *
- * Composes TamboClientProvider, TamboRegistryProvider, and TamboV1StreamProvider
+ * Composes TamboClientProvider, TamboRegistryProvider, and TamboStreamProvider
  * to provide a complete context for building AI-powered applications.
  *
- * Threads are managed dynamically through useTamboV1() hook functions:
+ * Threads are managed dynamically through useTambo() hook functions:
  * - startNewThread() - Begin a new conversation
  * - switchThread(threadId) - Switch to an existing thread
  * - initThread(threadId) - Initialize a thread for receiving events
@@ -240,22 +240,22 @@ function TamboV1AuthWarnings(): null {
  * @returns Provider component tree
  * @example
  * ```tsx
- * import { TamboV1Provider } from '@tambo-ai/react/v1';
+ * import { TamboProvider } from '@tambo-ai/react';
  *
  * function App() {
  *   return (
- *     <TamboV1Provider
+ *     <TamboProvider
  *       apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY!}
  *       components={[WeatherCard, StockChart]}
  *       tools={[searchTool, calculatorTool]}
  *     >
  *       <ChatInterface />
- *     </TamboV1Provider>
+ *     </TamboProvider>
  *   );
  * }
  * ```
  */
-export function TamboV1Provider({
+export function TamboProvider({
   apiKey,
   tamboUrl,
   environment,
@@ -273,9 +273,9 @@ export function TamboV1Provider({
   autoGenerateNameThreshold,
   initialMessages,
   children,
-}: PropsWithChildren<TamboV1ProviderProps>) {
+}: PropsWithChildren<TamboProviderProps>) {
   // Config is static - created once and never changes
-  const config: TamboV1Config = {
+  const config: TamboConfig = {
     userKey,
     autoGenerateThreadName,
     autoGenerateNameThreshold,
@@ -288,6 +288,7 @@ export function TamboV1Provider({
       tamboUrl={tamboUrl}
       environment={environment}
       userToken={userToken}
+      userKey={userKey}
     >
       <TamboRegistryProvider
         components={components}
@@ -303,14 +304,14 @@ export function TamboV1Provider({
             <TamboMcpProvider>
               <TamboContextAttachmentProvider>
                 <TamboInteractableProvider>
-                  <TamboV1ConfigContext.Provider value={config}>
-                    <TamboV1AuthWarnings />
-                    <TamboV1StreamProvider initialMessages={initialMessages}>
-                      <TamboV1ThreadInputProvider>
+                  <TamboConfigContext.Provider value={config}>
+                    <TamboAuthWarnings />
+                    <TamboStreamProvider initialMessages={initialMessages}>
+                      <TamboThreadInputProvider>
                         {children}
-                      </TamboV1ThreadInputProvider>
-                    </TamboV1StreamProvider>
-                  </TamboV1ConfigContext.Provider>
+                      </TamboThreadInputProvider>
+                    </TamboStreamProvider>
+                  </TamboConfigContext.Provider>
                 </TamboInteractableProvider>
               </TamboContextAttachmentProvider>
             </TamboMcpProvider>

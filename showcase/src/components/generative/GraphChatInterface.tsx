@@ -4,7 +4,7 @@ import { useTambo } from "@tambo-ai/react";
 import { useEffect } from "react";
 
 export const GraphChatInterface = () => {
-  const { registerComponent, thread } = useTambo();
+  const { registerComponent, currentThreadId } = useTambo();
 
   useEffect(() => {
     registerComponent({
@@ -41,7 +41,7 @@ export const GraphChatInterface = () => {
       component: Graph,
       propsSchema: graphSchema,
     });
-  }, [registerComponent, thread.id]);
+  }, [registerComponent, currentThreadId]);
 
   return (
     <div className="flex flex-col" style={{ height: "700px" }}>

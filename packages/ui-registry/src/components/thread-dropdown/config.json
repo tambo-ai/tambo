@@ -4,7 +4,7 @@
   "componentName": "ThreadDropdown",
   "dependencies": [
     "class-variance-authority",
-    "@tambo-ai/react",
+    "@tambo-ai/react@rc",
     "lucide-react",
     "radix-ui"
   ],

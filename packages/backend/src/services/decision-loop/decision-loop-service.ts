@@ -214,7 +214,6 @@ export async function* runDecisionLoop(
           // Ignore parse errors for incomplete JSON
         }
       }
-      const paramDisplayMessage = toolArgs._tambo_displayMessage;
       const statusMessage = toolArgs._tambo_statusMessage;
       const completionStatusMessage = toolArgs._tambo_completionStatusMessage;
 
@@ -243,7 +242,7 @@ export async function* runDecisionLoop(
       }
 
       const displayMessage = extractMessageContent(
-        message.length > 0 ? message.trim() : paramDisplayMessage || " ",
+        message.length > 0 ? message.trim() : " ",
         false,
       );
 

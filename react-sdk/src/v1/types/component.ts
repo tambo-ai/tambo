@@ -1,5 +1,5 @@
 /**
- * Component Types for v1 API
+ * Component Types
  *
  * Defines how React components are registered and made available to the AI.
  *
@@ -7,7 +7,7 @@
  * from the SDK. The SDK exports two different AvailableComponent types:
  * - `shared.AvailableComponent` has `props` and `contextTools` fields
  * - `RunCreateParams.AvailableComponent` has `propsSchema` and `stateSchema` fields
- * We need the latter for v1 API calls, so we define it locally to avoid confusion.
+ * We need the latter for API calls, so we define it locally to avoid confusion.
  */
 
 import type { ComponentType } from "react";
@@ -34,7 +34,7 @@ export interface AvailableComponent {
  * Component registration for React SDK
  * Extends AvailableComponent with the actual React component
  */
-export interface TamboV1Component extends AvailableComponent {
+export interface TamboComponent extends AvailableComponent {
   /** The React component to render */
   component: ComponentType<any>;
 

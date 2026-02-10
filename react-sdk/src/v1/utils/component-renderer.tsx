@@ -1,10 +1,10 @@
 "use client";
 
 /**
- * Component Renderer Utility for v1 API
+ * Component Renderer Utility
  *
  * Provides the component content context for rendered components.
- * Components can use useV1ComponentContent() to access their context.
+ * Components can use useComponentContent() to access their context.
  */
 
 import React, { createContext, useContext, useMemo } from "react";
@@ -13,7 +13,7 @@ import React, { createContext, useContext, useMemo } from "react";
  * Context for component content blocks.
  * Provides access to the component ID and thread ID for component state hooks.
  */
-export interface V1ComponentContentContext {
+export interface ComponentContentContext {
   /** Component instance ID */
   componentId: string;
   /** Thread ID the component belongs to */
@@ -24,7 +24,7 @@ export interface V1ComponentContentContext {
   componentName: string;
 }
 
-const ComponentContentContext = createContext<V1ComponentContentContext | null>(
+const ComponentContentContext = createContext<ComponentContentContext | null>(
   null,
 );
 
@@ -33,13 +33,13 @@ const ComponentContentContext = createContext<V1ComponentContentContext | null>(
  * Wraps rendered components to provide access to component metadata.
  * @returns Provider component with memoized context value
  */
-export function V1ComponentContentProvider({
+export function ComponentContentProvider({
   children,
   componentId,
   threadId,
   messageId,
   componentName,
-}: V1ComponentContentContext & { children: React.ReactNode }) {
+}: ComponentContentContext & { children: React.ReactNode }) {
   // Memoize context value to prevent unnecessary re-renders of consumers
   const value = useMemo(
     () => ({ componentId, threadId, messageId, componentName }),
@@ -59,12 +59,21 @@ export function V1ComponentContentProvider({
  * @returns Component content context
  * @throws {Error} If used outside a rendered component
  */
-export function useV1ComponentContent(): V1ComponentContentContext {
+export function useComponentContent(): ComponentContentContext {
   const context = useContext(ComponentContentContext);
   if (!context) {
     throw new Error(
-      "useV1ComponentContent must be used within a rendered component",
+      "useComponentContent must be used within a rendered component",
     );
   }
   return context;
+}
+
+/**
+ * Hook to optionally access the current component content context.
+ * Returns null when used outside a rendered component instead of throwing.
+ * @returns Component content context or null if not within a rendered component
+ */
+export function useComponentContentOptional(): ComponentContentContext | null {
+  return useContext(ComponentContentContext);
 }

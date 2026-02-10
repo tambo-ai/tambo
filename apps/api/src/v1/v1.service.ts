@@ -28,7 +28,10 @@ import {
   V1RunStatus,
   type UnsavedThreadToolMessage,
 } from "@tambo-ai-cloud/core";
-import { sanitizeEvent } from "@tambo-ai-cloud/backend";
+import {
+  sanitizeEvent,
+  createMessageParentEvent,
+} from "@tambo-ai-cloud/backend";
 import type { HydraDatabase, HydraDb } from "@tambo-ai-cloud/db";
 import {
   dbMessageToThreadMessage,
@@ -77,6 +80,8 @@ import {
   V1GetThreadResponseDto,
   V1ListThreadsQueryDto,
   V1ListThreadsResponseDto,
+  V1UpdateThreadDto,
+  V1UpdateThreadResponseDto,
 } from "./dto/thread.dto";
 import {
   threadToDto,
@@ -243,6 +248,35 @@ export class V1Service {
   }
 
   /**
+   * Update thread metadata such as name.
+   */
+  async updateThread(
+    threadId: string,
+    projectId: string,
+    contextKey: string,
+    dto: V1UpdateThreadDto,
+  ): Promise<V1UpdateThreadResponseDto> {
+    // Verify thread exists and belongs to project
+    const existing = await operations.getThreadForProjectId(
+      this.db,
+      threadId,
+      projectId,
+      contextKey,
+      false, // includeSystem
+    );
+    if (!existing) {
+      throw new NotFoundException(`Thread ${threadId} not found`);
+    }
+
+    const updated = await operations.updateThread(this.db, threadId, {
+      name: dto.name,
+      metadata: dto.metadata,
+    });
+
+    return threadToDto(updated);
+  }
+
+  /**
    * Delete a thread and all its messages.
    */
   async deleteThread(threadId: string): Promise<void> {
@@ -380,7 +414,7 @@ export class V1Service {
       };
     }
 
-    if (hasMessages && !dto.previousRunId) {
+    if (hasMessages && !dto.previousRunId && thread.lastCompletedRunId) {
       return {
         success: false,
         error: new HttpException(
@@ -777,6 +811,17 @@ export class V1Service {
             const realMessageId = item.response?.responseMessageDto?.id;
             if (realMessageId) {
               currentMessageId = realMessageId;
+            }
+
+            // Emit parent message relationship event before AG-UI events
+            const parentMsgId =
+              item.response?.responseMessageDto?.parentMessageId;
+            if (parentMsgId && realMessageId) {
+              const parentEvent = createMessageParentEvent({
+                messageId: realMessageId,
+                parentMessageId: parentMsgId,
+              });
+              this.emitEvent(response, parentEvent);
             }
 
             if (item.aguiEvents) {

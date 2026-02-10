@@ -6,9 +6,7 @@ icon: Blocks
 
 import LearnMore from "@/components/learn-more";
 
-<Callout type="info">
-  This example uses Next.js, but Next.js is not required.
-</Callout>
+Tambo works with Next.js, Vite, and other React frameworks. The CLI detects your framework automatically.
 
 ## 1. Install
 
@@ -19,6 +17,7 @@ npx tambo full-send
 This command:
 
 - Sets up Tambo and gets you an API key
+- Detects your framework and configures the build toolchain
 - Installs pre-built chat components
 - Shows how to wrap your app with `TamboProvider`
 
@@ -26,8 +25,10 @@ For manual setup, run `npx tambo init` instead (just the API key). If you don't 
 
 ## 2. Add the provider
 
-Update `src/app/layout.tsx`:
+import { Tab, Tabs } from "fumadocs-ui/components/tabs";
 
+<Tabs items={["Next.js", "Vite"]}>
+<Tab value="Next.js">
 ```tsx title="src/app/layout.tsx"
 "use client";
 
@@ -39,7 +40,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <TamboProvider apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY!}>
+    <TamboProvider
+      apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY!}
+      userKey="user-1"
+    >
       {children}
     </TamboProvider>
   );
@@ -59,10 +63,44 @@ Don't commit this file to version control.
 
 The `TamboProvider` only works in the browser. On Next.js, add `"use client"` at the top of the file.
 
+The `userKey` identifies the current user — threads are scoped per user. Replace `"user-1"` with a real user ID from your auth system. See [User Authentication](/concepts/user-authentication) for details.
+
+</Tab>
+<Tab value="Vite">
+```tsx title="src/App.tsx"
+import { TamboProvider } from "@tambo-ai/react";
+
+export default function App() {
+  return (
+    <TamboProvider
+      apiKey={import.meta.env.VITE_TAMBO_API_KEY!}
+      userKey="user-1"
+    >
+      {/* your app content */}
+    </TamboProvider>
+  );
+}
+```
+
+<Callout type="info" title="API key setup">
+  Create a `.env.local` file in your project root:
+
+```bash
+VITE_TAMBO_API_KEY=your_api_key_here
+```
+
+Don't commit this file to version control.
+
+</Callout>
+</Tab>
+</Tabs>
+
 ## 3. Add the chat component
 
-The `full-send` command installed a `MessageThreadCollapsible` component. Add it to `src/app/page.tsx`:
+The `full-send` command installed a `MessageThreadCollapsible` component. Add it to your main page:
 
+<Tabs items={["Next.js", "Vite"]}>
+<Tab value="Next.js">
 ```tsx title="src/app/page.tsx"
 "use client";
 import { MessageThreadCollapsible } from "../source/components/message-thread-collapsible";
@@ -75,6 +113,21 @@ export default function Home() {
   );
 }
 ```
+</Tab>
+<Tab value="Vite">
+```tsx title="src/App.tsx"
+import { MessageThreadCollapsible } from "./components/tambo/message-thread-collapsible";
+
+export default function App() {
+  return (
+    <main>
+      <MessageThreadCollapsible />
+    </main>
+  );
+}
+```
+</Tab>
+</Tabs>
 
 ## 4. Run
 

@@ -1,5 +1,53 @@
 # Changelog
 
+## [0.142.0](https://github.com/tambo-ai/tambo/compare/api-v0.141.1...api-v0.142.0) (2026-02-10)
+
+
+### Features
+
+* **api:** expose parentMessageId on V1 messages and SDK ([#2349](https://github.com/tambo-ai/tambo/issues/2349)) ([fcd9ffc](https://github.com/tambo-ai/tambo/commit/fcd9ffcd0da0b23cece51f3b87a9b5deca73dd63))
+
+## [0.141.1](https://github.com/tambo-ai/tambo/compare/api-v0.141.0...api-v0.141.1) (2026-02-10)
+
+
+### Bug Fixes
+
+* **api:** skip previousRunId check for threads with only initialMessages ([#2347](https://github.com/tambo-ai/tambo/issues/2347)) ([9780eca](https://github.com/tambo-ai/tambo/commit/9780eca754e51842231e7d6a2d3046554fc0fa10))
+* remove displayMessage tambo param ([#2346](https://github.com/tambo-ai/tambo/issues/2346)) ([a9b3d4d](https://github.com/tambo-ai/tambo/commit/a9b3d4d6d3e8ac415e828d902a5e4810d9220169))
+
+## [0.141.0](https://github.com/tambo-ai/tambo/compare/api-v0.140.1...api-v0.141.0) (2026-02-09)
+
+
+### Features
+
+* **react-sdk:** expose updateThreadName for manual thread renaming ([#2328](https://github.com/tambo-ai/tambo/issues/2328)) ([3a60a65](https://github.com/tambo-ai/tambo/commit/3a60a65ba19aeb9d3ca7e39fa9aeea33557f5959))
+
+
+### Miscellaneous Chores
+
+* **test:** bump coverage thresholds (2026-02-09) ([#2323](https://github.com/tambo-ai/tambo/issues/2323)) ([0aac70b](https://github.com/tambo-ai/tambo/commit/0aac70b23da7ae51d9d449b3692b765570af44f9))
+
+## [0.140.1](https://github.com/tambo-ai/tambo/compare/api-v0.140.0...api-v0.140.1) (2026-02-08)
+
+
+### Bug Fixes
+
+* bump self-enforced max client connections ([#2300](https://github.com/tambo-ai/tambo/issues/2300)) ([7bca6e1](https://github.com/tambo-ai/tambo/commit/7bca6e1b324e3358010832cf2fe7678b906e44a5))
+
+## [0.140.0](https://github.com/tambo-ai/tambo/compare/api-v0.139.0...api-v0.140.0) (2026-02-08)
+
+
+### Features
+
+* **api:** require userKey or bearer token in all V1 thread routes ([#2293](https://github.com/tambo-ai/tambo/issues/2293)) ([efe5eeb](https://github.com/tambo-ai/tambo/commit/efe5eeb9208403919bcf6663c98f3a14a5f80546))
+
+
+### Bug Fixes
+
+* **api,react-sdk:** route V1 initialMessages through ThreadsService and support system/assistant roles ([#2295](https://github.com/tambo-ai/tambo/issues/2295)) ([3df637d](https://github.com/tambo-ai/tambo/commit/3df637dd3719617baa9637e9e7538e7959e33e02))
+* **api:** reset generationStage on V1 run cancel and error ([#2289](https://github.com/tambo-ai/tambo/issues/2289)) ([a99e17d](https://github.com/tambo-ai/tambo/commit/a99e17d38e3fc9de6ed5d6f7454e3d4b6cf9c19a))
+* **api:** return thread name in V1 thread DTO        ([#2286](https://github.com/tambo-ai/tambo/issues/2286)) ([eeb1665](https://github.com/tambo-ai/tambo/commit/eeb16658a003f64cc7f95aeece2e55884b9f7c5b))
+
 ## [0.139.0](https://github.com/tambo-ai/tambo/compare/api-v0.138.0...api-v0.139.0) (2026-02-07)
 
 

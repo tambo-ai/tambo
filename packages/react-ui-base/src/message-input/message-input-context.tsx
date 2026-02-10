@@ -6,19 +6,7 @@ import type {
   TamboElicitationResponse,
 } from "@tambo-ai/react/mcp";
 import * as React from "react";
-
-/**
- * Maximum number of images that can be staged at once.
- */
-export const MAX_IMAGES = 10;
-
-/**
- * Symbol for marking pasted images.
- * Uses a unique well-known symbol to detect if an image was pasted vs uploaded.
- */
-export const IS_PASTED_IMAGE: unique symbol = Symbol.for(
-  "tambo-is-pasted-image",
-) as typeof IS_PASTED_IMAGE;
+import { IS_PASTED_IMAGE } from "./constants";
 
 /**
  * Extend the File interface to include IS_PASTED_IMAGE symbol.
@@ -113,10 +101,9 @@ export interface MessageInputContextValue {
   /** Submit the current message without requiring a DOM event */
   submitMessage: () => Promise<void>;
   /** Submit the message with options */
-  submit: (options: {
-    streamResponse?: boolean;
-    resourceNames: Record<string, string>;
-  }) => Promise<void>;
+  submit: (
+    options?: Record<string, unknown>,
+  ) => Promise<{ threadId: string | undefined }>;
   /** Handle form submission event (thin wrapper around submitMessage) */
   handleSubmit: (e: React.FormEvent) => Promise<void>;
   /** Whether a submission is in progress */

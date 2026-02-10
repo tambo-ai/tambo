@@ -9,7 +9,7 @@
     "leaflet",
     "leaflet.heat",
     "leaflet.markercluster",
-    "@tambo-ai/react"
+    "@tambo-ai/react@rc"
   ],
   "devDependencies": [],
   "requires": [],

@@ -31,6 +31,14 @@ export async function detectTemplate(): Promise<string | null> {
 
     // Check for template-specific names in the README
     if (readmeContent.includes("Tambo Template")) {
+      // The vite template README also contains "Tambo Template", but
+      // additionally references Vite and TanStack Router.
+      if (
+        readmeContent.includes("Vite") &&
+        readmeContent.includes("TanStack Router")
+      ) {
+        return "vite";
+      }
       return "standard";
     }
 
@@ -60,6 +68,10 @@ export function generateAiUpgradePrompts(template: string | null): string[] {
     standard: [
       "How can I optimize the state management in my tambo application?",
       "What are the latest patterns for error handling in tambo components?",
+    ],
+    vite: [
+      "How can I optimize my Vite build configuration for better performance?",
+      "What are the best practices for TanStack Router route management in my tambo app?",
     ],
     analytics: [
       "How can I optimize my tambo canvas drag-and-drop interactions for better user experience?",

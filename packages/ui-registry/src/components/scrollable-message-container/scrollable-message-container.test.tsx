@@ -1,6 +1,6 @@
 /// <reference types="@testing-library/jest-dom" />
 import { beforeEach, describe, expect, it, jest } from "@jest/globals";
-import { GenerationStage, useTambo } from "@tambo-ai/react";
+import { useTambo } from "@tambo-ai/react";
 import { render } from "@testing-library/react";
 import React from "react";
 import { ScrollableMessageContainer } from "./scrollable-message-container";
@@ -12,10 +12,9 @@ describe("ScrollableMessageContainer", () => {
 
   beforeEach(() => {
     mockUseTambo.mockReturnValue({
-      thread: {
-        messages: [],
-        generationStage: GenerationStage.IDLE,
-      },
+      messages: [],
+      isStreaming: false,
+      isIdle: true,
     } as never);
   });
 

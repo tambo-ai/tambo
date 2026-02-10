@@ -295,3 +295,31 @@ export class V1ListThreadsResponseDto {
   })
   hasMore!: boolean;
 }
+
+/**
+ * Request DTO for updating a thread.
+ */
+@ApiSchema({ name: "UpdateThreadRequest" })
+export class V1UpdateThreadDto {
+  @ApiProperty({
+    description: "Thread name (for manual renaming)",
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  name?: string;
+
+  @ApiProperty({
+    description: "Additional metadata to update",
+    required: false,
+  })
+  @IsOptional()
+  @IsObject()
+  metadata?: Record<string, unknown>;
+}
+
+/**
+ * Response DTO for updating a thread.
+ */
+@ApiSchema({ name: "UpdateThreadResponse" })
+export class V1UpdateThreadResponseDto extends V1ThreadDto {}

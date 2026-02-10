@@ -1,9 +1,9 @@
 "use client";
 
 /**
- * useTamboV1 - Main Hook for v1 API
+ * useTambo - Main Hook
  *
- * Combines all v1 contexts into a single hook for convenient access
+ * Combines all contexts into a single hook for convenient access
  * to thread state, streaming status, registry, and client.
  */
 
@@ -16,14 +16,18 @@ import React, {
   useRef,
   type ReactElement,
 } from "react";
-import { useTamboClient } from "../../providers/tambo-client-provider";
-import { useTamboV1AuthState } from "./use-tambo-v1-auth-state";
-import type { TamboV1AuthState } from "../types/auth";
+import {
+  useTamboClient,
+  useTamboQueryClient,
+} from "../../providers/tambo-client-provider";
+import { useTamboConfig } from "../providers/tambo-v1-provider";
+import { useTamboAuthState } from "./use-tambo-v1-auth-state";
+import type { TamboAuthState } from "../types/auth";
 import {
   TamboRegistryContext,
   type TamboRegistryContext as TamboRegistryContextType,
 } from "../../providers/tambo-registry-provider";
-import { V1ComponentRenderer } from "../components/v1-component-renderer";
+import { ComponentRenderer } from "../components/v1-component-renderer";
 import {
   useStreamDispatch,
   useStreamState,
@@ -33,8 +37,8 @@ import {
 import type {
   Content,
   TamboToolDisplayProps,
-  TamboV1Message,
-  V1ToolUseContent,
+  TamboThreadMessage,
+  TamboToolUseContent,
 } from "../types/message";
 import type { StreamingState } from "../types/thread";
 import {
@@ -43,9 +47,9 @@ import {
 } from "../utils/event-accumulator";
 
 /**
- * Return type for useTamboV1 hook
+ * Return type for useTambo hook
  */
-export interface UseTamboV1Return {
+export interface UseTamboReturn {
   /**
    * The Tambo API client instance
    */
@@ -59,7 +63,7 @@ export interface UseTamboV1Return {
   /**
    * Messages in the current thread
    */
-  messages: TamboV1Message[];
+  messages: TamboThreadMessage[];
 
   /**
    * Current streaming state
@@ -142,17 +146,27 @@ export interface UseTamboV1Return {
    * Current authentication state.
    * Use this to show auth-related UI or conditionally render features.
    */
-  authState: TamboV1AuthState;
+  authState: TamboAuthState;
 
   /**
    * Shorthand for `authState.status === "identified"`.
    * When true, the SDK is ready to make API calls.
    */
   isIdentified: boolean;
+
+  /**
+   * Update a thread's name.
+   * Useful for implementing manual thread renaming UI in history sidebars.
+   * Cache invalidation is best-effort; failures will be logged and won't reject.
+   * @param threadId - ID of the thread to rename
+   * @param name - New name for the thread
+   * @returns Promise that resolves when the update completes
+   */
+  updateThreadName: (threadId: string, name: string) => Promise<void>;
 }
 
 /**
- * Main hook for accessing Tambo v1 functionality.
+ * Main hook for accessing Tambo functionality.
  *
  * Combines thread state, streaming status, registry, and client
  * into a single convenient hook.
@@ -160,7 +174,7 @@ export interface UseTamboV1Return {
  * Messages returned include renderedComponent on component content blocks,
  * allowing direct rendering via {content.renderedComponent}.
  * @param threadId - Optional thread ID to get state for
- * @returns Combined v1 context with thread state, messages, and utilities
+ * @returns Combined context with thread state, messages, and utilities
  * @example
  * ```tsx
  * function ChatInterface() {
@@ -169,7 +183,7 @@ export interface UseTamboV1Return {
  *     messages,
  *     isStreaming,
  *     registerComponent,
- *   } = useTamboV1('thread_123');
+ *   } = useTambo('thread_123');
  *
  *   return (
  *     <div>
@@ -193,13 +207,15 @@ interface ComponentCacheEntry {
  *
  * @returns The combined Tambo context
  */
-export function useTamboV1(): UseTamboV1Return {
+export function useTambo(): UseTamboReturn {
   const client = useTamboClient();
+  const queryClient = useTamboQueryClient();
+  const { userKey } = useTamboConfig();
   const streamState = useStreamState();
   const dispatch = useStreamDispatch();
   const registry = useContext(TamboRegistryContext);
   const threadManagement = useThreadManagement();
-  const authState = useTamboV1AuthState();
+  const authState = useTamboAuthState();
 
   // Cache for rendered component wrappers - maintains stable element references
   // across renders when props haven't changed
@@ -207,6 +223,11 @@ export function useTamboV1(): UseTamboV1Return {
 
   // Get thread state for the current thread
   const threadState = streamState.threadMap[streamState.currentThreadId];
+
+  // Keep a live snapshot of the threadMap for callbacks without forcing them to
+  // re-create on every stream state update.
+  const threadMapRef = useRef(streamState.threadMap);
+  threadMapRef.current = streamState.threadMap;
 
   // Cancel the current run on this thread
   const cancelRun = useCallback(async () => {
@@ -232,17 +253,50 @@ export function useTamboV1(): UseTamboV1Return {
 
     // Call API to cancel the run
     try {
-      await client.threads.runs.delete(runId, { threadId });
+      await client.threads.runs.delete(runId, { threadId, userKey });
     } catch (error) {
       // Log but don't rethrow - local state is already updated
       console.warn("Failed to cancel run on server:", error);
     }
   }, [
     client,
+    userKey,
     streamState.currentThreadId,
     threadState?.streaming.runId,
     dispatch,
   ]);
+
+  // Update a thread's name
+  const updateThreadName = useCallback(
+    async (threadId: string, name: string) => {
+      await client.threads.update(threadId, { name });
+
+      if (threadMapRef.current[threadId]) {
+        dispatch({
+          type: "UPDATE_THREAD_NAME",
+          threadId,
+          name: name,
+        });
+      }
+
+      try {
+        await Promise.all([
+          queryClient.invalidateQueries({
+            queryKey: ["v1-threads", "list"],
+          }),
+          queryClient.invalidateQueries({
+            queryKey: ["v1-threads", threadId],
+          }),
+        ]);
+      } catch (error) {
+        console.warn(
+          "[useTambo] Failed to invalidate thread queries after rename:",
+          error,
+        );
+      }
+    },
+    [client, dispatch, queryClient],
+  );
 
   // Memoize the return object to prevent unnecessary re-renders
   return useMemo(() => {
@@ -264,7 +318,7 @@ export function useTamboV1(): UseTamboV1Return {
     }
 
     // Transform messages to add computed properties to content blocks
-    const messages = rawMessages.map((message): TamboV1Message => {
+    const messages = rawMessages.map((message): TamboThreadMessage => {
       const transformedContent = message.content.map((content): Content => {
         // Transform tool_use content to add computed state
         if (content.type === "tool_use") {
@@ -273,10 +327,6 @@ export function useTamboV1(): UseTamboV1Return {
 
           // Extract Tambo display props from input
           const tamboDisplayProps: TamboToolDisplayProps = {
-            _tambo_displayMessage:
-              typeof input._tambo_displayMessage === "string"
-                ? input._tambo_displayMessage
-                : undefined,
             _tambo_statusMessage:
               typeof input._tambo_statusMessage === "string"
                 ? input._tambo_statusMessage
@@ -302,7 +352,7 @@ export function useTamboV1(): UseTamboV1Return {
             }
           }
 
-          const v1Content: V1ToolUseContent = {
+          const v1Content: TamboToolUseContent = {
             ...content,
             input: cleanInput,
             hasCompleted,
@@ -330,7 +380,7 @@ export function useTamboV1(): UseTamboV1Return {
         }
 
         // Create new wrapper element
-        const element = React.createElement(V1ComponentRenderer, {
+        const element = React.createElement(ComponentRenderer, {
           key: componentContent.id,
           content: componentContent,
           threadId: streamState.currentThreadId,
@@ -373,9 +423,11 @@ export function useTamboV1(): UseTamboV1Return {
       cancelRun,
       authState,
       isIdentified: authState.status === "identified",
+      updateThreadName,
     };
   }, [
     cancelRun,
+    updateThreadName,
     client,
     threadState,
     registry,

@@ -3,7 +3,7 @@
 import { Slot } from "@radix-ui/react-slot";
 import {
   useIsTamboTokenUpdating,
-  useTamboThread,
+  useTambo,
   useTamboThreadInput,
 } from "@tambo-ai/react";
 import {
@@ -11,8 +11,8 @@ import {
   type TamboElicitationResponse,
 } from "@tambo-ai/react/mcp";
 import * as React from "react";
+import { MAX_IMAGES } from "./constants";
 import {
-  MAX_IMAGES,
   MessageInputContext,
   type MessageInputContextValue,
   type TamboEditor,
@@ -66,14 +66,13 @@ export const MessageInputRoot = React.forwardRef<
     value,
     setValue,
     submit,
-    isPending,
     error,
     images,
     addImages,
     addImage,
     removeImage,
   } = useTamboThreadInput();
-  const { cancel, thread, isIdle } = useTamboThread();
+  const { cancelRun: cancel, currentThreadId, isIdle } = useTambo();
   const [displayValue, setDisplayValue] = React.useState("");
   const [submitError, setSubmitError] = React.useState<string | null>(null);
   const [imageError, setImageError] = React.useState<string | null>(null);
@@ -81,25 +80,40 @@ export const MessageInputRoot = React.forwardRef<
   const [isDragging, setIsDragging] = React.useState(false);
   const editorRef = React.useRef<TamboEditor | null>(null);
   const dragCounter = React.useRef(0);
+  // Tracks whether a submission is in-flight. Used to prevent the display-value
+  // sync effect from restoring the old input text when `currentThreadId` changes
+  // mid-submission (e.g. placeholder → real thread ID migration).
+  const submittingRef = React.useRef(false);
   const isUpdatingToken = useIsTamboTokenUpdating();
 
   // Use elicitation context (optional)
   const { elicitation, resolveElicitation } = useTamboElicitationContext();
 
+  // Reset local submit state when switching threads so the new thread
+  // isn't blocked by an in-flight submit from the previous thread.
   React.useEffect(() => {
-    // On mount, load any stored draft value, but only if current value is empty
-    const storedValue = getValueFromSessionStorage(thread.id);
-    if (!storedValue) return;
-    setValue((currentValue) => currentValue ?? storedValue);
-  }, [setValue, thread.id]);
+    setIsSubmitting(false);
+  }, [currentThreadId]);
 
   React.useEffect(() => {
+    // On mount, load any stored draft value, but only if current value is empty
+    const storedValue = getValueFromSessionStorage(currentThreadId);
+    if (!storedValue) return;
+    setValue((currentValue) => currentValue ?? storedValue);
+  }, [setValue, currentThreadId]);
+
+  React.useEffect(() => {
+    // While a submission is in-flight, displayValue has been intentionally
+    // cleared. Don't overwrite it when currentThreadId changes (e.g.
+    // placeholder → real thread ID migration triggers this effect).
+    if (submittingRef.current) return;
+
     setDisplayValue(value);
-    storeValueInSessionStorage(thread.id, value);
+    storeValueInSessionStorage(currentThreadId, value);
     if (value && editorRef.current) {
       editorRef.current.focus();
     }
-  }, [value, thread.id]);
+  }, [value, currentThreadId]);
 
   const submitMessage = React.useCallback(async () => {
     if ((!value.trim() && images.length === 0) || isSubmitting) return;
@@ -108,24 +122,14 @@ export const MessageInputRoot = React.forwardRef<
     setSubmitError(null);
     setImageError(null);
     setDisplayValue("");
-    storeValueInSessionStorage(thread.id);
+    storeValueInSessionStorage(currentThreadId);
+    submittingRef.current = true;
     setIsSubmitting(true);
-
-    // Extract resource names directly from editor at submit time to ensure we have the latest
-    let latestResourceNames: Record<string, string> = {};
-    const editor = editorRef.current;
-    if (editor) {
-      const extracted = editor.getTextWithResourceURIs();
-      latestResourceNames = extracted.resourceNames;
-    }
 
     const imageIdsAtSubmitTime = images.map((image) => image.id);
 
     try {
-      await submit({
-        streamResponse: true,
-        resourceNames: latestResourceNames,
-      });
+      await submit();
       setValue("");
       // Clear only the images that were staged when submission started so
       // any images added while the request was in-flight are preserved.
@@ -150,6 +154,7 @@ export const MessageInputRoot = React.forwardRef<
       // Cancel the thread to reset loading state
       await cancel();
     } finally {
+      submittingRef.current = false;
       setIsSubmitting(false);
     }
   }, [
@@ -162,7 +167,7 @@ export const MessageInputRoot = React.forwardRef<
     isSubmitting,
     images,
     removeImage,
-    thread.id,
+    currentThreadId,
   ]);
 
   const handleSubmit = React.useCallback(
@@ -260,7 +265,7 @@ export const MessageInputRoot = React.forwardRef<
       submitMessage,
       submit,
       handleSubmit,
-      isPending: isPending ?? isSubmitting,
+      isPending: isSubmitting,
       error,
       editorRef: inputRef ?? editorRef,
       submitError,
@@ -284,7 +289,6 @@ export const MessageInputRoot = React.forwardRef<
       submitMessage,
       submit,
       handleSubmit,
-      isPending,
       isSubmitting,
       error,
       inputRef,
@@ -312,7 +316,7 @@ export const MessageInputRoot = React.forwardRef<
         onSubmit={handleSubmit}
         data-slot="message-input-root"
         data-state={isDragging ? "dragging" : undefined}
-        data-pending={isPending || isSubmitting || undefined}
+        data-pending={isSubmitting || undefined}
         onDragEnter={handleDragEnter}
         onDragLeave={handleDragLeave}
         onDragOver={handleDragOver}

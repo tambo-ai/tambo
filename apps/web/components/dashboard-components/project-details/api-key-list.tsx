@@ -6,7 +6,7 @@ import { useClipboard } from "@/hooks/use-clipboard";
 import { useToast } from "@/hooks/use-toast";
 import { api } from "@/trpc/react";
 import posthog from "posthog-js";
-import { withInteractable, type Suggestion } from "@tambo-ai/react";
+import { withTamboInteractable, type Suggestion } from "@tambo-ai/react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Copy } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -533,7 +533,7 @@ export function APIKeyList({
   );
 }
 
-export const InteractableAPIKeyList = withInteractable(APIKeyList, {
+export const InteractableAPIKeyList = withTamboInteractable(APIKeyList, {
   componentName: COMPONENT_NAME,
   description:
     "A component that allows users to manage API keys for their project. Users can view existing API keys, create new keys with custom names, and delete keys they no longer need. Each key is displayed with its creation date and preview, and newly created keys are shown once for copying.",

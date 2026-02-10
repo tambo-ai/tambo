@@ -9,15 +9,51 @@ The Tambo CLI automatically configures your CSS and Tailwind setup based on your
 
 When you run Tambo CLI commands (`full-send`, `add`, `update`, `upgrade`), the CLI:
 
-1. **Detects your Tailwind CSS version** (v3 or v4)
-2. **Updates your `globals.css`** with required CSS variables
-3. **Updates your `tailwind.config.ts`** (v3 only) with basic configuration
-4. **Preserves your existing styles** and configuration
+1. **Detects your framework** (Next.js, Vite, or other) and **Tailwind CSS version** (v3 or v4)
+2. **Sets up the Tailwind v4 build toolchain** if needed (see below)
+3. **Updates your globals CSS** with required CSS variables
+4. **Updates your `tailwind.config.ts`** (v3 only) with basic configuration
+5. **Preserves your existing styles** and configuration
 
 <Callout type="info" title="Automatic Detection">
-  The CLI automatically detects your Tailwind version from your `package.json`
-  and applies the appropriate configuration format. You don't need to specify
-  which version you're using.
+  The CLI automatically detects your framework and Tailwind version from your
+  project files and `package.json`. You don't need to specify which framework or
+  Tailwind version you're using.
+</Callout>
+
+## Tailwind v4 Build Toolchain
+
+Tailwind CSS v4 requires a build plugin to process CSS. The CLI sets this up automatically based on your framework:
+
+### Vite
+
+The CLI installs `@tailwindcss/vite` as a dev dependency and adds it to your Vite config:
+
+```ts title="vite.config.ts"
+import tailwindcss from "@tailwindcss/vite";
+import react from "@vitejs/plugin-react";
+import { defineConfig } from "vite";
+
+export default defineConfig({
+  plugins: [tailwindcss(), react()],
+});
+```
+
+### Next.js and Other Frameworks
+
+For Next.js and other frameworks, the CLI installs `@tailwindcss/postcss` and creates a PostCSS config:
+
+```js title="postcss.config.mjs"
+export default {
+  plugins: {
+    "@tailwindcss/postcss": {},
+  },
+};
+```
+
+<Callout type="info" title="Idempotent Setup">
+  The toolchain setup is idempotent. If the plugin is already configured, the
+  CLI skips the setup. Running the CLI multiple times is safe.
 </Callout>
 
 ## CSS Variables Added
@@ -68,7 +104,9 @@ For Tailwind v3 projects, the CLI uses the `@layer base` approach:
 
 ### Complete globals.css for v3
 
-```css title="app/globals.css"
+The default CSS file location depends on your framework: `app/globals.css` for Next.js, `src/index.css` for Vite.
+
+```css title="app/globals.css (Next.js) or src/index.css (Vite)"
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -178,7 +216,9 @@ Tailwind v4 uses CSS-first configuration with a different approach:
 
 ### Complete globals.css for v4
 
-```css title="app/globals.css"
+The default CSS file location depends on your framework: `app/globals.css` for Next.js, `src/index.css` for Vite.
+
+```css title="app/globals.css (Next.js) or src/index.css (Vite)"
 @import "tailwindcss";
 
 @custom-variant dark (&:is(.dark *));

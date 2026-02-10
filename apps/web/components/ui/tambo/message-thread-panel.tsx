@@ -183,7 +183,7 @@ export const MessageThreadPanel = forwardRef<
 
   const { data: session } = useSession();
   const isUserLoggedIn = !!session;
-  const { thread } = useTambo();
+  const { messages } = useTambo();
   const {
     isOpen,
     setIsOpen,
@@ -250,9 +250,6 @@ export const MessageThreadPanel = forwardRef<
       { type: "text", text: "Please log in to ask tambo about your projects." },
     ],
     createdAt: new Date().toISOString(),
-    actionType: undefined,
-    componentState: {},
-    threadId: "",
   };
 
   const defaultSuggestions: Suggestion[] = [
@@ -302,7 +299,7 @@ export const MessageThreadPanel = forwardRef<
         {/* Message thread content */}
         <ScrollableMessageContainer className="p-4 flex-1">
           {/* Conditionally render the starter message */}
-          {!isUserLoggedIn && thread.messages.length === 0 && (
+          {!isUserLoggedIn && messages.length === 0 && (
             <Message role="assistant" message={starterMessage}>
               <MessageContent />
             </Message>

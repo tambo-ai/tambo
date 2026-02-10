@@ -84,12 +84,12 @@ export const MessageInput = {
   ValueAccess: MessageInputValueAccess,
 };
 
-// Re-export types and constants
+// Re-export types
+export { IS_PASTED_IMAGE, MAX_IMAGES } from "./constants";
 export type {
   MessageInputContentProps,
   MessageInputContentRenderProps,
 } from "./message-input-content";
-export { IS_PASTED_IMAGE, MAX_IMAGES } from "./message-input-context";
 export type {
   MessageInputContextValue,
   PromptItem,

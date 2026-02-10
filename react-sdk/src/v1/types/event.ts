@@ -1,5 +1,5 @@
 /**
- * Tambo-specific Custom Event Types for v1 Streaming API
+ * Tambo-specific Custom Event Types for Streaming API
  *
  * Defines custom events specific to Tambo functionality.
  * For standard AG-UI events, import directly from `@ag-ui/core`.
@@ -83,6 +83,19 @@ export type RunAwaitingInputEvent = TamboCustomEventEnvelope<
 >;
 
 /**
+ * Message parent event (custom: tambo.message.parent)
+ * Emitted when a message was created during the generation of another message
+ * (e.g., MCP sampling or elicitation).
+ */
+export type MessageParentEvent = TamboCustomEventEnvelope<
+  "tambo.message.parent",
+  {
+    messageId: string;
+    parentMessageId: string;
+  }
+>;
+
+/**
  * Union type of Tambo-specific custom events
  */
 export type TamboCustomEvent =
@@ -90,7 +103,8 @@ export type TamboCustomEvent =
   | ComponentPropsDeltaEvent
   | ComponentStateDeltaEvent
   | ComponentEndEvent
-  | RunAwaitingInputEvent;
+  | RunAwaitingInputEvent
+  | MessageParentEvent;
 
 /**
  * Known Tambo custom event names for type narrowing
@@ -101,6 +115,7 @@ const TAMBO_CUSTOM_EVENT_NAMES = [
   "tambo.component.state_delta",
   "tambo.component.end",
   "tambo.run.awaiting_input",
+  "tambo.message.parent",
 ] as const;
 
 /**
@@ -139,6 +154,8 @@ export function asTamboCustomEvent(
       return event as ComponentEndEvent;
     case "tambo.run.awaiting_input":
       return event as RunAwaitingInputEvent;
+    case "tambo.message.parent":
+      return event as MessageParentEvent;
     default:
       return undefined;
   }

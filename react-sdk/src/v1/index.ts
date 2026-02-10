@@ -1,8 +1,8 @@
 /**
- * `@tambo-ai/react/v1` - React SDK for Tambo v1 API
+ * `@tambo-ai/react` - React SDK for Tambo AI
  *
  * Provides React hooks and providers for building AI-powered applications
- * using the v1 streaming API with AG-UI protocol.
+ * using the streaming API with AG-UI protocol.
  *
  * ## Authentication & Thread Ownership
  *
@@ -16,28 +16,28 @@
  *
  * ```tsx
  * import {
- *   TamboV1Provider,
- *   useTamboV1,
- *   useTamboV1ThreadInput,
- * } from '@tambo-ai/react/v1';
+ *   TamboProvider,
+ *   useTambo,
+ *   useTamboThreadInput,
+ * } from '@tambo-ai/react';
  *
  * function App() {
  *   return (
- *     <TamboV1Provider
+ *     <TamboProvider
  *       apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY!}
  *       userKey={currentUserId} // Required: identifies thread owner
  *       components={[WeatherCard]}
  *       tools={[searchTool]}
  *     >
  *       <ChatInterface />
- *     </TamboV1Provider>
+ *     </TamboProvider>
  *   );
  * }
  *
  * function ChatInterface() {
  *   const [threadId, setThreadId] = useState<string>();
- *   const { messages, isStreaming } = useTamboV1(threadId);
- *   const { value, setValue, submit, isPending } = useTamboV1ThreadInput(threadId);
+ *   const { messages, isStreaming } = useTambo();
+ *   const { value, setValue, submit, isPending } = useTamboThreadInput();
  *
  *   const handleSubmit = async (e: React.FormEvent) => {
  *     e.preventDefault();
@@ -58,10 +58,9 @@
  *
  * ## Type Imports
  *
- * Types are imported directly from specific files:
- * - Thread state: `import type { TamboV1Thread } from '@tambo-ai/react/v1/types/thread'`
- * - Messages: `import type { TamboV1Message } from '@tambo-ai/react/v1/types/message'`
- * - Custom events: `import type { ComponentStartEvent } from '@tambo-ai/react/v1/types/event'`
+ * Types are imported directly:
+ * - Thread state: `import type { TamboThread } from '@tambo-ai/react'`
+ * - Messages: `import type { TamboThreadMessage } from '@tambo-ai/react'`
  *
  * SDK types: `import type { ... } from '@tambo-ai/typescript-sdk'`
  * AG-UI events: `import { EventType, type BaseEvent } from '@ag-ui/core'`
@@ -72,41 +71,41 @@
 // =============================================================================
 
 export {
-  TamboV1Provider,
-  type TamboV1ProviderProps,
-  useTamboV1Config,
-  type TamboV1Config,
+  TamboProvider,
+  type TamboProviderProps,
+  useTamboConfig,
+  type TamboConfig,
 } from "./providers/tambo-v1-provider";
 
-// Re-export registry provider from beta SDK (works with v1)
+// Re-export registry provider
 export { TamboRegistryProvider } from "../providers/tambo-registry-provider";
 
-// Re-export client provider from beta SDK (works with v1)
+// Re-export client provider
 export {
   TamboClientProvider,
   useIsTamboTokenUpdating,
 } from "../providers/tambo-client-provider";
 
-// Re-export context helpers from beta SDK (works with v1)
+// Re-export context helpers
 export {
   TamboContextHelpersProvider,
   useTamboContextHelpers,
 } from "../providers/tambo-context-helpers-provider";
 
-// Re-export context attachment hook from beta SDK (works with v1)
+// Re-export context attachment hook
 export { useTamboContextAttachment } from "../providers/tambo-context-attachment-provider";
 
-// Export v1 thread input provider for advanced composition
+// Export thread input provider for advanced composition
 export {
-  TamboV1ThreadInputProvider,
-  type TamboV1ThreadInputContextProps,
+  TamboThreadInputProvider,
+  type TamboThreadInputContextProps,
   type SubmitOptions,
 } from "./providers/tambo-v1-thread-input-provider";
 
-// Export v1 stub provider for testing
+// Export stub provider for testing
 export {
-  TamboV1StubProvider,
-  type TamboV1StubProviderProps,
+  TamboStubProvider,
+  type TamboStubProviderProps,
 } from "./providers/tambo-v1-stub-provider";
 
 // =============================================================================
@@ -114,42 +113,42 @@ export {
 // =============================================================================
 
 export {
-  V1ComponentRenderer,
-  type V1ComponentRendererProps,
+  ComponentRenderer,
+  type ComponentRendererProps,
 } from "./components/v1-component-renderer";
 
 // =============================================================================
 // Hooks
 // =============================================================================
 
-export { useTamboV1 } from "./hooks/use-tambo-v1";
+export { useTambo, type UseTamboReturn } from "./hooks/use-tambo-v1";
 
-export type { TamboV1AuthState } from "./types/auth";
+export type { TamboAuthState } from "./types/auth";
 
 export type { ToolChoice } from "./types/tool-choice";
 
-export { useTamboV1ThreadInput } from "./hooks/use-tambo-v1-thread-input";
+export { useTamboThreadInput } from "./hooks/use-tambo-v1-thread-input";
 
-export { useTamboV1Thread } from "./hooks/use-tambo-v1-thread";
+export { useTamboThread } from "./hooks/use-tambo-v1-thread";
 
-export { useTamboV1ThreadList } from "./hooks/use-tambo-v1-thread-list";
+export { useTamboThreadList } from "./hooks/use-tambo-v1-thread-list";
 
-export { useTamboV1ComponentState } from "./hooks/use-tambo-v1-component-state";
+export { useTamboComponentState } from "./hooks/use-tambo-v1-component-state";
 
 export {
-  useTamboV1StreamStatus,
+  useTamboStreamStatus,
   type StreamStatus,
   type PropStatus,
 } from "./hooks/use-tambo-v1-stream-status";
 
 export {
-  useTamboV1Suggestions,
-  type UseTamboV1SuggestionsOptions,
-  type UseTamboV1SuggestionsReturn,
+  useTamboSuggestions,
+  type UseTamboSuggestionsOptions,
+  type UseTamboSuggestionsReturn,
   type AcceptSuggestionOptions,
 } from "./hooks/use-tambo-v1-suggestions";
 
-// Re-export client hook from beta SDK (works with v1)
+// Re-export client hook
 export { useTamboClient } from "../providers/tambo-client-provider";
 
 // Re-export image handling hook (pure React, API-agnostic)
@@ -162,7 +161,18 @@ export {
 export { useTamboVoice } from "../hooks/use-tambo-voice";
 
 // =============================================================================
-// Re-exports from Beta SDK (compatible with v1)
+// Message Context (for components rendered by the AI)
+// =============================================================================
+
+export {
+  TamboMessageProvider,
+  useTamboCurrentMessage,
+  useTamboCurrentComponent,
+  type TamboCurrentComponent,
+} from "./hooks/use-tambo-current-message";
+
+// =============================================================================
+// Re-exports from SDK
 // =============================================================================
 
 // Tool definition helper
@@ -221,8 +231,46 @@ export type {
   SuggestionListResponse,
 } from "@tambo-ai/typescript-sdk/resources/beta/threads/suggestions";
 
-// V1 extended content types with computed state
-export type { V1ToolUseContent, TamboToolDisplayProps } from "./types/message";
+// Extended content types with computed state
+export type {
+  TamboToolUseContent,
+  TamboToolDisplayProps,
+} from "./types/message";
+
+// Thread message type
+export type { TamboThreadMessage } from "./types/message";
+
+// Content types
+export type {
+  Content,
+  TamboComponentContent,
+  ComponentStreamingState,
+  MessageRole,
+  TextContent,
+  ToolResultContent,
+  ResourceContent,
+  InputMessage,
+  InitialInputMessage,
+  MessageListResponse,
+  MessageGetResponse,
+} from "./types/message";
+
+// Thread types
+export type {
+  TamboThread,
+  RunStatus,
+  StreamingState,
+  ThreadCreateResponse,
+  ThreadRetrieveResponse,
+  ThreadListResponse,
+} from "./types/thread";
+
+// Component content context
+export {
+  ComponentContentProvider,
+  useComponentContent,
+  type ComponentContentContext,
+} from "./utils/component-renderer";
 
 // =============================================================================
 // Interactable Components

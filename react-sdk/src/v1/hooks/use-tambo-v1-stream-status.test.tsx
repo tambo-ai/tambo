@@ -1,9 +1,9 @@
 import { renderHook } from "@testing-library/react";
-import { useTamboV1StreamStatus } from "./use-tambo-v1-stream-status";
+import { useTamboStreamStatus } from "./use-tambo-v1-stream-status";
 
 // Mock the required hooks
 jest.mock("../utils/component-renderer", () => ({
-  useV1ComponentContent: jest.fn(),
+  useComponentContent: jest.fn(),
 }));
 
 jest.mock("../providers/tambo-v1-stream-context", () => ({
@@ -11,24 +11,27 @@ jest.mock("../providers/tambo-v1-stream-context", () => ({
 }));
 
 // Import the mocked functions
-import { useV1ComponentContent } from "../utils/component-renderer";
+import { useComponentContent } from "../utils/component-renderer";
 import { useStreamState } from "../providers/tambo-v1-stream-context";
 import type { StreamState, ThreadState } from "../utils/event-accumulator";
-import type { V1ComponentContent, TamboV1Message } from "../types/message";
+import type {
+  TamboComponentContent,
+  TamboThreadMessage,
+} from "../types/message";
 
 // Mock window for SSR tests
 const originalWindow = global.window;
 
 // Get the mocked functions
-const mockUseV1ComponentContent = jest.mocked(useV1ComponentContent);
+const mockUseTamboComponentContent = jest.mocked(useComponentContent);
 const mockUseStreamState = jest.mocked(useStreamState);
 
 /**
  * Helper to create a component content block
  */
 function createComponentContent(
-  overrides: Partial<V1ComponentContent> = {},
-): V1ComponentContent {
+  overrides: Partial<TamboComponentContent> = {},
+): TamboComponentContent {
   return {
     type: "component",
     id: "test-component",
@@ -43,9 +46,9 @@ function createComponentContent(
  * Helper to create a message with a component
  */
 function createMessage(
-  componentContent: V1ComponentContent,
-  overrides: Partial<TamboV1Message> = {},
-): TamboV1Message {
+  componentContent: TamboComponentContent,
+  overrides: Partial<TamboThreadMessage> = {},
+): TamboThreadMessage {
   return {
     id: "test-message",
     role: "assistant",
@@ -59,7 +62,7 @@ function createMessage(
  * Helper to create a thread state
  */
 function createThreadState(
-  messages: TamboV1Message[],
+  messages: TamboThreadMessage[],
   overrides: Partial<ThreadState> = {},
 ): ThreadState {
   return {
@@ -94,13 +97,13 @@ function createStreamState(
   };
 }
 
-describe("useTamboV1StreamStatus", () => {
+describe("useTamboStreamStatus", () => {
   beforeEach(() => {
     // Restore window for client-side tests
     global.window = originalWindow;
 
     // Default mock implementations
-    mockUseV1ComponentContent.mockReturnValue({
+    mockUseTamboComponentContent.mockReturnValue({
       componentId: "test-component",
       threadId: "test-thread",
       messageId: "test-message",
@@ -130,7 +133,7 @@ describe("useTamboV1StreamStatus", () => {
       mockUseStreamState.mockReturnValue(createStreamState(threadState));
 
       const { result } = renderHook(() =>
-        useTamboV1StreamStatus<{ title: string; body: string }>(),
+        useTamboStreamStatus<{ title: string; body: string }>(),
       );
 
       expect(result.current.streamStatus).toEqual({
@@ -169,7 +172,7 @@ describe("useTamboV1StreamStatus", () => {
       mockUseStreamState.mockReturnValue(createStreamState(threadState));
 
       const { result } = renderHook(() =>
-        useTamboV1StreamStatus<{ title: string; body: string }>(),
+        useTamboStreamStatus<{ title: string; body: string }>(),
       );
 
       // Global should be streaming even though no props have content yet
@@ -191,7 +194,7 @@ describe("useTamboV1StreamStatus", () => {
       mockUseStreamState.mockReturnValue(createStreamState(threadState));
 
       const { result } = renderHook(() =>
-        useTamboV1StreamStatus<{ title: string; body: string }>(),
+        useTamboStreamStatus<{ title: string; body: string }>(),
       );
 
       // Title prop should be streaming since it has content
@@ -217,7 +220,7 @@ describe("useTamboV1StreamStatus", () => {
       mockUseStreamState.mockReturnValue(createStreamState(threadState));
 
       const { result, rerender } = renderHook(() =>
-        useTamboV1StreamStatus<{ title: string; body: string }>(),
+        useTamboStreamStatus<{ title: string; body: string }>(),
       );
 
       // Phase 1: Init - isPending = true
@@ -266,14 +269,14 @@ describe("useTamboV1StreamStatus", () => {
       const message = createMessage(componentContent);
       const threadState = createThreadState([message], {
         streaming: {
-          status: "error",
+          status: "idle",
           error: { message: "Generation failed", code: "GENERATION_ERROR" },
         },
       });
       mockUseStreamState.mockReturnValue(createStreamState(threadState));
 
       const { result } = renderHook(() =>
-        useTamboV1StreamStatus<{ title: string; body: string }>(),
+        useTamboStreamStatus<{ title: string; body: string }>(),
       );
 
       // Error state: isPending=false (error overrides pending), isStreaming=false (error stops streaming)
@@ -298,7 +301,7 @@ describe("useTamboV1StreamStatus", () => {
       mockUseStreamState.mockReturnValue(createStreamState(threadState));
 
       const { result } = renderHook(() =>
-        useTamboV1StreamStatus<{
+        useTamboStreamStatus<{
           title: string;
           body: string;
           footer: string;
@@ -323,7 +326,7 @@ describe("useTamboV1StreamStatus", () => {
       mockUseStreamState.mockReturnValue(createStreamState(threadState));
 
       const { result, rerender } = renderHook(() =>
-        useTamboV1StreamStatus<{ title: string; body: string }>(),
+        useTamboStreamStatus<{ title: string; body: string }>(),
       );
 
       // Step 2: Simulate streaming in title
@@ -379,7 +382,7 @@ describe("useTamboV1StreamStatus", () => {
       const threadState = createThreadState([message]);
       mockUseStreamState.mockReturnValue(createStreamState(threadState));
 
-      const { result } = renderHook(() => useTamboV1StreamStatus<TestProps>());
+      const { result } = renderHook(() => useTamboStreamStatus<TestProps>());
 
       // TypeScript should infer these keys correctly
       expect(result.current.propStatus.title).toBeDefined();
@@ -396,7 +399,7 @@ describe("useTamboV1StreamStatus", () => {
       const threadState = createThreadState([message]);
       mockUseStreamState.mockReturnValue(createStreamState(threadState));
 
-      const { result } = renderHook(() => useTamboV1StreamStatus());
+      const { result } = renderHook(() => useTamboStreamStatus());
 
       expect(result.current.streamStatus).toBeDefined();
       expect(result.current.propStatus).toBeDefined();
@@ -415,7 +418,7 @@ describe("useTamboV1StreamStatus", () => {
       ]);
       mockUseStreamState.mockReturnValue(createStreamState(threadState));
 
-      const { result } = renderHook(() => useTamboV1StreamStatus());
+      const { result } = renderHook(() => useTamboStreamStatus());
 
       expect(result.current.streamStatus.isPending).toBe(true);
       expect(result.current.propStatus).toEqual({});
@@ -427,7 +430,7 @@ describe("useTamboV1StreamStatus", () => {
         currentThreadId: "non-existent",
       });
 
-      const { result } = renderHook(() => useTamboV1StreamStatus());
+      const { result } = renderHook(() => useTamboStreamStatus());
 
       expect(result.current.streamStatus.isPending).toBe(true);
       expect(result.current.propStatus).toEqual({});
@@ -445,7 +448,7 @@ describe("useTamboV1StreamStatus", () => {
       const threadState = createThreadState([message]);
       mockUseStreamState.mockReturnValue(createStreamState(threadState));
 
-      mockUseV1ComponentContent.mockReturnValue({
+      mockUseTamboComponentContent.mockReturnValue({
         componentId: "first-component",
         threadId: "test-thread",
         messageId: "test-message",
@@ -453,14 +456,14 @@ describe("useTamboV1StreamStatus", () => {
       });
 
       const { rerender } = renderHook(() =>
-        useTamboV1StreamStatus<{ title: string }>(),
+        useTamboStreamStatus<{ title: string }>(),
       );
 
       // No error initially
       expect(consoleSpy).not.toHaveBeenCalled();
 
       // Change componentId (this should not happen in practice)
-      mockUseV1ComponentContent.mockReturnValue({
+      mockUseTamboComponentContent.mockReturnValue({
         componentId: "second-component",
         threadId: "test-thread",
         messageId: "test-message",

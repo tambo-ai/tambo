@@ -10,9 +10,7 @@
       "@/*": ["./*"],
       "@tambo-ai-cloud/testing": ["../../packages/testing/src"],
       "@tambo-ai/react": ["../../react-sdk/src"],
-      "@tambo-ai/react/mcp": ["../../react-sdk/src/mcp"],
-      "@tambo-ai/react/v1": ["../../react-sdk/src/v1"],
-      "@tambo-ai/react/v1/*": ["../../react-sdk/src/v1/*"]
+      "@tambo-ai/react/mcp": ["../../react-sdk/src/mcp"]
     }
   },
   "include": [

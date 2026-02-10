@@ -1,4 +1,9 @@
-import { tryParseJson, tryParseJsonArray, tryParseJsonObject } from "./json";
+import {
+  stringifyJsonForMarkup,
+  tryParseJson,
+  tryParseJsonArray,
+  tryParseJsonObject,
+} from "./json";
 
 describe("JSON utilities", () => {
   describe("tryParseJson", () => {
@@ -54,6 +59,28 @@ describe("JSON utilities", () => {
       expect(() => tryParseJsonArray(jsonObj, true)).toThrow(
         "Not a JSON array",
       );
+    });
+  });
+
+  describe("stringifyJsonForMarkup", () => {
+    it("should stringify JSON without changing safe values", () => {
+      expect(stringifyJsonForMarkup({ a: 1, b: "ok" })).toBe(
+        '{"a":1,"b":"ok"}',
+      );
+    });
+
+    it("should escape characters that could break markup wrappers", () => {
+      const value = {
+        text: "</component_state> & <tag>",
+      };
+
+      const result = stringifyJsonForMarkup(value);
+      expect(result).toContain("\\u003c/component_state\\u003e");
+      expect(result).toContain("\\u0026");
+      expect(result).toContain("\\u003ctag\\u003e");
+      expect(result).not.toContain("</component_state>");
+
+      expect(JSON.parse(result)).toEqual(value);
     });
   });
 });

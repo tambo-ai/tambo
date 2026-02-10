@@ -1,4 +1,5 @@
 import { getBaseUrl } from "@/lib/base-url";
+import { createFetchWithTimeout } from "@/lib/fetch-with-timeout";
 import { customHeadersSchema } from "@/lib/headerValidation";
 import {
   deleteMcpServerInput,
@@ -217,7 +218,11 @@ export const toolsRouter = createTRPCRouter({
           serverUrl: url,
         },
       );
-      const result = await auth(localProvider, { serverUrl: url });
+
+      const result = await auth(localProvider, {
+        serverUrl: url,
+        fetchFn: createFetchWithTimeout(5_000),
+      });
       if (result === "AUTHORIZED") {
         return {
           success: true,

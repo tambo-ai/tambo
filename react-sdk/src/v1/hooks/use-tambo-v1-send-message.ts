@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Send Message Hook for v1 API
+ * Send Message Hook
  *
  * React Query mutation hook for sending messages and handling streaming responses.
  */
@@ -24,8 +24,8 @@ import {
   useStreamDispatch,
   useStreamState,
 } from "../providers/tambo-v1-stream-context";
-import { useTamboV1Config } from "../providers/tambo-v1-provider";
-import { useTamboV1AuthState } from "./use-tambo-v1-auth-state";
+import { useTamboConfig } from "../providers/tambo-v1-provider";
+import { useTamboAuthState } from "./use-tambo-v1-auth-state";
 import { useTamboContextHelpers } from "../../providers/tambo-context-helpers-provider";
 import type { InitialInputMessage, InputMessage } from "../types/message";
 import type { ToolChoice } from "../types/tool-choice";
@@ -43,6 +43,7 @@ import {
   createThrottledStreamableExecutor,
 } from "../utils/tool-executor";
 import type { ToolResultContent } from "@tambo-ai/typescript-sdk/resources/threads/threads";
+import type { RunCreateParams } from "@tambo-ai/typescript-sdk/resources/threads/runs";
 import { ToolCallTracker } from "../utils/tool-call-tracker";
 import { parse as parsePartialJson } from "partial-json";
 
@@ -146,19 +147,19 @@ function dispatchToolResults(
  * Checks whether a thread name should be auto-generated based on config
  * and the current thread state.
  * @param threadId - The thread ID (undefined or placeholder means no)
- * @param threadAlreadyHasTitle - Whether the thread already has a title
+ * @param threadAlreadyHasName - Whether the thread already has a name
  * @param preMutationMessageCount - Message count before the current mutation
  * @param autoGenerateNameThreshold - Minimum message count to trigger generation
  * @returns Whether to generate a thread name
  */
 function shouldGenerateThreadName(
   threadId: string | undefined,
-  threadAlreadyHasTitle: boolean,
+  threadAlreadyHasName: boolean,
   preMutationMessageCount: number,
   autoGenerateNameThreshold: number,
 ): threadId is string {
   return (
-    !threadAlreadyHasTitle &&
+    !threadAlreadyHasName &&
     !!threadId &&
     !isPlaceholderThreadId(threadId) &&
     // +2 accounts for the user message and assistant response just added
@@ -199,7 +200,7 @@ function parseToolCallArgs(
 }
 
 /**
- * Generates a thread name via the beta API, dispatches the title update,
+ * Generates a thread name via the beta API, dispatches the name update,
  * and invalidates the thread list cache. Errors are logged, never thrown.
  * @param client - The Tambo API client
  * @param dispatch - Stream state dispatcher
@@ -216,9 +217,9 @@ async function generateThreadName(
     const threadWithName = await client.beta.threads.generateName(threadId);
     if (threadWithName.name) {
       dispatch({
-        type: "UPDATE_THREAD_TITLE",
+        type: "UPDATE_THREAD_NAME",
         threadId,
-        title: threadWithName.name,
+        name: threadWithName.name,
       });
       await queryClient.invalidateQueries({
         queryKey: ["v1-threads", "list"],
@@ -226,7 +227,7 @@ async function generateThreadName(
     }
   } catch (error) {
     console.error(
-      "[useTamboV1SendMessage] Failed to auto-generate thread name:",
+      "[useTamboSendMessage] Failed to auto-generate thread name:",
       error,
     );
   }
@@ -420,7 +421,7 @@ export async function createRunStream(
     ? { ...message, additionalContext: mergedContext }
     : message;
 
-  // Convert registry components/tools to v1 API format
+  // Convert registry components/tools to API format
   const availableComponents = toAvailableComponents(registry.componentList);
   const availableTools = toAvailableTools(registry.toolRegistry);
 
@@ -437,15 +438,12 @@ export async function createRunStream(
     return { stream, initialThreadId: threadId };
   } else {
     // Create new thread - include initialMessages if provided
-    // Cast to InputMessage[] at the SDK boundary: the V1 API accepts system/assistant roles
-    // but the TS SDK type constrains role to 'user'. Remove cast when typescript-sdk is regenerated.
-    const threadConfig: { userKey?: string; initialMessages?: InputMessage[] } =
-      {};
+    const threadConfig: RunCreateParams.Thread = {};
     if (userKey) {
       threadConfig.userKey = userKey;
     }
     if (initialMessages?.length) {
-      threadConfig.initialMessages = initialMessages as InputMessage[];
+      threadConfig.initialMessages = initialMessages;
     }
 
     const stream = await client.threads.runs.create({
@@ -479,7 +477,7 @@ export async function createRunStream(
  * @example
  * ```tsx
  * function ChatInput({ threadId }: { threadId?: string }) {
- *   const sendMessage = useTamboV1SendMessage(threadId);
+ *   const sendMessage = useTamboSendMessage(threadId);
  *
  *   const handleSubmit = async (text: string) => {
  *     const result = await sendMessage.mutateAsync({
@@ -504,7 +502,7 @@ export async function createRunStream(
  * }
  * ```
  */
-export function useTamboV1SendMessage(threadId?: string) {
+export function useTamboSendMessage(threadId?: string) {
   const client = useTamboClient();
   const dispatch = useStreamDispatch();
   const streamState = useStreamState();
@@ -513,15 +511,15 @@ export function useTamboV1SendMessage(threadId?: string) {
     autoGenerateThreadName = true,
     autoGenerateNameThreshold = 3,
     initialMessages,
-  } = useTamboV1Config();
+  } = useTamboConfig();
   const registry = useContext(TamboRegistryContext);
   const queryClient = useTamboQueryClient();
   const { getAdditionalContext } = useTamboContextHelpers();
-  const authState = useTamboV1AuthState();
+  const authState = useTamboAuthState();
 
   if (!registry) {
     throw new Error(
-      "useTamboV1SendMessage must be used within TamboRegistryProvider",
+      "useTamboSendMessage must be used within TamboRegistryProvider",
     );
   }
 
@@ -544,7 +542,7 @@ export function useTamboV1SendMessage(threadId?: string) {
         const messages: Record<string, string> = {
           unauthenticated:
             "Cannot send message: no userKey or userToken provided. " +
-            "Configure authentication in TamboV1Provider.",
+            "Configure authentication in TamboProvider.",
           exchanging:
             "Cannot send message: token exchange is still in progress. " +
             "Wait for authentication to complete.",
@@ -564,7 +562,7 @@ export function useTamboV1SendMessage(threadId?: string) {
       const existingThread = streamState.threadMap[apiThreadId ?? ""];
       const preMutationMessageCount =
         existingThread?.thread.messages.length ?? 0;
-      const threadAlreadyHasTitle = !!existingThread?.thread.title;
+      const threadAlreadyHasName = !!existingThread?.thread.name;
 
       const toolTracker = new ToolCallTracker();
       const throttledStreamable = createThrottledStreamableExecutor(
@@ -712,7 +710,7 @@ export function useTamboV1SendMessage(threadId?: string) {
         return {
           threadId: actualThreadId,
           preMutationMessageCount,
-          threadAlreadyHasTitle,
+          threadAlreadyHasName,
         };
       } catch (error) {
         // Dispatch a synthetic RUN_ERROR event to clean up thread state
@@ -742,7 +740,7 @@ export function useTamboV1SendMessage(threadId?: string) {
         autoGenerateThreadName &&
         shouldGenerateThreadName(
           result.threadId,
-          result.threadAlreadyHasTitle,
+          result.threadAlreadyHasName,
           result.preMutationMessageCount,
           autoGenerateNameThreshold,
         )
@@ -756,7 +754,7 @@ export function useTamboV1SendMessage(threadId?: string) {
       }
     },
     onError: (error) => {
-      console.error("[useTamboV1SendMessage] Mutation failed:", error);
+      console.error("[useTamboSendMessage] Mutation failed:", error);
     },
   });
 }
