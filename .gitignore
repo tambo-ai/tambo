@@ -59,3 +59,7 @@ next-env.d.ts
 react-sdk/dist/**
 
 /test
+
+# Agents
+.claude/settings.local.json
+.claude/**/*.local.md
