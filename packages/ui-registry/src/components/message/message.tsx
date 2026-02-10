@@ -22,12 +22,34 @@ import { cn } from "@tambo-ai/ui-registry/utils";
 import { cva, type VariantProps } from "class-variance-authority";
 import { Check, ChevronDown, ExternalLink, Loader2, X } from "lucide-react";
 import * as React from "react";
-import { Streamdown } from "streamdown";
+import { Streamdown, defaultRehypePlugins } from "streamdown";
+import { defaultSchema } from "rehype-sanitize";
+import type { Pluggable, PluggableList } from "unified";
 import { getSafeContent } from "../../lib/thread-hooks";
 import {
   createMarkdownComponents,
   markdownComponents,
 } from "./markdown-components";
+
+const streamdownSanitizeSchema = {
+  ...defaultSchema,
+  protocols: {
+    ...defaultSchema.protocols,
+    href: [...(defaultSchema.protocols?.href ?? []), "tambo-resource"],
+  },
+};
+
+const streamdownSanitizePlugin: Pluggable = Array.isArray(
+  defaultRehypePlugins.sanitize,
+)
+  ? (defaultRehypePlugins.sanitize[0] as Pluggable)
+  : (defaultRehypePlugins.sanitize as Pluggable);
+
+const streamdownRehypePlugins: PluggableList = [
+  defaultRehypePlugins.raw,
+  [streamdownSanitizePlugin, streamdownSanitizeSchema] as Pluggable,
+  defaultRehypePlugins.harden,
+];
 
 /**
  * CSS variants for the message container
@@ -147,7 +169,12 @@ function MessageContentRenderer({
   }
   if (markdown) {
     return (
-      <Streamdown components={markdownComponents}>{markdownContent}</Streamdown>
+      <Streamdown
+        components={markdownComponents}
+        rehypePlugins={streamdownRehypePlugins}
+      >
+        {markdownContent}
+      </Streamdown>
     );
   }
   return markdownContent;
@@ -539,7 +566,10 @@ const ReasoningInfo = React.forwardRef<HTMLDivElement, ReasoningInfoProps>(
                     {reasoningStep && (
                       <div className="bg-muted/50 rounded-md p-3 text-xs overflow-x-auto overflow-y-auto max-w-full">
                         <div className="whitespace-pre-wrap wrap-break-word">
-                          <Streamdown components={markdownComponents}>
+                          <Streamdown
+                            components={markdownComponents}
+                            rehypePlugins={streamdownRehypePlugins}
+                          >
                             {reasoningStep}
                           </Streamdown>
                         </div>
@@ -746,7 +776,14 @@ function ToolResultText({
   } catch {
     // JSON parsing failed, render as markdown or plain text
     if (!enableMarkdown) return text;
-    return <Streamdown components={markdownComponents}>{text}</Streamdown>;
+    return (
+      <Streamdown
+        components={markdownComponents}
+        rehypePlugins={streamdownRehypePlugins}
+      >
+        {text}
+      </Streamdown>
+    );
   }
 }
 
