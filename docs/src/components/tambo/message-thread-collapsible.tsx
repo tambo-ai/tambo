@@ -221,7 +221,7 @@ export const MessageThreadCollapsible = React.forwardRef<
       },
     };
 
-    const { thread } = useTambo();
+    const { messages } = useTambo();
 
     // Starter message for when the thread is empty
     const starterMessage: TamboThreadMessage = {
@@ -229,9 +229,6 @@ export const MessageThreadCollapsible = React.forwardRef<
       role: "assistant",
       content: [{ type: "text", text: "Ask me anything about tambo." }],
       createdAt: new Date().toISOString(),
-      actionType: undefined,
-      componentState: {},
-      threadId: "",
     };
 
     const defaultSuggestions: Suggestion[] = [
@@ -274,7 +271,7 @@ export const MessageThreadCollapsible = React.forwardRef<
             {/* Message thread content */}
             <ScrollableMessageContainer className="p-2 sm:p-3 md:p-4">
               {/* Conditionally render the starter message */}
-              {thread.messages.length === 0 && (
+              {messages.length === 0 && (
                 <Message role="assistant" message={starterMessage}>
                   <MessageContent />
                 </Message>

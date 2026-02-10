@@ -7,7 +7,7 @@ import { useTambo } from "@tambo-ai/react";
 import { useEffect } from "react";
 
 export const CanvasChatInterface = () => {
-  const { registerComponent, thread } = useTambo();
+  const { registerComponent, currentThreadId } = useTambo();
 
   useEffect(() => {
     registerComponent({
@@ -56,12 +56,12 @@ export const CanvasChatInterface = () => {
       component: Graph,
       propsSchema: graphSchema,
     });
-  }, [registerComponent, thread.id]);
+  }, [registerComponent, currentThreadId]);
 
   return (
     <div className="rounded-lg border border-border/40 h-full relative flex flex-row overflow-hidden">
-      <CanvasSpace className="bg-background rounded-l-lg flex-1" />
-      <MessageThreadPanel className="right rounded-r-lg" />
+      <CanvasSpace className="bg-background rounded-l-lg flex-1 h-full" />
+      <MessageThreadPanel className="right rounded-r-lg h-full" />
     </div>
   );
 };

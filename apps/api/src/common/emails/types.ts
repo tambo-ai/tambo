@@ -1,10 +1,11 @@
+import type { ReactElement } from "react";
+
 /**
- * An email with a subject and a body.
+ * An email with a subject and a React component body.
  */
 export interface Email<T = Record<string, unknown>> {
   subject: string;
-  html: (variables: T) => string;
-  text?: (variables: T) => string;
+  component: (variables: T) => ReactElement;
 }
 
 /**

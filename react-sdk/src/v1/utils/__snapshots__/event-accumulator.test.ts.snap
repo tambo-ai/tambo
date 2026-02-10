@@ -47,11 +47,12 @@ exports[`streamReducer snapshot tests for complex state transitions matches snap
   "threadMap": {
     "thread_1": {
       "accumulatingToolArgs": Map {},
+      "lastCompletedRunId": "run_1",
       "streaming": {
         "messageId": undefined,
         "runId": "run_1",
         "startTime": 1704067200000,
-        "status": "complete",
+        "status": "idle",
       },
       "thread": {
         "createdAt": "[TIMESTAMP]",
@@ -70,7 +71,7 @@ exports[`streamReducer snapshot tests for complex state transitions matches snap
             "role": "assistant",
           },
         ],
-        "status": "complete",
+        "status": "idle",
         "updatedAt": "[TIMESTAMP]",
       },
     },

@@ -106,6 +106,16 @@
   --sidebar-width: 3rem;
 }
 
+/* TipTap editor placeholder - required for @tiptap/extension-placeholder to display */
+.tiptap p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: var(--muted-foreground);
+  opacity: 0.5;
+  pointer-events: none;
+  height: 0;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

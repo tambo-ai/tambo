@@ -1,10 +1,10 @@
 "use client";
 
 /**
- * useTamboV1Suggestions - Suggestions Hook for v1 API
+ * useTamboSuggestions - Suggestions Hook
  *
  * Manages AI-powered suggestions for thread messages.
- * Uses the v1 API endpoints for listing and creating suggestions.
+ * Uses the API endpoints for listing and creating suggestions.
  */
 
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -20,9 +20,9 @@ import {
 } from "../../providers/tambo-client-provider";
 import { useTamboQuery, useTamboMutation } from "../../hooks/react-query-hooks";
 import { useTamboRegistry } from "../../providers/tambo-registry-provider";
-import { useTamboV1Config } from "../providers/tambo-v1-provider";
-import { useTamboV1 } from "./use-tambo-v1";
-import { useTamboV1ThreadInput } from "./use-tambo-v1-thread-input";
+import { useTamboConfig } from "../providers/tambo-v1-provider";
+import { useTambo } from "./use-tambo-v1";
+import { useTamboThreadInput } from "./use-tambo-v1-thread-input";
 import { toAvailableComponents } from "../utils/registry-conversion";
 
 /**
@@ -33,9 +33,9 @@ type SuggestionsQueryResponse =
   | SuggestionCreateResponse;
 
 /**
- * Configuration options for the useTamboV1Suggestions hook
+ * Configuration options for the useTamboSuggestions hook
  */
-export interface UseTamboV1SuggestionsOptions {
+export interface UseTamboSuggestionsOptions {
   /** Maximum number of suggestions to generate (1-10, default 3) */
   maxSuggestions?: number;
   /**
@@ -64,9 +64,9 @@ export interface AcceptSuggestionOptions {
 }
 
 /**
- * Return type for useTamboV1Suggestions hook
+ * Return type for useTamboSuggestions hook
  */
-export interface UseTamboV1SuggestionsReturn {
+export interface UseTamboSuggestionsReturn {
   // ---------------------------------------------------------------------------
   // Data (mirrors react-query patterns)
   // ---------------------------------------------------------------------------
@@ -140,7 +140,7 @@ export interface UseTamboV1SuggestionsReturn {
 }
 
 /**
- * Hook for managing AI-powered suggestions in a v1 thread.
+ * Hook for managing AI-powered suggestions in a thread.
  *
  * Provides functionality to:
  * - Automatically generate suggestions when an assistant message arrives
@@ -156,7 +156,7 @@ export interface UseTamboV1SuggestionsReturn {
  *     accept,
  *     isLoading,
  *     selectedSuggestionId,
- *   } = useTamboV1Suggestions();
+ *   } = useTamboSuggestions();
  *
  *   if (isLoading) return <Spinner />;
  *
@@ -176,18 +176,18 @@ export interface UseTamboV1SuggestionsReturn {
  * }
  * ```
  */
-export function useTamboV1Suggestions(
-  options: UseTamboV1SuggestionsOptions = {},
-): UseTamboV1SuggestionsReturn {
+export function useTamboSuggestions(
+  options: UseTamboSuggestionsOptions = {},
+): UseTamboSuggestionsReturn {
   const { maxSuggestions = 3, autoGenerate = true, queryOptions } = options;
 
   const client = useTamboClient();
-  const { userKey } = useTamboV1Config();
+  const { userKey } = useTamboConfig();
   const { componentList } = useTamboRegistry();
   const queryClient = useTamboQueryClient();
 
-  const { messages, isIdle, currentThreadId } = useTamboV1();
-  const { setValue: setInputValue, submit } = useTamboV1ThreadInput();
+  const { messages, isIdle, currentThreadId } = useTambo();
+  const { setValue: setInputValue, submit } = useTamboThreadInput();
 
   const [selectedSuggestionId, setSelectedSuggestionId] = useState<
     string | null

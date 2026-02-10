@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import type { Suggestion } from "@tambo-ai/react/v1";
-import { useTamboV1Suggestions } from "@tambo-ai/react/v1";
+import type { Suggestion } from "@tambo-ai/react";
+import { useTamboSuggestions } from "@tambo-ai/react";
 import { useCallback } from "react";
 
 interface MessageSuggestionsProps {
@@ -18,7 +18,7 @@ export function MessageSuggestions({
     error,
     accept,
     selectedSuggestionId,
-  } = useTamboV1Suggestions({ maxSuggestions });
+  } = useTamboSuggestions({ maxSuggestions });
 
   const handleAccept = useCallback(
     async (suggestion: Suggestion) => {

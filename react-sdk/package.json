@@ -1,7 +1,7 @@
 {
   "name": "@tambo-ai/react",
-  "version": "0.74.1",
-  "description": "React client package for Tambo AI",
+  "version": "1.0.0",
+  "description": "React client package for Tambo AI!",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -22,11 +22,6 @@
       "import": "./esm/mcp/index.js",
       "require": "./dist/mcp/index.js",
       "types": "./dist/mcp/index.d.ts"
-    },
-    "./v1": {
-      "import": "./esm/v1/index.js",
-      "require": "./dist/v1/index.js",
-      "types": "./dist/v1/index.d.ts"
     }
   },
   "files": [
@@ -85,7 +80,7 @@
     "@modelcontextprotocol/sdk": "^1.26.0",
     "@standard-community/standard-json": "^0.3.5",
     "@standard-schema/spec": "^1.1.0",
-    "@tambo-ai/typescript-sdk": "^0.89.0",
+    "@tambo-ai/typescript-sdk": "^0.92.0",
     "@tanstack/react-query": "^5.90.16",
     "fast-equals": "^5.3.3",
     "fast-json-patch": "^3.1.1",
@@ -111,7 +106,7 @@
     "@valibot/to-json-schema": "^1.5.0",
     "concurrently": "^9.2.1",
     "eslint": "^9.39.2",
-    "eslint-plugin-jsdoc": "^62.5.1",
+    "eslint-plugin-jsdoc": "^62.5.4",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^6.1.1",
     "jest": "^30.2.0",

@@ -3,7 +3,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { renderHook, act } from "@testing-library/react";
 import React from "react";
 import {
-  TamboV1StreamProvider,
+  TamboStreamProvider,
   useStreamState,
   useStreamDispatch,
   useThreadManagement,
@@ -16,15 +16,25 @@ jest.mock("../../providers/tambo-client-provider", () => ({
       messages: {
         list: jest.fn().mockResolvedValue({ messages: [], hasMore: false }),
       },
+      retrieve: jest.fn().mockResolvedValue({}),
     },
   })),
   useTamboQueryClient: jest.fn(),
 }));
 
+// Mock useTamboConfig to avoid TamboProvider dependency
+jest.mock("./tambo-v1-provider", () => {
+  const actual = jest.requireActual("./tambo-v1-provider");
+  return {
+    ...actual,
+    useTamboConfig: () => ({ userKey: undefined }),
+  };
+});
+
 // Import for mocking
 import { useTamboQueryClient } from "../../providers/tambo-client-provider";
 
-describe("TamboV1StreamProvider", () => {
+describe("TamboStreamProvider", () => {
   let queryClient: QueryClient;
 
   beforeEach(() => {
@@ -41,7 +51,7 @@ describe("TamboV1StreamProvider", () => {
     return function Wrapper({ children }: { children: React.ReactNode }) {
       return (
         <QueryClientProvider client={queryClient}>
-          <TamboV1StreamProvider>{children}</TamboV1StreamProvider>
+          <TamboStreamProvider>{children}</TamboStreamProvider>
         </QueryClientProvider>
       );
     };
@@ -55,7 +65,7 @@ describe("TamboV1StreamProvider", () => {
 
       expect(() => {
         renderHook(() => useStreamState());
-      }).toThrow("useStreamState must be used within TamboV1StreamProvider");
+      }).toThrow("useStreamState must be used within TamboStreamProvider");
 
       consoleSpy.mockRestore();
     });
@@ -119,13 +129,13 @@ describe("TamboV1StreamProvider", () => {
           type: "INIT_THREAD",
           threadId: "thread_123",
           initialThread: {
-            title: "Test Thread",
+            name: "Test Thread",
             metadata: { key: "value" },
           },
         });
       });
 
-      expect(result.current.state.threadMap.thread_123.thread.title).toBe(
+      expect(result.current.state.threadMap.thread_123.thread.name).toBe(
         "Test Thread",
       );
       expect(result.current.state.threadMap.thread_123.thread.metadata).toEqual(
@@ -148,7 +158,7 @@ describe("TamboV1StreamProvider", () => {
 
       expect(() => {
         renderHook(() => useStreamDispatch());
-      }).toThrow("useStreamDispatch must be used within TamboV1StreamProvider");
+      }).toThrow("useStreamDispatch must be used within TamboStreamProvider");
 
       consoleSpy.mockRestore();
     });
@@ -204,9 +214,7 @@ describe("TamboV1StreamProvider", () => {
 
       expect(() => {
         renderHook(() => useThreadManagement());
-      }).toThrow(
-        "useThreadManagement must be used within TamboV1StreamProvider",
-      );
+      }).toThrow("useThreadManagement must be used within TamboStreamProvider");
 
       consoleSpy.mockRestore();
     });

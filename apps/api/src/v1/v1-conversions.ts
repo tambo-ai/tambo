@@ -7,7 +7,7 @@ import {
   type UnsavedThreadUserMessage,
 } from "@tambo-ai-cloud/core";
 import { MessageRequest } from "../threads/dto/message.dto";
-import { V1InputContent } from "./dto/message.dto";
+import { V1InitialContent, V1InputContent } from "./dto/message.dto";
 import { schema } from "@tambo-ai-cloud/db";
 import {
   V1ContentBlock,
@@ -56,6 +56,7 @@ export function roleToV1(role: string): V1MessageRole {
 export function threadToDto(thread: DbThread): V1ThreadDto {
   return {
     id: thread.id,
+    name: thread.name ?? undefined,
     userKey: thread.contextKey ?? undefined,
     runStatus: thread.runStatus,
     currentRunId: thread.currentRunId ?? undefined,
@@ -298,10 +299,6 @@ export function contentToV1Blocks(
       if (typeof decision.completionStatusMessage === "string") {
         input._tambo_completionStatusMessage = decision.completionStatusMessage;
       }
-      // The display message is stored as 'message' in componentDecision
-      if (typeof decision.message === "string" && decision.message.trim()) {
-        input._tambo_displayMessage = decision.message;
-      }
     }
 
     const toolUseBlock: V1ToolUseContentDto = {
@@ -350,6 +347,7 @@ export function messageToDto(
     content,
     createdAt: message.createdAt.toISOString(),
     metadata: message.metadata ?? undefined,
+    parentMessageId: message.parentMessageId ?? undefined,
     // Only include isCancelled if true (to keep response size minimal)
     isCancelled: message.isCancelled || undefined,
   };
@@ -364,6 +362,16 @@ export interface V1InputMessage {
   content: V1InputContent[];
   metadata?: Record<string, unknown>;
   additionalContext?: Record<string, unknown>;
+}
+
+/**
+ * Initial message shape for V1 thread creation.
+ * Supports user, system, and assistant roles for parity with pre-V1 API.
+ */
+export interface V1InitialMessage {
+  role: "user" | "system" | "assistant";
+  content: V1InitialContent[];
+  metadata?: Record<string, unknown>;
 }
 
 /**
@@ -440,6 +448,46 @@ export function convertV1InputMessageToUnsaved(
         }
       }),
     additionalContext: message.additionalContext,
+    metadata: message.metadata,
+  };
+}
+
+const v1RoleToMessageRole: Record<V1InitialMessage["role"], MessageRole> = {
+  user: MessageRole.User,
+  system: MessageRole.System,
+  assistant: MessageRole.Assistant,
+};
+
+/**
+ * Convert a V1 initial message to a MessageRequest for ThreadsService.createThread.
+ * Supports user, system, and assistant roles. Routes through ThreadsService so that
+ * system prompt injection, validation, and customInstructions logic apply.
+ * @param message - The V1 initial message
+ * @returns MessageRequest for ThreadsService consumption
+ */
+export function convertV1InitialMessageToMessageRequest(
+  message: V1InitialMessage,
+): MessageRequest {
+  return {
+    role: v1RoleToMessageRole[message.role],
+    content: message.content.map((block) => {
+      switch (block.type) {
+        case "text":
+          return {
+            type: ContentPartType.Text,
+            text: block.text,
+          };
+        case "resource":
+          return {
+            type: ContentPartType.Resource,
+            resource: block.resource,
+          };
+        default:
+          throw new Error(
+            `Unknown content type in initial message: ${(block as { type: string }).type}`,
+          );
+      }
+    }),
     metadata: message.metadata,
   };
 }

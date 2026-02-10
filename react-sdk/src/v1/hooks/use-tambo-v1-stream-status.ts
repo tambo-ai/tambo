@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * useTamboV1StreamStatus - Stream Status Hook for v1 API
+ * useTamboStreamStatus - Stream Status Hook
  *
  * Provides granular streaming status for components being rendered,
  * allowing UI to respond to prop-level streaming states.
@@ -10,10 +10,10 @@
  */
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useV1ComponentContent } from "../utils/component-renderer";
+import { useComponentContent } from "../utils/component-renderer";
 import { useStreamState } from "../providers/tambo-v1-stream-context";
 import { findComponentContent } from "../utils/thread-utils";
-import type { V1ComponentContent } from "../types/message";
+import type { TamboComponentContent } from "../types/message";
 
 /**
  * Global stream status flags for a specific component in a message.
@@ -92,8 +92,8 @@ export interface PropStatus {
  */
 function usePropsStreamingStatus<Props extends object>(
   props: Props | undefined,
-  componentStreamingState: V1ComponentContent["streamingState"] | undefined,
-): Record<keyof Props, PropStatus> {
+  componentStreamingState: TamboComponentContent["streamingState"] | undefined,
+): Partial<Record<keyof Props, PropStatus>> {
   /** Track which props have received content */
   const [startedProps, setStartedProps] = useState<Set<string>>(new Set());
 
@@ -152,12 +152,14 @@ function usePropsStreamingStatus<Props extends object>(
  * @returns The aggregated StreamStatus for the entire component
  */
 function deriveGlobalStreamStatus(
-  componentStreamingState: V1ComponentContent["streamingState"] | undefined,
-  propStatus: Record<string, PropStatus>,
+  componentStreamingState: TamboComponentContent["streamingState"] | undefined,
+  propStatus: Partial<Record<string, PropStatus>>,
   hasComponent: boolean,
   streamError?: Error,
 ): StreamStatus {
-  const propStatuses: PropStatus[] = Object.values(propStatus);
+  const propStatuses: PropStatus[] = Object.values(propStatus).filter(
+    (p): p is PropStatus => p !== undefined,
+  );
   const isStreamError = !!streamError;
 
   // If all props are already successful, the component is complete regardless of streaming state
@@ -194,12 +196,12 @@ function deriveGlobalStreamStatus(
 }
 
 /**
- * Track streaming status for Tambo v1 component props.
+ * Track streaming status for Tambo component props.
  *
  * **Important**: Props update repeatedly during streaming and may be partial.
  * Use `propStatus.<field>?.isSuccess` before treating a prop as complete.
  *
- * Pair with `useTamboV1ComponentState` to disable inputs while streaming.
+ * Pair with `useTamboComponentState` to disable inputs while streaming.
  * @see {@link https://docs.tambo.co/concepts/generative-interfaces/component-state}
  * @template Props - Component props type
  * @returns `streamStatus` (overall) and `propStatus` (per-prop) flags
@@ -207,42 +209,42 @@ function deriveGlobalStreamStatus(
  * @example
  * ```tsx
  * // Wait for entire stream
- * const { streamStatus } = useTamboV1StreamStatus();
+ * const { streamStatus } = useTamboStreamStatus();
  * if (!streamStatus.isSuccess) return <Spinner />;
  * return <Card {...props} />;
  * ```
  * @example
  * ```tsx
  * // Highlight in-flight props
- * const { propStatus } = useTamboV1StreamStatus<Props>();
- * <h2 className={propStatus.title.isStreaming ? "animate-pulse" : ""}>
+ * const { propStatus } = useTamboStreamStatus<Props>();
+ * <h2 className={propStatus.title?.isStreaming ? "animate-pulse" : ""}>
  *   {title}
  * </h2>
  * ```
  */
-export function useTamboV1StreamStatus<
+export function useTamboStreamStatus<
   Props extends object = Record<string, unknown>,
 >(): {
   streamStatus: StreamStatus;
-  propStatus: Record<keyof Props, PropStatus>;
+  propStatus: Partial<Record<keyof Props, PropStatus>>;
 } {
-  const { componentId, threadId } = useV1ComponentContent();
+  const { componentId, threadId } = useComponentContent();
   const streamState = useStreamState();
 
   /**
    * Error if componentId changes - this indicates the provider hierarchy is broken.
    * The componentId should remain stable for the lifetime of the component.
-   * If this fires, the TamboV1ComponentRenderer is likely being used incorrectly,
+   * If this fires, the ComponentRenderer is likely being used incorrectly,
    * or the component tree is being remounted in unexpected ways.
    */
   const initialComponentIdRef = useRef(componentId);
   useEffect(() => {
     if (componentId !== initialComponentIdRef.current) {
       console.error(
-        `useTamboV1StreamStatus: componentId changed from "${initialComponentIdRef.current}" to "${componentId}". ` +
+        `useTamboStreamStatus: componentId changed from "${initialComponentIdRef.current}" to "${componentId}". ` +
           "This indicates a bug in the component tree or incorrect provider usage. " +
           "The componentId must remain stable for the component's lifetime. " +
-          "Check that TamboV1ComponentRenderer is not being remounted unexpectedly.",
+          "Check that ComponentRenderer is not being remounted unexpectedly.",
       );
       initialComponentIdRef.current = componentId;
     }
@@ -252,10 +254,7 @@ export function useTamboV1StreamStatus<
   const threadState = streamState.threadMap[threadId];
 
   /** Get error message from stream state if any */
-  const streamErrorMessage =
-    threadState?.streaming.status === "error"
-      ? threadState?.streaming.error?.message
-      : undefined;
+  const streamErrorMessage = threadState?.streaming.error?.message;
 
   /** Find the component content block */
   const componentContent = findComponentContent(

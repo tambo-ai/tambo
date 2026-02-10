@@ -86,6 +86,16 @@ export class V1MessageDto {
 
   @ApiProperty({
     description:
+      "The id of the parent message, if the message was created during the " +
+      "generation of another message, such as during an agent call, MCP Elicitation, or MCP Sample",
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  parentMessageId?: string;
+
+  @ApiProperty({
+    description:
       "Whether this message was interrupted by a run cancellation. " +
       "When true, the message content may be incomplete.",
     required: false,
@@ -152,6 +162,50 @@ export class V1InputMessageDto {
   @IsOptional()
   @IsObject()
   additionalContext?: Record<string, unknown>;
+}
+
+/**
+ * Content types allowed in initial messages (text and resource only).
+ */
+export type V1InitialContent = V1TextContentDto | V1ResourceContentDto;
+
+/**
+ * Initial message for thread creation.
+ * Supports "user", "system", and "assistant" roles (unlike input messages which are user-only).
+ */
+@ApiSchema({ name: "InitialMessage" })
+@ApiExtraModels(V1TextContentDto, V1ResourceContentDto)
+export class V1InitialMessageDto {
+  @ApiProperty({
+    description:
+      "Message role - 'user', 'system', or 'assistant' for initial messages",
+    enum: ["user", "system", "assistant"],
+    example: "user",
+  })
+  @IsIn(["user", "system", "assistant"])
+  role!: "user" | "system" | "assistant";
+
+  @ApiDiscriminatedUnion({
+    types: [
+      { dto: V1TextContentDto, name: "text" },
+      { dto: V1ResourceContentDto, name: "resource" },
+    ],
+    description: "Content blocks (text or resource)",
+    isArray: true,
+    additionalOptions: {
+      required: true,
+    },
+  })
+  @IsNotEmpty()
+  content!: V1InitialContent[];
+
+  @ApiProperty({
+    description: "Additional metadata to attach to the message",
+    required: false,
+  })
+  @IsOptional()
+  @IsObject()
+  metadata?: Record<string, unknown>;
 }
 
 /**

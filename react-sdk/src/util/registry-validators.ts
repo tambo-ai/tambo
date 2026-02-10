@@ -69,7 +69,7 @@ export function validateTool(tool: unknown): asserts tool is TamboTool {
     throw new Error(
       `Tool "${toolName}" uses deprecated "toolSchema" property. ` +
         `Migrate to "inputSchema" and "outputSchema" properties. ` +
-        `See migration guide: https://tambo.ai/docs/migration/toolschema`,
+        `See migration guide: https://docs.tambo.co/reference/react-sdk/migration`,
     );
   }
 

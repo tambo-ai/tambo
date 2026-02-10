@@ -24,7 +24,7 @@ import {
   type StreamState,
   type ThreadState,
 } from "./event-accumulator";
-import type { Content, V1ComponentContent } from "../types/message";
+import type { Content, TamboComponentContent } from "../types/message";
 
 /**
  * Helper to extract a ToolUseContent from a message content array.
@@ -37,16 +37,16 @@ function asToolUseContent(content: Content[], index: number): ToolUseContent {
 }
 
 /**
- * Helper to extract a V1ComponentContent from a message content array.
+ * Helper to extract a TamboComponentContent from a message content array.
  * @param content - Content array from a message
  * @param index - Index of the content item
- * @returns The content as V1ComponentContent
+ * @returns The content as TamboComponentContent
  */
 function asComponentContent(
   content: Content[],
   index: number,
-): V1ComponentContent {
-  return content[index] as V1ComponentContent;
+): TamboComponentContent {
+  return content[index] as TamboComponentContent;
 }
 
 // Helper to create a base thread state for testing
@@ -488,7 +488,7 @@ describe("streamReducer", () => {
   });
 
   describe("RUN_FINISHED event", () => {
-    it("updates thread status to complete", () => {
+    it("updates thread status to idle", () => {
       const state = createTestStreamState("thread_1");
       state.threadMap.thread_1.thread.status = "streaming";
       state.threadMap.thread_1.streaming.status = "streaming";
@@ -505,13 +505,60 @@ describe("streamReducer", () => {
         threadId: "thread_1",
       });
 
-      expect(result.threadMap.thread_1.thread.status).toBe("complete");
-      expect(result.threadMap.thread_1.streaming.status).toBe("complete");
+      expect(result.threadMap.thread_1.thread.status).toBe("idle");
+      expect(result.threadMap.thread_1.streaming.status).toBe("idle");
+    });
+
+    it("sets lastCompletedRunId from event.runId", () => {
+      const state = createTestStreamState("thread_1");
+      state.threadMap.thread_1.streaming = {
+        status: "streaming",
+        runId: "run_abc",
+      };
+
+      const event: RunFinishedEvent = {
+        type: EventType.RUN_FINISHED,
+        runId: "run_abc",
+        threadId: "thread_1",
+      };
+
+      const result = streamReducer(state, {
+        type: "EVENT",
+        event,
+        threadId: "thread_1",
+      });
+
+      expect(result.threadMap.thread_1.lastCompletedRunId).toBe("run_abc");
+    });
+
+    it("prefers event.runId over streaming.runId for lastCompletedRunId", () => {
+      const state = createTestStreamState("thread_1");
+      state.threadMap.thread_1.lastCompletedRunId = "run_old";
+      state.threadMap.thread_1.streaming = {
+        status: "streaming",
+        // runId intentionally undefined
+      };
+
+      const event: RunFinishedEvent = {
+        type: EventType.RUN_FINISHED,
+        runId: "run_from_event",
+        threadId: "thread_1",
+      };
+
+      const result = streamReducer(state, {
+        type: "EVENT",
+        event,
+        threadId: "thread_1",
+      });
+
+      expect(result.threadMap.thread_1.lastCompletedRunId).toBe(
+        "run_from_event",
+      );
     });
   });
 
   describe("RUN_ERROR event", () => {
-    it("updates thread status to error with details", () => {
+    it("updates thread status to idle with error details", () => {
       const state = createTestStreamState("thread_1");
       const event: RunErrorEvent = {
         type: EventType.RUN_ERROR,
@@ -525,8 +572,8 @@ describe("streamReducer", () => {
         threadId: "thread_1",
       });
 
-      expect(result.threadMap.thread_1.thread.status).toBe("error");
-      expect(result.threadMap.thread_1.streaming.status).toBe("error");
+      expect(result.threadMap.thread_1.thread.status).toBe("idle");
+      expect(result.threadMap.thread_1.streaming.status).toBe("idle");
       expect(result.threadMap.thread_1.streaming.error).toEqual({
         message: "Something went wrong",
         code: "ERR_001",
@@ -908,6 +955,45 @@ describe("streamReducer", () => {
       expect(messages[0].role).toBe("assistant");
       expect(messages[0].content).toHaveLength(1);
       expect(messages[0].content[0]).toMatchObject({
+        type: "tool_use",
+        id: "tool_1",
+        name: "get_weather",
+      });
+    });
+
+    it("creates synthetic assistant message when last message is user and no parentMessageId", () => {
+      const state = createTestStreamState("thread_1");
+      state.threadMap.thread_1.thread.messages = [
+        {
+          id: "user_msg_1",
+          role: "user",
+          content: [{ type: "text", text: "do something" }],
+          createdAt: "2024-01-01T00:00:00.000Z",
+        },
+      ];
+
+      const event: ToolCallStartEvent = {
+        type: EventType.TOOL_CALL_START,
+        toolCallId: "tool_1",
+        toolCallName: "get_weather",
+        // No parentMessageId - last message is user, should NOT append to it
+      };
+
+      const result = streamReducer(state, {
+        type: "EVENT",
+        event,
+        threadId: "thread_1",
+      });
+
+      const messages = result.threadMap.thread_1.thread.messages;
+      // Should create a new synthetic assistant message, not append to user message
+      expect(messages).toHaveLength(2);
+      expect(messages[0].id).toBe("user_msg_1");
+      expect(messages[0].role).toBe("user");
+      expect(messages[0].content).toHaveLength(1); // User message unchanged
+      expect(messages[1].role).toBe("assistant");
+      expect(messages[1].content).toHaveLength(1);
+      expect(messages[1].content[0]).toMatchObject({
         type: "tool_use",
         id: "tool_1",
         name: "get_weather",
@@ -2554,6 +2640,19 @@ describe("streamReducer", () => {
       warnSpy.mockRestore();
     });
 
+    it("does not modify lastCompletedRunId", () => {
+      const state = createTestStreamState("thread_1");
+      state.threadMap.thread_1.lastCompletedRunId = "run_existing";
+
+      const result = streamReducer(state, {
+        type: "LOAD_THREAD_MESSAGES",
+        threadId: "thread_1",
+        messages: [],
+      });
+
+      expect(result.threadMap.thread_1.lastCompletedRunId).toBe("run_existing");
+    });
+
     it("handles system role messages from API", () => {
       const state = createTestStreamState("thread_1");
 
@@ -2582,32 +2681,72 @@ describe("streamReducer", () => {
     });
   });
 
-  describe("UPDATE_THREAD_TITLE action", () => {
-    it("updates the title on an existing thread", () => {
+  describe("SET_LAST_COMPLETED_RUN_ID action", () => {
+    it("stores lastCompletedRunId on an existing thread", () => {
       const state = createTestStreamState("thread_1");
 
       const result = streamReducer(state, {
-        type: "UPDATE_THREAD_TITLE",
+        type: "SET_LAST_COMPLETED_RUN_ID",
         threadId: "thread_1",
-        title: "My Chat Thread",
+        lastCompletedRunId: "run_xyz",
       });
 
-      expect(result.threadMap.thread_1.thread.title).toBe("My Chat Thread");
+      expect(result.threadMap.thread_1.lastCompletedRunId).toBe("run_xyz");
+    });
+
+    it("overwrites existing lastCompletedRunId", () => {
+      const state = createTestStreamState("thread_1");
+      state.threadMap.thread_1.lastCompletedRunId = "run_old";
+
+      const result = streamReducer(state, {
+        type: "SET_LAST_COMPLETED_RUN_ID",
+        threadId: "thread_1",
+        lastCompletedRunId: "run_new",
+      });
+
+      expect(result.threadMap.thread_1.lastCompletedRunId).toBe("run_new");
+    });
+
+    it("creates thread state if thread does not exist", () => {
+      const state = createTestStreamState("thread_1");
+
+      const result = streamReducer(state, {
+        type: "SET_LAST_COMPLETED_RUN_ID",
+        threadId: "thread_new",
+        lastCompletedRunId: "run_abc",
+      });
+
+      expect(result.threadMap.thread_new).toBeDefined();
+      expect(result.threadMap.thread_new.lastCompletedRunId).toBe("run_abc");
+    });
+  });
+
+  describe("UPDATE_THREAD_NAME action", () => {
+    it("updates the name on an existing thread", () => {
+      const state = createTestStreamState("thread_1");
+
+      const result = streamReducer(state, {
+        type: "UPDATE_THREAD_NAME",
+        threadId: "thread_1",
+        name: "My Chat Thread",
+      });
+
+      expect(result.threadMap.thread_1.thread.name).toBe("My Chat Thread");
     });
 
     it("returns unchanged state when thread does not exist", () => {
       const state = createTestStreamState("thread_1");
 
       const result = streamReducer(state, {
-        type: "UPDATE_THREAD_TITLE",
+        type: "UPDATE_THREAD_NAME",
         threadId: "nonexistent_thread",
-        title: "My Chat Thread",
+        name: "My Chat Thread",
       });
 
       expect(result).toBe(state);
     });
 
-    it("preserves other thread properties when updating title", () => {
+    it("preserves other thread properties when updating name", () => {
       const state = createTestStreamState("thread_1");
       state.threadMap.thread_1.thread.messages = [
         {
@@ -2619,14 +2758,149 @@ describe("streamReducer", () => {
       ];
 
       const result = streamReducer(state, {
-        type: "UPDATE_THREAD_TITLE",
+        type: "UPDATE_THREAD_NAME",
         threadId: "thread_1",
-        title: "My Chat Thread",
+        name: "My Chat Thread",
       });
 
-      expect(result.threadMap.thread_1.thread.title).toBe("My Chat Thread");
+      expect(result.threadMap.thread_1.thread.name).toBe("My Chat Thread");
       expect(result.threadMap.thread_1.thread.messages).toHaveLength(1);
       expect(result.threadMap.thread_1.thread.id).toBe("thread_1");
+    });
+  });
+
+  describe("tambo.message.parent event", () => {
+    it("creates message with parentMessageId when message does not exist", () => {
+      const state = createTestStreamState("thread_1");
+
+      const event: CustomEvent = {
+        type: EventType.CUSTOM,
+        name: "tambo.message.parent",
+        value: {
+          messageId: "msg_child",
+          parentMessageId: "msg_parent",
+        },
+      };
+
+      const result = streamReducer(state, {
+        type: "EVENT",
+        event,
+        threadId: "thread_1",
+      });
+
+      const messages = result.threadMap.thread_1.thread.messages;
+      expect(messages).toHaveLength(1);
+      expect(messages[0].id).toBe("msg_child");
+      expect(messages[0].role).toBe("assistant");
+      expect(messages[0].parentMessageId).toBe("msg_parent");
+      expect(messages[0].content).toEqual([]);
+    });
+
+    it("sets parentMessageId on existing message", () => {
+      const state = createTestStreamState("thread_1");
+      state.threadMap.thread_1.thread.messages = [
+        {
+          id: "msg_child",
+          role: "assistant",
+          content: [{ type: "text", text: "Hello" }],
+          createdAt: "2024-01-01T00:00:00.000Z",
+        },
+      ];
+
+      const event: CustomEvent = {
+        type: EventType.CUSTOM,
+        name: "tambo.message.parent",
+        value: {
+          messageId: "msg_child",
+          parentMessageId: "msg_parent",
+        },
+      };
+
+      const result = streamReducer(state, {
+        type: "EVENT",
+        event,
+        threadId: "thread_1",
+      });
+
+      const messages = result.threadMap.thread_1.thread.messages;
+      expect(messages).toHaveLength(1);
+      expect(messages[0].id).toBe("msg_child");
+      expect(messages[0].parentMessageId).toBe("msg_parent");
+      // Existing content preserved
+      expect(messages[0].content).toEqual([{ type: "text", text: "Hello" }]);
+    });
+
+    it("preserves parentMessageId when TEXT_MESSAGE_START follows with same messageId", () => {
+      const state = createTestStreamState("thread_1");
+      state.threadMap.thread_1.streaming = {
+        status: "streaming",
+        runId: "run_1",
+      };
+
+      // First: tambo.message.parent creates message with parentMessageId
+      const parentEvent: CustomEvent = {
+        type: EventType.CUSTOM,
+        name: "tambo.message.parent",
+        value: {
+          messageId: "msg_child",
+          parentMessageId: "msg_parent",
+        },
+      };
+
+      const afterParent = streamReducer(state, {
+        type: "EVENT",
+        event: parentEvent,
+        threadId: "thread_1",
+      });
+
+      // Then: TEXT_MESSAGE_START with the same messageId
+      const textStartEvent: TextMessageStartEvent = {
+        type: EventType.TEXT_MESSAGE_START,
+        messageId: "msg_child",
+        role: "assistant",
+      };
+
+      const result = streamReducer(afterParent, {
+        type: "EVENT",
+        event: textStartEvent,
+        threadId: "thread_1",
+      });
+
+      const messages = result.threadMap.thread_1.thread.messages;
+      expect(messages).toHaveLength(1);
+      expect(messages[0].id).toBe("msg_child");
+      expect(messages[0].parentMessageId).toBe("msg_parent");
+      // Streaming state should now track this message
+      expect(result.threadMap.thread_1.streaming.messageId).toBe("msg_child");
+    });
+
+    it("preserves parentMessageId through LOAD_THREAD_MESSAGES", () => {
+      const state = createTestStreamState("thread_1");
+
+      const result = streamReducer(state, {
+        type: "LOAD_THREAD_MESSAGES",
+        threadId: "thread_1",
+        messages: [
+          {
+            id: "msg_1",
+            role: "user",
+            content: [{ type: "text", text: "Hello" }],
+            createdAt: "2024-01-01T00:00:00.000Z",
+          },
+          {
+            id: "msg_child",
+            role: "assistant",
+            content: [{ type: "text", text: "Hi there" }],
+            createdAt: "2024-01-01T00:00:01.000Z",
+            parentMessageId: "msg_1",
+          },
+        ],
+      });
+
+      const messages = result.threadMap.thread_1.thread.messages;
+      expect(messages).toHaveLength(2);
+      expect(messages[1].id).toBe("msg_child");
+      expect(messages[1].parentMessageId).toBe("msg_1");
     });
   });
 });

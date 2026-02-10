@@ -1,0 +1,74 @@
+---
+title: React SDK Reference
+description: Complete API reference for @tambo-ai/react - hooks, types, utilities, and providers for building AI-powered React applications.
+---
+
+The `@tambo-ai/react` package is Tambo's official React SDK for building AI-powered generative UI applications. This reference documents all public APIs including hooks, types, utilities, and provider components.
+
+## Installation
+
+```bash
+npm install @tambo-ai/react
+```
+
+## Quick Links
+
+- [Hooks](/reference/react-sdk/hooks) - React hooks for thread management, component state, streaming, and more
+- [Types](/reference/react-sdk/types) - TypeScript interfaces and types for type-safe development
+- [Utilities](/reference/react-sdk/utilities) - Helper functions like `defineTool()` and `withInteractable()`
+- [Providers](/reference/react-sdk/providers) - Provider components for configuring Tambo in your app
+- [MCP](/reference/react-sdk/mcp) - Model Context Protocol hooks and types
+
+## Overview
+
+The SDK is organized around a provider hierarchy that manages AI state and configuration:
+
+```tsx
+import { TamboProvider } from "@tambo-ai/react";
+
+function App() {
+  return (
+    <TamboProvider
+      apiKey={process.env.TAMBO_API_KEY}
+      components={
+        [
+          /* your components */
+        ]
+      }
+      tools={
+        [
+          /* your tools */
+        ]
+      }
+    >
+      <YourApp />
+    </TamboProvider>
+  );
+}
+```
+
+Inside the provider, use hooks to access Tambo functionality:
+
+```tsx
+import {
+  useTambo,
+  useTamboThread,
+  useTamboStreamStatus,
+} from "@tambo-ai/react";
+
+function Chat() {
+  const { sendThreadMessage, thread } = useTamboThread();
+  const { streamStatus } = useTamboStreamStatus();
+  // Build your UI
+}
+```
+
+## MCP Support
+
+For Model Context Protocol integrations, import from the `/mcp` subpath:
+
+```tsx
+import { TamboMcpProvider, useTamboMcpServers } from "@tambo-ai/react/mcp";
+```
+
+MCP requires additional peer dependencies. See the [MCP reference](/reference/react-sdk/mcp) for setup instructions.

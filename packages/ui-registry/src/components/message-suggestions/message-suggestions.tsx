@@ -3,13 +3,8 @@
 import { MessageGenerationStage } from "./message-generation-stage";
 import { Tooltip, TooltipProvider } from "./suggestions-tooltip";
 import { cn } from "@tambo-ai/ui-registry/utils";
-import type { Suggestion, TamboThread } from "@tambo-ai/react";
-import {
-  GenerationStage,
-  useTambo,
-  useTamboSuggestions,
-} from "@tambo-ai/react";
-import { Loader2Icon } from "lucide-react";
+import type { Suggestion, TamboThreadMessage } from "@tambo-ai/react";
+import { useTambo, useTamboSuggestions } from "@tambo-ai/react";
 import * as React from "react";
 import { useEffect, useRef } from "react";
 
@@ -28,7 +23,8 @@ interface MessageSuggestionsContextValue {
   accept: (options: { suggestion: Suggestion }) => Promise<void>;
   isGenerating: boolean;
   error: Error | null;
-  thread: TamboThread;
+  messages: TamboThreadMessage[];
+  isStreaming: boolean;
   isMac: boolean;
 }
 
@@ -94,24 +90,25 @@ const MessageSuggestions = React.forwardRef<
     },
     ref,
   ) => {
-    const { thread } = useTambo();
+    const { messages, isStreaming } = useTambo();
     const {
       suggestions: generatedSuggestions,
       selectedSuggestionId,
       accept,
-      generateResult: { isPending: isGenerating, error },
+      isGenerating,
+      error,
     } = useTamboSuggestions({ maxSuggestions });
 
     // Combine initial and generated suggestions, but only use initial ones when thread is empty
     const suggestions = React.useMemo(() => {
       // Only use pre-seeded suggestions if thread is empty
-      if (!thread?.messages?.length && initialSuggestions.length > 0) {
+      if (!messages.length && initialSuggestions.length > 0) {
         return initialSuggestions.slice(0, maxSuggestions);
       }
       // Otherwise use generated suggestions
       return generatedSuggestions;
     }, [
-      thread?.messages?.length,
+      messages.length,
       generatedSuggestions,
       initialSuggestions,
       maxSuggestions,
@@ -131,7 +128,8 @@ const MessageSuggestions = React.forwardRef<
         accept,
         isGenerating,
         error,
-        thread,
+        messages,
+        isStreaming,
         isMac,
       }),
       [
@@ -140,15 +138,18 @@ const MessageSuggestions = React.forwardRef<
         accept,
         isGenerating,
         error,
-        thread,
+        messages,
+        isStreaming,
         isMac,
       ],
     );
 
     // Find the last AI message
-    const lastAiMessage = thread?.messages
-      ? [...thread.messages].reverse().find((msg) => msg.role === "assistant")
-      : null;
+    const lastAiMessage =
+      messages.length > 0
+        ? (messages.toReversed().find((msg) => msg.role === "assistant") ??
+          null)
+        : null;
 
     // When a new AI message appears, update the reference
     useEffect(() => {
@@ -196,7 +197,7 @@ const MessageSuggestions = React.forwardRef<
     }, [suggestions, accept, isMac]);
 
     // If we have no messages yet and no initial suggestions, render nothing
-    if (!thread?.messages?.length && initialSuggestions.length === 0) {
+    if (!messages.length && initialSuggestions.length === 0) {
       return null;
     }
 
@@ -241,19 +242,14 @@ const MessageSuggestionsStatus = React.forwardRef<
   HTMLDivElement,
   MessageSuggestionsStatusProps
 >(({ className, ...props }, ref) => {
-  const { error, isGenerating, thread } = useMessageSuggestionsContext();
+  const { error, isGenerating, isStreaming } = useMessageSuggestionsContext();
 
   return (
     <div
       ref={ref}
       className={cn(
         "p-2 rounded-md text-sm bg-transparent",
-        !error &&
-          !isGenerating &&
-          (!thread?.generationStage ||
-            thread.generationStage === GenerationStage.COMPLETE)
-          ? "p-0 min-h-0 mb-0"
-          : "",
+        !error && !isGenerating && !isStreaming ? "p-0 min-h-0 mb-0" : "",
         className,
       )}
       data-slot="message-suggestions-status"
@@ -268,39 +264,12 @@ const MessageSuggestionsStatus = React.forwardRef<
 
       {/* Always render a container for generation stage to prevent layout shifts */}
       <div className="generation-stage-container">
-        <GenerationStageContent
-          generationStage={thread?.generationStage}
-          isGenerating={isGenerating}
-        />
+        {isStreaming && <MessageGenerationStage />}
       </div>
     </div>
   );
 });
 MessageSuggestionsStatus.displayName = "MessageSuggestions.Status";
-
-/**
- * Internal component to render generation stage content
- */
-function GenerationStageContent({
-  generationStage,
-  isGenerating,
-}: {
-  generationStage?: string;
-  isGenerating: boolean;
-}) {
-  if (generationStage && generationStage !== GenerationStage.COMPLETE) {
-    return <MessageGenerationStage />;
-  }
-  if (isGenerating) {
-    return (
-      <div className="flex items-center gap-2 text-muted-foreground">
-        <Loader2Icon className="h-4 w-4 animate-spin" />
-        <p>Generating suggestions...</p>
-      </div>
-    );
-  }
-  return null;
-}
 
 /**
  * Props for the MessageSuggestionsList component.

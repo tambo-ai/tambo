@@ -56,7 +56,7 @@ export function TamboProviderWrapper({
       apiKey={env.NEXT_PUBLIC_TAMBO_DASH_KEY!}
       tamboUrl={env.NEXT_PUBLIC_TAMBO_API_URL}
       components={tamboRegisteredComponents}
-      contextKey={contextKey}
+      userKey={contextKey}
       contextHelpers={{
         userPage: currentPageContextHelper,
       }}

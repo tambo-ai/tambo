@@ -78,7 +78,7 @@ jobs:
           git clone https://x-access-token:$GITHUB_TOKEN@github.com/${{ matrix.template-repo }}.git template-repo
           cd template-repo
           git config user.name "Tambo Bot"
-          git config user.email "bot@tambo.ai"
+          git config user.email "bots@tambo.co"
 
       - name: Create upgrade branch
         working-directory: template-repo

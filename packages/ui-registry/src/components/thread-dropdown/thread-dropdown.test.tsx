@@ -4,22 +4,26 @@ import React from "react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ThreadDropdown } from "./thread-dropdown";
-import { useTamboThread, useTamboThreadList } from "@tambo-ai/react";
+import { useTambo, useTamboThreadList } from "@tambo-ai/react";
 
 // @tambo-ai/react is mocked via moduleNameMapper in jest.config.ts
 
 describe("ThreadDropdown", () => {
-  const mockUseTamboThread = jest.mocked(useTamboThread);
+  const mockUseTambo = jest.mocked(useTambo);
   const mockUseTamboThreadList = jest.mocked(useTamboThreadList);
 
   beforeEach(() => {
-    mockUseTamboThread.mockReturnValue({
-      switchCurrentThread: jest.fn(),
+    mockUseTambo.mockReturnValue({
+      switchThread: jest.fn(),
       startNewThread: jest.fn(),
+      currentThreadId: "mock-thread-id",
+      messages: [],
+      isStreaming: false,
+      isIdle: true,
     } as never);
 
     mockUseTamboThreadList.mockReturnValue({
-      data: { items: [] },
+      data: { threads: [] },
       isLoading: false,
       error: null,
       refetch: jest.fn(),
@@ -53,7 +57,9 @@ describe("ThreadDropdown", () => {
     it("opens dropdown with keyboard", async () => {
       const user = userEvent.setup();
       mockUseTamboThreadList.mockReturnValue({
-        data: { items: [{ id: "thread-1" }] },
+        data: {
+          threads: [{ id: "thread-1", createdAt: new Date().toISOString() }],
+        },
         isLoading: false,
         error: null,
         refetch: jest.fn(),

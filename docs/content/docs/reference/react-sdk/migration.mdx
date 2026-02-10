@@ -1,0 +1,712 @@
+---
+title: Migrating to the React SDK 1.0
+description: Step-by-step guide for migrating from @tambo-ai/react (pre-1.0.0) to @tambo-ai/react 1.0.
+---
+
+import { Tab, Tabs } from "fumadocs-ui/components/tabs";
+
+This guide walks you through migrating from `@tambo-ai/react` version 0.x to version 1.0. Follow the steps in order — each one builds on the previous.
+
+## Overview of changes
+
+The current SDK is a redesign focused on explicit control and composability. The main shifts are:
+
+- **Explicit thread management** — you control when threads are created and switched, instead of the provider doing it implicitly
+- **Content blocks** — messages use Anthropic-style content blocks (text, component, tool_use, tool_result) instead of simple text arrays
+- **Runs instead of "advancing"** — the concept of "advancing a thread" is replaced by runs, with `streamingState` tracking their lifecycle
+- **Simplified provider tree** — fewer nested providers, with React Query under the hood for data fetching
+- **Manual component rendering** — you render AI-generated components explicitly using `ComponentRenderer`, giving you full control over layout
+
+## Step 1: Update package version
+
+Upgrade `@tambo-ai/react` from version 0.x to version 1.0:
+
+```bash
+npm install @tambo-ai/react@latest
+```
+
+Your imports stay the same — both versions use `@tambo-ai/react`:
+
+```tsx
+import {
+  TamboProvider,
+  useTambo,
+  useTamboThreadInput,
+  useTamboComponentState,
+  useTamboStreamStatus,
+  useTamboThreadList,
+} from "@tambo-ai/react";
+```
+
+Some shared utilities are available from the main package:
+
+```tsx
+import {
+  defineTool,
+  useTamboClient,
+  useTamboVoice,
+  useMessageImages,
+  currentPageContextHelper,
+  currentTimeContextHelper,
+} from "@tambo-ai/react";
+```
+
+## Step 2: Update the provider
+
+The `TamboProvider` API is mostly the same, but `contextKey` is replaced by `userKey`:
+
+```tsx title="Before"
+<TamboProvider
+  apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY!}
+  contextKey="my-chat-context"
+  userToken={oauthToken}
+  components={components}
+  tools={tools}
+  streaming={true}
+  autoGenerateThreadName={true}
+  autoGenerateNameThreshold={3}
+  initialMessages={[{ role: "assistant", content: "Hello!" }]}
+>
+  <App />
+</TamboProvider>
+```
+
+```tsx title="After"
+<TamboProvider
+  apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY!}
+  userKey={userId}
+  components={components}
+  tools={tools}
+  initialMessages={[
+    { role: "assistant", content: [{ type: "text", text: "Hello!" }] },
+  ]}
+  autoGenerateThreadName={true}
+  autoGenerateNameThreshold={3}
+>
+  <App />
+</TamboProvider>
+```
+
+### What changed
+
+| Pre-1.0.0                   | 1.0                         | Notes                                                                                                                                                                                                                  |
+| --------------------------- | --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `contextKey`                | `userKey`                   | **Semantic change**: `contextKey` was for logical grouping (e.g., "admin-panel"). `userKey` identifies a specific user (e.g., user ID from auth). All threads created within the provider are now scoped to this user. |
+| `userToken`                 | `userToken`                 | Still supported — provide either `userKey` or `userToken`, not both.                                                                                                                                                   |
+| `streaming`                 | _removed_                   | Streaming is always enabled.                                                                                                                                                                                           |
+| `autoGenerateThreadName`    | `autoGenerateThreadName`    | Same prop. Defaults to `true`.                                                                                                                                                                                         |
+| `autoGenerateNameThreshold` | `autoGenerateNameThreshold` | Same prop. Defaults to `3`.                                                                                                                                                                                            |
+| `initialMessages`           | `initialMessages`           | Same concept — accepts `InputMessage[]` with content blocks instead of simple strings.                                                                                                                                 |
+| `components`                | `components`                | Same format.                                                                                                                                                                                                           |
+| `tools`                     | `tools`                     | Same format.                                                                                                                                                                                                           |
+| `mcpServers`                | `mcpServers`                | Same format.                                                                                                                                                                                                           |
+| `contextHelpers`            | `contextHelpers`            | Same format.                                                                                                                                                                                                           |
+
+## Step 3: Update the main hook
+
+The `useTambo()` return shape is different:
+
+```tsx title="Before"
+function Chat() {
+  const { thread, messages, generationStage, isStreaming } = useTambo();
+
+  const isIdle =
+    generationStage === GenerationStage.IDLE ||
+    generationStage === GenerationStage.COMPLETE;
+
+  return (
+    <div>
+      {messages.map((msg) => (
+        <div key={msg.id}>{msg.content[0]?.text}</div>
+      ))}
+      {isStreaming && <Spinner />}
+    </div>
+  );
+}
+```
+
+```tsx title="After"
+function Chat() {
+  const {
+    thread,
+    messages,
+    streamingState,
+    isStreaming,
+    isIdle,
+    isWaiting,
+    startNewThread,
+    switchThread,
+    cancelRun,
+  } = useTambo();
+
+  return (
+    <div>
+      {messages.map((msg) => (
+        <MessageRenderer key={msg.id} message={msg} />
+      ))}
+      {isWaiting && <Spinner />}
+      {isStreaming && <StreamingIndicator />}
+    </div>
+  );
+}
+```
+
+### Key differences
+
+| Pre-1.0.0                | 1.0                                 | Notes                                                                                 |
+| ------------------------ | ----------------------------------- | ------------------------------------------------------------------------------------- |
+| `generationStage` (enum) | `streamingState.status`             | A string union: `"idle"` \| `"waiting"` \| `"streaming"` \| `"complete"` \| `"error"` |
+| `isStreaming`            | `isStreaming`                       | Same, but current SDK also gives `isWaiting` and `isIdle`                             |
+| `isCancelling`           | `streamingState.status === "error"` | Check `streamingState.error?.code === "CANCELLED"` for cancel-specific handling       |
+| _n/a_                    | `cancelRun()`                       | New — cancels the active run                                                          |
+| _n/a_                    | `startNewThread()`                  | New — creates a new thread and returns its ID                                         |
+| _n/a_                    | `switchThread(id)`                  | New — switches to an existing thread                                                  |
+| `sendThreadMessage()`    | _removed_                           | Use `useTamboThreadInput().submit()` instead                                          |
+
+## Step 4: Update thread input
+
+The thread input hook works similarly, but `submit()` now returns the thread ID:
+
+```tsx title="Before"
+function ChatInput() {
+  const { value, setValue, submit, isPending } = useTamboThreadInput();
+
+  const handleSubmit = async () => {
+    await submit();
+  };
+
+  return (
+    <input
+      value={value}
+      onChange={(e) => setValue(e.target.value)}
+      onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
+      disabled={isPending}
+    />
+  );
+}
+```
+
+```tsx title="After"
+function ChatInput() {
+  const { value, setValue, submit, isPending } = useTamboThreadInput();
+
+  const handleSubmit = async () => {
+    const { threadId } = await submit();
+    // threadId is the thread this message was sent to.
+    // On first submit, this is the newly created thread ID.
+  };
+
+  return (
+    <input
+      value={value}
+      onChange={(e) => setValue(e.target.value)}
+      onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
+      disabled={isPending}
+    />
+  );
+}
+```
+
+The image handling API (`addImage`, `removeImage`, `clearImages`, `images`) is unchanged.
+
+## Step 5: Handle content blocks in messages
+
+This is the biggest conceptual change. In version 0.x, messages had a simple structure — each message contained an array of `{ type: "text", text: string }` content blocks. Version 1.0 uses rich content blocks:
+
+```tsx title="Before"
+function Message({ message }: { message: TamboThreadMessage }) {
+  return (
+    <div>
+      {message.content.map((block, i) => (
+        <p key={i}>{block.text}</p>
+      ))}
+    </div>
+  );
+}
+```
+
+```tsx title="After"
+import { ComponentRenderer, type TamboMessage } from "@tambo-ai/react";
+
+function Message({
+  message,
+  threadId,
+}: {
+  message: TamboMessage;
+  threadId: string;
+}) {
+  // Show cancellation indicator if message was cancelled
+  if (message.wasCancelled) {
+    return <div className="text-muted">Message was cancelled</div>;
+  }
+
+  return (
+    <div>
+      {message.content.map((block) => {
+        switch (block.type) {
+          case "text":
+            return <p key={block.type}>{block.text}</p>;
+
+          case "component":
+            return (
+              <ComponentRenderer
+                key={block.id}
+                content={block}
+                threadId={threadId}
+                messageId={message.id}
+                fallback={<div>Unknown component: {block.name}</div>}
+              />
+            );
+
+          case "tool_use":
+            return <div key={block.id}>{block.statusMessage}</div>;
+
+          case "tool_result":
+            // Usually hidden — the tool_use block shows status
+            return null;
+
+          default:
+            return null;
+        }
+      })}
+    </div>
+  );
+}
+```
+
+### Message fields
+
+| Field          | Type      | Description                                                                                      |
+| -------------- | --------- | ------------------------------------------------------------------------------------------------ |
+| `id`           | `string`  | Unique message ID                                                                                |
+| `role`         | `string`  | `"user"` or `"assistant"`                                                                        |
+| `content`      | `array`   | Array of content blocks (see below)                                                              |
+| `wasCancelled` | `boolean` | `true` if the run that generated this message was cancelled. Useful for showing cancellation UI. |
+| `createdAt`    | `Date`    | When the message was created                                                                     |
+
+### Content block types
+
+| Type          | Description                                                                                                        |
+| ------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `text`        | Plain text content. Has a `text` field.                                                                            |
+| `component`   | An AI-generated component. Use `ComponentRenderer` to render it, or access `block.renderedComponent` directly.     |
+| `tool_use`    | A tool call. Includes `name`, `input` (cleaned of internal `_tambo_*` props), `hasCompleted`, and `statusMessage`. |
+| `tool_result` | The result of a tool call. Usually you don't render these directly.                                                |
+| `resource`    | An attached resource (e.g., an image).                                                                             |
+
+<Callout type="info" title="Rendered Components on Content Blocks">
+  For convenience, `useTambo()` pre-renders component content blocks and
+  attaches the result as `block.renderedComponent`. You can use this directly
+  instead of `ComponentRenderer` if you prefer:
+
+```tsx
+case "component":
+  return block.renderedComponent ?? (
+    <div>Unknown component: {block.name}</div>
+  );
+```
+
+</Callout>
+
+## Step 6: Update component state
+
+The `useTamboComponentState` API is the same tuple pattern, but with an added `flush` function:
+
+```tsx title="Before"
+const [state, setState, { isPending }] = useTamboComponentState(
+  "myStateKey",
+  initialValue,
+);
+```
+
+```tsx title="After"
+const [state, setState, { isPending, error, flush }] = useTamboComponentState(
+  "myStateKey",
+  initialValue,
+  500, // optional debounce in ms
+);
+```
+
+`useTamboComponentState` only works inside components rendered via `ComponentRenderer` — the renderer provides the necessary context.
+
+## Step 7: Update stream status
+
+The `useTamboStreamStatus` return shape now includes additional flags:
+
+```tsx title="Before"
+const { isPending, isStreaming, propStatus } = useTamboStreamStatus();
+```
+
+```tsx title="After"
+const { isPending, isStreaming, isSuccess, isError, propStatus } =
+  useTamboStreamStatus();
+```
+
+Like component state, this hook only works inside components rendered via `ComponentRenderer`.
+
+## Step 8: Update thread list
+
+The `useTamboThreadList` return value structure has changed:
+
+```tsx title="Before"
+const { data: threads, isLoading } = useTamboThreadList();
+```
+
+```tsx title="After"
+const { data, isLoading } = useTamboThreadList();
+// data.threads - array of threads
+// data.hasMore - whether more pages exist
+// data.nextCursor - cursor for next page
+```
+
+Thread listing is now scoped to the `userKey` from the provider, instead of `contextKey`.
+
+## Step 9: Update suggestions
+
+The `useTamboSuggestions` hook now includes additional control functions:
+
+```tsx title="Before"
+const { suggestions, isLoading } = useTamboSuggestions();
+```
+
+```tsx title="After"
+const { suggestions, accept, generate, isLoading, isGenerating, isAccepting } =
+  useTamboSuggestions({
+    maxSuggestions: 3,
+    autoGenerate: true,
+  });
+```
+
+The current SDK adds `accept()` for directly accepting a suggestion into the input and `generate()` for manually triggering generation.
+
+## Step 10: Update testing
+
+The `TamboStubProvider` API is more explicit about what state it provides:
+
+```tsx title="Before (0.x)"
+import { TamboStubProvider } from "@tambo-ai/react";
+
+<TamboStubProvider>
+  <ComponentUnderTest />
+</TamboStubProvider>;
+```
+
+```tsx title="After (1.0)"
+import { TamboStubProvider } from "@tambo-ai/react";
+
+<TamboStubProvider
+  thread={mockThread}
+  threadId="test_thread"
+  components={components}
+  userKey="test_user"
+  isStreaming={false}
+  onSubmit={async () => "thread_123"}
+>
+  <ComponentUnderTest />
+</TamboStubProvider>;
+```
+
+`TamboStubProvider` provides all contexts without making API calls, and requires explicit props for all state.
+
+## Step 11: Update interactable components
+
+The interactable HOC was renamed in version 1.0:
+
+```tsx title="Before (0.x)"
+import {
+  withInteractable,
+  useTamboInteractable,
+  useCurrentInteractablesSnapshot,
+} from "@tambo-ai/react";
+```
+
+```tsx title="After (1.0)"
+import {
+  withTamboInteractable,
+  useTamboInteractable,
+  useCurrentInteractablesSnapshot,
+} from "@tambo-ai/react";
+```
+
+The HOC was renamed from `withInteractable` to `withTamboInteractable` for consistency with the SDK naming convention. Usage is otherwise unchanged:
+
+```tsx
+const InteractableNote = withTamboInteractable(Note, {
+  componentName: "Note",
+  description: "An editable note",
+  propsSchema: noteSchema,
+});
+```
+
+## Notes
+
+### Context attachments
+
+The `TamboContextAttachmentProvider` is included in the provider hierarchy, and the `useTamboContextAttachment` hook is available from the main package:
+
+```tsx
+import { useTamboContextAttachment } from "@tambo-ai/react";
+```
+
+## Quick reference: API name mapping
+
+| Pre-1.0.0                         | 1.0                                   |
+| --------------------------------- | ------------------------------------- |
+| `TamboProvider`                   | `TamboProvider`                       |
+| `TamboStubProvider`               | `TamboStubProvider`                   |
+| `useTambo()`                      | `useTambo()`                          |
+| `useTamboThreadInput()`           | `useTamboThreadInput()`               |
+| `useTamboComponentState()`        | `useTamboComponentState()`            |
+| `useTamboStreamStatus()`          | `useTamboStreamStatus()`              |
+| `useTamboThreadList()`            | `useTamboThreadList()`                |
+| `useTamboSuggestions()`           | `useTamboSuggestions()`               |
+| `TamboThreadMessage`              | `TamboMessage`                        |
+| `GenerationStage`                 | `streamingState.status` (`RunStatus`) |
+| `withInteractable`                | `withTamboInteractable`               |
+| `useTamboInteractable`            | `useTamboInteractable`                |
+| `useCurrentInteractablesSnapshot` | `useCurrentInteractablesSnapshot`     |
+| _n/a_                             | `ComponentRenderer`                   |
+| _n/a_                             | `cancelRun()`                         |
+| _n/a_                             | `startNewThread()`                    |
+| _n/a_                             | `switchThread()`                      |
+
+## Migrating from toolSchema to inputSchema/outputSchema
+
+If you're upgrading tools that used the deprecated `toolSchema` property, you'll need to migrate to the new `inputSchema` and `outputSchema` API. This change provides clearer semantics, better type inference, and StandardSchema support.
+
+### Why the change?
+
+The new API provides:
+
+- **Clearer semantics** - Input and output schemas are explicitly separated
+- **Better type inference** - TypeScript can infer parameter and return types from schemas
+- **StandardSchema support** - Works with Zod 3.25.76, Zod 4.x, and other StandardSchema-compliant validators
+- **Simpler function signatures** - Tool functions receive a single object parameter
+
+### Migration steps
+
+#### 1. Update the schema definition and tool function signature
+
+Tool functions now receive a single object parameter instead of spread arguments.
+
+**Before (deprecated):**
+
+```typescript
+import { z } from "zod";
+
+const fetchUserTool = {
+  name: "fetchUser",
+  description: "Fetch a user by ID",
+  tool: async (userId: string): Promise<{ name: string; email: string }> => {
+    const user = await fetchUser(userId);
+    return user;
+  },
+  toolSchema: z
+    .function()
+    .args(z.string())
+    .returns(z.object({ name: z.string(), email: z.string() })),
+};
+```
+
+**After:**
+
+```typescript
+const fetchUserTool = {
+  name: "fetchUser",
+  description: "Fetch a user by ID",
+  // tool() receives a single object as the first argument to the tool function
+  tool: async ({ userId }) => {
+    const user = await fetchUser(userId);
+    return user;
+  },
+  inputSchema: z.object({
+    userId: z.string().describe("The user ID to fetch"),
+  }),
+  outputSchema: z.object({
+    name: z.string(),
+    email: z.string(),
+  }),
+};
+```
+
+#### 2. Use defineTool for better type safety
+
+The `defineTool` helper provides full type inference from your schemas:
+
+```typescript
+import { defineTool } from "@tambo-ai/react";
+import { z } from "zod";
+
+const fetchUserTool = defineTool({
+  name: "fetchUser",
+  description: "Fetch a user by ID",
+  inputSchema: z.object({
+    userId: z.string().describe("The user ID to fetch"),
+  }),
+  outputSchema: z.object({
+    name: z.string(),
+    email: z.string(),
+  }),
+  // inputSchema and outputSchema allow TypeScript to infer the tool signature:
+  // ({ userId }: { userId: string }) => { name: string; email: string }
+  tool: async ({ userId }) => {
+    const user = await fetchUser(userId);
+    return user;
+  },
+});
+```
+
+### Complete example
+
+**Before (deprecated):**
+
+```typescript
+import { z } from "zod";
+import { useTambo } from "@tambo-ai/react";
+
+const weatherSchema = z
+  .function()
+  .args(z.string(), z.enum(["celsius", "fahrenheit"]))
+  .returns(z.object({ temperature: z.number(), unit: z.string() }));
+
+function WeatherApp() {
+  const { registerTool } = useTambo();
+
+  useEffect(() => {
+    registerTool({
+      name: "getWeather",
+      description: "Get weather for a city",
+      tool: async (city: string, unit: "celsius" | "fahrenheit") => {
+        return await fetchWeather(city, unit);
+      },
+      toolSchema: weatherSchema,
+    });
+  }, []);
+}
+```
+
+**After:**
+
+```typescript
+import { z } from "zod";
+import { useTambo, defineTool } from "@tambo-ai/react";
+
+const getWeatherTool = defineTool({
+  name: "getWeather",
+  description: "Get weather for a city",
+  inputSchema: z.object({
+    city: z.string().describe("The city name"),
+    unit: z.enum(["celsius", "fahrenheit"]).describe("Temperature unit"),
+  }),
+  outputSchema: z.object({
+    temperature: z.number(),
+    unit: z.string(),
+  }),
+  tool: async ({ city, unit }) => {
+    return await fetchWeather(city, unit);
+  },
+});
+
+function WeatherApp() {
+  const { registerTool } = useTambo();
+
+  useEffect(() => {
+    registerTool(getWeatherTool);
+  }, []);
+}
+```
+
+### Zod version compatibility
+
+The new API supports both Zod 3.25.76 and Zod 4.x through the StandardSchema specification:
+
+```typescript
+// Zod 3.25.76
+import { z } from "zod";
+
+// Zod 4.x
+import { z } from "zod/v4";
+
+// Both work identically with inputSchema/outputSchema
+const inputSchema = z.object({
+  query: z.string(),
+});
+```
+
+### JSON Schema support
+
+If you prefer raw JSON Schema, that's also supported:
+
+```typescript
+const searchTool = {
+  name: "search",
+  description: "Search for items",
+  inputSchema: {
+    type: "object",
+    properties: {
+      query: { type: "string", description: "Search query" },
+    },
+    required: ["query"],
+  },
+  outputSchema: {
+    type: "array",
+    items: { type: "object" },
+  },
+  tool: async ({ query }: { query: string }) => {
+    return await search(query);
+  },
+};
+```
+
+### Troubleshooting
+
+#### TypeScript errors after migration
+
+If you see type errors, ensure:
+
+1. Your `inputSchema` is an object schema (not a function schema)
+2. Your tool function accepts a single object parameter matching the input schema
+3. You're using `defineTool` for automatic type inference
+
+#### Runtime errors
+
+If tools fail at runtime:
+
+1. Check that parameter names in your tool function match the schema property names
+2. Verify your Zod version is >4, or 3.25.76 for Zod 3
+3. Ensure `zod-to-json-schema` is installed if using Zod 3.x
+
+#### Slow TypeScript compilation with Zod
+
+Some projects may encounter performance issues with TypeScript when using Zod schemas:
+
+- IDE becomes sluggish or unresponsive
+- Type checking takes significantly longer than expected
+- TypeScript language server may stop responding
+- Compilation errors about deeply nested type instantiations:
+  ```
+  Type instantiation is excessively deep and possibly infinite ts(2589)
+  ```
+
+**Root cause:** Earlier Zod versions had a module resolution configuration that could cause TypeScript to process type definitions multiple times, creating expensive type comparisons.
+
+**Fix:** Update to Zod 4.1.8 or newer:
+
+<Tabs items={["npm", "pnpm", "yarn", "bun"]}>
+  <Tab id="tab-npm" value="npm">
+    ```bash npm install zod@^4.1.8 ```
+  </Tab>
+  <Tab id="tab-pnpm" value="pnpm">
+    ```bash pnpm add zod@^4.1.8 ```
+  </Tab>
+  <Tab id="tab-yarn" value="yarn">
+    ```bash yarn add zod@^4.1.8 ```
+  </Tab>
+  <Tab id="tab-bun" value="bun">
+    ```bash bun add zod@^4.1.8 ```
+  </Tab>
+</Tabs>
+
+Zod 4.1.8+ resolves the module resolution configuration that was causing duplicate type processing.
+
+**Need help?** If you can't upgrade immediately, reach out on Discord and we'll help troubleshoot your specific situation.

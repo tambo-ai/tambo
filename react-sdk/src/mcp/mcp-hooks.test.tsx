@@ -101,6 +101,9 @@ describe("useTamboMcpPromptList - individual server caching", () => {
           client: { baseURL: "https://api.tambo.co" } as any,
           queryClient,
           isUpdatingToken: false,
+          tokenExchangeError: null,
+          userToken: undefined,
+          hasValidToken: false,
         }}
       >
         <TamboRegistryProvider
@@ -208,6 +211,9 @@ describe("useTamboMcpPromptList - individual server caching", () => {
           client: { baseURL: "https://api.tambo.co" } as any,
           queryClient,
           isUpdatingToken: false,
+          tokenExchangeError: null,
+          userToken: undefined,
+          hasValidToken: false,
         }}
       >
         <TamboRegistryProvider
@@ -249,6 +255,9 @@ describe("useTamboMcpPromptList - individual server caching", () => {
           client: { baseURL: "https://api.tambo.co" } as any,
           queryClient,
           isUpdatingToken: false,
+          tokenExchangeError: null,
+          userToken: undefined,
+          hasValidToken: false,
         }}
       >
         <TamboRegistryProvider
@@ -341,6 +350,9 @@ describe("useTamboMcpPromptList - individual server caching", () => {
           client: { baseURL: "https://api.tambo.co" } as any,
           queryClient,
           isUpdatingToken: false,
+          tokenExchangeError: null,
+          userToken: undefined,
+          hasValidToken: false,
         }}
       >
         <TamboRegistryProvider
@@ -443,6 +455,9 @@ describe("useTamboMcpPromptList - individual server caching", () => {
           client: { baseURL: "https://api.tambo.co" } as any,
           queryClient,
           isUpdatingToken: false,
+          tokenExchangeError: null,
+          userToken: undefined,
+          hasValidToken: false,
         }}
       >
         <TamboRegistryProvider
@@ -532,6 +547,9 @@ describe("useTamboMcpPromptList - individual server caching", () => {
           client: { baseURL: "https://api.tambo.co" } as any,
           queryClient,
           isUpdatingToken: false,
+          tokenExchangeError: null,
+          userToken: undefined,
+          hasValidToken: false,
         }}
       >
         <TamboRegistryProvider
@@ -567,6 +585,9 @@ describe("useTamboMcpPromptList - individual server caching", () => {
           client: { baseURL: "https://api.tambo.co" } as any,
           queryClient,
           isUpdatingToken: false,
+          tokenExchangeError: null,
+          userToken: undefined,
+          hasValidToken: false,
         }}
       >
         <TamboRegistryProvider
@@ -661,6 +682,9 @@ describe("useTamboMcpPromptList - search filtering", () => {
           client: { baseURL: "https://api.tambo.co" } as any,
           queryClient,
           isUpdatingToken: false,
+          tokenExchangeError: null,
+          userToken: undefined,
+          hasValidToken: false,
         }}
       >
         <TamboRegistryProvider
@@ -692,6 +716,9 @@ describe("useTamboMcpPromptList - search filtering", () => {
           client: { baseURL: "https://api.tambo.co" } as any,
           queryClient,
           isUpdatingToken: false,
+          tokenExchangeError: null,
+          userToken: undefined,
+          hasValidToken: false,
         }}
       >
         <TamboRegistryProvider
@@ -762,6 +789,9 @@ describe("useTamboMcpPromptList - search filtering", () => {
           client: { baseURL: "https://api.tambo.co" } as any,
           queryClient,
           isUpdatingToken: false,
+          tokenExchangeError: null,
+          userToken: undefined,
+          hasValidToken: false,
         }}
       >
         <TamboRegistryProvider
@@ -911,6 +941,9 @@ describe("useTamboMcpResourceList - resource management", () => {
           client: { baseURL: "https://api.tambo.co" } as any,
           queryClient,
           isUpdatingToken: false,
+          tokenExchangeError: null,
+          userToken: undefined,
+          hasValidToken: false,
         }}
       >
         <TamboRegistryProvider
@@ -1005,6 +1038,9 @@ describe("useTamboMcpResourceList - resource management", () => {
           client: { baseURL: "https://api.tambo.co" } as any,
           queryClient,
           isUpdatingToken: false,
+          tokenExchangeError: null,
+          userToken: undefined,
+          hasValidToken: false,
         }}
       >
         <TamboRegistryProvider
@@ -1106,6 +1142,9 @@ describe("useTamboMcpResourceList - resource management", () => {
           client: { baseURL: "https://api.tambo.co" } as any,
           queryClient,
           isUpdatingToken: false,
+          tokenExchangeError: null,
+          userToken: undefined,
+          hasValidToken: false,
         }}
       >
         <TamboRegistryProvider
@@ -1145,6 +1184,9 @@ describe("useTamboMcpResourceList - resource management", () => {
           client: { baseURL: "https://api.tambo.co" } as any,
           queryClient,
           isUpdatingToken: false,
+          tokenExchangeError: null,
+          userToken: undefined,
+          hasValidToken: false,
         }}
       >
         <TamboRegistryProvider
@@ -1249,6 +1291,9 @@ describe("useTamboMcpResourceList - search filtering", () => {
           client: { baseURL: "https://api.tambo.co" } as any,
           queryClient,
           isUpdatingToken: false,
+          tokenExchangeError: null,
+          userToken: undefined,
+          hasValidToken: false,
         }}
       >
         <TamboRegistryProvider
@@ -1280,6 +1325,9 @@ describe("useTamboMcpResourceList - search filtering", () => {
           client: { baseURL: "https://api.tambo.co" } as any,
           queryClient,
           isUpdatingToken: false,
+          tokenExchangeError: null,
+          userToken: undefined,
+          hasValidToken: false,
         }}
       >
         <TamboRegistryProvider
@@ -1345,6 +1393,9 @@ describe("useTamboMcpResourceList - search filtering", () => {
           client: { baseURL: "https://api.tambo.co" } as any,
           queryClient,
           isUpdatingToken: false,
+          tokenExchangeError: null,
+          userToken: undefined,
+          hasValidToken: false,
         }}
       >
         <TamboRegistryProvider
@@ -1378,6 +1429,9 @@ describe("useTamboMcpResourceList - search filtering", () => {
           client: { baseURL: "https://api.tambo.co" } as any,
           queryClient,
           isUpdatingToken: false,
+          tokenExchangeError: null,
+          userToken: undefined,
+          hasValidToken: false,
         }}
       >
         <TamboRegistryProvider
@@ -1438,6 +1492,9 @@ describe("useTamboMcpResourceList - search filtering", () => {
           client: { baseURL: "https://api.tambo.co" } as any,
           queryClient,
           isUpdatingToken: false,
+          tokenExchangeError: null,
+          userToken: undefined,
+          hasValidToken: false,
         }}
       >
         <TamboRegistryProvider
@@ -1529,6 +1586,9 @@ describe("useTamboMcpResourceList - search filtering", () => {
           client: { baseURL: "https://api.tambo.co" } as any,
           queryClient,
           isUpdatingToken: false,
+          tokenExchangeError: null,
+          userToken: undefined,
+          hasValidToken: false,
         }}
       >
         <TamboRegistryProvider
@@ -1641,6 +1701,9 @@ describe("useTamboMcpResource - read individual resource", () => {
           client: { baseURL: "https://api.tambo.co" } as any,
           queryClient,
           isUpdatingToken: false,
+          tokenExchangeError: null,
+          userToken: undefined,
+          hasValidToken: false,
         }}
       >
         <TamboRegistryProvider
@@ -1752,6 +1815,9 @@ describe("useTamboMcpResource - read individual resource", () => {
           client: { baseURL: "https://api.tambo.co" } as any,
           queryClient,
           isUpdatingToken: false,
+          tokenExchangeError: null,
+          userToken: undefined,
+          hasValidToken: false,
         }}
       >
         <TamboRegistryProvider
@@ -1819,6 +1885,9 @@ describe("useTamboMcpResource - read individual resource", () => {
           client: { baseURL: "https://api.tambo.co" } as any,
           queryClient,
           isUpdatingToken: false,
+          tokenExchangeError: null,
+          userToken: undefined,
+          hasValidToken: false,
         }}
       >
         <TamboRegistryProvider

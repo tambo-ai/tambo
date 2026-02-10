@@ -1,5 +1,5 @@
 import { act, renderHook } from "@testing-library/react";
-import { useTamboV1ComponentState } from "./use-tambo-v1-component-state";
+import { useTamboComponentState } from "./use-tambo-v1-component-state";
 
 // Mock the required modules
 jest.mock("../../providers/tambo-client-provider", () => ({
@@ -11,7 +11,7 @@ jest.mock("../providers/tambo-v1-stream-context", () => ({
 }));
 
 jest.mock("../utils/component-renderer", () => ({
-  useV1ComponentContent: jest.fn(),
+  useComponentContentOptional: jest.fn(),
 }));
 
 const mockSetInteractableState = jest.fn();
@@ -19,6 +19,10 @@ const mockGetInteractableComponentState = jest.fn<
   Record<string, unknown> | undefined,
   [string]
 >(() => undefined);
+
+jest.mock("../providers/tambo-v1-provider", () => ({
+  useTamboConfig: jest.fn(() => ({})),
+}));
 
 jest.mock("../../providers/tambo-interactable-provider", () => ({
   useTamboInteractable: () => ({
@@ -58,13 +62,14 @@ jest.mock("use-debounce", () => ({
 
 // Import the mocked modules
 import { useTamboClient } from "../../providers/tambo-client-provider";
+import { useTamboConfig } from "../providers/tambo-v1-provider";
 import { useStreamState } from "../providers/tambo-v1-stream-context";
-import { useV1ComponentContent } from "../utils/component-renderer";
+import { useComponentContentOptional } from "../utils/component-renderer";
 import { useDebouncedCallback } from "use-debounce";
 import type { StreamState } from "../utils/event-accumulator";
-import type { V1ComponentContent } from "../types/message";
+import type { TamboComponentContent } from "../types/message";
 
-describe("useTamboV1ComponentState", () => {
+describe("useTamboComponentState", () => {
   const mockUpdateState = jest.fn();
   const mockComponentId = "comp_test123";
   const mockThreadId = "thread_abc";
@@ -90,7 +95,7 @@ describe("useTamboV1ComponentState", () => {
                   props: {},
                   state: componentState,
                   streamingState: "done",
-                } as V1ComponentContent,
+                } as TamboComponentContent,
               ],
               createdAt: new Date().toISOString(),
             },
@@ -110,6 +115,8 @@ describe("useTamboV1ComponentState", () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
+    jest.mocked(useTamboConfig).mockReturnValue({});
+
     // Setup default mocks
     jest.mocked(useTamboClient).mockReturnValue({
       threads: {
@@ -119,7 +126,7 @@ describe("useTamboV1ComponentState", () => {
       },
     } as unknown as ReturnType<typeof useTamboClient>);
 
-    jest.mocked(useV1ComponentContent).mockReturnValue({
+    jest.mocked(useComponentContentOptional).mockReturnValue({
       componentId: mockComponentId,
       threadId: mockThreadId,
       messageId: mockMessageId,
@@ -149,7 +156,7 @@ describe("useTamboV1ComponentState", () => {
       jest.mocked(useStreamState).mockReturnValue(createMockStreamState({}));
 
       const { result } = renderHook(() =>
-        useTamboV1ComponentState("testKey", initialValue),
+        useTamboComponentState("testKey", initialValue),
       );
 
       expect(result.current[0]).toBe(initialValue);
@@ -163,7 +170,7 @@ describe("useTamboV1ComponentState", () => {
         .mockReturnValue(createMockStreamState({ testKey: serverValue }));
 
       const { result } = renderHook(() =>
-        useTamboV1ComponentState("testKey", initialValue),
+        useTamboComponentState("testKey", initialValue),
       );
 
       expect(result.current[0]).toBe(serverValue);
@@ -172,7 +179,7 @@ describe("useTamboV1ComponentState", () => {
     it("should handle undefined initialValue gracefully", () => {
       jest.mocked(useStreamState).mockReturnValue(createMockStreamState({}));
 
-      const { result } = renderHook(() => useTamboV1ComponentState("testKey"));
+      const { result } = renderHook(() => useTamboComponentState("testKey"));
 
       expect(result.current[0]).toBeUndefined();
     });
@@ -192,7 +199,7 @@ describe("useTamboV1ComponentState", () => {
           .mockReturnValue(createMockStreamState({ testKey: value }));
 
         const { result } = renderHook(() =>
-          useTamboV1ComponentState("testKey", value),
+          useTamboComponentState("testKey", value),
         );
 
         expect(result.current[0]).toEqual(value);
@@ -208,7 +215,7 @@ describe("useTamboV1ComponentState", () => {
         .mockReturnValue(createMockStreamState({ testKey: initialValue }));
 
       const { result } = renderHook(() =>
-        useTamboV1ComponentState("testKey", initialValue),
+        useTamboComponentState("testKey", initialValue),
       );
 
       const newValue = "updated";
@@ -226,7 +233,7 @@ describe("useTamboV1ComponentState", () => {
         .mockReturnValue(createMockStreamState({ counter: initialValue }));
 
       const { result } = renderHook(() =>
-        useTamboV1ComponentState("counter", initialValue),
+        useTamboComponentState("counter", initialValue),
       );
 
       act(() => {
@@ -243,7 +250,7 @@ describe("useTamboV1ComponentState", () => {
         .mockReturnValue(createMockStreamState({ testKey: initialValue }));
 
       const { result } = renderHook(() =>
-        useTamboV1ComponentState("testKey", initialValue),
+        useTamboComponentState("testKey", initialValue),
       );
 
       const newValue = "updated";
@@ -255,6 +262,7 @@ describe("useTamboV1ComponentState", () => {
       expect(mockUpdateState).toHaveBeenCalledWith(mockComponentId, {
         threadId: mockThreadId,
         state: { testKey: newValue },
+        userKey: undefined,
       });
     });
 
@@ -265,7 +273,7 @@ describe("useTamboV1ComponentState", () => {
         .mockReturnValue(createMockStreamState({ data: initialValue }));
 
       const { result } = renderHook(() =>
-        useTamboV1ComponentState("data", initialValue),
+        useTamboComponentState("data", initialValue),
       );
 
       const newValue = { name: "updated", items: [4, 5, 6] };
@@ -282,7 +290,7 @@ describe("useTamboV1ComponentState", () => {
       jest.mocked(useStreamState).mockReturnValue(createMockStreamState({}));
 
       const { result } = renderHook(() =>
-        useTamboV1ComponentState("testKey", "initial"),
+        useTamboComponentState("testKey", "initial"),
       );
 
       expect(result.current[2]).toEqual({
@@ -301,7 +309,7 @@ describe("useTamboV1ComponentState", () => {
       jest.mocked(useStreamState).mockReturnValue(createMockStreamState({}));
 
       const { result } = renderHook(() =>
-        useTamboV1ComponentState("testKey", "initial"),
+        useTamboComponentState("testKey", "initial"),
       );
 
       act(() => {
@@ -316,7 +324,7 @@ describe("useTamboV1ComponentState", () => {
     it("should use default debounce time of 500ms", () => {
       jest.mocked(useStreamState).mockReturnValue(createMockStreamState({}));
 
-      renderHook(() => useTamboV1ComponentState("testKey", "initial"));
+      renderHook(() => useTamboComponentState("testKey", "initial"));
 
       expect(useDebouncedCallback).toHaveBeenCalledWith(
         expect.any(Function),
@@ -329,7 +337,7 @@ describe("useTamboV1ComponentState", () => {
       const customDebounceTime = 1000;
 
       renderHook(() =>
-        useTamboV1ComponentState("testKey", "initial", customDebounceTime),
+        useTamboComponentState("testKey", "initial", customDebounceTime),
       );
 
       expect(useDebouncedCallback).toHaveBeenCalledWith(
@@ -347,7 +355,7 @@ describe("useTamboV1ComponentState", () => {
       jest.mocked(useStreamState).mockReturnValue(createMockStreamState({}));
 
       const { unmount } = renderHook(() =>
-        useTamboV1ComponentState("testKey", "initial"),
+        useTamboComponentState("testKey", "initial"),
       );
 
       unmount();
@@ -362,7 +370,7 @@ describe("useTamboV1ComponentState", () => {
       jest.mocked(useStreamState).mockReturnValue(streamState);
 
       const { result, rerender } = renderHook(() =>
-        useTamboV1ComponentState("testKey", "initial"),
+        useTamboComponentState("testKey", "initial"),
       );
 
       expect(result.current[0]).toBe("initial");
@@ -386,7 +394,7 @@ describe("useTamboV1ComponentState", () => {
       });
 
       const { result } = renderHook(() =>
-        useTamboV1ComponentState("testKey", "default"),
+        useTamboComponentState("testKey", "default"),
       );
 
       expect(result.current[0]).toBe("default");
@@ -416,7 +424,7 @@ describe("useTamboV1ComponentState", () => {
       const consoleSpy = jest.spyOn(console, "error").mockImplementation();
 
       const { result } = renderHook(() =>
-        useTamboV1ComponentState("testKey", "initial"),
+        useTamboComponentState("testKey", "initial"),
       );
 
       await act(async () => {
@@ -435,18 +443,43 @@ describe("useTamboV1ComponentState", () => {
   });
 
   describe("Context Requirements", () => {
-    it("should throw when used outside component content context", () => {
-      jest.mocked(useV1ComponentContent).mockImplementation(() => {
-        throw new Error(
-          "useV1ComponentContent must be used within a rendered component",
-        );
+    it("should act as plain useState when component content context is missing", () => {
+      jest.mocked(useComponentContentOptional).mockReturnValue(null);
+      jest.mocked(useStreamState).mockReturnValue({
+        threadMap: {},
+        currentThreadId: "",
       });
 
-      expect(() => {
-        renderHook(() => useTamboV1ComponentState("testKey", "initial"));
-      }).toThrow(
-        "useV1ComponentContent must be used within a rendered component",
+      const { result } = renderHook(() =>
+        useTamboComponentState("testKey", "initial"),
       );
+
+      expect(result.current[0]).toBe("initial");
+
+      // No side effects when context is missing
+      expect(mockSetInteractableState).not.toHaveBeenCalled();
+      expect(mockUpdateState).not.toHaveBeenCalled();
+    });
+
+    it("should not trigger side effects on setState when context is missing", () => {
+      jest.mocked(useComponentContentOptional).mockReturnValue(null);
+      jest.mocked(useStreamState).mockReturnValue({
+        threadMap: {},
+        currentThreadId: "",
+      });
+
+      const { result } = renderHook(() =>
+        useTamboComponentState("testKey", "initial"),
+      );
+
+      act(() => {
+        result.current[1]("updated");
+      });
+
+      // Local state updates, but no server sync or interactable writes
+      expect(result.current[0]).toBe("updated");
+      expect(mockSetInteractableState).not.toHaveBeenCalled();
+      expect(mockUpdateState).not.toHaveBeenCalled();
     });
   });
 
@@ -455,7 +488,7 @@ describe("useTamboV1ComponentState", () => {
 
     beforeEach(() => {
       // Simulate interactable context: threadId="" signals interactable
-      jest.mocked(useV1ComponentContent).mockReturnValue({
+      jest.mocked(useComponentContentOptional).mockReturnValue({
         componentId: interactableComponentId,
         threadId: "",
         messageId: "",
@@ -472,9 +505,7 @@ describe("useTamboV1ComponentState", () => {
     it("should initialize with initialValue when no interactable state exists", () => {
       mockGetInteractableComponentState.mockReturnValue(undefined);
 
-      const { result } = renderHook(() =>
-        useTamboV1ComponentState("count", 42),
-      );
+      const { result } = renderHook(() => useTamboComponentState("count", 42));
 
       expect(result.current[0]).toBe(42);
     });
@@ -482,7 +513,7 @@ describe("useTamboV1ComponentState", () => {
     it("should initialize from interactable state when it exists", () => {
       mockGetInteractableComponentState.mockReturnValue({ count: 99 });
 
-      const { result } = renderHook(() => useTamboV1ComponentState("count", 0));
+      const { result } = renderHook(() => useTamboComponentState("count", 0));
 
       expect(result.current[0]).toBe(99);
     });
@@ -490,7 +521,7 @@ describe("useTamboV1ComponentState", () => {
     it("should call setInteractableState when setState is called", () => {
       mockGetInteractableComponentState.mockReturnValue(undefined);
 
-      const { result } = renderHook(() => useTamboV1ComponentState("count", 0));
+      const { result } = renderHook(() => useTamboComponentState("count", 0));
 
       act(() => {
         result.current[1](10);
@@ -506,7 +537,7 @@ describe("useTamboV1ComponentState", () => {
     it("should NOT call client.threads.state.updateState for interactable components", () => {
       mockGetInteractableComponentState.mockReturnValue(undefined);
 
-      const { result } = renderHook(() => useTamboV1ComponentState("count", 0));
+      const { result } = renderHook(() => useTamboComponentState("count", 0));
 
       act(() => {
         result.current[1](10);
@@ -519,7 +550,7 @@ describe("useTamboV1ComponentState", () => {
       mockGetInteractableComponentState.mockReturnValue({ count: 0 });
 
       const { result, rerender } = renderHook(() =>
-        useTamboV1ComponentState("count", 0),
+        useTamboComponentState("count", 0),
       );
 
       expect(result.current[0]).toBe(0);
@@ -535,7 +566,7 @@ describe("useTamboV1ComponentState", () => {
     it("should have isPending as false in interactable context", () => {
       mockGetInteractableComponentState.mockReturnValue(undefined);
 
-      const { result } = renderHook(() => useTamboV1ComponentState("count", 0));
+      const { result } = renderHook(() => useTamboComponentState("count", 0));
 
       expect(result.current[2].isPending).toBe(false);
       expect(result.current[2].error).toBeNull();
@@ -544,7 +575,7 @@ describe("useTamboV1ComponentState", () => {
     it("should set initial value in interactable state on mount when no existing state", () => {
       mockGetInteractableComponentState.mockReturnValue(undefined);
 
-      renderHook(() => useTamboV1ComponentState("count", 42));
+      renderHook(() => useTamboComponentState("count", 42));
 
       expect(mockSetInteractableState).toHaveBeenCalledWith(
         interactableComponentId,
@@ -556,7 +587,7 @@ describe("useTamboV1ComponentState", () => {
     it("should NOT set initial value in interactable state when state already exists", () => {
       mockGetInteractableComponentState.mockReturnValue({ count: 99 });
 
-      renderHook(() => useTamboV1ComponentState("count", 42));
+      renderHook(() => useTamboComponentState("count", 42));
 
       // Should not be called because state already exists
       expect(mockSetInteractableState).not.toHaveBeenCalled();
@@ -570,9 +601,7 @@ describe("useTamboV1ComponentState", () => {
 
       mockGetInteractableComponentState.mockReturnValue(undefined);
 
-      const { unmount } = renderHook(() =>
-        useTamboV1ComponentState("count", 0),
-      );
+      const { unmount } = renderHook(() => useTamboComponentState("count", 0));
 
       unmount();
 

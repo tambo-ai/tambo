@@ -1,5 +1,5 @@
-import { EventType } from "@ag-ui/core";
-import { isTamboCustomEvent } from "./event";
+import { EventType, type CustomEvent } from "@ag-ui/core";
+import { asTamboCustomEvent, isTamboCustomEvent } from "./event";
 
 describe("isTamboCustomEvent", () => {
   it("returns true for tambo.component.start event", () => {
@@ -51,6 +51,15 @@ describe("isTamboCustomEvent", () => {
     expect(isTamboCustomEvent(event)).toBe(true);
   });
 
+  it("returns true for tambo.message.parent event", () => {
+    const event = {
+      type: EventType.CUSTOM,
+      name: "tambo.message.parent",
+      value: { messageId: "msg1", parentMessageId: "parent1" },
+    };
+    expect(isTamboCustomEvent(event)).toBe(true);
+  });
+
   it("returns false for unknown custom event name", () => {
     const event = {
       type: EventType.CUSTOM,
@@ -78,5 +87,31 @@ describe("isTamboCustomEvent", () => {
 
   it("returns false for empty object", () => {
     expect(isTamboCustomEvent({})).toBe(false);
+  });
+});
+
+describe("asTamboCustomEvent", () => {
+  it("casts tambo.message.parent event", () => {
+    const event = {
+      type: EventType.CUSTOM,
+      name: "tambo.message.parent",
+      value: { messageId: "msg1", parentMessageId: "parent1" },
+      timestamp: 1234,
+    } as CustomEvent;
+
+    const result = asTamboCustomEvent(event);
+    expect(result).toBeDefined();
+    expect(result?.name).toBe("tambo.message.parent");
+  });
+
+  it("returns undefined for unknown event name", () => {
+    const event = {
+      type: EventType.CUSTOM,
+      name: "unknown.event",
+      value: {},
+      timestamp: 1234,
+    } as CustomEvent;
+
+    expect(asTamboCustomEvent(event)).toBeUndefined();
   });
 });

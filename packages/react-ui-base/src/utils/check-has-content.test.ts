@@ -107,7 +107,7 @@ describe("checkHasContent", () => {
     });
   });
 
-  describe("array content with API content parts (ChatCompletionContentPart)", () => {
+  describe("array content with Content parts", () => {
     it("returns true for text content part with non-empty text", () => {
       expect(checkHasContent([{ type: "text", text: "Hello" }])).toBe(true);
     });
@@ -121,56 +121,9 @@ describe("checkHasContent", () => {
     });
 
     it("returns false for text content part with undefined text", () => {
-      expect(checkHasContent([{ type: "text" }])).toBe(false);
-    });
-
-    it("returns true for image_url content part with url", () => {
+      // Test runtime behavior with malformed data
       expect(
-        checkHasContent([
-          {
-            type: "image_url",
-            image_url: { url: "https://example.com/img.png" },
-          },
-        ]),
-      ).toBe(true);
-    });
-
-    it("returns false for image_url content part without url", () => {
-      // Test runtime behavior with malformed data (missing required url field)
-      expect(
-        checkHasContent([
-          { type: "image_url", image_url: {} } as {
-            type: "image_url";
-            image_url: { url: string };
-          },
-        ]),
-      ).toBe(false);
-    });
-
-    it("returns false for image_url content part with undefined image_url", () => {
-      expect(checkHasContent([{ type: "image_url" }])).toBe(false);
-    });
-
-    it("returns true for input_audio content part with data", () => {
-      expect(
-        checkHasContent([
-          {
-            type: "input_audio",
-            input_audio: { data: "base64data", format: "wav" },
-          },
-        ]),
-      ).toBe(true);
-    });
-
-    it("returns false for input_audio content part without data", () => {
-      // Test runtime behavior with malformed data (missing required fields)
-      expect(
-        checkHasContent([
-          { type: "input_audio", input_audio: {} } as {
-            type: "input_audio";
-            input_audio: { data: string; format: "wav" | "mp3" };
-          },
-        ]),
+        checkHasContent([{ type: "text" } as { type: "text"; text: string }]),
       ).toBe(false);
     });
 
@@ -194,7 +147,59 @@ describe("checkHasContent", () => {
       ).toBe(false);
     });
 
-    it("returns true for mixed API content parts (some valid)", () => {
+    it("returns true for tool_use content part", () => {
+      expect(
+        checkHasContent([
+          {
+            type: "tool_use",
+            id: "tool_1",
+            name: "get_weather",
+            input: { city: "SF" },
+          },
+        ]),
+      ).toBe(true);
+    });
+
+    it("returns true for tool_use content part with empty input", () => {
+      expect(
+        checkHasContent([
+          {
+            type: "tool_use",
+            id: "tool_1",
+            name: "get_weather",
+            input: {},
+          },
+        ]),
+      ).toBe(true);
+    });
+
+    it("returns true for component content part", () => {
+      expect(
+        checkHasContent([
+          {
+            type: "component",
+            id: "comp_1",
+            name: "WeatherCard",
+            props: { city: "SF" },
+          },
+        ]),
+      ).toBe(true);
+    });
+
+    it("returns true for component content part with empty props", () => {
+      expect(
+        checkHasContent([
+          {
+            type: "component",
+            id: "comp_1",
+            name: "WeatherCard",
+            props: {},
+          },
+        ]),
+      ).toBe(true);
+    });
+
+    it("returns true for mixed content parts (some valid)", () => {
       expect(
         checkHasContent([
           { type: "text", text: "" },
@@ -204,12 +209,40 @@ describe("checkHasContent", () => {
     });
 
     it("returns false for unknown type content part", () => {
-      // Test runtime behavior with unknown type
+      // Test runtime behavior with unknown type (not a valid Content type)
       expect(
         checkHasContent([
           { type: "unknown" } as unknown as { type: "text"; text: string },
         ]),
       ).toBe(false);
+    });
+
+    it("returns true for mixed tool_use and empty text content parts", () => {
+      expect(
+        checkHasContent([
+          { type: "text", text: "" },
+          {
+            type: "tool_use",
+            id: "tool_1",
+            name: "search",
+            input: {},
+          },
+        ]),
+      ).toBe(true);
+    });
+
+    it("returns true for mixed component and empty text content parts", () => {
+      expect(
+        checkHasContent([
+          { type: "text", text: "" },
+          {
+            type: "component",
+            id: "comp_1",
+            name: "Chart",
+            props: {},
+          },
+        ]),
+      ).toBe(true);
     });
   });
 

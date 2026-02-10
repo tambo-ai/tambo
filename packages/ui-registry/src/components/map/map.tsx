@@ -8,11 +8,7 @@ import {
   type LayerProps,
   type LeafletContextInterface,
 } from "@react-leaflet/core";
-import {
-  GenerationStage,
-  useTambo,
-  useTamboCurrentMessage,
-} from "@tambo-ai/react";
+import { useTambo, useTamboCurrentMessage } from "@tambo-ai/react";
 import { cva, type VariantProps } from "class-variance-authority";
 import L, {
   type HeatLatLngTuple,
@@ -394,18 +390,15 @@ export const Map = React.forwardRef<HTMLDivElement, MapProps>(
   ) => {
     // Support deprecated theme prop, prefer tileTheme
     const effectiveTileTheme = tileTheme ?? theme ?? "default";
-    const { thread } = useTambo();
+    const { messages, isStreaming, isWaiting } = useTambo();
     const currentMessage = useTamboCurrentMessage();
 
-    const message = thread?.messages[thread?.messages.length - 1];
+    const message =
+      messages.length > 0 ? messages[messages.length - 1] : undefined;
 
     const isLatestMessage = message?.id && message.id === currentMessage?.id;
 
-    const generationStage = thread?.generationStage;
-    const isGenerating =
-      generationStage &&
-      generationStage !== GenerationStage.COMPLETE &&
-      generationStage !== GenerationStage.ERROR;
+    const isGenerating = isStreaming || isWaiting;
 
     const validMarkers = useValidMarkers(markers);
     const validHeatData = useValidHeatData(heatData);

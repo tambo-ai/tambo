@@ -1,9 +1,9 @@
 /**
  * Registry Conversion Utilities
  *
- * Converts beta SDK component/tool types to v1 API format.
- * Reuses the beta SDK's TamboRegistryProvider but provides conversion
- * utilities for sending component/tool metadata to the v1 API.
+ * Converts registered component/tool types to API format.
+ * Reuses TamboRegistryProvider but provides conversion
+ * utilities for sending component/tool metadata to the API.
  */
 
 import type { JSONSchema7 } from "json-schema";
@@ -20,12 +20,12 @@ type AvailableComponent = RunCreateParams.AvailableComponent;
 type Tool = RunCreateParams.Tool;
 
 /**
- * Convert a registered component to v1 API format.
+ * Convert a registered component to API format.
  *
  * Transforms RegisteredComponent (from the registry, with props already converted
- * to JSON Schema) to AvailableComponent (v1 API format).
- * @param component - Component from beta SDK registry (already has props as JSON Schema)
- * @returns Component metadata in v1 API format
+ * to JSON Schema) to AvailableComponent (API format).
+ * @param component - Component from registry (already has props as JSON Schema)
+ * @returns Component metadata in API format
  * @throws {Error} if props is missing
  */
 export function toAvailableComponent(
@@ -34,7 +34,7 @@ export function toAvailableComponent(
   // props is the JSON Schema that was converted from propsSchema during registration
   if (!component.props) {
     throw new Error(
-      `Component "${component.name}" missing props - required for v1 API`,
+      `Component "${component.name}" missing props - required for API`,
     );
   }
 
@@ -42,18 +42,18 @@ export function toAvailableComponent(
     name: component.name,
     description: component.description,
     propsSchema: component.props as Record<string, unknown>,
-    // stateSchema is v1-specific and not available in beta SDK components
+    // stateSchema is not available in registered components
     // Components can still have state, but schema must be defined separately
   };
 }
 
 /**
- * Convert multiple registered components to v1 API format.
+ * Convert multiple registered components to API format.
  *
  * Transforms a Record/Map of RegisteredComponents to an array of AvailableComponents.
  * Components without props will be logged as warnings and skipped.
- * @param components - Record or Map of components from beta SDK registry
- * @returns Array of component metadata in v1 API format
+ * @param components - Record or Map of components from registry
+ * @returns Array of component metadata in API format
  */
 export function toAvailableComponents(
   components:
@@ -72,7 +72,7 @@ export function toAvailableComponents(
       results.push(toAvailableComponent(component));
     } catch (error) {
       console.warn(
-        `Skipping component "${name}" in v1 conversion: ${error instanceof Error ? error.message : String(error)}`,
+        `Skipping component "${name}" during conversion: ${error instanceof Error ? error.message : String(error)}`,
       );
     }
   }
@@ -81,13 +81,13 @@ export function toAvailableComponents(
 }
 
 /**
- * Convert a registered tool to v1 API format.
+ * Convert a registered tool to API format.
  *
- * Transforms TamboTool or UnsupportedSchemaTamboTool (beta SDK format with
- * Standard Schema support) to Tool (v1 API format requiring JSON Schema).
+ * Transforms TamboTool or UnsupportedSchemaTamboTool (with
+ * Standard Schema support) to Tool (API format requiring JSON Schema).
  * Handles both new inputSchema and deprecated toolSchema formats.
- * @param tool - Tool from beta SDK registry
- * @returns Tool metadata in v1 API format
+ * @param tool - Tool from registry
+ * @returns Tool metadata in API format
  * @throws {Error} if schema conversion fails or schema is missing
  */
 export function toAvailableTool(
@@ -100,6 +100,7 @@ export function toAvailableTool(
       name: tool.name,
       description: tool.description,
       inputSchema: inputSchema as Record<string, unknown>,
+      ...(tool.maxCalls !== undefined ? { maxCalls: tool.maxCalls } : {}),
     };
   }
 
@@ -110,22 +111,23 @@ export function toAvailableTool(
       name: tool.name,
       description: tool.description,
       inputSchema: inputSchema as Record<string, unknown>,
+      ...(tool.maxCalls !== undefined ? { maxCalls: tool.maxCalls } : {}),
     };
   }
 
   throw new Error(
-    `Tool "${tool.name}" missing inputSchema or toolSchema - required for v1 API`,
+    `Tool "${tool.name}" missing inputSchema or toolSchema - required for API`,
   );
 }
 
 /**
- * Convert multiple registered tools to v1 API format.
+ * Convert multiple registered tools to API format.
  *
  * Transforms a Record/Map of TamboTools or UnsupportedSchemaTamboTool to an array
  * of Tools. Tools without inputSchema/toolSchema will be logged as warnings
  * and skipped.
- * @param tools - Record or Map of tools from beta SDK registry
- * @returns Array of tool metadata in v1 API format
+ * @param tools - Record or Map of tools from registry
+ * @returns Array of tool metadata in API format
  */
 export function toAvailableTools(
   tools:
@@ -142,7 +144,7 @@ export function toAvailableTools(
       results.push(toAvailableTool(tool));
     } catch (error) {
       console.warn(
-        `Skipping tool "${name}" in v1 conversion: ${error instanceof Error ? error.message : String(error)}`,
+        `Skipping tool "${name}" during conversion: ${error instanceof Error ? error.message : String(error)}`,
       );
     }
   }

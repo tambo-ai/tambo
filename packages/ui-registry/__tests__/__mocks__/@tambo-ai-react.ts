@@ -6,31 +6,19 @@
 import { jest } from "@jest/globals";
 import type { Mock } from "jest-mock";
 
-export enum GenerationStage {
-  IDLE = "IDLE",
-  CHOOSING_COMPONENT = "CHOOSING_COMPONENT",
-  FETCHING_CONTEXT = "FETCHING_CONTEXT",
-  HYDRATING_COMPONENT = "HYDRATING_COMPONENT",
-  STREAMING_RESPONSE = "STREAMING_RESPONSE",
-  COMPLETE = "COMPLETE",
-  ERROR = "ERROR",
-  CANCELLED = "CANCELLED",
-}
-
 export const useTambo: Mock = jest.fn().mockReturnValue({
-  thread: {
-    messages: [],
-    generationStage: GenerationStage.IDLE,
-  },
-});
-
-export const useTamboThread: Mock = jest.fn().mockReturnValue({
-  switchCurrentThread: jest.fn(),
-  startNewThread: jest.fn(),
+  messages: [],
+  isStreaming: false,
+  isWaiting: false,
+  isIdle: true,
+  currentThreadId: "mock-thread-id",
+  switchThread: jest.fn(),
+  startNewThread: jest.fn().mockReturnValue("new-thread-id"),
+  cancelRun: jest.fn(),
 });
 
 export const useTamboThreadList: Mock = jest.fn().mockReturnValue({
-  data: { items: [] },
+  data: { threads: [] },
   isLoading: false,
   error: null,
   refetch: jest.fn(),
@@ -38,7 +26,17 @@ export const useTamboThreadList: Mock = jest.fn().mockReturnValue({
 
 export const useTamboSuggestions: Mock = jest.fn().mockReturnValue({
   suggestions: [],
-  isLoading: false,
+  isGenerating: false,
   error: null,
   refetch: jest.fn(),
+});
+
+export const useTamboThreadInput: Mock = jest.fn().mockReturnValue({
+  value: "",
+  setValue: jest.fn(),
+  submit: jest.fn(),
+});
+
+export const useTamboInteractable: Mock = jest.fn().mockReturnValue({
+  setInteractableSelected: jest.fn(),
 });
