@@ -1,13 +1,14 @@
 import { EventType } from "@ag-ui/core";
-import type { Operation } from "fast-json-patch";
+import type { JSONSchema7 } from "json-schema";
 import { ToolCallTracker } from "./tool-call-tracker";
 
 /** Helper to create a tracker with a started tool call. */
 function createTrackerWithToolCall(
   toolCallId = "call_1",
   toolCallName = "get_weather",
+  toolSchemas?: Map<string, JSONSchema7>,
 ): ToolCallTracker {
-  const tracker = new ToolCallTracker();
+  const tracker = new ToolCallTracker(toolSchemas);
   tracker.handleEvent({
     type: EventType.TOOL_CALL_START,
     toolCallId,
@@ -119,70 +120,108 @@ describe("ToolCallTracker", () => {
     });
   });
 
-  describe("applyArgsPatch", () => {
-    it("applies add operations to tool call input", () => {
-      const tracker = createTrackerWithToolCall();
-      const ops: Operation[] = [{ op: "add", path: "/city", value: "NYC" }];
+  describe("TOOL_CALL_END with unstrictification", () => {
+    const schema: JSONSchema7 = {
+      type: "object",
+      properties: {
+        city: { type: "string" },
+        units: { type: "string" },
+      },
+      required: ["city"],
+    };
 
-      const result = tracker.applyArgsPatch("call_1", ops);
-      expect(result).toEqual({ city: "NYC" });
+    it("strips null optional params when schema is provided", () => {
+      const toolSchemas = new Map<string, JSONSchema7>([
+        ["get_weather", schema],
+      ]);
+      const tracker = createTrackerWithToolCall(
+        "call_1",
+        "get_weather",
+        toolSchemas,
+      );
+      tracker.handleEvent({
+        type: EventType.TOOL_CALL_ARGS,
+        toolCallId: "call_1",
+        delta: '{"city":"Seattle","units":null}',
+      });
+      tracker.handleEvent({
+        type: EventType.TOOL_CALL_END,
+        toolCallId: "call_1",
+      });
+
+      const result = tracker.getToolCallsById(["call_1"]);
+      expect(result.get("call_1")?.input).toEqual({ city: "Seattle" });
     });
 
-    it("applies replace operations to existing input", () => {
-      const tracker = createTrackerWithToolCall();
-      tracker.applyArgsPatch("call_1", [
-        { op: "add", path: "/city", value: "NYC" },
+    it("preserves required null params", () => {
+      const toolSchemas = new Map<string, JSONSchema7>([
+        ["get_weather", schema],
       ]);
+      const tracker = createTrackerWithToolCall(
+        "call_1",
+        "get_weather",
+        toolSchemas,
+      );
+      tracker.handleEvent({
+        type: EventType.TOOL_CALL_ARGS,
+        toolCallId: "call_1",
+        delta: '{"city":null,"units":null}',
+      });
+      tracker.handleEvent({
+        type: EventType.TOOL_CALL_END,
+        toolCallId: "call_1",
+      });
 
-      const result = tracker.applyArgsPatch("call_1", [
-        { op: "replace", path: "/city", value: "LA" },
-      ]);
-      expect(result).toEqual({ city: "LA" });
+      const result = tracker.getToolCallsById(["call_1"]);
+      // city is required, so null is preserved; units is optional, so null is stripped
+      expect(result.get("call_1")?.input).toEqual({ city: null });
     });
 
-    it("returns undefined for unknown tool call ID", () => {
-      const tracker = new ToolCallTracker();
-      const result = tracker.applyArgsPatch("nonexistent", [
-        { op: "add", path: "/city", value: "NYC" },
-      ]);
-      expect(result).toBeUndefined();
+    it("does not unstrictify when no schema is provided", () => {
+      const tracker = createTrackerWithToolCall();
+      tracker.handleEvent({
+        type: EventType.TOOL_CALL_ARGS,
+        toolCallId: "call_1",
+        delta: '{"city":"Seattle","units":null}',
+      });
+      tracker.handleEvent({
+        type: EventType.TOOL_CALL_END,
+        toolCallId: "call_1",
+      });
+
+      const result = tracker.getToolCallsById(["call_1"]);
+      // Without schema, nulls are preserved
+      expect(result.get("call_1")?.input).toEqual({
+        city: "Seattle",
+        units: null,
+      });
     });
 
-    it("persists patched input for subsequent getToolCallsById", () => {
-      const tracker = createTrackerWithToolCall();
-      tracker.applyArgsPatch("call_1", [
-        { op: "add", path: "/city", value: "NYC" },
+    it("preserves _tambo_* pass-through params", () => {
+      const toolSchemas = new Map<string, JSONSchema7>([
+        ["get_weather", schema],
       ]);
-      tracker.applyArgsPatch("call_1", [
-        { op: "add", path: "/units", value: "metric" },
-      ]);
+      const tracker = createTrackerWithToolCall(
+        "call_1",
+        "get_weather",
+        toolSchemas,
+      );
+      tracker.handleEvent({
+        type: EventType.TOOL_CALL_ARGS,
+        toolCallId: "call_1",
+        delta:
+          '{"city":"Seattle","units":null,"_tambo_statusMessage":"Loading"}',
+      });
+      tracker.handleEvent({
+        type: EventType.TOOL_CALL_END,
+        toolCallId: "call_1",
+      });
 
       const result = tracker.getToolCallsById(["call_1"]);
       expect(result.get("call_1")?.input).toEqual({
-        city: "NYC",
-        units: "metric",
+        city: "Seattle",
+        _tambo_statusMessage: "Loading",
       });
-    });
-  });
-
-  describe("setFinalArgs", () => {
-    it("overrides tool call input with final args", () => {
-      const tracker = createTrackerWithToolCall();
-      tracker.applyArgsPatch("call_1", [
-        { op: "add", path: "/city", value: "NYC" },
-        { op: "add", path: "/units", value: null },
-      ]);
-
-      tracker.setFinalArgs("call_1", { city: "NYC" });
-
-      const result = tracker.getToolCallsById(["call_1"]);
-      expect(result.get("call_1")?.input).toEqual({ city: "NYC" });
-    });
-
-    it("does nothing for unknown tool call ID", () => {
-      const tracker = new ToolCallTracker();
-      // Should not throw
-      tracker.setFinalArgs("nonexistent", { city: "NYC" });
     });
   });
 });

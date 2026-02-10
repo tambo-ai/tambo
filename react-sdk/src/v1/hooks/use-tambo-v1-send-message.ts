@@ -46,6 +46,9 @@ import type { ToolResultContent } from "@tambo-ai/typescript-sdk/resources/threa
 import type { RunCreateParams } from "@tambo-ai/typescript-sdk/resources/threads/runs";
 import { ToolCallTracker } from "../utils/tool-call-tracker";
 import { parse as parsePartialJson } from "partial-json";
+import type { JSONSchema7 } from "json-schema";
+import { schemaToJsonSchema } from "../../schema/schema";
+import { unstrictifyToolCallParamsFromSchema } from "../utils/unstrictify";
 
 /**
  * Dispatches synthetic AG-UI events to show a user message in the thread.
@@ -173,13 +176,19 @@ function shouldGenerateThreadName(
  * Returns a parsed object if the accumulated args are parseable as
  * a JSON object, or undefined if parsing fails or the result is not
  * a plain object (e.g. array or primitive).
+ *
+ * If toolSchemas is provided, the parsed args are unstrictified using
+ * the original JSON Schema for the tool, stripping nulls that were
+ * added by OpenAI's strict mode for optional parameters.
  * @param toolTracker - Tracker holding pending tool call state
  * @param toolCallId - The tool call ID to parse args for
+ * @param toolSchemas - Original tool schemas for unstrictification
  * @returns Parsed args object, or undefined if not parseable yet
  */
 function parseToolCallArgs(
   toolTracker: ToolCallTracker,
   toolCallId: string,
+  toolSchemas?: Map<string, JSONSchema7>,
 ): Record<string, unknown> | undefined {
   const accToolCall = toolTracker.getAccumulatingToolCall(toolCallId);
   if (!accToolCall) return undefined;
@@ -191,7 +200,17 @@ function parseToolCallArgs(
       parsed !== null &&
       !Array.isArray(parsed)
     ) {
-      return parsed as Record<string, unknown>;
+      let result = parsed as Record<string, unknown>;
+
+      // Unstrictify if we have the original schema
+      if (toolSchemas) {
+        const schema = toolSchemas.get(accToolCall.name);
+        if (schema) {
+          result = unstrictifyToolCallParamsFromSchema(schema, result);
+        }
+      }
+
+      return result;
     }
   } catch {
     /* not parseable yet */
@@ -564,7 +583,23 @@ export function useTamboSendMessage(threadId?: string) {
         existingThread?.thread.messages.length ?? 0;
       const threadAlreadyHasName = !!existingThread?.thread.name;
 
-      const toolTracker = new ToolCallTracker();
+      // Build a map of tool name → original JSON Schema for unstrictification.
+      // The registry holds tools with Standard Schema (Zod) or raw JSON Schema;
+      // schemaToJsonSchema normalizes both to JSONSchema7.
+      const toolSchemas = new Map<string, JSONSchema7>();
+      for (const tool of Object.values(registry.toolRegistry)) {
+        try {
+          if ("inputSchema" in tool && tool.inputSchema) {
+            toolSchemas.set(tool.name, schemaToJsonSchema(tool.inputSchema));
+          } else if ("toolSchema" in tool && tool.toolSchema) {
+            toolSchemas.set(tool.name, schemaToJsonSchema(tool.toolSchema));
+          }
+        } catch {
+          // Schema conversion failed — tool will still work, just without unstrictification
+        }
+      }
+
+      const toolTracker = new ToolCallTracker(toolSchemas);
       const throttledStreamable = createThrottledStreamableExecutor(
         toolTracker,
         registry.toolRegistry,
@@ -648,7 +683,7 @@ export function useTamboSendMessage(threadId?: string) {
             // Parse partial JSON once for TOOL_CALL_ARGS — reused by both dispatch and streamable execution
             const parsedToolArgs =
               event.type === EventType.TOOL_CALL_ARGS
-                ? parseToolCallArgs(toolTracker, event.toolCallId)
+                ? parseToolCallArgs(toolTracker, event.toolCallId, toolSchemas)
                 : undefined;
 
             dispatch({
@@ -656,6 +691,7 @@ export function useTamboSendMessage(threadId?: string) {
               event,
               threadId: actualThreadId,
               parsedToolArgs,
+              toolSchemas,
             });
 
             // Schedule debounced streamable tool execution with the same pre-parsed args
@@ -670,24 +706,6 @@ export function useTamboSendMessage(threadId?: string) {
               if (customEvent?.name === "tambo.run.awaiting_input") {
                 pendingAwaitingInput = customEvent;
                 break; // Exit stream loop to handle tool execution
-              }
-
-              // Apply JSON Patch args to tracker and schedule streamable execution
-              if (customEvent?.name === "tambo.tool_call.args_delta") {
-                const { toolCallId, operations } = customEvent.value;
-                const updatedInput = toolTracker.applyArgsPatch(
-                  toolCallId,
-                  operations,
-                );
-                if (updatedInput) {
-                  throttledStreamable.schedule(toolCallId, updatedInput);
-                }
-              }
-
-              // Set final clean args on tracker
-              if (customEvent?.name === "tambo.tool_call.end") {
-                const { toolCallId, finalArgs } = customEvent.value;
-                toolTracker.setFinalArgs(toolCallId, finalArgs);
               }
             }
           }

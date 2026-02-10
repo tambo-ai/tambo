@@ -6,8 +6,9 @@
  */
 
 import { EventType, type AGUIEvent } from "@ag-ui/core";
-import { applyPatch, type Operation } from "fast-json-patch";
+import type { JSONSchema7 } from "json-schema";
 import type { PendingToolCall } from "./tool-executor";
+import { unstrictifyToolCallParamsFromSchema } from "./unstrictify";
 
 /**
  * Tracks tool calls during streaming, accumulating arguments until complete.
@@ -23,6 +24,11 @@ import type { PendingToolCall } from "./tool-executor";
 export class ToolCallTracker {
   private pendingToolCalls = new Map<string, PendingToolCall>();
   private accumulatingArgs = new Map<string, string>();
+  private toolSchemas: Map<string, JSONSchema7>;
+
+  constructor(toolSchemas?: Map<string, JSONSchema7>) {
+    this.toolSchemas = toolSchemas ?? new Map();
+  }
 
   /**
    * Handles a streaming event, tracking tool call state as needed.
@@ -52,14 +58,26 @@ export class ToolCallTracker {
         const jsonStr = this.accumulatingArgs.get(event.toolCallId);
         const toolCall = this.pendingToolCalls.get(event.toolCallId);
         if (toolCall && jsonStr) {
+          let parsedInput: Record<string, unknown>;
           try {
-            toolCall.input = JSON.parse(jsonStr) as Record<string, unknown>;
+            parsedInput = JSON.parse(jsonStr) as Record<string, unknown>;
           } catch (error) {
             // Fail-fast: don't silently continue with empty input
             throw new Error(
               `Failed to parse tool call arguments for ${event.toolCallId}: ${error instanceof Error ? error.message : "Unknown error"}. JSON: ${jsonStr.slice(0, 100)}${jsonStr.length > 100 ? "..." : ""}`,
             );
           }
+
+          // Unstrictify if we have the original schema
+          const schema = this.toolSchemas.get(toolCall.name);
+          if (schema) {
+            parsedInput = unstrictifyToolCallParamsFromSchema(
+              schema,
+              parsedInput,
+            );
+          }
+
+          toolCall.input = parsedInput;
         }
         break;
       }
@@ -99,36 +117,6 @@ export class ToolCallTracker {
       }
     }
     return result;
-  }
-
-  /**
-   * Apply JSON Patch operations to a tool call's input, building up args
-   * incrementally from `tambo.tool_call.args_delta` events.
-   * @param toolCallId - ID of the tool call to patch
-   * @param operations - RFC 6902 JSON Patch operations to apply
-   * @returns The updated input after applying patches, or undefined if not found
-   */
-  applyArgsPatch(
-    toolCallId: string,
-    operations: Operation[],
-  ): Record<string, unknown> | undefined {
-    const toolCall = this.pendingToolCalls.get(toolCallId);
-    if (!toolCall) return undefined;
-
-    const result = applyPatch(toolCall.input, operations, false, false);
-    toolCall.input = result.newDocument;
-    return toolCall.input;
-  }
-
-  /**
-   * Set the final clean args for a tool call from a `tambo.tool_call.end` event.
-   * @param toolCallId - ID of the tool call
-   * @param finalArgs - The final unstrictified arguments
-   */
-  setFinalArgs(toolCallId: string, finalArgs: Record<string, unknown>): void {
-    const toolCall = this.pendingToolCalls.get(toolCallId);
-    if (!toolCall) return;
-    toolCall.input = finalArgs;
   }
 
   /**

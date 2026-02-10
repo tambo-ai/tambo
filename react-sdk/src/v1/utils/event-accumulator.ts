@@ -31,8 +31,6 @@ import {
   type ComponentStateDeltaEvent,
   type MessageParentEvent,
   type RunAwaitingInputEvent,
-  type ToolCallArgsDeltaEvent,
-  type ToolCallEndEvent as TamboToolCallEndEvent,
 } from "../types/event";
 import type {
   Content,
@@ -40,8 +38,10 @@ import type {
   TamboThreadMessage,
 } from "../types/message";
 import type { StreamingState, TamboThread } from "../types/thread";
+import type { JSONSchema7 } from "json-schema";
 import { parse as parsePartialJson } from "partial-json";
 import { applyJsonPatch } from "./json-patch";
+import { unstrictifyToolCallParamsFromSchema } from "./unstrictify";
 
 /**
  * Error thrown when an unreachable case is reached in a switch statement.
@@ -100,6 +100,8 @@ export interface EventAction {
   threadId: string;
   /** Pre-parsed partial JSON args for TOOL_CALL_ARGS events. Avoids double-parsing. */
   parsedToolArgs?: Record<string, unknown>;
+  /** Original tool schemas for unstrictifying tool call args at TOOL_CALL_END. */
+  toolSchemas?: Map<string, JSONSchema7>;
 }
 
 /**
@@ -601,7 +603,11 @@ export function streamReducer(
       break;
 
     case EventType.TOOL_CALL_END:
-      updatedThreadState = handleToolCallEnd(threadState, event);
+      updatedThreadState = handleToolCallEnd(
+        threadState,
+        event,
+        action.toolSchemas,
+      );
       break;
 
     case EventType.TOOL_CALL_RESULT:
@@ -1090,14 +1096,17 @@ function handleToolCallArgs(
 
 /**
  * Handle TOOL_CALL_END event.
- * Parses the accumulated JSON arguments and updates the tool_use content block.
+ * Parses the accumulated JSON arguments, unstrictifies them if possible,
+ * and updates the tool_use content block.
  * @param threadState - Current thread state
  * @param event - Tool call end event
+ * @param toolSchemas - Original tool schemas for unstrictification
  * @returns Updated thread state
  */
 function handleToolCallEnd(
   threadState: ThreadState,
   event: ToolCallEndEvent,
+  toolSchemas?: Map<string, JSONSchema7>,
 ): ThreadState {
   const toolCallId = event.toolCallId;
   const messages = threadState.thread.messages;
@@ -1134,6 +1143,14 @@ function handleToolCallEnd(
     throw new Error(
       `Content at index ${contentIndex} is not a tool_use block for TOOL_CALL_END event`,
     );
+  }
+
+  // Unstrictify parsed input if we have the original schema
+  if (toolSchemas) {
+    const schema = toolSchemas.get(toolUseContent.name);
+    if (schema) {
+      parsedInput = unstrictifyToolCallParamsFromSchema(schema, parsedInput);
+    }
   }
 
   // Update the tool_use content with parsed input
@@ -1248,12 +1265,6 @@ function handleCustomEvent(
 
     case "tambo.message.parent":
       return handleMessageParent(threadState, customEvent);
-
-    case "tambo.tool_call.args_delta":
-      return handleToolCallArgsDelta(threadState, customEvent);
-
-    case "tambo.tool_call.end":
-      return handleToolCallEndCustom(threadState, customEvent);
 
     default: {
       // Exhaustiveness check: if a new event type is added to TamboCustomEvent
@@ -1507,114 +1518,6 @@ function handleMessageParent(
   };
 
   return updateThreadMessages(threadState, [...messages, newMessage]);
-}
-
-// ============================================================================
-// Tool Call Streaming Event Handlers (tambo.tool_call.args_delta / end)
-// ============================================================================
-
-/**
- * Handle tambo.tool_call.args_delta event.
- * Applies JSON Patch operations to the tool_use content block's input,
- * providing incremental unstrictified updates during streaming.
- * @param threadState - Current thread state
- * @param event - Tool call args delta event
- * @returns Updated thread state
- */
-function handleToolCallArgsDelta(
-  threadState: ThreadState,
-  event: ToolCallArgsDeltaEvent,
-): ThreadState {
-  const { toolCallId, operations } = event.value;
-  const messages = threadState.thread.messages;
-
-  const { messageIndex, contentIndex } = findContentById(
-    messages,
-    "tool_use",
-    toolCallId,
-    "tambo.tool_call.args_delta event",
-  );
-
-  const message = messages[messageIndex];
-  const toolUseContent = message.content[contentIndex];
-
-  if (toolUseContent.type !== "tool_use") {
-    throw new Error(
-      `Content at index ${contentIndex} is not a tool_use block for tambo.tool_call.args_delta event`,
-    );
-  }
-
-  const currentInput = toolUseContent.input ?? {};
-  const updatedInput = applyJsonPatch(currentInput, operations);
-
-  const updatedContent: Content = {
-    ...toolUseContent,
-    input: updatedInput,
-  };
-
-  const updatedMessage: TamboThreadMessage = {
-    ...message,
-    content: updateContentAtIndex(
-      message.content,
-      contentIndex,
-      updatedContent,
-    ),
-  };
-
-  return updateThreadMessages(
-    threadState,
-    updateMessageAtIndex(messages, messageIndex, updatedMessage),
-  );
-}
-
-/**
- * Handle tambo.tool_call.end custom event.
- * Sets the final unstrictified args on the tool_use content block.
- * @param threadState - Current thread state
- * @param event - Tool call end event
- * @returns Updated thread state
- */
-function handleToolCallEndCustom(
-  threadState: ThreadState,
-  event: TamboToolCallEndEvent,
-): ThreadState {
-  const { toolCallId, finalArgs } = event.value;
-  const messages = threadState.thread.messages;
-
-  const { messageIndex, contentIndex } = findContentById(
-    messages,
-    "tool_use",
-    toolCallId,
-    "tambo.tool_call.end event",
-  );
-
-  const message = messages[messageIndex];
-  const toolUseContent = message.content[contentIndex];
-
-  if (toolUseContent.type !== "tool_use") {
-    throw new Error(
-      `Content at index ${contentIndex} is not a tool_use block for tambo.tool_call.end event`,
-    );
-  }
-
-  const updatedContent: Content = {
-    ...toolUseContent,
-    input: finalArgs,
-  };
-
-  const updatedMessage: TamboThreadMessage = {
-    ...message,
-    content: updateContentAtIndex(
-      message.content,
-      contentIndex,
-      updatedContent,
-    ),
-  };
-
-  return updateThreadMessages(
-    threadState,
-    updateMessageAtIndex(messages, messageIndex, updatedMessage),
-  );
 }
 
 // ============================================================================
