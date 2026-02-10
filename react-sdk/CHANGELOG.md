@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.0.1](https://github.com/tambo-ai/tambo/compare/react-v1.0.0...react-v1.0.1) (2026-02-10)
+
+
+### Bug Fixes
+
+* **react-sdk:** unstrictify tool call args in the SDK ([#2361](https://github.com/tambo-ai/tambo/issues/2361)) ([6240c3c](https://github.com/tambo-ai/tambo/commit/6240c3c1b421914a3ca991c7c5ddbbd849e3bc38))
+
+
+### Miscellaneous Chores
+
+* update readmes ([#2368](https://github.com/tambo-ai/tambo/issues/2368)) ([1998482](https://github.com/tambo-ai/tambo/commit/19984822494539999d82a4bc4ac8c27e3aef4645))
+
 ## [1.0.0](https://github.com/tambo-ai/tambo/compare/react-v1.0.0-rc.5...react-v1.0.0) (2026-02-10)
 
 
