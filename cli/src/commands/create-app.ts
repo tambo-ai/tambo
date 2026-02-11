@@ -359,10 +359,14 @@ export async function handleCreateApp(
       console.log(chalk.cyan("\nRunning tambo init to complete setup...\n"));
 
       try {
-        // Run tambo init with --yes flag to auto-accept defaults and --skip-agent-docs to skip that step initially
-        // This will still prompt for hosting choice, auth, and project selection
-        execSync("npx tambo init --yes --skip-agent-docs", {
-          stdio: "inherit", // Allow user interaction for auth prompts
+        // Run tambo init with full interactive behavior - user will be prompted for:
+        // - Hosting choice (Tambo Cloud or self-hosted)
+        // - Authentication (device auth flow)
+        // - Project selection
+        // - Installation path
+        // - Agent docs creation
+        execSync("npx tambo init", {
+          stdio: "inherit", // Allow user interaction for all prompts
           allowNonInteractive: true,
         });
         console.log(
