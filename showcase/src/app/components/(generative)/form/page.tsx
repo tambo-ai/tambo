@@ -49,7 +49,7 @@ export function ContactForm() {
         {
           id: "email",
           label: "Email",
-          type: "text",
+          type: "email",
           required: true,
           placeholder: "your.email@example.com",
         },
@@ -182,10 +182,10 @@ export function ContactForm() {
                 <tr>
                   <td>type</td>
                   <td>
-                    &quot;text&quot; | &quot;number&quot; | &quot;select&quot; |
-                    &quot;textarea&quot; | &quot;radio&quot; |
-                    &quot;checkbox&quot; | &quot;slider&quot; |
-                    &quot;yes-no&quot;
+                    &quot;text&quot; | &quot;email&quot; | &quot;number&quot; |
+                    &quot;select&quot; | &quot;textarea&quot; |
+                    &quot;radio&quot; | &quot;checkbox&quot; |
+                    &quot;slider&quot; | &quot;yes-no&quot;
                   </td>
                   <td>-</td>
                   <td>Type of input field to render</td>
