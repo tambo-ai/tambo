@@ -1,44 +1,43 @@
 "use client";
 
+import type { Suggestion } from "@tambo-ai/react";
+import type { messageVariants } from "@tambo-ai/ui-registry/components/message";
 import {
   MessageInput,
-  MessageInputTextarea,
-  MessageInputToolbar,
-  MessageInputSubmitButton,
   MessageInputError,
   MessageInputFileButton,
   MessageInputMcpPromptButton,
   MessageInputMcpResourceButton,
-  // MessageInputMcpConfigButton,
+  MessageInputSubmitButton,
+  MessageInputTextarea,
+  MessageInputToolbar,
 } from "@tambo-ai/ui-registry/components/message-input";
 import {
   MessageSuggestions,
-  MessageSuggestionsStatus,
   MessageSuggestionsList,
+  MessageSuggestionsStatus,
 } from "@tambo-ai/ui-registry/components/message-suggestions";
-import {
-  ThreadHistory,
-  ThreadHistoryHeader,
-  ThreadHistoryNewButton,
-  ThreadHistorySearch,
-  ThreadHistoryList,
-} from "@tambo-ai/ui-registry/components/thread-history";
+import { ScrollableMessageContainer } from "@tambo-ai/ui-registry/components/scrollable-message-container";
 import {
   ThreadContent,
   ThreadContentMessages,
 } from "@tambo-ai/ui-registry/components/thread-content";
-import type { messageVariants } from "@tambo-ai/ui-registry/components/message";
-import { ScrollableMessageContainer } from "@tambo-ai/ui-registry/components/scrollable-message-container";
-import { cn } from "@tambo-ai/ui-registry/utils";
 import {
-  useMergeRefs,
+  ThreadHistory,
+  ThreadHistoryHeader,
+  ThreadHistoryList,
+  ThreadHistoryNewButton,
+  ThreadHistorySearch,
+} from "@tambo-ai/ui-registry/components/thread-history";
+import {
   useCanvasDetection,
+  useMergeRefs,
   usePositioning,
 } from "@tambo-ai/ui-registry/lib/thread-hooks";
+import { cn } from "@tambo-ai/ui-registry/utils";
 import type { VariantProps } from "class-variance-authority";
 import * as React from "react";
 import { useRef } from "react";
-import type { Suggestion } from "@tambo-ai/react";
 
 /**
  * Props for the MessageThreadPanel component
@@ -64,14 +63,23 @@ interface ResizablePanelProps extends React.HTMLAttributes<HTMLDivElement> {
   isLeftPanel: boolean;
 }
 
+const DEFAULT_SIDEBAR_WIDTH = 600; // Default width for the history sidebar
+const MIN_SIDEBAR_WIDTH = 300; // Minimum width for the history sidebar
 /**
  * A resizable panel component with a draggable divider
  */
 const ResizablePanel = React.forwardRef<HTMLDivElement, ResizablePanelProps>(
   ({ className, children, isLeftPanel, ...props }, ref) => {
-    const [width, setWidth] = React.useState(956);
+    const [width, setWidth] = React.useState(1024);
     const isResizing = React.useRef(false);
     const lastUpdateRef = React.useRef(0);
+
+    React.useEffect(() => {
+      const windowWidth =
+        window.document.documentElement.getBoundingClientRect().width || 1024;
+      const initialWidth = Math.min(DEFAULT_SIDEBAR_WIDTH, windowWidth / 2);
+      setWidth(initialWidth);
+    }, []);
 
     const handleMouseMove = React.useCallback(
       (e: MouseEvent) => {
@@ -91,10 +99,9 @@ const ResizablePanel = React.forwardRef<HTMLDivElement, ResizablePanelProps>(
             newWidth = Math.round(windowWidth - e.clientX);
           }
 
-          // Ensure minimum width of 300px
           const clampedWidth = Math.max(
-            300,
-            Math.min(windowWidth - 300, newWidth),
+            MIN_SIDEBAR_WIDTH,
+            Math.min(windowWidth - MIN_SIDEBAR_WIDTH, newWidth),
           );
           setWidth(clampedWidth);
 
@@ -117,11 +124,11 @@ const ResizablePanel = React.forwardRef<HTMLDivElement, ResizablePanelProps>(
 
     return (
       <div
+        data-slot="resizeable-panel"
         ref={ref}
         className={cn(
-          "h-screen flex flex-col bg-background relative",
+          "h-screen max-h-full w-full flex flex-col bg-background relative",
           "transition-[width] duration-75 ease-out",
-          "overflow-x-auto",
           isLeftPanel
             ? "border-r border-border"
             : "border-l border-border ml-auto",
@@ -137,6 +144,7 @@ const ResizablePanel = React.forwardRef<HTMLDivElement, ResizablePanelProps>(
         <div
           className={cn(
             "absolute top-0 bottom-0 w-1 cursor-ew-resize bg-border hover:bg-accent transition-colors z-50",
+
             isLeftPanel ? "right-0" : "left-0",
           )}
           onMouseDown={(e) => {
