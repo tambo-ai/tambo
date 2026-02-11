@@ -1,6 +1,6 @@
 ---
 name: components
-description: Creates and registers Tambo components - generative (AI creates on-demand) and interactable (pre-placed, AI updates). Use when defining components, working with TamboComponent, withInteractable, propsSchema, or registering components for AI to render or update.
+description: Creates and registers Tambo components - generative (AI creates on-demand) and interactable (pre-placed, AI updates). Use when defining components, working with TamboComponent, withTamboInteractable, propsSchema, or registering components for AI to render or update.
 ---
 
 # Tambo Components
@@ -54,6 +54,44 @@ const components: TamboComponent[] = [
 </TamboProvider>;
 ```
 
+### Rendering Generative Components
+
+Use `ComponentRenderer` to render AI-generated components in your message list:
+
+```tsx
+import { ComponentRenderer } from "@tambo-ai/react";
+
+function Message({
+  message,
+  threadId,
+}: {
+  message: TamboMessage;
+  threadId: string;
+}) {
+  return (
+    <div>
+      {message.content.map((block) => {
+        switch (block.type) {
+          case "text":
+            return <p key={block.type}>{block.text}</p>;
+          case "component":
+            return (
+              <ComponentRenderer
+                key={block.id}
+                content={block}
+                threadId={threadId}
+                messageId={message.id}
+              />
+            );
+          default:
+            return null;
+        }
+      })}
+    </div>
+  );
+}
+```
+
 ### Generative Key Points
 
 - **propsSchema**: Zod object with `.describe()` on each field
@@ -66,7 +104,7 @@ const components: TamboComponent[] = [
 Pre-place in your UI; AI can observe and update props via natural language.
 
 ```tsx
-import { withInteractable } from "@tambo-ai/react";
+import { withTamboInteractable } from "@tambo-ai/react";
 import { z } from "zod";
 
 const NoteSchema = z.object({
@@ -84,7 +122,7 @@ function Note({ title, content, color = "white" }: Props) {
   );
 }
 
-export const InteractableNote = withInteractable(Note, {
+export const InteractableNote = withTamboInteractable(Note, {
   componentName: "Note",
   description: "A note with editable title, content, and color",
   propsSchema: NoteSchema,
