@@ -70,13 +70,14 @@ const MIN_SIDEBAR_WIDTH = 300; // Minimum width for the history sidebar
  */
 const ResizablePanel = React.forwardRef<HTMLDivElement, ResizablePanelProps>(
   ({ className, children, isLeftPanel, ...props }, ref) => {
-    const [width, setWidth] = React.useState(1024);
+    const [width, setWidth] = React.useState(DEFAULT_SIDEBAR_WIDTH);
     const isResizing = React.useRef(false);
     const lastUpdateRef = React.useRef(0);
 
     React.useEffect(() => {
-      const windowWidth =
-        window.document.documentElement.getBoundingClientRect().width || 1024;
+      if (typeof window === "undefined") return;
+
+      const windowWidth = window.innerWidth || DEFAULT_SIDEBAR_WIDTH * 2;
       const initialWidth = Math.min(DEFAULT_SIDEBAR_WIDTH, windowWidth / 2);
       setWidth(initialWidth);
     }, []);
