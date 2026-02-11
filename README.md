@@ -64,9 +64,8 @@ Most software is built around a one-size-fits-all mental model. We built Tambo t
 ## Get Started
 
 ```bash
-npm create tambo-app my-tambo-app
+npm create tambo-app my-tambo-app  # auto-initializes git + tambo setup
 cd my-tambo-app
-npx tambo init      # choose cloud or self-hosted
 npm run dev
 ```
 

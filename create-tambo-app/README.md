@@ -37,6 +37,15 @@ All arguments passed to `create-tambo-app` will be forwarded to the Tambo CLI's 
 npm create tambo-app@latest my-app
 ```
 
+## What Happens
+
+When you run `create-tambo-app`, it will:
+
+1. Clone the selected template
+2. Install dependencies
+3. Initialize a git repository with an initial commit
+4. Run `tambo init` to set up your API key (interactive)
+
 ## What's Next?
 
 After creating your application:
@@ -44,6 +53,15 @@ After creating your application:
 1. Navigate to your project directory: `cd my-app`
 2. Start the development server: `npm run dev`
 3. Open your browser to see your new Tambo application
+
+## Skip Automatic Setup
+
+If you want to skip the automatic setup steps, use these flags:
+
+```bash
+npm create tambo-app@latest my-app --skip-git-init     # Skip git initialization
+npm create tambo-app@latest my-app --skip-tambo-init   # Skip tambo init
+```
 
 ## License
 
