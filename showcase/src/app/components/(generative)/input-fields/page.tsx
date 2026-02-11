@@ -39,10 +39,9 @@ export default function InputFieldsComponentPage() {
 export function UserRegistrationFields() {
   return (
     <InputFields
-      title="Create Account"
       fields={[
         {
-          name: "username",
+          id: "username",
           label: "Username",
           type: "text",
           required: true,
@@ -54,7 +53,7 @@ export function UserRegistrationFields() {
           autoComplete: "username",
         },
         {
-          name: "email",
+          id: "email",
           label: "Email",
           type: "email",
           required: true,
@@ -63,7 +62,7 @@ export function UserRegistrationFields() {
           autoComplete: "email",
         },
         {
-          name: "password",
+          id: "password",
           label: "Password",
           type: "password",
           required: true,
@@ -74,7 +73,7 @@ export function UserRegistrationFields() {
           autoComplete: "new-password",
         },
         {
-          name: "phone",
+          id: "phone",
           label: "Phone",
           type: "text",
           placeholder: "(555) 123-4567",
@@ -83,7 +82,7 @@ export function UserRegistrationFields() {
           autoComplete: "tel",
         },
         {
-          name: "age",
+          id: "age",
           label: "Age",
           type: "number",
           placeholder: "25",
@@ -127,18 +126,6 @@ export function UserRegistrationFields() {
               </thead>
               <tbody>
                 <tr>
-                  <td>title</td>
-                  <td>string</td>
-                  <td>-</td>
-                  <td>Section heading displayed at the top</td>
-                </tr>
-                <tr>
-                  <td>description</td>
-                  <td>string</td>
-                  <td>-</td>
-                  <td>Optional description text below the title</td>
-                </tr>
-                <tr>
                   <td>fields</td>
                   <td>InputField[]</td>
                   <td>[]</td>
@@ -146,14 +133,20 @@ export function UserRegistrationFields() {
                 </tr>
                 <tr>
                   <td>variant</td>
-                  <td>&quot;solid&quot; | &quot;bordered&quot;</td>
-                  <td>&quot;solid&quot;</td>
+                  <td>
+                    &quot;default&quot; | &quot;solid&quot; |
+                    &quot;bordered&quot;
+                  </td>
+                  <td>&quot;default&quot;</td>
                   <td>Visual style of the container</td>
                 </tr>
                 <tr>
                   <td>layout</td>
-                  <td>&quot;compact&quot; | &quot;relaxed&quot;</td>
-                  <td>&quot;compact&quot;</td>
+                  <td>
+                    &quot;default&quot; | &quot;compact&quot; |
+                    &quot;relaxed&quot;
+                  </td>
+                  <td>&quot;default&quot;</td>
                   <td>Spacing between input fields</td>
                 </tr>
                 <tr>
@@ -180,10 +173,19 @@ export function UserRegistrationFields() {
               </thead>
               <tbody>
                 <tr>
-                  <td>name</td>
+                  <td>id</td>
                   <td>string</td>
                   <td>-</td>
                   <td>Unique identifier for the field</td>
+                </tr>
+                <tr>
+                  <td>type</td>
+                  <td>
+                    &quot;text&quot; | &quot;email&quot; | &quot;password&quot;
+                    | &quot;number&quot;
+                  </td>
+                  <td>-</td>
+                  <td>Type of input field to render</td>
                 </tr>
                 <tr>
                   <td>label</td>
@@ -192,13 +194,10 @@ export function UserRegistrationFields() {
                   <td>Label text displayed above the field</td>
                 </tr>
                 <tr>
-                  <td>type</td>
-                  <td>
-                    &quot;text&quot; | &quot;email&quot; | &quot;password&quot;
-                    | &quot;number&quot; | &quot;tel&quot;
-                  </td>
-                  <td>&quot;text&quot;</td>
-                  <td>Type of input field to render</td>
+                  <td>placeholder</td>
+                  <td>string</td>
+                  <td>-</td>
+                  <td>Placeholder text shown in empty fields</td>
                 </tr>
                 <tr>
                   <td>required</td>
@@ -211,12 +210,6 @@ export function UserRegistrationFields() {
                   <td>boolean</td>
                   <td>false</td>
                   <td>Whether the field is disabled</td>
-                </tr>
-                <tr>
-                  <td>placeholder</td>
-                  <td>string</td>
-                  <td>-</td>
-                  <td>Placeholder text shown in empty fields</td>
                 </tr>
                 <tr>
                   <td>description</td>
@@ -247,6 +240,12 @@ export function UserRegistrationFields() {
                   <td>string</td>
                   <td>-</td>
                   <td>Autocomplete attribute for browser support</td>
+                </tr>
+                <tr>
+                  <td>error</td>
+                  <td>string</td>
+                  <td>-</td>
+                  <td>Error message displayed below the field</td>
                 </tr>
               </tbody>
             </table>

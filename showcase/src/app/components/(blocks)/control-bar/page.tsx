@@ -66,7 +66,7 @@ export function ChatInterface() {
       </div>
 
       {/* Control bar floats on top */}
-      <ControlBar contextKey="demo" />
+      <ControlBar />
     </div>
   );
 }`}
@@ -101,10 +101,21 @@ export function ChatInterface() {
             </thead>
             <tbody>
               <tr>
-                <td>contextKey</td>
+                <td>hotkey</td>
                 <td>string</td>
-                <td>-</td>
-                <td>Unique identifier for the conversation thread</td>
+                <td>&quot;mod+k&quot;</td>
+                <td>
+                  Keyboard shortcut for toggling the control bar (e.g.,
+                  &quot;mod+k&quot;)
+                </td>
+              </tr>
+              <tr>
+                <td>variant</td>
+                <td>
+                  &quot;default&quot; | &quot;compact&quot; | &quot;solid&quot;
+                </td>
+                <td>&quot;default&quot;</td>
+                <td>Visual style variant for messages in the thread</td>
               </tr>
               <tr>
                 <td>className</td>
