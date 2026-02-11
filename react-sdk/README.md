@@ -44,11 +44,7 @@ npx tambo init
 ## Quick Start
 
 ```tsx
-import {
-  TamboProvider,
-  useTamboThread,
-  useTamboThreadInput,
-} from "@tambo-ai/react";
+import { TamboProvider, useTambo, useTamboThreadInput } from "@tambo-ai/react";
 import { z } from "zod/v4";
 
 // 1. Register components with Zod schemas
@@ -65,27 +61,53 @@ const components = [
 ];
 
 // 2. Wrap your app
-<TamboProvider
-  apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY!}
-  components={components}
->
-  <App />
-</TamboProvider>;
+function App() {
+  return (
+    <TamboProvider
+      apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY!}
+      userKey={currentUserId} // Required: identifies thread owner
+      components={components}
+    >
+      <ChatInterface />
+    </TamboProvider>
+  );
+}
 
 // 3. Use hooks
-const { value, setValue, submit, isPending } = useTamboThreadInput();
-const { thread } = useTamboThread();
+function ChatInterface() {
+  const { messages, isStreaming } = useTambo();
+  const { value, setValue, submit, isPending } = useTamboThreadInput();
+
+  return (
+    <form
+      onSubmit={async (e) => {
+        e.preventDefault();
+        await submit();
+      }}
+    >
+      {messages.map((msg) => (
+        <Message key={msg.id} message={msg} />
+      ))}
+      {isStreaming && <LoadingIndicator />}
+      <input value={value} onChange={(e) => setValue(e.target.value)} />
+      <button disabled={isPending}>Send</button>
+    </form>
+  );
+}
 ```
 
 ## Key Hooks
 
-| Hook                                                                                               | Description                                      |
-| -------------------------------------------------------------------------------------------------- | ------------------------------------------------ |
-| [`useTamboThread()`](https://docs.tambo.co/concepts/conversation-storage)                          | Access current thread and messages               |
-| [`useTamboThreadInput()`](https://docs.tambo.co/reference/react-sdk/hooks#usetambothreadinput)     | Handle user input and message submission         |
-| [`useTamboStreamStatus()`](https://docs.tambo.co/reference/react-sdk/hooks#usetambostreamstatus)   | Monitor streaming status for progressive loading |
-| [`useTamboSuggestions()`](https://docs.tambo.co/concepts/suggestions)                              | Generate contextual suggestions                  |
-| [`useTamboComponentState()`](https://docs.tambo.co/concepts/generative-interfaces/component-state) | Persistent component state across renders        |
+| Hook                                                                                               | Description                                                 |
+| -------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| [`useTambo()`](https://docs.tambo.co/reference/react-sdk/hooks#usetambo)                           | Primary hook - messages, streaming state, thread management |
+| [`useTamboThreadInput()`](https://docs.tambo.co/reference/react-sdk/hooks#usetambothreadinput)     | Handle user input, image uploads, and message submission    |
+| [`useTamboThread()`](https://docs.tambo.co/concepts/conversation-storage)                          | Fetch a single thread by ID (React Query)                   |
+| [`useTamboThreadList()`](https://docs.tambo.co/concepts/conversation-storage)                      | Fetch thread list with filtering and pagination             |
+| [`useTamboStreamStatus()`](https://docs.tambo.co/reference/react-sdk/hooks#usetambostreamstatus)   | Monitor prop-level streaming status for progressive loading |
+| [`useTamboSuggestions()`](https://docs.tambo.co/concepts/suggestions)                              | Generate contextual suggestions                             |
+| [`useTamboComponentState()`](https://docs.tambo.co/concepts/generative-interfaces/component-state) | Bidirectional component state synced with the backend       |
+| [`useTamboVoice()`](https://docs.tambo.co/reference/react-sdk/hooks#usetambovoice)                 | Voice input and transcription                               |
 
 ## Features
 

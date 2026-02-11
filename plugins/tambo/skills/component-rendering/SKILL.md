@@ -64,29 +64,20 @@ function MyComponent({ title, items }: Props) {
 Make state visible to AI and persist across sessions:
 
 ```tsx
-import { useEffect } from "react";
 import { useTamboComponentState, useTamboStreamStatus } from "@tambo-ai/react";
 
-interface Props {
-  title?: string;
-}
-
-function EditableCard({ title: streamedTitle }: Props) {
-  const [title, setTitle, setFromProp] = useTamboComponentState("title", "");
+function EditableCard({ title: streamedTitle }: { title?: string }) {
+  const [title, setTitle, { isPending, flush }] = useTamboComponentState(
+    "title",
+    "",
+  );
   const { streamStatus } = useTamboStreamStatus();
-
-  // Sync streamed prop to state
-  useEffect(() => {
-    if (streamedTitle !== undefined) {
-      setFromProp(streamedTitle);
-    }
-  }, [streamedTitle, setFromProp]);
 
   return (
     <input
       value={title}
       onChange={(e) => setTitle(e.target.value)}
-      disabled={streamStatus.isStreaming}
+      disabled={streamStatus.isStreaming || isPending}
     />
   );
 }
@@ -95,17 +86,30 @@ function EditableCard({ title: streamedTitle }: Props) {
 ### useTamboComponentState API
 
 ```tsx
-const [value, setValue, setFromProp] = useTamboComponentState(
-  key,
-  initialValue,
+const [value, setValue, meta] = useTamboComponentState(
+  key, // Unique state key within the component
+  initialValue, // Initial value if no server state
+  debounceTime, // Debounce ms (default: 500)
 );
 ```
 
-| Return        | Description                                               |
-| ------------- | --------------------------------------------------------- |
-| `value`       | Current state value                                       |
-| `setValue`    | Update state (marks as user-edited)                       |
-| `setFromProp` | Update from streaming props (doesn't mark as user-edited) |
+| Return           | Description                                 |
+| ---------------- | ------------------------------------------- |
+| `value`          | Current state value                         |
+| `setValue`       | Update state (supports updater functions)   |
+| `meta.isPending` | Server sync in progress                     |
+| `meta.error`     | Sync error (if any)                         |
+| `meta.flush`     | Immediately flush pending debounced updates |
+
+### setValue Patterns
+
+```tsx
+// Direct value
+setTitle("New title");
+
+// Updater function
+setCount((prev) => prev + 1);
+```
 
 ### When to Use Component State
 

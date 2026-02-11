@@ -45,7 +45,6 @@ import {
 import type { ToolResultContent } from "@tambo-ai/typescript-sdk/resources/threads/threads";
 import type { RunCreateParams } from "@tambo-ai/typescript-sdk/resources/threads/runs";
 import { ToolCallTracker } from "../utils/tool-call-tracker";
-import { parse as parsePartialJson } from "partial-json";
 
 /**
  * Dispatches synthetic AG-UI events to show a user message in the thread.
@@ -165,38 +164,6 @@ function shouldGenerateThreadName(
     // +2 accounts for the user message and assistant response just added
     preMutationMessageCount + 2 >= autoGenerateNameThreshold
   );
-}
-
-/**
- * Attempts to parse partial JSON from accumulated tool call args.
- *
- * Returns a parsed object if the accumulated args are parseable as
- * a JSON object, or undefined if parsing fails or the result is not
- * a plain object (e.g. array or primitive).
- * @param toolTracker - Tracker holding pending tool call state
- * @param toolCallId - The tool call ID to parse args for
- * @returns Parsed args object, or undefined if not parseable yet
- */
-function parseToolCallArgs(
-  toolTracker: ToolCallTracker,
-  toolCallId: string,
-): Record<string, unknown> | undefined {
-  const accToolCall = toolTracker.getAccumulatingToolCall(toolCallId);
-  if (!accToolCall) return undefined;
-
-  try {
-    const parsed: unknown = parsePartialJson(accToolCall.accumulatedArgs);
-    if (
-      typeof parsed === "object" &&
-      parsed !== null &&
-      !Array.isArray(parsed)
-    ) {
-      return parsed as Record<string, unknown>;
-    }
-  } catch {
-    /* not parseable yet */
-  }
-  return undefined;
 }
 
 /**
@@ -564,7 +531,7 @@ export function useTamboSendMessage(threadId?: string) {
         existingThread?.thread.messages.length ?? 0;
       const threadAlreadyHasName = !!existingThread?.thread.name;
 
-      const toolTracker = new ToolCallTracker();
+      const toolTracker = new ToolCallTracker(registry.toolRegistry);
       const throttledStreamable = createThrottledStreamableExecutor(
         toolTracker,
         registry.toolRegistry,
@@ -648,7 +615,7 @@ export function useTamboSendMessage(threadId?: string) {
             // Parse partial JSON once for TOOL_CALL_ARGS — reused by both dispatch and streamable execution
             const parsedToolArgs =
               event.type === EventType.TOOL_CALL_ARGS
-                ? parseToolCallArgs(toolTracker, event.toolCallId)
+                ? toolTracker.parsePartialArgs(event.toolCallId)
                 : undefined;
 
             dispatch({
@@ -656,6 +623,7 @@ export function useTamboSendMessage(threadId?: string) {
               event,
               threadId: actualThreadId,
               parsedToolArgs,
+              toolSchemas: toolTracker.toolSchemas,
             });
 
             // Schedule debounced streamable tool execution with the same pre-parsed args
@@ -663,9 +631,10 @@ export function useTamboSendMessage(threadId?: string) {
               throttledStreamable.schedule(event.toolCallId, parsedToolArgs);
             }
 
-            // Check for awaiting_input - if found, break to execute tools
+            // Handle custom events
             if (event.type === EventType.CUSTOM) {
               const customEvent = asTamboCustomEvent(event);
+
               if (customEvent?.name === "tambo.run.awaiting_input") {
                 pendingAwaitingInput = customEvent;
                 break; // Exit stream loop to handle tool execution
