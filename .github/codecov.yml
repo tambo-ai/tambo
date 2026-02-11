@@ -60,6 +60,23 @@ component_management:
         - showcase/**
 
 ignore:
+  - ".github/**"
+  - "assets/**"
+  - "community/**"
+  - "create-tambo-app/**"
+  - "devdocs/**"
+  - "docs/**"
+  - "plans/**"
+  - "plugins/**"
+  - "scripts/**"
+  - "supabase/**"
+  - "apps/docs-mcp/**"
+  - "apps/mcp-everything/**"
+  - "packages/db/**"
+  - "packages/eslint-config/**"
+  - "packages/testing/**"
+  - "packages/typescript-config/**"
+  - "packages/vite-config/**"
   - "**/*.test.ts"
   - "**/*.test.tsx"
   - "**/test/**"
