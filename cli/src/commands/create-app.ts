@@ -274,8 +274,24 @@ export async function handleCreateApp(
 
     // Initialize new git repository by default (unless skipGitInit is true)
     // Support legacy initGit flag for backwards compatibility
-    const shouldInitGit = options.skipGitInit ? false : true;
+    let shouldInitGit: boolean;
+    if (options.skipGitInit) {
+      shouldInitGit = false;
+    } else if (options.initGit === false) {
+      shouldInitGit = false;
+    } else {
+      shouldInitGit = true;
+    }
     let gitInitSucceeded = false;
+
+    // Warn about deprecated flag usage
+    if (options.initGit !== undefined) {
+      console.warn(
+        chalk.yellow(
+          "Warning: --init-git is deprecated. Git init now runs by default. Use --skip-git-init to opt out.",
+        ),
+      );
+    }
 
     if (shouldInitGit) {
       const gitInitSpinner = ora({
