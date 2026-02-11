@@ -284,7 +284,11 @@ export async function handleCreateApp(
       }).start();
 
       try {
-        execSync("git init", { stdio: "ignore", allowNonInteractive: true });
+        // Use --initial-branch=main to set the initial branch to main
+        execSync("git init --initial-branch=main", {
+          stdio: "ignore",
+          allowNonInteractive: true,
+        });
         execSync("git add .", { stdio: "ignore", allowNonInteractive: true });
         execSync(
           `git commit -m "Initial commit from Tambo ${selectedTemplate.name} template"`,
