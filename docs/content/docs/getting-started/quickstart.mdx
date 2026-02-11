@@ -25,17 +25,20 @@ Run the starter template to see Tambo in action. You'll register components, add
 npm create tambo-app@latest my-tambo-app
 ```
 
-### 2. Create a Tambo API key
+This command will:
 
-```bash title="Initialize Tambo"
-npx tambo init
-```
-
-This walks you through creating a project, generates an API key, and writes it to your env file.
+- Clone the starter template
+- Install dependencies
+- Initialize git repository
+- Walk you through creating a project, generate an API key, and write it to your env file
 
 The CLI prefers `.env.local`, but will update `.env` if that's the only env file present.
 
-### 3. Run the app
+<Callout type="info">
+  To skip automatic setup, use `--skip-git-init` or `--skip-tambo-init` flags.
+</Callout>
+
+### 2. Run the app
 
 ```bash title="Run the app"
 npm run dev

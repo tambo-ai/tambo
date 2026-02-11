@@ -16,7 +16,7 @@ Creates a new Tambo app from a template. Choose from pre-built templates to get 
 **Examples:**
 
 ```bash
-# Create app with interactive prompts
+# Create app with interactive prompts (git + tambo init auto-run)
 npx tambo create-app
 
 # Create in current directory
@@ -25,17 +25,38 @@ npx tambo create-app .
 # Create with specific template
 npx tambo create-app my-app --template=standard
 
-# Initialize git repository automatically
-npx tambo create-app my-app --init-git
+# Skip automatic git initialization
+npx tambo create-app my-app --skip-git-init
+
+# Skip automatic tambo init
+npx tambo create-app my-app --skip-tambo-init
 
 # Use legacy peer deps
 npx tambo create-app my-app --legacy-peer-deps
 ```
 
-**Manual Setup After Creating:**
+**What Happens Automatically:**
+
+By default, `create-app` will:
+
+- Clone the template
+- Install dependencies
+- Initialize a git repository with initial commit
+- Run `npx tambo init` to set up your API key (interactive)
+
+**After Creating:**
 
 ```bash
 cd my-app
-npx tambo init         # Complete setup with API key
 npm run dev            # Start development server
+```
+
+**Non-Interactive Mode:**
+
+In CI/CD or agent environments, `tambo init` is skipped automatically since it requires user interaction. You'll need to run it separately with appropriate flags:
+
+```bash
+npx tambo init --api-key=sk_...     # Direct API key
+# or
+npx tambo init --project-name=myapp # Create new project (requires auth)
 ```
