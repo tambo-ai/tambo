@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.26.2](https://github.com/tambo-ai/tambo/compare/docs-v1.26.1...docs-v1.26.2) (2026-02-11)
+
+
+### Bug Fixes
+
+* **react-ui-base:** preserve MAX_IMAGES and IS_PASTED_IMAGE in build output ([#2371](https://github.com/tambo-ai/tambo/issues/2371)) ([dc6d5e5](https://github.com/tambo-ai/tambo/commit/dc6d5e5a1714641890ef1fd6dbb7bcdbcc54a521))
+
 ## [1.26.1](https://github.com/tambo-ai/tambo/compare/docs-v1.26.0...docs-v1.26.1) (2026-02-10)
 
 

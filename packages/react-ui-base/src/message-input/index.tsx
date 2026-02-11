@@ -1,5 +1,9 @@
 "use client";
 
+import {
+  IS_PASTED_IMAGE as _IS_PASTED_IMAGE,
+  MAX_IMAGES as _MAX_IMAGES,
+} from "./constants";
 import { MessageInputContent } from "./message-input-content";
 import { MessageInputError } from "./message-input-error";
 import { MessageInputFileButton } from "./message-input-file-button";
@@ -84,8 +88,10 @@ export const MessageInput = {
   ValueAccess: MessageInputValueAccess,
 };
 
-// Re-export types
-export { IS_PASTED_IMAGE, MAX_IMAGES } from "./constants";
+// Re-export constants — aliased through local consts because Vite/Rolldown
+// tree-shakes bare re-exports even with preserveModules enabled.
+export const MAX_IMAGES: typeof _MAX_IMAGES = _MAX_IMAGES;
+export const IS_PASTED_IMAGE: typeof _IS_PASTED_IMAGE = _IS_PASTED_IMAGE;
 export type {
   MessageInputContentProps,
   MessageInputContentRenderProps,

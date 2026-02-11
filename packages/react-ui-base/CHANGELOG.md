@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.0-alpha.4](https://github.com/tambo-ai/tambo/compare/@tambo-ai/react-ui-base-v0.1.0-alpha.3...@tambo-ai/react-ui-base-v0.1.0-alpha.4) (2026-02-11)
+
+
+### Bug Fixes
+
+* **react-ui-base:** preserve MAX_IMAGES and IS_PASTED_IMAGE in build output ([#2371](https://github.com/tambo-ai/tambo/issues/2371)) ([dc6d5e5](https://github.com/tambo-ai/tambo/commit/dc6d5e5a1714641890ef1fd6dbb7bcdbcc54a521))
+
 ## [0.1.0-alpha.3](https://github.com/tambo-ai/tambo/compare/@tambo-ai/react-ui-base-v0.1.0-alpha.2...@tambo-ai/react-ui-base-v0.1.0-alpha.3) (2026-02-10)
 
 
