@@ -353,7 +353,8 @@ export async function handleCreateApp(
     // Run tambo init by default in interactive mode (unless skipTamboInit is true)
     // In non-interactive mode, skip it since tambo init requires user interaction
     let tamboInitSucceeded = false;
-    const shouldRunTamboInit = !options.skipTamboInit && isInteractive();
+    const interactive = isInteractive();
+    const shouldRunTamboInit = !options.skipTamboInit && interactive;
 
     if (shouldRunTamboInit) {
       console.log(chalk.cyan("\nRunning tambo init to complete setup...\n"));
@@ -413,15 +414,11 @@ export async function handleCreateApp(
       );
     }
 
-    // Show tambo init as needed if:
-    // - It didn't succeed AND
-    // - Either user explicitly skipped it, OR it was auto-skipped due to non-interactive mode
-    if (
-      !tamboInitSucceeded &&
-      (!shouldRunTamboInit || !options.skipTamboInit)
-    ) {
+    // Show tambo init in next steps if it didn't succeed
+    // (either explicitly skipped, auto-skipped in non-interactive mode, or failed)
+    if (!tamboInitSucceeded) {
       let reason: string;
-      if (!isInteractive()) {
+      if (!interactive) {
         reason = chalk.gray("(required for setup)");
       } else if (options.skipTamboInit) {
         reason = chalk.gray("(skipped, run to complete setup)");
