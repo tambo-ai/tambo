@@ -32,7 +32,8 @@ interface CLIFlags extends Record<string, any> {
   help?: Flag<"boolean", boolean>;
   init?: Flag<"boolean", boolean>;
   legacyPeerDeps?: Flag<"boolean", boolean>;
-  initGit?: Flag<"boolean", boolean>;
+  skipGitInit?: Flag<"boolean", boolean>;
+  skipTamboInit?: Flag<"boolean", boolean>;
   version?: Flag<"boolean", boolean>;
   template?: Flag<"string", string>;
   prefix?: Flag<"string", string>;
@@ -68,7 +69,8 @@ const OPTION_DOCS: Record<string, string> = {
   "skip-agent-docs": `${chalk.yellow("--skip-agent-docs")}     Skip creating/updating agent docs`,
   "legacy-peer-deps": `${chalk.yellow("--legacy-peer-deps")}   Use --legacy-peer-deps flag for npm install`,
   template: `${chalk.yellow("--template, -t <name>")}  Template to use: standard, vite, analytics`,
-  "init-git": `${chalk.yellow("--init-git")}           Initialize git repository automatically`,
+  "skip-git-init": `${chalk.yellow("--skip-git-init")}      Skip git initialization`,
+  "skip-tambo-init": `${chalk.yellow("--skip-tambo-init")}    Skip running 'npx tambo init'`,
   "dry-run": `${chalk.yellow("--dry-run")}            Preview changes without applying them`,
   quiet: `${chalk.yellow("--quiet, -q")}          Exit code 0 if authenticated, 1 otherwise`,
   force: `${chalk.yellow("--force, -f")}          Skip confirmation prompts`,
@@ -191,13 +193,19 @@ const COMMAND_HELP_CONFIGS: Record<string, CommandHelp> = {
     syntax: "create-app [directory]",
     description: "Create a new tambo app from a template",
     usage: [`$ ${chalk.cyan("tambo create-app")} [directory] [options]`],
-    options: ["template", "init-git", "legacy-peer-deps"],
+    options: [
+      "template",
+      "skip-git-init",
+      "skip-tambo-init",
+      "legacy-peer-deps",
+    ],
     examples: [
-      `$ ${chalk.cyan("tambo create-app")}                       # Interactive mode`,
+      `$ ${chalk.cyan("tambo create-app")}                       # Interactive mode (git + tambo init auto-run)`,
       `$ ${chalk.cyan("tambo create-app my-app")}                # Create in 'my-app' directory`,
       `$ ${chalk.cyan("tambo create-app .")}                     # Create in current directory`,
       `$ ${chalk.cyan("tambo create-app --template=standard")}   # Use standard template`,
-      `$ ${chalk.cyan("tambo create-app --init-git")}            # Initialize git repo`,
+      `$ ${chalk.cyan("tambo create-app --skip-git-init")}       # Skip git initialization`,
+      `$ ${chalk.cyan("tambo create-app --skip-tambo-init")}     # Skip tambo init`,
     ],
     exampleTitle: "Create Apps",
     customSections: () => {
@@ -323,7 +331,8 @@ function generateGlobalHelp(): string {
     OPTION_DOCS["skip-agent-docs"],
     OPTION_DOCS["legacy-peer-deps"],
     `${OPTION_DOCS.template} ${chalk.red("(create-app only)")}`,
-    `${OPTION_DOCS["init-git"]} ${chalk.red("(create-app only)")}`,
+    `${OPTION_DOCS["skip-git-init"]} ${chalk.red("(create-app only)")}`,
+    `${OPTION_DOCS["skip-tambo-init"]} ${chalk.red("(create-app only)")}`,
     `${OPTION_DOCS["dry-run"]} ${chalk.red("(migrate only)")}`,
   ].join("\n    ");
 
@@ -377,9 +386,14 @@ const cli = meow(generateGlobalHelp(), {
       type: "boolean",
       description: "Install dependencies with --legacy-peer-deps flag",
     },
-    initGit: {
+    skipGitInit: {
       type: "boolean",
-      description: "Initialize a new git repository after creating the app",
+      description:
+        "Skip git initialization (use when git is already initialized)",
+    },
+    skipTamboInit: {
+      type: "boolean",
+      description: "Skip running 'npx tambo init' after project creation",
     },
     template: {
       type: "string",
@@ -569,7 +583,8 @@ async function handleCommand(cmd: string, flags: Result<CLIFlags>["flags"]) {
     }
     await handleCreateApp({
       legacyPeerDeps: Boolean(flags.legacyPeerDeps),
-      initGit: Boolean(flags.initGit),
+      skipGitInit: Boolean(flags.skipGitInit),
+      skipTamboInit: Boolean(flags.skipTamboInit),
       template: flags.template as string | undefined,
       name: cli.input[1],
     });
