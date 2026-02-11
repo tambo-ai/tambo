@@ -32,7 +32,6 @@ interface CLIFlags extends Record<string, any> {
   help?: Flag<"boolean", boolean>;
   init?: Flag<"boolean", boolean>;
   legacyPeerDeps?: Flag<"boolean", boolean>;
-  initGit?: Flag<"boolean", boolean>;
   skipGitInit?: Flag<"boolean", boolean>;
   skipTamboInit?: Flag<"boolean", boolean>;
   version?: Flag<"boolean", boolean>;
@@ -70,7 +69,6 @@ const OPTION_DOCS: Record<string, string> = {
   "skip-agent-docs": `${chalk.yellow("--skip-agent-docs")}     Skip creating/updating agent docs`,
   "legacy-peer-deps": `${chalk.yellow("--legacy-peer-deps")}   Use --legacy-peer-deps flag for npm install`,
   template: `${chalk.yellow("--template, -t <name>")}  Template to use: standard, vite, analytics`,
-  "init-git": `${chalk.yellow("--init-git")}           Initialize git repository automatically (deprecated - now default)`,
   "skip-git-init": `${chalk.yellow("--skip-git-init")}      Skip git initialization`,
   "skip-tambo-init": `${chalk.yellow("--skip-tambo-init")}    Skip running 'npx tambo init'`,
   "dry-run": `${chalk.yellow("--dry-run")}            Preview changes without applying them`,
@@ -388,11 +386,6 @@ const cli = meow(generateGlobalHelp(), {
       type: "boolean",
       description: "Install dependencies with --legacy-peer-deps flag",
     },
-    initGit: {
-      type: "boolean",
-      description:
-        "Initialize a new git repository after creating the app (deprecated - now default)",
-    },
     skipGitInit: {
       type: "boolean",
       description:
@@ -590,7 +583,6 @@ async function handleCommand(cmd: string, flags: Result<CLIFlags>["flags"]) {
     }
     await handleCreateApp({
       legacyPeerDeps: Boolean(flags.legacyPeerDeps),
-      initGit: Boolean(flags.initGit),
       skipGitInit: Boolean(flags.skipGitInit),
       skipTamboInit: Boolean(flags.skipTamboInit),
       template: flags.template as string | undefined,

@@ -42,7 +42,6 @@ const templates: Record<string, Template> = {
 
 interface CreateAppOptions {
   legacyPeerDeps?: boolean;
-  initGit?: boolean;
   skipGitInit?: boolean;
   skipTamboInit?: boolean;
   template?: string;
@@ -273,25 +272,8 @@ export async function handleCreateApp(
     process.chdir(targetDir);
 
     // Initialize new git repository by default (unless skipGitInit is true)
-    // Support legacy initGit flag for backwards compatibility
-    let shouldInitGit: boolean;
-    if (options.skipGitInit) {
-      shouldInitGit = false;
-    } else if (options.initGit === false) {
-      shouldInitGit = false;
-    } else {
-      shouldInitGit = true;
-    }
+    const shouldInitGit = !options.skipGitInit;
     let gitInitSucceeded = false;
-
-    // Warn about deprecated flag usage
-    if (options.initGit !== undefined) {
-      console.warn(
-        chalk.yellow(
-          "Warning: --init-git is deprecated. Git init now runs by default. Use --skip-git-init to opt out.",
-        ),
-      );
-    }
 
     if (shouldInitGit) {
       const gitInitSpinner = ora({
