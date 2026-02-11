@@ -13,7 +13,7 @@ coverage:
         threshold: 5%
 
 comment:
-  layout: "header, diff, components"
+  layout: "header, diff, files, components"
   behavior: default
   require_changes: true
 
