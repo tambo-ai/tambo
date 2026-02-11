@@ -1,6 +1,6 @@
 ---
 name: threads
-description: Manages Tambo threads, messages, suggestions, voice input, and image attachments. Use when working with conversations, sending messages, implementing AI suggestions, adding voice input, managing multi-thread UIs, or handling image attachments with useTamboThread, useTamboSuggestions, or useTamboVoice.
+description: Manages Tambo threads, messages, suggestions, voice input, and image attachments. Use when working with conversations, sending messages, implementing AI suggestions, adding voice input, managing multi-thread UIs, or handling image attachments with useTambo, useTamboThreadInput, useTamboSuggestions, or useTamboVoice.
 ---
 
 # Threads and Input
@@ -10,49 +10,83 @@ Manages conversations, suggestions, voice input, and image attachments.
 ## Quick Start
 
 ```tsx
-const { thread, sendThreadMessage, isIdle } = useTamboThread();
+import { useTambo, useTamboThreadInput } from "@tambo-ai/react";
 
-await sendThreadMessage("Hello", { streamResponse: true });
+const { thread, messages, isIdle } = useTambo();
+const { value, setValue, submit } = useTamboThreadInput();
+
+await submit(); // sends current input value
 ```
 
 ## Thread Management
 
-Access and manage the current thread:
+Access and manage the current thread using `useTambo()` and `useTamboThreadInput()`:
 
 ```tsx
-import { useTamboThread } from "@tambo-ai/react";
+import {
+  useTambo,
+  useTamboThreadInput,
+  ComponentRenderer,
+} from "@tambo-ai/react";
 
 function Chat() {
   const {
-    thread, // Current thread with messages
-    sendThreadMessage, // Send user message
+    thread, // Current thread state
+    messages, // Messages with computed properties
     isIdle, // True when not generating
-    generationStage, // Current stage (IDLE, STREAMING_RESPONSE, etc.)
-    switchCurrentThread, // Switch to different thread
-    inputValue, // Current input field value
-    setInputValue, // Update input field
-  } = useTamboThread();
+    isStreaming, // True when streaming response
+    isWaiting, // True when waiting for server
+    currentThreadId, // Active thread ID
+    switchThread, // Switch to different thread
+    startNewThread, // Create new thread, returns ID
+    cancelRun, // Cancel active generation
+  } = useTambo();
+
+  const {
+    value, // Current input value
+    setValue, // Update input
+    submit, // Send message
+    isPending, // Submission in progress
+    images, // Staged image files
+    addImage, // Add single image
+    removeImage, // Remove image by ID
+  } = useTamboThreadInput();
 
   const handleSend = async () => {
-    await sendThreadMessage(inputValue, { streamResponse: true });
-    setInputValue("");
+    await submit();
   };
 
   return (
     <div>
-      {thread?.messages.map((msg) => (
+      {messages.map((msg) => (
         <div key={msg.id}>
-          {msg.content.map((part, i) =>
-            part.type === "text" ? <p key={i}>{part.text}</p> : null,
-          )}
-          {msg.renderedComponent}
+          {msg.content.map((block) => {
+            switch (block.type) {
+              case "text":
+                return <p key={block.type}>{block.text}</p>;
+              case "component":
+                return (
+                  <ComponentRenderer
+                    key={block.id}
+                    content={block}
+                    threadId={currentThreadId}
+                    messageId={msg.id}
+                  />
+                );
+              case "tool_use":
+                return (
+                  <div key={block.id}>
+                    {block.statusMessage ?? `Running ${block.name}...`}
+                  </div>
+                );
+              default:
+                return null;
+            }
+          })}
         </div>
       ))}
-      <input
-        value={inputValue}
-        onChange={(e) => setInputValue(e.target.value)}
-      />
-      <button onClick={handleSend} disabled={!isIdle}>
+      <input value={value} onChange={(e) => setValue(e.target.value)} />
+      <button onClick={handleSend} disabled={!isIdle || isPending}>
         Send
       </button>
     </div>
@@ -60,46 +94,112 @@ function Chat() {
 }
 ```
 
-### Generation Stages
+### Streaming State
 
-| Stage                 | Description                      |
-| --------------------- | -------------------------------- |
-| `IDLE`                | Not generating                   |
-| `CHOOSING_COMPONENT`  | Selecting which component to use |
-| `FETCHING_CONTEXT`    | Calling registered tools         |
-| `HYDRATING_COMPONENT` | Generating component props       |
-| `STREAMING_RESPONSE`  | Actively streaming               |
-| `COMPLETE`            | Finished successfully            |
-| `ERROR`               | Error occurred                   |
+| Property      | Type      | Description                 |
+| ------------- | --------- | --------------------------- |
+| `isIdle`      | `boolean` | Not generating              |
+| `isWaiting`   | `boolean` | Waiting for server response |
+| `isStreaming` | `boolean` | Actively streaming response |
+
+The `streamingState` object provides additional detail:
+
+```tsx
+const { streamingState } = useTambo();
+// streamingState.status: "idle" | "waiting" | "streaming"
+// streamingState.runId: current run ID
+// streamingState.error: { message, code } if error occurred
+```
+
+### Content Block Types
+
+Messages contain an array of content blocks. Handle each type:
+
+| Type          | Description            | Key Fields               |
+| ------------- | ---------------------- | ------------------------ |
+| `text`        | Plain text             | `text`                   |
+| `component`   | AI-generated component | `id`, `name`, `props`    |
+| `tool_use`    | Tool invocation        | `id`, `name`, `input`    |
+| `tool_result` | Tool response          | `tool_use_id`, `content` |
+| `resource`    | MCP resource           | `uri`, `name`, `text`    |
+
+### Submit Options
+
+```tsx
+const { submit } = useTamboThreadInput();
+
+await submit({
+  threadId: "specific-thread", // Override target thread
+  toolChoice: "auto", // "auto" | "required" | "none" | { name: "toolName" }
+  maxTokens: 4096, // Max response tokens
+  systemPrompt: "Be helpful", // Override system prompt
+});
+```
+
+## Fetching a Thread by ID
+
+To fetch a specific thread (e.g., for a detail view), use `useTamboThread(threadId)`:
+
+```tsx
+import { useTamboThread } from "@tambo-ai/react";
+
+function ThreadView({ threadId }: { threadId: string }) {
+  const { data: thread, isLoading, isError } = useTamboThread(threadId);
+
+  if (isLoading) return <Skeleton />;
+  if (isError) return <div>Failed to load thread</div>;
+
+  return <div>{thread.name}</div>;
+}
+```
+
+This is a React Query hook - use it for read-only thread fetching, not for the active conversation.
 
 ## Thread List
 
 Manage multiple conversations:
 
 ```tsx
-import { useTamboThread, useTamboThreadList } from "@tambo-ai/react";
+import { useTambo, useTamboThreadList } from "@tambo-ai/react";
 
 function ThreadSidebar() {
-  const { data: threads, isPending } = useTamboThreadList();
-  const { thread, switchCurrentThread } = useTamboThread();
+  const { data, isLoading } = useTamboThreadList();
+  const { currentThreadId, switchThread, startNewThread } = useTambo();
 
-  if (isPending) return <Skeleton />;
+  if (isLoading) return <Skeleton />;
 
   return (
-    <ul>
-      {threads?.items.map((t) => (
-        <li key={t.id}>
-          <button
-            onClick={() => switchCurrentThread(t.id)}
-            className={thread?.id === t.id ? "active" : ""}
-          >
-            {t.name || "Untitled"}
-          </button>
-        </li>
-      ))}
-    </ul>
+    <div>
+      <button onClick={() => startNewThread()}>New Thread</button>
+      <ul>
+        {data?.threads.map((t) => (
+          <li key={t.id}>
+            <button
+              onClick={() => switchThread(t.id)}
+              className={currentThreadId === t.id ? "active" : ""}
+            >
+              {t.name || "Untitled"}
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
+```
+
+### Thread List Options
+
+```tsx
+const { data } = useTamboThreadList({
+  userKey: "user_123", // Filter by user (defaults to provider's userKey)
+  limit: 20, // Max results
+  cursor: nextCursor, // Pagination cursor
+});
+
+// data.threads: TamboThread[]
+// data.hasMore: boolean
+// data.nextCursor: string
 ```
 
 ## Suggestions
@@ -112,6 +212,7 @@ import { useTamboSuggestions } from "@tambo-ai/react";
 function Suggestions() {
   const { suggestions, isLoading, accept, isAccepting } = useTamboSuggestions({
     maxSuggestions: 3, // 1-10, default 3
+    autoGenerate: true, // Auto-generate after assistant message
   });
 
   if (isLoading) return <Skeleton />;
@@ -121,8 +222,7 @@ function Suggestions() {
       {suggestions.map((s) => (
         <button
           key={s.id}
-          onClick={() => accept(s)} // Sets input value
-          // onClick={() => accept(s, true)}  // Sets and auto-submits
+          onClick={() => accept({ suggestion: s })}
           disabled={isAccepting}
         >
           {s.title}
@@ -133,20 +233,23 @@ function Suggestions() {
 }
 ```
 
-### Custom Suggestions
-
-Override auto-generated suggestions:
+### Auto-Submit Suggestion
 
 ```tsx
-const { setCustomSuggestions } = useTamboContextAttachment();
+// Accept and immediately submit as a message
+accept({ suggestion: s, shouldSubmit: true });
+```
 
-setCustomSuggestions([
-  { id: "1", title: "Edit this", detailedSuggestion: "...", messageId: "" },
-  { id: "2", title: "Add feature", detailedSuggestion: "...", messageId: "" },
-]);
+### Manual Generation
 
-// Clear to return to auto-generated
-setCustomSuggestions(null);
+```tsx
+const { generate, isGenerating } = useTamboSuggestions({
+  autoGenerate: false, // Disable auto-generation
+});
+
+<button onClick={() => generate()} disabled={isGenerating}>
+  Get suggestions
+</button>;
 ```
 
 ## Voice Input
@@ -194,17 +297,17 @@ function VoiceButton() {
 
 ## Image Attachments
 
-Manage images in message input:
+Images are managed via `useTamboThreadInput()`:
 
 ```tsx
-import { useMessageImages } from "@tambo-ai/react";
+import { useTamboThreadInput } from "@tambo-ai/react";
 
 function ImageInput() {
   const { images, addImage, addImages, removeImage, clearImages } =
-    useMessageImages();
+    useTamboThreadInput();
 
   const handleFiles = async (files: FileList) => {
-    await addImages(Array.from(files)); // Only valid images added
+    await addImages(Array.from(files));
   };
 
   return (
@@ -217,7 +320,7 @@ function ImageInput() {
       />
       {images.map((img) => (
         <div key={img.id}>
-          <img src={img.preview} alt={img.file.name} />
+          <img src={img.dataUrl} alt={img.name} />
           <button onClick={() => removeImage(img.id)}>Remove</button>
         </div>
       ))}
@@ -226,32 +329,48 @@ function ImageInput() {
 }
 ```
 
-### Image Hook Returns
+### StagedImage Properties
 
-| Property      | Type                               | Description                            |
-| ------------- | ---------------------------------- | -------------------------------------- |
-| `images`      | `StagedImage[]`                    | Staged images ready to send            |
-| `addImage`    | `(file: File) => Promise<void>`    | Add single image (throws if not image) |
-| `addImages`   | `(files: File[]) => Promise<void>` | Add multiple (only valid images kept)  |
-| `removeImage` | `(id: string) => void`             | Remove by ID                           |
-| `clearImages` | `() => void`                       | Remove all                             |
+| Property  | Type     | Description          |
+| --------- | -------- | -------------------- |
+| `id`      | `string` | Unique image ID      |
+| `name`    | `string` | File name            |
+| `dataUrl` | `string` | Base64 data URL      |
+| `file`    | `File`   | Original File object |
+| `size`    | `number` | File size in bytes   |
+| `type`    | `string` | MIME type            |
 
 ## User Authentication
 
-Enable per-user thread isolation with `userToken`:
+Enable per-user thread isolation:
 
 ```tsx
 import { TamboProvider } from "@tambo-ai/react";
 
 function App() {
-  const userToken = useUserToken(); // From your auth provider (Auth0, Clerk, etc.)
-
   return (
-    <TamboProvider userToken={userToken}>
+    <TamboProvider
+      apiKey={apiKey}
+      userKey="user_123" // Simple user identifier
+    >
       <Chat />
     </TamboProvider>
   );
 }
 ```
 
-With `userToken`, each user sees only their own threads. Supports Auth0, Clerk, Supabase, WorkOS, and any OAuth 2.0 provider with JWT tokens.
+For OAuth-based auth, use `userToken` instead:
+
+```tsx
+function App() {
+  const userToken = useUserToken(); // From your auth provider
+
+  return (
+    <TamboProvider apiKey={apiKey} userToken={userToken}>
+      <Chat />
+    </TamboProvider>
+  );
+}
+```
+
+Use `userKey` for simple user identification or `userToken` for OAuth JWT tokens. Don't use both.
