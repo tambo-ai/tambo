@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/tambo-ai/tambo/compare/create-tambo-app-v0.2.3...create-tambo-app-v0.3.0) (2026-02-11)
+
+
+### Features
+
+* **cli:** auto-initialize git and run tambo init by default ([#2383](https://github.com/tambo-ai/tambo/issues/2383)) ([a086a5c](https://github.com/tambo-ai/tambo/commit/a086a5ce2e0a0478202689a56e96e3e814f4c775))
+
 ## [0.2.3](https://github.com/tambo-ai/tambo/compare/create-tambo-app-v0.2.2...create-tambo-app-v0.2.3) (2026-01-27)
 
 
