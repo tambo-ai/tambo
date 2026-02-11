@@ -11,6 +11,16 @@ coverage:
       default:
         target: 80%
         threshold: 5%
+        paths:
+          - apps/api/**
+          - apps/web/**
+          - cli/**
+          - packages/backend/**
+          - packages/core/**
+          - packages/react-ui-base/**
+          - packages/ui-registry/**
+          - react-sdk/**
+          - showcase/**
 
 comment:
   layout: "header, diff, files, components"
@@ -59,24 +69,24 @@ component_management:
       paths:
         - showcase/**
 
+    - component_id: react-ui-base
+      name: React UI Base
+      paths:
+        - packages/react-ui-base/**
+
+    - component_id: ui-registry
+      name: UI Registry
+      paths:
+        - packages/ui-registry/**
+
 ignore:
   - ".github/**"
   - "assets/**"
   - "community/**"
-  - "create-tambo-app/**"
   - "devdocs/**"
   - "docs/**"
   - "plans/**"
-  - "plugins/**"
-  - "scripts/**"
   - "supabase/**"
-  - "apps/docs-mcp/**"
-  - "apps/mcp-everything/**"
-  - "packages/db/**"
-  - "packages/eslint-config/**"
-  - "packages/testing/**"
-  - "packages/typescript-config/**"
-  - "packages/vite-config/**"
   - "**/*.test.ts"
   - "**/*.test.tsx"
   - "**/test/**"
