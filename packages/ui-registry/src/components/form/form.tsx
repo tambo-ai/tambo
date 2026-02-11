@@ -15,6 +15,7 @@ export const formFieldSchema = z.object({
   type: z
     .enum([
       "text",
+      "email",
       "number",
       "select",
       "textarea",
@@ -440,13 +441,15 @@ export const FormComponent = React.forwardRef<HTMLFormElement, FormProps>(
                 </p>
               )}
 
-              {field.type === "text" && (
+              {(field.type === "text" || field.type === "email") && (
                 <input
-                  type="text"
+                  type={field.type}
                   id={field.id}
                   name={field.id}
                   placeholder={field.placeholder}
                   required={field.required}
+                  autoComplete={field.type === "email" ? "email" : undefined}
+                  inputMode={field.type === "email" ? "email" : undefined}
                   className="w-full px-3 py-2 rounded-lg 
                             bg-background border border-border
                             focus:ring-2 focus:ring-accent focus:border-input
