@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.27.0](https://github.com/tambo-ai/tambo/compare/docs-v1.26.3...docs-v1.27.0) (2026-02-11)
+
+
+### Features
+
+* **cli:** auto-initialize git and run tambo init by default ([#2383](https://github.com/tambo-ai/tambo/issues/2383)) ([a086a5c](https://github.com/tambo-ai/tambo/commit/a086a5ce2e0a0478202689a56e96e3e814f4c775))
+
 ## [1.26.3](https://github.com/tambo-ai/tambo/compare/docs-v1.26.2...docs-v1.26.3) (2026-02-11)
 
 
