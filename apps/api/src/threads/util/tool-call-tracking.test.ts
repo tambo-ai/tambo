@@ -1,5 +1,10 @@
-import { MessageRole, ToolCallRequest } from "@tambo-ai-cloud/core";
 import {
+  MessageRole,
+  ThreadMessage,
+  ToolCallRequest,
+} from "@tambo-ai-cloud/core";
+import {
+  buildToolCallCountsFromMessages,
   DEFAULT_MAX_TOTAL_TOOL_CALLS,
   updateToolCallCounts,
   validateToolCallLimits,
@@ -387,6 +392,136 @@ describe("tool-call-tracking utilities", () => {
 
       // Should be allowed because per-tool override exists and current per-tool total(1) < 5
       expect(result).toBeUndefined();
+    });
+  });
+
+  describe("buildToolCallCountsFromMessages", () => {
+    // Helper to build a minimal ThreadMessage for testing
+    const makeMessage = (
+      role: MessageRole,
+      toolCallRequest?: ToolCallRequest,
+    ): ThreadMessage =>
+      ({
+        id: crypto.randomUUID(),
+        threadId: "thread-1",
+        role,
+        content: [{ type: "text" as const, text: "msg" }],
+        createdAt: new Date(),
+        toolCallRequest,
+      }) as ThreadMessage;
+
+    it("should return empty counts for empty messages", () => {
+      expect(buildToolCallCountsFromMessages([])).toEqual({});
+    });
+
+    it("should return empty counts when no tool calls exist", () => {
+      const messages = [
+        makeMessage(MessageRole.User),
+        makeMessage(MessageRole.Assistant),
+      ];
+      expect(buildToolCallCountsFromMessages(messages)).toEqual({});
+    });
+
+    it("should count a single tool call in the current round", () => {
+      const toolCall = createMockToolCallRequest("calculator", [
+        { parameterName: "x", parameterValue: 1 },
+      ]);
+      const messages = [
+        makeMessage(MessageRole.User),
+        makeMessage(MessageRole.Assistant, toolCall),
+      ];
+
+      const counts = buildToolCallCountsFromMessages(messages);
+      expect(Object.keys(counts)).toHaveLength(1);
+      expect(Object.values(counts)[0]).toBe(1);
+    });
+
+    it("should count multiple tool calls in the current round", () => {
+      const toolCallA = createMockToolCallRequest("calculator", [
+        { parameterName: "x", parameterValue: 1 },
+      ]);
+      const toolCallB = createMockToolCallRequest("weather", [
+        { parameterName: "city", parameterValue: "NYC" },
+      ]);
+      const messages = [
+        makeMessage(MessageRole.User),
+        makeMessage(MessageRole.Assistant, toolCallA),
+        makeMessage(MessageRole.Assistant, toolCallB),
+        makeMessage(MessageRole.Assistant, toolCallA),
+      ];
+
+      const counts = buildToolCallCountsFromMessages(messages);
+      expect(Object.keys(counts)).toHaveLength(2);
+      // calculator called twice, weather once
+      const values = Object.values(counts).sort();
+      expect(values).toEqual([1, 2]);
+    });
+
+    it("should exclude tool calls from a previous round", () => {
+      const oldToolCall = createMockToolCallRequest("oldTool");
+      const newToolCall = createMockToolCallRequest("newTool");
+      const messages = [
+        makeMessage(MessageRole.User), // round 1 start
+        makeMessage(MessageRole.Assistant, oldToolCall),
+        makeMessage(MessageRole.User), // round 2 start
+        makeMessage(MessageRole.Assistant, newToolCall),
+      ];
+
+      const counts = buildToolCallCountsFromMessages(messages);
+      expect(Object.keys(counts)).toHaveLength(1);
+      // Only newTool should be counted
+      const keys = Object.keys(counts);
+      expect(keys[0]).toContain("newTool");
+    });
+
+    it("should handle multiple rounds and only count the latest", () => {
+      const tool1 = createMockToolCallRequest("tool1");
+      const tool2 = createMockToolCallRequest("tool2");
+      const tool3 = createMockToolCallRequest("tool3");
+      const messages = [
+        makeMessage(MessageRole.User), // round 1
+        makeMessage(MessageRole.Assistant, tool1),
+        makeMessage(MessageRole.User), // round 2
+        makeMessage(MessageRole.Assistant, tool2),
+        makeMessage(MessageRole.User), // round 3
+        makeMessage(MessageRole.Assistant, tool3),
+      ];
+
+      const counts = buildToolCallCountsFromMessages(messages);
+      expect(Object.keys(counts)).toHaveLength(1);
+      expect(Object.keys(counts)[0]).toContain("tool3");
+    });
+
+    it("should give different signatures for same tool with different parameters", () => {
+      const callA = createMockToolCallRequest("calculator", [
+        { parameterName: "x", parameterValue: 1 },
+      ]);
+      const callB = createMockToolCallRequest("calculator", [
+        { parameterName: "x", parameterValue: 2 },
+      ]);
+      const messages = [
+        makeMessage(MessageRole.User),
+        makeMessage(MessageRole.Assistant, callA),
+        makeMessage(MessageRole.Assistant, callB),
+      ];
+
+      const counts = buildToolCallCountsFromMessages(messages);
+      expect(Object.keys(counts)).toHaveLength(2);
+      expect(Object.values(counts)).toEqual([1, 1]);
+    });
+
+    it("should count all tool calls when there are no user messages", () => {
+      // Edge case: only system/assistant messages, no user message at all
+      const toolCall = createMockToolCallRequest("tool");
+      const messages = [
+        makeMessage(MessageRole.System),
+        makeMessage(MessageRole.Assistant, toolCall),
+        makeMessage(MessageRole.Assistant, toolCall),
+      ];
+
+      const counts = buildToolCallCountsFromMessages(messages);
+      expect(Object.keys(counts)).toHaveLength(1);
+      expect(Object.values(counts)[0]).toBe(2);
     });
   });
 });

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.26.3](https://github.com/tambo-ai/tambo/compare/docs-v1.26.2...docs-v1.26.3) (2026-02-11)
+
+
+### Miscellaneous Chores
+
+* remove cd into tambo app from quickstart ([#2380](https://github.com/tambo-ai/tambo/issues/2380)) ([3bf12cd](https://github.com/tambo-ai/tambo/commit/3bf12cd76fbecf519ed7258d1c4399a0969ffd5d))
+
 ## [1.26.2](https://github.com/tambo-ai/tambo/compare/docs-v1.26.1...docs-v1.26.2) (2026-02-11)
 
 

@@ -67,6 +67,7 @@ import {
   validateToolResults,
 } from "./v1-tool-results";
 import type { StreamQueueItem } from "../threads/dto/stream-queue-item";
+import { buildToolCallCountsFromMessages } from "../threads/util/tool-call-tracking";
 import { ThreadsService } from "../threads/threads.service";
 import { DATABASE } from "../common/middleware/db-transaction-middleware";
 import {
@@ -735,6 +736,13 @@ export class V1Service {
 
           const forceToolChoice = convertV1ToolChoiceToInternal(dto.toolChoice);
 
+          // Reconstruct tool call counts from thread history so limits persist
+          // across V1 runs (client executes a tool, sends results back).
+          const dbMessages = await operations.getMessages(this.db, threadId);
+          const threadMessages = dbMessages.map(dbMessageToThreadMessage);
+          const toolCallCounts =
+            buildToolCallCountsFromMessages(threadMessages);
+
           const streamingPromise = this.threadsService.advanceThread(
             { projectId, contextKey, sdkVersion },
             {
@@ -744,7 +752,7 @@ export class V1Service {
               forceToolChoice,
             },
             threadId,
-            {}, // toolCallCounts - start fresh for V1 API
+            toolCallCounts,
             undefined, // cachedSystemTools
             queue,
             abortController.signal,

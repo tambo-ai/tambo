@@ -1,12 +1,12 @@
 "use client";
 
-import { cn } from "@tambo-ai/ui-registry/utils";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import {
   type ThreadListResponse,
   useTambo,
   useTamboThreadList,
 } from "@tambo-ai/react";
+import { cn } from "@tambo-ai/ui-registry/utils";
 import {
   ArrowLeftToLine,
   ArrowRightToLine,
@@ -182,6 +182,7 @@ const ThreadHistoryHeader = React.forwardRef<
       <h2
         className={cn(
           "text-sm text-muted-foreground whitespace-nowrap ",
+          position === "left" ? "mr-8" : "ml-8",
           isCollapsed
             ? "opacity-0 max-w-0 overflow-hidden "
             : "opacity-100 max-w-none transition-all duration-300 delay-75",

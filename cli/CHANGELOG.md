@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.52.1](https://github.com/tambo-ai/tambo/compare/tambo-v0.52.0...tambo-v0.52.1) (2026-02-11)
+
+
+### Miscellaneous Chores
+
+* **cli:** remove base path imports from the message component config ([#2377](https://github.com/tambo-ai/tambo/issues/2377)) ([d00b0b4](https://github.com/tambo-ai/tambo/commit/d00b0b4c5b37b1d16a9800f99acc7c01354a5856))
+
 ## [0.52.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.51.0...tambo-v0.52.0) (2026-02-11)
 
 
