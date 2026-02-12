@@ -3,9 +3,10 @@
   "compilerOptions": {
     "moduleResolution": "node",
     "module": "CommonJS",
+    "rootDir": "./src",
     "outDir": "./dist",
     "declaration": true
   },
   "include": ["src/**/*.ts"],
-  "exclude": ["node_modules", "./dist", "./esm"]
+  "exclude": ["node_modules", "./dist", "./esm", "jest.config.ts"]
 }
