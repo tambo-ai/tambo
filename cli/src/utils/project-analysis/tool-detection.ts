@@ -128,7 +128,12 @@ function detectServerActions(
     for (const func of functions) {
       const funcBody = func.getBody();
       if (funcBody && func.getName()) {
-        const statements = funcBody.getStatements();
+        // Check if the body is a block statement
+        const block = funcBody.asKind(SyntaxKind.Block);
+        if (!block) {
+          continue;
+        }
+        const statements = block.getStatements();
         const hasDirective = statements.some(
           (stmt) =>
             stmt.getKind() === SyntaxKind.ExpressionStatement &&
