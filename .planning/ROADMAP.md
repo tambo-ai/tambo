@@ -34,9 +34,9 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 Plans:
 
-- [ ] 01-01: Wire protocol, SDK-side bridge agent, and devtools subpath export
-- [ ] 01-02: Dashboard WebSocket server and connection management
-- [ ] 01-03: Connection status UI and production build verification
+- [ ] 01-01-PLAN.md -- Wire protocol types, DevToolsBridge client (partysocket), TamboDevTools component, and @tambo-ai/react/devtools subpath export
+- [ ] 01-02-PLAN.md -- Standalone WebSocket server on port 8265, connection manager, dashboard connection hook, and dev:cloud auto-start
+- [ ] 01-03-PLAN.md -- DevTools dashboard page with connection status UI, client cards, and end-to-end + production build verification
 
 ### Phase 2: Inspection Panels
 
