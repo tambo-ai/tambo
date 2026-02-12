@@ -1,6 +1,6 @@
 # Self-Hosting Guide
 
-This guide is for deploying and self-hosting Tambo..
+This guide is for deploying and self-hosting Tambo.
 
 > **Looking to contribute?** See [CONTRIBUTING.md](./CONTRIBUTING.md) for local development setup.
 
@@ -72,12 +72,12 @@ FALLBACK_OPENAI_API_KEY=your-openai-api-key
 
 For detailed configuration, production deployment, and operations guides, see the docs site:
 
-- [Self-Hosting Overview](https://tambo.ai/docs/guides/self-hosting) — Architecture, auth model, and security considerations
-- [Quickstart](https://tambo.ai/docs/guides/self-hosting/quickstart) — Step-by-step first deployment
-- [Authentication](https://tambo.ai/docs/guides/self-hosting/authentication) — OAuth and email login setup
-- [Docker Compose](https://tambo.ai/docs/guides/self-hosting/docker-compose) — Production deployment and building images
-- [Kubernetes](https://tambo.ai/docs/guides/self-hosting/kubernetes) — K8s manifests for all three services
-- [Operations](https://tambo.ai/docs/guides/self-hosting/operations) — Backup, restore, upgrade, and monitoring
-- [Environment Variables](https://tambo.ai/docs/guides/self-hosting/environment-variables) — Full reference for all configuration options
-- [Scripts](https://tambo.ai/docs/guides/self-hosting/scripts) — All helper scripts and npm aliases
-- [Troubleshooting](https://tambo.ai/docs/guides/self-hosting/troubleshooting) — Common issues and fixes
+- [Self-Hosting Overview](https://tambo.co/docs/guides/self-hosting) — Architecture, auth model, and security considerations
+- [Quickstart](https://tambo.co/docs/guides/self-hosting/quickstart) — Step-by-step first deployment
+- [Authentication](https://tambo.co/docs/guides/self-hosting/authentication) — OAuth and email login setup
+- [Docker Compose](https://tambo.co/docs/guides/self-hosting/docker-compose) — Production deployment and building images
+- [Kubernetes](https://tambo.co/docs/guides/self-hosting/kubernetes) — K8s manifests for all three services
+- [Operations](https://tambo.co/docs/guides/self-hosting/operations) — Backup, restore, upgrade, and monitoring
+- [Environment Variables](https://tambo.co/docs/guides/self-hosting/environment-variables) — Full reference for all configuration options
+- [Scripts](https://tambo.co/docs/guides/self-hosting/scripts) — All helper scripts and npm aliases
+- [Troubleshooting](https://tambo.co/docs/guides/self-hosting/troubleshooting) — Common issues and fixes
