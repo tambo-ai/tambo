@@ -3,6 +3,7 @@
  */
 
 import { fetchWithRetry } from "./retry.js";
+import { ThreadsClient } from "./threads.js";
 import {
   ApiError,
   type TamboClientOptions,
@@ -17,6 +18,9 @@ export class TamboClient {
   private readonly baseUrl: string;
   private readonly timeout: number;
   private readonly maxRetries: number;
+
+  /** Thread management client */
+  public readonly threads: ThreadsClient;
 
   /**
    * Create a new Tambo client
@@ -33,6 +37,9 @@ export class TamboClient {
     this.baseUrl = options.baseUrl ?? "https://api.tambo.co";
     this.timeout = options.timeout ?? 30000;
     this.maxRetries = options.maxRetries ?? 3;
+
+    // Initialize sub-clients
+    this.threads = new ThreadsClient(this);
   }
 
   /**
