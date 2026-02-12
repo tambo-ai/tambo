@@ -234,9 +234,11 @@ export class ConnectionManager {
           type: "state_update",
           sessionId,
           snapshot: {
+            sessionId: message.sessionId,
             timestamp: message.timestamp,
             threads: message.threads,
             registry: message.registry,
+            ...(message.errors ? { errors: message.errors } : {}),
           },
         });
         break;

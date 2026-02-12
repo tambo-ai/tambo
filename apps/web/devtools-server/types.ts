@@ -159,7 +159,7 @@ interface ClientDisconnectedMessage {
 interface StateUpdateMessage {
   type: "state_update";
   sessionId: string;
-  snapshot: object;
+  snapshot: StateSnapshot;
 }
 
 export interface ClientInfo {
