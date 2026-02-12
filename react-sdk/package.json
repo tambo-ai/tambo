@@ -85,6 +85,7 @@
     "fast-equals": "^5.3.3",
     "fast-json-patch": "^3.1.1",
     "partial-json": "^0.1.7",
+    "partysocket": "^1.1.13",
     "react-fast-compare": "^3.2.2",
     "react-media-recorder": "^1.7.2",
     "ts-node": "^10.9.2",
