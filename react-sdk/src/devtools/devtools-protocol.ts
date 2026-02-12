@@ -36,6 +36,79 @@ export interface DevToolsHandshake {
   sessionId: string;
 }
 
+// ---------------------------------------------------------------------------
+// Serialized content types (safe for wire transmission)
+// ---------------------------------------------------------------------------
+
+/** Text content block. */
+export interface SerializedTextContent {
+  type: "text";
+  text: string;
+}
+
+/** Tool use content block. */
+export interface SerializedToolUseContent {
+  type: "tool_use";
+  id: string;
+  name: string;
+  input: Record<string, unknown>;
+}
+
+/** Tool result content block. */
+export interface SerializedToolResultContent {
+  type: "tool_result";
+  toolUseId: string;
+  content: unknown;
+  isError?: boolean;
+}
+
+/** Component content block (ReactElements stripped). */
+export interface SerializedComponentContent {
+  type: "component";
+  name: string;
+  props: Record<string, unknown>;
+}
+
+/** Resource content block. */
+export interface SerializedResourceContent {
+  type: "resource";
+  uri: string;
+  content: unknown;
+}
+
+/** Union of all serialized content block types. */
+export type SerializedContent =
+  | SerializedTextContent
+  | SerializedToolUseContent
+  | SerializedToolResultContent
+  | SerializedComponentContent
+  | SerializedResourceContent;
+
+/** Serialized message for wire transmission. */
+export interface SerializedMessage {
+  id: string;
+  role: "user" | "assistant" | "system";
+  content: SerializedContent[];
+  createdAt?: string;
+  metadata?: Record<string, unknown>;
+}
+
+/** Streaming state for a thread. */
+export interface SerializedStreamingState {
+  status: "idle" | "streaming" | "waiting";
+  runId?: string;
+  messageId?: string;
+  error?: { message: string; code?: string };
+}
+
+/** Error captured in the snapshot. */
+export interface DevToolsError {
+  type: "streaming" | "tool_call" | "connection";
+  message: string;
+  threadId?: string;
+  timestamp: number;
+}
+
 /** Full state snapshot sent periodically or on significant changes. */
 export interface DevToolsStateSnapshot {
   type: "state_snapshot";
@@ -46,17 +119,30 @@ export interface DevToolsStateSnapshot {
     name?: string;
     status: "idle" | "streaming" | "waiting";
     messageCount: number;
+    messages: SerializedMessage[];
+    createdAt?: string;
+    updatedAt?: string;
+    streamingState?: SerializedStreamingState;
   }[];
   registry: {
     components: {
       name: string;
       description: string;
+      propsSchema?: Record<string, unknown>;
     }[];
     tools: {
       name: string;
       description: string;
+      inputSchema?: Record<string, unknown>;
+      outputSchema?: Record<string, unknown>;
+    }[];
+    mcpServers?: {
+      name: string;
+      url: string;
+      status: string;
     }[];
   };
+  errors?: DevToolsError[];
 }
 
 /** Heartbeat to keep connection alive. */

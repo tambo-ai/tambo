@@ -16,6 +16,68 @@ interface HandshakeMessage {
   sessionId: string;
 }
 
+// --- Serialized content types (mirrors SDK protocol) ---
+
+interface SerializedTextContent {
+  type: "text";
+  text: string;
+}
+
+interface SerializedToolUseContent {
+  type: "tool_use";
+  id: string;
+  name: string;
+  input: Record<string, unknown>;
+}
+
+interface SerializedToolResultContent {
+  type: "tool_result";
+  toolUseId: string;
+  content: unknown;
+  isError?: boolean;
+}
+
+interface SerializedComponentContent {
+  type: "component";
+  name: string;
+  props: Record<string, unknown>;
+}
+
+interface SerializedResourceContent {
+  type: "resource";
+  uri: string;
+  content: unknown;
+}
+
+type SerializedContent =
+  | SerializedTextContent
+  | SerializedToolUseContent
+  | SerializedToolResultContent
+  | SerializedComponentContent
+  | SerializedResourceContent;
+
+interface SerializedMessage {
+  id: string;
+  role: "user" | "assistant" | "system";
+  content: SerializedContent[];
+  createdAt?: string;
+  metadata?: Record<string, unknown>;
+}
+
+interface SerializedStreamingState {
+  status: "idle" | "streaming" | "waiting";
+  runId?: string;
+  messageId?: string;
+  error?: { message: string; code?: string };
+}
+
+export interface DevToolsError {
+  type: "streaming" | "tool_call" | "connection";
+  message: string;
+  threadId?: string;
+  timestamp: number;
+}
+
 interface StateSnapshotMessage {
   type: "state_snapshot";
   sessionId: string;
@@ -25,18 +87,34 @@ interface StateSnapshotMessage {
     name?: string;
     status: "idle" | "streaming" | "waiting";
     messageCount: number;
+    messages: SerializedMessage[];
+    createdAt?: string;
+    updatedAt?: string;
+    streamingState?: SerializedStreamingState;
   }>;
   registry: {
     components: Array<{
       name: string;
       description: string;
+      propsSchema?: Record<string, unknown>;
     }>;
     tools: Array<{
       name: string;
       description: string;
+      inputSchema?: Record<string, unknown>;
+      outputSchema?: Record<string, unknown>;
+    }>;
+    mcpServers?: Array<{
+      name: string;
+      url: string;
+      status: string;
     }>;
   };
+  errors?: DevToolsError[];
 }
+
+/** Snapshot payload without the envelope fields, for storage in dashboard state. */
+export type StateSnapshot = Omit<StateSnapshotMessage, "type">;
 
 interface HeartbeatMessage {
   type: "heartbeat";
