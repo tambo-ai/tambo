@@ -73,9 +73,9 @@ Plans:
 
 Plans:
 
-- [ ] 03-01: SDK event capture hooks for streaming events and AG-UI event emission
-- [ ] 03-02: Event timeline panel with color-coding, timestamps, and payload detail
-- [ ] 03-03: Component streaming visualizer and tool call lifecycle view
+- [ ] 03-01-PLAN.md -- Wire protocol extension, SDK event capture, server forwarding, dashboard hook
+- [ ] 03-02-PLAN.md -- Event timeline panel with ring buffer, color-coding, timestamps, and payload detail
+- [ ] 03-03-PLAN.md -- Component streaming visualizer and tool call lifecycle view
 
 ## Progress
 
