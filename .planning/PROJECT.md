@@ -57,13 +57,15 @@ The CLI should feel magic — run one command and your app is Tambo-enabled with
 
 ## Key Decisions
 
-| Decision                                  | Rationale                                                                           | Outcome   |
-| ----------------------------------------- | ----------------------------------------------------------------------------------- | --------- |
-| Build client-core as separate package     | Eventually replaces API layer in react-sdk; CLI needs non-React access to Tambo API | — Pending |
-| Model handles code changes via tool calls | More flexible than templates; adapts to any codebase structure                      | — Pending |
-| Batch checklist for confirmation          | Shows full plan at once; user checks what they want; cleaner than step-by-step      | — Pending |
-| Replace existing init (not new command)   | Init should just be smart by default                                                | — Pending |
+| Decision                                    | Rationale                                                                           | Outcome   |
+| ------------------------------------------- | ----------------------------------------------------------------------------------- | --------- |
+| Build client-core as separate package       | Eventually replaces API layer in react-sdk; CLI needs non-React access to Tambo API | — Pending |
+| Model handles code changes via tool calls   | More flexible than templates; adapts to any codebase structure                      | — Pending |
+| Batch checklist for confirmation            | Shows full plan at once; user checks what they want; cleaner than step-by-step      | — Pending |
+| Replace existing init (not new command)     | Init should just be smart by default                                                | — Pending |
+| Use @tambo-ai/typescript-sdk in client-core | SDK already handles auth, retries, pagination — don't reimplement                   | Decided   |
+| Use @tanstack/query-core for caching        | Framework-agnostic cache for threads/messages; works in CLI and React               | Decided   |
 
 ---
 
-_Last updated: 2026-02-11 after initialization_
+_Last updated: 2026-02-12 after architecture change (typescript-sdk + TanStack)_

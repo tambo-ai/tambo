@@ -37,14 +37,15 @@ Decimal phases appear between their surrounding integers in numeric order.
 4. Client retries failed requests and recovers from dropped streaming connections without data loss
 5. All APIs are fully typed with TypeScript inference working in IDEs
 
-**Plans:** 4 plans
+**Plans:** 5 plans
 
 Plans:
 
-- [ ] 01-01-PLAN.md — Package setup, types, TamboClient with retry logic
-- [ ] 01-02-PLAN.md — Thread CRUD and message sending
-- [ ] 01-03-PLAN.md — SSE streaming with reconnection recovery
-- [ ] 01-04-PLAN.md — Tool registry and automatic execution loop
+- [x] 01-01-PLAN.md — Package setup, types, TamboClient with retry logic
+- [x] 01-02-PLAN.md — Thread CRUD and message sending
+- [ ] 01-03-PLAN.md — Refactor to use @tambo-ai/typescript-sdk + @tanstack/query-core
+- [ ] 01-04-PLAN.md — SSE streaming with reconnection recovery (using typescript-sdk)
+- [ ] 01-05-PLAN.md — Tool registry and automatic execution loop
 
 ### Phase 2: Codebase Analysis
 
@@ -144,7 +145,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 
 | Phase                | Plans Complete | Status      | Completed |
 | -------------------- | -------------- | ----------- | --------- |
-| 1. Client Core SDK   | 0/4            | Planning    | -         |
+| 1. Client Core SDK   | 2/5            | Executing   | -         |
 | 2. Codebase Analysis | 0/TBD          | Not started | -         |
 | 3. Plan Generation   | 0/TBD          | Not started | -         |
 | 4. User Confirmation | 0/TBD          | Not started | -         |
