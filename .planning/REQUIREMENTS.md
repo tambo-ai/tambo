@@ -89,17 +89,51 @@ Deferred to future release. Tracked but not in current roadmap.
 
 Which phases cover which requirements. Updated during roadmap creation.
 
-| Requirement               | Phase | Status |
-| ------------------------- | ----- | ------ |
-| (populated by roadmapper) |       |        |
+| Requirement | Phase   | Status  |
+| ----------- | ------- | ------- |
+| SDK-01      | Phase 1 | Pending |
+| SDK-02      | Phase 1 | Pending |
+| SDK-03      | Phase 1 | Pending |
+| SDK-04      | Phase 1 | Pending |
+| SDK-05      | Phase 1 | Pending |
+| SDK-06      | Phase 1 | Pending |
+| SDK-07      | Phase 1 | Pending |
+| SDK-08      | Phase 1 | Pending |
+| SDK-09      | Phase 1 | Pending |
+| SCAN-01     | Phase 2 | Pending |
+| SCAN-02     | Phase 2 | Pending |
+| SCAN-03     | Phase 2 | Pending |
+| SCAN-04     | Phase 2 | Pending |
+| SCAN-05     | Phase 2 | Pending |
+| SCAN-06     | Phase 2 | Pending |
+| SCAN-07     | Phase 2 | Pending |
+| PLAN-01     | Phase 3 | Pending |
+| PLAN-02     | Phase 3 | Pending |
+| PLAN-03     | Phase 3 | Pending |
+| PLAN-04     | Phase 3 | Pending |
+| PLAN-05     | Phase 3 | Pending |
+| PLAN-06     | Phase 3 | Pending |
+| CONF-01     | Phase 4 | Pending |
+| CONF-02     | Phase 4 | Pending |
+| CONF-03     | Phase 4 | Pending |
+| CONF-04     | Phase 4 | Pending |
+| EXEC-01     | Phase 5 | Pending |
+| EXEC-02     | Phase 5 | Pending |
+| EXEC-03     | Phase 5 | Pending |
+| EXEC-04     | Phase 5 | Pending |
+| EXEC-05     | Phase 5 | Pending |
+| EXEC-06     | Phase 5 | Pending |
+| EXEC-07     | Phase 5 | Pending |
+| EXEC-08     | Phase 5 | Pending |
+| EXEC-09     | Phase 5 | Pending |
 
 **Coverage:**
 
 - v1 requirements: 30 total
-- Mapped to phases: 0
-- Unmapped: 30 ⚠️
+- Mapped to phases: 30
+- Unmapped: 0
 
 ---
 
 _Requirements defined: 2026-02-11_
-_Last updated: 2026-02-11 after initial definition_
+_Last updated: 2026-02-11 after roadmap creation_
