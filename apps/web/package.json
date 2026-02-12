@@ -14,7 +14,8 @@
     "clean": "rm -rf dist .next coverage",
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:cov": "jest --coverage"
+    "test:cov": "jest --coverage",
+    "dev:devtools": "tsx watch devtools-server/server.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
@@ -114,6 +115,7 @@
     "use-debounce": "^10.0.6",
     "usehooks-ts": "^3.1.1",
     "vaul": "^1.1.1",
+    "ws": "^8.19.0",
     "zod": "^3.25.76"
   },
   "devDependencies": {
@@ -129,6 +131,7 @@
     "@types/node": "^22.19.8",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18",
+    "@types/ws": "^8.18.1",
     "autoprefixer": "^10.4.24",
     "identity-obj-proxy": "^3.0.0",
     "jest": "^30.2.0",
