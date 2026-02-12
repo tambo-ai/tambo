@@ -1,0 +1,57 @@
+{
+  "name": "@tambo-ai/client-core",
+  "version": "0.0.1",
+  "description": "Core TypeScript client for Tambo AI API",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tambo-ai/tambo.git",
+    "directory": "packages/client-core"
+  },
+  "homepage": "https://tambo.co",
+  "main": "./dist/index.js",
+  "module": "./esm/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./esm/index.js",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "esm",
+    "LICENSE"
+  ],
+  "volta": {
+    "extends": "../../package.json"
+  },
+  "sideEffects": false,
+  "scripts": {
+    "build": "npm run build:cjs && npm run build:esm",
+    "build:cjs": "tsc -p tsconfig.cjs.json",
+    "build:esm": "tsc -p tsconfig.esm.json && tsc-esm-fix --target=esm",
+    "check-types": "tsc --noEmit",
+    "test": "jest --config jest.config.ts",
+    "clean": "rimraf dist esm coverage"
+  },
+  "dependencies": {
+    "exponential-backoff": "^3.1.1",
+    "type-fest": "^5.4.3"
+  },
+  "peerDependencies": {
+    "zod": "^3.25.76 || ^4"
+  },
+  "devDependencies": {
+    "@tambo-ai/eslint-config": "*",
+    "@tambo-ai/typescript-config": "*",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^22.19.8",
+    "jest": "^30.2.0",
+    "rimraf": "^6.0.2",
+    "ts-jest": "^29.4.6",
+    "tsc-esm-fix": "^3.1.2",
+    "typescript": "^5.9.3"
+  }
+}
