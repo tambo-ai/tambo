@@ -43,9 +43,9 @@ Plans:
 
 - [x] 01-01-PLAN.md — Package setup, types, TamboClient with retry logic
 - [x] 01-02-PLAN.md — Thread CRUD and message sending
-- [ ] 01-03-PLAN.md — Refactor to use @tambo-ai/typescript-sdk + @tanstack/query-core
-- [ ] 01-04-PLAN.md — SSE streaming with reconnection recovery (using typescript-sdk)
-- [ ] 01-05-PLAN.md — Tool registry and automatic execution loop
+- [x] 01-03-PLAN.md — Refactor to use @tambo-ai/typescript-sdk + @tanstack/query-core
+- [x] 01-04-PLAN.md — SSE streaming with reconnection recovery (using typescript-sdk)
+- [x] 01-05-PLAN.md — Tool registry and automatic execution loop
 
 ### Phase 2: Codebase Analysis
 
@@ -63,11 +63,13 @@ Plans:
 4. CLI identifies existing React components that could become Tambo interactables
 5. CLI identifies existing functions or API calls that could become Tambo tools
 
-**Plans**: TBD
+**Plans:** 3 plans
 
 Plans:
 
-- [ ] 02-01: TBD
+- [ ] 02-01-PLAN.md — Types, filesystem helpers, framework detection, and structure detection
+- [ ] 02-02-PLAN.md — AST-based provider and component detection with ts-morph
+- [ ] 02-03-PLAN.md — Tool candidate detection and analyzeProject() orchestrator
 
 ### Phase 3: Plan Generation
 
@@ -143,10 +145,10 @@ Plans:
 **Execution Order:**
 Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 
-| Phase                | Plans Complete | Status      | Completed |
-| -------------------- | -------------- | ----------- | --------- |
-| 1. Client Core SDK   | 2/5            | Executing   | -         |
-| 2. Codebase Analysis | 0/TBD          | Not started | -         |
-| 3. Plan Generation   | 0/TBD          | Not started | -         |
-| 4. User Confirmation | 0/TBD          | Not started | -         |
-| 5. Code Execution    | 0/TBD          | Not started | -         |
+| Phase                | Plans Complete | Status      | Completed  |
+| -------------------- | -------------- | ----------- | ---------- |
+| 1. Client Core SDK   | 5/5            | Complete    | 2026-02-12 |
+| 2. Codebase Analysis | 0/3            | Not started | -          |
+| 3. Plan Generation   | 0/TBD          | Not started | -          |
+| 4. User Confirmation | 0/TBD          | Not started | -          |
+| 5. Code Execution    | 0/TBD          | Not started | -          |
