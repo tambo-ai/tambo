@@ -124,6 +124,10 @@
       "cache": false,
       "persistent": true
     },
+    "@tambo-ai-cloud/web#dev:devtools": {
+      "cache": false,
+      "persistent": true
+    },
     "clean": { "cache": false },
     "start": { "dependsOn": ["^build"] },
     "test": {
