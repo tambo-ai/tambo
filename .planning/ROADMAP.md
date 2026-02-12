@@ -54,9 +54,9 @@ Plans:
 
 Plans:
 
-- [ ] 02-01: Thread list panel and message detail view with JSON tree inspector
-- [ ] 02-02: Component/tool registry panel and MCP server view
-- [ ] 02-03: Error surfacing, filtering, and search
+- [ ] 02-01-PLAN.md -- Enrich wire protocol, create snapshot serializer, wire SDK bridge to emit state, extend dashboard hook
+- [ ] 02-02-PLAN.md -- Thread list panel, message detail view, content block viewer, and JSON tree inspector
+- [ ] 02-03-PLAN.md -- Registry panel, schema viewer, error banner, filtering, and search
 
 ### Phase 3: Streaming Visibility
 
