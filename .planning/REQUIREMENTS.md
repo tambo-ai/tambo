@@ -81,40 +81,40 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status  |
 | ----------- | ----- | ------- |
-| INFRA-01    | —     | Pending |
-| INFRA-02    | —     | Pending |
-| INFRA-03    | —     | Pending |
-| INFRA-04    | —     | Pending |
-| INFRA-05    | —     | Pending |
-| INFRA-06    | —     | Pending |
-| STATE-01    | —     | Pending |
-| STATE-02    | —     | Pending |
-| STATE-03    | —     | Pending |
-| STATE-04    | —     | Pending |
-| STATE-05    | —     | Pending |
-| STATE-06    | —     | Pending |
-| STATE-07    | —     | Pending |
-| STATE-08    | —     | Pending |
-| COMP-01     | —     | Pending |
-| COMP-02     | —     | Pending |
-| COMP-03     | —     | Pending |
-| COMP-04     | —     | Pending |
-| COMP-05     | —     | Pending |
-| COMP-06     | —     | Pending |
-| STRM-01     | —     | Pending |
-| STRM-02     | —     | Pending |
-| STRM-03     | —     | Pending |
-| STRM-04     | —     | Pending |
-| STRM-05     | —     | Pending |
-| STRM-06     | —     | Pending |
+| INFRA-01    | 1     | Pending |
+| INFRA-02    | 1     | Pending |
+| INFRA-03    | 1     | Pending |
+| INFRA-04    | 1     | Pending |
+| INFRA-05    | 1     | Pending |
+| INFRA-06    | 1     | Pending |
+| STATE-01    | 2     | Pending |
+| STATE-02    | 2     | Pending |
+| STATE-03    | 2     | Pending |
+| STATE-04    | 2     | Pending |
+| STATE-05    | 2     | Pending |
+| STATE-06    | 2     | Pending |
+| STATE-07    | 2     | Pending |
+| STATE-08    | 2     | Pending |
+| COMP-01     | 2     | Pending |
+| COMP-02     | 2     | Pending |
+| COMP-03     | 2     | Pending |
+| COMP-04     | 3     | Pending |
+| COMP-05     | 3     | Pending |
+| COMP-06     | 3     | Pending |
+| STRM-01     | 3     | Pending |
+| STRM-02     | 3     | Pending |
+| STRM-03     | 3     | Pending |
+| STRM-04     | 3     | Pending |
+| STRM-05     | 3     | Pending |
+| STRM-06     | 3     | Pending |
 
 **Coverage:**
 
 - v1 requirements: 26 total
-- Mapped to phases: 0
-- Unmapped: 26
+- Mapped to phases: 26
+- Unmapped: 0
 
 ---
 
 _Requirements defined: 2026-02-11_
-_Last updated: 2026-02-11 after initial definition_
+_Last updated: 2026-02-11 after roadmap creation_
