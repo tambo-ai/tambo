@@ -23,6 +23,7 @@ docker.env
 
 # build output
 dist
+esm
 build
 tmp
 
