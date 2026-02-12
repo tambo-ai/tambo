@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { DEVTOOLS_PORT } from "@/devtools-server/types";
+import type { StateSnapshot } from "@/devtools-server/types";
 
 export interface DevtoolsClient {
   sessionId: string;
@@ -15,6 +16,10 @@ export interface UseDevtoolsConnectionReturn {
   isConnected: boolean;
   clients: DevtoolsClient[];
   error: string | null;
+  snapshots: Map<string, StateSnapshot>;
+  selectedSessionId: string | null;
+  setSelectedSessionId: (sessionId: string | null) => void;
+  requestSnapshot: (sessionId: string) => void;
 }
 
 interface DevtoolsConnectionOptions {
@@ -29,16 +34,17 @@ interface ServerMessage {
   sdkVersion?: string;
   projectId?: string;
   connectedAt?: number;
-  snapshot?: object;
+  snapshot?: StateSnapshot;
 }
 
 const RECONNECT_DELAY = 2000;
 
 /**
  * Manages a WebSocket connection from the dashboard to the devtools server.
- * Tracks connection state and the list of connected SDK clients.
+ * Tracks connection state, the list of connected SDK clients, and per-session
+ * state snapshots.
  *
- * @returns Connection state, client list, and error information.
+ * @returns Connection state, client list, snapshots, selection, and error information.
  */
 export function useDevtoolsConnection(
   options?: DevtoolsConnectionOptions,
@@ -49,6 +55,12 @@ export function useDevtoolsConnection(
   const [isConnected, setIsConnected] = useState(false);
   const [clients, setClients] = useState<DevtoolsClient[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [snapshots, setSnapshots] = useState<Map<string, StateSnapshot>>(
+    () => new Map(),
+  );
+  const [selectedSessionId, setSelectedSessionId] = useState<string | null>(
+    null,
+  );
 
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
@@ -74,31 +86,52 @@ export function useDevtoolsConnection(
       }
       case "client_connected": {
         if (message.sessionId && message.sdkVersion) {
-          setClients((prev) => [
-            ...prev,
-            {
-              sessionId: message.sessionId!,
-              sdkVersion: message.sdkVersion!,
-              projectId: message.projectId,
-              connectedAt: message.connectedAt ?? Date.now(),
-            },
-          ]);
+          const newClient: DevtoolsClient = {
+            sessionId: message.sessionId,
+            sdkVersion: message.sdkVersion,
+            projectId: message.projectId,
+            connectedAt: message.connectedAt ?? Date.now(),
+          };
+          setClients((prev) => [...prev, newClient]);
+
+          // Auto-select first connected client
+          setSelectedSessionId((prev) => prev ?? message.sessionId!);
         }
         break;
       }
       case "client_disconnected": {
         if (message.sessionId) {
+          const disconnectedId = message.sessionId;
           setClients((prev) =>
-            prev.filter((c) => c.sessionId !== message.sessionId),
+            prev.filter((c) => c.sessionId !== disconnectedId),
           );
+          setSnapshots((prev) => {
+            const next = new Map(prev);
+            next.delete(disconnectedId);
+            return next;
+          });
+          setSelectedSessionId((prev) => {
+            if (prev === disconnectedId) return null;
+            return prev;
+          });
         }
         break;
       }
       case "state_update": {
-        // Phase 2 will use this for inspection panels
+        if (message.sessionId && message.snapshot) {
+          const sessionId = message.sessionId;
+          const snapshot = message.snapshot;
+          setSnapshots((prev) => new Map(prev).set(sessionId, snapshot));
+        }
         break;
       }
     }
+  }, []);
+
+  const requestSnapshot = useCallback((sessionId: string) => {
+    const ws = wsRef.current;
+    if (!ws || ws.readyState !== WebSocket.OPEN) return;
+    ws.send(JSON.stringify({ type: "request_client_snapshot", sessionId }));
   }, []);
 
   useEffect(() => {
@@ -153,5 +186,13 @@ export function useDevtoolsConnection(
     };
   }, [host, port, handleMessage]);
 
-  return { isConnected, clients, error };
+  return {
+    isConnected,
+    clients,
+    error,
+    snapshots,
+    selectedSessionId,
+    setSelectedSessionId,
+    requestSnapshot,
+  };
 }

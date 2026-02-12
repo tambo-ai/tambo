@@ -24,6 +24,8 @@ export interface DevToolsBridgeOptions {
   sdkVersion: string;
   /** Project identifier from the TamboProvider API key. */
   projectId?: string;
+  /** Callback invoked when the server requests a fresh snapshot. */
+  onRequestSnapshot?: () => void;
 }
 
 /**
@@ -129,7 +131,7 @@ export class DevToolsBridge {
           // Connection confirmed by server -- no further action needed in Phase 1
           break;
         case "request_snapshot":
-          // Snapshot requests will be handled in Phase 2
+          this.options.onRequestSnapshot?.();
           break;
       }
     } catch {

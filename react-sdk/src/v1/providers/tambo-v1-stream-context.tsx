@@ -63,8 +63,9 @@ export interface ThreadManagement {
 /**
  * Context for accessing stream state (read-only).
  * Separated from dispatch context to prevent unnecessary re-renders.
+ * @internal
  */
-const StreamStateContext = createContext<StreamState | null>(null);
+export const StreamStateContext = createContext<StreamState | null>(null);
 
 /**
  * Context for dispatching events to the stream reducer.
