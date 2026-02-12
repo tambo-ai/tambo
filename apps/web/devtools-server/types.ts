@@ -18,45 +18,45 @@ interface HandshakeMessage {
 
 // --- Serialized content types (mirrors SDK protocol) ---
 
-interface SerializedTextContent {
+export interface SerializedTextContent {
   type: "text";
   text: string;
 }
 
-interface SerializedToolUseContent {
+export interface SerializedToolUseContent {
   type: "tool_use";
   id: string;
   name: string;
   input: Record<string, unknown>;
 }
 
-interface SerializedToolResultContent {
+export interface SerializedToolResultContent {
   type: "tool_result";
   toolUseId: string;
   content: unknown;
   isError?: boolean;
 }
 
-interface SerializedComponentContent {
+export interface SerializedComponentContent {
   type: "component";
   name: string;
   props: Record<string, unknown>;
 }
 
-interface SerializedResourceContent {
+export interface SerializedResourceContent {
   type: "resource";
   uri: string;
   content: unknown;
 }
 
-type SerializedContent =
+export type SerializedContent =
   | SerializedTextContent
   | SerializedToolUseContent
   | SerializedToolResultContent
   | SerializedComponentContent
   | SerializedResourceContent;
 
-interface SerializedMessage {
+export interface SerializedMessage {
   id: string;
   role: "user" | "assistant" | "system";
   content: SerializedContent[];
@@ -64,7 +64,7 @@ interface SerializedMessage {
   metadata?: Record<string, unknown>;
 }
 
-interface SerializedStreamingState {
+export interface SerializedStreamingState {
   status: "idle" | "streaming" | "waiting";
   runId?: string;
   messageId?: string;
