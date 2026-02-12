@@ -21,6 +21,8 @@ Add a reverse proxy (nginx, Caddy, or Traefik) in front of the web and API servi
 - **Web**: port 8260
 - **API**: port 8261
 
+> **Note:** `NEXT_PUBLIC_TAMBO_API_URL` must be reachable from the browser. In production, set it to your public API URL (for example `https://api.your-domain.com`), not `localhost` or an internal Docker hostname.
+
 ## Building and pushing images
 
 Build the Docker images locally:
