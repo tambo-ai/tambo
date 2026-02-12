@@ -180,10 +180,10 @@ jobs:
           timeout 45 bash -c 'until docker inspect --format={{.State.Health.Status}} tambo_postgres 2>/dev/null | grep -q ^healthy$; do sleep 3; done'
 
           # Wait for API to be ready (using the /health endpoint)
-          timeout 45 bash -c 'until curl -fso /dev/null http://localhost:3211/health 2>/dev/null; do sleep 3; done'
+          timeout 45 bash -c 'until curl -fso /dev/null http://localhost:8261/health 2>/dev/null; do sleep 3; done'
 
           # Wait for Web to be ready
-          timeout 45 bash -c 'until curl -fso /dev/null http://localhost:3210/ 2>/dev/null; do sleep 3; done'
+          timeout 45 bash -c 'until curl -fso /dev/null http://localhost:8260/ 2>/dev/null; do sleep 3; done'
 
       - name: Check service status
         run: |
@@ -195,13 +195,13 @@ jobs:
 
           echo "=== Service Endpoints ==="
           echo "Testing API health endpoint..."
-          curl -fso /dev/null http://localhost:3211/health && echo -e "\nAPI health endpoint responding"
+          curl -fso /dev/null http://localhost:8261/health && echo -e "\nAPI health endpoint responding"
 
           echo "Testing API root endpoint..."
-          curl -fso /dev/null http://localhost:3211/ && echo -e "\nAPI root endpoint responding"
+          curl -fso /dev/null http://localhost:8261/ && echo -e "\nAPI root endpoint responding"
 
           echo "Testing Web endpoint..."
-          curl -fso /dev/null http://localhost:3210/ && echo -e "\nWeb endpoint responding"
+          curl -fso /dev/null http://localhost:8260/ && echo -e "\nWeb endpoint responding"
 
       - name: Initialize database
         run: ./scripts/cloud/init-database.sh

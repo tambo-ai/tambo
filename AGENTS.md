@@ -476,3 +476,4 @@ Common scopes: api, web, core, db, deps, ci, config, react-sdk, cli, showcase, d
 - When adding/editing JSDoc comments, make sure to add @returns to provide a description of the function return (the type should not be specified since TS will infer the return from the code, not the comment.)
 - Never reference planning documents, proposals, or design docs in code comments (e.g., `// See plans/foo.md`). These artifacts are short-lived but comments persist indefinitely. Code comments should be self-contained.
 - Store planning documents, proposals, and design docs in the `devdocs/` folder. Solutions go in `devdocs/solutions/`, brainstorming goes in `devdocs/brainstorms/`, etc. The only exception is `plans/` which stays at the repo root for visibility.
+- Be sure to use the correct web URL for any links you include in comments or documentation. The only acceptable domain is `tambo.co`.

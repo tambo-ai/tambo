@@ -1,0 +1,37 @@
+---
+title: Scripts reference
+description: Complete reference for all self-hosting helper scripts and npm convenience aliases.
+---
+
+## Shell scripts
+
+| Script                             | Description                         |
+| ---------------------------------- | ----------------------------------- |
+| `./scripts/cloud/tambo-setup.sh`   | First-time environment setup        |
+| `./scripts/cloud/tambo-start.sh`   | Start all services                  |
+| `./scripts/cloud/tambo-stop.sh`    | Stop all services                   |
+| `./scripts/cloud/tambo-logs.sh`    | View logs (all or specific service) |
+| `./scripts/cloud/tambo-build.sh`   | Build Docker images                 |
+| `./scripts/cloud/init-database.sh` | Run database migrations             |
+| `./scripts/cloud/tambo-psql.sh`    | PostgreSQL CLI access               |
+
+### tambo-logs.sh
+
+Accepts an optional service name argument:
+
+```bash
+./scripts/cloud/tambo-logs.sh           # All services
+./scripts/cloud/tambo-logs.sh postgres  # PostgreSQL only
+./scripts/cloud/tambo-logs.sh api       # API only
+./scripts/cloud/tambo-logs.sh web       # Web only
+```
+
+## npm convenience aliases
+
+These are shorthand for the shell scripts above. They require **bash**, so Windows users should run them in **WSL** or **Git Bash**.
+
+| Command               | Equivalent script                  |
+| --------------------- | ---------------------------------- |
+| `npm run tambo:setup` | `./scripts/cloud/tambo-setup.sh`   |
+| `npm run tambo:start` | `./scripts/cloud/tambo-start.sh`   |
+| `npm run tambo:stop`  | `./scripts/cloud/tambo-stop.sh`    |

@@ -1,0 +1,193 @@
+---
+title: Kubernetes deployment
+description: Deploy Tambo Cloud to a Kubernetes cluster with example manifests.
+---
+
+The Docker images can be deployed to Kubernetes. Below is a minimal example covering all three services. For production, add resource limits, health checks, and ingress configuration appropriate for your cluster.
+
+Unlike Docker Compose, Kubernetes does not guarantee startup order. The API and web pods may restart a few times before PostgreSQL is ready — this is normal, and Kubernetes keeps retrying until connections succeed.
+
+> **Want Helm charts or a more detailed Kubernetes setup?** [File an issue](https://github.com/tambo-ai/tambo/issues) or reach out on [Discord](https://discord.gg/dJNvPEHth6) and we'll prioritize it.
+
+## Secrets
+
+Create a Kubernetes secret with your environment variables:
+
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: tambo-secrets
+type: Opaque
+stringData:
+  POSTGRES_USER: postgres
+  POSTGRES_PASSWORD: your-secure-password
+  POSTGRES_DB: tambo
+  DATABASE_URL: postgresql://postgres:your-secure-password@tambo-postgres:5432/tambo
+  API_KEY_SECRET: your-32-character-api-key-secret
+  PROVIDER_KEY_SECRET: your-32-character-provider-secret
+  NEXTAUTH_SECRET: your-nextauth-secret
+  NEXTAUTH_URL: https://your-domain.com
+  FALLBACK_OPENAI_API_KEY: your-openai-api-key
+```
+
+## PostgreSQL
+
+For production, consider a managed database (e.g., AWS RDS, GCP Cloud SQL). If running PostgreSQL in-cluster:
+
+```yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: tambo-postgres
+spec:
+  serviceName: tambo-postgres
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tambo-postgres
+  template:
+    metadata:
+      labels:
+        app: tambo-postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:17
+          ports:
+            - containerPort: 5432
+          envFrom:
+            - secretRef:
+                name: tambo-secrets
+          volumeMounts:
+            - name: postgres-data
+              mountPath: /var/lib/postgresql/data
+  volumeClaimTemplates:
+    - metadata:
+        name: postgres-data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 10Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tambo-postgres
+spec:
+  selector:
+    app: tambo-postgres
+  ports:
+    - port: 5432
+      targetPort: 5432
+```
+
+## API service (NestJS)
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tambo-api
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: tambo-api
+  template:
+    metadata:
+      labels:
+        app: tambo-api
+    spec:
+      containers:
+        - name: api
+          image: your-registry/tambo-api:latest
+          ports:
+            - containerPort: 3000
+          env:
+            - name: PORT
+              value: "3000"
+          envFrom:
+            - secretRef:
+                name: tambo-secrets
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tambo-api
+spec:
+  selector:
+    app: tambo-api
+  ports:
+    - port: 8261
+      targetPort: 3000
+```
+
+## Web service (Next.js)
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tambo-web
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: tambo-web
+  template:
+    metadata:
+      labels:
+        app: tambo-web
+    spec:
+      containers:
+        - name: web
+          image: your-registry/tambo-web:latest
+          ports:
+            - containerPort: 3000
+          env:
+            - name: PORT
+              value: "3000"
+            # NEXT_PUBLIC_TAMBO_API_URL must be reachable from the browser,
+            # not an internal cluster address. Set this to your external API URL.
+            - name: NEXT_PUBLIC_TAMBO_API_URL
+              value: https://api.your-domain.com
+          envFrom:
+            - secretRef:
+                name: tambo-secrets
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tambo-web
+spec:
+  selector:
+    app: tambo-web
+  ports:
+    - port: 8260
+      targetPort: 3000
+```
+
+## Database migrations
+
+After deploying, run database migrations by executing into a running API pod:
+
+```bash
+kubectl exec -it deployment/tambo-api -- npm -w @tambo-ai-cloud/db run db:migrate
+```
+
+## Build and push images
+
+```bash
+./scripts/cloud/tambo-build.sh
+```
+
+Tag and push to your container registry:
+
+```bash
+docker tag tambo-web:latest your-registry/tambo-web:latest
+docker tag tambo-api:latest your-registry/tambo-api:latest
+docker push your-registry/tambo-web:latest
+docker push your-registry/tambo-api:latest
+```

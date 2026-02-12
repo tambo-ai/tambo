@@ -1,0 +1,68 @@
+---
+title: Self-hosting quickstart
+description: Get a self-hosted Tambo Cloud deployment running locally with Docker Compose.
+icon: Rocket
+---
+
+Follow these steps to go from zero to a running Tambo Cloud instance on your machine using Docker Compose.
+
+## Prerequisites
+
+- Docker and Docker Compose installed
+- OpenAI API key (or compatible provider)
+
+## 1. Clone the repository
+
+```bash
+git clone https://github.com/tambo-ai/tambo.git
+cd tambo
+```
+
+## 2. Set up environment
+
+```bash
+./scripts/cloud/tambo-setup.sh
+```
+
+This creates `docker.env` from `docker.env.example`.
+
+## 3. Configure environment variables
+
+Edit `docker.env` with your values. At minimum, set:
+
+```bash
+POSTGRES_PASSWORD=your-secure-password-here
+API_KEY_SECRET=your-32-character-api-key-secret
+PROVIDER_KEY_SECRET=your-32-character-provider-secret
+NEXTAUTH_SECRET=your-nextauth-secret
+FALLBACK_OPENAI_API_KEY=your-openai-api-key
+```
+
+`docker.env.example` includes placeholder values. Replace them with strong secrets before starting the stack.
+
+See [Environment Variables](/guides/self-hosting/environment-variables) for the full reference.
+
+## 4. Start services
+
+```bash
+./scripts/cloud/tambo-start.sh
+```
+
+## 5. Initialize database
+
+```bash
+./scripts/cloud/init-database.sh
+```
+
+## 6. Access your deployment
+
+- **Web Dashboard**: http://localhost:8260
+- **API**: http://localhost:8261
+
+## What's next
+
+You now have a local Tambo Cloud deployment. To take it further:
+
+- [Set up authentication](/guides/self-hosting/authentication) so users can sign in
+- [Deploy to production with Docker Compose](/guides/self-hosting/docker-compose) or [Kubernetes](/guides/self-hosting/kubernetes)
+- [Learn the operational scripts](/guides/self-hosting/scripts) for managing your deployment

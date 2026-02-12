@@ -1,0 +1,51 @@
+---
+title: Authentication setup
+description: Configure OAuth providers or email login for your self-hosted Tambo deployment.
+---
+
+Tambo supports two authentication modes for the dashboard: **OAuth** (Google and/or GitHub) and **email login** (via Resend). You must configure at least one.
+
+## Priority rules
+
+- If any OAuth provider is configured, the deployment uses **OAuth only** (email settings are ignored).
+- Email login is only active when **no** OAuth providers are configured.
+- If neither is configured, users cannot sign in.
+
+## Google OAuth
+
+1. Go to [Google Cloud Console](https://console.cloud.google.com/apis/credentials)
+2. Create an OAuth 2.0 Client ID
+3. Add authorized redirect URIs:
+   - Local: `http://localhost:8260/api/auth/callback/google`
+   - Production: `https://your-domain.com/api/auth/callback/google`
+4. Copy the Client ID and Secret to `docker.env`:
+
+```bash
+GOOGLE_CLIENT_ID=your-client-id
+GOOGLE_CLIENT_SECRET=your-client-secret
+```
+
+## GitHub OAuth
+
+1. Go to [GitHub Developer Settings](https://github.com/settings/developers)
+2. Create a new OAuth App
+3. Set the Authorization callback URL:
+   - Local: `http://localhost:8260/api/auth/callback/github`
+   - Production: `https://your-domain.com/api/auth/callback/github`
+4. Copy the Client ID and Secret to `docker.env`:
+
+```bash
+GITHUB_CLIENT_ID=your-client-id
+GITHUB_CLIENT_SECRET=your-client-secret
+```
+
+## Email login via Resend
+
+Email login requires [Resend](https://resend.com) for sending magic link emails. Set at minimum:
+
+```bash
+RESEND_API_KEY=your-resend-api-key
+EMAIL_FROM_DEFAULT=noreply@your-domain.com
+```
+
+See [Environment Variables](/guides/self-hosting/environment-variables#email-login) for additional email configuration options.

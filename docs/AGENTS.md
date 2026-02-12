@@ -114,7 +114,7 @@ In general, try to fit changes into the following categories. If you can't find 
    - agent-configuration - AI personality and behavior
    - user-authentication - OAuth providers, session management, context keys
 
-3. **Guides** (17 pages across 7 subsections)
+3. **Guides** (26 pages across 8 subsections)
    - **setup-project/** (3 pages)
      - create-project
      - agent-behavior
@@ -134,6 +134,8 @@ In general, try to fit changes into the following categories. If you can't find 
    - **add-authentication/** (8 pages including index)
      - Auth.js, Auth0, Clerk, Supabase, Neon, WorkOS, Better Auth
    - connect-mcp-servers - Single page (not in subfolder)
+   - **self-hosting/** (9 pages including index)
+     - quickstart, environment-variables, authentication, docker-compose, kubernetes, operations, scripts, troubleshooting
 
 4. **Best Practices** (2 pages)
    - coding-agent-generative-ui-rules

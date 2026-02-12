@@ -1,0 +1,39 @@
+---
+title: Docker Compose deployment
+description: Deploy Tambo Cloud to production using Docker Compose.
+---
+
+This guide covers taking your local Docker Compose setup to production.
+
+## Production environment
+
+Update `docker.env` for production:
+
+```bash
+NODE_ENV=production
+NEXTAUTH_URL=https://your-domain.com
+```
+
+## Reverse proxy
+
+Add a reverse proxy (nginx, Caddy, or Traefik) in front of the web and API services for HTTPS termination. Point the proxy to:
+
+- **Web**: port 8260
+- **API**: port 8261
+
+## Building and pushing images
+
+Build the Docker images locally:
+
+```bash
+./scripts/cloud/tambo-build.sh
+```
+
+Tag and push to your container registry:
+
+```bash
+docker tag tambo-web:latest your-registry/tambo-web:latest
+docker tag tambo-api:latest your-registry/tambo-api:latest
+docker push your-registry/tambo-web:latest
+docker push your-registry/tambo-api:latest
+```
