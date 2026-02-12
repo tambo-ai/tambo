@@ -22,6 +22,11 @@
       "import": "./esm/mcp/index.js",
       "require": "./dist/mcp/index.js",
       "types": "./dist/mcp/index.d.ts"
+    },
+    "./devtools": {
+      "import": "./esm/devtools/index.js",
+      "require": "./dist/devtools/index.js",
+      "types": "./dist/devtools/index.d.ts"
     }
   },
   "files": [
