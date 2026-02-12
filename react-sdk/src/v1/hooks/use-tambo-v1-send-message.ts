@@ -21,6 +21,7 @@ import {
   type TamboRegistryContext as TamboRegistry,
 } from "../../providers/tambo-registry-provider";
 import {
+  RawEventCallbackContext,
   useStreamDispatch,
   useStreamState,
 } from "../providers/tambo-v1-stream-context";
@@ -480,6 +481,7 @@ export function useTamboSendMessage(threadId?: string) {
     initialMessages,
   } = useTamboConfig();
   const registry = useContext(TamboRegistryContext);
+  const rawEventCallbackRef = useContext(RawEventCallbackContext);
   const queryClient = useTamboQueryClient();
   const { getAdditionalContext } = useTamboContextHelpers();
   const authState = useTamboAuthState();
@@ -625,6 +627,9 @@ export function useTamboSendMessage(threadId?: string) {
               parsedToolArgs,
               toolSchemas: toolTracker.toolSchemas,
             });
+
+            // Forward raw event to devtools observer (read-only tap)
+            rawEventCallbackRef?.current?.(event, actualThreadId);
 
             // Schedule debounced streamable tool execution with the same pre-parsed args
             if (parsedToolArgs && event.type === EventType.TOOL_CALL_ARGS) {

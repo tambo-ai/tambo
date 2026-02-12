@@ -41,6 +41,7 @@ export interface DevToolsBridgeOptions {
 export class DevToolsBridge {
   private ws: ReconnectingWebSocket | null = null;
   private connected = false;
+  private nextSeq = 0;
   private readonly options: DevToolsBridgeOptions;
 
   constructor(options: DevToolsBridgeOptions) {
@@ -67,6 +68,7 @@ export class DevToolsBridge {
 
     this.ws.addEventListener("open", () => {
       this.connected = true;
+      this.nextSeq = 0;
       this.send({
         type: "handshake",
         protocolVersion: DEVTOOLS_PROTOCOL_VERSION,
@@ -95,6 +97,30 @@ export class DevToolsBridge {
       return;
     }
     this.ws.send(JSON.stringify(message));
+  }
+
+  /**
+   * Emits an individual AG-UI event to the devtools server.
+   * Silently drops events when not connected.
+   * @param event - The raw AG-UI event to forward
+   * @param threadId - The thread this event belongs to
+   */
+  emitEvent(event: unknown, threadId: string): void {
+    if (!this.connected || !this.ws) {
+      return;
+    }
+    const serialized = JSON.parse(JSON.stringify(event)) as Record<
+      string,
+      unknown
+    >;
+    this.send({
+      type: "stream_event",
+      sessionId: this.options.sessionId,
+      timestamp: Date.now(),
+      threadId,
+      event: serialized as import("./devtools-protocol").SerializedAGUIEvent,
+      seq: this.nextSeq++,
+    });
   }
 
   /**

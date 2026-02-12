@@ -145,6 +145,27 @@ export interface DevToolsStateSnapshot {
   errors?: DevToolsError[];
 }
 
+// ---------------------------------------------------------------------------
+// Serialized AG-UI event (for stream event forwarding)
+// ---------------------------------------------------------------------------
+
+/** A serialized AG-UI event safe for wire transmission. */
+export interface SerializedAGUIEvent {
+  type: string;
+  timestamp?: number;
+  [key: string]: unknown;
+}
+
+/** Individual stream event forwarded in real-time. */
+export interface DevToolsStreamEvent {
+  type: "stream_event";
+  sessionId: string;
+  timestamp: number;
+  threadId: string;
+  event: SerializedAGUIEvent;
+  seq: number;
+}
+
 /** Heartbeat to keep connection alive. */
 export interface DevToolsHeartbeat {
   type: "heartbeat";
@@ -156,7 +177,8 @@ export interface DevToolsHeartbeat {
 export type DevToolsMessage =
   | DevToolsHandshake
   | DevToolsStateSnapshot
-  | DevToolsHeartbeat;
+  | DevToolsHeartbeat
+  | DevToolsStreamEvent;
 
 // ---------------------------------------------------------------------------
 // Server -> SDK messages

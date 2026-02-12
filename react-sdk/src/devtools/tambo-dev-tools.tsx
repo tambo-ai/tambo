@@ -4,6 +4,7 @@ import { useContext, useEffect, useRef } from "react";
 
 import { TamboClientContext } from "../providers/tambo-client-provider";
 import { TamboRegistryContext } from "../providers/tambo-registry-provider";
+import { RawEventCallbackContext } from "../v1/providers/tambo-v1-stream-context";
 import type { StreamState } from "../v1/utils/event-accumulator";
 import { DevToolsBridge } from "./devtools-bridge";
 import type { DevToolsStateSnapshot } from "./devtools-protocol";
@@ -77,6 +78,9 @@ export function TamboDevTools({ port, host }: TamboDevToolsProps): null {
   // Read stream state context if available (returns null outside TamboStreamProvider)
   const streamState = useStreamStateForDevtools();
 
+  // Access the raw event callback ref from the stream context (for event forwarding)
+  const rawEventCallbackRef = useContext(RawEventCallbackContext);
+
   // Stable session ID across re-renders
   const sessionIdRef = useRef(crypto.randomUUID());
 
@@ -133,6 +137,21 @@ export function TamboDevTools({ port, host }: TamboDevToolsProps): null {
       bridgeRef.current = null;
     };
   }, [host, port, projectId]);
+
+  // Register raw event callback for devtools event forwarding
+  useEffect(() => {
+    if (!rawEventCallbackRef) return;
+
+    rawEventCallbackRef.current = (event: unknown, threadId: string) => {
+      bridgeRef.current?.emitEvent(event, threadId);
+    };
+
+    return () => {
+      if (rawEventCallbackRef.current) {
+        rawEventCallbackRef.current = null;
+      }
+    };
+  }, [rawEventCallbackRef]);
 
   // Debounced snapshot sending when state changes
   useEffect(() => {

@@ -61,6 +61,20 @@ export interface ThreadManagement {
 }
 
 /**
+ * Callback type for observing raw AG-UI events as they are dispatched.
+ * Used by devtools to tap into the event stream without modifying dispatch flow.
+ */
+export type RawEventCallback = (event: unknown, threadId: string) => void;
+
+/**
+ * Context for registering a raw event observer callback.
+ * The ref-based pattern avoids re-renders when the callback changes.
+ * @internal
+ */
+export const RawEventCallbackContext =
+  createContext<React.MutableRefObject<RawEventCallback | null> | null>(null);
+
+/**
  * Context for accessing stream state (read-only).
  * Separated from dispatch context to prevent unnecessary re-renders.
  * @internal
@@ -228,15 +242,20 @@ export function TamboStreamProvider(props: TamboStreamProviderProps) {
     );
   }, [props.threadManagement, initThread, switchThread, startNewThread]);
 
+  // Ref for raw event observer callback (devtools tap)
+  const rawEventCallbackRef = useRef<RawEventCallback | null>(null);
+
   return (
-    <StreamStateContext.Provider value={activeState}>
-      <StreamDispatchContext.Provider value={activeDispatch}>
-        <ThreadManagementContext.Provider value={threadManagement}>
-          <ThreadSyncManager />
-          {children}
-        </ThreadManagementContext.Provider>
-      </StreamDispatchContext.Provider>
-    </StreamStateContext.Provider>
+    <RawEventCallbackContext.Provider value={rawEventCallbackRef}>
+      <StreamStateContext.Provider value={activeState}>
+        <StreamDispatchContext.Provider value={activeDispatch}>
+          <ThreadManagementContext.Provider value={threadManagement}>
+            <ThreadSyncManager />
+            {children}
+          </ThreadManagementContext.Provider>
+        </StreamDispatchContext.Provider>
+      </StreamStateContext.Provider>
+    </RawEventCallbackContext.Provider>
   );
 }
 
