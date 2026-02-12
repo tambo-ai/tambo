@@ -9,12 +9,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import { ClientCard } from "./components/client-card";
 import { ConnectionStatus } from "./components/connection-status";
+import { ErrorBanner } from "./components/error-banner";
+import { FilterBar } from "./components/filter-bar";
 import { MessageDetailView } from "./components/message-detail-view";
+import { RegistryPanel } from "./components/registry-panel";
 import { ThreadListPanel } from "./components/thread-list-panel";
 import { useDevtoolsConnection } from "./hooks/use-devtools-connection";
+import { useDevtoolsFilters } from "./hooks/use-devtools-filters";
 
 const CODE_SNIPPET = `import { TamboProvider } from "@tambo-ai/react";
 import { TamboDevTools } from "@tambo-ai/react/devtools";
@@ -44,8 +49,10 @@ export default function DevtoolsPage() {
     ? snapshots.get(selectedSessionId)
     : undefined;
 
-  const threads = currentSnapshot?.threads ?? [];
-  const selectedThread = threads.find((t) => t.id === selectedThreadId);
+  const filters = useDevtoolsFilters(currentSnapshot);
+  const selectedThread = filters.filteredThreads.find(
+    (t) => t.id === selectedThreadId,
+  );
 
   return (
     <div className="flex flex-col gap-6">
@@ -57,6 +64,8 @@ export default function DevtoolsPage() {
       </div>
 
       <ConnectionStatus isConnected={isConnected} error={error} />
+
+      <ErrorBanner errors={currentSnapshot?.errors ?? []} />
 
       {isConnected && clients.length > 0 && (
         <div className="flex flex-col gap-4">
@@ -87,21 +96,53 @@ export default function DevtoolsPage() {
           </div>
 
           {currentSnapshot && (
-            <div className="grid h-[600px] grid-cols-1 gap-4 rounded-lg border lg:grid-cols-[320px_1fr]">
-              <div className="border-r">
-                <ThreadListPanel
-                  threads={threads}
-                  selectedThreadId={selectedThreadId}
-                  onSelectThread={setSelectedThreadId}
-                />
-              </div>
-              <div>
-                <MessageDetailView
-                  messages={selectedThread?.messages ?? []}
-                  threadName={selectedThread?.name}
-                />
-              </div>
-            </div>
+            <>
+              <FilterBar
+                threadStatusFilter={filters.threadStatusFilter}
+                setThreadStatusFilter={filters.setThreadStatusFilter}
+                messageRoleFilter={filters.messageRoleFilter}
+                setMessageRoleFilter={filters.setMessageRoleFilter}
+                messageContentTypeFilter={filters.messageContentTypeFilter}
+                setMessageContentTypeFilter={
+                  filters.setMessageContentTypeFilter
+                }
+                searchQuery={filters.searchQuery}
+                setSearchQuery={filters.setSearchQuery}
+              />
+
+              <Tabs defaultValue="inspector" className="w-full">
+                <TabsList>
+                  <TabsTrigger value="inspector">Inspector</TabsTrigger>
+                  <TabsTrigger value="registry">Registry</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="inspector">
+                  <div className="grid h-[600px] grid-cols-1 gap-4 rounded-lg border lg:grid-cols-[320px_1fr]">
+                    <div className="border-r">
+                      <ThreadListPanel
+                        threads={filters.filteredThreads}
+                        selectedThreadId={selectedThreadId}
+                        onSelectThread={setSelectedThreadId}
+                      />
+                    </div>
+                    <div>
+                      <MessageDetailView
+                        messages={
+                          selectedThread
+                            ? filters.filterMessages(selectedThread.messages)
+                            : []
+                        }
+                        threadName={selectedThread?.name}
+                      />
+                    </div>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="registry">
+                  <RegistryPanel registry={currentSnapshot.registry} />
+                </TabsContent>
+              </Tabs>
+            </>
           )}
         </div>
       )}
