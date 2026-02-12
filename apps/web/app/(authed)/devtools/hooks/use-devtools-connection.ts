@@ -3,7 +3,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { DEVTOOLS_PORT } from "@/devtools-server/types";
-import type { StateSnapshot } from "@/devtools-server/types";
+import type {
+  StateSnapshot,
+  StreamEventUpdateMessage,
+} from "@/devtools-server/types";
 
 export interface DevtoolsClient {
   sessionId: string;
@@ -12,14 +15,27 @@ export interface DevtoolsClient {
   connectedAt: number;
 }
 
+export interface StreamEventFromServer {
+  seq: number;
+  timestamp: number;
+  threadId: string;
+  eventType: string;
+  payload: Record<string, unknown>;
+}
+
+/** Maximum number of stream events stored per session. */
+const MAX_STREAM_EVENTS_PER_SESSION = 5000;
+
 export interface UseDevtoolsConnectionReturn {
   isConnected: boolean;
   clients: DevtoolsClient[];
   error: string | null;
   snapshots: Map<string, StateSnapshot>;
+  streamEvents: Map<string, StreamEventFromServer[]>;
   selectedSessionId: string | null;
   setSelectedSessionId: (sessionId: string | null) => void;
   requestSnapshot: (sessionId: string) => void;
+  clearStreamEvents: (sessionId: string) => void;
 }
 
 interface DevtoolsConnectionOptions {
@@ -58,6 +74,9 @@ export function useDevtoolsConnection(
   const [snapshots, setSnapshots] = useState<Map<string, StateSnapshot>>(
     () => new Map(),
   );
+  const [streamEvents, setStreamEvents] = useState<
+    Map<string, StreamEventFromServer[]>
+  >(() => new Map());
   const [selectedSessionId, setSelectedSessionId] = useState<string | null>(
     null,
   );
@@ -110,6 +129,11 @@ export function useDevtoolsConnection(
             next.delete(disconnectedId);
             return next;
           });
+          setStreamEvents((prev) => {
+            const next = new Map(prev);
+            next.delete(disconnectedId);
+            return next;
+          });
           setSelectedSessionId((prev) => {
             if (prev === disconnectedId) return null;
             return prev;
@@ -125,7 +149,37 @@ export function useDevtoolsConnection(
         }
         break;
       }
+      case "stream_event_update": {
+        const update = message as unknown as StreamEventUpdateMessage;
+        const sid = update.sessionId;
+        const evt = update.event;
+        const entry: StreamEventFromServer = {
+          seq: evt.seq,
+          timestamp: evt.timestamp,
+          threadId: evt.threadId,
+          eventType: evt.event.type,
+          payload: evt.event as Record<string, unknown>,
+        };
+        setStreamEvents((prev) => {
+          const next = new Map(prev);
+          const arr = [...(next.get(sid) ?? []), entry];
+          if (arr.length > MAX_STREAM_EVENTS_PER_SESSION) {
+            arr.splice(0, arr.length - MAX_STREAM_EVENTS_PER_SESSION);
+          }
+          next.set(sid, arr);
+          return next;
+        });
+        break;
+      }
     }
+  }, []);
+
+  const clearStreamEvents = useCallback((sessionId: string) => {
+    setStreamEvents((prev) => {
+      const next = new Map(prev);
+      next.set(sessionId, []);
+      return next;
+    });
   }, []);
 
   const requestSnapshot = useCallback((sessionId: string) => {
@@ -191,8 +245,10 @@ export function useDevtoolsConnection(
     clients,
     error,
     snapshots,
+    streamEvents,
     selectedSessionId,
     setSelectedSessionId,
     requestSnapshot,
+    clearStreamEvents,
   };
 }

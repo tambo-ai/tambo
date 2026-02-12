@@ -243,6 +243,14 @@ export class ConnectionManager {
         });
         break;
       }
+      case "stream_event": {
+        this.broadcastToDashboard({
+          type: "stream_event_update",
+          sessionId,
+          event: message,
+        });
+        break;
+      }
       case "heartbeat": {
         const client = this.sdkClients.get(sessionId);
         if (client) {

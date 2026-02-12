@@ -122,10 +122,20 @@ interface HeartbeatMessage {
   timestamp: number;
 }
 
+interface StreamEventMessage {
+  type: "stream_event";
+  sessionId: string;
+  timestamp: number;
+  threadId: string;
+  event: { type: string; [key: string]: unknown };
+  seq: number;
+}
+
 export type SdkMessage =
   | HandshakeMessage
   | StateSnapshotMessage
-  | HeartbeatMessage;
+  | HeartbeatMessage
+  | StreamEventMessage;
 
 // --- Server -> SDK messages ---
 
@@ -174,11 +184,18 @@ interface ClientListMessage {
   clients: ClientInfo[];
 }
 
+export interface StreamEventUpdateMessage {
+  type: "stream_event_update";
+  sessionId: string;
+  event: StreamEventMessage;
+}
+
 export type ServerToDashboardMessage =
   | ClientConnectedMessage
   | ClientDisconnectedMessage
   | StateUpdateMessage
-  | ClientListMessage;
+  | ClientListMessage
+  | StreamEventUpdateMessage;
 
 // --- Dashboard -> Server messages ---
 
