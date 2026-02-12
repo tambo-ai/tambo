@@ -57,7 +57,8 @@ Recent decisions affecting current work:
 - [Phase 2]: 200ms debounce on search input for filter bar
 - [Phase 3]: RawEventCallbackContext with ref pattern for zero-overhead devtools event tap
 - [Phase 3]: JSON.parse(JSON.stringify()) for lightweight AG-UI event serialization
-- [Phase 3]: Simple capped array (5000) for stream event storage (ring buffer deferred)
+- [Phase 3]: Simple capped array (5000) for stream event storage (ring buffer in Plan 02)
+- [Phase 3]: RingBuffer<T> with scroll-position virtualization for timeline panel
 - [Phase 3]: Component events identified by CUSTOM eventType + tambo.component.\* name prefix
 - [Phase 3]: Cumulative props sourced from snapshot (not patch replay) per research
 - [Phase 3]: Tool args accumulated by concatenating TOOL_CALL_ARGS deltas then JSON.parse
