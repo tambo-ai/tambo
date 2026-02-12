@@ -80,9 +80,7 @@ export class TransactionMiddleware implements NestMiddleware {
       req.tx = tx; // Attach transaction to request
       await tx.execute(sql`
             -- auth.jwt()
-            select set_config('request.apikey.project_id', '${sql.raw(
-              projectId,
-            )}', TRUE);
+            select set_config('request.apikey.project_id', ${projectId}, TRUE);
             -- set local role
             set local role ${sql.raw(schema.projectApiKeyRole.name)};
             `);
