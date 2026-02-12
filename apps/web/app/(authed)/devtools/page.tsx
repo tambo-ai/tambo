@@ -12,13 +12,17 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import { ClientCard } from "./components/client-card";
+import { ComponentStreamPanel } from "./components/component-stream-panel";
 import { ConnectionStatus } from "./components/connection-status";
 import { ErrorBanner } from "./components/error-banner";
 import { FilterBar } from "./components/filter-bar";
 import { MessageDetailView } from "./components/message-detail-view";
 import { RegistryPanel } from "./components/registry-panel";
 import { ThreadListPanel } from "./components/thread-list-panel";
+import { TimelinePanel } from "./components/timeline-panel";
+import { ToolCallPanel } from "./components/tool-call-panel";
 import { useDevtoolsConnection } from "./hooks/use-devtools-connection";
+import { useDevtoolsEvents } from "./hooks/use-devtools-events";
 import { useDevtoolsFilters } from "./hooks/use-devtools-filters";
 
 const CODE_SNIPPET = `import { TamboProvider } from "@tambo-ai/react";
@@ -39,6 +43,7 @@ export default function DevtoolsPage() {
     clients,
     error,
     snapshots,
+    streamEvents,
     selectedSessionId,
     setSelectedSessionId,
   } = useDevtoolsConnection();
@@ -48,6 +53,14 @@ export default function DevtoolsPage() {
   const currentSnapshot = selectedSessionId
     ? snapshots.get(selectedSessionId)
     : undefined;
+
+  const currentStreamEvents = selectedSessionId
+    ? (streamEvents.get(selectedSessionId) ?? [])
+    : [];
+
+  const timeline = useDevtoolsEvents(
+    currentStreamEvents.length > 0 ? currentStreamEvents : undefined,
+  );
 
   const filters = useDevtoolsFilters(currentSnapshot);
   const selectedThread = filters.filteredThreads.find(
@@ -114,6 +127,9 @@ export default function DevtoolsPage() {
                 <TabsList>
                   <TabsTrigger value="inspector">Inspector</TabsTrigger>
                   <TabsTrigger value="registry">Registry</TabsTrigger>
+                  <TabsTrigger value="timeline">Timeline</TabsTrigger>
+                  <TabsTrigger value="streaming">Streaming</TabsTrigger>
+                  <TabsTrigger value="tools">Tools</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="inspector">
@@ -140,6 +156,29 @@ export default function DevtoolsPage() {
 
                 <TabsContent value="registry">
                   <RegistryPanel registry={currentSnapshot.registry} />
+                </TabsContent>
+
+                <TabsContent value="timeline">
+                  <div className="h-[600px] rounded-lg border">
+                    <TimelinePanel
+                      events={timeline.events}
+                      droppedCount={timeline.droppedCount}
+                      selectedEvent={timeline.selectedEvent}
+                      onSelectEvent={timeline.setSelectedEvent}
+                      onClear={timeline.clearEvents}
+                    />
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="streaming">
+                  <ComponentStreamPanel
+                    events={currentStreamEvents}
+                    currentSnapshot={currentSnapshot}
+                  />
+                </TabsContent>
+
+                <TabsContent value="tools">
+                  <ToolCallPanel events={currentStreamEvents} />
                 </TabsContent>
               </Tabs>
             </>
