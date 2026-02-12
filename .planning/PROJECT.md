@@ -8,60 +8,48 @@ Browser-based developer tools for debugging and inspecting Tambo-powered applica
 
 Developers can see exactly what's happening inside their Tambo app — threads, streaming data, component state — without resorting to console.log or manual network tab inspection.
 
-## Requirements
+## Current State
 
-### Validated
+**v1.0 shipped** (2026-02-12) — 3 phases, 9 plans, 62 files, ~8,800 lines
 
-<!-- Existing capabilities inferred from codebase -->
+What's built:
 
-- ✓ Tambo Cloud dashboard exists with project management UI — existing
-- ✓ React SDK has thread/component/tool hooks and providers — existing
-- ✓ NestJS API persists threads, messages, tool calls — existing
-- ✓ Streaming-first architecture for AI interactions — existing
-- ✓ Component registration system with Zod schemas — existing
+- WebSocket bridge (SDK ↔ dashboard via port 8265) with auto-reconnect and zero production bundle cost
+- Thread inspector with message detail, content block rendering, JSON tree viewer
+- Component registry and tool registry with schema inspection
+- Error banner surfacing streaming/tool/connection errors
+- Filter bar with thread status, message role/type, and text search
+- Real-time event timeline with color-coded AG-UI events, RAF-batched rendering, ring buffer
+- Component streaming visualizer with JSON Patch log and cumulative props
+- Tool call lifecycle panel with status tracking
 
-### Active
+## Next Milestone Goals
 
-- [ ] Websocket bridge from SDK to dashboard for real-time dev event streaming
-- [ ] Thread state inspector showing threads, messages, tool calls, and streaming state
-- [ ] Component registry viewer showing registered components, their schemas, and resolution
-- [ ] Network/API trace showing requests and responses with decoded payloads
-- [ ] Streaming chunk visualizer showing raw chunks as they arrive and how they're played back
-- [ ] Replayable stream capture for debugging rendering/parsing issues (stretch goal)
+Candidates for v2.0 (from deferred v2 requirements):
 
-### Out of Scope
-
-- Production debugging — dev mode only for v1
-- Browser extension — this lives in the dashboard, not as a separate extension
-- Mobile app debugging — web-only
-- Performance profiling — focus on state/data visibility, not perf metrics
-
-## Context
-
-- The Tambo SDK (`@tambo-ai/react`) already has hooks and providers that manage thread, component, and tool state internally via React context
-- The Tambo Cloud dashboard (`apps/web`) is a Next.js app on port 8260 that already has project management, thread viewing, and API key management
-- The API (`apps/api`) on port 8261 already persists threads, messages, and tool calls
-- There is currently zero Tambo-aware debugging tooling — developers use browser DevTools, console.log, and manual debugger statements
-- TanStack Query DevTools is the UX inspiration — a developer panel with live state inspection
-- The websocket bridge needs to be added to the React SDK (client side) and either the dashboard or a local server (receiver side)
-- Streaming chunks are currently consumed and transformed in the SDK but not surfaced for inspection
+- Bidirectional communication (cancel runs, retry messages, trigger tools from dashboard)
+- Component resolution tracing (why AI chose a component)
+- Model reasoning/thinking tokens in real-time
+- Session recording and replay
 
 ## Constraints
 
 - **Tech stack**: Must fit within existing monorepo (React, Next.js, NestJS, TypeScript)
 - **SDK impact**: Websocket bridge in React SDK must be zero-cost when not connected (tree-shakeable or lazy-loaded in dev mode only)
 - **Existing patterns**: Follow the monorepo's established architecture — hooks, providers, Tailwind/shadcn for UI
-- **Package boundary**: Dev-tools UI lives in apps/web; bridge/instrumentation code lives in react-sdk or a new package
+- **Package boundary**: Dev-tools UI lives in apps/web; bridge/instrumentation code lives in react-sdk
 
 ## Key Decisions
 
-| Decision                                              | Rationale                                                        | Outcome   |
-| ----------------------------------------------------- | ---------------------------------------------------------------- | --------- |
-| Dashboard-hosted (not embedded in app)                | Keeps developer's app clean; leverages existing dashboard infra  | — Pending |
-| Websocket bridge (not API-only)                       | Need to see client-side streaming data that never hits the API   | — Pending |
-| Dev mode only for v1                                  | Reduces scope; avoids auth/security complexity of prod debugging | — Pending |
-| Form factor (TanStack-style panel vs standalone page) | Needs research — best DX for this type of tooling                | — Pending |
+| Decision                                    | Rationale                                                       | Status       |
+| ------------------------------------------- | --------------------------------------------------------------- | ------------ |
+| Dashboard-hosted (not embedded in app)      | Keeps developer's app clean; leverages existing dashboard infra | Shipped v1.0 |
+| Websocket bridge (not API-only)             | Need to see client-side streaming data that never hits the API  | Shipped v1.0 |
+| Dev mode only for v1                        | Reduces scope; avoids auth/security complexity                  | Shipped v1.0 |
+| Standalone WS server on port 8265           | Avoids NestJS gateway complexity and next-ws patches            | Shipped v1.0 |
+| `@tambo-ai/react/devtools` subpath export   | Zero bundle cost in production builds                           | Shipped v1.0 |
+| Ring buffer + RAF batching + virtualization | Handles high-frequency events without jank                      | Shipped v1.0 |
 
 ---
 
-_Last updated: 2026-02-11 after initialization_
+_Last updated: 2026-02-12 after v1.0 milestone completion_
