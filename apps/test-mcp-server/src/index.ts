@@ -13,6 +13,7 @@ import {
 import { Command } from "commander";
 import cors from "cors";
 import express from "express";
+import rateLimit from "express-rate-limit";
 import { createServer } from "http";
 import { randomUUID } from "node:crypto";
 import { McpServiceRegistry } from "./mcp-service.js";
@@ -185,6 +186,16 @@ async function main() {
     const port = await findAvailablePort(desiredPort);
     const enableSessionManagement =
       serverOptions.enableSessionManagement ?? true;
+    
+    // Configure rate limiter for MCP endpoints
+    const mcpRateLimiter = rateLimit({
+      windowMs: 15 * 60 * 1000, // 15 minutes
+      max: 100, // Limit each IP to 100 requests per windowMs
+      message: "Too many requests from this IP, please try again later.",
+      standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+      legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+    });
+    
     app.use(
       "/mcp",
       cors({
@@ -199,6 +210,9 @@ async function main() {
         ],
       }),
     ); // Enable CORS for all routes so Inspector can connect
+    
+    // Apply rate limiting to all /mcp endpoints
+    app.use("/mcp", mcpRateLimiter);
 
     // Handle POST requests for client-to-server communication
     app.post("/mcp", async (req, res) => {
