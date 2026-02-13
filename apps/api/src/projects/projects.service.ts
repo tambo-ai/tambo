@@ -1,7 +1,7 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { type HydraDatabase, operations } from "@tambo-ai-cloud/db";
-import { DATABASE } from "../common/middleware/db-transaction-middleware";
+import { DATABASE } from "../common/database-provider";
 import { APIKeyResponse } from "./dto/api-key-response.dto";
 import {
   ProjectResponse,
@@ -13,8 +13,6 @@ import { Project } from "./entities/project.entity";
 @Injectable()
 export class ProjectsService {
   constructor(
-    // @Inject(TRANSACTION)
-    // private readonly tx: HydraTransaction,
     @Inject(DATABASE)
     private readonly db: HydraDatabase,
     private readonly config: ConfigService,
