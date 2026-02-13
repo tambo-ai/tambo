@@ -105,10 +105,12 @@ Index: test.ts
 });
 
 describe("displayNewFileMessage", () => {
-  let consoleLogSpy: jest.SpyInstance;
+  let consoleLogSpy: jest.SpiedFunction<typeof console.log>;
 
   beforeEach(() => {
-    consoleLogSpy = jest.spyOn(console, "log").mockImplementation();
+    consoleLogSpy = jest
+      .spyOn(console, "log")
+      .mockImplementation(() => {}) as jest.SpiedFunction<typeof console.log>;
   });
 
   afterEach(() => {
@@ -135,10 +137,12 @@ describe("displayNewFileMessage", () => {
 });
 
 describe("displayFileDiff", () => {
-  let consoleLogSpy: jest.SpyInstance;
+  let consoleLogSpy: jest.SpiedFunction<typeof console.log>;
 
   beforeEach(() => {
-    consoleLogSpy = jest.spyOn(console, "log").mockImplementation();
+    consoleLogSpy = jest
+      .spyOn(console, "log")
+      .mockImplementation(() => {}) as jest.SpiedFunction<typeof console.log>;
   });
 
   afterEach(() => {
