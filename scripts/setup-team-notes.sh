@@ -15,7 +15,14 @@ if [ ! -f "$REPO_ROOT/scripts/setup-team-notes.sh" ]; then
 fi
 
 TEAM_NOTES_DIR="$REPO_ROOT/team-notes"
-TEAM_NOTES_REMOTE="${TEAM_NOTES_REMOTE:-git@github.com:tambo-ai/team-notes.git}"
+TEAM_NOTES_REMOTE_DEFAULT="git@github.com:tambo-ai/team-notes.git"
+
+if [ -n "${TEAM_NOTES_REMOTE+x}" ] && [ -z "$TEAM_NOTES_REMOTE" ]; then
+  echo "Error: TEAM_NOTES_REMOTE is set but empty; expected a git URL (for example, $TEAM_NOTES_REMOTE_DEFAULT)." >&2
+  exit 1
+fi
+
+TEAM_NOTES_REMOTE="${TEAM_NOTES_REMOTE:-$TEAM_NOTES_REMOTE_DEFAULT}"
 
 case "$TEAM_NOTES_REMOTE" in
   *[[:space:]]*)
@@ -42,8 +49,9 @@ if [ -d "$TEAM_NOTES_DIR" ]; then
   exit 1
 fi
 
-if [ ! -w "$REPO_ROOT" ]; then
-  echo "Error: $REPO_ROOT is not writable; cannot create $TEAM_NOTES_DIR." >&2
+TEAM_NOTES_PARENT_DIR="$(dirname "$TEAM_NOTES_DIR")"
+if [ ! -w "$TEAM_NOTES_PARENT_DIR" ]; then
+  echo "Error: $TEAM_NOTES_PARENT_DIR is not writable; cannot create $TEAM_NOTES_DIR." >&2
   exit 1
 fi
 
