@@ -10,16 +10,21 @@
  *
  * Wraps the component with ComponentContentProvider so that hooks like
  * useTamboComponentState can access component context.
+ *
+ * When autoInteractables is enabled in TamboConfig, automatically registers
+ * rendered components as interactables so the AI can update them.
  */
 
 import { parse } from "partial-json";
-import React, { type FC, useMemo, useContext } from "react";
+import React, { type FC, useMemo, useContext, useEffect, useRef } from "react";
 import { TamboRegistryContext } from "../../providers/tambo-registry-provider";
+import { useTamboInteractable } from "../../providers/tambo-interactable-provider";
 import { isStandardSchema } from "../../schema";
 import { isPromise } from "../../util/is-promise";
 import { getComponentFromRegistry } from "../../util/registry";
 import type { TamboComponentContent } from "../types/message";
 import { ComponentContentProvider } from "../utils/component-renderer";
+import { useTamboConfig } from "../providers/tambo-v1-provider";
 
 export interface ComponentRendererProps {
   /**
@@ -41,6 +46,58 @@ export interface ComponentRendererProps {
    * Optional fallback to render if component is not found in registry
    */
   fallback?: React.ReactNode;
+}
+
+/**
+ * Internal wrapper that auto-registers a rendered component as an interactable
+ * when autoInteractables is enabled in TamboConfig.
+ */
+function AutoInteractableWrapper({
+  children,
+  componentName,
+  componentId,
+  props,
+  propsSchema,
+}: {
+  children: React.ReactNode;
+  componentName: string;
+  componentId: string;
+  props: Record<string, unknown>;
+  propsSchema?: unknown;
+}) {
+  const config = useTamboConfig();
+  const { addInteractableComponent, removeInteractableComponent } =
+    useTamboInteractable();
+  const registeredIdRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!config.autoInteractables) return;
+
+    // Only register once per component instance
+    if (registeredIdRef.current) return;
+
+    try {
+      const id = addInteractableComponent({
+        name: componentName,
+        component: () => null, // Placeholder — the real component is rendered by ComponentRenderer
+        props,
+        propsSchema: propsSchema as never,
+      });
+      registeredIdRef.current = id;
+    } catch {
+      // Silently ignore registration failures (e.g., invalid component name)
+    }
+
+    return () => {
+      if (registeredIdRef.current) {
+        removeInteractableComponent(registeredIdRef.current);
+        registeredIdRef.current = null;
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [config.autoInteractables, componentId]);
+
+  return <>{children}</>;
 }
 
 /**
@@ -78,7 +135,7 @@ export const ComponentRenderer: FC<ComponentRendererProps> = ({
   const registry = useContext(TamboRegistryContext);
 
   // Memoize the rendered element - only recreates when props change
-  const element = useMemo(() => {
+  const renderData = useMemo(() => {
     try {
       const registeredComponent = getComponentFromRegistry(
         content.name,
@@ -115,7 +172,14 @@ export const ComponentRenderer: FC<ComponentRendererProps> = ({
         }
       }
 
-      return React.createElement(registeredComponent.component, validatedProps);
+      return {
+        element: React.createElement(
+          registeredComponent.component,
+          validatedProps,
+        ),
+        propsSchema: registeredComponent.props,
+        validatedProps,
+      };
     } catch (error) {
       console.error("[ComponentRenderer] Failed to render component", {
         threadId,
@@ -138,7 +202,7 @@ export const ComponentRenderer: FC<ComponentRendererProps> = ({
     registry.componentList,
   ]);
 
-  if (element === null) {
+  if (renderData === null) {
     return <>{fallback}</>;
   }
 
@@ -150,7 +214,14 @@ export const ComponentRenderer: FC<ComponentRendererProps> = ({
       messageId={messageId}
       componentName={content.name}
     >
-      {element}
+      <AutoInteractableWrapper
+        componentName={content.name}
+        componentId={content.id}
+        props={renderData.validatedProps}
+        propsSchema={renderData.propsSchema}
+      >
+        {renderData.element}
+      </AutoInteractableWrapper>
     </ComponentContentProvider>
   );
 };
