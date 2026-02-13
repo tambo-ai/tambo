@@ -35,6 +35,7 @@ coverage
 # ides and agents
 *.code*
 .claude/settings.local.json
+.claude/dev-worktrees.local.md
 .plans/
 .playwright-mcp/
 
