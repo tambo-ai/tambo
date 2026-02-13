@@ -136,11 +136,12 @@ Plans:
 8. CLI verifies setup after execution (files exist, imports resolve, no syntax errors)
 9. CLI displays actionable error messages with suggested fixes when operations fail
 
-**Plans**: TBD
+**Plans:** 2 plans
 
 Plans:
 
-- [ ] 05-01: TBD
+- [ ] 05-01-PLAN.md — Types, atomic file operations, backup/restore, dependency installer
+- [ ] 05-02-PLAN.md — Verification, error formatting, execution orchestrator
 
 ## Progress
 
