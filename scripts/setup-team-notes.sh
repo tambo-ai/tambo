@@ -28,7 +28,7 @@ if git clone "$TEAM_NOTES_REMOTE" "$TEAM_NOTES_DIR"; then
 else
   status=$?
   echo ""
-  echo "Could not clone tambo-ai/team-notes (exit $status)."
+  echo "Could not clone $TEAM_NOTES_REMOTE (exit $status)."
   echo "This is a private repo for Tambo team members only."
   echo "If you're an external contributor, you can safely ignore this."
   echo ""

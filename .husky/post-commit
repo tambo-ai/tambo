@@ -1,12 +1,16 @@
 # Remind about uncommitted team notes changes
-REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0
 TEAM_NOTES_DIR="$REPO_ROOT/team-notes"
 
 if [ -d "$TEAM_NOTES_DIR/.git" ]; then
-  if [ -n "$(git -C "$TEAM_NOTES_DIR" status --porcelain 2>/dev/null)" ]; then
-    echo ""
-    echo "You have uncommitted changes in team-notes/"
-    echo "Remember to commit and push those separately."
-    echo ""
+  if TEAM_NOTES_STATUS=$(git -C "$TEAM_NOTES_DIR" status --porcelain 2>/dev/null); then
+    if [ -n "$TEAM_NOTES_STATUS" ]; then
+      echo ""
+      echo "You have uncommitted changes in team-notes/"
+      echo "Remember to commit and push those separately."
+      echo ""
+    fi
+  else
+    echo "post-commit hook: failed to check team-notes status" >&2
   fi
 fi
