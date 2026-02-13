@@ -1,0 +1,30 @@
+{
+  "name": "@tambo-ai/svelte",
+  "version": "0.1.0",
+  "description": "Svelte SDK for Tambo — AI-powered generative UI",
+  "license": "MIT",
+  "type": "module",
+  "svelte": "./src/index.ts",
+  "main": "./src/index.ts",
+  "exports": {
+    ".": {
+      "svelte": "./src/index.ts",
+      "import": "./src/index.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc --noEmit",
+    "check-types": "tsc --noEmit",
+    "lint": "eslint"
+  },
+  "peerDependencies": {
+    "svelte": ">=4.0.0",
+    "@tambo-ai/typescript-sdk": ">=0.92.0"
+  },
+  "devDependencies": {
+    "@tambo-ai/typescript-config": "*",
+    "svelte": "^5.0.0",
+    "@tambo-ai/typescript-sdk": "^0.92.0",
+    "typescript": "^5.9.3"
+  }
+}
