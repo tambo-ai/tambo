@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.143.1](https://github.com/tambo-ai/tambo/compare/api-v0.143.0...api-v0.143.1) (2026-02-13)
+
+
+### Bug Fixes
+
+* **api:** persist tool call counts across V1 runs ([#2360](https://github.com/tambo-ai/tambo/issues/2360)) ([9047cba](https://github.com/tambo-ai/tambo/commit/9047cbae0c628601054c2826801816c7fb656084))
+
+
+### Code Refactoring
+
+* **api:** remove dead transaction middleware and rename database provider ([#2393](https://github.com/tambo-ai/tambo/issues/2393)) ([ebf088e](https://github.com/tambo-ai/tambo/commit/ebf088e0430949244d3ad80b3f10bfb7737b9015))
+
 ## [0.143.0](https://github.com/tambo-ai/tambo/compare/api-v0.142.0...api-v0.143.0) (2026-02-10)
 
 
