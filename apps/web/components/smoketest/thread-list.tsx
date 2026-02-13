@@ -1,10 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-/**
- * SDK-agnostic thread interface.
- * Both beta and v1 SDK threads can be mapped to this interface.
- */
+/** SDK-agnostic thread interface. */
 interface ThreadListThread {
   id: string;
   createdAt: string | Date;
