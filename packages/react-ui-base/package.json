@@ -99,7 +99,7 @@
     "@tambo-ai/eslint-config": "*",
     "@tambo-ai/react": "*",
     "@tambo-ai/typescript-config": "*",
-    "@tambo-ai/typescript-sdk": "^0.92.0",
+    "@tambo-ai/typescript-sdk": "^0.93.0",
     "@tambo-ai/vite-config": "*",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.3.2",

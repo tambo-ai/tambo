@@ -46,7 +46,7 @@
     "@t3-oss/env-nextjs": "^0.13.10",
     "@tambo-ai-cloud/db": "*",
     "@tambo-ai/react": "*",
-    "@tambo-ai/typescript-sdk": "^0.92.0",
+    "@tambo-ai/typescript-sdk": "^0.93.0",
     "@tambo-ai/ui-registry": "*",
     "@tanstack/react-query": "^5.90.16",
     "@theguild/remark-mermaid": "^0.3.0",
