@@ -53,6 +53,20 @@ export const llmProviderConfig: LlmProviderConfig = {
     isCustomProvider: true,
     requiresBaseUrl: true,
   },
+  "azure-openai": {
+    apiName: "azure-openai",
+    displayName: "Azure OpenAI",
+    docLinkRoot:
+      "https://learn.microsoft.com/en-us/azure/ai-services/openai/",
+    apiKeyLink:
+      "https://portal.azure.com/#view/Microsoft_Azure_ProjectOxford/CognitiveServicesHub/~/OpenAI",
+    isCustomProvider: true,
+    requiresBaseUrl: true,
+    providerSpecificParams: {
+      parallelToolCalls: false,
+      strictJsonSchema: true,
+    },
+  },
   cerebras: {
     apiName: "cerebras",
     displayName: "Cerebras",
