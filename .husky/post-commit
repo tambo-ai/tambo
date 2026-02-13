@@ -1,0 +1,11 @@
+# Remind about uncommitted team notes changes
+if [ -d "team-notes/.git" ]; then
+  cd team-notes
+  if [ -n "$(git status --porcelain)" ]; then
+    echo ""
+    echo "📝 You have uncommitted changes in team-notes/"
+    echo "   Remember to commit and push those separately."
+    echo ""
+  fi
+  cd ..
+fi
