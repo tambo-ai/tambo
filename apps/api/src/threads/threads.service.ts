@@ -38,7 +38,7 @@ import {
 } from "@tambo-ai-cloud/db";
 import { eq } from "drizzle-orm";
 import OpenAI from "openai";
-import { DATABASE } from "../common/middleware/db-transaction-middleware";
+import { DATABASE } from "../common/database-provider";
 import { ContextInfo } from "../common/utils/extract-context-info";
 import { AuthService } from "../common/services/auth.service";
 import { EmailService } from "../common/services/email.service";
@@ -97,8 +97,6 @@ const TAMBO_ANON_CONTEXT_KEY = "tambo:anon-user";
 @Injectable()
 export class ThreadsService {
   constructor(
-    // @Inject(TRANSACTION)
-    // private readonly tx: HydraDatabase,
     @Inject(DATABASE)
     private readonly db: HydraDatabase,
     private projectsService: ProjectsService,
