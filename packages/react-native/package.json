@@ -1,0 +1,30 @@
+{
+  "name": "@tambo-ai/react-native",
+  "version": "0.1.0",
+  "description": "React Native SDK for Tambo — AI-powered generative UI on mobile",
+  "license": "MIT",
+  "type": "module",
+  "main": "./src/index.ts",
+  "exports": {
+    ".": {
+      "import": "./src/index.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc --noEmit",
+    "check-types": "tsc --noEmit",
+    "lint": "eslint"
+  },
+  "peerDependencies": {
+    "react": ">=18.0.0",
+    "react-native": ">=0.72.0",
+    "@tambo-ai/typescript-sdk": ">=0.92.0"
+  },
+  "devDependencies": {
+    "@tambo-ai/typescript-config": "*",
+    "@types/react": "^18.3.0",
+    "react": "^18.3.1",
+    "@tambo-ai/typescript-sdk": "^0.92.0",
+    "typescript": "^5.9.3"
+  }
+}
