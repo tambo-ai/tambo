@@ -63,6 +63,14 @@ export interface TamboConfig {
    * These are displayed in the UI immediately and sent to the API on first message.
    */
   initialMessages?: InitialInputMessage[];
+  /**
+   * When true, components rendered by the AI are automatically registered
+   * as interactables, allowing the AI to update their props in subsequent turns
+   * without requiring manual `withTamboInteractable` wrapping.
+   *
+   * @default false
+   */
+  autoInteractables?: boolean;
 }
 
 /**
@@ -173,6 +181,15 @@ export interface TamboProviderProps extends Pick<
   initialMessages?: InitialInputMessage[];
 
   /**
+   * When true, components rendered by the AI are automatically registered
+   * as interactables, allowing the AI to update their props in subsequent turns
+   * without requiring manual `withTamboInteractable` wrapping.
+   *
+   * @default false
+   */
+  autoInteractables?: boolean;
+
+  /**
    * Children components
    */
   children: React.ReactNode;
@@ -236,6 +253,7 @@ function TamboAuthWarnings(): null {
  * @param props.userKey - User key for thread ownership (required if not using userToken)
  * @param props.autoGenerateThreadName - Whether to automatically generate thread names. Defaults to true.
  * @param props.autoGenerateNameThreshold - The message count threshold at which the thread name will be auto-generated. Defaults to 3.
+ * @param props.autoInteractables - Whether to auto-register AI-rendered components as interactables. Defaults to false.
  * @param props.children - Child components
  * @returns Provider component tree
  * @example
@@ -248,6 +266,7 @@ function TamboAuthWarnings(): null {
  *       apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY!}
  *       components={[WeatherCard, StockChart]}
  *       tools={[searchTool, calculatorTool]}
+ *       autoInteractables
  *     >
  *       <ChatInterface />
  *     </TamboProvider>
@@ -272,6 +291,7 @@ export function TamboProvider({
   autoGenerateThreadName,
   autoGenerateNameThreshold,
   initialMessages,
+  autoInteractables,
   children,
 }: PropsWithChildren<TamboProviderProps>) {
   // Config is static - created once and never changes
@@ -280,6 +300,7 @@ export function TamboProvider({
     autoGenerateThreadName,
     autoGenerateNameThreshold,
     initialMessages,
+    autoInteractables,
   };
 
   return (
