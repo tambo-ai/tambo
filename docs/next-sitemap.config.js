@@ -60,7 +60,8 @@ function getLastModForFile(filePath) {
     const stats = statSync(filePath);
     return stats.mtime.toISOString();
   } catch {
-    return new Date().toISOString();
+    // Intentionally omit `lastmod` when we can't determine a stable value.
+    return undefined;
   }
 }
 
@@ -104,27 +105,67 @@ function enumerateRoutes() {
     .map(([url, lastmod]) => ({ url, lastmod }));
 }
 
+const excludedSitemapExactPathList = [
+  "/llms.txt",
+  "/llms-full.txt",
+  "/robots.txt",
+  // We use `/llms.mdx/*` as a routable prefix via `next.config.mjs` rewrites.
+  // It serves a Markdown rendering of pages and should not be indexed.
+  "/llms.mdx",
+];
+
+const excludedSitemapGlobPatterns = ["/_next/*", "/api/*", "/llms.mdx/*"];
+
+const excludedSitemapGlobs = [
+  ...excludedSitemapGlobPatterns,
+  ...excludedSitemapExactPathList,
+];
+
+const excludedSitemapExactPaths = new Set(excludedSitemapExactPathList);
+
+const isExcludedSitemapPath = (path) =>
+  excludedSitemapExactPaths.has(path) ||
+  path.startsWith("/llms.mdx/") ||
+  path.startsWith("/_next/") ||
+  path === "/_next" ||
+  path.startsWith("/api/") ||
+  path === "/api";
+
+// Enumerate routes once at config load for deterministic, build-time-only sitemap generation
 const enumerated = enumerateRoutes();
+const enumeratedByUrl = new Map(enumerated.map((e) => [e.url, e.lastmod]));
 
 module.exports = {
   siteUrl,
   generateRobotsTxt: false,
-  exclude: ["/_next/*", "/api/*"],
+  // Exclude non-page routes and duplicates
+  exclude: excludedSitemapGlobs,
   changefreq: "weekly",
   priority: 0.8,
-  transform: async (config, path) => {
-    const found = enumerated.find((e) => e.url === path);
+  transform: async (_config, path) => {
+    // Skip paths that shouldn't be in sitemap
+    if (isExcludedSitemapPath(path)) {
+      return null;
+    }
+    const lastmod = enumeratedByUrl.get(path);
     return {
       loc: `${siteUrl}${path}`,
       changefreq: "weekly",
       priority: path === "/" ? 1.0 : 0.8,
-      lastmod: found?.lastmod ?? new Date(0).toISOString(),
+      ...(lastmod != null ? { lastmod } : {}),
       alternateRefs: [],
     };
   },
   // explicitly include all enumerated paths for determinism
   additionalPaths: async () =>
-    enumerated.map((e) => ({ loc: `${siteUrl}${e.url}`, lastmod: e.lastmod })),
+    enumerated
+      .filter((e) => !isExcludedSitemapPath(e.url))
+      .map((e) => ({
+        loc: `${siteUrl}${e.url}`,
+        ...(e.lastmod != null ? { lastmod: e.lastmod } : {}),
+      })),
   // include ensures index and known root routes are emitted
-  include: enumerated.map((e) => e.url),
+  include: enumerated
+    .filter((e) => !isExcludedSitemapPath(e.url))
+    .map((e) => e.url),
 };
