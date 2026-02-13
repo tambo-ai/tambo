@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.37.2](https://github.com/tambo-ai/tambo/compare/showcase-v0.37.1...showcase-v0.37.2) (2026-02-11)
+
+
+### Bug Fixes
+
+* **ui-registry:** support email fields in Form ([#2382](https://github.com/tambo-ai/tambo/issues/2382)) ([92a3656](https://github.com/tambo-ai/tambo/commit/92a36562e061ba7ec54d1f143193102de3a2a637))
+
 ## [0.37.1](https://github.com/tambo-ai/tambo/compare/showcase-v0.37.0...showcase-v0.37.1) (2026-02-11)
 
 
