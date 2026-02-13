@@ -1,0 +1,34 @@
+{
+  "name": "@tambo-ai/nuxt",
+  "version": "0.1.0",
+  "description": "Nuxt 3 module for Tambo — AI-powered generative UI",
+  "license": "MIT",
+  "type": "module",
+  "main": "./src/module.ts",
+  "exports": {
+    ".": {
+      "import": "./src/module.ts"
+    },
+    "./composables": {
+      "import": "./src/runtime/composables/index.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc --noEmit",
+    "check-types": "tsc --noEmit",
+    "lint": "eslint"
+  },
+  "peerDependencies": {
+    "nuxt": ">=3.8.0",
+    "@tambo-ai/typescript-sdk": ">=0.92.0"
+  },
+  "dependencies": {
+    "@tambo-ai/vue": "*"
+  },
+  "devDependencies": {
+    "@tambo-ai/typescript-config": "*",
+    "@tambo-ai/typescript-sdk": "^0.92.0",
+    "nuxt": "^3.15.0",
+    "typescript": "^5.9.3"
+  }
+}
