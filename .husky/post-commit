@@ -1,16 +1,31 @@
 # Remind about uncommitted team notes changes
-REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0
+REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null) || {
+  echo "post-commit hook: could not determine repo root; skipping team-notes check" >&2
+  exit 0
+}
+
+if [ ! -f "$REPO_ROOT/scripts/setup-team-notes.sh" ]; then
+  echo "post-commit hook: resolved git root ($REPO_ROOT) does not look like the Tambo repo; skipping team-notes check" >&2
+  exit 0
+fi
 TEAM_NOTES_DIR="$REPO_ROOT/team-notes"
+
+case "$(pwd)" in
+  "$TEAM_NOTES_DIR"|"$TEAM_NOTES_DIR"/*)
+    exit 0
+    ;;
+esac
 
 if [ -d "$TEAM_NOTES_DIR/.git" ]; then
   if TEAM_NOTES_STATUS=$(git -C "$TEAM_NOTES_DIR" status --porcelain 2>/dev/null); then
     if [ -n "$TEAM_NOTES_STATUS" ]; then
       echo ""
-      echo "You have uncommitted changes in team-notes/"
-      echo "Remember to commit and push those separately."
+      echo "[team-notes] You have uncommitted changes in team-notes/"
+      echo "[team-notes] Remember to commit and push those separately."
       echo ""
     fi
   else
-    echo "post-commit hook: failed to check team-notes status" >&2
+    echo "post-commit hook: failed to check team-notes status at $TEAM_NOTES_DIR" >&2
+    echo "If this directory is missing or not a git repo, remove it and re-run scripts/setup-team-notes.sh." >&2
   fi
 fi
