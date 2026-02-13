@@ -294,3 +294,17 @@ export type {
   TamboInteractableComponent as InteractableComponent,
   TamboInteractableContext,
 } from "../model/tambo-interactable";
+
+// =============================================================================
+// Memory Storage
+// =============================================================================
+
+export {
+  TamboMemoryProvider,
+  useMemory,
+  InMemoryProvider,
+  type MemoryEntry,
+  type MemoryProvider,
+  type TamboMemoryProviderProps,
+  type MemoryContextValue,
+} from "./memory";
