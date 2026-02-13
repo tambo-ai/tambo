@@ -4,6 +4,7 @@
   "componentName": "MCPComponents",
   "dependencies": [
     "@tambo-ai/react@rc",
+    "@tambo-ai/react-ui-base",
     "lucide-react",
     "@radix-ui/react-dropdown-menu"
   ],
