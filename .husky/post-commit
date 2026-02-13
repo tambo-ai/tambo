@@ -1,11 +1,12 @@
 # Remind about uncommitted team notes changes
-if [ -d "team-notes/.git" ]; then
-  cd team-notes
-  if [ -n "$(git status --porcelain)" ]; then
+REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+TEAM_NOTES_DIR="$REPO_ROOT/team-notes"
+
+if [ -d "$TEAM_NOTES_DIR/.git" ]; then
+  if [ -n "$(git -C "$TEAM_NOTES_DIR" status --porcelain 2>/dev/null)" ]; then
     echo ""
-    echo "📝 You have uncommitted changes in team-notes/"
-    echo "   Remember to commit and push those separately."
+    echo "You have uncommitted changes in team-notes/"
+    echo "Remember to commit and push those separately."
     echo ""
   fi
-  cd ..
 fi
