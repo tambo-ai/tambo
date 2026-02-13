@@ -44,7 +44,10 @@ export default function RootLayout({
         filePath: "app/layout.tsx",
         plan: {
           providerSetup: {
+            filePath: "app/layout.tsx",
             nestingLevel: 0,
+            rationale: "Test",
+            confidence: 1.0,
           },
         },
       };
@@ -80,6 +83,10 @@ export function MyButton() {
         plan: {
           componentRecommendations: [
             {
+              name: "MyButton",
+              filePath: "components/my-button.tsx",
+              reason: "Test",
+              confidence: 1.0,
               suggestedRegistration: `registerComponent("my-button", MyButton);`,
             },
           ],
@@ -106,6 +113,10 @@ export function MyButton() {
           toolRecommendations: [
             {
               name: "getWeather",
+              type: "exported-function" as const,
+              filePath: "tools/get-weather.ts",
+              reason: "Test",
+              confidence: 1.0,
               suggestedSchema: `z.object({ city: z.string() })`,
             },
           ],
@@ -188,7 +199,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         filePath: "app/layout.tsx",
         plan: {
           chatWidgetSetup: {
-            position: "bottom-right",
+            filePath: "app/layout.tsx",
+            position: "bottom-right" as const,
+            rationale: "Test",
+            confidence: 1.0,
           },
         },
       };
@@ -218,7 +232,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         filePath: "weird-file.tsx",
         plan: {
           providerSetup: {
+            filePath: "weird-file.tsx",
             nestingLevel: 0,
+            rationale: "Test",
+            confidence: 1.0,
           },
         },
       };
