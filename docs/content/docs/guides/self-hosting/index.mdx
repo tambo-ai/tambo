@@ -1,0 +1,90 @@
+---
+title: Self-hosting Tambo
+description: Deploy and run Tambo on your own infrastructure with Docker Compose or Kubernetes.
+icon: Server
+---
+
+import LearnMore from "@/components/learn-more";
+
+Tambo Cloud is the hosted platform behind Tambo AI. Self-hosting gives you full control over your data, infrastructure, and authentication.
+
+## Architecture
+
+Tambo consists of three services:
+
+| Service        | Technology    | Host Port | Description                  |
+| -------------- | ------------- | --------- | ---------------------------- |
+| **Web**        | Next.js       | 8260      | Dashboard and user interface |
+| **API**        | NestJS        | 8261      | REST API for client requests |
+| **PostgreSQL** | PostgreSQL 17 | 5433      | Database                     |
+
+The web service serves the dashboard UI and communicates with the API. The API handles all client requests, manages threads, and orchestrates LLM calls. PostgreSQL stores all persistent data including projects, threads, messages, and user accounts.
+
+## Authentication model
+
+Tambo supports two mutually exclusive authentication modes:
+
+- **OAuth** (Google and/or GitHub) — used when any OAuth provider is configured
+- **Email login** (via Resend magic links) — only active when no OAuth providers are configured
+
+You must configure at least one mode. See [Authentication setup](/guides/self-hosting/authentication) for details.
+
+## Security considerations
+
+These apply regardless of your deployment method (Docker Compose or Kubernetes):
+
+1. **Change all default passwords** — use strong, unique values for every secret
+2. **Use HTTPS** — always use TLS in production
+3. **Restrict database access** — don't expose the PostgreSQL port publicly
+4. **Use secrets management** — consider Docker secrets, Kubernetes secrets, or a vault
+5. **Set `ALLOWED_LOGIN_DOMAIN`** — restrict access to your organization's email domain
+
+## In this section
+
+<LearnMore
+  title="Quickstart"
+  description="Get a local deployment running in 5 minutes"
+  href="/guides/self-hosting/quickstart"
+/>
+
+<LearnMore
+  title="Environment Variables"
+  description="Full reference for all configuration options"
+  href="/guides/self-hosting/environment-variables"
+/>
+
+<LearnMore
+  title="Authentication"
+  description="Set up OAuth or email login for your deployment"
+  href="/guides/self-hosting/authentication"
+/>
+
+<LearnMore
+  title="Docker Compose"
+  description="Deploy to production with Docker Compose"
+  href="/guides/self-hosting/docker-compose"
+/>
+
+<LearnMore
+  title="Kubernetes"
+  description="Deploy to a Kubernetes cluster"
+  href="/guides/self-hosting/kubernetes"
+/>
+
+<LearnMore
+  title="Operations"
+  description="Backup, restore, upgrade, and monitor your deployment"
+  href="/guides/self-hosting/operations"
+/>
+
+<LearnMore
+  title="Scripts"
+  description="All helper scripts and npm aliases"
+  href="/guides/self-hosting/scripts"
+/>
+
+<LearnMore
+  title="Troubleshooting"
+  description="Common issues and how to fix them"
+  href="/guides/self-hosting/troubleshooting"
+/>
