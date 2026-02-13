@@ -67,9 +67,9 @@ Plans:
 
 Plans:
 
-- [ ] 02-01-PLAN.md — Types, filesystem helpers, framework detection, and structure detection
-- [ ] 02-02-PLAN.md — AST-based provider and component detection with ts-morph
-- [ ] 02-03-PLAN.md — Tool candidate detection and analyzeProject() orchestrator
+- [x] 02-01-PLAN.md — Types, filesystem helpers, framework detection, and structure detection
+- [x] 02-02-PLAN.md — AST-based provider and component detection with ts-morph
+- [x] 02-03-PLAN.md — Tool candidate detection and analyzeProject() orchestrator
 
 ### Phase 3: Plan Generation
 
@@ -87,11 +87,12 @@ Plans:
 4. Plan recommends interactables to integrate with existing component paths
 5. Each recommendation includes confidence score and explanation of WHY it was suggested
 
-**Plans**: TBD
+**Plans:** 2 plans
 
 Plans:
 
-- [ ] 03-01: TBD
+- [ ] 03-01-PLAN.md — Types, Zod schemas, and prompt builder
+- [ ] 03-02-PLAN.md — JSON extraction and generatePlan orchestrator
 
 ### Phase 4: User Confirmation
 
@@ -148,7 +149,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | Phase                | Plans Complete | Status      | Completed  |
 | -------------------- | -------------- | ----------- | ---------- |
 | 1. Client Core SDK   | 5/5            | Complete    | 2026-02-12 |
-| 2. Codebase Analysis | 0/3            | Not started | -          |
+| 2. Codebase Analysis | 3/3            | Complete    | 2026-02-12 |
 | 3. Plan Generation   | 0/TBD          | Not started | -          |
 | 4. User Confirmation | 0/TBD          | Not started | -          |
 | 5. Code Execution    | 0/TBD          | Not started | -          |
