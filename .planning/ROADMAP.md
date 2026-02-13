@@ -109,11 +109,12 @@ Plans:
 3. CLI shows unified diff for each file change before execution begins
 4. CLI supports non-interactive mode with --yes flag for CI/CD workflows
 
-**Plans**: TBD
+**Plans:** 2 plans
 
 Plans:
 
-- [ ] 04-01: TBD
+- [ ] 04-01-PLAN.md — Types, diff generator, and diff display utilities
+- [ ] 04-02-PLAN.md — Plan presenter (checklist) and confirmPlan orchestrator
 
 ### Phase 5: Code Execution
 
