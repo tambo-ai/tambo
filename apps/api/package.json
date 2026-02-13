@@ -61,7 +61,7 @@
     "json-schema": "^0.4.0",
     "jsonwebtoken": "^9.0.3",
     "mime-types": "^3.0.2",
-    "nanoid": "^3.3.11",
+    "nanoid": "^4.0.2",
     "openai": "^6.16.0",
     "posthog-node": "^5.24.9",
     "react": "^18.3.1",
