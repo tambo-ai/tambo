@@ -414,6 +414,15 @@ export const projectRouter = createTRPCRouter({
 
         if (mcpServers?.length) {
           for (const mcpServer of mcpServers) {
+            // Validate URL safety before attempting to connect (SSRF protection)
+            const safetyCheck = await validateSafeURL(mcpServer.url);
+            if (!safetyCheck.safe) {
+              throw new TRPCError({
+                code: "BAD_REQUEST",
+                message: `MCP server URL validation failed: ${safetyCheck.reason}`,
+              });
+            }
+
             const validity = await validateMcpServer({
               url: mcpServer.url,
               customHeaders: mcpServer.customHeaders,
