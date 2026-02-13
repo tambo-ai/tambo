@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.27.1](https://github.com/tambo-ai/tambo/compare/docs-v1.27.0...docs-v1.27.1) (2026-02-13)
+
+
+### Documentation
+
+* **self-hosting:** break up SELF-HOSTING.md into docs site guide section ([#2387](https://github.com/tambo-ai/tambo/issues/2387)) ([2fdb145](https://github.com/tambo-ai/tambo/commit/2fdb145cd41f95a67dc29bfd390d6a2018f6ed05))
+
 ## [1.27.0](https://github.com/tambo-ai/tambo/compare/docs-v1.26.3...docs-v1.27.0) (2026-02-11)
 
 
