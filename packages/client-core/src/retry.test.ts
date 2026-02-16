@@ -3,7 +3,11 @@
  */
 
 import { fetchWithRetry } from "./retry";
-import { ApiError } from "./types";
+import { APIError } from "@tambo-ai/typescript-sdk";
+
+function makeApiError(status: number, message: string): APIError {
+  return new APIError(status, { message }, message, new Headers());
+}
 
 describe("fetchWithRetry", () => {
   beforeEach(() => {
@@ -39,9 +43,7 @@ describe("fetchWithRetry", () => {
     mockFn.mockImplementation(async () => {
       attemptCount++;
       if (attemptCount < 3) {
-        throw new ApiError("Server error", 500, "Internal Server Error", {
-          error: "server_error",
-        });
+        throw makeApiError(500, "Server error");
       }
       return await Promise.resolve("success");
     });
@@ -60,9 +62,7 @@ describe("fetchWithRetry", () => {
     const mockFn = jest.fn();
 
     mockFn.mockImplementation(() => {
-      throw new ApiError("Bad request", 400, "Bad Request", {
-        error: "invalid_request",
-      });
+      throw makeApiError(400, "Bad request");
     });
 
     await expect(
@@ -71,9 +71,8 @@ describe("fetchWithRetry", () => {
         startingDelay: 1,
         maxDelay: 10,
       }),
-    ).rejects.toThrow(ApiError);
+    ).rejects.toThrow(APIError);
 
-    // Should only be called once (no retries)
     expect(mockFn).toHaveBeenCalledTimes(1);
   });
 
@@ -81,7 +80,7 @@ describe("fetchWithRetry", () => {
     const mockFn = jest.fn();
 
     mockFn.mockImplementation(() => {
-      throw new ApiError("Not found", 404, "Not Found", { error: "not_found" });
+      throw makeApiError(404, "Not found");
     });
 
     await expect(
@@ -90,7 +89,7 @@ describe("fetchWithRetry", () => {
         startingDelay: 1,
         maxDelay: 10,
       }),
-    ).rejects.toThrow(ApiError);
+    ).rejects.toThrow(APIError);
 
     expect(mockFn).toHaveBeenCalledTimes(1);
   });

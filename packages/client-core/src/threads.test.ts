@@ -1,295 +1,184 @@
 /**
- * Tests for ThreadsClient
+ * Tests for createThreadsClient
  */
 
-import { ThreadsClient } from "./threads.js";
-import type { TamboClient } from "./client.js";
-import type { Thread, Message, ContentPart } from "./types.js";
+import { QueryClient } from "@tanstack/query-core";
+import { createThreadsClient, type ThreadsClient } from "./threads";
+import type {
+  ThreadCreateResponse,
+  ThreadRetrieveResponse,
+  ThreadListResponse,
+  MessageListResponse,
+} from "./types";
+import { threadKeys } from "./query";
 
-describe("ThreadsClient", () => {
-  let mockClient: TamboClient;
-  let threadsClient: ThreadsClient;
-  let mockFetch: jest.Mock;
+function createMockDeps() {
+  const mockSdk = {
+    threads: {
+      create: jest.fn(),
+      list: jest.fn(),
+      retrieve: jest.fn(),
+      delete: jest.fn(),
+      messages: {
+        list: jest.fn(),
+      },
+    },
+  };
+
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false, staleTime: 60_000 },
+    },
+  });
+
+  return { mockSdk, queryClient };
+}
+
+describe("createThreadsClient", () => {
+  let threads: ThreadsClient;
+  let mockSdk: ReturnType<typeof createMockDeps>["mockSdk"];
+  let queryClient: QueryClient;
 
   beforeEach(() => {
-    mockFetch = jest.fn();
-    mockClient = { fetch: mockFetch } as unknown as TamboClient;
-    threadsClient = new ThreadsClient(mockClient);
+    const deps = createMockDeps();
+    mockSdk = deps.mockSdk;
+    queryClient = deps.queryClient;
+    threads = createThreadsClient({
+      sdk: mockSdk as never,
+      queryClient,
+    });
+  });
+
+  afterEach(() => {
+    queryClient.clear();
   });
 
   describe("create", () => {
-    it("calls POST /threads with correct body", async () => {
-      const params = {
-        projectId: "proj_123",
-        contextKey: "user_456",
-        metadata: { foo: "bar" },
-      };
-
-      const mockThread: Thread = {
+    it("calls sdk.threads.create with params", async () => {
+      const params = { userKey: "user_456", metadata: { foo: "bar" } };
+      const mockThread: ThreadCreateResponse = {
         id: "thread_789",
-        projectId: "proj_123",
-        contextKey: "user_456",
-        messages: [],
         createdAt: "2024-01-01T00:00:00Z",
         updatedAt: "2024-01-01T00:00:00Z",
-        metadata: { foo: "bar" },
+        runStatus: "idle",
+        userKey: "user_456",
       };
 
-      mockFetch.mockResolvedValue(mockThread);
+      mockSdk.threads.create.mockResolvedValue(mockThread);
 
-      const result = await threadsClient.create(params);
+      const result = await threads.create(params);
 
-      expect(mockFetch).toHaveBeenCalledWith("/threads", {
-        method: "POST",
-        body: params,
-      });
+      expect(mockSdk.threads.create).toHaveBeenCalledWith(params);
       expect(result).toEqual(mockThread);
     });
 
-    it("creates thread without optional fields", async () => {
-      const params = { projectId: "proj_123" };
-
-      const mockThread: Thread = {
-        id: "thread_789",
-        projectId: "proj_123",
-        messages: [],
-        createdAt: "2024-01-01T00:00:00Z",
-        updatedAt: "2024-01-01T00:00:00Z",
-      };
-
-      mockFetch.mockResolvedValue(mockThread);
-
-      const result = await threadsClient.create(params);
-
-      expect(mockFetch).toHaveBeenCalledWith("/threads", {
-        method: "POST",
-        body: params,
+    it("invalidates list cache after creation", async () => {
+      mockSdk.threads.create.mockResolvedValue({
+        id: "thread_1",
+        createdAt: "",
+        updatedAt: "",
+        runStatus: "idle" as const,
       });
-      expect(result).toEqual(mockThread);
+
+      const invalidateSpy = jest.spyOn(queryClient, "invalidateQueries");
+
+      await threads.create({});
+
+      expect(invalidateSpy).toHaveBeenCalledWith({
+        queryKey: threadKeys.lists(),
+      });
     });
   });
 
   describe("list", () => {
-    it("calls GET /threads/project/:projectId with query params", async () => {
-      const params = {
-        projectId: "proj_123",
-        contextKey: "user_456",
-        limit: 20,
-        offset: 10,
+    it("calls sdk.threads.list and caches result", async () => {
+      const mockResponse: ThreadListResponse = {
+        threads: [
+          {
+            id: "thread_1",
+            createdAt: "2024-01-01T00:00:00Z",
+            updatedAt: "2024-01-01T00:00:00Z",
+            runStatus: "idle",
+          },
+        ],
+        hasMore: false,
       };
 
-      const mockThreads: Thread[] = [
-        {
-          id: "thread_1",
-          projectId: "proj_123",
-          messages: [],
-          createdAt: "2024-01-01T00:00:00Z",
-          updatedAt: "2024-01-01T00:00:00Z",
-        },
-        {
-          id: "thread_2",
-          projectId: "proj_123",
-          messages: [],
-          createdAt: "2024-01-02T00:00:00Z",
-          updatedAt: "2024-01-02T00:00:00Z",
-        },
-      ];
+      mockSdk.threads.list.mockResolvedValue(mockResponse);
 
-      mockFetch.mockResolvedValue({
-        items: mockThreads,
-        total: 100,
-        offset: 10,
-        limit: 20,
-        count: 2,
-      });
+      const result = await threads.list({ limit: 10 });
 
-      const result = await threadsClient.list(params);
+      expect(mockSdk.threads.list).toHaveBeenCalledWith({ limit: 10 });
+      expect(result).toEqual(mockResponse);
 
-      expect(mockFetch).toHaveBeenCalledWith(
-        "/threads/project/proj_123?contextKey=user_456&limit=20&offset=10",
-      );
-      expect(result).toEqual(mockThreads);
-    });
-
-    it("lists threads without optional query params", async () => {
-      const params = { projectId: "proj_123" };
-
-      const mockThreads: Thread[] = [
-        {
-          id: "thread_1",
-          projectId: "proj_123",
-          messages: [],
-          createdAt: "2024-01-01T00:00:00Z",
-          updatedAt: "2024-01-01T00:00:00Z",
-        },
-      ];
-
-      mockFetch.mockResolvedValue({
-        items: mockThreads,
-        total: 1,
-        offset: 0,
-        limit: 10,
-        count: 1,
-      });
-
-      const result = await threadsClient.list(params);
-
-      expect(mockFetch).toHaveBeenCalledWith("/threads/project/proj_123");
-      expect(result).toEqual(mockThreads);
-    });
-
-    it("handles empty thread list", async () => {
-      const params = { projectId: "proj_123" };
-
-      mockFetch.mockResolvedValue({
-        items: [],
-        total: 0,
-        offset: 0,
-        limit: 10,
-        count: 0,
-      });
-
-      const result = await threadsClient.list(params);
-
-      expect(result).toEqual([]);
+      // Second call should hit cache, not SDK
+      const result2 = await threads.list({ limit: 10 });
+      expect(result2).toEqual(mockResponse);
+      expect(mockSdk.threads.list).toHaveBeenCalledTimes(1);
     });
   });
 
   describe("get", () => {
-    it("calls GET /threads/:id", async () => {
-      const threadId = "thread_123";
-
-      const mockThread: Thread = {
-        id: threadId,
-        projectId: "proj_123",
-        messages: [
-          {
-            id: "msg_1",
-            threadId,
-            role: "user",
-            content: [{ type: "text", text: "Hello" }],
-            createdAt: "2024-01-01T00:00:00Z",
-          },
-        ],
+    it("calls sdk.threads.retrieve and caches result", async () => {
+      const mockThread: ThreadRetrieveResponse = {
+        id: "thread_123",
+        messages: [],
         createdAt: "2024-01-01T00:00:00Z",
         updatedAt: "2024-01-01T00:00:00Z",
+        runStatus: "idle",
       };
 
-      mockFetch.mockResolvedValue(mockThread);
+      mockSdk.threads.retrieve.mockResolvedValue(mockThread);
 
-      const result = await threadsClient.get(threadId);
+      const result = await threads.get("thread_123");
 
-      expect(mockFetch).toHaveBeenCalledWith("/threads/thread_123");
+      expect(mockSdk.threads.retrieve).toHaveBeenCalledWith("thread_123");
       expect(result).toEqual(mockThread);
+
+      // Second call should hit cache
+      await threads.get("thread_123");
+      expect(mockSdk.threads.retrieve).toHaveBeenCalledTimes(1);
     });
   });
 
   describe("delete", () => {
-    it("calls DELETE /threads/:id", async () => {
-      const threadId = "thread_123";
+    it("calls sdk.threads.delete and invalidates caches", async () => {
+      mockSdk.threads.delete.mockResolvedValue(undefined);
 
-      mockFetch.mockResolvedValue(undefined);
+      const invalidateSpy = jest.spyOn(queryClient, "invalidateQueries");
+      const removeSpy = jest.spyOn(queryClient, "removeQueries");
 
-      await threadsClient.delete(threadId);
+      await threads.delete("thread_123");
 
-      expect(mockFetch).toHaveBeenCalledWith("/threads/thread_123", {
-        method: "DELETE",
+      expect(mockSdk.threads.delete).toHaveBeenCalledWith("thread_123");
+      expect(invalidateSpy).toHaveBeenCalledWith({
+        queryKey: threadKeys.lists(),
+      });
+      expect(removeSpy).toHaveBeenCalledWith({
+        queryKey: threadKeys.detail("thread_123"),
       });
     });
   });
 
-  describe("sendMessage", () => {
-    it("sends message with ContentPart array", async () => {
-      const threadId = "thread_123";
-      const content: ContentPart[] = [
-        { type: "text", text: "Hello" },
-        {
-          type: "image_url",
-          image_url: { url: "https://example.com/image.jpg" },
-        },
-      ];
-
-      const mockMessage: Message = {
-        id: "msg_123",
-        threadId,
-        role: "user",
-        content,
-        createdAt: "2024-01-01T00:00:00Z",
+  describe("listMessages", () => {
+    it("calls sdk.threads.messages.list and caches result", async () => {
+      const mockResponse: MessageListResponse = {
+        messages: [
+          {
+            id: "msg_1",
+            content: [{ type: "text", text: "Hello" }],
+            role: "user",
+          },
+        ],
+        hasMore: false,
       };
 
-      mockFetch.mockResolvedValue(mockMessage);
+      mockSdk.threads.messages.list.mockResolvedValue(mockResponse);
 
-      const result = await threadsClient.sendMessage(threadId, { content });
+      const result = await threads.listMessages("thread_123");
 
-      expect(mockFetch).toHaveBeenCalledWith("/threads/thread_123/messages", {
-        method: "POST",
-        body: {
-          role: "user",
-          content,
-          metadata: undefined,
-        },
-      });
-      expect(result).toEqual(mockMessage);
-    });
-
-    it("auto-wraps string content into ContentPart array", async () => {
-      const threadId = "thread_123";
-      const textContent = "Hello, world!";
-
-      const mockMessage: Message = {
-        id: "msg_123",
-        threadId,
-        role: "user",
-        content: [{ type: "text", text: textContent }],
-        createdAt: "2024-01-01T00:00:00Z",
-      };
-
-      mockFetch.mockResolvedValue(mockMessage);
-
-      const result = await threadsClient.sendMessage(threadId, {
-        content: textContent,
-      });
-
-      expect(mockFetch).toHaveBeenCalledWith("/threads/thread_123/messages", {
-        method: "POST",
-        body: {
-          role: "user",
-          content: [{ type: "text", text: textContent }],
-          metadata: undefined,
-        },
-      });
-      expect(result).toEqual(mockMessage);
-    });
-
-    it("includes metadata when provided", async () => {
-      const threadId = "thread_123";
-      const metadata = { source: "web", sessionId: "sess_456" };
-
-      const mockMessage: Message = {
-        id: "msg_123",
-        threadId,
-        role: "user",
-        content: [{ type: "text", text: "Hello" }],
-        createdAt: "2024-01-01T00:00:00Z",
-        metadata,
-      };
-
-      mockFetch.mockResolvedValue(mockMessage);
-
-      const result = await threadsClient.sendMessage(threadId, {
-        content: "Hello",
-        metadata,
-      });
-
-      expect(mockFetch).toHaveBeenCalledWith("/threads/thread_123/messages", {
-        method: "POST",
-        body: {
-          role: "user",
-          content: [{ type: "text", text: "Hello" }],
-          metadata,
-        },
-      });
-      expect(result).toEqual(mockMessage);
+      expect(mockSdk.threads.messages.list).toHaveBeenCalledWith("thread_123");
+      expect(result).toEqual(mockResponse);
     });
   });
 });

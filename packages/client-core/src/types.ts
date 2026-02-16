@@ -2,6 +2,9 @@
  * Core type definitions for Tambo client
  */
 
+import type { QueryClient } from "@tanstack/query-core";
+import type TamboAI from "@tambo-ai/typescript-sdk";
+
 /**
  * Configuration options for TamboClient
  */
@@ -10,136 +13,93 @@ export interface TamboClientOptions {
   apiKey: string;
   /** Base URL for API requests (defaults to https://api.tambo.co) */
   baseUrl?: string;
-  /** Request timeout in milliseconds (defaults to 30000) */
-  timeout?: number;
-  /** Maximum number of retry attempts (defaults to 3) */
-  maxRetries?: number;
+  /** Pre-configured SDK client instance (overrides apiKey/baseUrl) */
+  sdkClient?: TamboAI;
+  /** Pre-configured QueryClient instance */
+  queryClient?: QueryClient;
 }
 
 /**
- * Options for individual API requests
+ * Stream event types from the API
  */
-export interface RequestOptions {
-  /** HTTP method (defaults to GET) */
-  method?: string;
-  /** Request body (will be JSON stringified) */
-  body?: unknown;
-  /** Additional headers to merge with defaults */
-  headers?: Record<string, string>;
+export type StreamEvent =
+  | { type: "text_message_start"; messageId: string; role: string }
+  | { type: "text_message_content"; messageId: string; delta: string }
+  | { type: "text_message_end"; messageId: string }
+  | { type: "tool_call_start"; toolCallId: string; name: string }
+  | { type: "tool_call_args"; toolCallId: string; args: string }
+  | { type: "tool_call_end"; toolCallId: string }
+  | { type: "error"; error: { message: string; code?: string } }
+  | { type: "done" };
+
+/**
+ * Options for streaming API requests
+ */
+export interface StreamOptions {
   /** Abort signal for cancellation */
   signal?: AbortSignal;
+  /** Maximum number of reconnection attempts (defaults to 3) */
+  maxReconnects?: number;
+  /** Initial delay between reconnection attempts in milliseconds (defaults to 1000) */
+  reconnectDelay?: number;
+  /** Stream timeout in milliseconds - aborts if no data received (defaults to 60000) */
+  streamTimeout?: number;
+}
+
+import type { z } from "zod";
+
+/**
+ * Definition for a client-side tool
+ */
+export interface ToolDefinition<TInput = unknown, TOutput = unknown> {
+  /** Unique tool name */
+  name: string;
+  /** Description of what the tool does */
+  description: string;
+  /** Zod schema for input validation */
+  inputSchema: z.ZodSchema<TInput>;
+  /** Optional Zod schema for output validation */
+  outputSchema?: z.ZodSchema<TOutput>;
+  /** Tool execution function */
+  execute: (input: TInput) => Promise<TOutput>;
 }
 
 /**
- * API error with status information
+ * Result of a tool execution
  */
-export class ApiError extends Error {
-  /** HTTP status code */
-  status: number;
-  /** HTTP status text */
-  statusText: string;
-  /** Response body */
-  body: unknown;
-
-  /**
-   * Create an API error
-   *
-   * @param message - Error message
-   * @param status - HTTP status code
-   * @param statusText - HTTP status text
-   * @param body - Response body
-   */
-  constructor(
-    message: string,
-    status: number,
-    statusText: string,
-    body: unknown,
-  ) {
-    super(message);
-    this.name = "ApiError";
-    this.status = status;
-    this.statusText = statusText;
-    this.body = body;
-  }
+export interface ToolResult {
+  /** ID of the tool call this result responds to */
+  toolUseId: string;
+  /** Result content */
+  content: Array<{ type: "text"; text: string }>;
+  /** Whether the tool call resulted in an error */
+  isError?: boolean;
 }
 
-/**
- * Content part types for messages
- */
-export type ContentPart =
-  | { type: "text"; text: string }
-  | { type: "image_url"; image_url: { url: string; detail?: string } };
+// Re-export SDK types for convenience
+export type {
+  ThreadCreateResponse,
+  ThreadRetrieveResponse,
+  ThreadListResponse,
+  ThreadCreateParams,
+  ThreadListParams,
+  ThreadDeleteParams,
+  TextContent,
+  ComponentContent,
+  ResourceContent,
+  ToolUseContent,
+  ToolResultContent,
+  RunError,
+} from "@tambo-ai/typescript-sdk/resources/threads/threads";
 
-/**
- * Message in a thread
- */
-export interface Message {
-  /** Message ID */
-  id: string;
-  /** Thread ID this message belongs to */
-  threadId: string;
-  /** Message role */
-  role: "user" | "assistant" | "system" | "tool";
-  /** Message content parts */
-  content: ContentPart[];
-  /** Timestamp when message was created */
-  createdAt: string;
-  /** Optional metadata */
-  metadata?: Record<string, unknown>;
-}
+export type {
+  MessageListResponse,
+  MessageGetResponse,
+} from "@tambo-ai/typescript-sdk/resources/threads/messages";
 
-/**
- * Thread with messages
- */
-export interface Thread {
-  /** Thread ID */
-  id: string;
-  /** Project ID this thread belongs to */
-  projectId: string;
-  /** Optional context key for scoping threads to users/sessions */
-  contextKey?: string;
-  /** Messages in this thread */
-  messages: Message[];
-  /** Timestamp when thread was created */
-  createdAt: string;
-  /** Timestamp when thread was last updated */
-  updatedAt: string;
-  /** Optional metadata */
-  metadata?: Record<string, unknown>;
-}
-
-/**
- * Parameters for creating a thread
- */
-export interface CreateThreadParams {
-  /** Project ID to create thread in */
-  projectId: string;
-  /** Optional context key for scoping to user/session */
-  contextKey?: string;
-  /** Optional metadata */
-  metadata?: Record<string, unknown>;
-}
-
-/**
- * Parameters for sending a message
- */
-export interface SendMessageParams {
-  /** Message content as ContentPart array or string (auto-wrapped) */
-  content: ContentPart[] | string;
-  /** Optional metadata */
-  metadata?: Record<string, unknown>;
-}
-
-/**
- * Parameters for listing threads
- */
-export interface ListThreadsParams {
-  /** Project ID to list threads for */
-  projectId: string;
-  /** Optional context key filter */
-  contextKey?: string;
-  /** Maximum number of threads to return */
-  limit?: number;
-  /** Number of threads to skip */
-  offset?: number;
-}
+export type {
+  RunRunParams,
+  RunRunResponse,
+  RunCreateParams,
+  RunCreateResponse,
+} from "@tambo-ai/typescript-sdk/resources/threads/runs";
