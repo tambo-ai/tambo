@@ -25,7 +25,7 @@
     "storage:init": "tsx scripts/storage-init.ts"
   },
   "dependencies": {
-    "@ag-ui/client": "0.0.43",
+    "@ag-ui/client": "0.0.44",
     "@ag-ui/crewai": "^0.0.3",
     "@ag-ui/llamaindex": "^0.1.5",
     "@langfuse/otel": "^4.5.1",
