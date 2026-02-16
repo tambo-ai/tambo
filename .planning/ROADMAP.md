@@ -173,8 +173,9 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 3. All existing `tambo init` behavior (auth, project setup, API key) is preserved — `--magic` adds to it, doesn't replace it
 4. Errors in any pipeline stage show actionable messages and don't leave partial state
 
-**Plans:** 0 plans
+**Plans:** 2 plans
 
 Plans:
 
-- [ ] TBD (run /gsd:plan-phase 6 to break down)
+- [ ] 06-01-PLAN.md — Magic init orchestrator with pipeline, UX, and re-run detection
+- [ ] 06-02-PLAN.md — Wire --magic flag into CLI and init command
