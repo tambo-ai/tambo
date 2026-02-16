@@ -18,7 +18,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 3: Plan Generation** - AI-powered recommendations with rationale and confidence scoring
 - [x] **Phase 4: User Confirmation** - Interactive approval flow with diff preview
 - [ ] **Phase 5: Code Execution** - Safe file modification with rollback and verification
-- [ ] **Phase 6: CLI Integration** - Wire --magic flag into tambo init for intelligent initialization
+- [x] **Phase 6: CLI Integration** - Wire --magic flag into tambo init for intelligent initialization (completed 2026-02-16)
 
 ## Phase Details
 
@@ -156,7 +156,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 3. Plan Generation   | 2/2            | Complete    | 2026-02-13 |
 | 4. User Confirmation | 2/2            | Complete    | 2026-02-13 |
 | 5. Code Execution    | 0/TBD          | Not started | -          |
-| 6. CLI Integration   | 0/TBD          | Not started | -          |
+| 6. CLI Integration   | 2/2            | Complete    | 2026-02-16 |
 
 ### Phase 6: CLI Integration
 
@@ -173,9 +173,9 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 3. All existing `tambo init` behavior (auth, project setup, API key) is preserved — `--magic` adds to it, doesn't replace it
 4. Errors in any pipeline stage show actionable messages and don't leave partial state
 
-**Plans:** 2 plans
+**Plans:** 2/2 plans complete
 
 Plans:
 
-- [ ] 06-01-PLAN.md — Magic init orchestrator with pipeline, UX, and re-run detection
-- [ ] 06-02-PLAN.md — Wire --magic flag into CLI and init command
+- [x] 06-01-PLAN.md — Magic init orchestrator with pipeline, UX, and re-run detection
+- [x] 06-02-PLAN.md — Wire --magic flag into CLI and init command
