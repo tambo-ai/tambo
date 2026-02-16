@@ -1,10 +1,17 @@
-import fs from "fs";
+import { beforeEach, describe, expect, it, jest } from "@jest/globals";
 import path from "path";
-import { detectTailwindVersion, isV4OrLater } from "./detection";
 
-jest.mock("fs");
+jest.unstable_mockModule("fs", () => ({
+  default: {
+    existsSync: jest.fn(),
+    readFileSync: jest.fn(),
+  },
+  existsSync: jest.fn(),
+  readFileSync: jest.fn(),
+}));
 
-const mockFs = jest.mocked(fs);
+const { default: fs } = await import("fs");
+const { detectTailwindVersion, isV4OrLater } = await import("./detection");
 
 describe("detectTailwindVersion", () => {
   beforeEach(() => {
@@ -12,37 +19,37 @@ describe("detectTailwindVersion", () => {
   });
 
   it("returns null when package.json does not exist", () => {
-    mockFs.existsSync.mockReturnValue(false);
+    (fs.existsSync as ReturnType<typeof jest.fn>).mockReturnValue(false);
     expect(detectTailwindVersion("/project")).toBeNull();
   });
 
   it("returns null when tailwindcss is not in dependencies", () => {
-    mockFs.existsSync.mockReturnValue(true);
-    mockFs.readFileSync.mockReturnValue(
+    (fs.existsSync as ReturnType<typeof jest.fn>).mockReturnValue(true);
+    (fs.readFileSync as ReturnType<typeof jest.fn>).mockReturnValue(
       JSON.stringify({ dependencies: {}, devDependencies: {} }),
     );
     expect(detectTailwindVersion("/project")).toBeNull();
   });
 
   it("detects tailwindcss from dependencies", () => {
-    mockFs.existsSync.mockReturnValue(true);
-    mockFs.readFileSync.mockReturnValue(
+    (fs.existsSync as ReturnType<typeof jest.fn>).mockReturnValue(true);
+    (fs.readFileSync as ReturnType<typeof jest.fn>).mockReturnValue(
       JSON.stringify({ dependencies: { tailwindcss: "^4.1.0" } }),
     );
     expect(detectTailwindVersion("/project")).toBe("4.1.0");
   });
 
   it("detects tailwindcss from devDependencies", () => {
-    mockFs.existsSync.mockReturnValue(true);
-    mockFs.readFileSync.mockReturnValue(
+    (fs.existsSync as ReturnType<typeof jest.fn>).mockReturnValue(true);
+    (fs.readFileSync as ReturnType<typeof jest.fn>).mockReturnValue(
       JSON.stringify({ devDependencies: { tailwindcss: "^3.4.1" } }),
     );
     expect(detectTailwindVersion("/project")).toBe("3.4.1");
   });
 
   it("prefers dependencies over devDependencies", () => {
-    mockFs.existsSync.mockReturnValue(true);
-    mockFs.readFileSync.mockReturnValue(
+    (fs.existsSync as ReturnType<typeof jest.fn>).mockReturnValue(true);
+    (fs.readFileSync as ReturnType<typeof jest.fn>).mockReturnValue(
       JSON.stringify({
         dependencies: { tailwindcss: "^4.0.0" },
         devDependencies: { tailwindcss: "^3.0.0" },
@@ -52,28 +59,28 @@ describe("detectTailwindVersion", () => {
   });
 
   it("handles exact version strings", () => {
-    mockFs.existsSync.mockReturnValue(true);
-    mockFs.readFileSync.mockReturnValue(
+    (fs.existsSync as ReturnType<typeof jest.fn>).mockReturnValue(true);
+    (fs.readFileSync as ReturnType<typeof jest.fn>).mockReturnValue(
       JSON.stringify({ dependencies: { tailwindcss: "4.0.0" } }),
     );
     expect(detectTailwindVersion("/project")).toBe("4.0.0");
   });
 
   it("returns null on read errors", () => {
-    mockFs.existsSync.mockReturnValue(true);
-    mockFs.readFileSync.mockImplementation(() => {
+    (fs.existsSync as ReturnType<typeof jest.fn>).mockReturnValue(true);
+    (fs.readFileSync as ReturnType<typeof jest.fn>).mockImplementation(() => {
       throw new Error("EACCES");
     });
     expect(detectTailwindVersion("/project")).toBeNull();
   });
 
   it("reads from the correct path", () => {
-    mockFs.existsSync.mockReturnValue(true);
-    mockFs.readFileSync.mockReturnValue(
+    (fs.existsSync as ReturnType<typeof jest.fn>).mockReturnValue(true);
+    (fs.readFileSync as ReturnType<typeof jest.fn>).mockReturnValue(
       JSON.stringify({ dependencies: { tailwindcss: "^4.0.0" } }),
     );
     detectTailwindVersion("/my/project");
-    expect(mockFs.readFileSync).toHaveBeenCalledWith(
+    expect(fs.readFileSync).toHaveBeenCalledWith(
       path.join("/my/project", "package.json"),
       "utf-8",
     );
