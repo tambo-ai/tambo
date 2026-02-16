@@ -37,7 +37,10 @@
     "clean": "rimraf dist esm coverage"
   },
   "dependencies": {
+    "@tambo-ai/typescript-sdk": "*",
+    "@tanstack/query-core": "^5",
     "exponential-backoff": "^3.1.1",
+    "zod-to-json-schema": "^3.24.6",
     "type-fest": "^5.4.3"
   },
   "peerDependencies": {

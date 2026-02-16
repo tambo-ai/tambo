@@ -4,7 +4,7 @@
 
 import { backOff } from "exponential-backoff";
 import type { IBackOffOptions } from "exponential-backoff";
-import { ApiError } from "./types.js";
+import { APIError } from "@tambo-ai/typescript-sdk";
 
 /**
  * Options for retry behavior
@@ -45,7 +45,7 @@ export async function fetchWithRetry<T>(
       }
 
       // API errors - only retry on 5xx
-      if (error instanceof ApiError) {
+      if (error instanceof APIError) {
         return error.status >= 500;
       }
 
