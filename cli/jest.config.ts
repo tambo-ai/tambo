@@ -32,8 +32,8 @@ const config: Config = {
   ],
   coverageThreshold: {
     global: {
-      branches: 42,
-      lines: 44,
+      branches: 43,
+      lines: 46,
     },
   },
   clearMocks: true,
