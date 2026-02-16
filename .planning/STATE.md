@@ -100,6 +100,10 @@ Recent decisions affecting current work:
 
 None yet.
 
+### Roadmap Evolution
+
+- Phase 6 added: CLI Integration — wire --magic flag into tambo init
+
 ### Blockers/Concerns
 
 - retry.ts still exists (updated to use SDK's APIError) — may be removed if streaming.ts no longer needs it after further phases
