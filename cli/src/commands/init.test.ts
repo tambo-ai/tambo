@@ -59,6 +59,18 @@ const mockExecFileSync = (file: string, args?: readonly string[]) => {
 jest.unstable_mockModule("child_process", () => ({
   execSync: mockExecSync,
   execFileSync: mockExecFileSync,
+  spawn: () => ({
+    on: () => {},
+    stdout: { on: () => {} },
+    stderr: { on: () => {} },
+  }),
+}));
+
+// Mock cross-spawn for spawning processes
+jest.unstable_mockModule("cross-spawn", () => ({
+  default: {
+    sync: () => ({ status: 0, output: [""], stdout: "", stderr: "" }),
+  },
 }));
 
 // Mock inquirer for user prompts
@@ -289,6 +301,13 @@ jest.unstable_mockModule("../utils/interactive.js", () => ({
       super(message);
       this.name = "GuidanceError";
     }
+  },
+}));
+
+// Mock magic-init module (not tested in this file)
+jest.unstable_mockModule("./magic-init.js", () => ({
+  handleMagicInit: async () => {
+    // Mock implementation that does nothing
   },
 }));
 

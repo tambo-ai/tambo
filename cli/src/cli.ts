@@ -47,6 +47,7 @@ interface CLIFlags extends Record<string, any> {
   projectName?: Flag<"string", string>;
   projectId?: Flag<"string", string>;
   browser?: Flag<"boolean", boolean>;
+  magic?: Flag<"boolean", boolean>;
 }
 
 // Command help configuration (defined before CLI setup so we can generate help text)
@@ -66,6 +67,7 @@ interface CommandHelp {
 const OPTION_DOCS: Record<string, string> = {
   prefix: `${chalk.yellow("--prefix <path>")}      Custom directory for components (e.g., src/components/ui)`,
   yes: `${chalk.yellow("--yes, -y")}            Auto-answer yes to all prompts`,
+  magic: `${chalk.yellow("--magic")}              Run intelligent auto-configuration`,
   "skip-agent-docs": `${chalk.yellow("--skip-agent-docs")}     Skip creating/updating agent docs`,
   "legacy-peer-deps": `${chalk.yellow("--legacy-peer-deps")}   Use --legacy-peer-deps flag for npm install`,
   template: `${chalk.yellow("--template, -t <name>")}  Template to use: standard, vite, analytics`,
@@ -87,10 +89,12 @@ const COMMAND_HELP_CONFIGS: Record<string, CommandHelp> = {
     description: "Initialize tambo in a project and set up configuration",
     usage: [
       `$ ${chalk.cyan("tambo init")} [options]`,
+      `$ ${chalk.cyan("tambo init --magic")} [options]  ${chalk.dim("(auto-configure components)")}`,
       `$ ${chalk.cyan("tambo full-send")} [options]  ${chalk.dim("(includes component installation)")}`,
     ],
     options: [
       "yes",
+      "magic",
       "api-key",
       "project-name",
       "project-id",
@@ -100,6 +104,8 @@ const COMMAND_HELP_CONFIGS: Record<string, CommandHelp> = {
     ],
     examples: [
       `$ ${chalk.cyan("tambo init")}                              # Interactive mode`,
+      `$ ${chalk.cyan("tambo init --magic")}                      # Auto-configure components`,
+      `$ ${chalk.cyan("tambo init --magic --yes")}                # Auto-configure without prompts`,
       `$ ${chalk.cyan("tambo init --api-key=sk_...")}             # Direct API key (simplest)`,
       `$ ${chalk.cyan("tambo init --project-name=myapp")}         # Create new project`,
       `$ ${chalk.cyan("tambo init --project-id=abc123")}          # Use existing project`,
@@ -449,6 +455,10 @@ const cli = meow(generateGlobalHelp(), {
       description:
         "Open browser for auth (use --no-browser to print URL instead)",
     },
+    magic: {
+      type: "boolean",
+      description: "Run intelligent auto-configuration",
+    },
   },
   importMeta: import.meta,
 });
@@ -501,6 +511,7 @@ async function handleCommand(cmd: string, flags: Result<CLIFlags>["flags"]) {
       projectName: flags.projectName as string | undefined,
       projectId: flags.projectId as string | undefined,
       noBrowser: flags.browser === false,
+      magic: Boolean(flags.magic),
     });
     return;
   }

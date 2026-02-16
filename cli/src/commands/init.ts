@@ -33,6 +33,7 @@ import { handleAddComponent } from "./add/index.js";
 import { setupTailwindAndGlobals } from "./add/tailwind-setup.js";
 import { handleAgentDocsUpdate } from "./shared/agent-docs.js";
 import { getLibDirectory } from "./shared/path-utils.js";
+import { handleMagicInit } from "./magic-init.js";
 
 /**
  * Creates a tambo.ts file with empty registry of tools and components
@@ -74,6 +75,7 @@ interface InitOptions {
   projectName?: string;
   projectId?: string;
   noBrowser?: boolean;
+  magic?: boolean;
 }
 
 /**
@@ -1004,6 +1006,7 @@ export async function handleInit({
   projectName,
   projectId,
   noBrowser = false,
+  magic = false,
 }: InitOptions): Promise<void> {
   // In non-interactive mode, check if we have what we need
   if (!isInteractive()) {
@@ -1124,6 +1127,50 @@ export async function handleInit({
     await handleAgentDocsUpdate({ yes, skipAgentDocs });
 
     console.log(chalk.green("\n✨ Basic initialization complete!"));
+
+    // If --magic flag was passed, run magic init now
+    if (magic) {
+      console.log(chalk.blue("\n  Running magic auto-configuration...\n"));
+      return await handleMagicInit({ yes, skipAgentDocs });
+    }
+
+    // Check if magic setup already exists (TamboProvider in root layout or tambo.ts in lib dir)
+    const hasMagicSetup = (() => {
+      try {
+        // Check for TamboProvider in common layout paths
+        const layoutPaths = [
+          "src/app/layout.tsx",
+          "app/layout.tsx",
+          "src/app/layout.jsx",
+          "app/layout.jsx",
+        ];
+        for (const p of layoutPaths) {
+          const fullPath = path.resolve(process.cwd(), p);
+          if (
+            fs.existsSync(fullPath) &&
+            fs.readFileSync(fullPath, "utf-8").includes("TamboProvider")
+          ) {
+            return true;
+          }
+        }
+        // Check for tambo.ts in lib dir
+        const libPaths = ["src/lib/tambo.ts", "lib/tambo.ts"];
+        for (const p of libPaths) {
+          if (fs.existsSync(path.resolve(process.cwd(), p))) return true;
+        }
+        return false;
+      } catch {
+        return false;
+      }
+    })();
+
+    if (!hasMagicSetup) {
+      console.log(
+        chalk.blue("\n  Tip: Run ") +
+          chalk.cyan("tambo init --magic") +
+          chalk.blue(" to auto-configure components based on your codebase"),
+      );
+    }
 
     console.log("\nNext steps:");
     console.log(
