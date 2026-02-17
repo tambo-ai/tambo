@@ -1,18 +1,25 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
+import process from "node:process";
 
 /**
  * Resolves the transitive closure of workspace package dependencies for a given app.
+ *
+ * In development, all workspace deps are included so Next.js compiles from source for HMR.
+ * In production, only packages that export raw .ts/.tsx files (no build step) are included,
+ * so packages with built output (dist/, esm/) are consumed as-is — validating the build.
+ *
  * @param {string} appDir - Absolute path to the app directory
  * @returns {string[]} - Array of workspace package names to transpile
  */
 export function getWorkspaceTranspilePackages(appDir) {
+  const isDev = process.env.NODE_ENV !== "production";
   const repoRoot = findRepoRoot(appDir);
   const rootPkg = JSON.parse(
     readFileSync(join(repoRoot, "package.json"), "utf8"),
   );
 
-  // Build name → dir map for all workspace packages
+  // Build name → { dir, pkg } map for all workspace packages
   const workspaceMap = new Map();
   for (const pattern of rootPkg.workspaces) {
     const dirs = pattern.includes("*")
@@ -27,7 +34,7 @@ export function getWorkspaceTranspilePackages(appDir) {
       try {
         const pkg = JSON.parse(readFileSync(join(dir, "package.json"), "utf8"));
         if (pkg.name) {
-          workspaceMap.set(pkg.name, dir);
+          workspaceMap.set(pkg.name, { dir, pkg });
         }
       } catch {
         // Skip dirs without package.json
@@ -48,21 +55,74 @@ export function getWorkspaceTranspilePackages(appDir) {
     for (const dep of Object.keys(allDeps)) {
       if (workspaceMap.has(dep) && !result.has(dep)) {
         result.add(dep);
-        try {
-          const depPkg = JSON.parse(
-            readFileSync(join(workspaceMap.get(dep), "package.json"), "utf8"),
-          );
-          collect(depPkg);
-        } catch {
-          // Skip unreadable packages
-        }
+        const depEntry = workspaceMap.get(dep);
+        collect(depEntry.pkg);
       }
     }
   }
 
   collect(appPkg);
   result.delete(appPkg.name);
-  return [...result];
+
+  if (isDev) {
+    return [...result];
+  }
+
+  // In production, only transpile packages that export raw TypeScript
+  return [...result].filter((name) => {
+    const { pkg } = workspaceMap.get(name);
+    return needsTranspilation(pkg);
+  });
+}
+
+/**
+ * Checks whether a package exports raw .ts/.tsx files as its production entry points,
+ * meaning it has no build step and must be transpiled by the consuming bundler.
+ *
+ * Packages with built output have a "development" condition for source and "import"/"require"
+ * conditions pointing to .js files — these don't need transpilation in production.
+ *
+ * @param {Record<string, unknown>} pkg - Parsed package.json
+ * @returns {boolean}
+ */
+function needsTranspilation(pkg) {
+  const exports = pkg.exports;
+  if (!exports) {
+    // Fall back to main field
+    const main = pkg.main || "";
+    return main.endsWith(".ts") || main.endsWith(".tsx");
+  }
+
+  // Check each export entry for raw TypeScript in production-facing conditions
+  for (const value of Object.values(exports)) {
+    if (typeof value === "string") {
+      if (value.endsWith(".ts") || value.endsWith(".tsx")) {
+        return true;
+      }
+      continue;
+    }
+    if (typeof value !== "object" || value === null) {
+      continue;
+    }
+
+    // Look at non-development conditions (import, require, default)
+    for (const [condition, target] of Object.entries(value)) {
+      if (condition === "development" || condition === "types") {
+        continue;
+      }
+      let resolved = "";
+      if (typeof target === "string") {
+        resolved = target;
+      } else if (typeof target === "object" && target !== null) {
+        resolved = target.default || "";
+      }
+      if (resolved.endsWith(".ts") || resolved.endsWith(".tsx")) {
+        return true;
+      }
+    }
+  }
+
+  return false;
 }
 
 /** @returns {string} Absolute path to repo root */
