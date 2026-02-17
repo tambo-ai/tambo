@@ -78,7 +78,9 @@ Decimal phases appear between their surrounding integers in numeric order.
 3. Convenience scripts exist for common workflows (dev:cloud already exists, verify it works)
 4. End-to-end test scenarios documented and verified working
 5. CONTRIBUTING.md and AGENTS.md updated with new developer workflows
-   **Plans**: TBD
+   **Plans:** 1 plan
+   Plans:
+   - [ ] 04-01-PLAN.md — Verify orchestration, add convenience scripts, update docs
 
 ## Progress
 
