@@ -56,8 +56,12 @@ export function TamboDevToolsTrigger({
   const positionStyle: React.CSSProperties = {
     bottom: position?.bottom ?? 16,
     right: position?.right ?? 16,
-    ...(position?.top !== undefined ? { top: position.top, bottom: undefined } : {}),
-    ...(position?.left !== undefined ? { left: position.left, right: undefined } : {}),
+    ...(position?.top !== undefined
+      ? { top: position.top, bottom: undefined }
+      : {}),
+    ...(position?.left !== undefined
+      ? { left: position.left, right: undefined }
+      : {}),
   };
 
   const popoverBottom = (position?.bottom ?? 16) + 56;
@@ -189,13 +193,17 @@ export function TamboDevToolsTrigger({
           {/* Active thread */}
           {stats.activeThread && (
             <div style={{ fontSize: 12, marginBottom: 8, color: "#94a3b8" }}>
-              Active: <span style={{ color: "#e2e8f0" }}>{stats.activeThread}</span>
+              Active:{" "}
+              <span style={{ color: "#e2e8f0" }}>{stats.activeThread}</span>
             </div>
           )}
 
           {/* Streaming status */}
           <div style={{ fontSize: 12, marginBottom: 16, color: "#94a3b8" }}>
-            Streaming: <span style={{ color: "#e2e8f0" }}>{stats.isStreaming ? "Yes" : "No"}</span>
+            Streaming:{" "}
+            <span style={{ color: "#e2e8f0" }}>
+              {stats.isStreaming ? "Yes" : "No"}
+            </span>
           </div>
 
           {/* Open DevTools button */}
