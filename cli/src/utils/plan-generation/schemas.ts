@@ -56,9 +56,6 @@ export const componentRecommendationSchema = z
     filePath: filePathSchema,
     reason: z.string().min(10).describe("Why register this component"),
     confidence: confidenceSchema,
-    suggestedRegistration: z
-      .string()
-      .describe("Suggested registration code snippet"),
   })
   .strip();
 
@@ -76,7 +73,6 @@ export const toolRecommendationSchema = z
     filePath: filePathSchema,
     reason: z.string().min(10).describe("Why create this tool"),
     confidence: confidenceSchema,
-    suggestedSchema: z.string().describe("Suggested Zod schema for tool input"),
   })
   .strip();
 
@@ -91,7 +87,6 @@ export const interactableRecommendationSchema = z
     filePath: filePathSchema,
     reason: z.string().min(10).describe("Why make this interactable"),
     confidence: confidenceSchema,
-    integrationPattern: z.string().describe("How to integrate interactability"),
   })
   .strip();
 

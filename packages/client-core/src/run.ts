@@ -21,6 +21,11 @@ export interface RunOptions {
   signal?: AbortSignal;
   /** Max tool call rounds before throwing (defaults to 10) */
   maxToolRounds?: number;
+  /**
+   * Called after each tool round completes. Return false to abort execution.
+   * Useful for implementing soft limits with user prompts.
+   */
+  onRoundComplete?: (round: number) => Promise<boolean>;
 }
 
 interface PendingToolCall {
@@ -147,6 +152,14 @@ export async function executeRun(
     // Send tool results back as next round
     previousRunId = currentRunId;
     round++;
+
+    // Allow caller to abort after a round (e.g. soft limit prompt)
+    if (options?.onRoundComplete) {
+      const shouldContinue = await options.onRoundComplete(round);
+      if (!shouldContinue) {
+        throw new Error("Execution aborted by onRoundComplete callback");
+      }
+    }
 
     if (round > maxToolRounds) {
       throw new Error(

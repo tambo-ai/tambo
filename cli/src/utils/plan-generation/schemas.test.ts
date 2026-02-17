@@ -76,7 +76,6 @@ describe("componentRecommendationSchema", () => {
       filePath: "/components/UserProfile.tsx",
       reason: "User-facing component that displays profile data",
       confidence: 0.85,
-      suggestedRegistration: 'registry.register("UserProfile", UserProfile)',
     };
     expect(() => componentRecommendationSchema.parse(valid)).not.toThrow();
   });
@@ -87,7 +86,6 @@ describe("componentRecommendationSchema", () => {
       filePath: "/components/UserProfile.tsx",
       reason: "Profile",
       confidence: 0.85,
-      suggestedRegistration: 'registry.register("UserProfile", UserProfile)',
     };
     expect(() => componentRecommendationSchema.parse(invalid)).toThrow();
   });
@@ -98,7 +96,6 @@ describe("componentRecommendationSchema", () => {
       filePath: "/components/UserProfile.tsx",
       reason: "User-facing component that displays profile data",
       confidence: 2.0,
-      suggestedRegistration: 'registry.register("UserProfile", UserProfile)',
     };
     expect(() => componentRecommendationSchema.parse(invalid)).toThrow();
   });
@@ -112,7 +109,6 @@ describe("toolRecommendationSchema", () => {
       filePath: "/actions/user.ts",
       reason: "Server action for creating user records in database",
       confidence: 0.9,
-      suggestedSchema: "z.object({ name: z.string(), email: z.string() })",
     };
     expect(() => toolRecommendationSchema.parse(valid)).not.toThrow();
   });
@@ -124,7 +120,6 @@ describe("toolRecommendationSchema", () => {
       filePath: "/api/products.ts",
       reason: "Fetches product data from external API",
       confidence: 0.8,
-      suggestedSchema: "z.object({ category: z.string() })",
     };
     expect(() => toolRecommendationSchema.parse(valid)).not.toThrow();
   });
@@ -136,7 +131,6 @@ describe("toolRecommendationSchema", () => {
       filePath: "/lib/api.ts",
       reason: "Uses axios to fetch order data",
       confidence: 0.75,
-      suggestedSchema: "z.object({ orderId: z.string() })",
     };
     expect(() => toolRecommendationSchema.parse(valid)).not.toThrow();
   });
@@ -148,8 +142,6 @@ describe("toolRecommendationSchema", () => {
       filePath: "/utils/cart.ts",
       reason: "Calculates shopping cart total with tax",
       confidence: 0.7,
-      suggestedSchema:
-        "z.object({ items: z.array(z.object({ price: z.number() })) })",
     };
     expect(() => toolRecommendationSchema.parse(valid)).not.toThrow();
   });
@@ -161,7 +153,6 @@ describe("toolRecommendationSchema", () => {
       filePath: "/lib/utils.ts",
       reason: "Some function that should be a tool",
       confidence: 0.8,
-      suggestedSchema: "z.object({})",
     };
     expect(() => toolRecommendationSchema.parse(invalid)).toThrow();
   });
@@ -173,7 +164,6 @@ describe("toolRecommendationSchema", () => {
       filePath: "/actions/user.ts",
       reason: "Creates",
       confidence: 0.9,
-      suggestedSchema: "z.object({ name: z.string() })",
     };
     expect(() => toolRecommendationSchema.parse(invalid)).toThrow();
   });
@@ -186,8 +176,6 @@ describe("interactableRecommendationSchema", () => {
       filePath: "/components/SearchBar.tsx",
       reason: "Interactive search input that users engage with frequently",
       confidence: 0.88,
-      integrationPattern:
-        "Add useTamboInteractable hook to track user interactions",
     };
     expect(() => interactableRecommendationSchema.parse(valid)).not.toThrow();
   });
@@ -198,8 +186,6 @@ describe("interactableRecommendationSchema", () => {
       filePath: "/components/SearchBar.tsx",
       reason: "Search",
       confidence: 0.88,
-      integrationPattern:
-        "Add useTamboInteractable hook to track user interactions",
     };
     expect(() => interactableRecommendationSchema.parse(invalid)).toThrow();
   });
@@ -283,8 +269,6 @@ describe("installationPlanSchema", () => {
           filePath: "/components/UserProfile.tsx",
           reason: "User-facing component that displays profile data",
           confidence: 0.85,
-          suggestedRegistration:
-            'registry.register("UserProfile", UserProfile)',
         },
       ],
       toolRecommendations: [
@@ -294,7 +278,6 @@ describe("installationPlanSchema", () => {
           filePath: "/actions/user.ts",
           reason: "Server action for creating user records in database",
           confidence: 0.9,
-          suggestedSchema: "z.object({ name: z.string(), email: z.string() })",
         },
       ],
       interactableRecommendations: [
@@ -303,8 +286,6 @@ describe("installationPlanSchema", () => {
           filePath: "/components/SearchBar.tsx",
           reason: "Interactive search input that users engage with frequently",
           confidence: 0.88,
-          integrationPattern:
-            "Add useTamboInteractable hook to track user interactions",
         },
       ],
       chatWidgetSetup: {

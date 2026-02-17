@@ -32,14 +32,12 @@ function createMockPlan(): InstallationPlan {
         filePath: "/components/user-profile.tsx",
         reason: "User data display",
         confidence: 0.9,
-        suggestedRegistration: "registerComponent('UserProfile', UserProfile);",
       },
       {
         name: "Sidebar",
         filePath: "/components/sidebar.tsx",
         reason: "Navigation component",
         confidence: 0.5,
-        suggestedRegistration: "registerComponent('Sidebar', Sidebar);",
       },
     ],
     toolRecommendations: [
@@ -49,7 +47,6 @@ function createMockPlan(): InstallationPlan {
         filePath: "/actions/user.ts",
         reason: "Fetch user information",
         confidence: 0.85,
-        suggestedSchema: "z.object({ userId: z.string() })",
       },
     ],
     interactableRecommendations: [
@@ -58,7 +55,6 @@ function createMockPlan(): InstallationPlan {
         filePath: "/components/product-card.tsx",
         reason: "Allow AI to interact with products",
         confidence: 0.6,
-        integrationPattern: "useTamboInteractable",
       },
     ],
     chatWidgetSetup: {

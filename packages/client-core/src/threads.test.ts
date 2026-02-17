@@ -3,14 +3,14 @@
  */
 
 import { QueryClient } from "@tanstack/query-core";
+import { threadKeys } from "./query";
 import { createThreadsClient, type ThreadsClient } from "./threads";
 import type {
-  ThreadCreateResponse,
-  ThreadRetrieveResponse,
-  ThreadListResponse,
   MessageListResponse,
+  ThreadCreateResponse,
+  ThreadListResponse,
+  ThreadRetrieveResponse,
 } from "./types";
-import { threadKeys } from "./query";
 
 function createMockDeps() {
   const mockSdk = {
@@ -86,6 +86,30 @@ describe("createThreadsClient", () => {
 
       expect(invalidateSpy).toHaveBeenCalledWith({
         queryKey: threadKeys.lists(),
+      });
+    });
+
+    it("injects userKey from deps into create call", async () => {
+      const deps = createMockDeps();
+      const threadsWithKey = createThreadsClient({
+        sdk: deps.mockSdk as never,
+        queryClient: deps.queryClient,
+        userKey: "user_abc",
+      });
+
+      deps.mockSdk.threads.create.mockResolvedValue({
+        id: "thread_1",
+        createdAt: "",
+        updatedAt: "",
+        runStatus: "idle" as const,
+        userKey: "user_abc",
+      });
+
+      await threadsWithKey.create({ metadata: { foo: "bar" } });
+
+      expect(deps.mockSdk.threads.create).toHaveBeenCalledWith({
+        metadata: { foo: "bar" },
+        userKey: "user_abc",
       });
     });
   });

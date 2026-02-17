@@ -6,6 +6,7 @@
  */
 
 import type { InstallationPlan } from "../plan-generation/types.js";
+import type { ProjectAnalysis } from "../project-analysis/types.js";
 
 /**
  * Represents a single item in the confirmation checklist
@@ -70,4 +71,6 @@ export interface ConfirmationResult {
 export interface ConfirmPlanOptions {
   /** Skip confirmation and auto-approve (--yes flag) */
   yes?: boolean;
+  /** Original project analysis for showing candidate counts in summary */
+  analysis?: ProjectAnalysis;
 }

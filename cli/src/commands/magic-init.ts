@@ -322,6 +322,7 @@ export async function handleMagicInit(
     // 5. Phase 4 — Confirmation
     const confirmation: ConfirmationResult = await confirmPlan(plan, {
       yes: options.yes,
+      analysis,
     });
 
     if (!confirmation.approved) {
@@ -333,17 +334,9 @@ export async function handleMagicInit(
     spinner = ora("Executing changes...").start();
 
     try {
-      spinner.text = "Installing dependencies...";
-      // Dependencies are installed by executeCodeChanges
-
-      spinner.text = "Modifying files...";
-      // Files are modified by executeCodeChanges
-
-      spinner.text = "Verifying setup...";
-      // Verification is done by executeCodeChanges
-
       const result = await executeCodeChanges(confirmation, {
         yes: options.yes,
+        apiKey,
       });
 
       spinner.succeed("Setup complete");

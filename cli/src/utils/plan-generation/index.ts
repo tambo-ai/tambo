@@ -18,6 +18,8 @@ export interface GeneratePlanOptions {
   projectAnalysis: ProjectAnalysis;
   /** Tambo API key */
   apiKey: string;
+  /** User key for V1 API authentication */
+  userKey?: string;
   /** Optional base URL for API (defaults to production) */
   baseUrl?: string;
   /** Optional progress callback for streaming text deltas */
@@ -47,6 +49,7 @@ export async function generatePlan(
   // 1. Create Tambo client
   const client = createTamboClient({
     apiKey: options.apiKey,
+    userKey: options.userKey ?? "cli",
     ...(options.baseUrl ? { baseUrl: options.baseUrl } : {}),
   });
 
@@ -88,13 +91,13 @@ export async function generatePlan(
 }
 
 // Re-export types and utilities for consumer convenience
-export type {
-  InstallationPlan,
-  ProviderSetupRecommendation,
-  ComponentRecommendation,
-  ToolRecommendation,
-  InteractableRecommendation,
-  ChatWidgetSetup,
-} from "./types.js";
-export { buildPlanPrompt } from "./prompt-builder.js";
+export { buildPlanPrompt, TAMBO_SDK_REFERENCE } from "./prompt-builder.js";
 export { installationPlanSchema } from "./schemas.js";
+export type {
+  ChatWidgetSetup,
+  ComponentRecommendation,
+  InstallationPlan,
+  InteractableRecommendation,
+  ProviderSetupRecommendation,
+  ToolRecommendation,
+} from "./types.js";

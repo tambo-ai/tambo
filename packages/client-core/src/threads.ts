@@ -2,26 +2,27 @@
  * ThreadsClient - Thread and message management via SDK + query cache
  */
 
-import type { QueryClient } from "@tanstack/query-core";
 import type TamboAI from "@tambo-ai/typescript-sdk";
 import type { Stream } from "@tambo-ai/typescript-sdk/core/streaming";
+import type { QueryClient } from "@tanstack/query-core";
+import { threadKeys } from "./query.js";
 import type {
-  ThreadCreateParams,
-  ThreadCreateResponse,
-  ThreadRetrieveResponse,
-  ThreadListResponse,
-  ThreadListParams,
   MessageListResponse,
-  RunRunParams,
-  RunRunResponse,
   RunCreateParams,
   RunCreateResponse,
+  RunRunParams,
+  RunRunResponse,
+  ThreadCreateParams,
+  ThreadCreateResponse,
+  ThreadListParams,
+  ThreadListResponse,
+  ThreadRetrieveResponse,
 } from "./types.js";
-import { threadKeys } from "./query.js";
 
 interface ClientDeps {
   readonly sdk: TamboAI;
   readonly queryClient: QueryClient;
+  readonly userKey?: string;
 }
 
 export interface ThreadsClient {
@@ -43,11 +44,14 @@ export interface ThreadsClient {
  * @returns ThreadsClient with CRUD and message operations
  */
 export function createThreadsClient(deps: ClientDeps): ThreadsClient {
-  const { sdk, queryClient } = deps;
+  const { sdk, queryClient, userKey } = deps;
 
   return {
     async create(params) {
-      const result = await sdk.threads.create(params);
+      const result = await sdk.threads.create({
+        ...params,
+        ...(userKey ? { userKey } : {}),
+      });
       await queryClient.invalidateQueries({
         queryKey: threadKeys.lists(),
       });
@@ -86,7 +90,10 @@ export function createThreadsClient(deps: ClientDeps): ThreadsClient {
     },
 
     async run(threadId, params) {
-      const stream = await sdk.threads.runs.run(threadId, params);
+      const stream = await sdk.threads.runs.run(threadId, {
+        ...params,
+        ...(userKey ? { userKey } : {}),
+      });
       await queryClient.invalidateQueries({
         queryKey: threadKeys.detail(threadId),
       });
@@ -94,7 +101,10 @@ export function createThreadsClient(deps: ClientDeps): ThreadsClient {
     },
 
     async createRun(params) {
-      const stream = await sdk.threads.runs.create(params);
+      const stream = await sdk.threads.runs.create({
+        ...params,
+        ...(userKey ? { userKey } : {}),
+      });
       await queryClient.invalidateQueries({
         queryKey: threadKeys.lists(),
       });

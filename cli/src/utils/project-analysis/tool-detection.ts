@@ -1,9 +1,9 @@
 import fs from "fs";
 import path from "path";
-import { Project, SyntaxKind } from "ts-morph";
 import type { SourceFile } from "ts-morph";
-import { findFilesRecursively } from "./fs-helpers";
-import type { ToolCandidate } from "./types";
+import { Project, SyntaxKind } from "ts-morph";
+import { findFilesRecursively } from "./fs-helpers.js";
+import type { ToolCandidate } from "./types.js";
 
 /**
  * Options for detectToolCandidates

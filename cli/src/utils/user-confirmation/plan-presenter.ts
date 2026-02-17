@@ -7,6 +7,7 @@
 
 import chalk from "chalk";
 import type { InstallationPlan } from "../plan-generation/types.js";
+import type { ProjectAnalysis } from "../project-analysis/types.js";
 import type { PlanItem } from "./types.js";
 
 /**
@@ -83,11 +84,27 @@ export function planToCheckboxItems(plan: InstallationPlan): PlanItem[] {
 }
 
 /**
+ * Format a count with an optional "of N candidates" suffix when candidates were dropped
+ *
+ * @returns Formatted count string like "2 items" or "1 of 3 candidates"
+ */
+function formatCount(planCount: number, candidateCount?: number): string {
+  if (candidateCount !== undefined && candidateCount > planCount) {
+    return `${planCount} of ${candidateCount} candidates`;
+  }
+  return `${planCount} items`;
+}
+
+/**
  * Display a summary of the installation plan
  *
  * @param plan - The installation plan to summarize
+ * @param analysis - Optional project analysis to show candidate counts
  */
-export function displayPlanSummary(plan: InstallationPlan): void {
+export function displayPlanSummary(
+  plan: InstallationPlan,
+  analysis?: ProjectAnalysis,
+): void {
   console.log();
   console.log(chalk.bold("Installation Plan Summary"));
   console.log();
@@ -98,8 +115,16 @@ export function displayPlanSummary(plan: InstallationPlan): void {
   const interactableCount = plan.interactableRecommendations.length;
 
   console.log(chalk.dim(`  Provider setup:   1 item`));
-  console.log(chalk.dim(`  Components:       ${componentCount} items`));
-  console.log(chalk.dim(`  Tools:            ${toolCount} items`));
+  console.log(
+    chalk.dim(
+      `  Components:       ${formatCount(componentCount, analysis?.components.length)}`,
+    ),
+  );
+  console.log(
+    chalk.dim(
+      `  Tools:            ${formatCount(toolCount, analysis?.toolCandidates.length)}`,
+    ),
+  );
   console.log(chalk.dim(`  Interactables:    ${interactableCount} items`));
   console.log(chalk.dim(`  Chat widget:      1 item`));
 

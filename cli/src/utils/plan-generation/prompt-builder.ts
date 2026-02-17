@@ -182,7 +182,10 @@ function buildToolCandidatesSection(analysis: ProjectAnalysis): string {
   const remaining = analysis.toolCandidates.length - MAX_TOOL_CANDIDATES;
 
   const toolsList = toolsToShow
-    .map((t) => `- ${t.name} (${t.type}): ${t.description ?? "no description"}`)
+    .map(
+      (t) =>
+        `- ${t.name} (${t.type}, ${t.filePath}): ${t.description ?? "no description"}`,
+    )
     .join("\n");
 
   if (remaining > 0) {
