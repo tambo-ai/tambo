@@ -1,6 +1,6 @@
 "use client";
 
-import { useContext, useEffect, useRef } from "react";
+import * as React from "react";
 
 import { TamboClientContext } from "../providers/tambo-client-provider";
 import { TamboRegistryContext } from "../providers/tambo-registry-provider";
@@ -8,6 +8,9 @@ import { RawEventCallbackContext } from "../v1/providers/tambo-v1-stream-context
 import type { StreamState } from "../v1/utils/event-accumulator";
 import { DevToolsBridge } from "./devtools-bridge";
 import type { DevToolsStateSnapshot } from "./devtools-protocol";
+import { DEVTOOLS_DEFAULT_HOST } from "./devtools-protocol";
+import TamboDevToolsTrigger from "./devtools-trigger";
+import type { SummaryStats } from "./devtools-trigger";
 import { serializeForDevtools } from "./serialize-snapshot";
 import { useStreamStateForDevtools } from "./use-stream-state-for-devtools";
 
@@ -30,6 +33,51 @@ export interface TamboDevToolsProps {
   host?: string;
 }
 
+/** Port used by the Tambo Cloud dashboard (web app). */
+const DASHBOARD_PORT = 8260;
+
+/**
+ * Derives the full devtools dashboard URL from the WS connection host.
+ * @param wsHost - WebSocket server hostname
+ * @param sessionId - Current devtools session ID
+ * @returns The dashboard URL with clientId query parameter.
+ */
+function deriveDashboardUrl(wsHost: string, sessionId: string): string {
+  const url = new URL(`http://${wsHost}:${DASHBOARD_PORT}/devtools`);
+  url.searchParams.set("clientId", sessionId);
+  return url.toString();
+}
+
+/**
+ * Computes summary stats from registry and stream state for the trigger popover.
+ * @param registry - The current registry context value
+ * @param streamState - The current stream state (or null)
+ * @returns Computed summary statistics.
+ */
+function getStatsFromSnapshot(
+  registry: {
+    componentList: Record<string, unknown>;
+    toolRegistry: Record<string, unknown>;
+  },
+  streamState: StreamState | null,
+): SummaryStats {
+  const threadMap = streamState?.threadMap ?? {};
+  const threadEntries = Object.entries(threadMap);
+
+  const streamingThread = threadEntries.find(
+    ([, ts]) => ts.streaming.status === "streaming",
+  );
+
+  return {
+    componentCount: Object.keys(registry.componentList).length,
+    toolCount: Object.keys(registry.toolRegistry).length,
+    threadCount: threadEntries.length,
+    activeThread: streamingThread?.[0] ?? streamState?.currentThreadId,
+    isStreaming: streamingThread !== undefined,
+    errorCount: 0,
+  };
+}
+
 /** Default empty stream state when not inside TamboStreamProvider. */
 const EMPTY_STREAM_STATE: StreamState = {
   threadMap: {},
@@ -49,7 +97,9 @@ const EMPTY_STREAM_STATE: StreamState = {
  * The devtools code is completely isolated behind the `@tambo-ai/react/devtools`
  * subpath export and has zero bundle cost when not imported.
  * @param props - Optional host and port overrides
- * @returns null (renders nothing)
+ * @param props.port - Port of the devtools WebSocket server (default: 8265)
+ * @param props.host - Host of the devtools WebSocket server (default: "localhost")
+ * @returns A React component that manages the devtools connection and state synchronization.
  * @example
  * ```tsx
  * import { TamboProvider } from "@tambo-ai/react";
@@ -65,39 +115,55 @@ const EMPTY_STREAM_STATE: StreamState = {
  * }
  * ```
  */
-export function TamboDevTools({ port, host }: TamboDevToolsProps): null {
+export function TamboDevTools({ port, host }: TamboDevToolsProps) {
   // Read projectId from TamboProvider context if available.
   // Uses useContext directly (not the throwing useTamboClient hook) so
   // the component degrades gracefully outside of TamboProvider.
-  const clientContext = useContext(TamboClientContext);
+  const clientContext = React.useContext(TamboClientContext);
   const projectId = clientContext?.client.apiKey ?? undefined;
 
   // Read registry context (degrades gracefully with defaults)
-  const registry = useContext(TamboRegistryContext);
+  const registry = React.useContext(TamboRegistryContext);
 
   // Read stream state context if available (returns null outside TamboStreamProvider)
   const streamState = useStreamStateForDevtools();
 
   // Access the raw event callback ref from the stream context (for event forwarding)
-  const rawEventCallbackRef = useContext(RawEventCallbackContext);
+  const rawEventCallbackRef = React.useContext(RawEventCallbackContext);
 
   // Stable session ID across re-renders
-  const sessionIdRef = useRef(crypto.randomUUID());
+  const sessionIdRef = React.useRef(crypto.randomUUID());
 
   // Bridge persisted across renders
-  const bridgeRef = useRef<DevToolsBridge | null>(null);
+  const bridgeRef = React.useRef<DevToolsBridge | null>(null);
 
   // Debounce timer ref
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const debounceRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Track bridge connection state for the trigger UI
+  const [isConnected, setIsConnected] = React.useState(false);
+
+  // Compute stats for the trigger popover
+  const stats = React.useMemo(
+    () => getStatsFromSnapshot(registry, streamState),
+    [registry, streamState],
+  );
+
+  // Compute dashboard URL
+  const wsHost = host ?? DEVTOOLS_DEFAULT_HOST;
+  const dashboardUrl = React.useMemo(
+    () => deriveDashboardUrl(wsHost, sessionIdRef.current),
+    [wsHost],
+  );
 
   // Keep latest values in refs so the sendSnapshot closure is always current
-  const streamStateRef = useRef(streamState);
+  const streamStateRef = React.useRef(streamState);
   streamStateRef.current = streamState;
-  const registryRef = useRef(registry);
+  const registryRef = React.useRef(registry);
   registryRef.current = registry;
 
   // Create bridge on mount, clean up on unmount
-  useEffect(() => {
+  React.useEffect(() => {
     const sendSnapshot = (): void => {
       const bridge = bridgeRef.current;
       if (!bridge?.isConnected) return;
@@ -127,6 +193,7 @@ export function TamboDevTools({ port, host }: TamboDevToolsProps): null {
       sdkVersion: SDK_VERSION,
       projectId,
       onRequestSnapshot: sendSnapshot,
+      onConnectionChange: setIsConnected,
     });
 
     bridge.connect();
@@ -135,11 +202,12 @@ export function TamboDevTools({ port, host }: TamboDevToolsProps): null {
     return () => {
       bridge.disconnect();
       bridgeRef.current = null;
+      setIsConnected(false);
     };
   }, [host, port, projectId]);
 
   // Register raw event callback for devtools event forwarding
-  useEffect(() => {
+  React.useEffect(() => {
     if (!rawEventCallbackRef) return;
 
     rawEventCallbackRef.current = (event: unknown, threadId: string) => {
@@ -154,7 +222,7 @@ export function TamboDevTools({ port, host }: TamboDevToolsProps): null {
   }, [rawEventCallbackRef]);
 
   // Debounced snapshot sending when state changes
-  useEffect(() => {
+  React.useEffect(() => {
     if (debounceRef.current !== null) {
       clearTimeout(debounceRef.current);
     }
@@ -195,5 +263,11 @@ export function TamboDevTools({ port, host }: TamboDevToolsProps): null {
     registry.mcpServerInfos,
   ]);
 
-  return null;
+  return (
+    <TamboDevToolsTrigger
+      isConnected={isConnected}
+      stats={stats}
+      dashboardUrl={dashboardUrl}
+    />
+  );
 }
