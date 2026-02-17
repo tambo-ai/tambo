@@ -26,6 +26,8 @@ export interface DevToolsBridgeOptions {
   projectId?: string;
   /** Callback invoked when the server requests a fresh snapshot. */
   onRequestSnapshot?: () => void;
+  /** Callback invoked when connection state changes. */
+  onConnectionChange?: (connected: boolean) => void;
 }
 
 /**
@@ -69,6 +71,7 @@ export class DevToolsBridge {
     this.ws.addEventListener("open", () => {
       this.connected = true;
       this.nextSeq = 0;
+      this.options.onConnectionChange?.(true);
       this.send({
         type: "handshake",
         protocolVersion: DEVTOOLS_PROTOCOL_VERSION,
@@ -80,6 +83,7 @@ export class DevToolsBridge {
 
     this.ws.addEventListener("close", () => {
       this.connected = false;
+      this.options.onConnectionChange?.(false);
     });
 
     this.ws.addEventListener("message", (event) => {
