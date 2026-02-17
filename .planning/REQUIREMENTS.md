@@ -50,24 +50,24 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| TURBO-01 | — | Pending |
-| TURBO-02 | — | Pending |
-| TURBO-03 | — | Pending |
-| NEXT-01 | — | Pending |
-| NEXT-02 | — | Pending |
-| NEXT-03 | — | Pending |
-| NEXT-04 | — | Pending |
-| NEST-01 | — | Pending |
-| NEST-02 | — | Pending |
-| NEST-03 | — | Pending |
-| DX-01 | — | Pending |
-| DX-02 | — | Pending |
+| TURBO-01 | Phase 4 | Pending |
+| TURBO-02 | Phase 4 | Pending |
+| TURBO-03 | Phase 1 | Pending |
+| NEXT-01 | Phase 2 | Pending |
+| NEXT-02 | Phase 2 | Pending |
+| NEXT-03 | Phase 2 | Pending |
+| NEXT-04 | Phase 1 | Pending |
+| NEST-01 | Phase 3 | Pending |
+| NEST-02 | Phase 3 | Pending |
+| NEST-03 | Phase 3 | Pending |
+| DX-01 | Phase 4 | Pending |
+| DX-02 | Phase 1 | Pending |
 
 **Coverage:**
 - v1 requirements: 12 total
-- Mapped to phases: 0
-- Unmapped: 12
+- Mapped to phases: 12
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-02-16*
-*Last updated: 2026-02-16 after initial definition*
+*Last updated: 2026-02-16 after roadmap creation*
