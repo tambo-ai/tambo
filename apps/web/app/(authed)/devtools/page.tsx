@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 
 import {
   Select,
@@ -48,7 +49,18 @@ export default function DevtoolsPage() {
     setSelectedSessionId,
   } = useDevtoolsConnection();
 
+  const searchParams = useSearchParams();
+  const clientIdFromUrl = searchParams.get("clientId");
+
   const [selectedThreadId, setSelectedThreadId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!clientIdFromUrl) return;
+    const clientExists = clients.some((c) => c.sessionId === clientIdFromUrl);
+    if (clientExists && !selectedSessionId) {
+      setSelectedSessionId(clientIdFromUrl);
+    }
+  }, [clientIdFromUrl, clients, selectedSessionId, setSelectedSessionId]);
 
   const currentSnapshot = selectedSessionId
     ? snapshots.get(selectedSessionId)
