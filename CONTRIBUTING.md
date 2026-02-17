@@ -105,6 +105,28 @@ npm run dev:sdk
 
 This runs the React SDK in watch mode (automatically rebuilds on changes) alongside the showcase app, making it easy to develop and test SDK changes.
 
+### Hot Reload Development
+
+Tambo uses modern hot reload patterns across different parts of the monorepo:
+
+#### Cloud Development
+
+`npm run dev:cloud` starts the web dashboard and API server with automatic restart when workspace packages change. When you edit files in `packages/core`, `packages/backend`, or `packages/db`, Turborepo detects the changes and automatically restarts the API server. The Next.js web app uses `transpilePackages` to compile workspace TypeScript directly, so changes to workspace packages are reflected immediately via Next.js HMR.
+
+#### SDK Development
+
+`npm run dev:sdk` runs the React SDK in watch mode alongside the showcase app. Edit react-sdk source and see changes reflected in the showcase via HMR. The showcase app also uses `transpilePackages`, so there's no manual rebuild step needed.
+
+#### Full Stack Development
+
+`npm run dev:cloud:full` runs everything (web, API, showcase, docs) with hot reload enabled across all apps.
+
+**Technical details:**
+
+- Next.js apps (web, showcase, docs) use `transpilePackages` to compile workspace TypeScript directly
+- NestJS API uses `turbo watch` with `interruptible: true` for automatic restart on dependency changes
+- No manual rebuild of workspace packages is needed for any app
+
 ### 6. Get a Local API Key
 
 1. Start the dev servers: `npm run dev:cloud`

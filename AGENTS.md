@@ -310,7 +310,7 @@ npm run db:studio -w packages/db    # Open Drizzle Studio
 
 ```bash
 # Development (two different apps!)
-npm run dev:cloud        # Start Tambo Cloud (web + API) - ports 8260 + 8261
+npm run dev:cloud        # Start Tambo Cloud (web + API) - ports 8260 + 8261 - uses turbo watch
 npm run dev              # Start React SDK (showcase + docs)
 npm run dev:sdk          # Start React SDK in watch mode + showcase (for SDK development)
 npm run build:sdk        # One-time build of React SDK
@@ -324,8 +324,27 @@ npm run format           # Format code with Prettier
 
 # Individual package development (from package directory or with -w flag)
 npm run dev -w cli       # Start specific workspace
+npm run dev:showcase     # Start showcase only
 npm run build -w react-sdk  # Build specific package
 ```
+
+#### Hot Reload
+
+The monorepo uses different hot reload mechanisms based on the app type:
+
+**Next.js apps (web, showcase, docs):**
+
+- Use `transpilePackages` configuration to compile workspace TypeScript directly
+- Changes to workspace packages (core, backend, db, react) trigger HMR automatically
+- No manual rebuild step needed
+
+**NestJS API:**
+
+- Uses `turbo watch` with `interruptible: true` for automatic restart
+- Monitors workspace inputs: `packages/core/src/**`, `packages/backend/src/**`, `packages/db/src/**`
+- API server restarts automatically when workspace packages change
+
+This architecture ensures editing any file in workspace packages results in immediate updates (HMR for Next.js, restart for NestJS) without manual intervention.
 
 #### Turbo Commands (alternative)
 
