@@ -62,7 +62,9 @@ Decimal phases appear between their surrounding integers in numeric order.
 2. Editing a file in packages/backend triggers apps/api server restart automatically
 3. Editing a file in packages/db triggers apps/api server restart automatically
 4. Server restarts preserve terminal output and show clear rebuild status
-   **Plans**: TBD
+   **Plans:** 0/1 plans complete
+   Plans:
+   - [ ] 03-01-PLAN.md — Configure turbo watch with interruptible api dev task and workspace inputs
 
 ### Phase 4: Refinement & Validation
 
