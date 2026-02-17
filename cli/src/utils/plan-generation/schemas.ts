@@ -8,6 +8,17 @@
 import { z } from "zod";
 
 /**
+ * File path validation — rejects natural language descriptions masquerading as paths
+ */
+const filePathSchema = z
+  .string()
+  .min(1)
+  .refine((val) => !val.includes("(") && !val.includes(")"), {
+    message: "filePath must be a real filesystem path, not a description",
+  })
+  .describe("Relative filesystem path (e.g. app/layout.tsx)");
+
+/**
  * Confidence score validation (0.0 to 1.0)
  */
 const confidenceSchema = z
@@ -23,7 +34,7 @@ const confidenceSchema = z
  */
 export const providerSetupRecommendationSchema = z
   .object({
-    filePath: z.string().describe("Absolute path to layout file"),
+    filePath: filePathSchema,
     nestingLevel: z
       .number()
       .int()
@@ -42,7 +53,7 @@ export const providerSetupRecommendationSchema = z
 export const componentRecommendationSchema = z
   .object({
     name: z.string().describe("Component name"),
-    filePath: z.string().describe("Absolute path to component file"),
+    filePath: filePathSchema,
     reason: z.string().min(10).describe("Why register this component"),
     confidence: confidenceSchema,
     suggestedRegistration: z
@@ -62,7 +73,7 @@ export const toolRecommendationSchema = z
     type: z
       .enum(["server-action", "fetch", "axios", "exported-function"])
       .describe("Tool candidate type"),
-    filePath: z.string().describe("Absolute path to source function"),
+    filePath: filePathSchema,
     reason: z.string().min(10).describe("Why create this tool"),
     confidence: confidenceSchema,
     suggestedSchema: z.string().describe("Suggested Zod schema for tool input"),
@@ -77,7 +88,7 @@ export const toolRecommendationSchema = z
 export const interactableRecommendationSchema = z
   .object({
     componentName: z.string().describe("Target component name"),
-    filePath: z.string().describe("Absolute path to component"),
+    filePath: filePathSchema,
     reason: z.string().min(10).describe("Why make this interactable"),
     confidence: confidenceSchema,
     integrationPattern: z.string().describe("How to integrate interactability"),
@@ -91,7 +102,7 @@ export const interactableRecommendationSchema = z
  */
 export const chatWidgetSetupSchema = z
   .object({
-    filePath: z.string().describe("Where to add chat widget"),
+    filePath: filePathSchema,
     position: z
       .enum(["bottom-right", "bottom-left", "top-right", "sidebar"])
       .describe("Widget position"),
