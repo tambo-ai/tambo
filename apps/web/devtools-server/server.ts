@@ -1,3 +1,7 @@
+// Force ws to use pure-JS buffer utilities — the native bufferutil addon
+// is unreliable in Next.js instrumentation context.
+process.env.WS_NO_BUFFER_UTIL = "1";
+
 import { WebSocketServer } from "ws";
 
 import { ConnectionManager } from "./connection-manager";
