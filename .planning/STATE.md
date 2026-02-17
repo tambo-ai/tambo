@@ -10,10 +10,12 @@ See: .planning/PROJECT.md (updated 2026-02-16)
 ## Current Position
 
 Milestone: v1.1 — DevTools Integration Fix
-Status: Roadmap created, ready to plan
-Last activity: 2026-02-16 — Milestone v1.1 roadmap created
+Phase: 04-devtools-trigger-fix
+Current Plan: 2 of 2 complete
+Status: Phase 04 plans complete
+Last activity: 2026-02-17 — Completed 04-02 (dashboard wiring & showcase integration)
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [██████████] 100%
 
 ## Known Issues
 
@@ -32,6 +34,10 @@ Progress: [░░░░░░░░░░] 0%
 
 ## Session Continuity
 
-Last session: 2026-02-16
-Stopped at: Defining v1.1 requirements
+Last session: 2026-02-17
+Stopped at: Completed 04-02-PLAN.md
 Resume file: None
+
+## Decisions
+
+- Auto-select clientId only when no client already selected (avoid overriding user choice)
