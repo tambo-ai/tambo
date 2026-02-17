@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Foundation Setup** - Audit config, choose bundler, prepare package exports (completed 2026-02-17)
 - [x] **Phase 2: Next.js Hot Reload** - Enable HMR for apps/web, showcase, docs (completed 2026-02-17)
-- [ ] **Phase 3: NestJS Hot Reload** - Enable auto-restart for apps/api
+- [x] **Phase 3: NestJS Hot Reload** - Enable auto-restart for apps/api (completed 2026-02-17)
 - [ ] **Phase 4: Refinement & Validation** - Orchestration polish, convenience scripts, testing
 
 ## Phase Details
@@ -62,7 +62,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 2. Editing a file in packages/backend triggers apps/api server restart automatically
 3. Editing a file in packages/db triggers apps/api server restart automatically
 4. Server restarts preserve terminal output and show clear rebuild status
-   **Plans:** 0/1 plans complete
+   **Plans:** 1/1 plans complete
    Plans:
    - [ ] 03-01-PLAN.md — Configure turbo watch with interruptible api dev task and workspace inputs
 
@@ -89,5 +89,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | -------------------------- | -------------- | ----------- | ---------- |
 | 1. Foundation Setup        | 0/1            | Complete    | 2026-02-17 |
 | 2. Next.js Hot Reload      | 0/1            | Complete    | 2026-02-17 |
-| 3. NestJS Hot Reload       | 0/TBD          | Not started | -          |
+| 3. NestJS Hot Reload       | 0/TBD          | Complete    | 2026-02-17 |
 | 4. Refinement & Validation | 0/TBD          | Not started | -          |
