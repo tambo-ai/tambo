@@ -5,8 +5,8 @@
  * and @tanstack/query-core for cache management.
  */
 
-import { QueryClient } from "@tanstack/query-core";
 import TamboAI from "@tambo-ai/typescript-sdk";
+import { QueryClient } from "@tanstack/query-core";
 import { createThreadsClient, type ThreadsClient } from "./threads.js";
 import type { TamboClientOptions } from "./types.js";
 
@@ -15,6 +15,8 @@ export interface TamboClient {
   readonly sdk: TamboAI;
   /** TanStack QueryClient for cache control */
   readonly queryClient: QueryClient;
+  /** User key for V1 API calls */
+  readonly userKey?: string;
   /** Thread management */
   readonly threads: ThreadsClient;
 }
@@ -41,7 +43,7 @@ export function createTamboClient(options: TamboClientOptions): TamboClient {
     });
 
   // Build a partial client so threads can reference sdk/queryClient
-  const base = { sdk, queryClient };
+  const base = { sdk, queryClient, userKey: options.userKey };
 
   return {
     ...base,
@@ -61,5 +63,6 @@ function buildSdk(options: TamboClientOptions): TamboAI {
   return new TamboAI({
     apiKey: options.apiKey,
     ...(options.baseUrl ? { baseURL: options.baseUrl } : {}),
+    ...(options.userKey ? { defaultQuery: { userKey: options.userKey } } : {}),
   });
 }
