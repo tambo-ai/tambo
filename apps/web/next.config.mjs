@@ -47,7 +47,12 @@ const authRedirects =
 
 /** @type {import('next').NextConfig} */
 const config = {
-  transpilePackages: ["@tambo-ai/ui-registry"],
+  transpilePackages: [
+    "@tambo-ai/ui-registry",
+    "@tambo-ai-cloud/core",
+    "@tambo-ai-cloud/db",
+    "@tambo-ai-cloud/backend",
+  ],
   redirects: () => {
     return [
       ...authRedirects,
