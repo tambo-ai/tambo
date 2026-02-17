@@ -10,8 +10,13 @@ import type { InstallationPlan } from "../plan-generation/types.js";
 
 // Mock child_process
 const mockExecSync = jest.fn();
+const mockExec = jest.fn((...args: unknown[]) => {
+  const cb = args[args.length - 1] as (...cbArgs: unknown[]) => void;
+  cb(null, { stdout: "", stderr: "" });
+});
 jest.unstable_mockModule("node:child_process", () => ({
   execSync: mockExecSync,
+  exec: mockExec,
 }));
 
 // Mock client-core
@@ -61,12 +66,25 @@ jest.unstable_mockModule("./error-recovery.js", () => ({
   formatExecutionError: jest.fn(() => "formatted error"),
 }));
 
+// Mock inquirer
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const mockInquirerPrompt = jest.fn() as jest.Mock<any>;
+jest.unstable_mockModule("inquirer", () => ({
+  default: { prompt: mockInquirerPrompt },
+}));
+
 // Mock agent-tools
 jest.unstable_mockModule("./agent-tools.js", () => ({
   agentTools: [
     {
       name: "readFile",
       description: "Read file",
+      inputSchema: { parse: (v: unknown) => v },
+      execute: jest.fn(),
+    },
+    {
+      name: "readFiles",
+      description: "Read multiple files",
       inputSchema: { parse: (v: unknown) => v },
       execute: jest.fn(),
     },
@@ -79,6 +97,18 @@ jest.unstable_mockModule("./agent-tools.js", () => ({
     {
       name: "listFiles",
       description: "List files",
+      inputSchema: { parse: (v: unknown) => v },
+      execute: jest.fn(),
+    },
+    {
+      name: "submitPlan",
+      description: "Submit plan",
+      inputSchema: { parse: (v: unknown) => v },
+      execute: jest.fn(),
+    },
+    {
+      name: "updatePlan",
+      description: "Update plan",
       inputSchema: { parse: (v: unknown) => v },
       execute: jest.fn(),
     },
@@ -157,6 +187,10 @@ describe("executeCodeChanges", () => {
       devDependencies: [],
     });
     mockInstallDependencies.mockResolvedValue(undefined);
+    mockExec.mockImplementation((...args: unknown[]) => {
+      const cb = args[args.length - 1] as (...cbArgs: unknown[]) => void;
+      cb(null, { stdout: "", stderr: "" });
+    });
   });
 
   test("throws when confirmation is not approved", async () => {
@@ -210,7 +244,7 @@ describe("executeCodeChanges", () => {
       "test execution prompt",
       expect.objectContaining({
         tools: mockRegistry,
-        maxToolRounds: 20,
+        maxToolRounds: 200,
       }),
     );
   });
@@ -240,8 +274,8 @@ describe("executeCodeChanges", () => {
 
     await executeCodeChanges(confirmation, { apiKey: "sk_test", yes: true });
 
-    // Should register 3 tools (readFile, writeFile, listFiles)
-    expect(mockRegistry.register).toHaveBeenCalledTimes(3);
+    // Should register all 6 agent tools
+    expect(mockRegistry.register).toHaveBeenCalledTimes(6);
   });
 
   test("pre-installs chat widget when chat-widget is selected", async () => {
@@ -269,21 +303,24 @@ describe("executeCodeChanges", () => {
 
     await executeCodeChanges(confirmation, { apiKey: "sk_test", yes: true });
 
-    expect(mockExecSync).toHaveBeenCalledWith(
+    expect(mockExec).toHaveBeenCalledWith(
       "npx tambo add message-thread-full --yes",
-      expect.objectContaining({ stdio: "pipe" }),
+      expect.objectContaining({ cwd: expect.any(String) }),
+      expect.any(Function),
     );
     // Execution prompt should include chatWidgetInstalled = true
     expect(mockBuildExecutionPrompt).toHaveBeenCalledWith(
       confirmation.plan,
       confirmation.selectedItems,
       true,
+      "sk_test",
     );
   });
 
   test("falls back gracefully when chat widget pre-install fails", async () => {
-    mockExecSync.mockImplementation(() => {
-      throw new Error("tambo add failed");
+    mockExec.mockImplementation((...args: unknown[]) => {
+      const cb = args[args.length - 1] as (...cbArgs: unknown[]) => void;
+      cb(new Error("tambo add failed"));
     });
 
     const confirmation: ConfirmationResult = {
@@ -319,6 +356,7 @@ describe("executeCodeChanges", () => {
       confirmation.plan,
       confirmation.selectedItems,
       false,
+      "sk_test",
     );
   });
 
@@ -352,6 +390,189 @@ describe("executeCodeChanges", () => {
 
     expect(result.success).toBe(true);
     expect(result.dependenciesInstalled).toContain("@tambo-ai/react");
+  });
+
+  test("soft round limit prompts user at round 50", async () => {
+    // Capture the onRoundComplete callback
+    let capturedOnRoundComplete:
+      | ((round: number) => Promise<boolean>)
+      | undefined;
+    mockExecuteRun.mockImplementation(
+      async (
+        _client: unknown,
+        _threadId: unknown,
+        _prompt: unknown,
+        opts: { onRoundComplete?: (round: number) => Promise<boolean> },
+      ) => {
+        capturedOnRoundComplete = opts.onRoundComplete;
+        // Simulate reaching round 50
+        if (capturedOnRoundComplete) {
+          const result = await capturedOnRoundComplete(50);
+          if (!result)
+            throw new Error("Execution aborted by onRoundComplete callback");
+        }
+        return "Done";
+      },
+    );
+
+    // User says yes
+    mockInquirerPrompt.mockResolvedValueOnce({ shouldContinue: true });
+
+    const confirmation: ConfirmationResult = {
+      approved: true,
+      selectedItems: ["provider-setup"],
+      plan: {
+        providerSetup: {
+          filePath: "app/layout.tsx",
+          nestingLevel: 0,
+          rationale: "Root layout",
+          confidence: 0.95,
+        },
+        componentRecommendations: [],
+        toolRecommendations: [],
+        interactableRecommendations: [],
+        chatWidgetSetup: {
+          position: "bottom-right",
+          filePath: "app/page.tsx",
+          rationale: "Standard position",
+          confidence: 0.9,
+        },
+      },
+    };
+
+    const result = await executeCodeChanges(confirmation, {
+      apiKey: "sk_test",
+    });
+
+    expect(result.success).toBe(true);
+    expect(mockInquirerPrompt).toHaveBeenCalledWith(
+      expect.arrayContaining([
+        expect.objectContaining({
+          name: "shouldContinue",
+          message: expect.stringContaining("50 tool rounds"),
+        }),
+      ]),
+    );
+  });
+
+  test("soft round limit aborts when user says no", async () => {
+    mockExecuteRun.mockImplementation(
+      async (
+        _client: unknown,
+        _threadId: unknown,
+        _prompt: unknown,
+        opts: { onRoundComplete?: (round: number) => Promise<boolean> },
+      ) => {
+        if (opts.onRoundComplete) {
+          const result = await opts.onRoundComplete(50);
+          if (!result)
+            throw new Error("Execution aborted by onRoundComplete callback");
+        }
+        return "Done";
+      },
+    );
+
+    // User says no
+    mockInquirerPrompt
+      .mockResolvedValueOnce({ shouldContinue: false })
+      // Then user picks revert in the rollback prompt
+      .mockResolvedValueOnce({ action: "revert" });
+
+    const confirmation: ConfirmationResult = {
+      approved: true,
+      selectedItems: ["provider-setup"],
+      plan: {
+        providerSetup: {
+          filePath: "app/layout.tsx",
+          nestingLevel: 0,
+          rationale: "Root layout",
+          confidence: 0.95,
+        },
+        componentRecommendations: [],
+        toolRecommendations: [],
+        interactableRecommendations: [],
+        chatWidgetSetup: {
+          position: "bottom-right",
+          filePath: "app/page.tsx",
+          rationale: "Standard position",
+          confidence: 0.9,
+        },
+      },
+    };
+
+    await expect(
+      executeCodeChanges(confirmation, { apiKey: "sk_test" }),
+    ).rejects.toThrow("aborted");
+  });
+
+  test("non-interactive mode auto-reverts on failure", async () => {
+    mockExecuteRun.mockRejectedValue(new Error("agent crashed"));
+
+    const confirmation: ConfirmationResult = {
+      approved: true,
+      selectedItems: ["provider-setup"],
+      plan: {
+        providerSetup: {
+          filePath: "app/layout.tsx",
+          nestingLevel: 0,
+          rationale: "Root layout",
+          confidence: 0.95,
+        },
+        componentRecommendations: [],
+        toolRecommendations: [],
+        interactableRecommendations: [],
+        chatWidgetSetup: {
+          position: "bottom-right",
+          filePath: "app/page.tsx",
+          rationale: "Standard position",
+          confidence: 0.9,
+        },
+      },
+    };
+
+    await expect(
+      executeCodeChanges(confirmation, { apiKey: "sk_test", yes: true }),
+    ).rejects.toThrow("agent crashed");
+
+    // Should NOT have prompted the user
+    expect(mockInquirerPrompt).not.toHaveBeenCalled();
+  });
+
+  test("interactive rollback prompt: keep changes", async () => {
+    mockExecuteRun.mockRejectedValue(new Error("agent crashed"));
+    mockInquirerPrompt.mockResolvedValueOnce({ action: "keep" });
+
+    const confirmation: ConfirmationResult = {
+      approved: true,
+      selectedItems: ["provider-setup"],
+      plan: {
+        providerSetup: {
+          filePath: "app/layout.tsx",
+          nestingLevel: 0,
+          rationale: "Root layout",
+          confidence: 0.95,
+        },
+        componentRecommendations: [],
+        toolRecommendations: [],
+        interactableRecommendations: [],
+        chatWidgetSetup: {
+          position: "bottom-right",
+          filePath: "app/page.tsx",
+          rationale: "Standard position",
+          confidence: 0.9,
+        },
+      },
+    };
+
+    const fileOps = await import("./file-operations.js");
+
+    await expect(
+      executeCodeChanges(confirmation, { apiKey: "sk_test" }),
+    ).rejects.toThrow("agent crashed");
+
+    // Should have cleaned up backups (not restored them)
+    expect(fileOps.cleanupBackups).toHaveBeenCalled();
+    expect(fileOps.restoreBackups).not.toHaveBeenCalled();
   });
 });
 

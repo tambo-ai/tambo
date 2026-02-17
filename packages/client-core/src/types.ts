@@ -2,8 +2,8 @@
  * Core type definitions for Tambo client
  */
 
-import type { QueryClient } from "@tanstack/query-core";
 import type TamboAI from "@tambo-ai/typescript-sdk";
+import type { QueryClient } from "@tanstack/query-core";
 
 /**
  * Configuration options for TamboClient
@@ -11,6 +11,8 @@ import type TamboAI from "@tambo-ai/typescript-sdk";
 export interface TamboClientOptions {
   /** API key for authentication */
   apiKey: string;
+  /** Identifier for the user in your system. Required for V1 API calls when no bearer token is provided. */
+  userKey?: string;
   /** Base URL for API requests (defaults to https://api.tambo.co) */
   baseUrl?: string;
   /** Pre-configured SDK client instance (overrides apiKey/baseUrl) */
@@ -78,28 +80,28 @@ export interface ToolResult {
 
 // Re-export SDK types for convenience
 export type {
-  ThreadCreateResponse,
-  ThreadRetrieveResponse,
-  ThreadListResponse,
-  ThreadCreateParams,
-  ThreadListParams,
-  ThreadDeleteParams,
-  TextContent,
   ComponentContent,
   ResourceContent,
-  ToolUseContent,
-  ToolResultContent,
   RunError,
+  TextContent,
+  ThreadCreateParams,
+  ThreadCreateResponse,
+  ThreadDeleteParams,
+  ThreadListParams,
+  ThreadListResponse,
+  ThreadRetrieveResponse,
+  ToolResultContent,
+  ToolUseContent,
 } from "@tambo-ai/typescript-sdk/resources/threads/threads";
 
 export type {
-  MessageListResponse,
   MessageGetResponse,
+  MessageListResponse,
 } from "@tambo-ai/typescript-sdk/resources/threads/messages";
 
 export type {
-  RunRunParams,
-  RunRunResponse,
   RunCreateParams,
   RunCreateResponse,
+  RunRunParams,
+  RunRunResponse,
 } from "@tambo-ai/typescript-sdk/resources/threads/runs";

@@ -6,8 +6,20 @@
  * generates code, and writes files through tools — iterating until done.
  */
 
-import { execSync } from "node:child_process";
+import * as childProcess from "node:child_process";
 import fs from "node:fs/promises";
+import { promisify } from "node:util";
+
+const execAsync = promisify(childProcess.exec);
+
+const isDebug = Boolean(process.env.DEBUG);
+function debug(msg: string, ...args: unknown[]): void {
+  if (isDebug) {
+    console.error(`[tambo:exec] ${msg}`, ...args);
+  }
+}
+
+import inquirer from "inquirer";
 import ora from "ora";
 import {
   createTamboClient,
@@ -28,6 +40,7 @@ import {
   formatExecutionError,
 } from "./error-recovery.js";
 import { agentTools } from "./agent-tools.js";
+import type { PlanStep } from "./agent-tools.js";
 import { buildExecutionPrompt } from "./execution-prompt.js";
 import type {
   ConfirmationResult,
@@ -73,6 +86,13 @@ export async function executeCodeChanges(
   const filesWritten = new Set<string>();
   const filesRead = new Set<string>();
 
+  // Plan tracking state
+  let planSteps: PlanStep[] = [];
+  let currentStepIndex = 0;
+
+  // Track tool call names by ID for spinner display during arg streaming
+  const toolCallNames = new Map<string, string>();
+
   // Create backup manifest for rollback
   const manifest: BackupManifest = {
     backups: new Map(),
@@ -94,27 +114,77 @@ export async function executeCodeChanges(
       registry.register({
         ...tool,
         execute: async (input: unknown) => {
-          // Wrap execute to track file operations
           const typedInput = input as Record<string, unknown>;
-          if (
-            tool.name === "writeFile" &&
-            typeof typedInput.filePath === "string"
-          ) {
-            filesWritten.add(typedInput.filePath);
-          }
+
+          // Update spinner with tool activity
           if (
             tool.name === "readFile" &&
             typeof typedInput.filePath === "string"
           ) {
+            spinner.text = `Reading ${typedInput.filePath}`;
             filesRead.add(typedInput.filePath);
+          } else if (
+            tool.name === "writeFile" &&
+            typeof typedInput.filePath === "string"
+          ) {
+            spinner.text = `Writing ${typedInput.filePath}`;
+            filesWritten.add(typedInput.filePath);
+          } else if (
+            tool.name === "readFiles" &&
+            Array.isArray(typedInput.filePaths)
+          ) {
+            const paths = typedInput.filePaths as string[];
+            spinner.text = `Reading ${paths.length} files`;
+            for (const p of paths) {
+              filesRead.add(p);
+            }
+          } else if (tool.name === "listFiles") {
+            const dir =
+              typeof typedInput.dirPath === "string" ? typedInput.dirPath : ".";
+            spinner.text = `Listing files in ${dir}`;
           }
+
+          debug(`Executing tool: ${tool.name}`, typedInput);
           // eslint-disable-next-line @typescript-eslint/no-explicit-any -- generic tool execution
-          return await (tool as any).execute(input);
+          const result = await (tool as any).execute(input);
+          debug(`Tool ${tool.name} completed`, typeof result);
+
+          // Update plan tracking state after execution
+          if (tool.name === "submitPlan" && result?.steps) {
+            planSteps = result.steps as PlanStep[];
+            currentStepIndex = 0;
+            const total = planSteps.length;
+            const first = planSteps[0];
+            spinner.text = `Step 1/${total}: ${first?.description ?? ""}`;
+          } else if (tool.name === "updatePlan") {
+            const doneCount = planSteps.filter(
+              (s) => s.status === "done",
+            ).length;
+            currentStepIndex = doneCount;
+            const total = planSteps.length;
+            // Mark the step done in our local copy
+            const stepId = typedInput.stepId as string;
+            const doneStep = planSteps.find((s) => s.id === stepId);
+            if (doneStep) {
+              doneStep.status = "done";
+            }
+
+            const next = planSteps.find((s) => s.status === "pending");
+            if (next) {
+              const nextIdx = currentStepIndex + 1;
+              spinner.text = `\u2713 Step ${currentStepIndex}/${total} done \u2014 Step ${nextIdx}/${total}: ${next.description}`;
+            } else {
+              spinner.text = `\u2713 All ${total} steps complete`;
+            }
+          }
+
+          return result;
         },
       });
     }
 
     // Create Tambo client and thread
+    spinner.text = "Creating execution thread...";
     const client = createTamboClient({
       apiKey: options.apiKey,
       userKey: options.userKey ?? "cli",
@@ -130,8 +200,7 @@ export async function executeCodeChanges(
     if (selectedItems.includes("chat-widget")) {
       spinner.text = "Installing chat widget component...";
       try {
-        execSync("npx tambo add message-thread-full --yes", {
-          stdio: "pipe",
+        await execAsync("npx tambo add message-thread-full --yes", {
           cwd: process.cwd(),
         });
         chatWidgetInstalled = true;
@@ -145,17 +214,94 @@ export async function executeCodeChanges(
       plan,
       selectedItems,
       chatWidgetInstalled,
+      options.apiKey,
     );
 
     // Execute the agentic loop
-    spinner.text = "Agent is applying changes...";
+    debug("Starting agentic loop", { threadId: thread.id });
+    debug("Prompt length:", prompt.length);
+    spinner.text = "Waiting for agent...";
+    const SOFT_ROUND_LIMIT = 50;
+    let extendedLimit = false;
     await executeRun(client, thread.id, prompt, {
       tools: registry,
-      maxToolRounds: 20,
+      maxToolRounds: 200,
+      async onRoundComplete(round: number) {
+        debug(`Round ${round} complete`);
+        if (round === SOFT_ROUND_LIMIT && !extendedLimit) {
+          spinner.stop();
+          if (options.yes) {
+            // Non-interactive: just keep going
+            extendedLimit = true;
+            spinner.start("Agent is working...");
+            return true;
+          }
+          const { shouldContinue } = await inquirer.prompt<{
+            shouldContinue: boolean;
+          }>([
+            {
+              type: "confirm",
+              name: "shouldContinue",
+              message: `Agent has used ${round} tool rounds. Continue?`,
+              default: true,
+            },
+          ]);
+          if (!shouldContinue) {
+            return false;
+          }
+          extendedLimit = true;
+          spinner.start("Agent is working...");
+        }
+        return true;
+      },
       onEvent: (event: unknown) => {
-        const data = event as { type: string; delta?: string };
-        if (data.type === "TEXT_MESSAGE_CONTENT" && data.delta) {
-          options.onProgress?.(data.delta);
+        const data = event as {
+          type: string;
+          delta?: string;
+          toolCallName?: string;
+          toolCallId?: string;
+        };
+
+        debug(
+          `Event: ${data.type}`,
+          data.toolCallName ?? data.toolCallId ?? "",
+        );
+
+        switch (data.type) {
+          case "RUN_STARTED":
+            spinner.text = "Agent is thinking...";
+            break;
+          case "TEXT_MESSAGE_CONTENT":
+            if (data.delta) {
+              spinner.text = "Agent is working...";
+              options.onProgress?.(data.delta);
+            }
+            break;
+          case "TOOL_CALL_START":
+            spinner.text = `Calling ${data.toolCallName ?? "tool"}...`;
+            if (data.toolCallId && data.toolCallName) {
+              toolCallNames.set(data.toolCallId, data.toolCallName);
+            }
+            break;
+          case "TOOL_CALL_ARGS":
+            {
+              // Keep spinner alive during arg streaming so it doesn't look frozen
+              const toolName = data.toolCallId
+                ? toolCallNames.get(data.toolCallId)
+                : undefined;
+              spinner.text = `Receiving ${toolName ?? "tool"} data...`;
+              break;
+            }
+            break;
+          case "TOOL_CALL_END":
+            debug(`Tool call ended: ${data.toolCallId}`);
+            break;
+          case "RUN_FINISHED":
+            debug("Run finished");
+            break;
+          case "RUN_ERROR":
+            debug("Run error", data);
+            break;
         }
       },
     });
@@ -200,20 +346,78 @@ export async function executeCodeChanges(
   } catch (err) {
     spinner.fail("Execution failed");
 
-    // Delete files the agent created (not pre-existing)
-    const createdFiles = [...filesWritten].filter((f) => !filesRead.has(f));
-    if (createdFiles.length > 0) {
-      console.log("\nCleaning up created files...");
-      await deleteCreatedFiles(createdFiles);
-    }
-
-    console.log("\nRestoring backups...");
-    await restoreBackups(manifest);
-
     const executionError = categorizeExecutionError(
       err instanceof Error ? err : new Error(String(err)),
     );
     console.error(formatExecutionError(executionError));
+
+    // In non-interactive mode, auto-revert (preserve existing behavior)
+    if (options.yes) {
+      const createdFiles = [...filesWritten].filter((f) => !filesRead.has(f));
+      if (createdFiles.length > 0) {
+        console.log("\nCleaning up created files...");
+        await deleteCreatedFiles(createdFiles);
+      }
+      console.log("\nRestoring backups...");
+      await restoreBackups(manifest);
+      throw err;
+    }
+
+    // Interactive mode: let user choose
+    let decided = false;
+    while (!decided) {
+      const { action } = await inquirer.prompt<{ action: string }>([
+        {
+          type: "list",
+          name: "action",
+          message: "What would you like to do?",
+          choices: [
+            { name: "Revert all changes (restore backups)", value: "revert" },
+            { name: "Keep changes as-is (delete backups)", value: "keep" },
+            {
+              name: "View execution plan (.tambo/execution-plan.md)",
+              value: "view",
+            },
+          ],
+        },
+      ]);
+
+      switch (action) {
+        case "revert": {
+          const createdFiles = [...filesWritten].filter(
+            (f) => !filesRead.has(f),
+          );
+          if (createdFiles.length > 0) {
+            console.log("\nCleaning up created files...");
+            await deleteCreatedFiles(createdFiles);
+          }
+          console.log("\nRestoring backups...");
+          await restoreBackups(manifest);
+          decided = true;
+          break;
+        }
+        case "keep":
+          console.log("\nKeeping changes. Cleaning up backup files...");
+          await cleanupBackups(manifest);
+          decided = true;
+          break;
+        case "view": {
+          try {
+            const planContent = await fs.readFile(
+              ".tambo/execution-plan.md",
+              "utf-8",
+            );
+            console.log(`\n${planContent}`);
+          } catch {
+            console.log(
+              "\nNo execution plan found (.tambo/execution-plan.md does not exist).",
+            );
+          }
+          // Re-prompt
+          break;
+        }
+      }
+    }
 
     throw err;
   }

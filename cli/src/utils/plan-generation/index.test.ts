@@ -95,6 +95,7 @@ describe("generatePlan", () => {
 
     expect(mockCreateTamboClient).toHaveBeenCalledWith({
       apiKey: "sk_test_123",
+      userKey: "cli",
       baseUrl: "https://api.test.com",
     });
   });
@@ -230,7 +231,6 @@ describe("generatePlan", () => {
           filePath: "/components/Button.tsx",
           reason: "Interactive UI element",
           confidence: 0.85,
-          suggestedRegistration: 'register("Button", Button)',
         },
       ],
       toolRecommendations: [],
@@ -263,7 +263,6 @@ describe("generatePlan", () => {
           filePath: "/components/Button.tsx",
           reason: "Interactive UI element",
           confidence: 0.85,
-          suggestedRegistration: 'register("Button", Button)',
         },
       ],
       toolRecommendations: [],

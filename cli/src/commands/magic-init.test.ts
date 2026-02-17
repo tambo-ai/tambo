@@ -160,7 +160,6 @@ describe("handleMagicInit", () => {
         filePath: "/test/src/components/tambo/MessageThreadFull.tsx",
         reason: "Chat component for full-screen messaging",
         confidence: 0.85,
-        suggestedRegistration: "MessageThreadFull",
       },
     ],
     toolRecommendations: [
@@ -170,7 +169,6 @@ describe("handleMagicInit", () => {
         filePath: "/test/src/lib/tools/fetchData.ts",
         reason: "Detected fetch call in api.ts",
         confidence: 0.8,
-        suggestedSchema: "z.object({})",
       },
     ],
     interactableRecommendations: [],
@@ -262,9 +260,13 @@ describe("handleMagicInit", () => {
       projectAnalysis: mockAnalysis,
       apiKey: "test-key",
     });
-    expect(mockConfirmPlan).toHaveBeenCalledWith(mockPlan, { yes: false });
+    expect(mockConfirmPlan).toHaveBeenCalledWith(
+      mockPlan,
+      expect.objectContaining({ yes: false }),
+    );
     expect(mockExecuteCodeChanges).toHaveBeenCalledWith(mockConfirmation, {
       yes: false,
+      apiKey: "test-key",
     });
   });
 
@@ -356,9 +358,13 @@ describe("handleMagicInit", () => {
   test("passes --yes flag through to confirmPlan and executeCodeChanges", async () => {
     await handleMagicInit({ yes: true });
 
-    expect(mockConfirmPlan).toHaveBeenCalledWith(mockPlan, { yes: true });
+    expect(mockConfirmPlan).toHaveBeenCalledWith(
+      mockPlan,
+      expect.objectContaining({ yes: true }),
+    );
     expect(mockExecuteCodeChanges).toHaveBeenCalledWith(mockConfirmation, {
       yes: true,
+      apiKey: "test-key",
     });
   });
 
