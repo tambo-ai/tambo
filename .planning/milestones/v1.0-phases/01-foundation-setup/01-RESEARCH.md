@@ -11,38 +11,40 @@ Phase 1 establishes the foundation for hot reload in the Tambo monorepo by addre
 **Primary recommendation:** Use webpack mode for Next.js (not Turbopack), configure internal packages to export source via package.json exports field, enable declarationMap in all package tsconfig.json files, and rely on Turborepo's existing dependsOn: ["^build"] to order tasks correctly.
 
 <phase_requirements>
+
 ## Phase Requirements
 
-| ID | Description | Research Support |
-|----|-------------|-----------------|
-| TURBO-03 | Initial package build completes before dev servers start accepting requests | Turborepo's dependsOn: ["^build"] configuration ensures dependency builds complete before dependent tasks run |
-| NEXT-04 | Next.js dev uses webpack mode (not Turbopack) to support transpilePackages | Turbopack does not respect transpilePackages for monorepo packages with inter-dependencies; webpack mode required |
-| DX-02 | Go-to-definition in IDE navigates to source .ts files in workspace packages | TypeScript declarationMap compiler option enables source navigation from .d.ts files |
+| ID       | Description                                                                 | Research Support                                                                                                  |
+| -------- | --------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| TURBO-03 | Initial package build completes before dev servers start accepting requests | Turborepo's dependsOn: ["^build"] configuration ensures dependency builds complete before dependent tasks run     |
+| NEXT-04  | Next.js dev uses webpack mode (not Turbopack) to support transpilePackages  | Turbopack does not respect transpilePackages for monorepo packages with inter-dependencies; webpack mode required |
+| DX-02    | Go-to-definition in IDE navigates to source .ts files in workspace packages | TypeScript declarationMap compiler option enables source navigation from .d.ts files                              |
+
 </phase_requirements>
 
 ## Standard Stack
 
 ### Core
 
-| Library | Version | Purpose | Why Standard |
-|---------|---------|---------|--------------|
-| Next.js | 15.5.11 | React framework with built-in transpilePackages support | Industry standard for React applications, native monorepo support |
-| TypeScript | 5.9.3 | Type checking and declaration generation | Required for type-safe monorepo development |
-| Turborepo | 2.8.3 | Monorepo task orchestration and caching | De facto standard for TypeScript monorepos |
-| webpack | 5.x (bundled with Next.js) | Module bundler for Next.js dev mode | Mature monorepo support, respects transpilePackages |
+| Library    | Version                    | Purpose                                                 | Why Standard                                                      |
+| ---------- | -------------------------- | ------------------------------------------------------- | ----------------------------------------------------------------- |
+| Next.js    | 15.5.11                    | React framework with built-in transpilePackages support | Industry standard for React applications, native monorepo support |
+| TypeScript | 5.9.3                      | Type checking and declaration generation                | Required for type-safe monorepo development                       |
+| Turborepo  | 2.8.3                      | Monorepo task orchestration and caching                 | De facto standard for TypeScript monorepos                        |
+| webpack    | 5.x (bundled with Next.js) | Module bundler for Next.js dev mode                     | Mature monorepo support, respects transpilePackages               |
 
 ### Supporting
 
-| Library | Version | Purpose | When to Use |
-|---------|---------|---------|-------------|
+| Library    | Version | Purpose                           | When to Use                                   |
+| ---------- | ------- | --------------------------------- | --------------------------------------------- |
 | NestJS CLI | 11.0.16 | NestJS compilation and watch mode | Server-side hot reload via nest start --watch |
 
 ### Alternatives Considered
 
-| Instead of | Could Use | Tradeoff |
-|------------|-----------|----------|
-| webpack | Turbopack | Turbopack is faster but does not respect transpilePackages for monorepo packages with inter-dependencies ([Issue #63230](https://github.com/vercel/next.js/issues/63230)) |
-| Source exports | Pre-compiled dist exports | Pre-compilation requires rebuild step, defeats instant hot reload goal |
+| Instead of     | Could Use                 | Tradeoff                                                                                                                                                                  |
+| -------------- | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| webpack        | Turbopack                 | Turbopack is faster but does not respect transpilePackages for monorepo packages with inter-dependencies ([Issue #63230](https://github.com/vercel/next.js/issues/63230)) |
+| Source exports | Pre-compiled dist exports | Pre-compilation requires rebuild step, defeats instant hot reload goal                                                                                                    |
 
 **Installation:**
 No new packages required. All tools already present in the monorepo.
@@ -143,9 +145,9 @@ packages/
 /** @type {import('next').NextConfig} */
 const config = {
   transpilePackages: [
-    '@tambo-ai-cloud/core',
-    '@tambo-ai-cloud/db',
-    '@tambo-ai-cloud/backend',
+    "@tambo-ai-cloud/core",
+    "@tambo-ai-cloud/db",
+    "@tambo-ai-cloud/backend",
   ],
   // Do NOT add experimental.turbo config
 };
@@ -162,12 +164,12 @@ const config = {
 
 ## Don't Hand-Roll
 
-| Problem | Don't Build | Use Instead | Why |
-|---------|-------------|-------------|-----|
-| Monorepo task orchestration | Custom bash scripts for parallel builds | Turborepo with dependsOn | Handles caching, task graph, parallel execution, and incremental builds |
-| TypeScript source watching | Custom file watchers with chokidar | tsc --watch or nest start --watch | TypeScript compiler has optimized incremental compilation |
-| Module transpilation | Custom Babel config for monorepo packages | Next.js transpilePackages | Built-in, optimized, integrates with Next.js bundler |
-| Declaration file source maps | Custom .d.ts.map generation | TypeScript declarationMap option | Standard compiler feature, works with all IDEs |
+| Problem                      | Don't Build                               | Use Instead                       | Why                                                                     |
+| ---------------------------- | ----------------------------------------- | --------------------------------- | ----------------------------------------------------------------------- |
+| Monorepo task orchestration  | Custom bash scripts for parallel builds   | Turborepo with dependsOn          | Handles caching, task graph, parallel execution, and incremental builds |
+| TypeScript source watching   | Custom file watchers with chokidar        | tsc --watch or nest start --watch | TypeScript compiler has optimized incremental compilation               |
+| Module transpilation         | Custom Babel config for monorepo packages | Next.js transpilePackages         | Built-in, optimized, integrates with Next.js bundler                    |
+| Declaration file source maps | Custom .d.ts.map generation               | TypeScript declarationMap option  | Standard compiler feature, works with all IDEs                          |
 
 **Key insight:** Modern tooling (Next.js, TypeScript, Turborepo) has built-in monorepo support. Custom solutions introduce maintenance burden and miss optimizations.
 
@@ -182,6 +184,7 @@ const config = {
 **How to avoid:** Use webpack mode by ensuring next dev script does NOT include --turbo flag. Verify with: `next dev -p 8260` (no --turbo).
 
 **Warning signs:**
+
 - "Module not found: Can't resolve '@tambo-ai-cloud/core'" in Next.js dev server
 - Changes to internal packages don't trigger HMR
 - next dev uses Turbopack (check console output for "Turbopack" mention)
@@ -195,6 +198,7 @@ const config = {
 **How to avoid:** Ensure all internal packages (core, db, backend) have declarationMap: true in their tsconfig.json compilerOptions.
 
 **Warning signs:**
+
 - Cmd+Click on imported symbols opens .d.ts file instead of .ts source
 - IDE shows type definitions but not implementation code
 
@@ -207,6 +211,7 @@ const config = {
 **How to avoid:** For internal packages, ensure exports field points to src/ TypeScript files: `"exports": { "import": "./src/index.ts" }`
 
 **Warning signs:**
+
 - No HMR when editing internal package files
 - Module resolution errors in Next.js dev mode
 - TypeScript errors about missing source files
@@ -220,6 +225,7 @@ const config = {
 **How to avoid:** Ensure dev tasks in turbo.json have dependsOn: ["^build"] to guarantee builds complete first.
 
 **Warning signs:**
+
 - First page load in Next.js dev server shows import errors
 - Errors disappear after manual package rebuild
 - Intermittent module resolution failures
@@ -235,9 +241,9 @@ Verified patterns from official sources:
 /** @type {import('next').NextConfig} */
 const config = {
   transpilePackages: [
-    '@tambo-ai-cloud/core',
-    '@tambo-ai-cloud/db',
-    '@tambo-ai-cloud/backend',
+    "@tambo-ai-cloud/core",
+    "@tambo-ai-cloud/db",
+    "@tambo-ai-cloud/backend",
   ],
   // Additional Next.js config...
 };
@@ -307,14 +313,15 @@ export default config;
 
 ## State of the Art
 
-| Old Approach | Current Approach | When Changed | Impact |
-|--------------|------------------|--------------|--------|
-| next-transpile-modules package | Built-in transpilePackages option | Next.js 13.1 (2022) | Native support, better performance, no external dependency |
-| TypeScript project references | Direct source exports with transpilePackages | 2023-2024 | Simpler configuration, faster builds, less maintenance overhead |
-| Manual build scripts for watch mode | Turborepo persistent dev tasks | Turborepo 1.x (2022) | Automatic dependency tracking, parallel execution |
-| Turbopack (experimental) | Turbopack stable but with monorepo limitations | Next.js 15 (2024) | Stable but transpilePackages incompatible, webpack still needed for monorepos |
+| Old Approach                        | Current Approach                               | When Changed         | Impact                                                                        |
+| ----------------------------------- | ---------------------------------------------- | -------------------- | ----------------------------------------------------------------------------- |
+| next-transpile-modules package      | Built-in transpilePackages option              | Next.js 13.1 (2022)  | Native support, better performance, no external dependency                    |
+| TypeScript project references       | Direct source exports with transpilePackages   | 2023-2024            | Simpler configuration, faster builds, less maintenance overhead               |
+| Manual build scripts for watch mode | Turborepo persistent dev tasks                 | Turborepo 1.x (2022) | Automatic dependency tracking, parallel execution                             |
+| Turbopack (experimental)            | Turbopack stable but with monorepo limitations | Next.js 15 (2024)    | Stable but transpilePackages incompatible, webpack still needed for monorepos |
 
 **Deprecated/outdated:**
+
 - **next-transpile-modules**: Replaced by built-in transpilePackages configuration
 - **TypeScript project references for monorepos**: Research showed maintenance overhead outweighs benefits (documented in REQUIREMENTS.md)
 - **Turbopack for monorepos with transpilePackages**: Does not work with inter-package dependencies ([GitHub Issues #63230](https://github.com/vercel/next.js/issues/63230), [#85316](https://github.com/vercel/next.js/issues/85316))
@@ -359,6 +366,7 @@ None - all critical findings verified with official sources or GitHub issues.
 ## Metadata
 
 **Confidence breakdown:**
+
 - Standard stack: HIGH - All tools already in monorepo, versions confirmed from package.json files
 - Architecture: HIGH - Patterns verified with official documentation (Next.js, TypeScript, Turborepo)
 - Pitfalls: HIGH - Confirmed via GitHub issues and official documentation
