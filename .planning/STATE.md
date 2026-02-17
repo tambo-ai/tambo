@@ -13,7 +13,7 @@ Milestone: v1.1 — DevTools Integration Fix
 Phase: 04-devtools-trigger-fix
 Current Plan: 2 of 2 complete
 Status: Phase 04 plans complete
-Last activity: 2026-02-17 — Completed 04-02 (dashboard wiring & showcase integration)
+Last activity: 2026-02-17 — Completed 04-01 (trigger redesign with stats popover)
 
 Progress: [██████████] 100%
 
@@ -35,9 +35,10 @@ Progress: [██████████] 100%
 ## Session Continuity
 
 Last session: 2026-02-17
-Stopped at: Completed 04-02-PLAN.md
+Stopped at: Completed 04-01-PLAN.md
 Resume file: None
 
 ## Decisions
 
 - Auto-select clientId only when no client already selected (avoid overriding user choice)
+- [Phase 04]: Dashboard URL hardcodes port 8260; registry counts use Object.keys on Record types
