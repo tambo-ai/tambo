@@ -54,6 +54,9 @@ yarn-error.log*
 # mise
 .mise.local.toml
 
+# generated files
+cli/src/utils/plan-generation/generated-sdk-reference.ts
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

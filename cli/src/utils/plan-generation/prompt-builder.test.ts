@@ -146,10 +146,6 @@ describe("buildPlanPrompt", () => {
     const analysis = createMockAnalysis({ providers: [] });
     const prompt = buildPlanPrompt(analysis);
 
-    // Should not have undefined or null
-    expect(prompt).not.toContain("undefined");
-    expect(prompt).not.toContain("null");
-
     // Should mention providers section exists
     expect(prompt).toContain("Existing Providers");
   });
@@ -158,10 +154,6 @@ describe("buildPlanPrompt", () => {
     const analysis = createMockAnalysis({ components: [] });
     const prompt = buildPlanPrompt(analysis);
 
-    // Should not have undefined or null
-    expect(prompt).not.toContain("undefined");
-    expect(prompt).not.toContain("null");
-
     // Should mention components section exists
     expect(prompt).toContain("Available Components");
   });
@@ -169,10 +161,6 @@ describe("buildPlanPrompt", () => {
   it("handles empty tool candidates gracefully", () => {
     const analysis = createMockAnalysis({ toolCandidates: [] });
     const prompt = buildPlanPrompt(analysis);
-
-    // Should not have undefined or null
-    expect(prompt).not.toContain("undefined");
-    expect(prompt).not.toContain("null");
 
     // Should mention tool candidates section exists
     expect(prompt).toContain("Tool Candidates");

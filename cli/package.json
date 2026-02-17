@@ -30,7 +30,8 @@
   ],
   "sideEffects": false,
   "scripts": {
-    "build": "tsc --project tsconfig.build.json && npm run copy-registry",
+    "build": "npm run generate-sdk-reference && tsc --project tsconfig.build.json && npm run copy-registry",
+    "generate-sdk-reference": "npx tsx scripts/generate-sdk-reference.ts",
     "copy-registry": "npx tsx scripts/copy-registry.ts",
     "dev": "concurrently -c blue.bold,green.bold \"npm run dev:esm\"",
     "dev:esm": "tsc --watch",
@@ -55,6 +56,7 @@
     ]
   },
   "dependencies": {
+    "@tambo-ai/client-core": "*",
     "@tambo-ai/react": "*",
     "@tambo-ai/typescript-sdk": "^0.92.0",
     "@trpc/client": "^11.9.0",
@@ -80,7 +82,8 @@
     "semver": "^7.7.3",
     "streamdown": "^1.6.10",
     "superjson": "^2.2.6",
-    "ts-morph": "^27.0.2"
+    "ts-morph": "^27.0.2",
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "@tambo-ai/ui-registry": "*",
