@@ -2,40 +2,36 @@
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-02-12)
+See: .planning/PROJECT.md (updated 2026-02-16)
 
 **Core value:** Developers can see exactly what's happening inside their Tambo app without resorting to console.log or manual network tab inspection.
-**Current focus:** v1.0 complete — milestone archived
+**Current focus:** v1.1 — Fix broken devtools integration
 
 ## Current Position
 
-Milestone: v1.0 — COMPLETE
-Status: Archived
-Last activity: 2026-02-12 -- Milestone v1.0 archived
+Milestone: v1.1 — DevTools Integration Fix
+Status: Defining requirements
+Last activity: 2026-02-16 — Milestone v1.1 started
 
-Progress: [██████████] 100%
+Progress: [░░░░░░░░░░] 0%
+
+## Known Issues
+
+- TamboDevTools component added to apps/web provider — dashboard is debugging itself
+- Trigger component links to WS port (8265) instead of dashboard URL
+- Trigger renders on /devtools page where it shouldn't
+- Trigger shows minimal info (just connected/disconnected), needs tool/component counts
 
 ## Performance Metrics
 
-**Velocity:**
+**Velocity (from v1.0):**
 
 - Total plans completed: 9
 - Phases: 3
-
-**By Phase:**
-
-| Phase                   | Plans | Total | Avg/Plan |
-| ----------------------- | ----- | ----- | -------- |
-| 1. WebSocket Bridge     | 3/3   | -     | -        |
-| 2. Inspection Panels    | 3/3   | 13min | 4.3min   |
-| 3. Streaming Visibility | 3/3   | 9min  | 3min     |
-
-## Next Steps
-
-Run `/gsd:new-milestone` to start v2.0 planning.
+- Avg per plan: ~3.7min
 
 ## Session Continuity
 
-Last session: 2026-02-12
-Stopped at: Milestone v1.0 archived
+Last session: 2026-02-16
+Stopped at: Defining v1.1 requirements
 Resume file: None

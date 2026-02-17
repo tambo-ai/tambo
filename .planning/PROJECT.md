@@ -23,6 +23,17 @@ What's built:
 - Component streaming visualizer with JSON Patch log and cumulative props
 - Tool call lifecycle panel with status tracking
 
+## Current Milestone: v1.1 DevTools Integration Fix
+
+**Goal:** Fix the broken devtools trigger and connection so the SDK-to-dashboard bridge actually works.
+
+**Target features:**
+
+- Remove TamboDevTools from dashboard's own provider (it's debugging itself)
+- Fix trigger component: show connection status, tool/component counts, link to correct dashboard URL
+- Hide trigger on `/devtools` page
+- Pre-select the correct client when opening dashboard from trigger
+
 ## Next Milestone Goals
 
 Candidates for v2.0 (from deferred v2 requirements):
@@ -52,4 +63,4 @@ Candidates for v2.0 (from deferred v2 requirements):
 
 ---
 
-_Last updated: 2026-02-12 after v1.0 milestone completion_
+_Last updated: 2026-02-16 after v1.1 milestone start_
