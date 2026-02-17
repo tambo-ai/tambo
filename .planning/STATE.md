@@ -10,8 +10,8 @@ See: .planning/PROJECT.md (updated 2026-02-16)
 ## Current Position
 
 Milestone: v1.1 — DevTools Integration Fix
-Status: Defining requirements
-Last activity: 2026-02-16 — Milestone v1.1 started
+Status: Roadmap created, ready to plan
+Last activity: 2026-02-16 — Milestone v1.1 roadmap created
 
 Progress: [░░░░░░░░░░] 0%
 
