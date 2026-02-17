@@ -4,6 +4,7 @@ import { env } from "@/lib/env";
 import { tamboRegisteredComponents } from "@/lib/tambo/config";
 import { TamboProvider, currentPageContextHelper } from "@tambo-ai/react";
 import { TamboDevTools } from "@tambo-ai/react/devtools";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
 const ANONYMOUS_USER_STORAGE_KEY = "tambo-anonymous-user-id";
@@ -51,6 +52,8 @@ export function TamboProviderWrapper({
   userId,
 }: TamboProviderWrapperProps) {
   const contextKey = useContextKey(userId);
+  const pathname = usePathname();
+  const isDevtoolsPage = pathname === "/devtools";
 
   return (
     <TamboProvider
@@ -63,7 +66,7 @@ export function TamboProviderWrapper({
       }}
     >
       {children}
-      <TamboDevTools />
+      <TamboDevTools showTrigger={!isDevtoolsPage} />
     </TamboProvider>
   );
 }

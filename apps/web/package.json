@@ -14,8 +14,7 @@
     "clean": "rm -rf dist .next coverage",
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:cov": "jest --coverage",
-    "dev:devtools": "tsx watch devtools-server/server.ts"
+    "test:cov": "jest --coverage"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

@@ -31,6 +31,8 @@ export interface TamboDevToolsProps {
   port?: number;
   /** Host of the devtools WebSocket server. Defaults to "localhost". */
   host?: string;
+  /** Whether to show the floating trigger button. Defaults to true. */
+  showTrigger?: boolean;
 }
 
 /** Port used by the Tambo Cloud dashboard (web app). */
@@ -51,6 +53,8 @@ function deriveDashboardUrl(wsHost: string, sessionId: string): string {
 /**
  * Computes summary stats from registry and stream state for the trigger popover.
  * @param registry - The current registry context value
+ * @param registry.componentList - Map of registered component names to metadata
+ * @param registry.toolRegistry - Map of registered tool names to metadata
  * @param streamState - The current stream state (or null)
  * @returns Computed summary statistics.
  */
@@ -99,6 +103,7 @@ const EMPTY_STREAM_STATE: StreamState = {
  * @param props - Optional host and port overrides
  * @param props.port - Port of the devtools WebSocket server (default: 8265)
  * @param props.host - Host of the devtools WebSocket server (default: "localhost")
+ * @param props.showTrigger - Whether to show the floating trigger button (default: true)
  * @returns A React component that manages the devtools connection and state synchronization.
  * @example
  * ```tsx
@@ -115,7 +120,11 @@ const EMPTY_STREAM_STATE: StreamState = {
  * }
  * ```
  */
-export function TamboDevTools({ port, host }: TamboDevToolsProps) {
+export function TamboDevTools({
+  port,
+  host,
+  showTrigger = true,
+}: TamboDevToolsProps) {
   // Read projectId from TamboProvider context if available.
   // Uses useContext directly (not the throwing useTamboClient hook) so
   // the component degrades gracefully outside of TamboProvider.
@@ -262,6 +271,8 @@ export function TamboDevTools({ port, host }: TamboDevToolsProps) {
     registry.toolRegistry,
     registry.mcpServerInfos,
   ]);
+
+  if (!showTrigger) return null;
 
   return (
     <TamboDevToolsTrigger
