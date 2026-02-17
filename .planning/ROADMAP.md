@@ -14,7 +14,7 @@ This roadmap transforms the Tambo monorepo developer experience from manual pack
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Foundation Setup** - Audit config, choose bundler, prepare package exports (completed 2026-02-17)
-- [ ] **Phase 2: Next.js Hot Reload** - Enable HMR for apps/web, showcase, docs
+- [x] **Phase 2: Next.js Hot Reload** - Enable HMR for apps/web, showcase, docs (completed 2026-02-17)
 - [ ] **Phase 3: NestJS Hot Reload** - Enable auto-restart for apps/api
 - [ ] **Phase 4: Refinement & Validation** - Orchestration polish, convenience scripts, testing
 
@@ -47,7 +47,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 2. Editing a file in packages/core triggers HMR in apps/web without full page refresh
 3. All internal workspace packages listed in transpilePackages configuration
 4. Changes propagate through dependency chain (core → react-sdk → apps/web)
-   **Plans:** 1 plan
+   **Plans:** 1/1 plans complete
    Plans:
    - [ ] 02-01-PLAN.md — Add workspace packages to transpilePackages in showcase and docs
 
@@ -86,6 +86,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | Phase                      | Plans Complete | Status      | Completed  |
 | -------------------------- | -------------- | ----------- | ---------- |
 | 1. Foundation Setup        | 0/1            | Complete    | 2026-02-17 |
-| 2. Next.js Hot Reload      | 0/1            | Not started | -          |
+| 2. Next.js Hot Reload      | 0/1            | Complete    | 2026-02-17 |
 | 3. NestJS Hot Reload       | 0/TBD          | Not started | -          |
 | 4. Refinement & Validation | 0/TBD          | Not started | -          |
