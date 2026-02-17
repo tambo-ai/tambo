@@ -42,7 +42,7 @@
     "@mastra/core": "^1.1.0",
     "@tambo-ai-cloud/core": "*",
     "ai": "^5.0.129",
-    "ajv": "^8.17.1",
+    "ajv": "^8.18.0",
     "fast-json-patch": "^3.1.1",
     "gpt-tokenizer": "^3.2.0",
     "langfuse": "^3.38.6",

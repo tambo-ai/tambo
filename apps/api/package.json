@@ -51,7 +51,7 @@
     "@tambo-ai-cloud/db": "*",
     "@types/jsonwebtoken": "^9.0.9",
     "@types/mime-types": "^3.0.1",
-    "ajv": "^8.17.1",
+    "ajv": "^8.18.0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.3",
     "drizzle-orm": "^0.45.1",
