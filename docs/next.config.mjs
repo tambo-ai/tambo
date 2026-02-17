@@ -1,14 +1,13 @@
 import { createMDX } from "fumadocs-mdx/next";
+import { fileURLToPath } from "node:url";
+import { getWorkspaceTranspilePackages } from "../scripts/workspace-packages.mjs";
 
 const withMDX = createMDX();
+const APP_DIR = fileURLToPath(import.meta.url);
 
 /** @type {import('next').NextConfig} */
 const config = {
-  transpilePackages: [
-    "@tambo-ai/react",
-    "@tambo-ai/react-ui-base",
-    "@tambo-ai/ui-registry",
-  ],
+  transpilePackages: getWorkspaceTranspilePackages(APP_DIR),
   webpack(config) {
     config.resolve.conditionNames = [
       "development",

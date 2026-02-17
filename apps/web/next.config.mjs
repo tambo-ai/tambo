@@ -7,9 +7,11 @@ import rehypeKatex from "rehype-katex";
 import rehypePrettyCode from "rehype-pretty-code";
 import remarkGfm from "remark-gfm";
 import remarkMdxFrontmatter from "remark-mdx-frontmatter";
+import { getWorkspaceTranspilePackages } from "../../scripts/workspace-packages.mjs";
 import { remarkInjectBlogLayout } from "./lib/mdx/inject-blog-layout.mjs";
 
-const jiti = createJiti(fileURLToPath(import.meta.url));
+const APP_DIR = fileURLToPath(new URL(".", import.meta.url));
+const jiti = createJiti(APP_DIR);
 
 // Import env here to validate the environment variables during build. Using jiti we can import .ts files :)
 jiti.import("./lib/env").catch(console.error);
@@ -47,13 +49,7 @@ const authRedirects =
 
 /** @type {import('next').NextConfig} */
 const config = {
-  transpilePackages: [
-    "@tambo-ai/react-ui-base",
-    "@tambo-ai/ui-registry",
-    "@tambo-ai-cloud/core",
-    "@tambo-ai-cloud/db",
-    "@tambo-ai-cloud/backend",
-  ],
+  transpilePackages: getWorkspaceTranspilePackages(APP_DIR),
   redirects: () => {
     return [
       ...authRedirects,
