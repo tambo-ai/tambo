@@ -3,6 +3,7 @@
 import { env } from "@/lib/env";
 import { tamboRegisteredComponents } from "@/lib/tambo/config";
 import { TamboProvider, currentPageContextHelper } from "@tambo-ai/react";
+import { TamboDevTools } from "@tambo-ai/react/devtools";
 import { useEffect, useState } from "react";
 
 const ANONYMOUS_USER_STORAGE_KEY = "tambo-anonymous-user-id";
@@ -62,6 +63,7 @@ export function TamboProviderWrapper({
       }}
     >
       {children}
+      <TamboDevTools />
     </TamboProvider>
   );
 }
