@@ -4,7 +4,7 @@ const withMDX = createMDX();
 
 /** @type {import('next').NextConfig} */
 const config = {
-  transpilePackages: ["@tambo-ai/ui-registry"],
+  transpilePackages: ["@tambo-ai/react", "@tambo-ai/ui-registry"],
   reactStrictMode: true,
   trailingSlash: false,
   async redirects() {
