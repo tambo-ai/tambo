@@ -47,7 +47,7 @@
     "date-fns": "^4.1.0",
     "@tambo-ai-cloud/db": "*",
     "@tambo-ai/react": "*",
-    "@tambo-ai/typescript-sdk": "^0.92.0",
+    "@tambo-ai/typescript-sdk": "^0.93.0",
     "@tambo-ai/ui-registry": "*",
     "@tanstack/react-query": "^5.90.16",
     "@theguild/remark-mermaid": "^0.3.0",

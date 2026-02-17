@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "@tambo-ai/react": "*",
-    "@tambo-ai/typescript-sdk": "^0.92.0",
+    "@tambo-ai/typescript-sdk": "^0.93.0",
     "@tambo-ai/ui-registry": "*",
     "class-variance-authority": "^0.7.1",
     "dompurify": "^3.3.1",
