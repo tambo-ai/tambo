@@ -2,79 +2,66 @@
  * Code execution orchestrator
  *
  * Main entry point for Phase 5 code execution. Takes a confirmed installation
- * plan and executes it: backup → write files → install deps → verify → report.
+ * plan and executes it using an agentic tool-call loop: the LLM reads files,
+ * generates code, and writes files through tools — iterating until done.
  */
 
+import { execSync } from "node:child_process";
 import fs from "node:fs/promises";
 import ora from "ora";
+import {
+  createTamboClient,
+  createToolRegistry,
+  executeRun,
+} from "@tambo-ai/client-core";
 import {
   createBackup,
   restoreBackups,
   cleanupBackups,
-  executeFileOperations,
 } from "./file-operations.js";
 import {
   installDependencies,
   collectDependencies,
 } from "./dependency-installer.js";
-import { verifyExecution } from "./verification.js";
 import {
   categorizeExecutionError,
   formatExecutionError,
 } from "./error-recovery.js";
-import { generateContentForRecommendation } from "../user-confirmation/content-generator.js";
+import { agentTools } from "./agent-tools.js";
+import { buildExecutionPrompt } from "./execution-prompt.js";
 import type {
   ConfirmationResult,
   ExecutionResult,
-  FileOperation,
   BackupManifest,
   InstallationPlan,
 } from "./types.js";
 
-/**
- * Recommendation with type discriminator for content generation
- */
-type RecommendationWithType =
-  | {
-      type: "provider";
-      filePath: string;
-      plan: Pick<InstallationPlan, "providerSetup">;
-    }
-  | {
-      type: "component";
-      filePath: string;
-      plan: Pick<InstallationPlan, "componentRecommendations">;
-    }
-  | {
-      type: "tool";
-      filePath: string;
-      plan: Pick<InstallationPlan, "toolRecommendations">;
-    }
-  | {
-      type: "interactable";
-      filePath: string;
-      plan: Record<string, unknown>;
-    }
-  | {
-      type: "chat-widget";
-      filePath: string;
-      plan: Pick<InstallationPlan, "chatWidgetSetup">;
-    };
+/** Options for executeCodeChanges */
+export interface ExecuteCodeChangesOptions {
+  /** Skip interactive prompts */
+  yes?: boolean;
+  /** Tambo API key for the agentic execution loop */
+  apiKey: string;
+  /** Optional user key for V1 API authentication */
+  userKey?: string;
+  /** Optional base URL for API */
+  baseUrl?: string;
+  /** Optional progress callback for streaming text from the agent */
+  onProgress?: (text: string) => void;
+}
 
 /**
- * Executes code changes from a confirmed installation plan.
- * Orchestrates the full execution flow with error handling and rollback.
+ * Executes code changes from a confirmed installation plan using an agentic loop.
+ * The LLM reads and writes files through tool calls until all changes are applied.
  *
  * @param confirmation - Confirmed installation plan with selected items
- * @param options - Execution options (e.g., --yes flag)
+ * @param options - Execution options including API key
  * @returns ExecutionResult with success status, file lists, and any errors
- * @throws Error if plan was not approved or execution fails
  */
 export async function executeCodeChanges(
   confirmation: ConfirmationResult,
-  options?: { yes?: boolean },
+  options: ExecuteCodeChangesOptions,
 ): Promise<ExecutionResult> {
-  // Guard: ensure plan was approved
   if (!confirmation.approved) {
     throw new Error("Cannot execute: plan was not approved");
   }
@@ -82,148 +69,126 @@ export async function executeCodeChanges(
   const { selectedItems, plan } = confirmation;
   const spinner = ora("Preparing execution...").start();
 
-  // Create backup manifest
+  // Track files touched by the agent
+  const filesWritten = new Set<string>();
+  const filesRead = new Set<string>();
+
+  // Create backup manifest for rollback
   const manifest: BackupManifest = {
     backups: new Map(),
     timestamp: Date.now().toString(),
   };
 
   try {
-    // Build FileOperation array from selected items
-    spinner.text = "Analyzing selected items...";
-    const operations: FileOperation[] = [];
+    // Backup existing files that might be modified
+    spinner.text = "Creating backups...";
+    const filesToBackup = collectFilePaths(plan, selectedItems);
+    for (const filePath of filesToBackup) {
+      await createBackup(filePath, manifest);
+    }
 
-    for (const itemId of selectedItems) {
-      let filePath: string;
-      let recommendation: RecommendationWithType;
-
-      // Map item ID to plan data
-      if (itemId === "provider-setup") {
-        filePath = plan.providerSetup.filePath;
-        recommendation = {
-          type: "provider" as const,
-          filePath,
-          plan: { providerSetup: plan.providerSetup },
-        };
-      } else if (itemId.startsWith("component-")) {
-        const index = Number.parseInt(itemId.split("-")[1], 10);
-        const component = plan.componentRecommendations[index];
-        if (!component) continue;
-        filePath = component.filePath;
-        recommendation = {
-          type: "component" as const,
-          filePath,
-          plan: { componentRecommendations: [component] },
-        };
-      } else if (itemId.startsWith("tool-")) {
-        const index = Number.parseInt(itemId.split("-")[1], 10);
-        const tool = plan.toolRecommendations[index];
-        if (!tool) continue;
-        filePath = tool.filePath;
-        recommendation = {
-          type: "tool" as const,
-          filePath,
-          plan: { toolRecommendations: [tool] },
-        };
-      } else if (itemId.startsWith("interactable-")) {
-        const index = Number.parseInt(itemId.split("-")[1], 10);
-        const interactable = plan.interactableRecommendations[index];
-        if (!interactable) continue;
-        filePath = interactable.filePath;
-        recommendation = {
-          type: "interactable" as const,
-          filePath,
-          plan: {},
-        };
-      } else if (itemId === "chat-widget") {
-        filePath = plan.chatWidgetSetup.filePath;
-        recommendation = {
-          type: "chat-widget" as const,
-          filePath,
-          plan: { chatWidgetSetup: plan.chatWidgetSetup },
-        };
-      } else {
-        continue;
-      }
-
-      // Read existing file content (empty string for new files)
-      let existingContent = "";
-      try {
-        existingContent = await fs.readFile(filePath, "utf-8");
-      } catch (err) {
-        const errno = (err as NodeJS.ErrnoException).code;
-        if (errno !== "ENOENT") {
-          throw err; // Re-throw non-ENOENT errors
-        }
-        // File doesn't exist (new file) - existingContent stays empty
-      }
-
-      // Generate new content
-      const newContent = generateContentForRecommendation(
-        recommendation,
-        existingContent,
-      );
-
-      operations.push({
-        filePath,
-        content: newContent,
-        isNew: existingContent === "",
+    // Set up tool registry with filesystem tools
+    spinner.text = "Setting up execution agent...";
+    const registry = createToolRegistry();
+    for (const tool of agentTools) {
+      registry.register({
+        ...tool,
+        execute: async (input: unknown) => {
+          // Wrap execute to track file operations
+          const typedInput = input as Record<string, unknown>;
+          if (
+            tool.name === "writeFile" &&
+            typeof typedInput.filePath === "string"
+          ) {
+            filesWritten.add(typedInput.filePath);
+          }
+          if (
+            tool.name === "readFile" &&
+            typeof typedInput.filePath === "string"
+          ) {
+            filesRead.add(typedInput.filePath);
+          }
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- generic tool execution
+          return await (tool as any).execute(input);
+        },
       });
     }
 
-    // Backup existing files (skip new files)
-    spinner.text = "Creating backups...";
-    for (const operation of operations) {
-      if (!operation.isNew) {
-        await createBackup(operation.filePath, manifest);
+    // Create Tambo client and thread
+    const client = createTamboClient({
+      apiKey: options.apiKey,
+      userKey: options.userKey ?? "cli",
+      ...(options.baseUrl ? { baseUrl: options.baseUrl } : {}),
+    });
+
+    const thread = await client.threads.create({
+      metadata: { purpose: "magic-init-execution" },
+    });
+
+    // Pre-install chat widget via `tambo add` if selected
+    let chatWidgetInstalled = false;
+    if (selectedItems.includes("chat-widget")) {
+      spinner.text = "Installing chat widget component...";
+      try {
+        execSync("npx tambo add message-thread-full --yes", {
+          stdio: "pipe",
+          cwd: process.cwd(),
+        });
+        chatWidgetInstalled = true;
+      } catch {
+        // Fall back to letting the LLM handle it
       }
     }
 
-    // Execute file writes
-    spinner.text = "Writing files...";
-    await executeFileOperations(operations);
+    // Build the execution prompt
+    const prompt = buildExecutionPrompt(
+      plan,
+      selectedItems,
+      chatWidgetInstalled,
+    );
+
+    // Execute the agentic loop
+    spinner.text = "Agent is applying changes...";
+    await executeRun(client, thread.id, prompt, {
+      tools: registry,
+      maxToolRounds: 20,
+      onEvent: (event: unknown) => {
+        const data = event as { type: string; delta?: string };
+        if (data.type === "TEXT_MESSAGE_CONTENT" && data.delta) {
+          options.onProgress?.(data.delta);
+        }
+      },
+    });
 
     // Install dependencies
     spinner.text = "Installing dependencies...";
     const deps = collectDependencies(plan, selectedItems);
-    await installDependencies(deps, options);
-
-    // Verify execution
-    spinner.text = "Verifying files...";
-    const verificationErrors = await verifyExecution(operations);
+    await installDependencies(deps, { yes: options.yes });
 
     // Clean up backups on success
     await cleanupBackups(manifest);
 
-    // Build result
-    const filesCreated = operations
-      .filter((op) => op.isNew)
-      .map((op) => op.filePath);
-    const filesModified = operations
-      .filter((op) => !op.isNew)
-      .map((op) => op.filePath);
+    // Determine which files were created vs modified
+    const filesCreated: string[] = [];
+    const filesModified: string[] = [];
+    for (const filePath of filesWritten) {
+      if (filesRead.has(filePath)) {
+        filesModified.push(filePath);
+      } else {
+        filesCreated.push(filePath);
+      }
+    }
 
     const result: ExecutionResult = {
       success: true,
       filesCreated,
       filesModified,
       dependenciesInstalled: [...deps.dependencies, ...deps.devDependencies],
-      errors: verificationErrors,
+      errors: [],
     };
 
-    // Display appropriate spinner status
-    if (verificationErrors.length > 0) {
-      spinner.warn("Execution completed with warnings");
-      console.log("\nWarnings:");
-      for (const error of verificationErrors) {
-        console.log(`  ${error.filePath}: ${error.issue}`);
-        console.log(`    → ${error.suggestion}`);
-      }
-    } else {
-      spinner.succeed("Execution completed successfully");
-    }
+    spinner.succeed("Execution completed successfully");
 
-    // Display summary
     console.log("\nSummary:");
     console.log(`  Files created: ${filesCreated.length}`);
     console.log(`  Files modified: ${filesModified.length}`);
@@ -233,12 +198,18 @@ export async function executeCodeChanges(
 
     return result;
   } catch (err) {
-    // Restore backups on error
     spinner.fail("Execution failed");
+
+    // Delete files the agent created (not pre-existing)
+    const createdFiles = [...filesWritten].filter((f) => !filesRead.has(f));
+    if (createdFiles.length > 0) {
+      console.log("\nCleaning up created files...");
+      await deleteCreatedFiles(createdFiles);
+    }
+
     console.log("\nRestoring backups...");
     await restoreBackups(manifest);
 
-    // Format and display error
     const executionError = categorizeExecutionError(
       err instanceof Error ? err : new Error(String(err)),
     );
@@ -246,6 +217,56 @@ export async function executeCodeChanges(
 
     throw err;
   }
+}
+
+/**
+ * Delete files that were created by the agent during execution.
+ * Silently skips files that no longer exist.
+ */
+async function deleteCreatedFiles(filePaths: string[]): Promise<void> {
+  for (const filePath of filePaths) {
+    try {
+      await fs.unlink(filePath);
+    } catch {
+      // File may already be gone — ignore
+    }
+  }
+}
+
+/**
+ * Collect file paths from the plan that might need backups
+ */
+function collectFilePaths(
+  plan: InstallationPlan,
+  selectedItems: string[],
+): string[] {
+  const paths: string[] = [];
+
+  if (selectedItems.includes("provider-setup")) {
+    paths.push(plan.providerSetup.filePath);
+  }
+
+  for (const id of selectedItems) {
+    if (id.startsWith("component-")) {
+      const idx = Number.parseInt(id.split("-")[1], 10);
+      const component = plan.componentRecommendations[idx];
+      if (component) {
+        paths.push(component.filePath);
+      }
+    } else if (id.startsWith("interactable-")) {
+      const idx = Number.parseInt(id.split("-")[1], 10);
+      const interactable = plan.interactableRecommendations[idx];
+      if (interactable) {
+        paths.push(interactable.filePath);
+      }
+    }
+  }
+
+  if (selectedItems.includes("chat-widget")) {
+    paths.push(plan.chatWidgetSetup.filePath);
+  }
+
+  return paths;
 }
 
 // Re-exports
