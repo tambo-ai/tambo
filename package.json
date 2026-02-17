@@ -26,6 +26,7 @@
     "dev:local": "./scripts/dev-local.sh",
     "dev:web": "turbo dev --filter=@tambo-ai-cloud/web",
     "dev:api": "turbo dev --filter=@tambo-ai-cloud/api",
+    "dev:showcase": "turbo dev --filter=@tambo-ai/showcase",
     "dev:docs": "turbo dev --filter=@tambo-ai/docs"
   },
   "author": "",
