@@ -4,7 +4,18 @@ const withMDX = createMDX();
 
 /** @type {import('next').NextConfig} */
 const config = {
-  transpilePackages: ["@tambo-ai/react", "@tambo-ai/ui-registry"],
+  transpilePackages: [
+    "@tambo-ai/react",
+    "@tambo-ai/react-ui-base",
+    "@tambo-ai/ui-registry",
+  ],
+  webpack(config) {
+    config.resolve.conditionNames = [
+      "development",
+      ...config.resolve.conditionNames,
+    ];
+    return config;
+  },
   reactStrictMode: true,
   trailingSlash: false,
   async redirects() {

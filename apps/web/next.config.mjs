@@ -48,6 +48,7 @@ const authRedirects =
 /** @type {import('next').NextConfig} */
 const config = {
   transpilePackages: [
+    "@tambo-ai/react-ui-base",
     "@tambo-ai/ui-registry",
     "@tambo-ai-cloud/core",
     "@tambo-ai-cloud/db",
@@ -180,6 +181,11 @@ const config = {
       test: /\.svg$/,
       use: ["@svgr/webpack"],
     });
+
+    config.resolve.conditionNames = [
+      "development",
+      ...config.resolve.conditionNames,
+    ];
 
     // don't resolve optional peers from '@standard-community/standard-json'
     config.resolve.alias = {

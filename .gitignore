@@ -36,6 +36,7 @@ coverage
 *.code*
 .claude/settings.local.json
 .plans/
+.planning/
 .playwright-mcp/
 
 # git worktrees
