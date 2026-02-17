@@ -124,6 +124,18 @@
       "cache": false,
       "persistent": true
     },
+    "@tambo-ai-cloud/api#dev": {
+      "dependsOn": ["^build"],
+      "cache": false,
+      "persistent": true,
+      "interruptible": true,
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "../../packages/core/src/**",
+        "../../packages/backend/src/**",
+        "../../packages/db/src/**"
+      ]
+    },
     "clean": { "cache": false },
     "start": { "dependsOn": ["^build"] },
     "test": {
