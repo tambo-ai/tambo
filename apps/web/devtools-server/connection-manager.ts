@@ -1,5 +1,7 @@
 import { WebSocket } from "ws";
 
+import { decryptApiKey } from "@tambo-ai-cloud/core";
+
 import type {
   ClientInfo,
   ConnectedDashboardClient,
@@ -141,11 +143,13 @@ export class ConnectionManager {
     ws: WebSocket,
     message: SdkMessage & { type: "handshake" },
   ): void {
+    const projectId = this.resolveProjectId(message.projectId);
+
     const client: ConnectedSdkClient = {
       ws,
       sessionId: message.sessionId,
       sdkVersion: message.sdkVersion,
-      projectId: message.projectId,
+      projectId,
       connectedAt: Date.now(),
       isAlive: true,
     };
@@ -166,7 +170,7 @@ export class ConnectionManager {
       type: "client_connected",
       sessionId: message.sessionId,
       sdkVersion: message.sdkVersion,
-      projectId: message.projectId,
+      projectId,
       connectedAt: client.connectedAt,
     });
 
@@ -275,6 +279,27 @@ export class ConnectionManager {
 
     const command = parsed as DashboardCommand;
     this.handleDashboardCommand(ws, command);
+  }
+
+  /**
+   * Extracts the real project UUID from a Tambo API key.
+   * Falls back to the raw value if decryption fails (e.g. non-Tambo key).
+   * @returns The project UUID or the original value.
+   */
+  private resolveProjectId(
+    rawProjectId: string | undefined,
+  ): string | undefined {
+    if (!rawProjectId) return undefined;
+
+    const secret = process.env.API_KEY_SECRET;
+    if (!secret) return rawProjectId;
+
+    try {
+      const { storedString } = decryptApiKey(rawProjectId, secret);
+      return storedString;
+    } catch {
+      return rawProjectId;
+    }
   }
 
   private handleDashboardCommand(

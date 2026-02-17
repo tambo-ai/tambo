@@ -176,9 +176,17 @@ const config = {
       use: ["@svgr/webpack"],
     });
 
-    // don't resolve optional peers from '@standard-community/standard-json'
+    // Resolve @tambo-ai/react subpath exports to source so they share the
+    // same module instances (and React contexts) as the main entry point.
+    // Without this, @tambo-ai/react/devtools resolves to the pre-built ESM
+    // output which creates separate context objects — a dual-package hazard.
+    const reactSdkSrc = fileURLToPath(
+      new URL("../../react-sdk/src", import.meta.url),
+    );
     config.resolve.alias = {
       ...config.resolve.alias,
+      "@tambo-ai/react/devtools": `${reactSdkSrc}/devtools`,
+      "@tambo-ai/react/mcp": `${reactSdkSrc}/mcp`,
       effect: false,
       sury: false,
     };

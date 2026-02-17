@@ -1,6 +1,5 @@
-// Force ws to use pure-JS buffer utilities — the native bufferutil addon
-// is unreliable in Next.js instrumentation context.
-process.env.WS_NO_BUFFER_UTIL = "1";
+// NOTE: WS_NO_BUFFER_UTIL is set in instrumentation.ts BEFORE this module
+// is imported, because webpack hoists imports above inline statements.
 
 import { WebSocketServer } from "ws";
 
@@ -8,7 +7,7 @@ import { ConnectionManager } from "./connection-manager";
 import { DEVTOOLS_PORT, HEARTBEAT_INTERVAL } from "./types";
 
 const manager = new ConnectionManager();
-const wss = new WebSocketServer({ port: DEVTOOLS_PORT, host: "localhost" });
+const wss = new WebSocketServer({ port: DEVTOOLS_PORT, host: "0.0.0.0" });
 
 wss.on("connection", (ws) => {
   manager.handleNewConnection(ws);

@@ -4,9 +4,10 @@ import type { DevtoolsClient } from "../hooks/use-devtools-connection";
 
 interface ClientCardProps {
   client: DevtoolsClient;
+  projectName?: string;
 }
 
-export function ClientCard({ client }: ClientCardProps) {
+export function ClientCard({ client, projectName }: ClientCardProps) {
   const connectedTime = new Date(client.connectedAt).toLocaleTimeString();
 
   return (
@@ -33,9 +34,11 @@ export function ClientCard({ client }: ClientCardProps) {
           </div>
 
           <div className="flex items-center justify-between">
-            <span className="text-muted-foreground">Project ID</span>
+            <span className="text-muted-foreground">Project</span>
             {client.projectId ? (
-              <span className="font-mono text-xs">{client.projectId}</span>
+              <span className="text-xs" title={client.projectId}>
+                {projectName ?? client.projectId.slice(0, 8)}
+              </span>
             ) : (
               <span className="text-xs text-muted-foreground">None</span>
             )}

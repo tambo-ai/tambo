@@ -25,6 +25,7 @@ import { ToolCallPanel } from "./components/tool-call-panel";
 import { useDevtoolsConnection } from "./hooks/use-devtools-connection";
 import { useDevtoolsEvents } from "./hooks/use-devtools-events";
 import { useDevtoolsFilters } from "./hooks/use-devtools-filters";
+import { useProjectNames } from "./hooks/use-project-names";
 
 const CODE_SNIPPET = `import { TamboProvider } from "@tambo-ai/react";
 import { TamboDevTools } from "@tambo-ai/react/devtools";
@@ -47,6 +48,7 @@ export default function DevtoolsPage() {
     streamEvents,
     selectedSessionId,
     setSelectedSessionId,
+    requestSnapshot,
   } = useDevtoolsConnection();
 
   const searchParams = useSearchParams();
@@ -62,6 +64,14 @@ export default function DevtoolsPage() {
     }
   }, [clientIdFromUrl, clients, selectedSessionId, setSelectedSessionId]);
 
+  // Request a snapshot from the selected client when the dashboard connects
+  // (e.g. after a page refresh) and no snapshot is cached yet.
+  useEffect(() => {
+    if (!selectedSessionId) return;
+    if (snapshots.has(selectedSessionId)) return;
+    requestSnapshot(selectedSessionId);
+  }, [selectedSessionId, snapshots, requestSnapshot]);
+
   const currentSnapshot = selectedSessionId
     ? snapshots.get(selectedSessionId)
     : undefined;
@@ -73,6 +83,8 @@ export default function DevtoolsPage() {
   const timeline = useDevtoolsEvents(
     currentStreamEvents.length > 0 ? currentStreamEvents : undefined,
   );
+
+  const projectNames = useProjectNames(clients.map((c) => c.projectId));
 
   const filters = useDevtoolsFilters(currentSnapshot);
   const selectedThread = filters.filteredThreads.find(
@@ -105,7 +117,7 @@ export default function DevtoolsPage() {
               <SelectContent>
                 {clients.map((client) => (
                   <SelectItem key={client.sessionId} value={client.sessionId}>
-                    {client.projectId ??
+                    {(client.projectId && projectNames.get(client.projectId)) ??
                       `Session ${client.sessionId.slice(0, 8)}`}{" "}
                     (v{client.sdkVersion})
                   </SelectItem>
@@ -116,7 +128,15 @@ export default function DevtoolsPage() {
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
             {clients.map((client) => (
-              <ClientCard key={client.sessionId} client={client} />
+              <ClientCard
+                key={client.sessionId}
+                client={client}
+                projectName={
+                  client.projectId
+                    ? projectNames.get(client.projectId)
+                    : undefined
+                }
+              />
             ))}
           </div>
 

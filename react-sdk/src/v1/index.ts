@@ -72,9 +72,9 @@
 
 export {
   TamboProvider,
-  type TamboProviderProps,
   useTamboConfig,
   type TamboConfig,
+  type TamboProviderProps,
 } from "./providers/tambo-v1-provider";
 
 // Re-export registry provider
@@ -98,8 +98,8 @@ export { useTamboContextAttachment } from "../providers/tambo-context-attachment
 // Export thread input provider for advanced composition
 export {
   TamboThreadInputProvider,
-  type TamboThreadInputContextProps,
   type SubmitOptions,
+  type TamboThreadInputContextProps,
 } from "./providers/tambo-v1-thread-input-provider";
 
 // Export stub provider for testing
@@ -137,15 +137,15 @@ export { useTamboComponentState } from "./hooks/use-tambo-v1-component-state";
 
 export {
   useTamboStreamStatus,
-  type StreamStatus,
   type PropStatus,
+  type StreamStatus,
 } from "./hooks/use-tambo-v1-stream-status";
 
 export {
   useTamboSuggestions,
+  type AcceptSuggestionOptions,
   type UseTamboSuggestionsOptions,
   type UseTamboSuggestionsReturn,
-  type AcceptSuggestionOptions,
 } from "./hooks/use-tambo-v1-suggestions";
 
 // Re-export client hook
@@ -166,8 +166,8 @@ export { useTamboVoice } from "../hooks/use-tambo-voice";
 
 export {
   TamboMessageProvider,
-  useTamboCurrentMessage,
   useTamboCurrentComponent,
+  useTamboCurrentMessage,
   type TamboCurrentComponent,
 } from "./hooks/use-tambo-current-message";
 
@@ -195,11 +195,18 @@ export type {
 export type {
   ComponentContextToolMetadata,
   ComponentRegistry,
+  DefineToolFn,
   ParameterSpec,
   RegisteredComponent,
   TamboComponent,
   TamboTool,
+  TamboToolAssociations,
+  TamboToolJSONSchema,
+  TamboToolRegistry,
+  TamboToolStandardSchema,
+  TamboToolUnknown,
   ToolAnnotations,
+  UnsupportedSchemaTamboTool,
 } from "../model/component-metadata";
 
 // MCP server types
@@ -233,8 +240,8 @@ export type {
 
 // Extended content types with computed state
 export type {
-  TamboToolUseContent,
   TamboToolDisplayProps,
+  TamboToolUseContent,
 } from "./types/message";
 
 // Thread message type
@@ -242,27 +249,27 @@ export type { TamboThreadMessage } from "./types/message";
 
 // Content types
 export type {
-  Content,
-  TamboComponentContent,
   ComponentStreamingState,
+  Content,
+  InitialInputMessage,
+  InputMessage,
+  MessageGetResponse,
+  MessageListResponse,
   MessageRole,
+  ResourceContent,
+  TamboComponentContent,
   TextContent,
   ToolResultContent,
-  ResourceContent,
-  InputMessage,
-  InitialInputMessage,
-  MessageListResponse,
-  MessageGetResponse,
 } from "./types/message";
 
 // Thread types
 export type {
-  TamboThread,
   RunStatus,
   StreamingState,
+  TamboThread,
   ThreadCreateResponse,
-  ThreadRetrieveResponse,
   ThreadListResponse,
+  ThreadRetrieveResponse,
 } from "./types/thread";
 
 // Component content context
@@ -285,8 +292,8 @@ export {
 
 // Interactable provider hooks
 export {
-  useTamboInteractable,
   useCurrentInteractablesSnapshot,
+  useTamboInteractable,
 } from "../providers/tambo-interactable-provider";
 
 // Interactable types
