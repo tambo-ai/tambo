@@ -104,7 +104,7 @@ Output your analysis as valid JSON matching this structure:
   ],
   "chatWidgetSetup": {
     "filePath": "string",
-    "position": "string",
+    "position": "bottom-right | bottom-left | top-right | sidebar",
     "rationale": "string",
     "confidence": "number"
   }
@@ -115,7 +115,7 @@ IMPORTANT:
 - Prioritize user-facing components over internal utilities
 - Consider existing architecture and conventions
 - Provide actionable, specific guidance in each rationale
-- Reference specific file paths in your rationale
+- All filePath values MUST be real filesystem paths (e.g. "app/layout.tsx", "src/lib/tambo.ts") — never include descriptions, parenthetical notes, or natural language in filePath fields
 - Output ONLY valid JSON, no additional text or markdown code blocks
 `.trim();
 }
