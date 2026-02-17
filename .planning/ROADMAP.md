@@ -28,7 +28,9 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. All internal packages (core, db, backend) have correct package.json exports configuration
   3. TypeScript declaration maps enabled so IDE go-to-definition navigates to source files
   4. Initial package builds complete before dev servers start accepting requests
-**Plans**: TBD
+**Plans:** 1 plan
+Plans:
+- [ ] 01-01-PLAN.md — Configure transpilePackages, remove Turbopack, verify declarationMap and build ordering
 
 ### Phase 2: Next.js Hot Reload
 **Goal**: Enable instant hot reload for Next.js applications when workspace packages change
@@ -71,7 +73,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation Setup | 0/TBD | Not started | - |
+| 1. Foundation Setup | 0/1 | Not started | - |
 | 2. Next.js Hot Reload | 0/TBD | Not started | - |
 | 3. NestJS Hot Reload | 0/TBD | Not started | - |
 | 4. Refinement & Validation | 0/TBD | Not started | - |
