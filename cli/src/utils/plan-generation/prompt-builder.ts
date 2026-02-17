@@ -2,12 +2,128 @@
  * Prompt builder for InstallationPlan generation
  *
  * Converts ProjectAnalysis into a structured prompt for LLM consumption.
+ * Includes Tambo SDK reference so the model generates accurate, actionable plans.
  */
 
 import type { ProjectAnalysis } from "../project-analysis/types.js";
 
 const MAX_COMPONENTS = 10;
 const MAX_TOOL_CANDIDATES = 10;
+
+/**
+ * Tambo SDK reference for the model to understand available APIs and patterns.
+ * Distilled from skills/ directory — kept concise to minimize token usage.
+ */
+const TAMBO_SDK_REFERENCE = `
+# Tambo SDK Reference
+
+## Provider Setup
+
+TamboProvider wraps the app and provides AI context. It requires an API key, component registry, and optionally tools.
+
+### Next.js App Router (recommended)
+
+Create a client component for providers:
+
+\`\`\`tsx
+// app/providers.tsx
+"use client";
+import { TamboProvider } from "@tambo-ai/react";
+import { components } from "@/lib/tambo";
+
+export function Providers({ children }: { children: React.ReactNode }) {
+  return (
+    <TamboProvider apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY} components={components}>
+      {children}
+    </TamboProvider>
+  );
+}
+\`\`\`
+
+Then wrap in layout:
+
+\`\`\`tsx
+// app/layout.tsx — import Providers and wrap {children}
+import { Providers } from "./providers";
+\`\`\`
+
+### Vite / CRA
+
+\`\`\`tsx
+// src/main.tsx — wrap App in TamboProvider
+import { TamboProvider } from "@tambo-ai/react";
+import { components } from "./lib/tambo";
+\`\`\`
+
+## Component Registration
+
+Components are registered in a central registry file (lib/tambo.ts or src/lib/tambo.ts):
+
+\`\`\`tsx
+import { TamboComponent } from "@tambo-ai/react";
+import { z } from "zod";
+import { MyComponent } from "@/components/MyComponent";
+
+const MyComponentSchema = z.object({
+  title: z.string().describe("Display title"),
+  count: z.number().optional().describe("Item count"),
+});
+
+export const components: TamboComponent[] = [
+  {
+    name: "MyComponent",
+    component: MyComponent,
+    description: "Displays X. Use when user asks about Y.",
+    propsSchema: MyComponentSchema,
+  },
+];
+\`\`\`
+
+Key rules:
+- Each prop needs .describe() for the AI to understand it
+- Skip callback props (onClick, onChange) — AI provides data, not behavior
+- Skip children prop
+- Make streaming-friendly props optional
+
+## Tool Definitions
+
+Tools let AI call JavaScript functions:
+
+\`\`\`tsx
+import { defineTool } from "@tambo-ai/react";
+
+const myTool = defineTool({
+  name: "fetchData",
+  description: "Fetches data by ID",
+  inputSchema: z.object({ id: z.string().describe("The ID to fetch") }),
+  tool: async ({ id }) => fetchData(id),
+});
+
+// Pass to provider: <TamboProvider tools={[myTool]}>
+\`\`\`
+
+## Interactable Components
+
+Pre-placed components that AI can observe and update:
+
+\`\`\`tsx
+import { withTamboInteractable } from "@tambo-ai/react";
+
+export const InteractableNote = withTamboInteractable(Note, {
+  componentName: "Note",
+  description: "A note with editable title and content",
+  propsSchema: NoteSchema,
+});
+\`\`\`
+
+## Chat Widget
+
+Add via CLI: \`npx tambo add message-thread-full --yes\`
+This creates a component at src/components/tambo/message-thread-full/
+Import and render it inside the TamboProvider tree.
+
+The chat widget file path for the plan should be the layout or page file where the widget will be rendered (e.g. "app/layout.tsx" or "app/page.tsx"), NOT the component file itself.
+`.trim();
 
 /**
  * Builds a structured prompt from project analysis.
@@ -33,6 +149,8 @@ export function buildPlanPrompt(analysis: ProjectAnalysis): string {
 
   return `
 You are analyzing a ${analysis.framework.displayName} project to generate an intelligent Tambo installation plan.
+
+${TAMBO_SDK_REFERENCE}
 
 # Project Context
 
@@ -69,44 +187,44 @@ Output your analysis as valid JSON matching this structure:
 
 {
   "providerSetup": {
-    "filePath": "string",
-    "nestingLevel": "number",
-    "rationale": "string",
-    "confidence": "number"
+    "filePath": "path to layout file, e.g. app/layout.tsx",
+    "nestingLevel": 0,
+    "rationale": "why this location",
+    "confidence": 0.95
   },
   "componentRecommendations": [
     {
-      "name": "string",
-      "filePath": "string",
-      "reason": "string",
-      "confidence": "number",
-      "suggestedRegistration": "string"
+      "name": "ComponentName",
+      "filePath": "path to component file, e.g. src/components/MyComponent.tsx",
+      "reason": "why register this component",
+      "confidence": 0.8,
+      "suggestedRegistration": "TamboComponent registration code snippet"
     }
   ],
   "toolRecommendations": [
     {
-      "name": "string",
+      "name": "toolName",
       "type": "server-action | fetch | axios | exported-function",
-      "filePath": "string",
-      "reason": "string",
-      "confidence": "number",
-      "suggestedSchema": "string"
+      "filePath": "path to source function",
+      "reason": "why create this tool",
+      "confidence": 0.8,
+      "suggestedSchema": "Zod schema string for tool input"
     }
   ],
   "interactableRecommendations": [
     {
-      "componentName": "string",
-      "filePath": "string",
-      "reason": "string",
-      "confidence": "number",
-      "integrationPattern": "string"
+      "componentName": "ComponentName",
+      "filePath": "path to component file",
+      "reason": "why make this interactable",
+      "confidence": 0.8,
+      "integrationPattern": "withTamboInteractable usage code"
     }
   ],
   "chatWidgetSetup": {
-    "filePath": "string",
+    "filePath": "path to file where chat widget will be rendered, e.g. app/page.tsx",
     "position": "bottom-right | bottom-left | top-right | sidebar",
-    "rationale": "string",
-    "confidence": "number"
+    "rationale": "why this position",
+    "confidence": 0.9
   }
 }
 
