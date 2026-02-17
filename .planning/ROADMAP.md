@@ -24,4 +24,9 @@
 4. "Open DevTools" opens the dashboard at the correct URL with the right client pre-selected
 5. Showcase app has TamboDevTools and connects to the bridge when dev server is running
 
-**Plans:** (to be created via `/gsd:plan-phase 4`)
+**Plans:** 2 plans
+
+Plans:
+
+- [ ] 04-01-PLAN.md — Redesign trigger with dot UI, stats popover, and correct dashboard URL
+- [ ] 04-02-PLAN.md — Dashboard clientId auto-selection and showcase integration
