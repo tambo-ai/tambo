@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.0-alpha.7](https://github.com/tambo-ai/tambo/compare/@tambo-ai/react-ui-base-v0.1.0-alpha.6...@tambo-ai/react-ui-base-v0.1.0-alpha.7) (2026-02-18)
+
+
+### Bug Fixes
+
+* **react-ui-base:** render content blocks in natural order from model response ([#2435](https://github.com/tambo-ai/tambo/issues/2435)) ([6e279a2](https://github.com/tambo-ai/tambo/commit/6e279a2bf30e71b94e220588f4580a0a0c5f398c))
+
 ## [0.1.0-alpha.6](https://github.com/tambo-ai/tambo/compare/@tambo-ai/react-ui-base-v0.1.0-alpha.5...@tambo-ai/react-ui-base-v0.1.0-alpha.6) (2026-02-18)
 
 
