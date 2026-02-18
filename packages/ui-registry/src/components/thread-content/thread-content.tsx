@@ -115,30 +115,45 @@ ThreadContent.displayName = "ThreadContent";
  * when thinking models produce [tool_use, text] instead of [text, tool_use].
  */
 type ContentGroup =
-  | { type: "text"; content: Content[] }
-  | { type: "tool_use"; toolUse: TamboToolUseContent };
+  | { type: "text"; startIndex: number; content: Content[] }
+  | { type: "tool_use"; startIndex: number; toolUse: TamboToolUseContent };
 
 function getOrderedContentGroups(content: Content[]): ContentGroup[] {
   const groups: ContentGroup[] = [];
   let currentTextGroup: Content[] = [];
+  let textGroupStartIndex = 0;
 
-  for (const block of content) {
+  for (let i = 0; i < content.length; i++) {
+    const block = content[i];
     if (block.type === "text" || block.type === "resource") {
+      if (currentTextGroup.length === 0) {
+        textGroupStartIndex = i;
+      }
       currentTextGroup.push(block);
     } else {
       if (currentTextGroup.length > 0) {
-        groups.push({ type: "text", content: [...currentTextGroup] });
+        groups.push({
+          type: "text",
+          startIndex: textGroupStartIndex,
+          content: [...currentTextGroup],
+        });
         currentTextGroup = [];
       }
       if (block.type === "tool_use") {
-        groups.push({ type: "tool_use", toolUse: block });
+        groups.push({ type: "tool_use", startIndex: i, toolUse: block });
       }
-      // tool_result, component, image_url handled by other components
+      // tool_result, component, image_url are position-independent:
+      // tool_result is consumed by ToolcallInfo on the preceding assistant message,
+      // component and image_url are rendered by dedicated components (MessageRenderedComponentArea, MessageImages).
     }
   }
 
   if (currentTextGroup.length > 0) {
-    groups.push({ type: "text", content: currentTextGroup });
+    groups.push({
+      type: "text",
+      startIndex: textGroupStartIndex,
+      content: currentTextGroup,
+    });
   }
 
   return groups;
@@ -224,11 +239,11 @@ const ThreadContentMessages = React.forwardRef<
                 {groups.length === 0 ? (
                   <MessageContent className={messageContentClassName} />
                 ) : (
-                  groups.map((group, idx) => {
+                  groups.map((group) => {
                     if (group.type === "text") {
                       return (
                         <MessageContent
-                          key={`text-${idx}`}
+                          key={`text-${group.startIndex}`}
                           content={group.content}
                           className={messageContentClassName}
                         />
@@ -237,7 +252,7 @@ const ThreadContentMessages = React.forwardRef<
                     if (group.type === "tool_use") {
                       return (
                         <ToolcallInfo
-                          key={`tool-${group.toolUse.id ?? idx}`}
+                          key={`tool-${group.toolUse.id ?? group.startIndex}`}
                           toolUse={group.toolUse}
                         />
                       );
