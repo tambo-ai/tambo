@@ -10,12 +10,7 @@ import {
   type messageVariants,
 } from "@tambo-ai/ui-registry/components/message";
 import { cn } from "@tambo-ai/ui-registry/utils";
-import {
-  type Content,
-  type TamboThreadMessage,
-  type TamboToolUseContent,
-  useTambo,
-} from "@tambo-ai/react";
+import { type TamboThreadMessage, useTambo } from "@tambo-ai/react";
 import { type VariantProps } from "class-variance-authority";
 import * as React from "react";
 
@@ -108,58 +103,6 @@ const ThreadContent = React.forwardRef<HTMLDivElement, ThreadContentProps>(
 ThreadContent.displayName = "ThreadContent";
 
 /**
- * Groups content blocks by type in their natural order.
- * Consecutive text/resource blocks are merged into a single group.
- * Each tool_use block gets its own group.
- * This preserves the actual order from the model response, which matters
- * when thinking models produce [tool_use, text] instead of [text, tool_use].
- */
-type ContentGroup =
-  | { type: "text"; startIndex: number; content: Content[] }
-  | { type: "tool_use"; startIndex: number; toolUse: TamboToolUseContent };
-
-function getOrderedContentGroups(content: Content[]): ContentGroup[] {
-  const groups: ContentGroup[] = [];
-  let currentTextGroup: Content[] = [];
-  let textGroupStartIndex = 0;
-
-  for (let i = 0; i < content.length; i++) {
-    const block = content[i];
-    if (block.type === "text" || block.type === "resource") {
-      if (currentTextGroup.length === 0) {
-        textGroupStartIndex = i;
-      }
-      currentTextGroup.push(block);
-    } else {
-      if (currentTextGroup.length > 0) {
-        groups.push({
-          type: "text",
-          startIndex: textGroupStartIndex,
-          content: [...currentTextGroup],
-        });
-        currentTextGroup = [];
-      }
-      if (block.type === "tool_use") {
-        groups.push({ type: "tool_use", startIndex: i, toolUse: block });
-      }
-      // tool_result, component, image_url are position-independent:
-      // tool_result is consumed by ToolcallInfo on the preceding assistant message,
-      // component and image_url are rendered by dedicated components (MessageRenderedComponentArea, MessageImages).
-    }
-  }
-
-  if (currentTextGroup.length > 0) {
-    groups.push({
-      type: "text",
-      startIndex: textGroupStartIndex,
-      content: currentTextGroup,
-    });
-  }
-
-  return groups;
-}
-
-/**
  * Props for the ThreadContentMessages component.
  * Extends standard HTMLDivElement attributes.
  */
@@ -204,7 +147,6 @@ const ThreadContentMessages = React.forwardRef<
       {...props}
     >
       {filteredMessages.map((message, index) => {
-        const groups = getOrderedContentGroups(message.content);
         const messageContentClassName =
           message.role === "assistant"
             ? "text-foreground font-sans"
@@ -236,30 +178,26 @@ const ThreadContentMessages = React.forwardRef<
               >
                 <ReasoningInfo />
                 <MessageImages />
-                {groups.length === 0 ? (
-                  <MessageContent className={messageContentClassName} />
-                ) : (
-                  groups.map((group) => {
-                    if (group.type === "text") {
-                      return (
-                        <MessageContent
-                          key={`text-${group.startIndex}`}
-                          content={group.content}
-                          className={messageContentClassName}
-                        />
-                      );
-                    }
-                    if (group.type === "tool_use") {
-                      return (
-                        <ToolcallInfo
-                          key={`tool-${group.toolUse.id ?? group.startIndex}`}
-                          toolUse={group.toolUse}
-                        />
-                      );
-                    }
-                    return null;
-                  })
-                )}
+                {message.content.map((block, blockIndex) => {
+                  if (block.type === "text" || block.type === "resource") {
+                    return (
+                      <MessageContent
+                        key={`content-${blockIndex}`}
+                        content={[block]}
+                        className={messageContentClassName}
+                      />
+                    );
+                  }
+                  if (block.type === "tool_use") {
+                    return (
+                      <ToolcallInfo
+                        key={`tool-${block.id ?? blockIndex}`}
+                        toolUse={block}
+                      />
+                    );
+                  }
+                  return null;
+                })}
                 <MessageRenderedComponentArea className="w-full" />
               </div>
             </Message>
