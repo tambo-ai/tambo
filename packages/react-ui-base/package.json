@@ -6,6 +6,11 @@
     "name": "Tambo",
     "url": "https://tambo.co"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tambo-ai/tambo.git",
+    "directory": "packages/react-ui-base"
+  },
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
