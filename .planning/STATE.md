@@ -2,43 +2,37 @@
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-02-16)
+See: .planning/PROJECT.md (updated 2026-02-18)
 
 **Core value:** Developers can see exactly what's happening inside their Tambo app without resorting to console.log or manual network tab inspection.
-**Current focus:** v1.1 — Fix broken devtools integration
+**Current focus:** Planning next milestone
 
 ## Current Position
 
-Milestone: v1.1 — DevTools Integration Fix
-Phase: 04-devtools-trigger-fix
-Current Plan: 2 of 2 complete
-Status: Phase 04 plans complete
-Last activity: 2026-02-17 — Completed 04-01 (trigger redesign with stats popover)
-
-Progress: [██████████] 100%
+Milestone: v1.1 — DevTools Integration Fix (COMPLETED 2026-02-18)
+Status: Between milestones — ready for /gsd:new-milestone
+Last activity: 2026-02-18 — Completed v1.1 milestone
 
 ## Known Issues
 
-- TamboDevTools component added to apps/web provider — dashboard is debugging itself
-- Trigger component links to WS port (8265) instead of dashboard URL
-- Trigger renders on /devtools page where it shouldn't
-- Trigger shows minimal info (just connected/disconnected), needs tool/component counts
+(All v1.1 issues resolved)
 
 ## Performance Metrics
 
-**Velocity (from v1.0):**
+**Velocity (cumulative):**
 
-- Total plans completed: 9
-- Phases: 3
-- Avg per plan: ~3.7min
+- v1.0: 3 phases, 9 plans
+- v1.1: 1 phase, 2 plans (+ manual fixes)
 
 ## Session Continuity
 
-Last session: 2026-02-17
-Stopped at: Completed 04-01-PLAN.md
+Last session: 2026-02-18
+Stopped at: Milestone v1.1 complete
 Resume file: None
 
 ## Decisions
 
-- Auto-select clientId only when no client already selected (avoid overriding user choice)
-- [Phase 04]: Dashboard URL hardcodes port 8260; registry counts use Object.keys on Record types
+- Webpack aliases fix dual-package hazard for subpath exports (v1.1)
+- Server-side API key decryption for project name resolution (v1.1)
+- showTrigger prop for flexible route-aware trigger hiding (v1.1)
+- Auto-select clientId only when no client already selected (v1.1)
