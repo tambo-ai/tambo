@@ -355,26 +355,9 @@ describe("formatToolResult in ToolcallInfo", () => {
         content: [successToolUse, errorToolUse],
         createdAt: new Date().toISOString(),
       };
-      // tool_result message has an error only for the second tool
-      const toolResponse: TamboThreadMessage = {
-        id: "tool-response-id",
-        role: "user",
-        content: [
-          {
-            type: "tool_result",
-            toolUseId: "tool-success",
-            content: "OK",
-            isError: false,
-          },
-          {
-            type: "tool_result",
-            toolUseId: "tool-error",
-            content: "Failed",
-            isError: true,
-          },
-        ],
-        createdAt: new Date().toISOString(),
-      } as TamboThreadMessage;
+      const toolResponse = createToolResponseMessage([
+        { type: "text", text: "OK" },
+      ]);
 
       mockUseTambo.mockReturnValue({
         messages: [toolCallMessage, toolResponse],
