@@ -1,27 +1,26 @@
-import type { TamboThreadMessage, TamboToolUseContent } from "@tambo-ai/react";
-import { getToolCallRequest } from "./get-tool-call-request";
+import type { TamboToolUseContent } from "@tambo-ai/react";
 
 /**
- * Gets the status message for a tool call.
- * Returns the custom status message if available, otherwise generates a default one.
- * @param message - The thread message containing the tool call
- * @param isLoading - Whether the tool call is still in progress
- * @param toolUseOverride - Optional specific tool_use block. If not provided, uses the first from message.
- * @returns The status message string, or null if not a tool call message
+ * Gets the status message for a single tool call request.
+ * Returns the custom `statusMessage` if available, otherwise generates a default one.
+ *
+ * @param toolCallRequest - The tool_use block for the tool call.
+ * @param isLoading - Whether the tool call is still in progress.
+ * @returns The status message string, or null if `toolCallRequest` is not provided.
  */
 export function getToolStatusMessage(
-  message: TamboThreadMessage,
+  toolCallRequest: TamboToolUseContent | null | undefined,
   isLoading: boolean | undefined,
-  toolUseOverride?: TamboToolUseContent,
 ): string | null {
-  const toolCall = toolUseOverride ?? getToolCallRequest(message);
-  if (message.role !== "assistant" || !toolCall) {
+  if (!toolCallRequest) {
     return null;
   }
 
   const toolCallMessage = isLoading
-    ? `Calling ${toolCall.name ?? "tool"}`
-    : `Called ${toolCall.name ?? "tool"}`;
-  const toolStatusMessage = isLoading ? toolCall.statusMessage : undefined;
+    ? `Calling ${toolCallRequest.name ?? "tool"}`
+    : `Called ${toolCallRequest.name ?? "tool"}`;
+  const toolStatusMessage = isLoading
+    ? toolCallRequest.statusMessage
+    : undefined;
   return toolStatusMessage ?? toolCallMessage;
 }

@@ -102,7 +102,7 @@ export const ToolcallInfoRoot = React.forwardRef<
           block.isError,
       );
     const toolStatusMessage =
-      getToolStatusMessage(message, isLoading, toolCallRequest) ?? "";
+      getToolStatusMessage(toolCallRequest, isLoading) ?? "";
 
     const contextValue = React.useMemo(
       () => ({
