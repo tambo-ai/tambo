@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.143.1](https://github.com/tambo-ai/tambo/compare/api-v0.143.0...api-v0.143.1) (2026-02-18)
+
+
+### Bug Fixes
+
+* **api:** persist tool call counts across V1 runs ([#2360](https://github.com/tambo-ai/tambo/issues/2360)) ([9047cba](https://github.com/tambo-ai/tambo/commit/9047cbae0c628601054c2826801816c7fb656084))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump ajv from 8.17.1 to 8.18.0 ([#2430](https://github.com/tambo-ai/tambo/issues/2430)) ([f7e3263](https://github.com/tambo-ai/tambo/commit/f7e32639444b501cca707d8c99a9486295a2fcad))
+* **deps:** bump the ag-ui group across 1 directory with 5 updates ([#2241](https://github.com/tambo-ai/tambo/issues/2241)) ([a758a87](https://github.com/tambo-ai/tambo/commit/a758a8748ef265f9b99425079f9cd6ba8b99963c))
+* **deps:** bump the small-safe-packages group across 1 directory with 4 updates ([#2423](https://github.com/tambo-ai/tambo/issues/2423)) ([48a3aed](https://github.com/tambo-ai/tambo/commit/48a3aed15bf01e61d6422c18ad0b7d6a4c399285))
+* **test:** bump coverage thresholds (2026-02-16) ([#2418](https://github.com/tambo-ai/tambo/issues/2418)) ([906927a](https://github.com/tambo-ai/tambo/commit/906927a5a1616de58e1084895a19d9f665c770fe))
+
+
+### Code Refactoring
+
+* **api:** remove dead transaction middleware and rename database provider ([#2393](https://github.com/tambo-ai/tambo/issues/2393)) ([ebf088e](https://github.com/tambo-ai/tambo/commit/ebf088e0430949244d3ad80b3f10bfb7737b9015))
+
 ## [0.143.0](https://github.com/tambo-ai/tambo/compare/api-v0.142.0...api-v0.143.0) (2026-02-10)
 
 

@@ -1,6 +1,6 @@
 {
   "name": "@tambo-ai-cloud/api",
-  "version": "0.143.0",
+  "version": "0.143.1",
   "description": "Tambo AI API",
   "author": "",
   "private": true,
@@ -25,7 +25,7 @@
     "storage:init": "tsx scripts/storage-init.ts"
   },
   "dependencies": {
-    "@ag-ui/client": "0.0.43",
+    "@ag-ui/client": "0.0.44",
     "@ag-ui/crewai": "^0.0.3",
     "@ag-ui/llamaindex": "^0.1.5",
     "@langfuse/otel": "^4.5.1",
@@ -39,9 +39,9 @@
     "@opentelemetry/auto-instrumentations-node": "^0.69.0",
     "@opentelemetry/exporter-otlp-http": "^0.26.0",
     "@opentelemetry/instrumentation-express": "^0.59.0",
-    "@opentelemetry/instrumentation-http": "^0.211.0",
+    "@opentelemetry/instrumentation-http": "^0.212.0",
     "@opentelemetry/instrumentation-nestjs-core": "^0.57.0",
-    "@opentelemetry/sdk-node": "^0.211.0",
+    "@opentelemetry/sdk-node": "^0.212.0",
     "@opentelemetry/semantic-conventions": "^1.39.0",
     "@react-email/components": "^1.0.7",
     "@sentry/nestjs": "^10.38.0",
@@ -51,7 +51,7 @@
     "@tambo-ai-cloud/db": "*",
     "@types/jsonwebtoken": "^9.0.9",
     "@types/mime-types": "^3.0.1",
-    "ajv": "^8.17.1",
+    "ajv": "^8.18.0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.3",
     "drizzle-orm": "^0.45.1",

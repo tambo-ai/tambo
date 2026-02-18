@@ -59,7 +59,6 @@ export function PageWithChat() {
 
       {/* Collapsible chat positioned in bottom-right */}
       <MessageThreadCollapsible
-        contextKey="help-chat"
         defaultOpen={false}
         className="absolute bottom-6 right-4"
       />
@@ -97,12 +96,6 @@ export function PageWithChat() {
             </thead>
             <tbody>
               <tr>
-                <td>contextKey</td>
-                <td>string</td>
-                <td>-</td>
-                <td>Unique identifier for the conversation thread</td>
-              </tr>
-              <tr>
                 <td>defaultOpen</td>
                 <td>boolean</td>
                 <td>false</td>
@@ -113,6 +106,14 @@ export function PageWithChat() {
                 <td>string</td>
                 <td>-</td>
                 <td>Additional CSS classes for positioning and styling</td>
+              </tr>
+              <tr>
+                <td>variant</td>
+                <td>
+                  &quot;default&quot; | &quot;compact&quot; | &quot;solid&quot;
+                </td>
+                <td>&quot;default&quot;</td>
+                <td>Visual style variant for messages in the thread</td>
               </tr>
               <tr>
                 <td>height</td>

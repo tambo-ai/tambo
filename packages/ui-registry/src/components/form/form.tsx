@@ -15,6 +15,7 @@ export const formFieldSchema = z.object({
   type: z
     .enum([
       "text",
+      "email",
       "number",
       "select",
       "textarea",
@@ -410,6 +411,32 @@ export const FormComponent = React.forwardRef<HTMLFormElement, FormProps>(
 
     if (!state) return null;
 
+    const renderTextLikeInput = (field: FormField): JSX.Element | null => {
+      const isTextField = field.type === "text";
+      const isEmailField = field.type === "email";
+
+      if (!isTextField && !isEmailField) {
+        return null;
+      }
+
+      return (
+        <input
+          type={isEmailField ? "email" : "text"}
+          id={field.id}
+          name={field.id}
+          placeholder={field.placeholder}
+          required={field.required}
+          autoComplete={isEmailField ? "email" : undefined}
+          inputMode={isEmailField ? "email" : undefined}
+          className="w-full px-3 py-2 rounded-lg 
+                    bg-background border border-border
+                    focus:ring-2 focus:ring-accent focus:border-input
+                    placeholder:text-muted-foreground
+                    transition-colors duration-200"
+        />
+      );
+    };
+
     return (
       <form
         ref={ref}
@@ -440,20 +467,7 @@ export const FormComponent = React.forwardRef<HTMLFormElement, FormProps>(
                 </p>
               )}
 
-              {field.type === "text" && (
-                <input
-                  type="text"
-                  id={field.id}
-                  name={field.id}
-                  placeholder={field.placeholder}
-                  required={field.required}
-                  className="w-full px-3 py-2 rounded-lg 
-                            bg-background border border-border
-                            focus:ring-2 focus:ring-accent focus:border-input
-                            placeholder:text-muted-foreground
-                            transition-colors duration-200"
-                />
-              )}
+              {renderTextLikeInput(field)}
 
               {field.type === "number" && (
                 <input

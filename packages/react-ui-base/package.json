@@ -1,10 +1,15 @@
 {
   "name": "@tambo-ai/react-ui-base",
-  "version": "0.1.0-alpha.3",
+  "version": "0.1.0-alpha.5",
   "description": "Headless base components for Tambo AI",
   "author": {
     "name": "Tambo",
     "url": "https://tambo.co"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tambo-ai/tambo.git",
+    "directory": "packages/react-ui-base"
   },
   "license": "MIT",
   "type": "module",
@@ -99,7 +104,7 @@
     "@tambo-ai/eslint-config": "*",
     "@tambo-ai/react": "*",
     "@tambo-ai/typescript-config": "*",
-    "@tambo-ai/typescript-sdk": "^0.92.0",
+    "@tambo-ai/typescript-sdk": "^0.93.0",
     "@tambo-ai/vite-config": "*",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.3.2",

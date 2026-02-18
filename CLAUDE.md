@@ -34,5 +34,5 @@ docker compose --env-file docker.env up postgres -d
 ## Documentation Structure
 
 - **CONTRIBUTING.md** - Dev setup and PR workflow for contributors
-- **OPERATORS.md** - Self-hosting/deployment guide
+- **SELF-HOSTING.md** - Self-hosting/deployment guide
 - **AGENTS.md** - Coding standards, architecture (this is the source of truth)

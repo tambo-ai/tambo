@@ -1,7 +1,7 @@
 import { ConfigService } from "@nestjs/config";
 import { Test, TestingModule } from "@nestjs/testing";
 import { ContentPartType, MessageRole } from "@tambo-ai-cloud/core";
-import { DATABASE } from "../common/middleware/db-transaction-middleware";
+import { DATABASE } from "../common/database-provider";
 import { AnalyticsService } from "../common/services/analytics.service";
 import { AuthService } from "../common/services/auth.service";
 import { EmailService } from "../common/services/email.service";

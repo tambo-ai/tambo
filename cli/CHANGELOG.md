@@ -1,5 +1,37 @@
 # Changelog
 
+## [0.53.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.52.1...tambo-v0.53.0) (2026-02-11)
+
+
+### Features
+
+* **cli:** auto-initialize git and run tambo init by default ([#2383](https://github.com/tambo-ai/tambo/issues/2383)) ([a086a5c](https://github.com/tambo-ai/tambo/commit/a086a5ce2e0a0478202689a56e96e3e814f4c775))
+
+## [0.52.1](https://github.com/tambo-ai/tambo/compare/tambo-v0.52.0...tambo-v0.52.1) (2026-02-11)
+
+
+### Miscellaneous Chores
+
+* **cli:** remove base path imports from the message component config ([#2377](https://github.com/tambo-ai/tambo/issues/2377)) ([d00b0b4](https://github.com/tambo-ai/tambo/commit/d00b0b4c5b37b1d16a9800f99acc7c01354a5856))
+
+## [0.52.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.51.0...tambo-v0.52.0) (2026-02-11)
+
+
+### Features
+
+* **cli:** add Vite support — Tailwind v4 toolchain, framework detection, and Vite template ([#2322](https://github.com/tambo-ai/tambo/issues/2322)) ([5b544ac](https://github.com/tambo-ai/tambo/commit/5b544acb960e7869600411f7d300f6422aca05de))
+
+
+### Bug Fixes
+
+* **cli:** prevent interactive prompts from hanging in non-TTY environments ([#2321](https://github.com/tambo-ai/tambo/issues/2321)) ([b0bc2d8](https://github.com/tambo-ai/tambo/commit/b0bc2d89d8b2ac24002409866c5d97613f319668))
+
+
+### Miscellaneous Chores
+
+* bump to typescript-sdk 0.92 ([#2334](https://github.com/tambo-ai/tambo/issues/2334)) ([3767c6c](https://github.com/tambo-ai/tambo/commit/3767c6c0e12c9862afd992b6f18bc3338ea4201d))
+* **cli:** update package description ([#2311](https://github.com/tambo-ai/tambo/issues/2311)) ([7e3e190](https://github.com/tambo-ai/tambo/commit/7e3e1900f5f3a82a9dab57efb8a83da32b48cc10))
+
 ## [0.51.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.50.0...tambo-v0.51.0) (2026-01-31)
 
 

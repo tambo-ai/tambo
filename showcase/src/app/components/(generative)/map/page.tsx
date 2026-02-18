@@ -38,38 +38,20 @@ export default function MapPage() {
 export function SeattleCoffeeMap() {
   return (
     <Map
-      title="Seattle Coffee Map"
-      center={[47.6062, -122.3321]}
+      center={{ lat: 47.6062, lng: -122.3321 }}
       zoom={12}
       markers={[
+        { lat: 47.6097, lng: -122.3417, label: "Pike Place Market" },
+        { lat: 47.6205, lng: -122.3493, label: "Space Needle" },
         {
-          position: [47.6097, -122.3417],
-          label: "Pike Place Market",
-          tooltip: "Historic farmers market",
-        },
-        {
-          position: [47.6205, -122.3493],
-          label: "Space Needle",
-          tooltip: "Iconic observation tower",
-        },
-        {
-          position: [47.6553, -122.3035],
+          lat: 47.6553,
+          lng: -122.3035,
           label: "University of Washington",
-          tooltip: "Public research university",
         },
-        {
-          position: [47.6247, -122.3207],
-          label: "Capitol Hill",
-          tooltip: "Vibrant neighborhood",
-        },
-        {
-          position: [47.6513, -122.3471],
-          label: "Fremont Troll",
-          tooltip: "Public sculpture under bridge",
-        },
+        { lat: 47.6247, lng: -122.3207, label: "Capitol Hill" },
+        { lat: 47.6513, lng: -122.3471, label: "Fremont Troll" },
       ]}
-      variant="solid"
-      size="large"
+      size="lg"
     />
   );
 }`}
@@ -103,28 +85,18 @@ export function SeattleCoffeeMap() {
               </thead>
               <tbody>
                 <tr>
-                  <td>title</td>
-                  <td>string</td>
-                  <td>-</td>
-                  <td>Map title displayed above the map</td>
-                </tr>
-                <tr>
-                  <td>description</td>
-                  <td>string</td>
-                  <td>-</td>
-                  <td>Optional description text below the title</td>
-                </tr>
-                <tr>
                   <td>center</td>
-                  <td>[number, number]</td>
-                  <td>[0, 0]</td>
-                  <td>Map center coordinates [latitude, longitude]</td>
+                  <td>
+                    {"{"} lat: number; lng: number {"}"}
+                  </td>
+                  <td>-</td>
+                  <td>Map center coordinates</td>
                 </tr>
                 <tr>
                   <td>zoom</td>
                   <td>number</td>
                   <td>10</td>
-                  <td>Initial zoom level (1-18)</td>
+                  <td>Initial zoom level (1-20)</td>
                 </tr>
                 <tr>
                   <td>markers</td>
@@ -133,18 +105,45 @@ export function SeattleCoffeeMap() {
                   <td>Array of marker configurations</td>
                 </tr>
                 <tr>
-                  <td>variant</td>
-                  <td>&quot;solid&quot; | &quot;bordered&quot;</td>
-                  <td>&quot;solid&quot;</td>
-                  <td>Visual style of the map container</td>
+                  <td>heatData</td>
+                  <td>HeatData[]</td>
+                  <td>-</td>
+                  <td>
+                    Optional array of heatmap data points (lat, lng, intensity)
+                  </td>
+                </tr>
+                <tr>
+                  <td>zoomControl</td>
+                  <td>boolean</td>
+                  <td>true</td>
+                  <td>Whether to show zoom controls</td>
                 </tr>
                 <tr>
                   <td>size</td>
                   <td>
-                    &quot;small&quot; | &quot;medium&quot; | &quot;large&quot;
+                    &quot;sm&quot; | &quot;md&quot; | &quot;lg&quot; |
+                    &quot;full&quot;
                   </td>
-                  <td>&quot;medium&quot;</td>
+                  <td>&quot;md&quot;</td>
                   <td>Height of the map container</td>
+                </tr>
+                <tr>
+                  <td>tileTheme</td>
+                  <td>
+                    &quot;default&quot; | &quot;dark&quot; | &quot;light&quot; |
+                    &quot;satellite&quot;
+                  </td>
+                  <td>&quot;default&quot;</td>
+                  <td>Map tile layer theme</td>
+                </tr>
+                <tr>
+                  <td>rounded</td>
+                  <td>
+                    &quot;none&quot; | &quot;sm&quot; | &quot;md&quot; |
+                    &quot;full&quot;
+                  </td>
+                  <td>&quot;md&quot;</td>
+                  <td>Border radius of the map container</td>
                 </tr>
                 <tr>
                   <td>className</td>
@@ -170,28 +169,28 @@ export function SeattleCoffeeMap() {
               </thead>
               <tbody>
                 <tr>
-                  <td>position</td>
-                  <td>[number, number]</td>
+                  <td>lat</td>
+                  <td>number</td>
                   <td>-</td>
-                  <td>Marker coordinates [latitude, longitude]</td>
+                  <td>Latitude coordinate (-90 to 90)</td>
+                </tr>
+                <tr>
+                  <td>lng</td>
+                  <td>number</td>
+                  <td>-</td>
+                  <td>Longitude coordinate (-180 to 180)</td>
                 </tr>
                 <tr>
                   <td>label</td>
                   <td>string</td>
                   <td>-</td>
-                  <td>Marker label displayed in popup</td>
+                  <td>Marker label displayed in tooltip</td>
                 </tr>
                 <tr>
-                  <td>tooltip</td>
+                  <td>id</td>
                   <td>string</td>
                   <td>-</td>
-                  <td>Tooltip text shown on hover</td>
-                </tr>
-                <tr>
-                  <td>icon</td>
-                  <td>string</td>
-                  <td>-</td>
-                  <td>Custom marker icon URL</td>
+                  <td>Optional unique identifier for the marker</td>
                 </tr>
               </tbody>
             </table>

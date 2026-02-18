@@ -1,8 +1,8 @@
 "use client";
 
 import { ComponentCodePreview } from "@/components/component-code-preview";
-import { MessageThreadPanelWithMcp } from "@/components/generative/MessageThreadPanelWithMcp";
 import { InstallationSection } from "@/components/installation-section";
+import { MessageThreadPanel } from "@tambo-ai/ui-registry/components/message-thread-panel";
 
 export default function MessageThreadPanelPage() {
   return (
@@ -38,10 +38,7 @@ export default function MessageThreadPanelPage() {
                     <div className="h-32 bg-muted/80 rounded-lg" />
                   </div>
                 </div>
-                <MessageThreadPanelWithMcp
-                  className="right rounded-r-lg"
-                  style={{ height: "100%", width: "60%" }}
-                />
+                <MessageThreadPanel className="right" />
               </div>
             }
             code={`import { MessageThreadPanel } from "@/components/tambo/message-thread-panel";
@@ -55,12 +52,8 @@ export function DashboardWithChat() {
         <p>Your main content goes here...</p>
       </div>
 
-      {/* Chat panel on the right */}
-      <MessageThreadPanel
-        contextKey="dashboard-assistant"
-        className="right"
-        style={{ width: "400px" }}
-      />
+      {/* Chat panel on the right*/}
+      <MessageThreadPanel className="right" />
     </div>
   );
 }`}
@@ -95,10 +88,12 @@ export function DashboardWithChat() {
             </thead>
             <tbody>
               <tr>
-                <td>contextKey</td>
-                <td>string</td>
-                <td>-</td>
-                <td>Unique identifier for the conversation thread</td>
+                <td>variant</td>
+                <td>
+                  &quot;default&quot; | &quot;compact&quot; | &quot;solid&quot;
+                </td>
+                <td>&quot;default&quot;</td>
+                <td>Visual style variant for messages in the thread</td>
               </tr>
               <tr>
                 <td>className</td>

@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.1.0-alpha.5](https://github.com/tambo-ai/tambo/compare/@tambo-ai/react-ui-base-v0.1.0-alpha.4...@tambo-ai/react-ui-base-v0.1.0-alpha.5) (2026-02-17)
+
+
+### Miscellaneous Chores
+
+* **deps:** bump @tambo-ai/typescript-sdk from 0.91.0 to 0.92.0 in the tambo-ai group ([#2337](https://github.com/tambo-ai/tambo/issues/2337)) ([97dcd7d](https://github.com/tambo-ai/tambo/commit/97dcd7dd70b8337da1bf957eaccff00b0b83a4ee))
+
+## [0.1.0-alpha.4](https://github.com/tambo-ai/tambo/compare/@tambo-ai/react-ui-base-v0.1.0-alpha.3...@tambo-ai/react-ui-base-v0.1.0-alpha.4) (2026-02-11)
+
+
+### Bug Fixes
+
+* **react-ui-base:** preserve MAX_IMAGES and IS_PASTED_IMAGE in build output ([#2371](https://github.com/tambo-ai/tambo/issues/2371)) ([dc6d5e5](https://github.com/tambo-ai/tambo/commit/dc6d5e5a1714641890ef1fd6dbb7bcdbcc54a521))
+
 ## [0.1.0-alpha.3](https://github.com/tambo-ai/tambo/compare/@tambo-ai/react-ui-base-v0.1.0-alpha.2...@tambo-ai/react-ui-base-v0.1.0-alpha.3) (2026-02-10)
 
 

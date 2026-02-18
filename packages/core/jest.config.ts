@@ -26,8 +26,8 @@ const config: JestConfigWithTsJest = {
   ],
   coverageThreshold: {
     global: {
-      branches: 60,
-      lines: 58,
+      branches: 64,
+      lines: 63,
     },
   },
 };

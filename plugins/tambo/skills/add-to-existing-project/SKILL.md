@@ -200,11 +200,11 @@ If manual setup is needed (monorepo, read-only filesystem), add the appropriate 
 After setup, verify by creating a simple test:
 
 ```tsx
-import { useTamboThread } from "@tambo-ai/react";
+import { useTambo } from "@tambo-ai/react";
 
 function TestComponent() {
-  const { thread } = useTamboThread();
-  console.log("Tambo connected:", thread !== undefined);
+  const { thread, isIdle } = useTambo();
+  console.log("Tambo connected:", isIdle);
   return <div>Tambo is set up!</div>;
 }
 ```

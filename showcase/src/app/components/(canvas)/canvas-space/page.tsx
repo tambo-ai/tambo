@@ -27,7 +27,7 @@ export default function CanvasSpacePage() {
             code={`import { CanvasSpace } from "@/components/tambo/canvas-space";
 
 export function CanvasDemo() {
-  return <CanvasSpace contextKey="my-thread" />;
+  return <CanvasSpace />;
 }`}
             previewClassName="p-0"
             fullBleed
@@ -57,15 +57,6 @@ export function CanvasDemo() {
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td>contextKey</td>
-                <td>string</td>
-                <td>-</td>
-                <td className="text-muted-foreground">
-                  The context key identifying which thread to display generated
-                  components from
-                </td>
-              </tr>
               <tr>
                 <td>className</td>
                 <td>string</td>
