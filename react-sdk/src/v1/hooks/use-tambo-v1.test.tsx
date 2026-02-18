@@ -1245,6 +1245,7 @@ describe("useTambo", () => {
 
       expect(mockUpdate).toHaveBeenCalledWith("thread_456", {
         name: "My New Thread",
+        userKey: undefined,
       });
 
       expect(result.current.thread?.thread.name).toBe("My New Thread");
@@ -1282,6 +1283,7 @@ describe("useTambo", () => {
 
       expect(mockUpdate).toHaveBeenCalledWith("thread_789", {
         name: "New Title",
+        userKey: undefined,
       });
       const invalidatedKeys = invalidateQueriesSpy.mock.calls
         .map(([arg]) => (arg as any).queryKey)

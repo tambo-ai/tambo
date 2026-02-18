@@ -269,7 +269,7 @@ export function useTambo(): UseTamboReturn {
   // Update a thread's name
   const updateThreadName = useCallback(
     async (threadId: string, name: string) => {
-      await client.threads.update(threadId, { name });
+      await client.threads.update(threadId, { name, userKey });
 
       if (threadMapRef.current[threadId]) {
         dispatch({
@@ -295,7 +295,7 @@ export function useTambo(): UseTamboReturn {
         );
       }
     },
-    [client, dispatch, queryClient],
+    [client, userKey, dispatch, queryClient],
   );
 
   // Memoize the return object to prevent unnecessary re-renders
