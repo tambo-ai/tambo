@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.0-alpha.6](https://github.com/tambo-ai/tambo/compare/@tambo-ai/react-ui-base-v0.1.0-alpha.5...@tambo-ai/react-ui-base-v0.1.0-alpha.6) (2026-02-18)
+
+
+### Miscellaneous Chores
+
+* **react-ui-base:** update package provenance ([#2433](https://github.com/tambo-ai/tambo/issues/2433)) ([dd89e15](https://github.com/tambo-ai/tambo/commit/dd89e15e197e4d3357d0f933f1a7398a1a360c4b))
+
 ## [0.1.0-alpha.5](https://github.com/tambo-ai/tambo/compare/@tambo-ai/react-ui-base-v0.1.0-alpha.4...@tambo-ai/react-ui-base-v0.1.0-alpha.5) (2026-02-17)
 
 
