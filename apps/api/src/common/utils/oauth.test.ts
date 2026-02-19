@@ -567,7 +567,7 @@ describe("validateSubjectToken", () => {
         .digest("hex");
       expect(result.sub).toBe(`opaque:${expectedHash}`);
       expect(mockLogger.log).toHaveBeenCalledWith(
-        "Subject token is not a JWT, treating as opaque access token",
+        "Subject token is not a valid JWT, treating as opaque access token",
       );
     });
 

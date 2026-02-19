@@ -44,15 +44,6 @@ const _ALLOWED_ISSUER_DOMAINS = [
 ];
 
 /**
- * Checks if a string looks like a JWT (three non-empty base64url segments separated by dots).
- * Used to distinguish JWTs from opaque access tokens (e.g., GitHub OAuth tokens like `gho_...`).
- */
-function isJwt(token: string): boolean {
-  const parts = token.split(".");
-  return parts.length === 3 && parts.every((part) => part.length > 0);
-}
-
-/**
  * Creates a synthetic JWTPayload for opaque (non-JWT) access tokens by hashing the token
  * to produce a deterministic subject identifier.
  *
@@ -197,7 +188,13 @@ async function resolveUserinfoIdentity(
     return null;
   }
 
-  const body = JSON.parse(text) as Record<string, unknown>;
+  let body: Record<string, unknown>;
+  try {
+    body = JSON.parse(text) as Record<string, unknown>;
+  } catch {
+    logger.warn("Userinfo response is not valid JSON, falling back to hash");
+    return null;
+  }
 
   // Extract subject: prefer `sub` (OIDC standard), then `id` (GitHub/REST)
   const rawSub = body.sub ?? body.id;
@@ -245,43 +242,49 @@ export async function validateSubjectToken(
   switch (validationMode) {
     case OAuthValidationMode.NONE: {
       // Some OAuth providers (e.g., GitHub) issue opaque access tokens instead of JWTs.
-      // In NONE mode we accept both formats: decode JWTs for claims, resolve identity
-      // via userinfo endpoint for opaque tokens, or hash as a last resort.
-      if (!isJwt(subjectToken)) {
-        logger.log(
-          "Subject token is not a JWT, treating as opaque access token",
-        );
+      // In NONE mode we accept both formats: try decoding as JWT first, and on failure
+      // treat as opaque — resolve identity via userinfo endpoint, or hash as last resort.
+      try {
+        const payload = decodeJwt(subjectToken);
 
-        // If a userinfo endpoint is configured, call it to resolve a stable identity
-        if (oauthSettings?.userinfoEndpoint) {
-          const userinfoPayload = await resolveUserinfoIdentity(
-            subjectToken,
-            oauthSettings.userinfoEndpoint,
-            logger,
-          );
-          if (userinfoPayload) {
-            return userinfoPayload;
+        // Even in NONE mode, we should check token expiry for security
+        if (payload.exp && typeof payload.exp === "number") {
+          const currentTime = Math.floor(Date.now() / 1000);
+          if (payload.exp < currentTime) {
+            throw new UnauthorizedException("Token has expired");
           }
-          // Transient failure — fall through to hash
-          logger.warn(
-            "Userinfo resolution failed, falling back to hash-based identity",
-          );
         }
 
-        return createOpaqueTokenPayload(subjectToken);
-      }
-
-      const payload = decodeJwt(subjectToken);
-
-      // Even in NONE mode, we should check token expiry for security
-      if (payload.exp && typeof payload.exp === "number") {
-        const currentTime = Math.floor(Date.now() / 1000);
-        if (payload.exp < currentTime) {
-          throw new UnauthorizedException("Token has expired");
+        return payload;
+      } catch (error) {
+        // Re-throw auth errors (e.g., expired token)
+        if (error instanceof UnauthorizedException) {
+          throw error;
         }
+
+        // decodeJwt failed — token is not a valid JWT, treat as opaque
+        logger.log(
+          "Subject token is not a valid JWT, treating as opaque access token",
+        );
       }
 
-      return payload;
+      // If a userinfo endpoint is configured, call it to resolve a stable identity
+      if (oauthSettings?.userinfoEndpoint) {
+        const userinfoPayload = await resolveUserinfoIdentity(
+          subjectToken,
+          oauthSettings.userinfoEndpoint,
+          logger,
+        );
+        if (userinfoPayload) {
+          return userinfoPayload;
+        }
+        // Transient failure — fall through to hash
+        logger.warn(
+          "Userinfo resolution failed, falling back to hash-based identity",
+        );
+      }
+
+      return createOpaqueTokenPayload(subjectToken);
     }
 
     case OAuthValidationMode.SYMMETRIC: {
