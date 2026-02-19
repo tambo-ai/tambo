@@ -21,6 +21,7 @@ import type { Suggestion } from "@tambo-ai/react";
 import { withTamboInteractable } from "@tambo-ai/react";
 import { motion } from "framer-motion";
 import {
+  AlertTriangle,
   Building2,
   ChevronDown,
   Database,
@@ -446,10 +447,11 @@ export function OAuthSettings({
                 className="mt-1"
               />
               <div className="flex-1">
-                <div className="font-medium text-md">None</div>
+                <div className="font-medium text-md">Manual</div>
                 <div className="text-xs text-foreground">
-                  Accept tokens as-is without validation. Useful when validation
-                  is handled externally.
+                  No cryptographic signature verification. JWT tokens are
+                  accepted directly. Opaque tokens require a User Info Endpoint
+                  to resolve user identity.
                 </div>
                 {selectedMode === OAuthValidationMode.NONE && (
                   <motion.div
@@ -474,6 +476,18 @@ export function OAuthSettings({
                       Called with the token as a Bearer header to retrieve a
                       stable user ID.
                     </p>
+                    {!userinfoEndpoint && (
+                      <div className="flex gap-2 p-2.5 rounded-md bg-amber-50 border border-amber-200 text-amber-800">
+                        <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
+                        <p className="text-xs">
+                          Without a User Info Endpoint, Tambo cannot verify
+                          opaque access tokens (e.g., GitHub) and they will be
+                          rejected. Only JWT tokens can be accepted. Configure
+                          an endpoint to support providers that issue opaque
+                          tokens.
+                        </p>
+                      </div>
+                    )}
                   </motion.div>
                 )}
               </div>
@@ -614,6 +628,6 @@ export function OAuthSettings({
 export const InteractableOAuthSettings = withTamboInteractable(OAuthSettings, {
   componentName: COMPONENT_NAME,
   description:
-    "Manages OAuth token validation settings for a project. Configure how OAuth bearer tokens are validated, including validation mode (None, Symmetric, Asymmetric Auto, Asymmetric Manual), token required setting, secret keys, and public keys. Users can view current settings and update them.",
+    "Manages OAuth token validation settings for a project. Configure how OAuth bearer tokens are validated, including validation mode (Manual, Symmetric, Asymmetric Auto, Asymmetric Manual), token required setting, secret keys, public keys, and userinfo endpoint. Users can view current settings and update them.",
   propsSchema: InteractableOAuthSettingsProps,
 });

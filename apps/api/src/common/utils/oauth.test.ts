@@ -4,7 +4,6 @@ import {
   OAuthValidationMode,
   encryptOAuthSecretKey,
 } from "@tambo-ai-cloud/core";
-import { createHash } from "node:crypto";
 import { SignJWT, exportJWK, exportSPKI, generateKeyPair } from "jose";
 import { CorrelationLoggerService } from "../services/logger.service";
 import { validateSubjectToken } from "./oauth";
@@ -536,81 +535,41 @@ describe("validateSubjectToken", () => {
       expect(result.sub).toBe("user123");
     });
 
-    it("should handle opaque (non-JWT) tokens in NONE mode by hashing them", async () => {
-      const result = await validateSubjectToken(
-        "not-a-jwt",
-        OAuthValidationMode.NONE,
-        null,
-        mockLogger,
+    it("should reject opaque (non-JWT) tokens in NONE mode without a userinfo endpoint", async () => {
+      await expect(
+        validateSubjectToken(
+          "not-a-jwt",
+          OAuthValidationMode.NONE,
+          null,
+          mockLogger,
+        ),
+      ).rejects.toThrow(
+        "Opaque access token received but no userinfo endpoint configured",
       );
-
-      const expectedHash = createHash("sha256")
-        .update("not-a-jwt")
-        .digest("hex");
-      expect(result.sub).toBe(`opaque:${expectedHash}`);
     });
   });
 
   describe("Opaque (non-JWT) token handling", () => {
-    it("should accept GitHub-style opaque access tokens in NONE mode", async () => {
+    it("should reject GitHub-style opaque access tokens in NONE mode without userinfo endpoint", async () => {
       const githubToken = "gho_16C7e42F292c6912E7710c838347Ae178B4a";
 
-      const result = await validateSubjectToken(
-        githubToken,
-        OAuthValidationMode.NONE,
-        null,
-        mockLogger,
+      await expect(
+        validateSubjectToken(
+          githubToken,
+          OAuthValidationMode.NONE,
+          null,
+          mockLogger,
+        ),
+      ).rejects.toThrow(
+        "Opaque access token received but no userinfo endpoint configured",
       );
 
-      const expectedHash = createHash("sha256")
-        .update(githubToken)
-        .digest("hex");
-      expect(result.sub).toBe(`opaque:${expectedHash}`);
       expect(mockLogger.log).toHaveBeenCalledWith(
         "Subject token is not a valid JWT, treating as opaque access token",
       );
     });
 
-    it("should produce deterministic hashes for the same opaque token", async () => {
-      const token = "ghu_someOpaqueToken123";
-
-      const result1 = await validateSubjectToken(
-        token,
-        OAuthValidationMode.NONE,
-        null,
-        mockLogger,
-      );
-      const result2 = await validateSubjectToken(
-        token,
-        OAuthValidationMode.NONE,
-        null,
-        mockLogger,
-      );
-
-      expect(result1.sub).toBe(result2.sub);
-    });
-
-    it("should produce different hashes for different opaque tokens", async () => {
-      const token1 = "gho_token_one";
-      const token2 = "gho_token_two";
-
-      const result1 = await validateSubjectToken(
-        token1,
-        OAuthValidationMode.NONE,
-        null,
-        mockLogger,
-      );
-      const result2 = await validateSubjectToken(
-        token2,
-        OAuthValidationMode.NONE,
-        null,
-        mockLogger,
-      );
-
-      expect(result1.sub).not.toBe(result2.sub);
-    });
-
-    it("should still decode valid JWTs in NONE mode", async () => {
+    it("should still decode valid JWTs in NONE mode without userinfo endpoint", async () => {
       const token = await new SignJWT(testPayload)
         .setProtectedHeader({ alg: "HS256" })
         .sign(new TextEncoder().encode(symmetricSecret));
@@ -785,18 +744,17 @@ describe("validateSubjectToken", () => {
       expect(global.fetch).not.toHaveBeenCalled();
     });
 
-    it("should fall back to hash when no userinfoEndpoint is configured", async () => {
-      const result = await validateSubjectToken(
-        githubToken,
-        OAuthValidationMode.NONE,
-        { secretKeyEncrypted: null, publicKey: null, userinfoEndpoint: null },
-        mockLogger,
+    it("should reject opaque token when no userinfoEndpoint is configured", async () => {
+      await expect(
+        validateSubjectToken(
+          githubToken,
+          OAuthValidationMode.NONE,
+          { secretKeyEncrypted: null, publicKey: null, userinfoEndpoint: null },
+          mockLogger,
+        ),
+      ).rejects.toThrow(
+        "Opaque access token received but no userinfo endpoint configured",
       );
-
-      const expectedHash = createHash("sha256")
-        .update(githubToken)
-        .digest("hex");
-      expect(result.sub).toBe(`opaque:${expectedHash}`);
     });
 
     it("should reject userinfo endpoint with private IP (SSRF protection)", async () => {
