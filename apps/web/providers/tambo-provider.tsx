@@ -20,24 +20,24 @@ function getOrCreateAnonymousId(): string {
   return newId;
 }
 
-function useContextKey(userId?: string): string | undefined {
+function useUserKey(userId?: string): string | undefined {
   // Initialize with userId if available (server-rendered value)
-  const [contextKey, setContextKey] = useState<string | undefined>(
+  const [userKey, setUserKey] = useState<string | undefined>(
     userId ? `${USER_PREFIX}${userId}` : undefined,
   );
 
   useEffect(() => {
     if (userId) {
-      setContextKey(`${USER_PREFIX}${userId}`);
+      setUserKey(`${USER_PREFIX}${userId}`);
       return;
     }
 
     // For unauthenticated users, use a random UUID stored in localStorage
     const anonymousId = getOrCreateAnonymousId();
-    setContextKey(`${ANON_PREFIX}${anonymousId}`);
+    setUserKey(`${ANON_PREFIX}${anonymousId}`);
   }, [userId]);
 
-  return contextKey;
+  return userKey;
 }
 
 type TamboProviderWrapperProps = Readonly<{
@@ -49,14 +49,14 @@ export function TamboProviderWrapper({
   children,
   userId,
 }: TamboProviderWrapperProps) {
-  const contextKey = useContextKey(userId);
+  const userKey = useUserKey(userId);
 
   return (
     <TamboProvider
       apiKey={env.NEXT_PUBLIC_TAMBO_DASH_KEY!}
       tamboUrl={env.NEXT_PUBLIC_TAMBO_API_URL}
       components={tamboRegisteredComponents}
-      userKey={contextKey}
+      userKey={userKey}
       contextHelpers={{
         userPage: currentPageContextHelper,
       }}
