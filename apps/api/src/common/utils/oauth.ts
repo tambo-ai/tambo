@@ -7,6 +7,7 @@ import {
   SessionlessMcpAccessTokenPayload,
   TAMBO_MCP_ACCESS_KEY_CLAIM,
 } from "@tambo-ai-cloud/core";
+import { createHash } from "node:crypto";
 import {
   createRemoteJWKSet,
   decodeJwt,
@@ -41,6 +42,17 @@ const _ALLOWED_ISSUER_DOMAINS = [
   "auth0.com",
   // Add your trusted OAuth providers here
 ];
+
+/**
+ * Creates a synthetic JWTPayload for opaque (non-JWT) access tokens by hashing the token
+ * to produce a deterministic subject identifier.
+ *
+ * @returns A JWTPayload with `sub` set to `opaque:<sha256-hash>` and no other claims.
+ */
+function createOpaqueTokenPayload(token: string): JWTPayload {
+  const tokenHash = createHash("sha256").update(token).digest("hex");
+  return { sub: `opaque:${tokenHash}` };
+}
 
 /**
  * Validates that a URL is safe for external requests (prevents SSRF)
@@ -234,7 +246,7 @@ export async function validateSubjectToken(
     case OAuthValidationMode.NONE: {
       // Some OAuth providers (e.g., GitHub) issue opaque access tokens instead of JWTs.
       // In NONE mode we accept both formats: try decoding as JWT first, and on failure
-      // treat as opaque — resolve identity via a configured userinfo endpoint.
+      // treat as opaque — resolve identity via userinfo endpoint, or hash as last resort.
       try {
         const payload = decodeJwt(subjectToken);
 
@@ -259,24 +271,24 @@ export async function validateSubjectToken(
         );
       }
 
-      if (!oauthSettings?.userinfoEndpoint) {
+      // If a userinfo endpoint is configured, it MUST resolve — no silent fallback to hash,
+      // which would give the user a different identity and different threads.
+      if (oauthSettings?.userinfoEndpoint) {
+        const userinfoPayload = await resolveUserinfoIdentity(
+          subjectToken,
+          oauthSettings.userinfoEndpoint,
+          logger,
+        );
+        if (userinfoPayload) {
+          return userinfoPayload;
+        }
         throw new UnauthorizedException(
-          "Opaque access token received but no userinfo endpoint configured. " +
-            "Configure a userinfo endpoint in the dashboard to resolve user identity from opaque tokens.",
+          "Failed to resolve user identity from configured userinfo endpoint",
         );
       }
 
-      const userinfoPayload = await resolveUserinfoIdentity(
-        subjectToken,
-        oauthSettings.userinfoEndpoint,
-        logger,
-      );
-      if (userinfoPayload) {
-        return userinfoPayload;
-      }
-      throw new UnauthorizedException(
-        "Failed to resolve user identity from configured userinfo endpoint",
-      );
+      // No userinfo endpoint configured — hash fallback is the only option
+      return createOpaqueTokenPayload(subjectToken);
     }
 
     case OAuthValidationMode.SYMMETRIC: {

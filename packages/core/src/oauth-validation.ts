@@ -2,7 +2,7 @@
  * OAuth token validation modes for projects
  */
 export enum OAuthValidationMode {
-  /** No signature verification. JWTs are decoded directly; opaque tokens require a userinfo endpoint. */
+  /** No signature verification. JWTs are decoded directly; opaque tokens use userinfo endpoint or hash fallback. */
   NONE = "none",
   /** Validation with symmetric keys (like HS256) - requires a secret key to be stored */
   SYMMETRIC = "symmetric",

@@ -481,10 +481,10 @@ export function OAuthSettings({
                         <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
                         <p className="text-xs">
                           Without a User Info Endpoint, Tambo cannot verify
-                          opaque access tokens (e.g., GitHub) and they will be
-                          rejected. Only JWT tokens can be accepted. Configure
-                          an endpoint to support providers that issue opaque
-                          tokens.
+                          opaque access tokens (e.g., GitHub) and users will be
+                          identified by a token hash instead. This means user
+                          identity may change when tokens are refreshed.
+                          Configure an endpoint for stable, persistent identity.
                         </p>
                       </div>
                     )}
