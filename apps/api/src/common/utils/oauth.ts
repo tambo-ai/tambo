@@ -271,7 +271,8 @@ export async function validateSubjectToken(
         );
       }
 
-      // If a userinfo endpoint is configured, call it to resolve a stable identity
+      // If a userinfo endpoint is configured, it MUST resolve — no silent fallback to hash,
+      // which would give the user a different identity and different threads.
       if (oauthSettings?.userinfoEndpoint) {
         const userinfoPayload = await resolveUserinfoIdentity(
           subjectToken,
@@ -281,12 +282,12 @@ export async function validateSubjectToken(
         if (userinfoPayload) {
           return userinfoPayload;
         }
-        // Transient failure — fall through to hash
-        logger.warn(
-          "Userinfo resolution failed, falling back to hash-based identity",
+        throw new UnauthorizedException(
+          "Failed to resolve user identity from configured userinfo endpoint",
         );
       }
 
+      // No userinfo endpoint configured — hash fallback is the only option
       return createOpaqueTokenPayload(subjectToken);
     }
 

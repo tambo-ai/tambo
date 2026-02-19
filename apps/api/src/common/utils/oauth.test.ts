@@ -717,42 +717,38 @@ describe("validateSubjectToken", () => {
       ).rejects.toThrow(UnauthorizedException);
     });
 
-    it("should fall back to hash when userinfo endpoint returns 500", async () => {
+    it("should reject when userinfo endpoint returns 500", async () => {
       (global.fetch as jest.MockedFunction<typeof fetch>).mockResolvedValueOnce(
         new Response("Internal Server Error", { status: 500 }),
       );
 
-      const result = await validateSubjectToken(
-        githubToken,
-        OAuthValidationMode.NONE,
-        settingsWithUserinfo,
-        mockLogger,
+      await expect(
+        validateSubjectToken(
+          githubToken,
+          OAuthValidationMode.NONE,
+          settingsWithUserinfo,
+          mockLogger,
+        ),
+      ).rejects.toThrow(
+        "Failed to resolve user identity from configured userinfo endpoint",
       );
-
-      const expectedHash = createHash("sha256")
-        .update(githubToken)
-        .digest("hex");
-      expect(result.sub).toBe(`opaque:${expectedHash}`);
-      expect(mockLogger.warn).toHaveBeenCalled();
     });
 
-    it("should fall back to hash when userinfo endpoint times out", async () => {
+    it("should reject when userinfo endpoint times out", async () => {
       (global.fetch as jest.MockedFunction<typeof fetch>).mockRejectedValueOnce(
         Object.assign(new Error("aborted"), { name: "AbortError" }),
       );
 
-      const result = await validateSubjectToken(
-        githubToken,
-        OAuthValidationMode.NONE,
-        settingsWithUserinfo,
-        mockLogger,
+      await expect(
+        validateSubjectToken(
+          githubToken,
+          OAuthValidationMode.NONE,
+          settingsWithUserinfo,
+          mockLogger,
+        ),
+      ).rejects.toThrow(
+        "Failed to resolve user identity from configured userinfo endpoint",
       );
-
-      const expectedHash = createHash("sha256")
-        .update(githubToken)
-        .digest("hex");
-      expect(result.sub).toBe(`opaque:${expectedHash}`);
-      expect(mockLogger.warn).toHaveBeenCalled();
     });
 
     it("should throw when userinfo response has neither 'sub' nor 'id'", async () => {
