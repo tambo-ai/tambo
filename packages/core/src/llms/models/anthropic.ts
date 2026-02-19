@@ -9,6 +9,28 @@ type AnthropicModelId = NarrowStrings<RawModelIds>;
 // considered newer than their base versions (e.g., 4), so 4.5 comes before 4.1 before 4.
 // Display names follow the format: "Claude <Tier> <Version>" (e.g., "Claude Sonnet 4.5").
 export const anthropicModels: Partial<LlmModelConfig<AnthropicModelId>> = {
+  "claude-opus-4-6": {
+    apiName: "claude-opus-4-6",
+    displayName: "Claude Opus 4.6",
+    status: "tested",
+    notes:
+      "Claude Opus 4.6 is Anthropic's most intelligent model for building agents and coding.",
+    docLink: "https://docs.anthropic.com/en/docs/about-claude/models/overview",
+    tamboDocLink:
+      "https://docs.tambo.co/reference/llm-providers/anthropic#claude-opus-4-6",
+    inputTokenLimit: 200000,
+  },
+  "claude-sonnet-4-6": {
+    apiName: "claude-sonnet-4-6",
+    displayName: "Claude Sonnet 4.6",
+    status: "tested",
+    notes:
+      "Claude Sonnet 4.6 is Anthropic's best combination of speed and intelligence.",
+    docLink: "https://docs.anthropic.com/en/docs/about-claude/models/overview",
+    tamboDocLink:
+      "https://docs.tambo.co/reference/llm-providers/anthropic#claude-sonnet-4-6",
+    inputTokenLimit: 200000,
+  },
   "claude-opus-4-5-20251101": {
     apiName: "claude-opus-4-5-20251101",
     displayName: "Claude Opus 4.5",
