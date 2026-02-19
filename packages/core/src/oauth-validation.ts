@@ -19,4 +19,5 @@ export interface OAuthValidationSettings {
   mode: OAuthValidationMode;
   secretKey?: string;
   publicKey?: string;
+  userinfoEndpoint?: string;
 }

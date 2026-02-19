@@ -4,6 +4,7 @@ import {
   OAuthValidationMode,
   encryptOAuthSecretKey,
 } from "@tambo-ai-cloud/core";
+import { createHash } from "node:crypto";
 import { SignJWT, exportJWK, exportSPKI, generateKeyPair } from "jose";
 import { CorrelationLoggerService } from "../services/logger.service";
 import { validateSubjectToken } from "./oauth";
@@ -535,15 +536,288 @@ describe("validateSubjectToken", () => {
       expect(result.sub).toBe("user123");
     });
 
-    it("should handle invalid JWT format", async () => {
+    it("should handle opaque (non-JWT) tokens in NONE mode by hashing them", async () => {
+      const result = await validateSubjectToken(
+        "not-a-jwt",
+        OAuthValidationMode.NONE,
+        null,
+        mockLogger,
+      );
+
+      const expectedHash = createHash("sha256")
+        .update("not-a-jwt")
+        .digest("hex");
+      expect(result.sub).toBe(`opaque:${expectedHash}`);
+    });
+  });
+
+  describe("Opaque (non-JWT) token handling", () => {
+    it("should accept GitHub-style opaque access tokens in NONE mode", async () => {
+      const githubToken = "gho_16C7e42F292c6912E7710c838347Ae178B4a";
+
+      const result = await validateSubjectToken(
+        githubToken,
+        OAuthValidationMode.NONE,
+        null,
+        mockLogger,
+      );
+
+      const expectedHash = createHash("sha256")
+        .update(githubToken)
+        .digest("hex");
+      expect(result.sub).toBe(`opaque:${expectedHash}`);
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        "Subject token is not a JWT, treating as opaque access token",
+      );
+    });
+
+    it("should produce deterministic hashes for the same opaque token", async () => {
+      const token = "ghu_someOpaqueToken123";
+
+      const result1 = await validateSubjectToken(
+        token,
+        OAuthValidationMode.NONE,
+        null,
+        mockLogger,
+      );
+      const result2 = await validateSubjectToken(
+        token,
+        OAuthValidationMode.NONE,
+        null,
+        mockLogger,
+      );
+
+      expect(result1.sub).toBe(result2.sub);
+    });
+
+    it("should produce different hashes for different opaque tokens", async () => {
+      const token1 = "gho_token_one";
+      const token2 = "gho_token_two";
+
+      const result1 = await validateSubjectToken(
+        token1,
+        OAuthValidationMode.NONE,
+        null,
+        mockLogger,
+      );
+      const result2 = await validateSubjectToken(
+        token2,
+        OAuthValidationMode.NONE,
+        null,
+        mockLogger,
+      );
+
+      expect(result1.sub).not.toBe(result2.sub);
+    });
+
+    it("should still decode valid JWTs in NONE mode", async () => {
+      const token = await new SignJWT(testPayload)
+        .setProtectedHeader({ alg: "HS256" })
+        .sign(new TextEncoder().encode(symmetricSecret));
+
+      const result = await validateSubjectToken(
+        token,
+        OAuthValidationMode.NONE,
+        null,
+        mockLogger,
+      );
+
+      expect(result.sub).toBe("user123");
+      expect(result.iss).toBe("https://example.com");
+    });
+  });
+
+  describe("Userinfo endpoint resolution for opaque tokens", () => {
+    const githubToken = "gho_16C7e42F292c6912E7710c838347Ae178B4a";
+    const userinfoEndpoint = "https://api.github.com/user";
+    const settingsWithUserinfo = {
+      secretKeyEncrypted: null,
+      publicKey: null,
+      userinfoEndpoint,
+    };
+
+    it("should resolve identity from userinfo endpoint returning 'sub' field", async () => {
+      (global.fetch as jest.MockedFunction<typeof fetch>).mockResolvedValueOnce(
+        new Response(JSON.stringify({ sub: "user456" }), { status: 200 }),
+      );
+
+      const result = await validateSubjectToken(
+        githubToken,
+        OAuthValidationMode.NONE,
+        settingsWithUserinfo,
+        mockLogger,
+      );
+
+      expect(result.sub).toBe("user456");
+      expect(result.iss).toBe("https://api.github.com");
+    });
+
+    it("should resolve identity from userinfo endpoint returning 'id' field (GitHub)", async () => {
+      (global.fetch as jest.MockedFunction<typeof fetch>).mockResolvedValueOnce(
+        new Response(JSON.stringify({ id: 12345, login: "octocat" }), {
+          status: 200,
+        }),
+      );
+
+      const result = await validateSubjectToken(
+        githubToken,
+        OAuthValidationMode.NONE,
+        settingsWithUserinfo,
+        mockLogger,
+      );
+
+      expect(result.sub).toBe("12345");
+      expect(result.iss).toBe("https://api.github.com");
+    });
+
+    it("should prefer 'sub' over 'id' when both are present", async () => {
+      (global.fetch as jest.MockedFunction<typeof fetch>).mockResolvedValueOnce(
+        new Response(JSON.stringify({ sub: "oidc-user-789", id: 99999 }), {
+          status: 200,
+        }),
+      );
+
+      const result = await validateSubjectToken(
+        githubToken,
+        OAuthValidationMode.NONE,
+        settingsWithUserinfo,
+        mockLogger,
+      );
+
+      expect(result.sub).toBe("oidc-user-789");
+    });
+
+    it("should reject token when userinfo endpoint returns 401", async () => {
+      (global.fetch as jest.MockedFunction<typeof fetch>).mockResolvedValueOnce(
+        new Response("Unauthorized", { status: 401 }),
+      );
+
       await expect(
         validateSubjectToken(
-          "not-a-jwt",
+          githubToken,
           OAuthValidationMode.NONE,
-          null,
+          settingsWithUserinfo,
           mockLogger,
         ),
-      ).rejects.toThrow();
+      ).rejects.toThrow(UnauthorizedException);
+    });
+
+    it("should reject token when userinfo endpoint returns 403", async () => {
+      (global.fetch as jest.MockedFunction<typeof fetch>).mockResolvedValueOnce(
+        new Response("Forbidden", { status: 403 }),
+      );
+
+      await expect(
+        validateSubjectToken(
+          githubToken,
+          OAuthValidationMode.NONE,
+          settingsWithUserinfo,
+          mockLogger,
+        ),
+      ).rejects.toThrow(UnauthorizedException);
+    });
+
+    it("should fall back to hash when userinfo endpoint returns 500", async () => {
+      (global.fetch as jest.MockedFunction<typeof fetch>).mockResolvedValueOnce(
+        new Response("Internal Server Error", { status: 500 }),
+      );
+
+      const result = await validateSubjectToken(
+        githubToken,
+        OAuthValidationMode.NONE,
+        settingsWithUserinfo,
+        mockLogger,
+      );
+
+      const expectedHash = createHash("sha256")
+        .update(githubToken)
+        .digest("hex");
+      expect(result.sub).toBe(`opaque:${expectedHash}`);
+      expect(mockLogger.warn).toHaveBeenCalled();
+    });
+
+    it("should fall back to hash when userinfo endpoint times out", async () => {
+      (global.fetch as jest.MockedFunction<typeof fetch>).mockRejectedValueOnce(
+        Object.assign(new Error("aborted"), { name: "AbortError" }),
+      );
+
+      const result = await validateSubjectToken(
+        githubToken,
+        OAuthValidationMode.NONE,
+        settingsWithUserinfo,
+        mockLogger,
+      );
+
+      const expectedHash = createHash("sha256")
+        .update(githubToken)
+        .digest("hex");
+      expect(result.sub).toBe(`opaque:${expectedHash}`);
+      expect(mockLogger.warn).toHaveBeenCalled();
+    });
+
+    it("should throw when userinfo response has neither 'sub' nor 'id'", async () => {
+      (global.fetch as jest.MockedFunction<typeof fetch>).mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({ email: "user@example.com", name: "Test" }),
+          { status: 200 },
+        ),
+      );
+
+      await expect(
+        validateSubjectToken(
+          githubToken,
+          OAuthValidationMode.NONE,
+          settingsWithUserinfo,
+          mockLogger,
+        ),
+      ).rejects.toThrow(UnauthorizedException);
+    });
+
+    it("should not call userinfo endpoint for JWT tokens", async () => {
+      const jwtToken = await new SignJWT(testPayload)
+        .setProtectedHeader({ alg: "HS256" })
+        .sign(new TextEncoder().encode(symmetricSecret));
+
+      const result = await validateSubjectToken(
+        jwtToken,
+        OAuthValidationMode.NONE,
+        settingsWithUserinfo,
+        mockLogger,
+      );
+
+      expect(result.sub).toBe("user123");
+      expect(global.fetch).not.toHaveBeenCalled();
+    });
+
+    it("should fall back to hash when no userinfoEndpoint is configured", async () => {
+      const result = await validateSubjectToken(
+        githubToken,
+        OAuthValidationMode.NONE,
+        { secretKeyEncrypted: null, publicKey: null, userinfoEndpoint: null },
+        mockLogger,
+      );
+
+      const expectedHash = createHash("sha256")
+        .update(githubToken)
+        .digest("hex");
+      expect(result.sub).toBe(`opaque:${expectedHash}`);
+    });
+
+    it("should reject userinfo endpoint with private IP (SSRF protection)", async () => {
+      const privateSettings = {
+        secretKeyEncrypted: null,
+        publicKey: null,
+        userinfoEndpoint: "https://192.168.1.1/user",
+      };
+
+      await expect(
+        validateSubjectToken(
+          githubToken,
+          OAuthValidationMode.NONE,
+          privateSettings,
+          mockLogger,
+        ),
+      ).rejects.toThrow(UnauthorizedException);
     });
   });
 
