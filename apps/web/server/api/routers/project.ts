@@ -1133,6 +1133,7 @@ export const projectRouter = createTRPCRouter({
           publicKey: null,
           hasSecretKey: false,
           hasPublicKey: false,
+          userinfoEndpoint: null,
         };
       }
 
@@ -1141,6 +1142,7 @@ export const projectRouter = createTRPCRouter({
         hasSecretKey: !!settings.secretKeyEncrypted,
         hasPublicKey: !!settings.publicKey,
         publicKey: settings.publicKey, // Public key is safe to return
+        userinfoEndpoint: settings.userinfoEndpoint ?? null,
       };
     }),
 
@@ -1148,7 +1150,14 @@ export const projectRouter = createTRPCRouter({
     .input(updateOAuthValidationSettingsInput)
     .output(updateOAuthValidationSettingsOutputSchema)
     .mutation(async ({ ctx, input }) => {
-      const { projectId, mode, secretKey, publicKey, isTokenRequired } = input;
+      const {
+        projectId,
+        mode,
+        secretKey,
+        publicKey,
+        isTokenRequired,
+        userinfoEndpoint,
+      } = input;
       await operations.ensureProjectAccess(ctx.db, projectId, ctx.user.id);
 
       // Encrypt secret key if provided
@@ -1181,6 +1190,7 @@ export const projectRouter = createTRPCRouter({
         secretKeyEncrypted,
         publicKey:
           mode === OAuthValidationMode.ASYMMETRIC_MANUAL ? publicKey : null,
+        userinfoEndpoint: userinfoEndpoint || null,
       };
 
       await operations.updateOAuthValidationSettings(

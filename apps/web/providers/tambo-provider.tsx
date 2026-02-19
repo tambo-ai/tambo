@@ -3,60 +3,22 @@
 import { env } from "@/lib/env";
 import { tamboRegisteredComponents } from "@/lib/tambo/config";
 import { TamboProvider, currentPageContextHelper } from "@tambo-ai/react";
-import { useEffect, useState } from "react";
-
-const ANONYMOUS_USER_STORAGE_KEY = "tambo-anonymous-user-id";
-const USER_PREFIX = "user:";
-const ANON_PREFIX = "anon:";
-
-function getOrCreateAnonymousId(): string {
-  const existingId = localStorage.getItem(ANONYMOUS_USER_STORAGE_KEY);
-  if (existingId) {
-    return existingId;
-  }
-
-  const newId = crypto.randomUUID();
-  localStorage.setItem(ANONYMOUS_USER_STORAGE_KEY, newId);
-  return newId;
-}
-
-function useUserKey(userId?: string): string | undefined {
-  // Initialize with userId if available (server-rendered value)
-  const [userKey, setUserKey] = useState<string | undefined>(
-    userId ? `${USER_PREFIX}${userId}` : undefined,
-  );
-
-  useEffect(() => {
-    if (userId) {
-      setUserKey(`${USER_PREFIX}${userId}`);
-      return;
-    }
-
-    // For unauthenticated users, use a random UUID stored in localStorage
-    const anonymousId = getOrCreateAnonymousId();
-    setUserKey(`${ANON_PREFIX}${anonymousId}`);
-  }, [userId]);
-
-  return userKey;
-}
 
 type TamboProviderWrapperProps = Readonly<{
   children: React.ReactNode;
-  userId?: string;
+  userToken?: string;
 }>;
 
 export function TamboProviderWrapper({
   children,
-  userId,
+  userToken,
 }: TamboProviderWrapperProps) {
-  const userKey = useUserKey(userId);
-
   return (
     <TamboProvider
       apiKey={env.NEXT_PUBLIC_TAMBO_DASH_KEY!}
       tamboUrl={env.NEXT_PUBLIC_TAMBO_API_URL}
       components={tamboRegisteredComponents}
-      userKey={userKey}
+      userToken={userToken}
       contextHelpers={{
         userPage: currentPageContextHelper,
       }}
