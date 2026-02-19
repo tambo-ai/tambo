@@ -78,7 +78,7 @@ const components: TamboComponent[] = [
 Similarly, give the LLM tools:
 
 ```typescript
-const getWeather = (city: string) => {
+const getWeather = async ({ city }: { city: string }) => {
   const forecast = await weather.getCityForecast(city);
   return forecast; // return the data, Tambo will format it for the user
 };
@@ -88,10 +88,10 @@ export const tools: TamboTool[] = [
     name: "getWeather",
     description: "A tool to get the current weather conditions of a city",
     tool: getWeather,
-    toolSchema: z
-      .function()
-      .args(z.string().describe("The city name to get weather information for"))
-      .returns(z.string()),
+    inputSchema: z.object({
+      city: z.string().describe("The city name to get weather information for"),
+    }),
+    outputSchema: z.string(),
   },
 ];
 
