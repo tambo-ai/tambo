@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.143.2](https://github.com/tambo-ai/tambo/compare/api-v0.143.1...api-v0.143.2) (2026-02-19)
+
+
+### Bug Fixes
+
+* **api:** resolve opaque OAuth tokens via userinfo endpoint ([#2440](https://github.com/tambo-ai/tambo/issues/2440)) ([2380f0c](https://github.com/tambo-ai/tambo/commit/2380f0cd40659072ce8e0a5e7b1c7108cf1d6aeb))
+
 ## [0.143.1](https://github.com/tambo-ai/tambo/compare/api-v0.143.0...api-v0.143.1) (2026-02-18)
 
 
