@@ -196,6 +196,8 @@ async function resolveUserinfoIdentity(
     return null;
   }
 
+  // Response is typed as Record<string, unknown> because it could be an OIDC UserInfo response
+  // or a provider-specific REST response (e.g., GitHub). No shared type exists in jose or the codebase.
   // Extract subject: prefer `sub` (OIDC UserInfo standard — https://openid.net/specs/openid-connect-core-1_0.html#UserInfo),
   // then `id` (GitHub/REST APIs that don't follow OIDC — https://docs.github.com/en/rest/users/users#get-the-authenticated-user)
   const rawSub = body.sub ?? body.id;
