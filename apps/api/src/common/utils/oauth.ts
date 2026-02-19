@@ -196,7 +196,8 @@ async function resolveUserinfoIdentity(
     return null;
   }
 
-  // Extract subject: prefer `sub` (OIDC standard), then `id` (GitHub/REST)
+  // Extract subject: prefer `sub` (OIDC UserInfo standard — https://openid.net/specs/openid-connect-core-1_0.html#UserInfo),
+  // then `id` (GitHub/REST APIs that don't follow OIDC — https://docs.github.com/en/rest/users/users#get-the-authenticated-user)
   const rawSub = body.sub ?? body.id;
   if (rawSub === undefined || rawSub === null) {
     throw new UnauthorizedException(
