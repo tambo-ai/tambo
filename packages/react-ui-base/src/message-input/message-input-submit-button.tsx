@@ -1,13 +1,17 @@
 "use client";
 
-import { Slot } from "@radix-ui/react-slot";
+import { mergeProps } from "@base-ui/react/merge-props";
+import { useRender } from "@base-ui/react/use-render";
 import * as React from "react";
 import { useMessageInputContext } from "./message-input-context";
 
 /**
  * Render props for the SubmitButton component.
  */
-export interface MessageInputSubmitButtonRenderProps {
+export interface MessageInputSubmitButtonRenderProps extends Record<
+  string,
+  unknown
+> {
   /** Whether to show cancel button instead of submit */
   showCancelButton: boolean;
   /** Whether the button is disabled */
@@ -19,17 +23,10 @@ export interface MessageInputSubmitButtonRenderProps {
 /**
  * Props for the MessageInput.SubmitButton component.
  */
-export interface MessageInputSubmitButtonProps extends Omit<
-  React.ButtonHTMLAttributes<HTMLButtonElement>,
-  "children"
-> {
-  /** Render as a different element using Radix Slot */
-  asChild?: boolean;
-  /** Content to display inside the button, or render function */
-  children?:
-    | React.ReactNode
-    | ((props: MessageInputSubmitButtonRenderProps) => React.ReactNode);
-}
+export type MessageInputSubmitButtonProps = useRender.ComponentProps<
+  "button",
+  MessageInputSubmitButtonRenderProps
+>;
 
 /**
  * Submit button component for sending messages.
@@ -38,7 +35,7 @@ export interface MessageInputSubmitButtonProps extends Omit<
 export const MessageInputSubmitButton = React.forwardRef<
   HTMLButtonElement,
   MessageInputSubmitButtonProps
->(({ asChild, children, ...props }, ref) => {
+>(({ children, ...props }, ref) => {
   const { isPending, isIdle, cancel, isUpdatingToken } =
     useMessageInputContext();
 
@@ -67,24 +64,25 @@ export const MessageInputSubmitButton = React.forwardRef<
     [showCancelButton, disabled, handleCancel],
   );
 
-  const Comp = asChild ? Slot : "button";
+  const { render, ...componentProps } = props;
 
-  return (
-    <Comp
-      ref={ref}
-      type={showCancelButton ? "button" : "submit"}
-      disabled={disabled}
-      onClick={showCancelButton ? handleCancel : undefined}
-      aria-label={showCancelButton ? "Cancel message" : "Send message"}
-      data-slot={
-        showCancelButton ? "message-input-cancel" : "message-input-submit"
-      }
-      data-state={showCancelButton ? "cancel" : "submit"}
-      data-disabled={disabled || undefined}
-      {...props}
-    >
-      {typeof children === "function" ? children(renderProps) : children}
-    </Comp>
-  );
+  return useRender({
+    defaultTagName: "button",
+    ref,
+    render,
+    state: renderProps,
+    props: mergeProps(componentProps, {
+      type: showCancelButton ? "button" : "submit",
+      disabled,
+      onClick: showCancelButton ? handleCancel : undefined,
+      "aria-label": showCancelButton ? "Cancel message" : "Send message",
+      children,
+      "data-slot": showCancelButton
+        ? "message-input-cancel"
+        : "message-input-submit",
+      "data-state": showCancelButton ? "cancel" : "submit",
+      "data-disabled": disabled || undefined,
+    }),
+  });
 });
 MessageInputSubmitButton.displayName = "MessageInput.SubmitButton";

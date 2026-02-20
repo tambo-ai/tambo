@@ -1,9 +1,8 @@
 "use client";
 
-import { Slot } from "@radix-ui/react-slot";
+import { mergeProps } from "@base-ui/react/merge-props";
+import { useRender } from "@base-ui/react/use-render";
 import * as React from "react";
-import { BasePropsWithChildrenOrRenderFunction } from "../../types/component-render-or-children";
-import { useRender } from "../../use-render/use-render";
 import { useToolcallInfoContext } from "../root/toolcall-info-context";
 
 export type ToolStatus = "error" | "loading" | "success";
@@ -17,12 +16,15 @@ function getToolStatus(
   return "success";
 }
 
-export interface ToolcallInfoStatusIconRenderProps {
+export interface ToolcallInfoStatusIconRenderProps extends Record<
+  string,
+  unknown
+> {
   status: ToolStatus;
 }
 
-export type ToolcallInfoStatusIconProps = BasePropsWithChildrenOrRenderFunction<
-  React.HTMLAttributes<HTMLSpanElement>,
+export type ToolcallInfoStatusIconProps = useRender.ComponentProps<
+  "span",
   ToolcallInfoStatusIconRenderProps
 >;
 
@@ -32,24 +34,21 @@ export type ToolcallInfoStatusIconProps = BasePropsWithChildrenOrRenderFunction<
 export const ToolcallInfoStatusIcon = React.forwardRef<
   HTMLSpanElement,
   ToolcallInfoStatusIconProps
->(({ asChild, ...props }, ref) => {
+>(({ ...props }, ref) => {
   const { hasToolError, isLoading } = useToolcallInfoContext();
 
   const status = getToolStatus(hasToolError, isLoading);
+  const { render, ...componentProps } = props;
 
-  const Comp = asChild ? Slot : "span";
-
-  const { content, componentProps } = useRender(props, { status });
-
-  return (
-    <Comp
-      ref={ref}
-      data-slot="toolcall-info-status-icon"
-      data-status={status}
-      {...componentProps}
-    >
-      {content}
-    </Comp>
-  );
+  return useRender({
+    defaultTagName: "span",
+    ref,
+    render,
+    state: { status },
+    props: mergeProps(componentProps, {
+      "data-slot": "toolcall-info-status-icon",
+      "data-status": status,
+    }),
+  });
 });
 ToolcallInfoStatusIcon.displayName = "ToolcallInfo.StatusIcon";

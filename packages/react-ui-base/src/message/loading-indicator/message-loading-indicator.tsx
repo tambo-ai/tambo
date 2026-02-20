@@ -1,10 +1,8 @@
-import { Slot } from "@radix-ui/react-slot";
+import { mergeProps } from "@base-ui/react/merge-props";
+import { useRender } from "@base-ui/react/use-render";
 import * as React from "react";
-import { BaseProps } from "../../types/component-render-or-children";
 
-export type MessageLoadingIndicatorProps = BaseProps<
-  React.HTMLAttributes<HTMLDivElement>
->;
+export type MessageLoadingIndicatorProps = useRender.ComponentProps<"div">;
 
 /**
  * MessageLoadingIndicator base component for showing loading state.
@@ -13,18 +11,22 @@ export type MessageLoadingIndicatorProps = BaseProps<
 export const MessageLoadingIndicator = React.forwardRef<
   HTMLDivElement,
   MessageLoadingIndicatorProps
->(({ asChild, children, ...props }, ref) => {
-  const Comp = asChild ? Slot : "div";
-  return (
-    <Comp ref={ref} data-slot="loading-indicator" {...props}>
-      {children ?? (
+>(({ children, ...props }, ref) => {
+  const { render, ...componentProps } = props;
+  return useRender({
+    defaultTagName: "div",
+    ref,
+    render,
+    props: mergeProps(componentProps, {
+      children: children ?? (
         <>
           <span data-dot="1" />
           <span data-dot="2" />
           <span data-dot="3" />
         </>
-      )}
-    </Comp>
-  );
+      ),
+      "data-slot": "loading-indicator",
+    }),
+  });
 });
 MessageLoadingIndicator.displayName = "Message.LoadingIndicator";

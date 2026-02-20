@@ -1,29 +1,29 @@
 "use client";
 
-import { Slot } from "@radix-ui/react-slot";
+import { mergeProps } from "@base-ui/react/merge-props";
+import { useRender } from "@base-ui/react/use-render";
 import type { TamboThreadMessage } from "@tambo-ai/react";
 import * as React from "react";
 import { useToolcallInfoContext } from "../root/toolcall-info-context";
 
-export interface ToolcallInfoContentRenderProps {
+export interface ToolcallInfoContentRenderProps extends Record<
+  string,
+  unknown
+> {
   /** The message containing the tool call. */
   message: TamboThreadMessage;
   /** Whether the content is expanded. */
   isExpanded: boolean;
 }
 
-export interface ToolcallInfoContentProps extends Omit<
-  React.HTMLAttributes<HTMLDivElement>,
-  "children"
-> {
-  /** When true, renders as a Slot, merging props into the child element. */
-  asChild?: boolean;
+type ToolcallInfoContentComponentProps = useRender.ComponentProps<
+  "div",
+  ToolcallInfoContentRenderProps
+>;
+
+export interface ToolcallInfoContentProps extends ToolcallInfoContentComponentProps {
   /** Force visibility regardless of expanded state (for custom animations). */
   forceMount?: boolean;
-  /** Static children or render function for custom content. */
-  children?:
-    | React.ReactNode
-    | ((props: ToolcallInfoContentRenderProps) => React.ReactNode);
 }
 
 /**
@@ -32,30 +32,29 @@ export interface ToolcallInfoContentProps extends Omit<
 export const ToolcallInfoContent = React.forwardRef<
   HTMLDivElement,
   ToolcallInfoContentProps
->(({ asChild, forceMount, children, ...props }, ref) => {
+>(({ forceMount, ...props }, ref) => {
   const { isExpanded, detailsId, message } = useToolcallInfoContext();
 
   if (!forceMount && !isExpanded) {
     return null;
   }
-
-  const Comp = asChild ? Slot : "div";
+  const { render, ...componentProps } = props;
 
   const renderProps: ToolcallInfoContentRenderProps = {
     message,
     isExpanded,
   };
 
-  return (
-    <Comp
-      ref={ref}
-      id={detailsId}
-      data-slot="toolcall-info-content"
-      data-state={isExpanded ? "open" : "closed"}
-      {...props}
-    >
-      {typeof children === "function" ? children(renderProps) : children}
-    </Comp>
-  );
+  return useRender({
+    defaultTagName: "div",
+    ref,
+    render,
+    state: renderProps,
+    props: mergeProps(componentProps, {
+      id: detailsId,
+      "data-slot": "toolcall-info-content",
+      "data-state": isExpanded ? "open" : "closed",
+    }),
+  });
 });
 ToolcallInfoContent.displayName = "ToolcallInfo.Content";

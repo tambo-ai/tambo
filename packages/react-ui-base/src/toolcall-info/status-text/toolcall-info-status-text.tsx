@@ -1,13 +1,21 @@
 "use client";
 
-import { Slot } from "@radix-ui/react-slot";
+import { mergeProps } from "@base-ui/react/merge-props";
+import { useRender } from "@base-ui/react/use-render";
 import * as React from "react";
 import { useToolcallInfoContext } from "../root/toolcall-info-context";
 
-export interface ToolcallInfoStatusTextProps extends React.HTMLAttributes<HTMLSpanElement> {
-  /** When true, renders as a Slot, merging props into the child element. */
-  asChild?: boolean;
+export interface ToolcallInfoStatusTextRenderProps extends Record<
+  string,
+  unknown
+> {
+  toolStatusMessage: string;
 }
+
+export type ToolcallInfoStatusTextProps = useRender.ComponentProps<
+  "span",
+  ToolcallInfoStatusTextRenderProps
+>;
 
 /**
  * Displays the tool status message text.
@@ -15,15 +23,22 @@ export interface ToolcallInfoStatusTextProps extends React.HTMLAttributes<HTMLSp
 export const ToolcallInfoStatusText = React.forwardRef<
   HTMLSpanElement,
   ToolcallInfoStatusTextProps
->(({ asChild, children, ...props }, ref) => {
+>(({ children, ...props }, ref) => {
   const { toolStatusMessage } = useToolcallInfoContext();
+  const { render, ...componentProps } = props;
+  const renderProps: ToolcallInfoStatusTextRenderProps = {
+    toolStatusMessage,
+  };
 
-  const Comp = asChild ? Slot : "span";
-
-  return (
-    <Comp ref={ref} data-slot="toolcall-info-status-text" {...props}>
-      {children ?? toolStatusMessage}
-    </Comp>
-  );
+  return useRender({
+    defaultTagName: "span",
+    ref,
+    render,
+    state: renderProps,
+    props: mergeProps(componentProps, {
+      children: children ?? toolStatusMessage,
+      "data-slot": "toolcall-info-status-text",
+    }),
+  });
 });
 ToolcallInfoStatusText.displayName = "ToolcallInfo.StatusText";
