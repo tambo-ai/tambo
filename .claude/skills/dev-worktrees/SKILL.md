@@ -31,7 +31,7 @@ install_command: npm install
 | `linear_prefix`   | `TAM`                                      | Linear issue prefix (case-insensitive)                 |
 | `install_command` | `npm install`                              | Dependency install command, executed as-is in worktree |
 
-If a user asks to change a preference, update or create the file in the main repo, preserving other values. Always write `worktree_base` as a fully resolved absolute path.
+If a user asks to change a preference, update or create the file in the main repo, preserving other values. Always write `worktree_base` as a fully resolved absolute path (e.g., `cd ~/path && pwd` to expand `~`).
 
 ## Workflow
 
@@ -63,6 +63,8 @@ If you run this from inside a worktree, `git rev-parse --show-toplevel` will ret
 
 Main repo path:
 
+Implementations can do a check equivalent to:
+
 ```bash
 MAIN_REPO="$(git rev-parse --show-toplevel)"
 GIT_DIR="$(git rev-parse --git-dir)"
@@ -82,7 +84,10 @@ Example: branch `lachieh/tam-1234-add-dark-mode` → `<worktree_base>/tam-1234-a
 
 ```bash
 REMOTE="origin"
-DEFAULT_BRANCH_REF="$(git symbolic-ref "refs/remotes/$REMOTE/HEAD" --short)" # e.g. origin/main
+DEFAULT_BRANCH_REF="$(git symbolic-ref "refs/remotes/$REMOTE/HEAD" --short 2>/dev/null || true)"
+if [ -z "$DEFAULT_BRANCH_REF" ]; then
+  DEFAULT_BRANCH_REF="$REMOTE/main" # fallback when $REMOTE/HEAD isn't set
+fi
 DEFAULT_BRANCH="${DEFAULT_BRANCH_REF#${REMOTE}/}"
 
 git fetch "$REMOTE" "$DEFAULT_BRANCH"
