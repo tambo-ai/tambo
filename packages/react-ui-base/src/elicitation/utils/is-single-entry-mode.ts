@@ -3,7 +3,8 @@ import type {
   TamboElicitationRequest,
 } from "@tambo-ai/react/mcp";
 
-const isSingleFieldEntry = (schema: FieldSchema): boolean => {
+/** Returns true if this field schema can be represented in the single-entry UI. */
+const isSingleEntryEligibleField = (schema: FieldSchema): boolean => {
   return (
     schema.type === "boolean" || (schema.type === "string" && "enum" in schema)
   );
@@ -18,5 +19,5 @@ export const isSingleEntryMode = (
   }
 
   const [, schema] = fields[0];
-  return isSingleFieldEntry(schema);
+  return isSingleEntryEligibleField(schema);
 };
