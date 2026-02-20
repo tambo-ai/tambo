@@ -54,6 +54,7 @@ export interface MessageThreadCollapsibleProps extends React.HTMLAttributes<HTML
    * @example variant="compact"
    */
   variant?: VariantProps<typeof messageVariants>["variant"];
+  /** Optional starter suggestions shown before conversation begins. When omitted, no starter suggestions are shown. */
   initialSuggestions?: Suggestion[];
 }
 

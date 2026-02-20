@@ -46,6 +46,7 @@ export interface MessageThreadFullProps extends React.HTMLAttributes<HTMLDivElem
    * @example variant="compact"
    */
   variant?: VariantProps<typeof messageVariants>["variant"];
+  /** Optional starter suggestions shown before conversation begins. When omitted, no starter suggestions are shown. */
   initialSuggestions?: Suggestion[];
 }
 

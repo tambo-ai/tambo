@@ -107,4 +107,23 @@ describe("Elicitation.Root", () => {
     expect(onResponse).toHaveBeenNthCalledWith(1, { action: "decline" });
     expect(onResponse).toHaveBeenNthCalledWith(2, { action: "cancel" });
   });
+
+  it("replaces default actions when custom action children are provided", () => {
+    const request = createRequest();
+
+    render(
+      <Elicitation.Root request={request} onResponse={jest.fn()}>
+        <Elicitation.Actions>
+          <button type="button">Custom action</button>
+        </Elicitation.Actions>
+      </Elicitation.Root>,
+    );
+
+    expect(
+      screen.getByRole("button", { name: "Custom action" }),
+    ).not.toBeNull();
+    expect(screen.queryByRole("button", { name: "Cancel" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Decline" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Submit" })).toBeNull();
+  });
 });
