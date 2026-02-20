@@ -9,16 +9,18 @@ const nextConfig: NextConfig = {
   // that doesn't work with strict mode.
   reactStrictMode: false,
   transpilePackages: getWorkspaceTranspilePackages(APP_DIR),
-  webpack(config) {
+  webpack(config, { dev }) {
     config.module.rules.push({
       test: /\.svg$/,
       use: ["@svgr/webpack"],
     });
 
-    config.resolve.conditionNames = [
-      "development",
-      ...config.resolve.conditionNames,
-    ];
+    if (dev) {
+      const conditionNames = config.resolve.conditionNames ?? [];
+      config.resolve.conditionNames = conditionNames.includes("development")
+        ? conditionNames
+        : ["development", ...conditionNames];
+    }
 
     // don't resolve optional peers from '@standard-community/standard-json'
     config.resolve.alias = {

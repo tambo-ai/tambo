@@ -171,17 +171,19 @@ const config = {
     webpackMemoryOptimizations: true,
   },
   // Configure webpack to use SVGR for SVG imports
-  webpack(config) {
+  webpack(config, { dev }) {
     // Modify the rules for SVG files
     config.module.rules.push({
       test: /\.svg$/,
       use: ["@svgr/webpack"],
     });
 
-    config.resolve.conditionNames = [
-      "development",
-      ...config.resolve.conditionNames,
-    ];
+    if (dev) {
+      const conditionNames = config.resolve.conditionNames ?? [];
+      config.resolve.conditionNames = conditionNames.includes("development")
+        ? conditionNames
+        : ["development", ...conditionNames];
+    }
 
     // don't resolve optional peers from '@standard-community/standard-json'
     config.resolve.alias = {

@@ -8,11 +8,13 @@ const APP_DIR = fileURLToPath(new URL(".", import.meta.url));
 /** @type {import('next').NextConfig} */
 const config = {
   transpilePackages: getWorkspaceTranspilePackages(APP_DIR),
-  webpack(config) {
-    config.resolve.conditionNames = [
-      "development",
-      ...config.resolve.conditionNames,
-    ];
+  webpack(config, { dev }) {
+    if (dev) {
+      const conditionNames = config.resolve.conditionNames ?? [];
+      config.resolve.conditionNames = conditionNames.includes("development")
+        ? conditionNames
+        : ["development", ...conditionNames];
+    }
     return config;
   },
   reactStrictMode: true,
