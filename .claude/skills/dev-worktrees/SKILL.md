@@ -57,7 +57,9 @@ op plugin run -- gh api user -q .login
 
 ### 3. Resolve paths
 
-Run `/dev-worktrees` from the main repo checkout (not from inside an existing worktree). The preferences file lives in the main repo.
+Run `/dev-worktrees` from your primary clone of the repo (not from inside any existing worktree). The preferences file lives in the primary clone, not in individual worktrees.
+
+If you run this from inside a worktree, `git rev-parse --show-toplevel` will return the worktree root (not the primary clone path). Stop and re-run from the primary clone.
 
 Main repo path:
 
@@ -87,7 +89,7 @@ If the branch already exists, ask to check out the existing branch instead.
 
 ### 5. Symlink Claude settings
 
-Link `<main-repo>/.claude/settings.local.json` into the worktree. Both paths must be fully resolved absolute paths.
+Link `<main-repo>/.claude/settings.local.json` into the worktree. Both paths must be fully resolved absolute paths (no `~`, no `$HOME`).
 
 ```bash
 mkdir -p "<worktree-path>/.claude"
