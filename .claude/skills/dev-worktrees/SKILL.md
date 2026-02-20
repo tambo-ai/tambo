@@ -57,7 +57,13 @@ op plugin run -- gh api user -q .login
 
 ### 3. Resolve paths
 
-Run `git worktree list` to find the main repo path (entry on `main` branch).
+Run `/dev-worktrees` from the main repo checkout (not from inside an existing worktree). The preferences file lives in the main repo.
+
+Main repo path:
+
+```bash
+git rev-parse --show-toplevel
+```
 
 Worktree path: `<worktree_base>/<branch-name-without-username-prefix>`
 Example: branch `lachieh/tam-1234-add-dark-mode` → `<worktree_base>/tam-1234-add-dark-mode`
@@ -73,7 +79,7 @@ If the branch already exists, ask to check out the existing branch instead.
 
 ### 5. Symlink Claude settings
 
-Link `<main-repo>/.claude/settings.local.json` into the worktree. Both paths must be fully resolved absolutes from `git worktree list`.
+Link `<main-repo>/.claude/settings.local.json` into the worktree. Both paths must be fully resolved absolute paths.
 
 ```bash
 mkdir -p "<worktree-path>/.claude"
