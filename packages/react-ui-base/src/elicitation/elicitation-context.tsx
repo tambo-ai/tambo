@@ -6,6 +6,7 @@ import type {
   TamboElicitationResponse,
 } from "@tambo-ai/react/mcp";
 import * as React from "react";
+import { isSingleEntryMode } from "./utils/is-single-entry-mode";
 
 export interface ElicitationField {
   name: string;
@@ -29,18 +30,6 @@ export interface ElicitationContextValue {
 
 export const ElicitationContext =
   React.createContext<ElicitationContextValue | null>(null);
-
-const isSingleEntryMode = (request: TamboElicitationRequest): boolean => {
-  const fields = Object.entries(request.requestedSchema.properties);
-  if (fields.length !== 1) {
-    return false;
-  }
-
-  const [, schema] = fields[0];
-  return (
-    schema.type === "boolean" || (schema.type === "string" && "enum" in schema)
-  );
-};
 
 const validateField = (
   value: unknown,

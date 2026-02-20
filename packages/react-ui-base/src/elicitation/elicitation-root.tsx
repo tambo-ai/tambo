@@ -6,6 +6,7 @@ import type {
 } from "@tambo-ai/react/mcp";
 import * as React from "react";
 import { ElicitationProvider } from "./elicitation-context";
+import { isSingleEntryMode } from "./utils/is-single-entry-mode";
 
 export interface ElicitationRootProps extends React.HTMLAttributes<HTMLDivElement> {
   request: TamboElicitationRequest;
@@ -17,11 +18,7 @@ export const ElicitationRoot = React.forwardRef<
   HTMLDivElement,
   ElicitationRootProps
 >(({ request, onResponse, children, ...props }, ref) => {
-  const requestFields = Object.entries(request.requestedSchema.properties);
-  const isSingleEntry =
-    requestFields.length === 1 &&
-    (requestFields[0][1].type === "boolean" ||
-      (requestFields[0][1].type === "string" && "enum" in requestFields[0][1]));
+  const isSingleEntry = isSingleEntryMode(request);
 
   return (
     <ElicitationProvider request={request} onResponse={onResponse}>
