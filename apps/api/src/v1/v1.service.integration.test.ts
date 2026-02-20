@@ -2,7 +2,7 @@ import { HttpStatus, NotFoundException } from "@nestjs/common";
 import { Test, TestingModule } from "@nestjs/testing";
 import { V1Service } from "./v1.service";
 import { ThreadsService } from "../threads/threads.service";
-import { DATABASE } from "../common/middleware/db-transaction-middleware";
+import { DATABASE } from "../common/database-provider";
 import {
   createMockDBThread,
   createMockDBMessage,

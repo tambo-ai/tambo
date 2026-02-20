@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.1.0-alpha.7](https://github.com/tambo-ai/tambo/compare/@tambo-ai/react-ui-base-v0.1.0-alpha.6...@tambo-ai/react-ui-base-v0.1.0-alpha.7) (2026-02-18)
+
+
+### Bug Fixes
+
+* **react-ui-base:** render content blocks in natural order from model response ([#2435](https://github.com/tambo-ai/tambo/issues/2435)) ([6e279a2](https://github.com/tambo-ai/tambo/commit/6e279a2bf30e71b94e220588f4580a0a0c5f398c))
+
+## [0.1.0-alpha.6](https://github.com/tambo-ai/tambo/compare/@tambo-ai/react-ui-base-v0.1.0-alpha.5...@tambo-ai/react-ui-base-v0.1.0-alpha.6) (2026-02-18)
+
+
+### Miscellaneous Chores
+
+* **react-ui-base:** update package provenance ([#2433](https://github.com/tambo-ai/tambo/issues/2433)) ([dd89e15](https://github.com/tambo-ai/tambo/commit/dd89e15e197e4d3357d0f933f1a7398a1a360c4b))
+
+## [0.1.0-alpha.5](https://github.com/tambo-ai/tambo/compare/@tambo-ai/react-ui-base-v0.1.0-alpha.4...@tambo-ai/react-ui-base-v0.1.0-alpha.5) (2026-02-17)
+
+
+### Miscellaneous Chores
+
+* **deps:** bump @tambo-ai/typescript-sdk from 0.91.0 to 0.92.0 in the tambo-ai group ([#2337](https://github.com/tambo-ai/tambo/issues/2337)) ([97dcd7d](https://github.com/tambo-ai/tambo/commit/97dcd7dd70b8337da1bf957eaccff00b0b83a4ee))
+
 ## [0.1.0-alpha.4](https://github.com/tambo-ai/tambo/compare/@tambo-ai/react-ui-base-v0.1.0-alpha.3...@tambo-ai/react-ui-base-v0.1.0-alpha.4) (2026-02-11)
 
 

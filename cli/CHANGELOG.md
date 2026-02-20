@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.53.1](https://github.com/tambo-ai/tambo/compare/tambo-v0.53.0...tambo-v0.53.1) (2026-02-18)
+
+
+### Miscellaneous Chores
+
+* **deps:** bump @tambo-ai/typescript-sdk from 0.91.0 to 0.92.0 in the tambo-ai group ([#2337](https://github.com/tambo-ai/tambo/issues/2337)) ([97dcd7d](https://github.com/tambo-ai/tambo/commit/97dcd7dd70b8337da1bf957eaccff00b0b83a4ee))
+* **deps:** bump inquirer from 13.2.1 to 13.2.4 ([#2426](https://github.com/tambo-ai/tambo/issues/2426)) ([b99868f](https://github.com/tambo-ai/tambo/commit/b99868f12d223ea2061c41ea0a3a0fb380d8bd24))
+* **deps:** bump the ag-ui group across 1 directory with 5 updates ([#2241](https://github.com/tambo-ai/tambo/issues/2241)) ([a758a87](https://github.com/tambo-ai/tambo/commit/a758a8748ef265f9b99425079f9cd6ba8b99963c))
+* **deps:** bump the trpc group with 3 updates ([#2422](https://github.com/tambo-ai/tambo/issues/2422)) ([95b176a](https://github.com/tambo-ai/tambo/commit/95b176a143d195cb9738722d2373ec27d437ea8f))
+* **test:** bump coverage thresholds (2026-02-16) ([#2418](https://github.com/tambo-ai/tambo/issues/2418)) ([906927a](https://github.com/tambo-ai/tambo/commit/906927a5a1616de58e1084895a19d9f665c770fe))
+
 ## [0.53.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.52.1...tambo-v0.53.0) (2026-02-11)
 
 

@@ -48,6 +48,7 @@ export function createMockDBProject(
       overrides.oauthValidationMode ?? OAuthValidationMode.ASYMMETRIC_AUTO,
     oauthSecretKeyEncrypted: overrides.oauthSecretKeyEncrypted ?? null,
     oauthPublicKey: overrides.oauthPublicKey ?? null,
+    oauthUserinfoEndpoint: overrides.oauthUserinfoEndpoint ?? null,
     bearerTokenSecret: overrides.bearerTokenSecret ?? "secret",
     isTokenRequired: overrides.isTokenRequired ?? false,
     providerType: overrides.providerType ?? AiProviderType.LLM,

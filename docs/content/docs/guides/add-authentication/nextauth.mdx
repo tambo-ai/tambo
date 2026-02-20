@@ -36,9 +36,12 @@ export const authOptions: NextAuthOptions = {
   ],
   callbacks: {
     async jwt({ token, account }) {
-      // Persist the OAuth access_token to the token right after signin
+      // Persist the OAuth token right after signin.
+      // Prefer id_token (JWT) when available — OIDC providers like Google issue
+      // ID tokens with a stable `sub` claim. For providers that only issue opaque
+      // access tokens (e.g., GitHub), fall back to the access_token.
       if (account) {
-        token.accessToken = account.access_token;
+        token.accessToken = account.id_token || account.access_token;
       }
       return token;
     },
@@ -197,4 +200,12 @@ export default function Dashboard() {
   Make sure your Google OAuth application has the necessary scopes configured.
   The `openid`, `email`, and `profile` scopes are typically sufficient for user
   identification.
+</Callout>
+
+<Callout type="info" title="GitHub and Other Non-OIDC Providers">
+  GitHub issues opaque access tokens (not JWTs). When using GitHub as an Auth.js
+  provider, select the **GitHub** preset in the Tambo dashboard OAuth settings.
+  This configures a user info endpoint that resolves a stable user identity from
+  the opaque token. Other OIDC-compliant providers (Google, Microsoft, Auth0)
+  issue JWT tokens and work automatically.
 </Callout>

@@ -11,7 +11,7 @@ import {
   ThreadNotFoundError,
 } from "@tambo-ai-cloud/db";
 import { type Request } from "express";
-import { DATABASE } from "../../common/middleware/db-transaction-middleware";
+import { DATABASE } from "../../common/database-provider";
 import { CorrelationLoggerService } from "../../common/services/logger.service";
 import { ProjectId } from "../../projects/guards/apikey.guard";
 import { getV1ContextInfo } from "../utils/get-v1-context-info";

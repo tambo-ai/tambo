@@ -1,49 +1,66 @@
+import type { TamboToolUseContent } from "@tambo-ai/react";
 import { getToolStatusMessage } from "./get-tool-status-message";
-import { createToolCallMessage } from "./toolcall-info.test";
 
 describe("getToolStatusMessage", () => {
-  it("returns null for user messages", () => {
-    const message = createToolCallMessage({
-      role: "user",
-    });
-    expect(getToolStatusMessage(message, false)).toBeNull();
-  });
-
-  it("returns null when no tool call content exists", () => {
-    const message = createToolCallMessage({
-      content: [{ type: "text", text: "hello" }],
-    });
-    expect(getToolStatusMessage(message, false)).toBeNull();
+  it("returns null when toolCallRequest is missing", () => {
+    expect(getToolStatusMessage(undefined, false)).toBeNull();
   });
 
   it('returns "Calling name" when loading', () => {
-    const message = createToolCallMessage({
-      toolUse: { name: "search" },
-    });
-    expect(getToolStatusMessage(message, true)).toBe("Calling search");
+    const toolCallRequest: TamboToolUseContent = {
+      type: "tool_use",
+      id: "tc-1",
+      name: "search",
+      input: {},
+    };
+    expect(getToolStatusMessage(toolCallRequest, true)).toBe("Calling search");
   });
 
   it('returns "Called name" when not loading', () => {
-    const message = createToolCallMessage({
-      toolUse: { name: "search" },
-    });
-    expect(getToolStatusMessage(message, false)).toBe("Called search");
+    const toolCallRequest: TamboToolUseContent = {
+      type: "tool_use",
+      id: "tc-1",
+      name: "search",
+      input: {},
+    };
+    expect(getToolStatusMessage(toolCallRequest, false)).toBe("Called search");
+  });
+
+  it("treats undefined isLoading as not loading", () => {
+    const toolCallRequest: TamboToolUseContent = {
+      type: "tool_use",
+      id: "tc-1",
+      name: "search",
+      input: {},
+    };
+
+    expect(getToolStatusMessage(toolCallRequest, undefined)).toBe(
+      "Called search",
+    );
   });
 
   it("returns custom statusMessage when loading", () => {
-    const message = createToolCallMessage({
-      toolUse: { name: "search", statusMessage: "Searching the web..." },
-    });
-    expect(getToolStatusMessage(message, true)).toBe("Searching the web...");
+    const toolCallRequest: TamboToolUseContent = {
+      type: "tool_use",
+      id: "tc-1",
+      name: "search",
+      input: {},
+      statusMessage: "Searching the web...",
+    };
+    expect(getToolStatusMessage(toolCallRequest, true)).toBe(
+      "Searching the web...",
+    );
   });
 
   it('falls back to "tool" when name is missing', () => {
-    const message = createToolCallMessage({
-      content: [
-        { type: "tool_use", id: "tc-1", name: undefined as never, input: {} },
-      ],
-    });
-    expect(getToolStatusMessage(message, true)).toBe("Calling tool");
-    expect(getToolStatusMessage(message, false)).toBe("Called tool");
+    const toolCallRequest: TamboToolUseContent = {
+      type: "tool_use",
+      id: "tc-1",
+      name: undefined as never,
+      input: {},
+    };
+
+    expect(getToolStatusMessage(toolCallRequest, true)).toBe("Calling tool");
+    expect(getToolStatusMessage(toolCallRequest, false)).toBe("Called tool");
   });
 });

@@ -1,5 +1,23 @@
 # Changelog
 
+## [1.28.0](https://github.com/tambo-ai/tambo/compare/docs-v1.27.1...docs-v1.28.0) (2026-02-20)
+
+
+### Features
+
+* **core:** add Claude Opus 4.6 and Sonnet 4.6 to available models ([#2439](https://github.com/tambo-ai/tambo/issues/2439)) ([b421a94](https://github.com/tambo-ai/tambo/commit/b421a9428eabd78a4aa9a0bb5bea8a83cd90a5fb))
+
+
+### Bug Fixes
+
+* **api:** resolve opaque OAuth tokens via userinfo endpoint ([#2440](https://github.com/tambo-ai/tambo/issues/2440)) ([2380f0c](https://github.com/tambo-ai/tambo/commit/2380f0cd40659072ce8e0a5e7b1c7108cf1d6aeb))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump @tambo-ai/typescript-sdk from 0.91.0 to 0.92.0 in the tambo-ai group ([#2337](https://github.com/tambo-ai/tambo/issues/2337)) ([97dcd7d](https://github.com/tambo-ai/tambo/commit/97dcd7dd70b8337da1bf957eaccff00b0b83a4ee))
+* **deps:** bump the small-safe-packages group across 1 directory with 4 updates ([#2423](https://github.com/tambo-ai/tambo/issues/2423)) ([48a3aed](https://github.com/tambo-ai/tambo/commit/48a3aed15bf01e61d6422c18ad0b7d6a4c399285))
+
 ## [1.27.1](https://github.com/tambo-ai/tambo/compare/docs-v1.27.0...docs-v1.27.1) (2026-02-13)
 
 

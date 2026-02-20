@@ -84,6 +84,7 @@ export class AgentClient {
         const client = new MastraClient({ baseUrl: agentUrl });
         const agents = await MastraAgent.getRemoteAgents({
           mastraClient: client,
+          resourceId: "",
         });
         if (!(normalizedAgentName in agents)) {
           throw new Error(`Agent ${normalizedAgentName} not found`);

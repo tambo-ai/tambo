@@ -233,6 +233,7 @@ export const authOptions: NextAuthOptions = {
         token.accessToken = account.access_token;
         token.provider = account.provider;
         token.idToken = account.id_token;
+        token.userToken = account.id_token || account.access_token;
       }
 
       const refreshedToken = await refreshTokenIfNecessary(account, token);
