@@ -290,16 +290,29 @@ interface ThreadState {
 }
 
 // Internal ThreadState — used inside the reducer only
-interface InternalThreadState extends ThreadState {
-  accumulatingToolArgs: Record<string, string>; // was Map<string, string>
-}
+//
+// Important: we should avoid projecting/sanitizing state inside `getState()`, because
+// `useSyncExternalStore` relies on referential stability of the returned snapshot.
+//
+// Instead, store internal-only fields on the same runtime object using a non-exported
+// `unique symbol` key. This keeps internal fields out of the public `.d.ts` surface,
+// while preserving structural sharing + reference stability.
+//
+// Note: this is not a security boundary (someone can still discover symbol keys via
+// reflection), but it does make the internal fields non-obvious and non-addressable
+// via normal property access.
+const accumulatingToolArgsKey: unique symbol = Symbol("accumulatingToolArgs");
+
+type InternalThreadState = ThreadState & {
+  [accumulatingToolArgsKey]: Record<string, string>; // was Map<string, string>
+};
 ```
 
 Note: `authState` is computed on access via `getAuthState()`, not stored in `ClientState`.
 
 **Research Insights: ClientState**
 
-- **`accumulatingToolArgs` excluded from public ThreadState**: This is internal streaming state that accumulates partial JSON during tool argument streaming. Exposing it leaks implementation details that consumers should never depend on. The internal reducer uses `InternalThreadState`; `getState()` returns the public shape.
+- **`accumulatingToolArgs` excluded from public ThreadState**: This is internal streaming state that accumulates partial JSON during tool argument streaming. Exposing it leaks implementation details that consumers should never depend on. Store it on the same runtime object under a non-exported `unique symbol` key so `getState()` can return the internal state _as-is_ (preserving referential stability) without exposing the field in the public type surface.
 - **Structural sharing**: When the reducer updates a thread, only that thread's `ThreadState` gets a new reference. Other threads keep their old references. This enables selector-based subscription in the React adapter — a component reading thread A does not re-render when thread B changes.
 - **Notification batching**: During high-frequency streaming (100+ events/sec), batch subscriber notifications via `queueMicrotask`:
 
@@ -515,7 +528,8 @@ Implement the two new classes that form the public API.
 
 - Creates typescript-sdk client internally (`new TamboAI({...})`)
 - State management: private `state: ClientState`, `listeners: Set<() => void>`. Public `getState()` and `subscribe()` methods directly on the class — useSyncExternalStore-compatible.
-- `run()` creates TamboStream, calls `beforeRun` callback first
+- `run()` is synchronous and returns a `TamboStream` immediately
+- The stream's internal processing loop awaits `beforeRun` (and context helpers) before the first network call
 - Thread management: `switchThread`, `startNewThread`, `getThread` operate on internal state
 - Tool registration: internal `Record<string, TamboTool>`
 - Auth: `getAuthState()` computes from config on each call (pure function, not stored in state)
@@ -612,12 +626,15 @@ function TamboProvider({ apiKey, tools, components, ... }):
   )
 
 // use-tambo-v1.ts (simplified)
+const SERVER_SNAPSHOT: ClientState = { threadMap: {}, currentThreadId: "" }
+
 function useTambo():
   const client = useContext(TamboClientContext)
 
   const state = useSyncExternalStore(
     client.subscribe,
-    client.getState
+    client.getState,
+    () => SERVER_SNAPSHOT
   )
 
   const threadState = state.threadMap[state.currentThreadId]
