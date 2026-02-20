@@ -22,43 +22,49 @@ export interface MessageInputSubmitButtonProps extends Omit<
 export const MessageInputSubmitButton = React.forwardRef<
   HTMLButtonElement,
   MessageInputSubmitButtonProps
->(({ children, keepMounted = false, tabIndex, ...props }, ref) => {
-  const { isPending, isIdle, isUpdatingToken } = useMessageInputContext();
-  const hidden = isPending || (!isIdle && !isUpdatingToken);
-  const disabled = isUpdatingToken;
-  const loading = isUpdatingToken && !isIdle && !isPending;
+>(
+  (
+    { children, keepMounted = false, tabIndex: propTabIndex, ...props },
+    ref,
+  ) => {
+    const { isPending, isIdle, isUpdatingToken } = useMessageInputContext();
+    const hidden = isPending || (!isIdle && !isUpdatingToken);
+    const disabled = isUpdatingToken;
+    const loading = isUpdatingToken && !isIdle && !isPending;
+    const effectiveTabIndex = hidden ? -1 : propTabIndex;
 
-  if (hidden && !keepMounted) {
-    return null;
-  }
+    if (!keepMounted && hidden) {
+      return null;
+    }
 
-  const renderProps = React.useMemo<MessageInputSubmitButtonRenderProps>(
-    () => ({
-      hidden,
-      disabled,
-      loading,
-    }),
-    [hidden, disabled, loading],
-  );
+    const renderProps = React.useMemo<MessageInputSubmitButtonRenderProps>(
+      () => ({
+        hidden,
+        disabled,
+        loading,
+      }),
+      [hidden, disabled, loading],
+    );
 
-  return (
-    <button
-      {...props}
-      ref={ref}
-      type={hidden ? "button" : "submit"}
-      disabled={disabled}
-      tabIndex={hidden ? -1 : tabIndex}
-      aria-label="Send message"
-      aria-hidden={hidden || undefined}
-      data-slot="message-input-submit"
-      data-state="submit"
-      data-disabled={disabled || undefined}
-      data-loading={loading || undefined}
-      data-hidden={hidden || undefined}
-      hidden={hidden && keepMounted}
-    >
-      {typeof children === "function" ? children(renderProps) : children}
-    </button>
-  );
-});
+    return (
+      <button
+        {...props}
+        ref={ref}
+        type={hidden ? "button" : "submit"}
+        disabled={disabled}
+        tabIndex={effectiveTabIndex}
+        aria-label="Send message"
+        aria-hidden={hidden || undefined}
+        data-slot="message-input-submit"
+        data-state="submit"
+        data-disabled={disabled || undefined}
+        data-loading={loading || undefined}
+        data-hidden={hidden || undefined}
+        hidden={hidden && keepMounted}
+      >
+        {typeof children === "function" ? children(renderProps) : children}
+      </button>
+    );
+  },
+);
 MessageInputSubmitButton.displayName = "MessageInput.SubmitButton";
