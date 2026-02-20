@@ -1,0 +1,112 @@
+---
+title: MessageInput
+description: Compose message text input, staged images, submit/stop controls, and elicitation mode with unstyled parts.
+---
+
+# MessageInput
+
+`MessageInput` in `@tambo-ai/react-ui-base` owns message-authoring behavior while keeping styling in `@tambo-ai/ui-registry` or your own UI layer.
+
+## Demo
+
+### Tailwind
+
+```tsx
+import { MessageInput } from "@tambo-ai/react-ui-base/message-input";
+
+export function DemoMessageInput() {
+  return (
+    <MessageInput.Root>
+      <MessageInput.Content>
+        <MessageInput.Textarea />
+        <MessageInput.Toolbar>
+          <MessageInput.FileButton>Attach</MessageInput.FileButton>
+          <MessageInput.SubmitButton keepMounted>Send</MessageInput.SubmitButton>
+          <MessageInput.StopButton keepMounted>Stop</MessageInput.StopButton>
+        </MessageInput.Toolbar>
+      </MessageInput.Content>
+      <MessageInput.Elicitation />
+      <MessageInput.Error />
+    </MessageInput.Root>
+  );
+}
+```
+
+## Anatomy
+
+```tsx
+<MessageInput.Root>
+  <MessageInput.Content />
+  <MessageInput.Elicitation />
+  <MessageInput.Error />
+</MessageInput.Root>
+```
+
+## Examples
+
+### Submit/Stop Visibility
+
+```tsx
+<MessageInput.SubmitButton keepMounted />
+<MessageInput.StopButton keepMounted />
+```
+
+`keepMounted` keeps the element in the tree and toggles visibility with `data-hidden`.
+
+### Rendering Custom Elicitation UI
+
+```tsx
+<MessageInput.Elicitation>
+  {({ request, onResponse }) => (
+    <CustomElicitation request={request} onResponse={onResponse} />
+  )}
+</MessageInput.Elicitation>
+```
+
+## API reference
+
+### Root
+
+| Prop      | Type                                         | Default | Description |
+| --------- | -------------------------------------------- | ------- | ----------- |
+| `inputRef` | `React.RefObject<TamboEditor \| null>`      | `undefined` | Ref for editor-level operations. |
+
+### Content
+
+| Prop         | Type      | Default | Description |
+| ------------ | --------- | ------- | ----------- |
+| `keepMounted` | `boolean` | `false` | Keep mounted while elicitation is active and hide via `data-hidden`. |
+
+### Elicitation
+
+| Prop         | Type      | Default | Description |
+| ------------ | --------- | ------- | ----------- |
+| `keepMounted` | `boolean` | `false` | Keep mounted while no elicitation is active and hide via `data-hidden`. |
+
+### SubmitButton
+
+| Prop         | Type      | Default | Description |
+| ------------ | --------- | ------- | ----------- |
+| `keepMounted` | `boolean` | `false` | Keep mounted while hidden and expose hidden state via `data-hidden`. |
+
+### StopButton
+
+| Prop         | Type      | Default | Description |
+| ------------ | --------- | ------- | ----------- |
+| `keepMounted` | `boolean` | `false` | Keep mounted while hidden and expose hidden state via `data-hidden`. |
+
+## Accessibility
+
+- Use semantic controls in render-prop children (`button`, `textarea`, `input`).
+- Provide clear labels for custom submit/stop controls when replacing defaults.
+- Keep keyboard submit/stop behavior consistent with your app input model.
+
+## Styling Hooks
+
+- `data-slot="message-input-root"`
+- `data-slot="message-input-content"`
+- `data-slot="message-input-elicitation"`
+- `data-slot="message-input-submit"`
+- `data-slot="message-input-stop"`
+- `data-hidden`
+

@@ -1,0 +1,99 @@
+---
+title: Elicitation
+description: Build composable elicitation request UIs from MCP form schemas with unstyled base primitives.
+---
+
+# Elicitation
+
+`Elicitation` in `@tambo-ai/react-ui-base` renders MCP elicitation requests with behavior-focused, unstyled parts.
+
+## Demo
+
+### Tailwind
+
+```tsx
+import { Elicitation } from "@tambo-ai/react-ui-base/elicitation";
+
+export function DemoElicitation({
+  request,
+  onResponse,
+}: {
+  request: TamboElicitationRequest;
+  onResponse: (response: TamboElicitationResponse) => void;
+}) {
+  return (
+    <Elicitation.Root request={request} onResponse={onResponse}>
+      <Elicitation.Message />
+      <Elicitation.Fields />
+      <Elicitation.Actions />
+    </Elicitation.Root>
+  );
+}
+```
+
+## Anatomy
+
+```tsx
+<Elicitation.Root request={request} onResponse={onResponse}>
+  <Elicitation.Message />
+  <Elicitation.Fields />
+  <Elicitation.Actions />
+</Elicitation.Root>
+```
+
+## Examples
+
+### Single-Entry Auto Submit
+
+Single-field boolean or enum requests auto-submit when the option is selected.
+
+### Custom Actions
+
+```tsx
+<Elicitation.Actions>
+  {({ handleCancel, handleDecline, handleAccept, isValid }) => (
+    <>
+      <button onClick={handleCancel}>Cancel</button>
+      <button onClick={handleDecline}>Decline</button>
+      <button onClick={handleAccept} disabled={!isValid}>
+        Submit
+      </button>
+    </>
+  )}
+</Elicitation.Actions>
+```
+
+## API reference
+
+### Root
+
+| Prop        | Type | Default | Description |
+| ----------- | ---- | ------- | ----------- |
+| `request`   | `TamboElicitationRequest` | Required | Incoming elicitation request schema and message. |
+| `onResponse` | `(response: TamboElicitationResponse) => void` | Required | Callback for accept/decline/cancel responses. |
+
+### Message
+
+Renders the request message from `Root`.
+
+### Fields
+
+Renders field controls generated from `request.requestedSchema`.
+
+### Actions
+
+Renders cancel/decline actions and submit for multi-field requests.
+
+## Accessibility
+
+- Provide clear labels for custom field renders.
+- Keep validation messaging text-associated with each field.
+- Ensure action controls remain keyboard accessible.
+
+## Styling Hooks
+
+- `data-slot="elicitation-root"`
+- `data-slot="elicitation-message"`
+- `data-slot="elicitation-fields"`
+- `data-slot="elicitation-actions"`
+

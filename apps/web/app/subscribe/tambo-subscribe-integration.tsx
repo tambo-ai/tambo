@@ -8,19 +8,20 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { MessageInputTextareaWithInteractables } from "@/components/ui/tambo/message-input-with-interactables";
+import { ComponentsThemeProvider } from "@/providers/components-theme-provider";
+import { useTambo, useTamboThreadInput } from "@tambo-ai/react";
 import {
   MessageInput,
   MessageInputError,
+  MessageInputStopButton,
   MessageInputSubmitButton,
   MessageInputToolbar,
 } from "@tambo-ai/ui-registry/components/message-input";
-import { MessageInputTextareaWithInteractables } from "@/components/ui/tambo/message-input-with-interactables";
 import {
   ThreadContent,
   ThreadContentMessages,
 } from "@tambo-ai/ui-registry/components/thread-content";
-import { ComponentsThemeProvider } from "@/providers/components-theme-provider";
-import { useTambo, useTamboThreadInput } from "@tambo-ai/react";
 import { useEffect, useRef, useState } from "react";
 import { SubscribeForm, SubscribeFormProps } from "./subscribe-form";
 
@@ -111,6 +112,7 @@ export function TamboSubscribeIntegration() {
               <MessageInputTextareaWithInteractables />
               <MessageInputToolbar>
                 <MessageInputSubmitButton />
+                <MessageInputStopButton />
               </MessageInputToolbar>
               <MessageInputError />
             </MessageInput>

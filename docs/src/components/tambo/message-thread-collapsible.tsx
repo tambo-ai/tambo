@@ -15,6 +15,7 @@ import {
   MessageInput,
   MessageInputError,
   MessageInputFileButton,
+  MessageInputStopButton,
   MessageInputSubmitButton,
   MessageInputTextarea,
   MessageInputToolbar,
@@ -53,6 +54,7 @@ export interface MessageThreadCollapsibleProps extends React.HTMLAttributes<HTML
    * @example variant="compact"
    */
   variant?: VariantProps<typeof messageVariants>["variant"];
+  initialSuggestions?: Suggestion[];
 }
 
 /**
@@ -190,7 +192,14 @@ export const MessageThreadCollapsible = React.forwardRef<
   MessageThreadCollapsibleProps
 >(
   (
-    { className, defaultOpen = false, initialQuery, variant, ...props },
+    {
+      className,
+      defaultOpen = false,
+      initialQuery,
+      variant,
+      initialSuggestions,
+      ...props
+    },
     ref,
   ) => {
     const searchParams = useSearchParams();
@@ -230,27 +239,6 @@ export const MessageThreadCollapsible = React.forwardRef<
       content: [{ type: "text", text: "Ask me anything about tambo." }],
       createdAt: new Date().toISOString(),
     };
-
-    const defaultSuggestions: Suggestion[] = [
-      {
-        id: "suggestion-1",
-        title: "Create an account",
-        detailedSuggestion: "How do I create an account?",
-        messageId: "create-account-query",
-      },
-      {
-        id: "suggestion-2",
-        title: "Join the Discord",
-        detailedSuggestion: "How do I join the tambo Discord?",
-        messageId: "join-discord-query",
-      },
-      {
-        id: "suggestion-3",
-        title: "Open an issue on GitHub",
-        detailedSuggestion: "How do I open an issue on GitHub?",
-        messageId: "open-issue-query",
-      },
-    ];
 
     return (
       <CollapsibleContainer
@@ -294,13 +282,14 @@ export const MessageThreadCollapsible = React.forwardRef<
                 <MessageInputToolbar>
                   <MessageInputFileButton />
                   <MessageInputSubmitButton />
+                  <MessageInputStopButton />
                 </MessageInputToolbar>
                 <MessageInputError />
               </MessageInput>
             </div>
 
             {/* Message suggestions */}
-            <MessageSuggestions initialSuggestions={defaultSuggestions}>
+            <MessageSuggestions initialSuggestions={initialSuggestions}>
               <MessageSuggestionsList />
             </MessageSuggestions>
           </div>

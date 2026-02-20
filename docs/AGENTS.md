@@ -141,7 +141,10 @@ In general, try to fit changes into the following categories. If you can't find 
    - coding-agent-generative-ui-rules
    - component-data-props - Optimization guidance
 
-5. **Reference** (6 subsections)
+5. **Reference** (7 subsections)
+   - **react-ui-base-primitives/** (2 pages)
+     - message-input - Base primitive for authoring input, submit/stop visibility, and elicitation mode
+     - elicitation - Base primitive for MCP elicitation request composition
    - **react-sdk/** (6 pages including index)
      - hooks - React hooks for thread management, component state, streaming
      - types - TypeScript interfaces and types

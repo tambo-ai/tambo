@@ -1,6 +1,5 @@
 "use client";
 
-import { Slot } from "@radix-ui/react-slot";
 import * as React from "react";
 import { IS_PASTED_IMAGE } from "./constants";
 import {
@@ -47,8 +46,6 @@ export interface MessageInputStagedImagesProps extends Omit<
   React.HTMLAttributes<HTMLDivElement>,
   "children"
 > {
-  /** Render as a different element using Radix Slot */
-  asChild?: boolean;
   /** Content to display, or render function */
   children?:
     | React.ReactNode
@@ -62,7 +59,7 @@ export interface MessageInputStagedImagesProps extends Omit<
 export const MessageInputStagedImages = React.forwardRef<
   HTMLDivElement,
   MessageInputStagedImagesProps
->(({ asChild, children, ...props }, ref) => {
+>(({ children, ...props }, ref) => {
   const { images: rawImages, removeImage } = useMessageInputContext();
   const [expandedImageId, setExpandedImageId] = React.useState<string | null>(
     null,
@@ -112,10 +109,8 @@ export const MessageInputStagedImages = React.forwardRef<
     return null;
   }
 
-  const Comp = asChild ? Slot : "div";
-
   return (
-    <Comp
+    <div
       ref={ref}
       data-slot="message-input-staged-images"
       data-count={rawImages.length}
@@ -123,7 +118,7 @@ export const MessageInputStagedImages = React.forwardRef<
       {...props}
     >
       {typeof children === "function" ? children(renderProps) : children}
-    </Comp>
+    </div>
   );
 });
 MessageInputStagedImages.displayName = "MessageInput.StagedImages";

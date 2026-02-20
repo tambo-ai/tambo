@@ -1,6 +1,5 @@
 "use client";
 
-import { Slot } from "@radix-ui/react-slot";
 import {
   useIsTamboTokenUpdating,
   useTambo,
@@ -46,8 +45,6 @@ const getValueFromSessionStorage = (key: string): string => {
  * Props for the MessageInput.Root component.
  */
 export interface MessageInputRootProps extends React.HTMLAttributes<HTMLFormElement> {
-  /** Render as a different element using Radix Slot */
-  asChild?: boolean;
   /** Optional ref to forward to the TamboEditor instance */
   inputRef?: React.RefObject<TamboEditor | null>;
   /** The child elements to render within the form container */
@@ -61,7 +58,7 @@ export interface MessageInputRootProps extends React.HTMLAttributes<HTMLFormElem
 export const MessageInputRoot = React.forwardRef<
   HTMLFormElement,
   MessageInputRootProps
->(({ asChild, children, inputRef, ...props }, ref) => {
+>(({ children, inputRef, ...props }, ref) => {
   const {
     value,
     setValue,
@@ -73,17 +70,12 @@ export const MessageInputRoot = React.forwardRef<
     removeImage,
   } = useTamboThreadInput();
   const { cancelRun: cancel, currentThreadId, isIdle } = useTambo();
-  const [displayValue, setDisplayValue] = React.useState("");
   const [submitError, setSubmitError] = React.useState<string | null>(null);
   const [imageError, setImageError] = React.useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [isDragging, setIsDragging] = React.useState(false);
   const editorRef = React.useRef<TamboEditor | null>(null);
   const dragCounter = React.useRef(0);
-  // Tracks whether a submission is in-flight. Used to prevent the display-value
-  // sync effect from restoring the old input text when `currentThreadId` changes
-  // mid-submission (e.g. placeholder → real thread ID migration).
-  const submittingRef = React.useRef(false);
   const isUpdatingToken = useIsTamboTokenUpdating();
 
   // Use elicitation context (optional)
@@ -99,50 +91,39 @@ export const MessageInputRoot = React.forwardRef<
     // On mount, load any stored draft value, but only if current value is empty
     const storedValue = getValueFromSessionStorage(currentThreadId);
     if (!storedValue) return;
-    setValue((currentValue) => currentValue ?? storedValue);
+    setValue((currentValue) =>
+      currentValue.length > 0 ? currentValue : storedValue,
+    );
   }, [setValue, currentThreadId]);
 
   React.useEffect(() => {
-    // While a submission is in-flight, displayValue has been intentionally
-    // cleared. Don't overwrite it when currentThreadId changes (e.g.
-    // placeholder → real thread ID migration triggers this effect).
-    if (submittingRef.current) return;
-
-    setDisplayValue(value);
+    if (isSubmitting) return;
     storeValueInSessionStorage(currentThreadId, value);
-    if (value && editorRef.current) {
-      editorRef.current.focus();
+    if (value && editorRef.current && !editorRef.current.isFocused()) {
+      editorRef.current.focus("end");
     }
-  }, [value, currentThreadId]);
+  }, [value, currentThreadId, isSubmitting]);
 
   const submitMessage = React.useCallback(async () => {
-    if ((!value.trim() && images.length === 0) || isSubmitting) return;
+    // Input remains editable during generation/loading, but submission must wait
+    // until the thread is idle and auth token refresh is complete.
+    if (isUpdatingToken || !isIdle || isSubmitting) return;
+    if (!value.trim() && images.length === 0) return;
 
     // Clear any previous errors
     setSubmitError(null);
     setImageError(null);
-    setDisplayValue("");
     storeValueInSessionStorage(currentThreadId);
-    submittingRef.current = true;
     setIsSubmitting(true);
-
-    const imageIdsAtSubmitTime = images.map((image) => image.id);
 
     try {
       await submit();
-      setValue("");
-      // Clear only the images that were staged when submission started so
-      // any images added while the request was in-flight are preserved.
-      if (imageIdsAtSubmitTime.length > 0) {
-        imageIdsAtSubmitTime.forEach((id) => removeImage(id));
-      }
       // Refocus the editor after a successful submission
       setTimeout(() => {
         editorRef.current?.focus();
       }, 0);
     } catch (submitErr) {
       console.error("Failed to submit message:", submitErr);
-      setDisplayValue(value);
       // On submit failure, also clear image error
       setImageError(null);
       setSubmitError(
@@ -154,19 +135,17 @@ export const MessageInputRoot = React.forwardRef<
       // Cancel the thread to reset loading state
       await cancel();
     } finally {
-      submittingRef.current = false;
       setIsSubmitting(false);
     }
   }, [
     value,
     submit,
-    setValue,
-    setDisplayValue,
     setSubmitError,
     cancel,
     isSubmitting,
+    isIdle,
+    isUpdatingToken,
     images,
-    removeImage,
     currentThreadId,
   ]);
 
@@ -249,19 +228,10 @@ export const MessageInputRoot = React.forwardRef<
     [resolveElicitation],
   );
 
-  // Memoize setValue wrapper to prevent context value recreation on every render
-  const handleSetValue = React.useCallback(
-    (newValue: string) => {
-      setValue(newValue);
-      setDisplayValue(newValue);
-    },
-    [setValue],
-  );
-
   const contextValue = React.useMemo<MessageInputContextValue>(
     () => ({
-      value: displayValue,
-      setValue: handleSetValue,
+      value,
+      setValue,
       submitMessage,
       submit,
       handleSubmit,
@@ -284,8 +254,8 @@ export const MessageInputRoot = React.forwardRef<
       isDragging,
     }),
     [
-      displayValue,
-      handleSetValue,
+      value,
+      setValue,
       submitMessage,
       submit,
       handleSubmit,
@@ -307,11 +277,9 @@ export const MessageInputRoot = React.forwardRef<
     ],
   );
 
-  const Comp = asChild ? Slot : "form";
-
   return (
     <MessageInputContext.Provider value={contextValue}>
-      <Comp
+      <form
         ref={ref}
         onSubmit={handleSubmit}
         data-slot="message-input-root"
@@ -324,7 +292,7 @@ export const MessageInputRoot = React.forwardRef<
         {...props}
       >
         {children}
-      </Comp>
+      </form>
     </MessageInputContext.Provider>
   );
 });
