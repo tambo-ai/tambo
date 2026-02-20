@@ -1,7 +1,7 @@
 "use client";
 
 import HeaderSearch from "@/components/header-search";
-import Image from "next/image";
+import { Icons } from "@/components/icons";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { AnimatedCounter } from "./animated-counter";
@@ -19,20 +19,14 @@ export default function HeaderBar() {
   }, []);
 
   return (
-    <div className="sticky top-0 z-[60] w-full border-b border-neutral-100 bg-transparent backdrop-blur hidden md:block">
+    <div className="sticky top-0 z-[60] w-full border-b border-neutral-300 dark:border-neutral-800 bg-transparent backdrop-blur hidden md:block">
       <div className="mx-auto flex h-14 max-w-[1400px] items-center px-4">
         {/* Desktop Layout */}
         <div className="flex w-full items-center">
           {/* Left section - Logo */}
           <div className="flex-1 flex justify-start">
             <Link href="/" aria-label="Tambo">
-              <Image
-                src="/logo/lockup/Tambo-Lockup.svg"
-                alt="Tambo Lockup"
-                width={100}
-                height={26}
-                className="h-7 w-auto"
-              />
+              <Icons.logo className="h-7 w-auto" aria-label="Tambo" />
             </Link>
           </div>
 
