@@ -1,0 +1,158 @@
+---
+name: dev-worktrees
+description: Creates git worktree workspaces for isolated development. Accepts Linear issue IDs (e.g., TAM-1234) or task descriptions to generate properly named branches. Handles worktree creation, Claude settings symlink, and dependency installation. Triggers on "new workspace", "create worktree", "start working on TAM-XXXX", or requests to set up an isolated dev environment.
+---
+
+# Dev Worktrees
+
+Create a git worktree with proper branch naming, Claude settings sync, and dependency installation.
+
+## Input
+
+- **Linear issue ID** (matches `<linear_prefix>-\d+`, case-insensitive): Fetch issue title from Linear, build branch name from it.
+- **Task description** (any other text): Generate a kebab-case branch name from the description.
+- **No input**: Ask what they're working on before continuing.
+
+## Preferences
+
+Stored in `<main-repo>/.claude/dev-worktrees.local.md` as YAML frontmatter. Read at start of every run; use defaults silently if file is missing. Do not create automatically.
+
+```markdown
+---
+worktree_base: /Users/lachlan/.claude-worktrees/tambo
+linear_prefix: TAM
+install_command: npm install
+---
+```
+
+| Key               | Default                                    | Description                                            |
+| ----------------- | ------------------------------------------ | ------------------------------------------------------ |
+| `worktree_base`   | `$HOME/.claude-worktrees/<repo-basename>/` | Absolute path where worktrees are created (no `~`)     |
+| `linear_prefix`   | `TAM`                                      | Linear issue prefix (case-insensitive)                 |
+| `install_command` | `npm install`                              | Dependency install command, executed as-is in worktree |
+
+If a user asks to change a preference, update or create the file in the main repo, preserving other values. Always write `worktree_base` as a fully resolved canonical absolute path (no `~`, no `$HOME`). On POSIX systems, one way to resolve a user-provided path `P` is `realpath -- "$P"` if available, otherwise a helper that expands `~` and resolves symlinks (e.g., `python3 -c 'import os,sys; print(os.path.realpath(os.path.expanduser(sys.argv[1])))' "$P"`). Other platforms should provide equivalent behavior. If path resolution fails, stop and ask for a valid absolute path.
+
+## Workflow
+
+### 1. Get GitHub username
+
+```bash
+op plugin run -- gh api user -q .login
+```
+
+### 2. Build branch name
+
+**Linear issue** (e.g., `TAM-1234`):
+
+1. Fetch with `mcp__linear__get_issue` using the issue identifier.
+2. Branch: `<username>/<issue-id-lowercase>-<kebab-title>`
+   Example: `TAM-1234` with title "Add Dark Mode Toggle" → `lachieh/tam-1234-add-dark-mode-toggle`
+
+**Task description**:
+
+1. Convert to kebab-case, truncate description to ~60 chars.
+2. Branch: `<username>/<kebab-description>`
+   Example: "fix login redirect" → `lachieh/fix-login-redirect`
+
+### 3. Resolve paths
+
+Run `/dev-worktrees` from your primary clone of the repo (not from inside any existing worktree). The preferences file lives in the primary clone, not in individual worktrees.
+
+If you run this from inside a worktree, `git rev-parse --show-toplevel` will return the worktree root (not the primary clone path). Stop and re-run from the primary clone.
+
+Main repo path:
+
+Implementations must refuse to run when invoked from a worktree. Example (POSIX shell):
+
+```bash
+MAIN_REPO="$(git rev-parse --show-toplevel)"
+SUPERPROJECT="$(git rev-parse --show-superproject-working-tree 2>/dev/null || true)"
+if [ -n "$SUPERPROJECT" ]; then
+  echo "Run /dev-worktrees from the primary clone (not from a submodule)" >&2
+  exit 1
+fi
+GIT_DIR="$(git rev-parse --git-dir)"
+COMMON_DIR="$(git rev-parse --git-common-dir)"
+if [ "$GIT_DIR" != "$COMMON_DIR" ]; then
+  echo "Run /dev-worktrees from the main repo (not from a worktree)" >&2
+  exit 1
+fi
+```
+
+You can inspect existing worktrees with `git worktree list`, but always run `/dev-worktrees` from the primary clone.
+
+If the check above fails, explain that `/dev-worktrees` must run from the primary clone (not from a worktree or submodule) and abort without making any changes.
+
+Worktree path: `<worktree_base>/<branch-name-without-username-prefix>`
+Example: branch `lachieh/tam-1234-add-dark-mode` → `<worktree_base>/tam-1234-add-dark-mode`
+
+### 4. Create worktree
+
+```bash
+REMOTE="origin"
+DEFAULT_BRANCH_REF="$(git symbolic-ref "refs/remotes/$REMOTE/HEAD" --short 2>/dev/null || true)"
+if [ -z "$DEFAULT_BRANCH_REF" ]; then
+  echo "Could not determine default branch via $REMOTE/HEAD; configure it or set DEFAULT_BRANCH_REF explicitly" >&2
+  exit 1
+fi
+DEFAULT_BRANCH="${DEFAULT_BRANCH_REF#${REMOTE}/}"
+
+git fetch "$REMOTE" "$DEFAULT_BRANCH"
+# branch-name is from step 2
+git worktree add <worktree-path> -b <branch-name> "$DEFAULT_BRANCH_REF"
+```
+
+If `git fetch` fails or `$DEFAULT_BRANCH_REF` doesn't exist locally, abort and ask the user to configure `$REMOTE/HEAD` or set the base branch explicitly.
+
+If a user needs to base worktrees off a non-default branch, set `DEFAULT_BRANCH_REF="$REMOTE/<branch>"` and `DEFAULT_BRANCH="<branch>"` explicitly (and abort if the branch doesn't exist).
+
+If the branch already exists, ask to check out the existing branch instead.
+
+### 5. Symlink Claude settings
+
+Link `<main-repo>/.claude/settings.local.json` into the worktree. Both paths must be fully resolved absolute paths (no `~`, no `$HOME`, no other env vars). If a user gives a path with `~` or `$HOME`, resolve it to an absolute path before using it.
+
+If `$LINK` already exists as a symlink, overwrite it to point at `$TARGET` (i.e., behave like `ln -sf`).
+
+If `$LINK` exists and is not a symlink, do not modify it automatically; warn and ask the user to remove or rename it before retrying.
+
+If you normally refer to the repo as something like `~/code/tambo`, resolve it first (e.g., `realpath ~/code/tambo`) and use that output for `<main-repo>`.
+
+```bash
+mkdir -p "<worktree-path>/.claude"
+
+TARGET="<main-repo>/.claude/settings.local.json"
+LINK="<worktree-path>/.claude/settings.local.json"
+
+if [ ! -e "$TARGET" ]; then
+  claudeSettingsStatus="skipped (missing settings)"
+elif [ -e "$LINK" ] && [ ! -L "$LINK" ]; then
+  echo "Warning: $LINK exists and is not a symlink; skipping" >&2
+  claudeSettingsStatus="skipped (conflict)"
+else
+  ln -sf "$TARGET" "$LINK" || { echo "Symlink failed; aborting" >&2; exit 1; }
+  claudeSettingsStatus="symlinked"
+fi
+```
+
+Status is exactly one of: `symlinked`, `skipped (missing settings)`, `skipped (conflict)`. On symlink failure, abort — do not print the summary.
+
+### 6. Install dependencies
+
+`install_command` is a local preference and may include shell metacharacters (e.g., `&&`). Treat `.claude/dev-worktrees.local.md` as trusted-local-only input and execute `install_command` via a shell in the worktree directory (do not attempt to split it into argv tokens). It runs with your user permissions and can execute arbitrary shell code — do not paste commands from untrusted sources.
+
+```bash
+(cd "<worktree-path>" && <install_command>)
+```
+
+### 7. Print summary
+
+```
+Workspace ready:
+
+  worktree:        <full-worktree-path>
+  branch:          <full-branch-name>
+  node modules:    installed
+  claude settings: <claudeSettingsStatus>
+```
