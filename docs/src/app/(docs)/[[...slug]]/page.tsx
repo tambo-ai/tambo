@@ -1,4 +1,5 @@
 import { LLMCopyButton, OpenDropdown } from "@/components/ai-actions";
+import { createDocPageSchema, PageJsonLd } from "@/components/json-ld";
 import { MessageThreadCollapsible } from "@/components/tambo/message-thread-collapsible";
 import { getLLMText } from "@/lib/get-llm-text";
 import { source } from "@/lib/source";
@@ -10,8 +11,41 @@ import {
   DocsPage,
   DocsTitle,
 } from "fumadocs-ui/page";
+import { statSync } from "node:fs";
+import { relative, resolve, sep } from "node:path";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
+
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://docs.tambo.co";
+const logoUrl = new URL("/logo/lockup/Tambo-Lockup.png", siteUrl).toString();
+
+const docsRoot = resolve(process.cwd(), "content", "docs");
+
+// Requires Node.js runtime for filesystem `mtime` reads for JSON-LD `dateModified`.
+export const runtime = "nodejs";
+
+// Best-effort cache (per Node.js process) to avoid re-statting the same MDX file.
+// This is used only for structured data metadata and doesn't need to be real-time.
+const docLastModifiedCache = new Map<string, string>();
+
+const getDocPageLastModified = (contentPath: string): string | undefined => {
+  const cached = docLastModifiedCache.get(contentPath);
+  if (cached) return cached;
+
+  try {
+    const candidatePath = resolve(docsRoot, contentPath);
+    const rel = relative(docsRoot, candidatePath);
+    if (rel.startsWith("..") || rel.startsWith(sep)) {
+      return;
+    }
+
+    const lastModified = statSync(candidatePath).mtime.toISOString();
+    docLastModifiedCache.set(contentPath, lastModified);
+    return lastModified;
+  } catch {
+    return;
+  }
+};
 
 export default async function Page(props: {
   params: Promise<{ slug?: string[] }>;
@@ -23,31 +57,42 @@ export default async function Page(props: {
   const MDXContent = page.data.body;
   const llmContent = await getLLMText(page);
 
+  // Generate TechArticle schema for each doc page
+  const pageSchema = createDocPageSchema({
+    title: page.data.title,
+    description: page.data.description ?? "",
+    url: `${siteUrl}${page.url}`,
+    dateModified: getDocPageLastModified(page.path),
+  });
+
   return (
-    <DocsPage toc={page.data.toc} full={page.data.full}>
-      <Suspense fallback={<div>Loading...</div>}>
-        <MessageThreadCollapsible className="tambo-theme" />
-      </Suspense>
-      <DocsTitle>{page.data.title}</DocsTitle>
-      <DocsDescription>{page.data.description}</DocsDescription>
+    <>
+      <PageJsonLd schema={pageSchema} />
+      <DocsPage toc={page.data.toc} full={page.data.full}>
+        <Suspense fallback={<div>Loading...</div>}>
+          <MessageThreadCollapsible className="tambo-theme" />
+        </Suspense>
+        <DocsTitle>{page.data.title}</DocsTitle>
+        <DocsDescription>{page.data.description}</DocsDescription>
 
-      <div className="flex items-center gap-2 mb-6 pb-4 border-b border-fd-border">
-        <LLMCopyButton content={llmContent} />
-        <OpenDropdown
-          markdownUrl={`${process.env.NEXT_PUBLIC_DOCS_URL || "https://docs.tambo.co"}${page.url}`}
-          githubUrl={`https://github.com/tambo-ai/tambo/blob/main/docs/content/docs/${page.path}`}
-        />
-      </div>
+        <div className="flex items-center gap-2 mb-6 pb-4 border-b border-fd-border">
+          <LLMCopyButton content={llmContent} />
+          <OpenDropdown
+            markdownUrl={`${process.env.NEXT_PUBLIC_DOCS_URL || "https://docs.tambo.co"}${page.url}`}
+            githubUrl={`https://github.com/tambo-ai/tambo/blob/main/docs/content/docs/${page.path}`}
+          />
+        </div>
 
-      <DocsBody>
-        <MDXContent
-          components={getMDXComponents({
-            // this allows you to link to other pages with relative file paths
-            a: createRelativeLink(source, page),
-          })}
-        />
-      </DocsBody>
-    </DocsPage>
+        <DocsBody>
+          <MDXContent
+            components={getMDXComponents({
+              // this allows you to link to other pages with relative file paths
+              a: createRelativeLink(source, page),
+            })}
+          />
+        </DocsBody>
+      </DocsPage>
+    </>
   );
 }
 
@@ -62,8 +107,36 @@ export async function generateMetadata(props: {
   const page = source.getPage(params.slug);
   if (!page) notFound();
 
+  const pageUrl = `${siteUrl}${page.url}`;
+
   return {
     title: page.data.title,
     description: page.data.description,
+    alternates: {
+      canonical: pageUrl,
+    },
+    openGraph: {
+      title: page.data.title,
+      description: page.data.description,
+      url: pageUrl,
+      siteName: "Tambo AI Docs",
+      type: "article",
+      locale: "en_US",
+      images: [
+        {
+          url: logoUrl,
+          width: 1200,
+          height: 630,
+          alt: `${page.data.title} - Tambo AI Documentation`,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: page.data.title,
+      description: page.data.description,
+      site: "@tamborino",
+      images: [logoUrl],
+    },
   };
 }
