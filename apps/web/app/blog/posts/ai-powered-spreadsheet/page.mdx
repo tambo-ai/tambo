@@ -158,10 +158,10 @@ export const updateCellTool = {
   name: "updateSpreadsheetCell",
   description: "Update a single cell in the active spreadsheet tab. For text cells use: { type: 'text', text: 'your text' }. For number cells use: { type: 'number', value: 42, formatOptions: { style: 'currency', currency: 'USD' } }",
   tool: updateCell,
-  toolSchema: z.function().args(
-    z.union([z.string(), z.number()]).describe("Row identifier"),
-    z.string().describe("Column identifier (e.g., 'A', 'B')"),
-    z.object({
+  inputSchema: z.object({
+    row: z.union([z.string(), z.number()]).describe("Row identifier"),
+    column: z.string().describe("Column identifier (e.g., 'A', 'B')"),
+    cell: z.object({
       type: z.literal("text"),
       text: z.string()
     }).or(z.object({
@@ -169,7 +169,8 @@ export const updateCellTool = {
       value: z.number(),
       formatOptions: z.object({...}).optional()
     }))
-  )
+  }),
+  outputSchema: z.any(),
 };
 ```
 

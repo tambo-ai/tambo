@@ -18,7 +18,7 @@
 </p>
 
 <p align="center">
-<a href="https://tambo.link/yXkF0hQ">Start For Free</a> •
+  <a href="https://tambo.link/yXkF0hQ">Start For Free</a> •
   <a href="https://docs.tambo.co">Docs</a> •
   <a href="https://discord.gg/dJNvPEHth6">Discord</a>
 </p>
