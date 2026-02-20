@@ -1,15 +1,13 @@
 "use client";
 
-import { Slot } from "@radix-ui/react-slot";
+import { mergeProps } from "@base-ui/react/merge-props";
+import { useRender } from "@base-ui/react/use-render";
 import * as React from "react";
 
 /**
  * Props for the MessageInput.Toolbar component.
  */
-export interface MessageInputToolbarProps extends React.HTMLAttributes<HTMLDivElement> {
-  /** Render as a different element using Radix Slot */
-  asChild?: boolean;
-}
+export type MessageInputToolbarProps = useRender.ComponentProps<"div">;
 
 /**
  * Container for the toolbar components (like submit button and file button).
@@ -18,13 +16,17 @@ export interface MessageInputToolbarProps extends React.HTMLAttributes<HTMLDivEl
 export const MessageInputToolbar = React.forwardRef<
   HTMLDivElement,
   MessageInputToolbarProps
->(({ asChild, children, ...props }, ref) => {
-  const Comp = asChild ? Slot : "div";
+>(({ children, ...props }, ref) => {
+  const { render, ...componentProps } = props;
 
-  return (
-    <Comp ref={ref} data-slot="message-input-toolbar" {...props}>
-      {children}
-    </Comp>
-  );
+  return useRender({
+    defaultTagName: "div",
+    ref,
+    render,
+    props: mergeProps(componentProps, {
+      children,
+      "data-slot": "message-input-toolbar",
+    }),
+  });
 });
 MessageInputToolbar.displayName = "MessageInput.Toolbar";

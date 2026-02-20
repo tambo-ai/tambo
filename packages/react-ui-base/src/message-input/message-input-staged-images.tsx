@@ -1,6 +1,7 @@
 "use client";
 
-import { Slot } from "@radix-ui/react-slot";
+import { mergeProps } from "@base-ui/react/merge-props";
+import { useRender } from "@base-ui/react/use-render";
 import * as React from "react";
 import { IS_PASTED_IMAGE } from "./constants";
 import {
@@ -29,7 +30,10 @@ export interface StagedImageRenderProps {
 /**
  * Render props for the StagedImages component.
  */
-export interface MessageInputStagedImagesRenderProps {
+export interface MessageInputStagedImagesRenderProps extends Record<
+  string,
+  unknown
+> {
   /** Array of staged images with pre-computed props for rendering */
   images: StagedImageRenderProps[];
   /** Remove an image by ID */
@@ -43,17 +47,10 @@ export interface MessageInputStagedImagesRenderProps {
 /**
  * Props for the MessageInput.StagedImages component.
  */
-export interface MessageInputStagedImagesProps extends Omit<
-  React.HTMLAttributes<HTMLDivElement>,
-  "children"
-> {
-  /** Render as a different element using Radix Slot */
-  asChild?: boolean;
-  /** Content to display, or render function */
-  children?:
-    | React.ReactNode
-    | ((props: MessageInputStagedImagesRenderProps) => React.ReactNode);
-}
+export type MessageInputStagedImagesProps = useRender.ComponentProps<
+  "div",
+  MessageInputStagedImagesRenderProps
+>;
 
 /**
  * Component that displays currently staged images.
@@ -62,7 +59,7 @@ export interface MessageInputStagedImagesProps extends Omit<
 export const MessageInputStagedImages = React.forwardRef<
   HTMLDivElement,
   MessageInputStagedImagesProps
->(({ asChild, children, ...props }, ref) => {
+>(({ children, ...props }, ref) => {
   const { images: rawImages, removeImage } = useMessageInputContext();
   const [expandedImageId, setExpandedImageId] = React.useState<string | null>(
     null,
@@ -107,23 +104,24 @@ export const MessageInputStagedImages = React.forwardRef<
     [images, removeImage, expandedImageId],
   );
 
-  // Don't render if no images and children is not a function
-  if (rawImages.length === 0 && typeof children !== "function") {
+  const { render, ...componentProps } = props;
+
+  // Don't render if no images and no render callback is provided.
+  if (rawImages.length === 0 && !render) {
     return null;
   }
 
-  const Comp = asChild ? Slot : "div";
-
-  return (
-    <Comp
-      ref={ref}
-      data-slot="message-input-staged-images"
-      data-count={rawImages.length}
-      data-empty={rawImages.length === 0 || undefined}
-      {...props}
-    >
-      {typeof children === "function" ? children(renderProps) : children}
-    </Comp>
-  );
+  return useRender({
+    defaultTagName: "div",
+    ref,
+    render,
+    state: renderProps,
+    props: mergeProps(componentProps, {
+      children,
+      "data-slot": "message-input-staged-images",
+      "data-count": rawImages.length,
+      "data-empty": rawImages.length === 0 || undefined,
+    }),
+  });
 });
 MessageInputStagedImages.displayName = "MessageInput.StagedImages";

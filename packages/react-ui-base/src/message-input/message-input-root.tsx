@@ -1,6 +1,7 @@
 "use client";
 
-import { Slot } from "@radix-ui/react-slot";
+import { mergeProps } from "@base-ui/react/merge-props";
+import { useRender } from "@base-ui/react/use-render";
 import {
   useIsTamboTokenUpdating,
   useTambo,
@@ -45,13 +46,20 @@ const getValueFromSessionStorage = (key: string): string => {
 /**
  * Props for the MessageInput.Root component.
  */
-export interface MessageInputRootProps extends React.HTMLAttributes<HTMLFormElement> {
-  /** Render as a different element using Radix Slot */
-  asChild?: boolean;
+export interface MessageInputRootRenderProps extends Record<string, unknown> {
+  isDragging: boolean;
+  isSubmitting: boolean;
+  hasError: boolean;
+}
+
+type MessageInputRootComponentProps = useRender.ComponentProps<
+  "form",
+  MessageInputRootRenderProps
+>;
+
+export interface MessageInputRootProps extends MessageInputRootComponentProps {
   /** Optional ref to forward to the TamboEditor instance */
   inputRef?: React.RefObject<TamboEditor | null>;
-  /** The child elements to render within the form container */
-  children?: React.ReactNode;
 }
 
 /**
@@ -61,7 +69,7 @@ export interface MessageInputRootProps extends React.HTMLAttributes<HTMLFormElem
 export const MessageInputRoot = React.forwardRef<
   HTMLFormElement,
   MessageInputRootProps
->(({ asChild, children, inputRef, ...props }, ref) => {
+>(({ inputRef, ...props }, ref) => {
   const {
     value,
     setValue,
@@ -307,24 +315,31 @@ export const MessageInputRoot = React.forwardRef<
     ],
   );
 
-  const Comp = asChild ? Slot : "form";
+  const { render, ...componentProps } = props;
+  const renderProps: MessageInputRootRenderProps = {
+    isDragging,
+    isSubmitting,
+    hasError: !!(error || submitError || imageError),
+  };
 
   return (
     <MessageInputContext.Provider value={contextValue}>
-      <Comp
-        ref={ref}
-        onSubmit={handleSubmit}
-        data-slot="message-input-root"
-        data-state={isDragging ? "dragging" : undefined}
-        data-pending={isSubmitting || undefined}
-        onDragEnter={handleDragEnter}
-        onDragLeave={handleDragLeave}
-        onDragOver={handleDragOver}
-        onDrop={handleDrop}
-        {...props}
-      >
-        {children}
-      </Comp>
+      {useRender({
+        defaultTagName: "form",
+        ref,
+        render,
+        state: renderProps,
+        props: mergeProps(componentProps, {
+          onSubmit: handleSubmit,
+          onDragEnter: handleDragEnter,
+          onDragLeave: handleDragLeave,
+          onDragOver: handleDragOver,
+          onDrop: handleDrop,
+          "data-slot": "message-input-root",
+          "data-state": isDragging ? "dragging" : undefined,
+          "data-pending": isSubmitting || undefined,
+        }),
+      })}
     </MessageInputContext.Provider>
   );
 });

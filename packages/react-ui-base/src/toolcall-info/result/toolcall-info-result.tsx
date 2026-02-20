@@ -1,24 +1,20 @@
 "use client";
 
-import { Slot } from "@radix-ui/react-slot";
+import { mergeProps } from "@base-ui/react/merge-props";
+import { useRender } from "@base-ui/react/use-render";
 import type { TamboThreadMessage } from "@tambo-ai/react";
 import * as React from "react";
 import { useToolcallInfoContext } from "../root/toolcall-info-context";
 
-export interface ToolcallInfoResultRenderProps {
+export interface ToolcallInfoResultRenderProps extends Record<string, unknown> {
   content: TamboThreadMessage["content"] | null;
   hasResult: boolean;
 }
 
-export interface ToolcallInfoResultProps extends Omit<
-  React.HTMLAttributes<HTMLDivElement>,
-  "children"
-> {
-  /** When true, renders as a Slot, merging props into the child element. */
-  asChild?: boolean;
-  /** Render prop for custom result rendering. */
-  children?: (props: ToolcallInfoResultRenderProps) => React.ReactNode;
-}
+export type ToolcallInfoResultProps = useRender.ComponentProps<
+  "div",
+  ToolcallInfoResultRenderProps
+>;
 
 /**
  * Displays the tool result from the associated tool response.
@@ -26,7 +22,7 @@ export interface ToolcallInfoResultProps extends Omit<
 export const ToolcallInfoResult = React.forwardRef<
   HTMLDivElement,
   ToolcallInfoResultProps
->(({ asChild, children, ...props }, ref) => {
+>(({ ...props }, ref) => {
   const { associatedToolResponse, toolCallRequest } = useToolcallInfoContext();
 
   if (!associatedToolResponse) {
@@ -51,15 +47,20 @@ export const ToolcallInfoResult = React.forwardRef<
       ? toolResultBlock.content
       : null;
 
-  const Comp = asChild ? Slot : "div";
+  const { render, ...componentProps } = props;
+  const renderProps: ToolcallInfoResultRenderProps = {
+    content: resultContent,
+    hasResult: resultContent !== null,
+  };
 
-  return (
-    <Comp ref={ref} data-slot="toolcall-info-result" {...props}>
-      {children?.({
-        content: resultContent,
-        hasResult: resultContent !== null,
-      })}
-    </Comp>
-  );
+  return useRender({
+    defaultTagName: "div",
+    ref,
+    render,
+    state: renderProps,
+    props: mergeProps(componentProps, {
+      "data-slot": "toolcall-info-result",
+    }),
+  });
 });
 ToolcallInfoResult.displayName = "ToolcallInfo.Result";

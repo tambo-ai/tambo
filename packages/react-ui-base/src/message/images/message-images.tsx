@@ -1,4 +1,5 @@
-import { Slot } from "@radix-ui/react-slot";
+import { mergeProps } from "@base-ui/react/merge-props";
+import { useRender } from "@base-ui/react/use-render";
 import * as React from "react";
 import { getMessageImages } from "../../utils/message-content";
 import { useMessageRootContext } from "../root/message-root-context";
@@ -15,9 +16,19 @@ export interface MessageImageRenderFnProps {
   alt?: string;
 }
 
-export interface MessageImagesProps extends React.HTMLAttributes<HTMLDivElement> {
-  /** When true, renders as a Slot, merging props into the child element. */
-  asChild?: boolean;
+export interface MessageImagesRenderProps extends Record<string, unknown> {
+  images: string[];
+}
+
+type MessageImagesComponentProps = useRender.ComponentProps<
+  "div",
+  MessageImagesRenderProps
+>;
+
+export interface MessageImagesProps extends Omit<
+  MessageImagesComponentProps,
+  "children"
+> {
   /**
    * Render prop for each image. If not provided, renders basic img elements.
    */
@@ -33,29 +44,38 @@ export interface MessageImagesProps extends React.HTMLAttributes<HTMLDivElement>
 export const MessageImages = React.forwardRef<
   HTMLDivElement,
   MessageImagesProps
->(({ asChild, renderImage, children, ...props }, ref) => {
+>(({ renderImage, children, ...props }, ref) => {
   const { message } = useMessageRootContext();
   const images = getMessageImages(message.content);
 
   if (images.length === 0) {
     return null;
   }
+  const { render, ...componentProps } = props;
+  const renderProps: MessageImagesRenderProps = {
+    images,
+  };
+  const defaultChildren =
+    children ??
+    images.map((url: string, index: number) =>
+      renderImage ? (
+        <React.Fragment key={index}>
+          {renderImage({ url, index })}
+        </React.Fragment>
+      ) : (
+        <img key={index} src={url} alt={`Image ${index + 1}`} />
+      ),
+    );
 
-  const Comp = asChild ? Slot : "div";
-
-  return (
-    <Comp ref={ref} data-slot="message-images" {...props}>
-      {children ??
-        images.map((url: string, index: number) =>
-          renderImage ? (
-            <React.Fragment key={index}>
-              {renderImage({ url, index })}
-            </React.Fragment>
-          ) : (
-            <img key={index} src={url} alt={`Image ${index + 1}`} />
-          ),
-        )}
-    </Comp>
-  );
+  return useRender({
+    defaultTagName: "div",
+    ref,
+    render,
+    state: renderProps,
+    props: mergeProps(componentProps, {
+      children: defaultChildren,
+      "data-slot": "message-images",
+    }),
+  });
 });
 MessageImages.displayName = "Message.Images";

@@ -1,17 +1,21 @@
 "use client";
 
+import { mergeProps } from "@base-ui/react/merge-props";
+import { useRender } from "@base-ui/react/use-render";
 import type {
   TamboElicitationRequest,
   TamboElicitationResponse,
 } from "@tambo-ai/react/mcp";
-import { Slot } from "@radix-ui/react-slot";
 import * as React from "react";
 import { useMessageInputContext } from "./message-input-context";
 
 /**
  * Render props for the Content component.
  */
-export interface MessageInputContentRenderProps {
+export interface MessageInputContentRenderProps extends Record<
+  string,
+  unknown
+> {
   /** Whether files are being dragged over the input */
   isDragging: boolean;
   /** Current elicitation request if active */
@@ -23,17 +27,10 @@ export interface MessageInputContentRenderProps {
 /**
  * Props for the MessageInput.Content component.
  */
-export interface MessageInputContentProps extends Omit<
-  React.HTMLAttributes<HTMLDivElement>,
-  "children"
-> {
-  /** Render as a different element using Radix Slot */
-  asChild?: boolean;
-  /** Content to display, or render function */
-  children?:
-    | React.ReactNode
-    | ((props: MessageInputContentRenderProps) => React.ReactNode);
-}
+export type MessageInputContentProps = useRender.ComponentProps<
+  "div",
+  MessageInputContentRenderProps
+>;
 
 /**
  * Content container that shows either children or elicitation UI.
@@ -42,7 +39,7 @@ export interface MessageInputContentProps extends Omit<
 export const MessageInputContent = React.forwardRef<
   HTMLDivElement,
   MessageInputContentProps
->(({ asChild, children, ...props }, ref) => {
+>(({ ...props }, ref) => {
   const { elicitation, resolveElicitation, isDragging } =
     useMessageInputContext();
 
@@ -55,18 +52,18 @@ export const MessageInputContent = React.forwardRef<
     [isDragging, elicitation, resolveElicitation],
   );
 
-  const Comp = asChild ? Slot : "div";
+  const { render, ...componentProps } = props;
 
-  return (
-    <Comp
-      ref={ref}
-      data-slot="message-input-content"
-      data-dragging={isDragging || undefined}
-      data-elicitation={elicitation ? "active" : undefined}
-      {...props}
-    >
-      {typeof children === "function" ? children(renderProps) : children}
-    </Comp>
-  );
+  return useRender({
+    defaultTagName: "div",
+    ref,
+    render,
+    state: renderProps,
+    props: mergeProps(componentProps, {
+      "data-slot": "message-input-content",
+      "data-dragging": isDragging || undefined,
+      "data-elicitation": elicitation ? "active" : undefined,
+    }),
+  });
 });
 MessageInputContent.displayName = "MessageInput.Content";
