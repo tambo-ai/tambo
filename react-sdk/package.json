@@ -92,7 +92,7 @@
     "use-debounce": "^10.0.6"
   },
   "devDependencies": {
-    "@eslint/js": "^9.39.2",
+    "@eslint/js": "^10.0.1",
     "@modelcontextprotocol/sdk": "^1.26.0",
     "@tambo-ai/eslint-config": "*",
     "@tambo-ai/typescript-config": "*",
@@ -105,8 +105,8 @@
     "@types/react-dom": "^18.3.7",
     "@valibot/to-json-schema": "^1.5.0",
     "concurrently": "^9.2.1",
-    "eslint": "^9.39.2",
-    "eslint-plugin-jsdoc": "^62.5.4",
+    "eslint": "^10.0.0",
+    "eslint-plugin-jsdoc": "^62.5.5",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^6.1.1",
     "jest": "^30.2.0",
@@ -119,7 +119,7 @@
     "ts-jest": "^29.4.6",
     "tsc-esm-fix": "^3.1.2",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.54.0",
+    "typescript-eslint": "^8.55.0",
     "zod": "^3.25.76 || ^4",
     "zod-to-json-schema": "^3.25.1"
   }
