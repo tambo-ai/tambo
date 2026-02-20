@@ -373,8 +373,12 @@ export const Map = React.forwardRef<HTMLDivElement, MapProps>(
     const validMarkers = useValidMarkers(markers);
     const validHeatData = useValidHeatData(heatData);
 
-    // Wait for center to be streamed in before rendering the map
-    if (!center) {
+    // Wait for center with valid coordinates to be streamed in before rendering
+    if (
+      !center ||
+      !Number.isFinite(center.lat) ||
+      !Number.isFinite(center.lng)
+    ) {
       return (
         <div
           ref={ref}
