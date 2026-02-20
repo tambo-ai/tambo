@@ -31,7 +31,7 @@ install_command: npm install
 | `linear_prefix`   | `TAM`                                      | Linear issue prefix (case-insensitive)                 |
 | `install_command` | `npm install`                              | Dependency install command, executed as-is in worktree |
 
-If a user asks to change a preference, update or create the file in the main repo, preserving other values. Always write `worktree_base` as a fully resolved absolute path (no `~`, no `$HOME`; use `realpath` if available, otherwise `cd ~/path && pwd`).
+If a user asks to change a preference, update or create the file in the main repo, preserving other values. Always write `worktree_base` as a fully resolved absolute path (no `~`, no `$HOME`; use `realpath` if available, otherwise `cd ~/path && pwd`). If path resolution fails, stop and ask for a valid absolute path.
 
 ## Workflow
 
@@ -77,6 +77,8 @@ fi
 
 You can inspect existing worktrees with `git worktree list`, but always run `/dev-worktrees` from the primary clone.
 
+If the check above fails, explain that `/dev-worktrees` must run from the top-level primary clone (not from a worktree, submodule, or nested repo) and abort without making any changes.
+
 Worktree path: `<worktree_base>/<branch-name-without-username-prefix>`
 Example: branch `lachieh/tam-1234-add-dark-mode` → `<worktree_base>/tam-1234-add-dark-mode`
 
@@ -95,11 +97,13 @@ git fetch "$REMOTE" "$DEFAULT_BRANCH"
 git worktree add <worktree-path> -b <branch-name> "$DEFAULT_BRANCH_REF"
 ```
 
+If `git fetch` fails or `$DEFAULT_BRANCH_REF` doesn't exist locally, abort and ask the user to configure `$REMOTE/HEAD` or set the base branch explicitly.
+
 If the branch already exists, ask to check out the existing branch instead.
 
 ### 5. Symlink Claude settings
 
-Link `<main-repo>/.claude/settings.local.json` into the worktree. Both paths must be literal absolute paths (no `~`, no `$HOME`, no other env vars).
+Link `<main-repo>/.claude/settings.local.json` into the worktree. Both paths must be literal absolute paths (no `~`, no `$HOME`, no other env vars). If a user gives a path with `~` or `$HOME`, resolve it to an absolute path before using it.
 
 If you normally refer to the repo as something like `~/code/tambo`, resolve it first (e.g., `realpath ~/code/tambo`) and use that output for `<main-repo>`.
 
