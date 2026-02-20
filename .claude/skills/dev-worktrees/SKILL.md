@@ -31,7 +31,7 @@ install_command: npm install
 | `linear_prefix`   | `TAM`                                      | Linear issue prefix (case-insensitive)                 |
 | `install_command` | `npm install`                              | Dependency install command, executed as-is in worktree |
 
-If a user asks to change a preference, update or create the file in the main repo, preserving other values. Always write `worktree_base` as a fully resolved absolute path (e.g., `cd ~/path && pwd` to expand `~`).
+If a user asks to change a preference, update or create the file in the main repo, preserving other values. Always write `worktree_base` as a fully resolved absolute path (no `~`, no `$HOME`; use `realpath` if available, otherwise `cd ~/path && pwd`).
 
 ## Workflow
 
@@ -63,7 +63,7 @@ If you run this from inside a worktree, `git rev-parse --show-toplevel` will ret
 
 Main repo path:
 
-Implementations can do a check equivalent to:
+Implementations must refuse to run when invoked from a worktree. A check equivalent to:
 
 ```bash
 MAIN_REPO="$(git rev-parse --show-toplevel)"
@@ -86,7 +86,7 @@ Example: branch `lachieh/tam-1234-add-dark-mode` → `<worktree_base>/tam-1234-a
 REMOTE="origin"
 DEFAULT_BRANCH_REF="$(git symbolic-ref "refs/remotes/$REMOTE/HEAD" --short 2>/dev/null || true)"
 if [ -z "$DEFAULT_BRANCH_REF" ]; then
-  DEFAULT_BRANCH_REF="$REMOTE/main" # fallback when $REMOTE/HEAD isn't set
+  DEFAULT_BRANCH_REF="$REMOTE/main" # fallback when $REMOTE/HEAD isn't set (assumes default branch is main)
 fi
 DEFAULT_BRANCH="${DEFAULT_BRANCH_REF#${REMOTE}/}"
 
@@ -99,7 +99,7 @@ If the branch already exists, ask to check out the existing branch instead.
 
 ### 5. Symlink Claude settings
 
-Link `<main-repo>/.claude/settings.local.json` into the worktree. Both paths must be fully resolved absolute paths (no `~`, no `$HOME`).
+Link `<main-repo>/.claude/settings.local.json` into the worktree. Both paths must be literal absolute paths (no `~`, no `$HOME`, no other env vars).
 
 If you normally refer to the repo as something like `~/code/tambo`, resolve it first (e.g., `realpath ~/code/tambo`) and use that output for `<main-repo>`.
 
