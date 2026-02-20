@@ -56,6 +56,7 @@ export default function Template({
                 </div>
               ) : (
                 <TamboProvider
+                  key={userContextKey}
                   apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY ?? ""}
                   tamboUrl={process.env.NEXT_PUBLIC_TAMBO_API_URL ?? ""}
                   mcpServers={[
