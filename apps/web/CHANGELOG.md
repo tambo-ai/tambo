@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.132.2](https://github.com/tambo-ai/tambo/compare/web-v0.132.1...web-v0.132.2) (2026-02-20)
+
+
+### Bug Fixes
+
+* **api:** resolve opaque OAuth tokens via userinfo endpoint ([#2440](https://github.com/tambo-ai/tambo/issues/2440)) ([2380f0c](https://github.com/tambo-ai/tambo/commit/2380f0cd40659072ce8e0a5e7b1c7108cf1d6aeb))
+* **web:** clean up remaining pre-v1 patterns in apps/web ([#2438](https://github.com/tambo-ai/tambo/issues/2438)) ([cc5219a](https://github.com/tambo-ai/tambo/commit/cc5219aeba142778ebf0b447f04109ef3508ab63))
+* **web:** make thread title and ID open messages modal ([#2446](https://github.com/tambo-ai/tambo/issues/2446)) ([cc9374f](https://github.com/tambo-ai/tambo/commit/cc9374f243859a70d9c17d63682f01dde54f29a8))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump @tambo-ai/typescript-sdk from 0.91.0 to 0.92.0 in the tambo-ai group ([#2337](https://github.com/tambo-ai/tambo/issues/2337)) ([97dcd7d](https://github.com/tambo-ai/tambo/commit/97dcd7dd70b8337da1bf957eaccff00b0b83a4ee))
+* **deps:** bump the ag-ui group across 1 directory with 5 updates ([#2241](https://github.com/tambo-ai/tambo/issues/2241)) ([a758a87](https://github.com/tambo-ai/tambo/commit/a758a8748ef265f9b99425079f9cd6ba8b99963c))
+* **deps:** bump the small-safe-packages group across 1 directory with 4 updates ([#2423](https://github.com/tambo-ai/tambo/issues/2423)) ([48a3aed](https://github.com/tambo-ai/tambo/commit/48a3aed15bf01e61d6422c18ad0b7d6a4c399285))
+* **deps:** bump the tiptap group with 9 updates ([#2179](https://github.com/tambo-ai/tambo/issues/2179)) ([17cea98](https://github.com/tambo-ai/tambo/commit/17cea98927e70303ac82824b19713d2c70944b32))
+* **deps:** bump the trpc group with 3 updates ([#2422](https://github.com/tambo-ai/tambo/issues/2422)) ([95b176a](https://github.com/tambo-ai/tambo/commit/95b176a143d195cb9738722d2373ec27d437ea8f))
+* **web:** remove V1 smoketest page ([#2404](https://github.com/tambo-ai/tambo/issues/2404)) ([2d208c9](https://github.com/tambo-ai/tambo/commit/2d208c938f6675e1a7f67a9597b0ef5d737d60b9))
+
 ## [0.132.1](https://github.com/tambo-ai/tambo/compare/web-v0.132.0...web-v0.132.1) (2026-02-10)
 
 
