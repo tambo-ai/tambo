@@ -65,7 +65,9 @@ Main repo path:
 
 ```bash
 MAIN_REPO="$(git rev-parse --show-toplevel)"
-if [ ! -d "$MAIN_REPO/.git" ]; then
+GIT_DIR="$(git rev-parse --git-dir)"
+COMMON_DIR="$(git rev-parse --git-common-dir)"
+if [ "$GIT_DIR" != "$COMMON_DIR" ]; then
   echo "Run /dev-worktrees from the main repo (not from a worktree)" >&2
   exit 1
 fi
@@ -84,6 +86,7 @@ DEFAULT_BRANCH_REF="$(git symbolic-ref "refs/remotes/$REMOTE/HEAD" --short)" # e
 DEFAULT_BRANCH="${DEFAULT_BRANCH_REF#${REMOTE}/}"
 
 git fetch "$REMOTE" "$DEFAULT_BRANCH"
+# branch-name is from step 2
 git worktree add <worktree-path> -b <branch-name> "$DEFAULT_BRANCH_REF"
 ```
 
