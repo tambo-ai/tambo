@@ -31,7 +31,7 @@ install_command: npm install
 | `linear_prefix`   | `TAM`                                      | Linear issue prefix (case-insensitive)                 |
 | `install_command` | `npm install`                              | Dependency install command, executed as-is in worktree |
 
-If a user asks to change a preference, update or create the file in the main repo, preserving other values. Always write `worktree_base` as a fully resolved absolute path (no `~`, no `$HOME`; use `realpath` if available, otherwise `cd ~/path && pwd`). If path resolution fails, stop and ask for a valid absolute path.
+If a user asks to change a preference, update or create the file in the main repo, preserving other values. Always write `worktree_base` as a fully resolved absolute path (no `~`, no `$HOME`). Given a user-provided path `P`, resolve it via `realpath -- "$P"` if available, otherwise `cd -- "$P" && pwd`. If path resolution fails, stop and ask for a valid absolute path.
 
 ## Workflow
 
@@ -67,6 +67,11 @@ Implementations must refuse to run when invoked from a worktree. A check equival
 
 ```bash
 MAIN_REPO="$(git rev-parse --show-toplevel)"
+SUPERPROJECT="$(git rev-parse --show-superproject-working-tree 2>/dev/null || true)"
+if [ -n "$SUPERPROJECT" ]; then
+  echo "Run /dev-worktrees from the primary clone (not from a submodule)" >&2
+  exit 1
+fi
 GIT_DIR="$(git rev-parse --git-dir)"
 COMMON_DIR="$(git rev-parse --git-common-dir)"
 if [ "$GIT_DIR" != "$COMMON_DIR" ]; then
@@ -88,7 +93,8 @@ Example: branch `lachieh/tam-1234-add-dark-mode` → `<worktree_base>/tam-1234-a
 REMOTE="origin"
 DEFAULT_BRANCH_REF="$(git symbolic-ref "refs/remotes/$REMOTE/HEAD" --short 2>/dev/null || true)"
 if [ -z "$DEFAULT_BRANCH_REF" ]; then
-  DEFAULT_BRANCH_REF="$REMOTE/main" # fallback when $REMOTE/HEAD isn't set (assumes default branch is main)
+  echo "Warning: $REMOTE/HEAD is not set; falling back to $REMOTE/main" >&2
+  DEFAULT_BRANCH_REF="$REMOTE/main"
 fi
 DEFAULT_BRANCH="${DEFAULT_BRANCH_REF#${REMOTE}/}"
 
