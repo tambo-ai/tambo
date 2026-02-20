@@ -22,7 +22,6 @@ import {
 import { ComponentsThemeProvider } from "@/providers/components-theme-provider";
 import { useTambo, useTamboThreadInput } from "@tambo-ai/react";
 import { useEffect, useRef, useState } from "react";
-import { zodToJsonSchema } from "zod-to-json-schema";
 import { SubscribeForm, SubscribeFormProps } from "./subscribe-form";
 
 export function TamboSubscribeIntegration() {
@@ -43,7 +42,7 @@ export function TamboSubscribeIntegration() {
       description:
         "A form component for subscription information with firstName, lastName, title, and email fields.",
       component: SubscribeForm,
-      propsDefinition: zodToJsonSchema(SubscribeFormProps),
+      propsSchema: SubscribeFormProps,
     });
 
     isRegistered.current = true;

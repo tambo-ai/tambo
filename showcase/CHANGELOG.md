@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.37.2](https://github.com/tambo-ai/tambo/compare/showcase-v0.37.1...showcase-v0.37.2) (2026-02-11)
+
+
+### Bug Fixes
+
+* **ui-registry:** support email fields in Form ([#2382](https://github.com/tambo-ai/tambo/issues/2382)) ([92a3656](https://github.com/tambo-ai/tambo/commit/92a36562e061ba7ec54d1f143193102de3a2a637))
+
+## [0.37.1](https://github.com/tambo-ai/tambo/compare/showcase-v0.37.0...showcase-v0.37.1) (2026-02-11)
+
+
+### Bug Fixes
+
+* **react-sdk:** unstrictify tool call args in the SDK ([#2361](https://github.com/tambo-ai/tambo/issues/2361)) ([6240c3c](https://github.com/tambo-ai/tambo/commit/6240c3c1b421914a3ca991c7c5ddbbd849e3bc38))
+* **showcase:** update code snippets and API tables to match current component APIs ([#2367](https://github.com/tambo-ai/tambo/issues/2367)) ([69b62a8](https://github.com/tambo-ai/tambo/commit/69b62a89491f963f30182bb45193d816aa67f037))
+
 ## [0.37.0](https://github.com/tambo-ai/tambo/compare/showcase-v0.36.0...showcase-v0.37.0) (2026-02-10)
 
 

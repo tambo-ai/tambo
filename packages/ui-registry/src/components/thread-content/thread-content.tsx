@@ -10,7 +10,11 @@ import {
   type messageVariants,
 } from "@tambo-ai/ui-registry/components/message";
 import { cn } from "@tambo-ai/ui-registry/utils";
-import { type TamboThreadMessage, useTambo } from "@tambo-ai/react";
+import {
+  type Content,
+  type TamboThreadMessage,
+  useTambo,
+} from "@tambo-ai/react";
 import { type VariantProps } from "class-variance-authority";
 import * as React from "react";
 
@@ -147,6 +151,11 @@ const ThreadContentMessages = React.forwardRef<
       {...props}
     >
       {filteredMessages.map((message, index) => {
+        const messageContentClassName =
+          message.role === "assistant"
+            ? "text-foreground font-sans"
+            : "text-foreground bg-container hover:bg-backdrop font-sans";
+
         return (
           <div
             key={
@@ -173,14 +182,39 @@ const ThreadContentMessages = React.forwardRef<
               >
                 <ReasoningInfo />
                 <MessageImages />
-                <MessageContent
-                  className={
-                    message.role === "assistant"
-                      ? "text-foreground font-sans"
-                      : "text-foreground bg-container hover:bg-backdrop font-sans"
+                {message.content.map((block, blockIndex) => {
+                  switch (block.type) {
+                    case "text":
+                    case "resource":
+                      return (
+                        <MessageContent
+                          key={`content-${blockIndex}`}
+                          content={[block]}
+                          className={messageContentClassName}
+                        />
+                      );
+                    case "tool_use":
+                      return (
+                        <ToolcallInfo
+                          key={`tool-${block.id ?? blockIndex}`}
+                          toolUse={block}
+                        />
+                      );
+                    case "tool_result":
+                    case "component":
+                      // tool_result is rendered by ToolcallInfo on the preceding assistant message.
+                      // component is rendered by MessageRenderedComponentArea below.
+                      return null;
+                    default: {
+                      const _exhaustive: never = block;
+                      console.error(
+                        "Unknown content block type:",
+                        (_exhaustive as Content).type,
+                      );
+                      return null;
+                    }
                   }
-                />
-                <ToolcallInfo />
+                })}
                 <MessageRenderedComponentArea className="w-full" />
               </div>
             </Message>

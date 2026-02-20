@@ -1,5 +1,30 @@
 # Changelog
 
+## [1.0.2](https://github.com/tambo-ai/tambo/compare/react-v1.0.1...react-v1.0.2) (2026-02-18)
+
+
+### Bug Fixes
+
+* **react-sdk:** pass userKey in updateThreadName to threads.update() ([#2436](https://github.com/tambo-ai/tambo/issues/2436)) ([05977f4](https://github.com/tambo-ai/tambo/commit/05977f4faf5dffa0eb9822c68948c00df95d90f2))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump @tambo-ai/typescript-sdk from 0.91.0 to 0.92.0 in the tambo-ai group ([#2337](https://github.com/tambo-ai/tambo/issues/2337)) ([97dcd7d](https://github.com/tambo-ai/tambo/commit/97dcd7dd70b8337da1bf957eaccff00b0b83a4ee))
+* **deps:** bump the ag-ui group across 1 directory with 5 updates ([#2241](https://github.com/tambo-ai/tambo/issues/2241)) ([a758a87](https://github.com/tambo-ai/tambo/commit/a758a8748ef265f9b99425079f9cd6ba8b99963c))
+
+## [1.0.1](https://github.com/tambo-ai/tambo/compare/react-v1.0.0...react-v1.0.1) (2026-02-10)
+
+
+### Bug Fixes
+
+* **react-sdk:** unstrictify tool call args in the SDK ([#2361](https://github.com/tambo-ai/tambo/issues/2361)) ([6240c3c](https://github.com/tambo-ai/tambo/commit/6240c3c1b421914a3ca991c7c5ddbbd849e3bc38))
+
+
+### Miscellaneous Chores
+
+* update readmes ([#2368](https://github.com/tambo-ai/tambo/issues/2368)) ([1998482](https://github.com/tambo-ai/tambo/commit/19984822494539999d82a4bc4ac8c27e3aef4645))
+
 ## [1.0.0](https://github.com/tambo-ai/tambo/compare/react-v1.0.0-rc.5...react-v1.0.0) (2026-02-10)
 
 

@@ -5,9 +5,26 @@ import { Sidebar } from "@/components/sidebar";
 import { useUserContextKey } from "@/lib/useUserContextKey";
 import { MobileProvider } from "@/providers/mobile-provider";
 import { ThemeProvider } from "@/providers/theme-provider";
-import { TamboProvider } from "@tambo-ai/react";
+import { defineTool, TamboProvider } from "@tambo-ai/react";
 import { MCPTransport } from "@tambo-ai/react/mcp";
 import { usePathname } from "next/navigation";
+import { z } from "zod";
+
+const generateParamsTool = defineTool({
+  name: "generate_params",
+  description: "A dummy tool that generates parameters for testing purposes",
+  inputSchema: z.object({
+    a_number: z.number().optional().describe("An optional number parameter"),
+    a_string: z.string().optional().describe("An optional string parameter"),
+    a_array_of_numbers: z
+      .array(z.number())
+      .optional()
+      .describe("An optional array of numbers"),
+  }),
+  tool: ({ a_number, a_string, a_array_of_numbers }) => {
+    return { a_number, a_string, a_array_of_numbers };
+  },
+});
 
 const MCP_DEMO_URL =
   process.env.NEXT_PUBLIC_MCP_DEMO_URL || "https://everything-mcp.tambo.co/mcp";
@@ -44,6 +61,7 @@ export default function Template({
                   mcpServers={[
                     { url: MCP_DEMO_URL, transport: MCPTransport.HTTP },
                   ]}
+                  tools={[generateParamsTool]}
                   userKey={userContextKey}
                   listResources={async (search = "X") => {
                     console.log("listResources", search);

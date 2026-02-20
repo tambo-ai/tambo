@@ -38,8 +38,10 @@ import type {
   TamboThreadMessage,
 } from "../types/message";
 import type { StreamingState, TamboThread } from "../types/thread";
+import type { JSONSchema7 } from "json-schema";
 import { parse as parsePartialJson } from "partial-json";
 import { applyJsonPatch } from "./json-patch";
+import { unstrictifyToolCallParamsFromSchema } from "./unstrictify";
 
 /**
  * Error thrown when an unreachable case is reached in a switch statement.
@@ -98,6 +100,8 @@ export interface EventAction {
   threadId: string;
   /** Pre-parsed partial JSON args for TOOL_CALL_ARGS events. Avoids double-parsing. */
   parsedToolArgs?: Record<string, unknown>;
+  /** Original tool schemas for unstrictifying tool call args at TOOL_CALL_END. */
+  toolSchemas?: Map<string, JSONSchema7>;
 }
 
 /**
@@ -595,11 +599,16 @@ export function streamReducer(
         threadState,
         event,
         action.parsedToolArgs,
+        action.toolSchemas,
       );
       break;
 
     case EventType.TOOL_CALL_END:
-      updatedThreadState = handleToolCallEnd(threadState, event);
+      updatedThreadState = handleToolCallEnd(
+        threadState,
+        event,
+        action.toolSchemas,
+      );
       break;
 
     case EventType.TOOL_CALL_RESULT:
@@ -1002,15 +1011,20 @@ function handleToolCallStart(
  * Handle TOOL_CALL_ARGS event.
  * Accumulates JSON string deltas for tool call arguments and optimistically
  * parses the partial JSON to update the tool_use content block in real-time.
+ * When toolSchemas is provided, the parsed args are unstrictified so the
+ * reducer always emits schema-valid values during streaming.
  * The final authoritative parse still happens at TOOL_CALL_END.
  * @param threadState - Current thread state
  * @param event - Tool call args event
+ * @param parsedToolArgs - Pre-parsed args from the hook (already unstrictified)
+ * @param toolSchemas - Original tool schemas for unstrictification
  * @returns Updated thread state
  */
 function handleToolCallArgs(
   threadState: ThreadState,
   event: ToolCallArgsEvent,
   parsedToolArgs?: Record<string, unknown>,
+  toolSchemas?: Map<string, JSONSchema7>,
 ): ThreadState {
   const toolCallId = event.toolCallId;
 
@@ -1063,6 +1077,14 @@ function handleToolCallArgs(
     );
   }
 
+  // Unstrictify if we have the original schema for this tool
+  if (toolSchemas) {
+    const schema = toolSchemas.get(toolUseContent.name);
+    if (schema) {
+      parsedInput = unstrictifyToolCallParamsFromSchema(schema, parsedInput);
+    }
+  }
+
   const updatedContent: Content = {
     ...toolUseContent,
     input: parsedInput,
@@ -1088,14 +1110,17 @@ function handleToolCallArgs(
 
 /**
  * Handle TOOL_CALL_END event.
- * Parses the accumulated JSON arguments and updates the tool_use content block.
+ * Parses the accumulated JSON arguments, unstrictifies them if possible,
+ * and updates the tool_use content block.
  * @param threadState - Current thread state
  * @param event - Tool call end event
+ * @param toolSchemas - Original tool schemas for unstrictification
  * @returns Updated thread state
  */
 function handleToolCallEnd(
   threadState: ThreadState,
   event: ToolCallEndEvent,
+  toolSchemas?: Map<string, JSONSchema7>,
 ): ThreadState {
   const toolCallId = event.toolCallId;
   const messages = threadState.thread.messages;
@@ -1132,6 +1157,14 @@ function handleToolCallEnd(
     throw new Error(
       `Content at index ${contentIndex} is not a tool_use block for TOOL_CALL_END event`,
     );
+  }
+
+  // Unstrictify parsed input if we have the original schema
+  if (toolSchemas) {
+    const schema = toolSchemas.get(toolUseContent.name);
+    if (schema) {
+      parsedInput = unstrictifyToolCallParamsFromSchema(schema, parsedInput);
+    }
   }
 
   // Update the tool_use content with parsed input

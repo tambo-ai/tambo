@@ -1,5 +1,33 @@
 # Changelog
 
+## [1.27.1](https://github.com/tambo-ai/tambo/compare/docs-v1.27.0...docs-v1.27.1) (2026-02-13)
+
+
+### Documentation
+
+* **self-hosting:** break up SELF-HOSTING.md into docs site guide section ([#2387](https://github.com/tambo-ai/tambo/issues/2387)) ([2fdb145](https://github.com/tambo-ai/tambo/commit/2fdb145cd41f95a67dc29bfd390d6a2018f6ed05))
+
+## [1.27.0](https://github.com/tambo-ai/tambo/compare/docs-v1.26.3...docs-v1.27.0) (2026-02-11)
+
+
+### Features
+
+* **cli:** auto-initialize git and run tambo init by default ([#2383](https://github.com/tambo-ai/tambo/issues/2383)) ([a086a5c](https://github.com/tambo-ai/tambo/commit/a086a5ce2e0a0478202689a56e96e3e814f4c775))
+
+## [1.26.3](https://github.com/tambo-ai/tambo/compare/docs-v1.26.2...docs-v1.26.3) (2026-02-11)
+
+
+### Miscellaneous Chores
+
+* remove cd into tambo app from quickstart ([#2380](https://github.com/tambo-ai/tambo/issues/2380)) ([3bf12cd](https://github.com/tambo-ai/tambo/commit/3bf12cd76fbecf519ed7258d1c4399a0969ffd5d))
+
+## [1.26.2](https://github.com/tambo-ai/tambo/compare/docs-v1.26.1...docs-v1.26.2) (2026-02-11)
+
+
+### Bug Fixes
+
+* **react-ui-base:** preserve MAX_IMAGES and IS_PASTED_IMAGE in build output ([#2371](https://github.com/tambo-ai/tambo/issues/2371)) ([dc6d5e5](https://github.com/tambo-ai/tambo/commit/dc6d5e5a1714641890ef1fd6dbb7bcdbcc54a521))
+
 ## [1.26.1](https://github.com/tambo-ai/tambo/compare/docs-v1.26.0...docs-v1.26.1) (2026-02-10)
 
 

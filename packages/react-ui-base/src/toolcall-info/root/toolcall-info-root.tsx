@@ -1,7 +1,7 @@
 "use client";
 
 import { Slot } from "@radix-ui/react-slot";
-import type { TamboThreadMessage } from "@tambo-ai/react";
+import type { TamboThreadMessage, TamboToolUseContent } from "@tambo-ai/react";
 import { useTambo } from "@tambo-ai/react";
 import * as React from "react";
 import { useOptionalMessageRootContext } from "../../message/root/message-root-context";
@@ -21,6 +21,11 @@ export type ToolcallInfoRootProps = BaseProps<
      * If not provided, will be read from the parent Message.Root context.
      */
     message?: TamboThreadMessage;
+    /**
+     * Specific tool_use block to display.
+     * If not provided, the first tool_use block from the message is used.
+     */
+    toolUse?: TamboToolUseContent;
   }
 >;
 
@@ -38,6 +43,7 @@ export const ToolcallInfoRoot = React.forwardRef<
       message: messageProp,
       isLoading: isLoadingProp,
       defaultExpanded = false,
+      toolUse: toolUseProp,
       children,
       ...props
     },
@@ -85,16 +91,18 @@ export const ToolcallInfoRoot = React.forwardRef<
       return null;
     }, [message, messages]);
 
-    const toolCallRequest = getToolCallRequest(message);
+    const toolCallRequest = toolUseProp ?? getToolCallRequest(message);
     const isToolCallMessage = message.role === "assistant" && !!toolCallRequest;
     const hasToolError =
       toolCallRequest?.hasCompleted === true &&
       !!associatedToolResponse?.content.some(
-        (block) => block.type === "tool_result" && block.isError,
+        (block) =>
+          block.type === "tool_result" &&
+          block.toolUseId === toolCallRequest.id &&
+          block.isError,
       );
-    // getToolStatusMessage returns null only for non-assistant messages or missing toolCallRequest,
-    // so provide a fallback for cases where it's not a tool call message
-    const toolStatusMessage = getToolStatusMessage(message, isLoading) ?? "";
+    const toolStatusMessage =
+      getToolStatusMessage(toolCallRequest, isLoading) ?? "";
 
     const contextValue = React.useMemo(
       () => ({

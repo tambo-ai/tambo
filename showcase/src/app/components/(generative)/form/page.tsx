@@ -38,37 +38,36 @@ export default function FormComponentPage() {
 export function ContactForm() {
   return (
     <Form
-      title="Contact Us"
       fields={[
         {
-          name: "name",
+          id: "name",
           label: "Name",
           type: "text",
           required: true,
           placeholder: "Enter your name",
         },
         {
-          name: "email",
+          id: "email",
           label: "Email",
           type: "email",
           required: true,
           placeholder: "your.email@example.com",
         },
         {
-          name: "phone",
+          id: "phone",
           label: "Phone",
           type: "text",
           placeholder: "(555) 123-4567",
         },
         {
-          name: "message",
+          id: "message",
           label: "Message",
           type: "textarea",
           required: true,
           placeholder: "How can we help?",
         },
         {
-          name: "contactMethod",
+          id: "contactMethod",
           label: "Preferred Contact Method",
           type: "select",
           options: ["Email", "Phone", "Either"],
@@ -110,40 +109,46 @@ export function ContactForm() {
               </thead>
               <tbody>
                 <tr>
-                  <td>title</td>
-                  <td>string</td>
-                  <td>-</td>
-                  <td>Form heading displayed at the top</td>
-                </tr>
-                <tr>
-                  <td>description</td>
-                  <td>string</td>
-                  <td>-</td>
-                  <td>Optional description text below the title</td>
-                </tr>
-                <tr>
                   <td>fields</td>
                   <td>FormField[]</td>
                   <td>-</td>
                   <td>Array of form field configurations</td>
                 </tr>
                 <tr>
-                  <td>variant</td>
-                  <td>&quot;solid&quot; | &quot;bordered&quot;</td>
-                  <td>&quot;solid&quot;</td>
-                  <td>Visual style of the form container</td>
-                </tr>
-                <tr>
-                  <td>layout</td>
-                  <td>&quot;compact&quot; | &quot;relaxed&quot;</td>
-                  <td>&quot;compact&quot;</td>
-                  <td>Spacing between form fields</td>
-                </tr>
-                <tr>
                   <td>onSubmit</td>
                   <td>(data: Record&lt;string, any&gt;) =&gt; void</td>
                   <td>-</td>
                   <td>Callback function when form is submitted</td>
+                </tr>
+                <tr>
+                  <td>onError</td>
+                  <td>string</td>
+                  <td>-</td>
+                  <td>Optional error message to display</td>
+                </tr>
+                <tr>
+                  <td>submitText</td>
+                  <td>string</td>
+                  <td>&quot;Submit&quot;</td>
+                  <td>Text to display on the submit button</td>
+                </tr>
+                <tr>
+                  <td>variant</td>
+                  <td>
+                    &quot;default&quot; | &quot;solid&quot; |
+                    &quot;bordered&quot;
+                  </td>
+                  <td>&quot;default&quot;</td>
+                  <td>Visual style of the form container</td>
+                </tr>
+                <tr>
+                  <td>layout</td>
+                  <td>
+                    &quot;default&quot; | &quot;compact&quot; |
+                    &quot;relaxed&quot;
+                  </td>
+                  <td>&quot;default&quot;</td>
+                  <td>Spacing between form fields</td>
                 </tr>
                 <tr>
                   <td>className</td>
@@ -169,10 +174,21 @@ export function ContactForm() {
               </thead>
               <tbody>
                 <tr>
-                  <td>name</td>
+                  <td>id</td>
                   <td>string</td>
                   <td>-</td>
                   <td>Unique identifier for the field</td>
+                </tr>
+                <tr>
+                  <td>type</td>
+                  <td>
+                    &quot;text&quot; | &quot;email&quot; | &quot;number&quot; |
+                    &quot;select&quot; | &quot;textarea&quot; |
+                    &quot;radio&quot; | &quot;checkbox&quot; |
+                    &quot;slider&quot; | &quot;yes-no&quot;
+                  </td>
+                  <td>-</td>
+                  <td>Type of input field to render</td>
                 </tr>
                 <tr>
                   <td>label</td>
@@ -181,13 +197,16 @@ export function ContactForm() {
                   <td>Label text displayed above the field</td>
                 </tr>
                 <tr>
-                  <td>type</td>
-                  <td>
-                    &quot;text&quot; | &quot;email&quot; | &quot;number&quot; |
-                    &quot;textarea&quot; | &quot;select&quot;
-                  </td>
-                  <td>&quot;text&quot;</td>
-                  <td>Type of input field to render</td>
+                  <td>placeholder</td>
+                  <td>string</td>
+                  <td>-</td>
+                  <td>Placeholder text shown in empty fields</td>
+                </tr>
+                <tr>
+                  <td>options</td>
+                  <td>string[]</td>
+                  <td>-</td>
+                  <td>Options for select, radio, and checkbox fields</td>
                 </tr>
                 <tr>
                   <td>required</td>
@@ -196,22 +215,10 @@ export function ContactForm() {
                   <td>Whether the field is required</td>
                 </tr>
                 <tr>
-                  <td>placeholder</td>
-                  <td>string</td>
-                  <td>-</td>
-                  <td>Placeholder text shown in empty fields</td>
-                </tr>
-                <tr>
                   <td>description</td>
                   <td>string</td>
                   <td>-</td>
                   <td>Helper text displayed below the field</td>
-                </tr>
-                <tr>
-                  <td>options</td>
-                  <td>string[]</td>
-                  <td>-</td>
-                  <td>Options for select fields</td>
                 </tr>
               </tbody>
             </table>

@@ -89,7 +89,7 @@ export default function ThreadContentPage() {
             code={`import {
   ThreadContent,
   ThreadContentMessages,
-} from "@tambo-ai/ui-registry/components/thread-content";
+} from "@/components/tambo/thread-content";
 
 export function ChatDemo() {
   return (
@@ -113,7 +113,7 @@ export function ChatDemo() {
             code={`import {
   ThreadContent,
   ThreadContentMessages,
-} from "@tambo-ai/ui-registry/components/thread-content";
+} from "@/components/tambo/thread-content";
 
 export function ChatDemo() {
   return (
@@ -137,7 +137,7 @@ export function ChatDemo() {
             code={`import {
   ThreadContent,
   ThreadContentMessages,
-} from "@tambo-ai/ui-registry/components/thread-content";
+} from "@/components/tambo/thread-content";
 
 export function EmptyThread() {
   return (

@@ -39,22 +39,24 @@ export function QuarterlySalesChart() {
   return (
     <Graph
       title="Quarterly Sales"
-      type="bar"
-      labels={["Q1", "Q2", "Q3", "Q4"]}
-      datasets={[
-        {
-          label: "Revenue",
-          data: [120000, 150000, 180000, 200000],
-          backgroundColor: "rgba(75, 192, 192, 0.6)",
-        },
-        {
-          label: "Expenses",
-          data: [80000, 95000, 110000, 125000],
-          backgroundColor: "rgba(255, 99, 132, 0.6)",
-        },
-      ]}
+      data={{
+        type: "bar",
+        labels: ["Q1", "Q2", "Q3", "Q4"],
+        datasets: [
+          {
+            label: "Revenue",
+            data: [120000, 150000, 180000, 200000],
+            color: "hsl(160, 82%, 47%)",
+          },
+          {
+            label: "Expenses",
+            data: [80000, 95000, 110000, 125000],
+            color: "hsl(340, 82%, 66%)",
+          },
+        ],
+      }}
       variant="bordered"
-      size="large"
+      size="lg"
       showLegend={true}
     />
   );
@@ -89,54 +91,39 @@ export function QuarterlySalesChart() {
               </thead>
               <tbody>
                 <tr>
+                  <td>data</td>
+                  <td>GraphData</td>
+                  <td>-</td>
+                  <td>
+                    Data object containing chart type, labels, and datasets
+                  </td>
+                </tr>
+                <tr>
                   <td>title</td>
                   <td>string</td>
                   <td>-</td>
                   <td>Chart title displayed above the graph</td>
                 </tr>
                 <tr>
-                  <td>description</td>
-                  <td>string</td>
-                  <td>-</td>
-                  <td>Optional description text below the title</td>
-                </tr>
-                <tr>
-                  <td>type</td>
-                  <td>&quot;bar&quot; | &quot;line&quot; | &quot;pie&quot;</td>
-                  <td>&quot;bar&quot;</td>
-                  <td>Type of chart to render</td>
-                </tr>
-                <tr>
-                  <td>labels</td>
-                  <td>string[]</td>
-                  <td>[]</td>
-                  <td>Array of labels for the x-axis</td>
-                </tr>
-                <tr>
-                  <td>datasets</td>
-                  <td>Dataset[]</td>
-                  <td>[]</td>
-                  <td>Array of dataset configurations</td>
-                </tr>
-                <tr>
-                  <td>variant</td>
-                  <td>&quot;solid&quot; | &quot;bordered&quot;</td>
-                  <td>&quot;solid&quot;</td>
-                  <td>Visual style of the graph container</td>
-                </tr>
-                <tr>
-                  <td>size</td>
-                  <td>
-                    &quot;small&quot; | &quot;medium&quot; | &quot;large&quot;
-                  </td>
-                  <td>&quot;medium&quot;</td>
-                  <td>Height of the graph container</td>
-                </tr>
-                <tr>
                   <td>showLegend</td>
                   <td>boolean</td>
                   <td>true</td>
                   <td>Whether to display the legend</td>
+                </tr>
+                <tr>
+                  <td>variant</td>
+                  <td>
+                    &quot;default&quot; | &quot;solid&quot; |
+                    &quot;bordered&quot;
+                  </td>
+                  <td>&quot;default&quot;</td>
+                  <td>Visual style of the graph container</td>
+                </tr>
+                <tr>
+                  <td>size</td>
+                  <td>&quot;default&quot; | &quot;sm&quot; | &quot;lg&quot;</td>
+                  <td>&quot;default&quot;</td>
+                  <td>Height of the graph container</td>
                 </tr>
                 <tr>
                   <td>className</td>
@@ -149,7 +136,7 @@ export function QuarterlySalesChart() {
           </div>
 
           <div className="space-y-4">
-            <h3 className="text-xl font-semibold">Dataset</h3>
+            <h3 className="text-xl font-semibold">GraphData</h3>
 
             <table>
               <thead>
@@ -162,34 +149,27 @@ export function QuarterlySalesChart() {
               </thead>
               <tbody>
                 <tr>
-                  <td>label</td>
-                  <td>string</td>
+                  <td>type</td>
+                  <td>&quot;bar&quot; | &quot;line&quot; | &quot;pie&quot;</td>
                   <td>-</td>
-                  <td>Dataset label shown in the legend</td>
+                  <td>Type of chart to render</td>
                 </tr>
                 <tr>
-                  <td>data</td>
-                  <td>number[]</td>
-                  <td>[]</td>
-                  <td>Array of data values</td>
-                </tr>
-                <tr>
-                  <td>backgroundColor</td>
-                  <td>string | string[]</td>
+                  <td>labels</td>
+                  <td>string[]</td>
                   <td>-</td>
-                  <td>Background color(s) for data points</td>
+                  <td>Array of labels for the x-axis</td>
                 </tr>
                 <tr>
-                  <td>borderColor</td>
-                  <td>string</td>
+                  <td>datasets</td>
+                  <td>
+                    {"{"} label: string; data: number[]; color?: string {"}"}[]
+                  </td>
                   <td>-</td>
-                  <td>Border color for data points (line charts)</td>
-                </tr>
-                <tr>
-                  <td>borderWidth</td>
-                  <td>number</td>
-                  <td>1</td>
-                  <td>Border width for data points</td>
+                  <td>
+                    Array of dataset objects with label, data points, and
+                    optional color
+                  </td>
                 </tr>
               </tbody>
             </table>

@@ -42,7 +42,8 @@ const templates: Record<string, Template> = {
 
 interface CreateAppOptions {
   legacyPeerDeps?: boolean;
-  initGit?: boolean;
+  skipGitInit?: boolean;
+  skipTamboInit?: boolean;
   template?: string;
   name?: string;
 }
@@ -270,23 +271,32 @@ export async function handleCreateApp(
     // Change to target directory before git init and npm install
     process.chdir(targetDir);
 
-    // Initialize new git repository if requested
-    if (options.initGit) {
+    // Initialize new git repository by default (unless skipGitInit is true)
+    const shouldInitGit = !options.skipGitInit;
+    let gitInitSucceeded = false;
+
+    if (shouldInitGit) {
       const gitInitSpinner = ora({
         text: "Initializing git repository...",
         spinner: "dots",
       }).start();
 
       try {
-        execSync("git init", { stdio: "ignore" });
-        execSync("git add .", { stdio: "ignore" });
+        // Use --initial-branch=main to set the initial branch to main
+        execSync("git init --initial-branch=main", {
+          stdio: "ignore",
+          allowNonInteractive: true,
+        });
+        execSync("git add .", { stdio: "ignore", allowNonInteractive: true });
         execSync(
           `git commit -m "Initial commit from Tambo ${selectedTemplate.name} template"`,
           {
             stdio: "ignore",
+            allowNonInteractive: true,
           },
         );
         gitInitSpinner.succeed("Git repository initialized successfully");
+        gitInitSucceeded = true;
       } catch (_error) {
         gitInitSpinner.fail("Failed to initialize git repository");
         console.warn(
@@ -322,27 +332,111 @@ export async function handleCreateApp(
       );
     }
 
+    // Run tambo init by default in interactive mode (unless skipTamboInit is true)
+    // In non-interactive mode, skip it since tambo init requires user interaction
+    let tamboInitSucceeded = false;
+    const interactive = isInteractive();
+    const shouldRunTamboInit = !options.skipTamboInit && interactive;
+
+    if (shouldRunTamboInit) {
+      console.log(chalk.cyan("\nRunning tambo init to complete setup...\n"));
+
+      try {
+        // Run tambo init with full interactive behavior - user will be prompted for:
+        // - Hosting choice (Tambo Cloud or self-hosted)
+        // - Authentication (device auth flow)
+        // - Project selection
+        // - Installation path
+        // - Agent docs creation
+        execSync("npx tambo init", {
+          stdio: "inherit", // Allow user interaction for all prompts
+          allowNonInteractive: true,
+        });
+        console.log(
+          chalk.green("✓ Tambo initialization completed successfully\n"),
+        );
+        tamboInitSucceeded = true;
+      } catch (_error) {
+        console.error(chalk.red("✗ Failed to run tambo init\n"));
+        console.warn(
+          chalk.yellow(
+            "Warning: Tambo initialization failed. You can run 'npx tambo init' manually to complete setup.\n",
+          ),
+        );
+      }
+    }
+
     console.log(chalk.green("\nSuccessfully created a new Tambo app"));
     console.log(
       chalk.cyan(
         `Template: ${selectedTemplate.name} - ${selectedTemplate.description}`,
       ),
     );
-    console.log("\nNext steps:");
-    let step = 1;
-    if (appName !== ".") {
-      console.log(
-        `  ${step}. ${chalk.cyan(`cd ${appName === "." ? "." : appName}`)}`,
+
+    // Show what was done automatically
+    if (gitInitSucceeded || tamboInitSucceeded) {
+      console.log(chalk.green("\n✓ Automatically completed:"));
+      if (gitInitSucceeded) {
+        console.log(chalk.gray("  • Git repository initialized"));
+      }
+      if (tamboInitSucceeded) {
+        console.log(chalk.gray("  • Tambo initialization completed"));
+      }
+    }
+
+    // Check if everything succeeded
+    const allSetupComplete = gitInitSucceeded && tamboInitSucceeded;
+
+    // Build remaining setup steps (excluding cd and npm run dev which are always needed)
+    const setupSteps: string[] = [];
+
+    if (!gitInitSucceeded && !options.skipGitInit) {
+      setupSteps.push(
+        `${chalk.cyan("git init")} ${chalk.gray("(failed, run manually)")}`,
       );
-      step++;
     }
-    if (!options.initGit) {
-      console.log(`  ${step}. ${chalk.cyan("git init")}`);
-      step++;
+
+    // Show tambo init in next steps if it didn't succeed
+    // (either explicitly skipped, auto-skipped in non-interactive mode, or failed)
+    if (!tamboInitSucceeded) {
+      let reason: string;
+      if (!interactive) {
+        reason = chalk.gray("(required for setup)");
+      } else if (options.skipTamboInit) {
+        reason = chalk.gray("(skipped, run to complete setup)");
+      } else {
+        reason = chalk.gray("(failed, run manually to complete setup)");
+      }
+      setupSteps.push(`${chalk.cyan("npx tambo init")} ${reason}`);
     }
-    console.log(`  ${step}. ${chalk.cyan("npx tambo init")} to complete setup`);
-    step++;
-    console.log(`  ${step}. ${chalk.cyan("npm run dev")}`);
+
+    // Show appropriate message based on setup status
+    if (allSetupComplete) {
+      console.log(
+        chalk.green("\n🎉 All setup complete! You're ready to go!\n"),
+      );
+      console.log("Next steps:");
+      let stepNum = 1;
+      if (appName !== ".") {
+        console.log(`  ${stepNum}. ${chalk.cyan(`cd ${appName}`)}`);
+        stepNum++;
+      }
+      console.log(`  ${stepNum}. ${chalk.cyan("npm run dev")}`);
+    } else {
+      // Some setup steps remain
+      console.log("\nNext steps:");
+      let stepNum = 1;
+      if (appName !== ".") {
+        console.log(`  ${stepNum}. ${chalk.cyan(`cd ${appName}`)}`);
+        stepNum++;
+      }
+      setupSteps.forEach((step) => {
+        console.log(`  ${stepNum}. ${step}`);
+        stepNum++;
+      });
+      console.log(`  ${stepNum}. ${chalk.cyan("npm run dev")}`);
+    }
+
     console.log("\nLearn More:");
     console.log(
       `  • Each component in your template comes with built-in documentation and examples`,
@@ -350,7 +444,6 @@ export async function handleCreateApp(
     console.log(
       `  • Visit our UI showcase at ${chalk.cyan("https://ui.tambo.co")} to explore and learn about the components included in your template\n`,
     );
-    step++;
   } catch (error) {
     console.error(
       chalk.red("\nError creating app:"),

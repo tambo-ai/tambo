@@ -265,4 +265,124 @@ describe("formatToolResult in ToolcallInfo", () => {
       ).toBeTruthy();
     });
   });
+
+  describe("toolUse prop", () => {
+    it("renders using provided toolUse instead of first tool_use from message", () => {
+      const secondToolUse: TamboToolUseContent = {
+        type: "tool_use",
+        id: "tool-call-2",
+        name: "second-tool",
+        input: { query: "test" },
+      };
+      const toolCallMessage = createToolCallMessage({
+        content: [
+          {
+            type: "tool_use",
+            id: "tool-call-1",
+            name: "first-tool",
+            input: {},
+          },
+          secondToolUse,
+        ],
+      });
+
+      mockUseTambo.mockReturnValue({
+        messages: [toolCallMessage],
+        isStreaming: false,
+        isIdle: true,
+      } as never);
+
+      const { container } = render(
+        <ToolcallInfo.Root message={toolCallMessage} toolUse={secondToolUse} />,
+      );
+
+      expect(
+        container.querySelector('[data-slot="toolcall-info"]'),
+      ).toBeTruthy();
+    });
+
+    it("renders when toolUse prop targets a tool_use not first in the message", () => {
+      const targetToolUse: TamboToolUseContent = {
+        type: "tool_use",
+        id: "tool-call-3",
+        name: "target-tool",
+        input: {},
+      };
+      // Message with text before the tool_use (thinking model pattern)
+      const message: TamboThreadMessage = {
+        id: "msg-1",
+        role: "assistant",
+        content: [
+          { type: "text", text: "Let me search for that." },
+          targetToolUse,
+        ],
+        createdAt: new Date().toISOString(),
+      };
+
+      mockUseTambo.mockReturnValue({
+        messages: [message],
+        isStreaming: false,
+        isIdle: true,
+      } as never);
+
+      const { container } = render(
+        <ToolcallInfo.Root message={message} toolUse={targetToolUse} />,
+      );
+
+      expect(
+        container.querySelector('[data-slot="toolcall-info"]'),
+      ).toBeTruthy();
+    });
+
+    it("scopes hasToolError by toolUseId", () => {
+      const successToolUse: TamboToolUseContent = {
+        type: "tool_use",
+        id: "tool-success",
+        name: "good-tool",
+        input: {},
+        hasCompleted: true,
+      };
+      const errorToolUse: TamboToolUseContent = {
+        type: "tool_use",
+        id: "tool-error",
+        name: "bad-tool",
+        input: {},
+        hasCompleted: true,
+      };
+      const toolCallMessage: TamboThreadMessage = {
+        id: "msg-1",
+        role: "assistant",
+        content: [successToolUse, errorToolUse],
+        createdAt: new Date().toISOString(),
+      };
+      const toolResponse = createToolResponseMessage([
+        { type: "text", text: "OK" },
+      ]);
+
+      mockUseTambo.mockReturnValue({
+        messages: [toolCallMessage, toolResponse],
+        isStreaming: false,
+        isIdle: true,
+      } as never);
+
+      // Rendering for the successful tool should not show error
+      const { container: successContainer } = render(
+        <ToolcallInfo.Root
+          message={toolCallMessage}
+          toolUse={successToolUse}
+        />,
+      );
+      expect(
+        successContainer.querySelector('[data-slot="toolcall-info"]'),
+      ).toBeTruthy();
+
+      // Rendering for the errored tool should show error
+      const { container: errorContainer } = render(
+        <ToolcallInfo.Root message={toolCallMessage} toolUse={errorToolUse} />,
+      );
+      expect(
+        errorContainer.querySelector('[data-slot="toolcall-info"]'),
+      ).toBeTruthy();
+    });
+  });
 });

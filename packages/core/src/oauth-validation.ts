@@ -2,7 +2,7 @@
  * OAuth token validation modes for projects
  */
 export enum OAuthValidationMode {
-  /** No validation - tokens are accepted as-is. Useful for symmetric keys where private key is not available */
+  /** No signature verification. JWTs are decoded directly; opaque tokens use userinfo endpoint or hash fallback. */
   NONE = "none",
   /** Validation with symmetric keys (like HS256) - requires a secret key to be stored */
   SYMMETRIC = "symmetric",
@@ -19,4 +19,5 @@ export interface OAuthValidationSettings {
   mode: OAuthValidationMode;
   secretKey?: string;
   publicKey?: string;
+  userinfoEndpoint?: string;
 }

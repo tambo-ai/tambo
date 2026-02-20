@@ -12,7 +12,7 @@ import { ConfigService } from "@nestjs/config";
 import { ApiHeader, ApiOperation, ApiTags } from "@nestjs/swagger";
 import type { HydraDatabase } from "@tambo-ai-cloud/db";
 import { operations } from "@tambo-ai-cloud/db";
-import { DATABASE } from "../common/middleware/db-transaction-middleware";
+import { DATABASE } from "../common/database-provider";
 import { EmailService } from "../common/services/email.service";
 import { CorrelationLoggerService } from "../common/services/logger.service";
 

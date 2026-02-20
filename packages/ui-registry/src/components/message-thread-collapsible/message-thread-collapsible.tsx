@@ -1,5 +1,6 @@
 "use client";
 
+import { type Suggestion } from "@tambo-ai/react";
 import type { messageVariants } from "@tambo-ai/ui-registry/components/message";
 import {
   MessageInput,
@@ -23,7 +24,6 @@ import {
 } from "@tambo-ai/ui-registry/components/thread-content";
 import { ThreadDropdown } from "@tambo-ai/ui-registry/components/thread-dropdown";
 import { cn } from "@tambo-ai/ui-registry/utils";
-import { type Suggestion } from "@tambo-ai/react";
 import { type VariantProps } from "class-variance-authority";
 import { XIcon } from "lucide-react";
 import { Collapsible } from "radix-ui";

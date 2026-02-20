@@ -1,6 +1,6 @@
 "use client";
 
-import { TamboThreadMessage } from "@tambo-ai/react";
+import { TamboThreadMessage, TamboToolUseContent } from "@tambo-ai/react";
 import {
   Message as MessageBase,
   type MessageContentProps as MessageBaseContentProps,
@@ -269,6 +269,8 @@ export interface ToolcallInfoProps extends Omit<
 > {
   /** Optional flag to render response content as Markdown. Default is true. */
   markdown?: boolean;
+  /** Optional specific tool_use block to display. If not provided, uses the first from the message. */
+  toolUse?: TamboToolUseContent;
 }
 
 const toolStatusIconClassName = cva("h-3 w-3 text-bold", {
@@ -388,7 +390,7 @@ ToolcallInfoTrigger.displayName = "ToolcallInfoTrigger";
  * @component ToolcallInfo
  */
 const ToolcallInfo = React.forwardRef<HTMLDivElement, ToolcallInfoProps>(
-  ({ className, markdown = true, ...props }, ref) => {
+  ({ className, markdown = true, toolUse, ...props }, ref) => {
     return (
       <ToolcallInfoBase.Root
         ref={ref}
@@ -396,6 +398,7 @@ const ToolcallInfo = React.forwardRef<HTMLDivElement, ToolcallInfoProps>(
           "flex flex-col items-start text-xs opacity-50",
           className,
         )}
+        toolUse={toolUse}
         {...props}
       >
         <div className="flex flex-col w-full">

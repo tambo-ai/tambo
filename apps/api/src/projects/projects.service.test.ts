@@ -4,7 +4,7 @@ import type { TestingModule } from "@nestjs/testing";
 import { AiProviderType } from "@tambo-ai-cloud/core";
 import { operations, type HydraDatabase } from "@tambo-ai-cloud/db";
 
-import { DATABASE } from "../common/middleware/db-transaction-middleware";
+import { DATABASE } from "../common/database-provider";
 import { createTestRequestContext } from "../test/utils/create-test-request-context";
 import { createTestingModule } from "../test/utils/create-testing-module";
 import { resolveRequestScopedProvider } from "../test/utils/resolve-request-scoped-provider";
