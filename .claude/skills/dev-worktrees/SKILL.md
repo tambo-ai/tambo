@@ -71,6 +71,8 @@ if [ ! -d "$MAIN_REPO/.git" ]; then
 fi
 ```
 
+You can inspect existing worktrees with `git worktree list`, but always run `/dev-worktrees` from the primary clone.
+
 Worktree path: `<worktree_base>/<branch-name-without-username-prefix>`
 Example: branch `lachieh/tam-1234-add-dark-mode` → `<worktree_base>/tam-1234-add-dark-mode`
 
@@ -90,6 +92,8 @@ If the branch already exists, ask to check out the existing branch instead.
 ### 5. Symlink Claude settings
 
 Link `<main-repo>/.claude/settings.local.json` into the worktree. Both paths must be fully resolved absolute paths (no `~`, no `$HOME`).
+
+If you normally refer to the repo as something like `~/code/tambo`, resolve it first (e.g., `realpath ~/code/tambo`) and use that output for `<main-repo>`.
 
 ```bash
 mkdir -p "<worktree-path>/.claude"
