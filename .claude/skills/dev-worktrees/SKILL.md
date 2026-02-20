@@ -62,7 +62,11 @@ Run `/dev-worktrees` from the main repo checkout (not from inside an existing wo
 Main repo path:
 
 ```bash
-git rev-parse --show-toplevel
+MAIN_REPO="$(git rev-parse --show-toplevel)"
+if [ ! -d "$MAIN_REPO/.git" ]; then
+  echo "Run /dev-worktrees from the main repo (not from a worktree)" >&2
+  exit 1
+fi
 ```
 
 Worktree path: `<worktree_base>/<branch-name-without-username-prefix>`
@@ -71,8 +75,12 @@ Example: branch `lachieh/tam-1234-add-dark-mode` → `<worktree_base>/tam-1234-a
 ### 4. Create worktree
 
 ```bash
-git fetch origin main
-git worktree add <worktree-path> -b <branch-name> origin/main
+REMOTE="origin"
+DEFAULT_BRANCH_REF="$(git symbolic-ref "refs/remotes/$REMOTE/HEAD" --short)" # e.g. origin/main
+DEFAULT_BRANCH="${DEFAULT_BRANCH_REF#${REMOTE}/}"
+
+git fetch "$REMOTE" "$DEFAULT_BRANCH"
+git worktree add <worktree-path> -b <branch-name> "$DEFAULT_BRANCH_REF"
 ```
 
 If the branch already exists, ask to check out the existing branch instead.
