@@ -19,6 +19,7 @@ function debug(msg: string, ...args: unknown[]): void {
   }
 }
 
+import chalk from "chalk";
 import inquirer from "inquirer";
 import ora from "ora";
 import {
@@ -59,6 +60,8 @@ export interface ExecuteCodeChangesOptions {
   userKey?: string;
   /** Optional base URL for API */
   baseUrl?: string;
+  /** Framework env var prefix (e.g. "NEXT_PUBLIC_", "VITE_") */
+  envPrefix?: string | null;
   /** Optional progress callback for streaming text from the agent */
   onProgress?: (text: string) => void;
 }
@@ -88,7 +91,75 @@ export async function executeCodeChanges(
 
   // Plan tracking state
   let planSteps: PlanStep[] = [];
-  let currentStepIndex = 0;
+
+  // Track last known status for error reporting
+  let lastStatus = "Preparing execution...";
+
+  // Progress display state
+  let currentStepDescription = "";
+  let progressVisible = false;
+  const PROGRESS_LINES = 5; // header, bar, blank, description, blank
+
+  /**
+   * Build the progress block string
+   */
+  function buildProgressBlock(done: number, total: number): string {
+    const barWidth = 20;
+    const filled = Math.round((done / total) * barWidth);
+    const empty = barWidth - filled;
+    const bar = chalk.green("█".repeat(filled)) + chalk.gray("░".repeat(empty));
+    const counter = chalk.bold(`${done}/${total}`);
+
+    return [
+      chalk.bold("Executing plan:"),
+      `${bar} ${counter}`,
+      "",
+      chalk.cyan(currentStepDescription),
+      "",
+    ].join("\n");
+  }
+
+  /**
+   * Write the progress block to stderr above the spinner.
+   * Stops the spinner, writes the block, restarts the spinner.
+   */
+  function writeProgress(done: number, total: number): void {
+    spinner.stop();
+    writeProgressBlock(done, total);
+    spinner.start();
+  }
+
+  /**
+   * Write the progress block to stderr without managing the spinner.
+   * Use when the spinner is already stopped.
+   */
+  function writeProgressBlock(done: number, total: number): void {
+    if (progressVisible) {
+      // Move cursor up past previous progress lines and clear them
+      process.stderr.write(`\x1b[${PROGRESS_LINES}A\x1b[0J`);
+    }
+
+    process.stderr.write(buildProgressBlock(done, total) + "\n");
+    progressVisible = true;
+  }
+
+  /**
+   * Update the spinner status text (agent activity line)
+   */
+  function setStatus(status: string): void {
+    lastStatus = status;
+    spinner.text = status;
+  }
+
+  /**
+   * Update the progress display above the spinner
+   */
+  function setProgress(done: number, total: number, stepLabel?: string): void {
+    if (stepLabel !== undefined) {
+      currentStepDescription = stepLabel;
+    }
+    writeProgress(done, total);
+  }
 
   // Track tool call names by ID for spinner display during arg streaming
   const toolCallNames = new Map<string, string>();
@@ -110,75 +181,107 @@ export async function executeCodeChanges(
     // Set up tool registry with filesystem tools
     spinner.text = "Setting up execution agent...";
     const registry = createToolRegistry();
+
+    // Track consecutive failures per tool for retry limiting
+    const MAX_CONSECUTIVE_FAILURES = 3;
+    const consecutiveFailures = new Map<string, number>();
+
     for (const tool of agentTools) {
       registry.register({
         ...tool,
         execute: async (input: unknown) => {
           const typedInput = input as Record<string, unknown>;
 
+          // Check retry limit before executing
+          const failures = consecutiveFailures.get(tool.name) ?? 0;
+          if (failures >= MAX_CONSECUTIVE_FAILURES) {
+            const msg = `Tool "${tool.name}" failed ${MAX_CONSECUTIVE_FAILURES} times consecutively. Skipping to avoid infinite loop.`;
+            debug(msg);
+            throw new Error(msg);
+          }
+
           // Update spinner with tool activity
           if (
             tool.name === "readFile" &&
             typeof typedInput.filePath === "string"
           ) {
-            spinner.text = `Reading ${typedInput.filePath}`;
+            setStatus(`Reading ${typedInput.filePath}`);
             filesRead.add(typedInput.filePath);
           } else if (
             tool.name === "writeFile" &&
             typeof typedInput.filePath === "string"
           ) {
-            spinner.text = `Writing ${typedInput.filePath}`;
+            setStatus(`Writing ${typedInput.filePath}`);
             filesWritten.add(typedInput.filePath);
           } else if (
             tool.name === "readFiles" &&
             Array.isArray(typedInput.filePaths)
           ) {
             const paths = typedInput.filePaths as string[];
-            spinner.text = `Reading ${paths.length} files`;
+            setStatus(`Reading ${paths.length} files`);
             for (const p of paths) {
               filesRead.add(p);
             }
           } else if (tool.name === "listFiles") {
             const dir =
               typeof typedInput.dirPath === "string" ? typedInput.dirPath : ".";
-            spinner.text = `Listing files in ${dir}`;
+            setStatus(`Listing files in ${dir}`);
           }
 
           debug(`Executing tool: ${tool.name}`, typedInput);
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- generic tool execution
-          const result = await (tool as any).execute(input);
-          debug(`Tool ${tool.name} completed`, typeof result);
+          try {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any -- generic tool execution
+            const result = await (tool as any).execute(input);
+            debug(`Tool ${tool.name} completed`, typeof result);
 
-          // Update plan tracking state after execution
-          if (tool.name === "submitPlan" && result?.steps) {
-            planSteps = result.steps as PlanStep[];
-            currentStepIndex = 0;
-            const total = planSteps.length;
-            const first = planSteps[0];
-            spinner.text = `Step 1/${total}: ${first?.description ?? ""}`;
-          } else if (tool.name === "updatePlan") {
-            const doneCount = planSteps.filter(
-              (s) => s.status === "done",
-            ).length;
-            currentStepIndex = doneCount;
-            const total = planSteps.length;
-            // Mark the step done in our local copy
-            const stepId = typedInput.stepId as string;
-            const doneStep = planSteps.find((s) => s.id === stepId);
-            if (doneStep) {
-              doneStep.status = "done";
+            // Success resets consecutive failure count
+            consecutiveFailures.set(tool.name, 0);
+
+            // Update plan tracking state after execution
+            if (tool.name === "submitPlan" && result?.steps) {
+              planSteps = result.steps as PlanStep[];
+
+              setProgress(
+                0,
+                planSteps.length,
+                planSteps[0]?.description ?? "Starting...",
+              );
+            } else if (tool.name === "updatePlan") {
+              // Mark the step done in our local copy
+              const stepId = typedInput.stepId as string;
+              const doneStep = planSteps.find((s) => s.id === stepId);
+              if (doneStep) {
+                doneStep.status = "done";
+              }
+
+              const doneCount = planSteps.filter(
+                (s) => s.status === "done",
+              ).length;
+
+              const next = planSteps.find((s) => s.status === "pending");
+              setProgress(
+                doneCount,
+                planSteps.length,
+                next?.description ?? "All steps complete",
+              );
             }
 
-            const next = planSteps.find((s) => s.status === "pending");
-            if (next) {
-              const nextIdx = currentStepIndex + 1;
-              spinner.text = `\u2713 Step ${currentStepIndex}/${total} done \u2014 Step ${nextIdx}/${total}: ${next.description}`;
-            } else {
-              spinner.text = `\u2713 All ${total} steps complete`;
-            }
+            return result;
+          } catch (err) {
+            const count = (consecutiveFailures.get(tool.name) ?? 0) + 1;
+            consecutiveFailures.set(tool.name, count);
+
+            const errMsg = err instanceof Error ? err.message : String(err);
+            debug(
+              `Tool ${tool.name} failed (${count}/${MAX_CONSECUTIVE_FAILURES}): ${errMsg}`,
+            );
+            setStatus(
+              `Error in ${tool.name}: ${errMsg} (retry ${count}/${MAX_CONSECUTIVE_FAILURES})`,
+            );
+
+            // Re-throw so the registry catches it and sends the error back to the model
+            throw err;
           }
-
-          return result;
         },
       });
     }
@@ -214,7 +317,7 @@ export async function executeCodeChanges(
       plan,
       selectedItems,
       chatWidgetInstalled,
-      options.apiKey,
+      options.envPrefix,
     );
 
     // Execute the agentic loop
@@ -230,6 +333,15 @@ export async function executeCodeChanges(
         debug(`Round ${round} complete`);
         if (round === SOFT_ROUND_LIMIT && !extendedLimit) {
           spinner.stop();
+
+          // Reprint the progress block so it's visible above the prompt
+          if (planSteps.length > 0) {
+            const doneCount = planSteps.filter(
+              (s) => s.status === "done",
+            ).length;
+            writeProgressBlock(doneCount, planSteps.length);
+          }
+
           if (options.yes) {
             // Non-interactive: just keep going
             extendedLimit = true;
@@ -269,16 +381,16 @@ export async function executeCodeChanges(
 
         switch (data.type) {
           case "RUN_STARTED":
-            spinner.text = "Agent is thinking...";
+            setStatus("Agent is thinking...");
             break;
           case "TEXT_MESSAGE_CONTENT":
             if (data.delta) {
-              spinner.text = "Agent is working...";
+              setStatus("Agent is working...");
               options.onProgress?.(data.delta);
             }
             break;
           case "TOOL_CALL_START":
-            spinner.text = `Calling ${data.toolCallName ?? "tool"}...`;
+            setStatus(`Calling ${data.toolCallName ?? "tool"}...`);
             if (data.toolCallId && data.toolCallName) {
               toolCallNames.set(data.toolCallId, data.toolCallName);
             }
@@ -289,7 +401,7 @@ export async function executeCodeChanges(
               const toolName = data.toolCallId
                 ? toolCallNames.get(data.toolCallId)
                 : undefined;
-              spinner.text = `Receiving ${toolName ?? "tool"} data...`;
+              setStatus(`Receiving ${toolName ?? "tool"} data...`);
               break;
             }
             break;
@@ -301,6 +413,11 @@ export async function executeCodeChanges(
             break;
           case "RUN_ERROR":
             debug("Run error", data);
+            setStatus(
+              chalk.red(
+                `Agent error: ${(data as { message?: string }).message ?? "unknown error"}`,
+              ),
+            );
             break;
         }
       },
@@ -344,7 +461,56 @@ export async function executeCodeChanges(
 
     return result;
   } catch (err) {
+    const errMsg = err instanceof Error ? err.message : String(err);
+    const isCancelled = errMsg.includes("aborted by onRoundComplete");
+
+    spinner.prefixText = "";
+
+    if (isCancelled) {
+      spinner.stop();
+
+      const doneCount = planSteps.filter((s) => s.status === "done").length;
+      const total = planSteps.length;
+
+      console.log(chalk.yellow("\nExecution stopped by user."));
+      if (total > 0) {
+        console.log(
+          chalk.gray(`  Progress: ${doneCount}/${total} steps completed`),
+        );
+      }
+      if (filesWritten.size > 0) {
+        console.log(
+          chalk.gray(
+            `  Files written so far: ${filesWritten.size} (changes kept)`,
+          ),
+        );
+      }
+      console.log(
+        chalk.gray("  Run ") +
+          chalk.cyan("tambo init --magic") +
+          chalk.gray(" again to continue where you left off."),
+      );
+
+      return {
+        success: false,
+        filesCreated: [...filesWritten].filter((f) => !filesRead.has(f)),
+        filesModified: [...filesWritten].filter((f) => filesRead.has(f)),
+        dependenciesInstalled: [],
+        errors: [],
+      };
+    }
+
     spinner.fail("Execution failed");
+
+    console.error(chalk.gray(`  Last status: ${lastStatus}`));
+    if (planSteps.length > 0) {
+      const doneCount = planSteps.filter((s) => s.status === "done").length;
+      console.error(
+        chalk.gray(
+          `  Progress: ${doneCount}/${planSteps.length} steps completed`,
+        ),
+      );
+    }
 
     const executionError = categorizeExecutionError(
       err instanceof Error ? err : new Error(String(err)),

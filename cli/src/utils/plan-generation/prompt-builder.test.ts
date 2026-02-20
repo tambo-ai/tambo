@@ -186,26 +186,28 @@ describe("buildPlanPrompt", () => {
     expect(prompt).toContain("valid JSON");
   });
 
-  it("includes quality guidance about confidence threshold", () => {
+  it("includes confidence scoring rubric", () => {
     const analysis = createMockAnalysis();
     const prompt = buildPlanPrompt(analysis);
 
-    expect(prompt).toContain("high-confidence");
-    expect(prompt).toContain("0.7");
+    expect(prompt).toContain("Confidence Scoring Rubric");
+    expect(prompt).toContain(">= 0.5");
   });
 
-  it("includes guidance to prioritize user-facing components", () => {
+  it("includes rubric criteria for components, tools, and interactables", () => {
     const analysis = createMockAnalysis();
     const prompt = buildPlanPrompt(analysis);
 
-    expect(prompt).toContain("user-facing");
+    expect(prompt).toContain("Components (generative registration)");
+    expect(prompt).toContain("Interactables (AI-updatable");
+    expect(prompt).toContain("Tools (functions AI can call)");
   });
 
-  it("includes guidance to reference specific files", () => {
+  it("includes guidance to reference real filesystem paths", () => {
     const analysis = createMockAnalysis();
     const prompt = buildPlanPrompt(analysis);
 
-    expect(prompt).toContain("specific");
-    expect(prompt).toContain("file");
+    expect(prompt).toContain("real filesystem paths");
+    expect(prompt).toContain("filePath");
   });
 });

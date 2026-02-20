@@ -29,7 +29,6 @@ import {
 import {
   executeCodeChanges,
   categorizeExecutionError,
-  formatExecutionError,
 } from "../utils/code-execution/index.js";
 import {
   GuidanceError,
@@ -331,15 +330,13 @@ export async function handleMagicInit(
     }
 
     // 6. Phase 5 — Execution
-    spinner = ora("Executing changes...").start();
-
+    // executeCodeChanges manages its own spinner, so don't start one here
     try {
       const result = await executeCodeChanges(confirmation, {
         yes: options.yes,
         apiKey,
+        envPrefix: analysis.framework.envPrefix,
       });
-
-      spinner.succeed("Setup complete");
 
       // Display recap
       console.log(chalk.green("\n✨ Magic init completed successfully!"));
@@ -393,13 +390,11 @@ export async function handleMagicInit(
           chalk.gray(" for detailed documentation"),
       );
     } catch (error) {
-      spinner.fail("Execution failed");
-
-      // Format and display error with fix commands
+      // executeCodeChanges already displays the error with last status and progress.
+      // Add additional fix suggestions here.
       const executionError = categorizeExecutionError(
         error instanceof Error ? error : new Error(String(error)),
       );
-      console.error("\n" + formatExecutionError(executionError));
 
       // Show additional fix commands based on error phase
       if (executionError.phase === "dependency-install") {

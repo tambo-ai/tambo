@@ -82,6 +82,8 @@ export interface ComponentInfo {
   propsInterface?: string;
   /** React hooks used by this component */
   hooks: string[];
+  /** JSDoc description if available */
+  description?: string;
 }
 
 /**
