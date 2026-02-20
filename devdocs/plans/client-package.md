@@ -1,5 +1,31 @@
 # Feature: @tambo-ai/client Package Extraction
 
+## Enhancement Summary
+
+**Deepened on:** 2026-02-19
+**Research agents used:** 11 (architecture-strategist, kieran-typescript-reviewer, performance-oracle, code-simplicity-reviewer, pattern-recognition-specialist, agent-native-reviewer, security-sentinel, spec-flow-analyzer, best-practices-researcher, framework-docs-researcher, vercel-react-best-practices)
+**Context7 queries:** React useSyncExternalStore, Vercel AI SDK streamText/maxSteps
+
+### Key Improvements from Research
+
+1. **State immutability contract specified** — `getState()` must return referentially stable snapshots (critical for useSyncExternalStore)
+2. **TamboStream error semantics defined** — `.thread` rejects on error, async iterator throws, synthetic RUN_ERROR dispatched
+3. **Concurrency model documented** — one active run per thread, concurrent run throws, switchThread does not abort
+4. **React adapter performance strategy** — selector-based hooks + getServerSnapshot for SSR
+5. **Security hardening** — tool argument validation, beforeRun mutation protection, API key browser warnings
+6. **Agent-native gaps closed** — added `fetchThread()`, MCP data access on MCPClient, context helpers in client
+7. **maxSteps termination behavior specified**
+8. **Notification batching via queueMicrotask** for streaming performance
+
+### New Considerations Discovered
+
+- `accumulatingToolArgs` should be excluded from public `ThreadState` type (internal streaming detail)
+- TamboStream should implement `AsyncIterable<StreamEvent>` (not just `AsyncIterator`)
+- Return types should use domain types (`TamboThread[]`) not SDK wrappers (`ThreadListResponse`)
+- The `useMemo` dependency array for client creation must include all config props, not just `apiKey`
+- `getServerSnapshot` (3rd arg) is required for SSR with `useSyncExternalStore`
+- Pending streaming message optimization avoids O(n) array copies per token
+
 ## Overview
 
 Extract all framework-agnostic business logic from `@tambo-ai/react` (react-sdk) into a new `@tambo-ai/client` package at `packages/client/`. This gives non-React consumers (Node.js CLI apps, Vue, Svelte, etc.) access to Tambo's streaming, tool execution, and thread management without React dependencies. The react-sdk is then refactored to become a thin React adapter layer on top of `@tambo-ai/client`.
@@ -13,6 +39,40 @@ Extract all framework-agnostic business logic from `@tambo-ai/react` (react-sdk)
 - **Component types use typescript-sdk directly**: No new `AvailableComponent` type. The API types from `@tambo-ai/typescript-sdk` are sufficient for component metadata.
 - **Minimal public API**: Export `TamboClient`, `TamboStream`, and the types consumers actually reference. Internal utilities (reducer, schema converters, etc.) are not public.
 - **`TamboClient` is a class, not an interface**: No separate interface. Consumers mock it directly in tests.
+
+### Research Insights: Design Decisions
+
+**Precedent alignment (Zustand, Redux, Vercel AI SDK):**
+
+- The `getState()` + `subscribe()` pattern matches Zustand's `StoreApi` interface exactly: `{ getState, subscribe, setState }`. This is the canonical contract for `useSyncExternalStore`.
+- Vercel AI SDK uses the same core/adapter split: `ai` (framework-agnostic) + `@ai-sdk/react` (React hooks). Their `streamText()` returns a dual-interface object (async iterable + promise properties), matching our `TamboStream` design.
+- The fire-and-forget processing loop in TamboStream's constructor matches the pattern used by Vercel's `StreamTextResult` — stream processing starts immediately and results accumulate into promise properties.
+
+**State immutability contract (CRITICAL):**
+
+`useSyncExternalStore` compares `getState()` return values using `Object.is`. This requires:
+
+1. `getState()` returns the **exact same reference** when state hasn't changed
+2. The reducer produces **new objects immutably** (spread/structuredClone) when state changes
+3. Only the changed `ThreadState` in `threadMap` gets a new reference — other threads keep their old reference (structural sharing)
+
+```typescript
+// CORRECT: Only replace the changed thread's state
+return {
+  ...state,
+  threadMap: {
+    ...state.threadMap,
+    [threadId]: updatedThreadState, // new ref only for this thread
+  },
+};
+```
+
+**Concurrency model (must specify before implementation):**
+
+- One active stream per thread. Calling `run()` on a thread with an active stream throws.
+- `switchThread()` does NOT abort the active stream on the previous thread. It only changes `currentThreadId`. The old thread's stream continues processing in the background.
+- Multiple threads CAN stream concurrently (each has independent state in `threadMap`).
+- `startNewThread()` is purely local — generates a placeholder ID, migrated to a real server ID on first `run()`.
 
 ## Architecture
 
@@ -65,10 +125,12 @@ class TamboClient {
   switchThread(threadId: string): Promise<void>;
   startNewThread(): string;
   getThread(threadId: string): TamboThread | undefined;
-  listThreads(): Promise<ThreadListResponse>;
+  listThreads(): Promise<TamboThread[]>; // unwrap SDK response type
+  fetchThread(threadId: string): Promise<TamboThread>; // load from API (not just local cache)
 
   // Registration
   registerTool(tool: TamboTool): void;
+  registerTools(tools: TamboTool[]): void;
 
   // State access (useSyncExternalStore-compatible)
   getState(): ClientState;
@@ -93,15 +155,16 @@ class TamboClient {
   ): Promise<{ mcpAccessToken: string; tamboBaseUrl: string }>;
 
   // Suggestions
-  listSuggestions(
-    messageId: string,
-    threadId: string,
-  ): Promise<SuggestionListResponse>;
+  listSuggestions(messageId: string, threadId: string): Promise<Suggestion[]>; // unwrap SDK response type
   generateSuggestions(
     messageId: string,
     threadId: string,
     options?: { maxSuggestions?: number },
-  ): Promise<SuggestionGenerateResponse>;
+  ): Promise<Suggestion[]>; // unwrap SDK response type
+
+  // Context helpers (for agent consumers)
+  addContextHelper(name: string, fn: ContextHelperFn): void;
+  removeContextHelper(name: string): void;
 }
 
 interface TamboClientOptions {
@@ -134,29 +197,82 @@ interface RunOptions {
 interface BeforeRunContext {
   threadId: string | undefined;
   message: InputMessage;
-  tools: Record<string, TamboTool>;
+  tools: Readonly<Record<string, TamboTool>>; // frozen — cannot mutate tools
 }
 ```
+
+**Research Insights: TamboClient API**
+
+- **Return domain types, not SDK wrappers**: `listThreads()` returns `TamboThread[]` not `ThreadListResponse`. `listSuggestions()` returns `Suggestion[]` not `SuggestionListResponse`. This decouples the public API from typescript-sdk response shapes.
+- **`fetchThread(threadId)`**: Added per agent-native review. `getThread()` only reads local cache; CLI agents need to hydrate from the server to resume conversations.
+- **`registerTools(tools[])`**: Added per agent-native review for batch registration convenience.
+- **`addContextHelper` / `removeContextHelper`**: Moved from react-sdk-only to client. Agents need automatic context injection (current time, environment, etc.) on every `run()` call. The client calls all registered helpers before each run and merges results into `additionalContext`.
+- **Naming convention**: `get*` reads local state (sync), `list*`/`fetch*` calls API (async). `getMcpToken` should be renamed to `fetchMcpToken` to signal the network call.
+- **`environment` vs `tamboUrl`**: Validate at construction — throw if both are provided (they conflict).
+- **`beforeRun` semantics**: (1) Always awaited (even if sync). (2) `tools` is frozen/readonly — cannot mutate. (3) If it throws, the run is aborted and the error propagates to the caller. (4) No timeout in v1.
+- **Concurrent run guard**: `run()` throws if a run is already active on the target thread. Track active runs per thread internally.
 
 ### TamboStream
 
 Two consumption modes only. The processing loop always runs internally (fire-and-forget in constructor). The `.thread` promise resolves naturally when the loop finishes — no auto-consume trigger.
 
 ```typescript
-class TamboStream {
-  // Async iterable: yields { event, snapshot } pairs as they arrive
-  [Symbol.asyncIterator](): AsyncIterator<{
-    event: AGUIEvent;
-    snapshot: TamboThread;
-  }>;
+/** Yielded by the async iterator on each event */
+interface StreamEvent {
+  event: AGUIEvent;
+  snapshot: TamboThread;
+}
 
-  // Promise that resolves when the stream completes
+class TamboStream implements AsyncIterable<StreamEvent> {
+  // Async iterable: yields StreamEvent pairs as they arrive
+  [Symbol.asyncIterator](): AsyncIterableIterator<StreamEvent>;
+
+  // Promise that resolves when the stream completes, rejects on error
   readonly thread: Promise<TamboThread>;
 
   // Abort the stream
   abort(): void;
 }
 ```
+
+**Research Insights: TamboStream**
+
+**Error semantics (CRITICAL — must be implemented exactly):**
+
+- When the processing loop catches an error (network, tool failure, unexpected event):
+  1. A synthetic `RUN_ERROR` event is dispatched to the reducer (updates thread state)
+  2. `.thread` **rejects** with the error
+  3. The async iterator **throws** on the next `next()` call
+  4. The error is stored as `this.error` on the stream for late inspection
+- When `abort()` is called:
+  1. The AbortController fires, stream closes
+  2. `.thread` **rejects** with an `AbortError`
+  3. The async iterator ends cleanly (returns `{ done: true }`)
+  4. Thread state transitions to `idle`
+
+**Processing loop error handling pattern (from best-practices research):**
+
+```typescript
+class TamboStream {
+  private error: Error | null = null;
+
+  constructor(/* ... */) {
+    void this.processLoop().catch((err) => {
+      this.error = err;
+      this.rejectThread(err);
+      this.closeEventQueue();
+    });
+  }
+}
+```
+
+Always catch at the top level AND inside the loop. Belt and suspenders.
+
+**maxSteps behavior:** When `maxSteps` is reached, the stream resolves normally (does not throw). The thread may have pending tool calls unresolved. A warning is logged. This matches Vercel AI SDK's `stopWhen: stepCountIs(N)` behavior.
+
+**Single consumption:** The async iterator can only be iterated once (like ReadableStream). Document this. The internal processing loop and the external iterator observe from the same event queue.
+
+**Stitchable stream edge cases to test:** (a) error in first stream, (b) error in continuation stream, (c) abort during tool execution, (d) abort before any tool executes, (e) empty tool results, (f) multiple sequential tool calls.
 
 ### ClientState
 
@@ -166,16 +282,43 @@ interface ClientState {
   currentThreadId: string;
 }
 
-// ThreadState from event-accumulator.ts (Map changed to Record)
+// Public ThreadState — excludes internal streaming details
 interface ThreadState {
   thread: TamboThread;
   streaming: StreamingState;
-  accumulatingToolArgs: Record<string, string>; // was Map<string, string>
   lastCompletedRunId?: string;
+}
+
+// Internal ThreadState — used inside the reducer only
+interface InternalThreadState extends ThreadState {
+  accumulatingToolArgs: Record<string, string>; // was Map<string, string>
 }
 ```
 
 Note: `authState` is computed on access via `getAuthState()`, not stored in `ClientState`.
+
+**Research Insights: ClientState**
+
+- **`accumulatingToolArgs` excluded from public ThreadState**: This is internal streaming state that accumulates partial JSON during tool argument streaming. Exposing it leaks implementation details that consumers should never depend on. The internal reducer uses `InternalThreadState`; `getState()` returns the public shape.
+- **Structural sharing**: When the reducer updates a thread, only that thread's `ThreadState` gets a new reference. Other threads keep their old references. This enables selector-based subscription in the React adapter — a component reading thread A does not re-render when thread B changes.
+- **Notification batching**: During high-frequency streaming (100+ events/sec), batch subscriber notifications via `queueMicrotask`:
+
+```typescript
+private pendingNotification = false;
+private notifyListeners(): void {
+  if (!this.pendingNotification) {
+    this.pendingNotification = true;
+    queueMicrotask(() => {
+      this.pendingNotification = false;
+      for (const listener of this.listeners) {
+        listener();
+      }
+    });
+  }
+}
+```
+
+This collapses multiple rapid state updates into one notification per microtask tick, reducing React re-renders from 100+/sec to ~60/sec without losing any data.
 
 ### BeforeRun callback
 
@@ -183,12 +326,19 @@ Note: `authState` is computed on access via `getAuthState()`, not stored in `Cli
 interface BeforeRunContext {
   threadId: string | undefined;
   message: InputMessage;
-  tools: Record<string, TamboTool>;
+  tools: Readonly<Record<string, TamboTool>>; // frozen, cannot mutate
 }
 
 // The React SDK builds named context helpers on top of this:
 // beforeRun collects all context helpers and merges into additionalContext
 ```
+
+**Research Insights: BeforeRun**
+
+- **Mutation protection (security)**: Pass a frozen/readonly copy of `tools` to prevent malicious or buggy callbacks from redirecting tool execution. Shallow-clone `message` before passing.
+- **Async handling**: `run()` is sync (returns TamboStream immediately). The `beforeRun` callback is awaited inside the processing loop before the first API call, not in `run()` itself. This means `beforeRun` can be async without blocking `run()`.
+- **Error contract**: If `beforeRun` throws, the run is aborted. `.thread` rejects with the error. The async iterator throws.
+- **Context helper integration**: The client calls all registered context helpers (from `addContextHelper()`) during the beforeRun phase, merging their results into `additionalContext`. The user's `beforeRun` callback runs after context helpers.
 
 ## File Structure
 
@@ -295,6 +445,14 @@ Set up the `packages/client/` directory with build configuration mirroring react
 - Package name: `@tambo-ai/client`
 - Add `@tambo-ai/client` as dependency of `react-sdk`
 
+**Research Insights: Build System**
+
+- **Stick with tsc + tsc-esm-fix** to match react-sdk. Consistency within the monorepo trumps marginal build speed gains from tsup/unbuild. The tsc approach produces declarations guaranteed to match source, and unbundled output allows consumer tree-shaking.
+- **`package.json` must use `"exports"` field** with `"import"` and `"require"` conditions, and `"types"` pointing to correct `.d.ts` per format.
+- **Do not ship `__dirname` or `require()`** in the ESM bundle (common mistake with dual builds).
+- **Pin `@tambo-ai/typescript-sdk` to exact version** (not range) since its types leak through. Any type shape change becomes a breaking change for `@tambo-ai/client` consumers.
+- **`fast-json-patch` and `partial-json` should also be pinned** to exact versions per security review (JSON parsing is an attack surface).
+
 **Commit:** `chore(client): scaffold @tambo-ai/client package with build config`
 
 Verify: `npm install && npm run build -w packages/client && npm run check-types -w packages/client`
@@ -318,6 +476,14 @@ All files listed in the File Structure above under `packages/client/src/` that a
 - `registry-conversion.ts`: conversion functions accept typescript-sdk's `AvailableComponent` type.
 - Move existing test files alongside their source files. Update import paths.
 - MCPClient, mcp-constants, elicitation types, server utils all move as-is.
+- MCP data access: MCPClient should expose `listPrompts()`, `getPrompt()`, `listResources()`, `readResource()` wrappers for agent consumers who connect to MCP servers (these are data-access primitives, not UI-specific).
+
+**Research Insights: Phase 2**
+
+- **`TamboTool` any→unknown is a breaking change** for react-sdk consumers. Since this is a new package, the break is clean. But the react-sdk re-export must not silently change existing consumers' types. Add a migration note.
+- **`accumulatingToolArgs` Map→Record**: All `Map` method calls (`get`, `set`, `delete`, `new Map()`) must be rewritten. The existing reducer at lines 1035-1036 of `event-accumulator.ts` uses Map methods extensively.
+- **Use defensive access for `Record<string, ThreadState>`**: Under `noUncheckedIndexedAccess`, `threadMap[id]` returns `ThreadState | undefined`. Write code defensively: `const threadState = state.threadMap[threadId]; if (!threadState) throw new Error(...)`.
+- **Message array copy optimization**: The reducer likely spreads the entire `messages` array on every text delta token. Consider storing the in-progress streaming message separately from committed messages during streaming, merging once on `RUN_FINISHED`. This avoids O(n × t) array copies (n=messages, t=tokens).
 
 **Commit:** `feat(client): move types, utilities, reducer, tool system, schema, and MCP code`
 
@@ -395,6 +561,14 @@ export { MCPTransport } from "./model/mcp-server-info";
 
 Everything else (reducer, schema utils, keyed-throttle, tool-call-tracker, etc.) is internal. The react-sdk imports from deep paths if needed.
 
+**Research Insights: Phase 3**
+
+- **Fire-and-forget error handling**: The `void this.processLoop()` pattern requires a top-level `.catch()` on the promise — otherwise unhandled rejections crash Node.js. The `.catch()` handler must: (1) store the error, (2) reject the `.thread` deferred, (3) close the event queue for the async iterator. This is belt-and-suspenders with the try/catch inside the loop.
+- **Stitchable stream pattern (from Vercel AI SDK)**: Use a resolvable promise + pull-based queue. The outer async iterator pulls from a shared queue. When a continuation stream starts, its events are pushed into the same queue. The iterator doesn't know about stream boundaries. Implementation: `class EventQueue { push(event), close(), [Symbol.asyncIterator]() }` shared between initial and continuation streams.
+- **`send-message.ts` extraction scope**: Extract `createRunStream`, `dispatchUserMessage`, `dispatchToolResults`, `executeToolsAndContinue`. Leave `useTamboSendMessage` in react-sdk as a thin wrapper that calls `client.run()` + React Query invalidation. The extracted functions should accept a `dispatch: (action) => void` callback instead of calling `useReducer` dispatch directly.
+- **`run()` must be synchronous**: Returns `TamboStream` immediately (not a Promise). The `beforeRun` callback is awaited inside the processing loop. This means the TamboStream constructor kicks off an async process but `run()` itself is sync. Consumers who need to wait for `beforeRun` completion can observe the first event from the iterator.
+- **AbortSignal propagation**: `RunOptions.signal` should be wired through to the typescript-sdk's fetch call AND to tool execution. When aborted: the fetch stream closes, tool execution is cancelled (if possible), `.thread` rejects with `AbortError`, iterator ends cleanly.
+
 **Commit:** `feat(client): implement TamboClient and TamboStream`
 
 Verify: `npm run build -w packages/client && npm run check-types -w packages/client && npm test -w packages/client`
@@ -470,6 +644,35 @@ function useTamboSendMessage():
   })
 ```
 
+**Research Insights: Phase 4 (CRITICAL — most reviewer attention)**
+
+- **`useMemo` dependency array must include ALL config props**: The `new TamboClient(...)` call in `TamboProvider` must depend on every prop that affects client behavior: `apiKey`, `tamboUrl`, `environment`, `userKey`, `userToken`. However, `tools` and `mcpServers` are arrays — use a ref + effect pattern to avoid recreating the client on every render:
+
+```pseudo
+// CORRECT: Stable client, dynamic tool registration
+const client = useMemo(() =>
+  new TamboClient({ apiKey, tamboUrl, environment, userKey, userToken }),
+  [apiKey, tamboUrl, environment, userKey, userToken]
+);
+
+useEffect(() => {
+  client.registerTools(tools ?? []);
+}, [client, tools]);
+```
+
+- **`getServerSnapshot` is REQUIRED for SSR**: `useSyncExternalStore` takes 3 arguments: `(subscribe, getSnapshot, getServerSnapshot)`. The third argument is called during server rendering and hydration. Without it, SSR throws. Return a static empty state:
+
+```pseudo
+const SERVER_SNAPSHOT: ClientState = { threadMap: {}, currentThreadId: "" };
+useSyncExternalStore(client.subscribe, client.getState, () => SERVER_SNAPSHOT);
+```
+
+- **Selector-based hooks preserve split-context performance**: The current react-sdk uses split contexts to avoid re-rendering the entire tree. With `useSyncExternalStore`, achieve the same via selectors. `useSyncExternalStore` does `Object.is` comparison on the return value — if the selector returns the same reference (structural sharing from the reducer), no re-render occurs.
+
+- **Component rendering cache stays in React**: The `renderedComponent` field on `TamboComponentContent` is created by looking up React components in the registry and calling `React.createElement`. This MUST stay in the React layer. The client's `TamboComponentContent` type does not include `renderedComponent`. The react-sdk's `useTambo()` hook maps over messages and attaches `renderedComponent` using `useMemo`.
+
+- **`TamboStubProvider` must also wrap a stub `TamboClient`**: Testing utilities need a mock client that returns predictable state. Either create a `TamboClient.createStub(state)` factory or let `TamboStubProvider` create a minimal mock internally.
+
 **Commit:** `refactor(react-sdk): consume @tambo-ai/client for core business logic`
 
 Verify: `npm run build && npm run check-types && npm run lint && npm test`
@@ -489,6 +692,21 @@ Add tests for new code (TamboClient, TamboStream) and update docs.
 - Integration test: create a `TamboClient`, register tools, call `run()` with `autoExecuteTools: true`, verify tool loop completes
 - Update `packages/client/AGENTS.md` and `packages/client/README.md`
 - Update root `AGENTS.md` to document the new package
+
+**Research Insights: Phase 5**
+
+**Critical edge case tests identified by spec-flow-analyzer and security-sentinel:**
+
+- **Mid-stream error recovery**: Stream fails mid-way (e.g., network drop after 5 events). Verify: `.thread` rejects, iterator throws, thread state shows error, messages accumulated before failure are preserved.
+- **Tool execution timeout**: A tool hangs forever. Verify: `AbortSignal` propagation terminates the tool, stream transitions to error state.
+- **maxSteps exhaustion**: Tool loop reaches maxSteps limit. Verify: stream resolves normally (not error), warning is logged, thread has pending tool calls.
+- **Concurrent run rejection**: Call `run()` twice on the same thread. Verify: second call throws immediately, first stream is unaffected.
+- **Abort during tool execution**: Call `abort()` while a tool is running. Verify: tool execution is cancelled, `.thread` rejects with `AbortError`, iterator ends cleanly.
+- **Stitchable stream error in continuation**: First stream completes, tool executes, continuation stream fails. Verify: error propagates through the outer iterator, `.thread` rejects.
+- **Empty tool results**: Tool returns `undefined`/`null`. Verify: continuation stream still fires with empty content.
+- **State snapshot immutability**: After `getState()`, mutate the returned object. Verify: next `getState()` returns unmodified state (Object.freeze or deep-copy in tests).
+- **Subscribe/unsubscribe during notification**: Unsubscribe inside a listener callback. Verify: no crash, remaining listeners still fire.
+- **`beforeRun` throws**: Verify: `.thread` rejects, no API call is made, thread state unchanged.
 
 **Commit:** `test(client): add tests for TamboClient and TamboStream`
 
@@ -531,3 +749,12 @@ The following changes were made based on review feedback:
 - **MCP React lifecycle** - `TamboMcpProvider` stays in react-sdk (manages mount/unmount, React effects for handler updates). The client provides `connectMcpServer()`/`disconnectMcpServer()` primitives.
 - **Suggestions React hook** - `useTamboSuggestions` (auto-generation, React Query caching, input management) stays in react-sdk. The client provides `listSuggestions()`/`generateSuggestions()` API methods.
 - **Auto thread naming logic** - The "should I generate a name?" decision + React Query cache invalidation stays in react-sdk. Client exposes `generateThreadName()` as a plain API wrapper.
+
+### Research Insights: Out of Scope
+
+**Items flagged by agent-native reviewer for future consideration (v2):**
+
+- **MCP data access primitives**: `MCPClient` should eventually expose `listPrompts()`, `getPrompt()`, `listResources()`, `readResource()` as data-access methods (not just tool discovery). Agent consumers connecting to MCP servers need these. Added to Phase 2 as a note, but full implementation can wait for v2 if time-constrained.
+- **Component state without React**: `useTamboComponentState` uses JSON patches to update component props. The patching logic itself is framework-agnostic — only the hook wrapper is React-specific. A future `client.getComponentState(key)` + `client.setComponentState(key, value)` could serve non-React consumers. Not blocking for v1.
+- **Context attachments**: File/image attachment staging could be extracted to the client as `client.stageAttachment(file)` / `client.clearAttachments()`. The current implementation uses React state. Low priority for v1.
+- **Thread export/import**: CLI agents may want to serialize a thread to JSON and restore it later. `client.exportThread(id)` / `client.importThread(json)` would enable this. Not in scope for v1 but worth noting as a natural extension.
