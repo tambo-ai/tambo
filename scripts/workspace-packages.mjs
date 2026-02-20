@@ -128,7 +128,7 @@ function needsTranspilation(pkg) {
 /** @returns {string} Absolute path to repo root */
 function findRepoRoot(dir) {
   let current = resolve(dir);
-  while (current !== "/") {
+  while (true) {
     try {
       const pkg = JSON.parse(
         readFileSync(join(current, "package.json"), "utf8"),
@@ -139,7 +139,12 @@ function findRepoRoot(dir) {
     } catch {
       // Continue searching
     }
-    current = resolve(current, "..");
+
+    const parent = resolve(current, "..");
+    if (parent === current) {
+      break;
+    }
+    current = parent;
   }
   throw new Error("Could not find repo root with workspaces");
 }
