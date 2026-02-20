@@ -35,13 +35,13 @@ This phase makes base primitives own the input/elicitation behavior boundary and
 
 ### New Files
 
-| File Path                                                                | Changes                                  |
-| ------------------------------------------------------------------------ | ---------------------------------------- |
-| `packages/react-ui-base/src/elicitation/index.tsx`                       | Elicitation namespace export             |
-| `packages/react-ui-base/src/elicitation/**/*.tsx`                        | Elicitation root/parts/context           |
-| `docs/content/docs/reference/react-ui-base-primitives/meta.json`         | Primitive docs section page registration |
-| `docs/content/docs/reference/react-ui-base-primitives/message-input.mdx` | MessageInput primitive docs page         |
-| `docs/content/docs/reference/react-ui-base-primitives/elicitation.mdx`   | Elicitation primitive docs page          |
+| File Path                                                     | Changes                                  |
+| ------------------------------------------------------------- | ---------------------------------------- |
+| `packages/react-ui-base/src/elicitation/index.tsx`            | Elicitation namespace export             |
+| `packages/react-ui-base/src/elicitation/**/*.tsx`             | Elicitation root/parts/context           |
+| `docs/content/docs/reference/react-ui-base/meta.json`         | Primitive docs section page registration |
+| `docs/content/docs/reference/react-ui-base/message-input.mdx` | MessageInput primitive docs page         |
+| `docs/content/docs/reference/react-ui-base/elicitation.mdx`   | Elicitation primitive docs page          |
 
 ### Modified Files
 

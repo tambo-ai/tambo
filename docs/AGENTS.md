@@ -142,9 +142,13 @@ In general, try to fit changes into the following categories. If you can't find 
    - component-data-props - Optimization guidance
 
 5. **Reference** (7 subsections)
-   - **react-ui-base-primitives/** (2 pages)
+   - **react-ui-base/** (6 pages including index)
+     - index - Landing page for base primitives and ownership model
      - message-input - Base primitive for authoring input, submit/stop visibility, and elicitation mode
      - elicitation - Base primitive for MCP elicitation request composition
+     - message - Base primitive for message shell/content/images/rendered component composition
+     - toolcall-info - Base primitive for tool status/details/result composition
+     - reasoning-info - Base primitive for reasoning status/steps composition
    - **react-sdk/** (6 pages including index)
      - hooks - React hooks for thread management, component state, streaming
      - types - TypeScript interfaces and types

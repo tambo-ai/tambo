@@ -4,8 +4,8 @@
 
 ## Target Files
 
-- `docs/content/docs/reference/react-ui-base-primitives/<primitive>.mdx`
-- `docs/content/docs/reference/react-ui-base-primitives/meta.json` (page registration)
+- `docs/content/docs/reference/react-ui-base/<primitive>.mdx`
+- `docs/content/docs/reference/react-ui-base/meta.json` (page registration)
 - `docs/content/docs/reference/meta.json` (section registration, Phase 6 IA pass)
 
 ## Required Frontmatter

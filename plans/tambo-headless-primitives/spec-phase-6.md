@@ -15,7 +15,7 @@ Adopt updated contracts in non-production first-party consumers (`docs`, `showca
 - Update docs/showcase usages of message input, timeline, and thread blocks.
 - Remove stale examples that imply baked suggestions or old composition internals.
 - Keep docs copies aligned with registry behavior where duplication exists.
-- Register and finalize `react-ui-base-primitives` reference section navigation.
+- Register and finalize `react-ui-base` reference section navigation.
 - Run a consistency pass over primitive docs pages created in Phases 1 and 2.
 
 ### Out of Scope
@@ -28,15 +28,15 @@ Adopt updated contracts in non-production first-party consumers (`docs`, `showca
 
 ### Modified Files
 
-| File Path                                                        | Changes                                                           |
-| ---------------------------------------------------------------- | ----------------------------------------------------------------- |
-| `docs/src/components/tambo/*.tsx`                                | align with updated registry/base contracts                        |
-| `showcase/src/app/components/**/*.tsx`                           | align primitive examples with new contracts                       |
-| `showcase/src/components/generative/*.tsx`                       | align block usage and suggestion sourcing                         |
-| `docs/content/docs/reference/meta.json`                          | register `react-ui-base-primitives` section in docs reference nav |
-| `docs/content/docs/reference/react-ui-base-primitives/index.mdx` | section landing page and cross-links                              |
-| `docs/content/docs/reference/react-ui-base-primitives/meta.json` | finalize page ordering and navigation for primitive docs          |
-| `docs/content/docs/reference/react-ui-base-primitives/*.mdx`     | consistency polish (heading structure/API table alignment)        |
+| File Path                                             | Changes                                                    |
+| ----------------------------------------------------- | ---------------------------------------------------------- |
+| `docs/src/components/tambo/*.tsx`                     | align with updated registry/base contracts                 |
+| `showcase/src/app/components/**/*.tsx`                | align primitive examples with new contracts                |
+| `showcase/src/components/generative/*.tsx`            | align block usage and suggestion sourcing                  |
+| `docs/content/docs/reference/meta.json`               | register `react-ui-base` section in docs reference nav     |
+| `docs/content/docs/reference/react-ui-base/index.mdx` | section landing page and cross-links                       |
+| `docs/content/docs/reference/react-ui-base/meta.json` | finalize page ordering and navigation for primitive docs   |
+| `docs/content/docs/reference/react-ui-base/*.mdx`     | consistency polish (heading structure/API table alignment) |
 
 ## Implementation Details
 
@@ -53,7 +53,7 @@ Adopt updated contracts in non-production first-party consumers (`docs`, `showca
 - [ ] Docs examples render and compile.
 - [ ] Showcase block pages render and function.
 - [ ] Showcase message primitive pages match current API.
-- [ ] Reference nav includes `react-ui-base-primitives`.
+- [ ] Reference nav includes `react-ui-base`.
 - [ ] Primitive docs pages have consistent `Demo`/`Anatomy`/`Examples`/`API reference` structure.
 
 ## Validation Commands

@@ -32,17 +32,17 @@ This phase finalizes the behavior + composition seam between `react-ui-base` pri
 
 ### Modified Files
 
-| File Path                                                                 | Changes                                                     |
-| ------------------------------------------------------------------------- | ----------------------------------------------------------- |
-| `packages/react-ui-base/src/message/**/*.tsx`                             | Final render/state contract hardening                       |
-| `packages/react-ui-base/src/reasoning-info/**/*.tsx`                      | Final reasoning behavior hardening                          |
-| `packages/react-ui-base/src/toolcall-info/**/*.tsx`                       | Final tool association/status behavior hardening            |
-| `packages/ui-registry/src/components/message/message.tsx`                 | Styled composition cleanup and dead-path removal            |
-| `packages/ui-registry/src/components/thread-content/thread-content.tsx`   | Clean timeline mapping behavior over message content blocks |
-| `docs/content/docs/reference/react-ui-base-primitives/message.mdx`        | Message primitive docs page                                 |
-| `docs/content/docs/reference/react-ui-base-primitives/toolcall-info.mdx`  | ToolcallInfo primitive docs page                            |
-| `docs/content/docs/reference/react-ui-base-primitives/reasoning-info.mdx` | ReasoningInfo primitive docs page                           |
-| `docs/content/docs/reference/react-ui-base-primitives/meta.json`          | Add timeline primitive docs pages to section order          |
+| File Path                                                               | Changes                                                     |
+| ----------------------------------------------------------------------- | ----------------------------------------------------------- |
+| `packages/react-ui-base/src/message/**/*.tsx`                           | Final render/state contract hardening                       |
+| `packages/react-ui-base/src/reasoning-info/**/*.tsx`                    | Final reasoning behavior hardening                          |
+| `packages/react-ui-base/src/toolcall-info/**/*.tsx`                     | Final tool association/status behavior hardening            |
+| `packages/ui-registry/src/components/message/message.tsx`               | Styled composition cleanup and dead-path removal            |
+| `packages/ui-registry/src/components/thread-content/thread-content.tsx` | Clean timeline mapping behavior over message content blocks |
+| `docs/content/docs/reference/react-ui-base/message.mdx`                 | Message primitive docs page                                 |
+| `docs/content/docs/reference/react-ui-base/toolcall-info.mdx`           | ToolcallInfo primitive docs page                            |
+| `docs/content/docs/reference/react-ui-base/reasoning-info.mdx`          | ReasoningInfo primitive docs page                           |
+| `docs/content/docs/reference/react-ui-base/meta.json`                   | Add timeline primitive docs pages to section order          |
 
 ## Implementation Details
 
