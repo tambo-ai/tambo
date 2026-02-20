@@ -2,20 +2,22 @@
 
 ## Overview
 
-Extract all framework-agnostic business logic from `@tambo-ai/react` (react-sdk) into a new `@tambo-ai/client` package at `packages/client/`. This gives non-React consumers (Node.js scripts, Vue, Svelte, etc.) access to Tambo's streaming, tool execution, and thread management without React dependencies. The react-sdk is then refactored to become a thin React adapter layer on top of `@tambo-ai/client`.
+Extract all framework-agnostic business logic from `@tambo-ai/react` (react-sdk) into a new `@tambo-ai/client` package at `packages/client/`. This gives non-React consumers (Node.js CLI apps, Vue, Svelte, etc.) access to Tambo's streaming, tool execution, and thread management without React dependencies. The react-sdk is then refactored to become a thin React adapter layer on top of `@tambo-ai/client`.
 
 ## Key Design Decisions
 
-- **Wraps @tambo-ai/typescript-sdk internally**: The REST client is an implementation detail. Consumers only install `@tambo-ai/client`. The typescript-sdk is NOT re-exported.
-- **Pluggable state store**: Uses a `subscribe/getState/setState` interface (Zustand-compatible). Ships with `InMemoryStore` for Node.js. React adapter uses `useSyncExternalStore` to bridge reactivity.
-- **TamboStream dual interface**: The stream returned by `run()` is both an async iterable (for event-by-event consumption) AND exposes promise-like properties (`stream.thread`, `stream.messages`) that auto-consume the stream when awaited. Follows the Vercel AI SDK pattern of deferred promise properties rather than making the object itself PromiseLike.
+- **Wraps @tambo-ai/typescript-sdk internally**: The REST client is an implementation detail, declared as a regular `dependency` (not devDependency) since its types leak through re-exports. Consumers only install `@tambo-ai/client`.
+- **Client owns its state directly**: `TamboClient` has `getState()` and `subscribe()` methods directly on it. No separate `TamboStore` interface or `InMemoryStore` class in the public API. React adapter uses `useSyncExternalStore(client.subscribe, client.getState)`.
+- **TamboStream**: Two consumption modes only. (1) Async iterable yielding `{ event, snapshot }` pairs. (2) `.thread` promise property that resolves when the stream completes. The processing loop always runs internally — `.thread` never triggers a separate consumption path.
 - **Stitchable stream for tool loops**: Multi-step tool execution uses a single outer `AsyncIterable` that appends inner continuation streams dynamically, so consumers see one unbroken stream.
-- **Component types are framework-agnostic**: The client package defines `AvailableComponent` (metadata-only, no React `ComponentType`). The react-sdk extends this with the actual React component reference.
+- **Component types use typescript-sdk directly**: No new `AvailableComponent` type. The API types from `@tambo-ai/typescript-sdk` are sufficient for component metadata.
+- **Minimal public API**: Export `TamboClient`, `TamboStream`, and the types consumers actually reference. Internal utilities (reducer, schema converters, etc.) are not public.
+- **`TamboClient` is a class, not an interface**: No separate interface. Consumers mock it directly in tests.
 
 ## Architecture
 
 ```
-Consumer Code
+Consumer Code (CLI, Node.js, etc.)
      |
      v
 +------------------+        +---------------------+
@@ -24,18 +26,19 @@ Consumer Code
 |                  |        |                     |
 | - useTambo()     |        | - TamboClient class |
 | - TamboProvider  |        | - TamboStream       |
-| - Component      |        | - TamboStore        |
-|   rendering      |        | - Event accumulator |
-| - useSyncExternalStore    | - Tool executor     |
-| - MCP React hooks|        | - MCPClient         |
-| - Suggestions RQ |        | - Suggestions API   |
-+------------------+        | - Auth state        |
-                            +--------|------------+
+| - Component      |        | - Event accumulator |
+|   rendering      |        | - Tool executor     |
+| - useSyncExternalStore    | - MCPClient         |
+| - MCP React hooks|        | - Suggestions API   |
+| - Suggestions RQ |        | - Auth state        |
+| - Thread naming  |        |                     |
++------------------+        +--------|------------+
                                      |
                                      v
                             +---------------------+
                             | @tambo-ai/typescript-sdk |
-                            | (internal, not exported) |
+                            | (dependency, not     |
+                            |  re-exported)        |
                             +---------------------+
 ```
 
@@ -43,39 +46,18 @@ Consumer Code
 
 1. `client.run("hello")` -> creates API stream via typescript-sdk
 2. Stream events flow through `handleEventStream` -> `streamReducer`
-3. Reducer updates `TamboStore` state (threadMap, currentThreadId)
+3. Reducer updates client internal state (threadMap, currentThreadId)
 4. If `autoExecuteTools: true`, awaiting_input triggers tool execution + continuation stream (stitched into outer stream)
-5. React: `useSyncExternalStore(store.subscribe, () => store.getState().threadMap[id])` triggers re-renders
+5. React: `useSyncExternalStore(client.subscribe, client.getState)` triggers re-renders
 
 ## Component Schema/Interface
 
 ### TamboClient (main entry point)
 
 ```typescript
-interface TamboClientOptions {
-  apiKey: string;
-  tamboUrl?: string;
-  environment?: "production" | "staging";
-  userKey?: string;
-  userToken?: string;
-  store?: TamboStore<ClientState>;
+class TamboClient {
+  constructor(options: TamboClientOptions);
 
-  // Tool & component registration
-  tools?: TamboTool[];
-  components?: AvailableComponent[];
-
-  // MCP servers to connect on init
-  mcpServers?: McpServerInfo[];
-
-  // Callbacks
-  beforeRun?: (context: BeforeRunContext) => MaybeAsync<void>;
-
-  // Thread naming
-  autoGenerateThreadName?: boolean;
-  autoGenerateNameThreshold?: number;
-}
-
-interface TamboClient {
   // Core operations
   run(message: string | InputMessage, options?: RunOptions): TamboStream;
 
@@ -87,10 +69,10 @@ interface TamboClient {
 
   // Registration
   registerTool(tool: TamboTool): void;
-  registerComponent(component: AvailableComponent): void;
 
-  // State access
-  getStore(): TamboStore<ClientState>;
+  // State access (useSyncExternalStore-compatible)
+  getState(): ClientState;
+  subscribe(listener: () => void): () => void;
 
   // Auth
   getAuthState(): TamboAuthState;
@@ -98,8 +80,9 @@ interface TamboClient {
   // Run control
   cancelRun(threadId?: string): Promise<void>;
 
-  // Thread naming
+  // Thread naming (API wrapper only — auto-naming logic stays in react-sdk)
   updateThreadName(threadId: string, name: string): Promise<void>;
+  generateThreadName(threadId: string): Promise<string>;
 
   // MCP
   connectMcpServer(serverInfo: McpServerInfo): Promise<MCPClient>;
@@ -119,9 +102,23 @@ interface TamboClient {
     threadId: string,
     options?: { maxSuggestions?: number },
   ): Promise<SuggestionGenerateResponse>;
+}
 
-  // Cleanup
-  destroy(): void;
+interface TamboClientOptions {
+  apiKey: string;
+  tamboUrl?: string;
+  environment?: "production" | "staging";
+  userKey?: string;
+  userToken?: string;
+
+  // Tool registration
+  tools?: TamboTool[];
+
+  // MCP servers to connect on init
+  mcpServers?: McpServerInfo[];
+
+  // Called before each run — can modify additionalContext
+  beforeRun?: (context: BeforeRunContext) => MaybeAsync<void>;
 }
 
 interface RunOptions {
@@ -133,55 +130,52 @@ interface RunOptions {
   additionalContext?: Record<string, unknown>;
   signal?: AbortSignal;
 }
+
+interface BeforeRunContext {
+  threadId: string | undefined;
+  message: InputMessage;
+  tools: Record<string, TamboTool>;
+}
 ```
 
 ### TamboStream
 
+Two consumption modes only. The processing loop always runs internally (fire-and-forget in constructor). The `.thread` promise resolves naturally when the loop finishes — no auto-consume trigger.
+
 ```typescript
-interface TamboStream {
-  // Default iteration: yields { event, snapshot } pairs
+class TamboStream {
+  // Async iterable: yields { event, snapshot } pairs as they arrive
   [Symbol.asyncIterator](): AsyncIterator<{
     event: AGUIEvent;
     snapshot: TamboThread;
   }>;
 
-  // Specialized iterators
-  events(): AsyncIterable<AGUIEvent>;
-  snapshots(): AsyncIterable<TamboThread>;
-
-  // Promise-like properties (auto-consume stream when accessed)
+  // Promise that resolves when the stream completes
   readonly thread: Promise<TamboThread>;
-  readonly messages: Promise<TamboThreadMessage[]>;
-  readonly threadId: Promise<string>;
 
-  // Abort
+  // Abort the stream
   abort(): void;
 }
 ```
 
-### TamboStore
+### ClientState
 
 ```typescript
-interface TamboStore<T> {
-  getState(): T;
-  setState(next: T | ((prev: T) => T)): void;
-  subscribe(listener: () => void): () => void;
-}
-
 interface ClientState {
   threadMap: Record<string, ThreadState>;
   currentThreadId: string;
-  authState: TamboAuthState;
 }
 
-// ThreadState is the existing type from event-accumulator.ts
+// ThreadState from event-accumulator.ts (Map changed to Record)
 interface ThreadState {
   thread: TamboThread;
   streaming: StreamingState;
-  accumulatingToolArgs: Map<string, string>;
+  accumulatingToolArgs: Record<string, string>; // was Map<string, string>
   lastCompletedRunId?: string;
 }
 ```
+
+Note: `authState` is computed on access via `getAuthState()`, not stored in `ClientState`.
 
 ### BeforeRun callback
 
@@ -190,7 +184,6 @@ interface BeforeRunContext {
   threadId: string | undefined;
   message: InputMessage;
   tools: Record<string, TamboTool>;
-  components: Record<string, AvailableComponent>;
 }
 
 // The React SDK builds named context helpers on top of this:
@@ -209,30 +202,25 @@ packages/client/
   jest.config.ts (NEW)
   eslint.config.mjs (NEW)
   src/
-    index.ts (NEW) - public API exports
+    index.ts (NEW) - public API exports (minimal)
     tambo-client.ts (NEW) - TamboClient class
     tambo-stream.ts (NEW) - TamboStream class
-    store/
-      types.ts (NEW) - TamboStore interface
-      in-memory-store.ts (NEW) - InMemoryStore implementation
     types/
       thread.ts (MOVED from react-sdk, remove ReactElement dep)
       message.ts (MOVED, split: base types here, React-specific stays)
       event.ts (MOVED as-is)
       auth.ts (MOVED as-is)
-      component.ts (NEW) - AvailableComponent (metadata-only, no React)
       tool-choice.ts (MOVED as-is)
     utils/
-      event-accumulator.ts (MOVED as-is)
+      event-accumulator.ts (MOVED, Map -> Record in ThreadState)
       stream-handler.ts (MOVED as-is)
       tool-executor.ts (MOVED, remove React dep from TamboTool import)
       tool-call-tracker.ts (MOVED as-is)
       keyed-throttle.ts (MOVED as-is)
-      registry-conversion.ts (MOVED, use client-local types)
+      registry-conversion.ts (MOVED, use typescript-sdk types for components)
       unstrictify.ts (MOVED as-is)
       json-patch.ts (MOVED as-is)
       thread-utils.ts (MOVED as-is)
-      auth.ts (NEW) - computeAuthState() pure function
       send-message.ts (NEW) - extracted from use-tambo-v1-send-message.ts
     schema/
       schema.ts (MOVED as-is)
@@ -246,7 +234,6 @@ packages/client/
       mcp-constants.ts (MOVED as-is)
       elicitation.ts (MOVED, types + pure helpers only)
       index.ts (NEW) - MCP module exports
-    suggestions.ts (NEW) - Suggestions API methods
 
 react-sdk/
   src/v1/
@@ -255,24 +242,32 @@ react-sdk/
       thread.ts (MODIFIED - re-export from client)
       event.ts (MODIFIED - re-export from client)
       auth.ts (MODIFIED - re-export from client)
-      component.ts (MODIFIED - extends client's AvailableComponent with React ComponentType)
     utils/
-      event-accumulator.ts (DELETED - re-export from client)
-      stream-handler.ts (DELETED - re-export from client)
-      tool-executor.ts (DELETED - re-export from client)
-      tool-call-tracker.ts (DELETED - re-export from client)
-      keyed-throttle.ts (DELETED - re-export from client)
-      registry-conversion.ts (DELETED - re-export from client)
-      unstrictify.ts (DELETED - re-export from client)
-      json-patch.ts (DELETED - re-export from client)
-      thread-utils.ts (DELETED - re-export from client)
+      event-accumulator.ts (DELETED - imported from client internally)
+      stream-handler.ts (DELETED - imported from client internally)
+      tool-executor.ts (DELETED - imported from client internally)
+      tool-call-tracker.ts (DELETED - imported from client internally)
+      keyed-throttle.ts (DELETED - imported from client internally)
+      registry-conversion.ts (DELETED - imported from client internally)
+      unstrictify.ts (DELETED - imported from client internally)
+      json-patch.ts (DELETED - imported from client internally)
+      thread-utils.ts (DELETED - imported from client internally)
     hooks/
       use-tambo-v1-send-message.ts (MODIFIED - thin wrapper calling client.run())
-      use-tambo-v1.ts (MODIFIED - reads from client store via useSyncExternalStore)
+      use-tambo-v1.ts (MODIFIED - reads from client state via useSyncExternalStore)
       use-tambo-v1-auth-state.ts (MODIFIED - delegates to client.getAuthState())
     providers/
       tambo-v1-provider.tsx (MODIFIED - creates TamboClient, provides via context)
-      tambo-v1-stream-context.tsx (MODIFIED - replaced by useSyncExternalStore on client store)
+      tambo-v1-stream-context.tsx (MODIFIED - replaced by useSyncExternalStore on client)
+  src/mcp/
+    tambo-mcp-provider.tsx (MODIFIED - uses client.connectMcpServer())
+    mcp-client.ts (DELETED - imported from client)
+    mcp-constants.ts (DELETED - imported from client)
+    elicitation.ts (MODIFIED - types from client, React hook stays)
+  src/util/
+    mcp-server-utils.ts (DELETED - imported from client)
+  src/model/
+    mcp-server-info.ts (DELETED - imported from client)
 ```
 
 ## Implementation Phases
@@ -290,17 +285,15 @@ Set up the `packages/client/` directory with build configuration mirroring react
 - `packages/client/tsconfig.test.json` (NEW) - Test config
 - `packages/client/jest.config.ts` (NEW) - Jest configuration
 - `packages/client/eslint.config.mjs` (NEW) - ESLint config
-- `turbo.json` (MODIFIED) - Add `@tambo-ai/client` tasks
 
 **Key Implementation Details:**
 
 - Copy build setup from react-sdk, removing all React/JSX related config
-- Dependencies: `@tambo-ai/typescript-sdk`, `@ag-ui/core`, `fast-json-patch`, `partial-json`, `@standard-community/standard-json`, `@standard-schema/spec`, `type-fest`
+- Dependencies: `@tambo-ai/typescript-sdk` (regular dependency, not devDep — types leak through), `@ag-ui/core`, `fast-json-patch`, `partial-json`, `@standard-community/standard-json`, `@standard-schema/spec`, `type-fest`, `@modelcontextprotocol/sdk`
 - Peer dependencies: `zod` (optional, for schema conversion), `zod-to-json-schema` (optional)
 - No `react`, `react-dom`, or `@tanstack/react-query` dependencies
 - Package name: `@tambo-ai/client`
 - Add `@tambo-ai/client` as dependency of `react-sdk`
-- Dependencies also include `@modelcontextprotocol/sdk` (for MCP client)
 
 **Commit:** `chore(client): scaffold @tambo-ai/client package with build config`
 
@@ -308,394 +301,133 @@ Verify: `npm install && npm run build -w packages/client && npm run check-types 
 
 ---
 
-### Phase 2: Core Types and State Store
+### Phase 2: Move All Framework-Agnostic Code
 
-Move all framework-agnostic types and implement the pluggable state store.
-
-**Files:**
-
-- `packages/client/src/types/thread.ts` (NEW) - TamboThread, StreamingState, RunStatus
-- `packages/client/src/types/message.ts` (NEW) - Base message/content types (no ReactElement)
-- `packages/client/src/types/event.ts` (NEW) - Custom event types (moved as-is)
-- `packages/client/src/types/auth.ts` (NEW) - TamboAuthState union
-- `packages/client/src/types/tool-choice.ts` (NEW) - ToolChoice type
-- `packages/client/src/types/component.ts` (NEW) - AvailableComponent (metadata-only)
-- `packages/client/src/store/types.ts` (NEW) - TamboStore interface
-- `packages/client/src/store/in-memory-store.ts` (NEW) - InMemoryStore class
-
-**Key Implementation Details:**
-
-- Split `TamboComponentContent` into base (client) and extended (react-sdk). The base type has all fields except `renderedComponent?: ReactElement`. React-sdk re-exports and extends with the React field.
-- `TamboToolUseContent` moves entirely to client (no React dependency).
-- Auth state computation becomes a pure function `computeAuthState(config)` instead of a React hook.
-
-```pseudo
-class InMemoryStore<T>:
-  private state: T
-  private listeners: Set<() => void>
-
-  constructor(initialState: T):
-    this.state = initialState
-    this.listeners = new Set()
-
-  getState(): return this.state
-
-  setState(next):
-    const prev = this.state
-    this.state = typeof next === "function" ? next(prev) : next
-    if (!Object.is(prev, this.state)):
-      for listener of this.listeners:
-        listener()
-
-  subscribe(listener):
-    this.listeners.add(listener)
-    return () => this.listeners.delete(listener)
-```
-
-**Commit:** `feat(client): add core types and pluggable state store`
-
-Verify: `npm run check-types -w packages/client`
-
----
-
-### Phase 3: Event Accumulator and Utilities
-
-Move the reducer and all pure utility modules to the client package.
+Move all types, utilities, reducer, tool system, schemas, and MCP code in one pass. These files are already framework-agnostic (zero React imports). Tests move alongside their source files.
 
 **Files:**
 
-- `packages/client/src/utils/event-accumulator.ts` (NEW) - Moved as-is (already framework-agnostic)
-- `packages/client/src/utils/stream-handler.ts` (NEW) - Moved as-is
-- `packages/client/src/utils/keyed-throttle.ts` (NEW) - Moved as-is
-- `packages/client/src/utils/json-patch.ts` (NEW) - Moved as-is
-- `packages/client/src/utils/unstrictify.ts` (NEW) - Moved as-is
-- `packages/client/src/utils/thread-utils.ts` (NEW) - Moved as-is
-- `packages/client/src/utils/auth.ts` (NEW) - Pure `computeAuthState()` function
-- `packages/client/src/schema/schema.ts` (NEW) - Schema conversion utilities
-- `packages/client/src/schema/json-schema.ts` (NEW) - JSON schema helpers
-- `packages/client/src/schema/standard-schema.ts` (NEW) - Standard Schema detection
+All files listed in the File Structure above under `packages/client/src/` that are marked MOVED.
 
 **Key Implementation Details:**
 
-- The event-accumulator reducer is already pure (no React imports). Its `StreamState`, `ThreadState`, `StreamAction` types and `streamReducer` function move directly.
-- Adapt the reducer to work with `TamboStore`: instead of being called via `useReducer`, it will be called by `store.setState(prev => streamReducer(prev, action))`.
-- The `dispatch` concept becomes a method on TamboClient that calls `store.setState`.
-- Move `model/component-metadata.ts` types that don't depend on React `ComponentType`. The `TamboTool` interface stays mostly the same (it doesn't actually use React types). The `TamboComponent` interface splits: client gets `AvailableComponent`, react-sdk keeps `TamboComponent extends AvailableComponent`.
+- The event-accumulator reducer is already pure. Move as-is, but change `accumulatingToolArgs` from `Map<string, string>` to `Record<string, string>` (fixes JSON serialization, now is the time since it's a new package).
+- `TamboTool` generic defaults change from `any` to `unknown`. Drop the unused `Rest` type parameter. The type becomes `TamboTool<Params = unknown, Returns = unknown>`.
+- Split `TamboComponentContent`: base type in client has all fields except `renderedComponent?: ReactElement`. React-sdk extends it.
+- Use typescript-sdk types directly for component metadata in API calls (no new `AvailableComponent` type).
+- `registry-conversion.ts`: conversion functions accept typescript-sdk's `AvailableComponent` type.
+- Move existing test files alongside their source files. Update import paths.
+- MCPClient, mcp-constants, elicitation types, server utils all move as-is.
 
-**Commit:** `feat(client): move event accumulator, reducer, and pure utilities`
-
-Verify: `npm run check-types -w packages/client && npm test -w packages/client` (moved tests should pass)
-
----
-
-### Phase 4: Tool System
-
-Move tool tracking, execution, and registry conversion to the client package.
-
-**Files:**
-
-- `packages/client/src/utils/tool-call-tracker.ts` (NEW) - Moved from react-sdk
-- `packages/client/src/utils/tool-executor.ts` (NEW) - Moved, adapted imports
-- `packages/client/src/utils/registry-conversion.ts` (NEW) - Moved, uses client-local types
-- `packages/client/src/model/component-metadata.ts` (NEW) - TamboTool, SupportedSchema, etc.
-
-**Key Implementation Details:**
-
-- `TamboTool` import chain: currently `tool-executor.ts` imports from `../../model/component-metadata` which has `ComponentType<any>` from React. Split: the `TamboTool` interface and related tool types move to client (they don't actually reference React). The `TamboComponent` and `RegisteredComponent` interfaces that use `ComponentType<any>` stay in react-sdk.
-- `tool-executor.ts` needs the `TamboTool` type -- this is fine since `TamboTool.tool` is just `(params) => MaybeAsync<Returns>`, no React.
-- `registry-conversion.ts` references `RegisteredComponent` which has `ComponentType`. The conversion functions will accept the base `AvailableComponent` interface instead. React-sdk passes its `RegisteredComponent` (which extends `AvailableComponent`).
-
-**Commit:** `feat(client): move tool system (tracker, executor, registry conversion)`
+**Commit:** `feat(client): move types, utilities, reducer, tool system, schema, and MCP code`
 
 Verify: `npm run check-types -w packages/client && npm test -w packages/client`
 
 ---
 
-### Phase 5: TamboStream
+### Phase 3: TamboStream and TamboClient
 
-Implement the dual async-iterable/promise-property stream class.
-
-**Files:**
-
-- `packages/client/src/tambo-stream.ts` (NEW) - TamboStream class
-- `packages/client/src/utils/send-message.ts` (NEW) - Core run logic extracted from use-tambo-v1-send-message.ts
-
-**Key Implementation Details:**
-
-- Extract the non-React functions from `use-tambo-v1-send-message.ts`: `createRunStream`, `dispatchUserMessage`, `dispatchToolResults`, `shouldGenerateThreadName`, `executeToolsAndContinue`. These become standalone functions in `send-message.ts`.
-- TamboStream wraps the core streaming loop (the `while(true)` from the mutation function).
-
-```pseudo
-class TamboStream:
-  private controller: ReadableStreamController
-  private consumed = false
-  private threadDeferred = createDeferredPromise<TamboThread>()
-  private messagesDeferred = createDeferredPromise<TamboThreadMessage[]>()
-  private threadIdDeferred = createDeferredPromise<string>()
-  private eventQueue: AGUIEvent[] = []
-  private snapshotFn: () => TamboThread  // reads from store
-
-  // Start processing in constructor (fire-and-forget)
-  constructor(streamPromise, store, dispatch, options):
-    void this.processStream(streamPromise, store, dispatch, options)
-
-  private async processStream(...):
-    // The while(true) loop from use-tambo-v1-send-message.ts
-    // On each event: dispatch to store, push to eventQueue
-    // On awaiting_input + autoExecuteTools: execute tools, stitch continuation
-    // On completion: resolve deferred promises
-
-  // Default iterator: { event, snapshot } pairs
-  async *[Symbol.asyncIterator]():
-    yield* this.iteratePairs()
-
-  events(): return async iterable filtering to just events
-  snapshots(): return async iterable filtering to just snapshots
-
-  get thread(): Promise<TamboThread>:
-    // Auto-consume stream if not already consumed
-    if !this.consumed: void this.consumeStream()
-    return this.threadDeferred.promise
-
-  get messages(): ...similar...
-  get threadId(): ...similar...
-```
-
-**Commit:** `feat(client): implement TamboStream with dual async-iterable/promise interface`
-
-Verify: `npm run check-types -w packages/client && npm test -w packages/client`
-
----
-
-### Phase 6: MCP Integration
-
-Move the framework-agnostic MCP business logic to the client package. The MCP client, server utilities, elicitation types, and tool discovery are all pure TypeScript with zero React dependencies.
+Implement the two new classes that form the public API.
 
 **Files:**
 
-- `packages/client/src/mcp/mcp-client.ts` (MOVED) - MCPClient class (zero React deps)
-- `packages/client/src/mcp/mcp-constants.ts` (MOVED) - Constants + ServerType enum
-- `packages/client/src/mcp/elicitation.ts` (MOVED) - Elicitation types + pure helpers
-- `packages/client/src/mcp/index.ts` (NEW) - MCP module exports
-- `packages/client/src/utils/mcp-server-utils.ts` (MOVED) - deriveServerKey, normalizeServerInfo, deduplicateMcpServers
-- `packages/client/src/model/mcp-server-info.ts` (MOVED) - McpServerInfo, NormalizedMcpServerInfo, MCPTransport
+- `packages/client/src/tambo-stream.ts` (NEW)
+- `packages/client/src/tambo-client.ts` (NEW)
+- `packages/client/src/utils/send-message.ts` (NEW) - core run logic extracted from use-tambo-v1-send-message.ts
+- `packages/client/src/index.ts` (NEW) - public API surface
 
-**Key Implementation Details:**
+**Key Implementation Details — TamboStream:**
 
-- `MCPClient` class is completely framework-agnostic: `listTools()`, `callTool()`, handler management, lifecycle
-- All MCP types move: `MCPElicitationHandler`, `MCPSamplingHandler`, `MCPHandlers`, `MCPToolSpec`, `MCPToolCallResult`, `MCPTransport`, `ServerType`
-- Pure utility functions move: `deriveServerKey()`, `normalizeServerInfo()`, `deduplicateMcpServers()`, `getMcpServerUniqueKey()`
-- Elicitation types + type guards move: `TamboElicitationRequest`, `TamboElicitationResponse`, `ElicitationContextState`, `toElicitationRequestedSchema()`, `hasRequestedSchema()`
-- Add `@modelcontextprotocol/sdk` as dependency of `@tambo-ai/client`
-- `TamboClient` gains MCP methods:
-  - `connectMcpServer(serverInfo: McpServerInfo): Promise<MCPClient>` - connect and discover tools
-  - `disconnectMcpServer(serverKey: string): Promise<void>` - disconnect and unregister tools
-  - `getMcpClients(): Record<string, MCPClient>` - access connected clients
-- MCP token exchange logic (the API call `client.beta.auth.getMcpToken()`) moves to TamboClient as `getMcpToken(contextKey)`
-- React-sdk keeps: `TamboMcpProvider` (React lifecycle), `mcp-hooks.ts` (React Query wrappers for prompts/resources), `useElicitation()` (React state hook), `TamboMcpTokenProvider` (React context)
-- React-sdk's `TamboMcpProvider` refactored to use `client.connectMcpServer()` instead of managing `MCPClient` instances directly
+- Extract non-React functions from `use-tambo-v1-send-message.ts`: `createRunStream`, `dispatchUserMessage`, `dispatchToolResults`, `executeToolsAndContinue` → `send-message.ts`.
+- Processing loop runs in constructor (fire-and-forget via `void this.processLoop()`).
+- Loop processes events, dispatches to client state, handles tool execution if `autoExecuteTools`.
+- `.thread` is a deferred promise that resolves when the loop completes. No auto-consume — the loop always runs.
+- `[Symbol.asyncIterator]` yields `{ event, snapshot }` pairs by observing events as the loop emits them.
+- Stitchable stream: when `awaiting_input` is detected and `autoExecuteTools` is on, tools execute, results submit, continuation stream is appended to the outer iterable seamlessly.
 
-**Commit:** `feat(client): move MCP client, server utilities, and elicitation types`
+**Key Implementation Details — TamboClient:**
 
-Verify: `npm run check-types -w packages/client && npm test -w packages/client`
-
----
-
-### Phase 7: Suggestions API
-
-Add suggestions support to the generic client. While the `useTamboSuggestions` React hook is heavily React-coupled, the underlying API operations are simple REST calls that belong in the client.
-
-**Files:**
-
-- `packages/client/src/suggestions.ts` (NEW) - Suggestions methods on TamboClient
-
-**Key Implementation Details:**
-
-- `TamboClient` gains suggestions methods:
-  - `listSuggestions(messageId: string, threadId: string): Promise<SuggestionListResponse>` - list existing suggestions for a message
-  - `generateSuggestions(messageId: string, threadId: string, options?: { maxSuggestions?: number }): Promise<SuggestionGenerateResponse>` - generate new suggestions
-- These wrap `sdk.threads.suggestions.list()` and `sdk.threads.suggestions.create()` with proper auth params
-- Re-export suggestion types from typescript-sdk: `Suggestion`, `SuggestionListResponse`, `SuggestionGenerateResponse`
-- React-sdk's `useTamboSuggestions` hook refactored to call `client.listSuggestions()` / `client.generateSuggestions()` instead of using the raw typescript-sdk client
-- The hook's React Query caching, auto-generation logic, and input management stay in react-sdk
-
-**Commit:** `feat(client): add suggestions API (list and generate)`
-
-Verify: `npm run check-types -w packages/client && npm test -w packages/client`
-
----
-
-### Phase 8: TamboClient Class
-
-The main entry point that orchestrates all the pieces: REST client, store, streaming, tools, MCP, suggestions, auth.
-
-**Files:**
-
-- `packages/client/src/tambo-client.ts` (NEW) - TamboClient class
-- `packages/client/src/index.ts` (NEW) - Public API surface
-
-**Key Implementation Details:**
-
-- Creates and holds the `@tambo-ai/typescript-sdk` client internally
-- Creates InMemoryStore by default (or accepts user-provided store)
-- `run()` method returns TamboStream, handles beforeRun callback
-- Thread management: `switchThread`, `startNewThread`, `getThread` operate on the store
-- Tool/component registration: maintains internal registries as `Record<string, TamboTool>`
-- Auth: computes auth state from config, handles token exchange lifecycle
-- Auto thread naming: calls `client.beta.threads.generateName()` on run completion
-
-```pseudo
-class TamboClient:
-  private sdk: TamboAI        // typescript-sdk client
-  private store: TamboStore<ClientState>
-  private toolRegistry: Record<string, TamboTool>
-  private componentRegistry: Record<string, AvailableComponent>
-  private options: TamboClientOptions
-
-  constructor(options):
-    this.sdk = new TamboAI({ apiKey, baseURL, ... })
-    this.store = options.store ?? new InMemoryStore(createInitialState())
-    this.toolRegistry = indexByName(options.tools ?? [])
-    this.componentRegistry = indexByName(options.components ?? [])
-
-  run(message, options?):
-    // 1. Compute auth state, throw if not identified
-    // 2. Call beforeRun callback if provided
-    // 3. Gather additionalContext from beforeRun
-    // 4. Create TamboStream that internally:
-    //    a. Calls createRunStream (new thread or existing)
-    //    b. Processes events via streamReducer + store.setState
-    //    c. Handles tool execution loop if autoExecuteTools
-    //    d. Auto-generates thread name on completion
-    return new TamboStream(...)
-
-  dispatch(action: StreamAction):
-    this.store.setState(prev => streamReducer(prev, action))
-
-  switchThread(threadId):
-    this.dispatch({ type: "SET_CURRENT_THREAD", threadId })
-    // Fetch thread messages if not loaded
-    const threadState = this.store.getState().threadMap[threadId]
-    if (!threadState?.thread.messages.length):
-      const messages = await this.sdk.threads.messages.list(threadId)
-      this.dispatch({ type: "LOAD_THREAD_MESSAGES", threadId, messages })
-
-  // MCP
-  connectMcpServer(serverInfo): Promise<MCPClient>
-  disconnectMcpServer(serverKey): Promise<void>
-  getMcpClients(): Record<string, MCPClient>
-  getMcpToken(contextKey): Promise<{ mcpAccessToken, tamboBaseUrl }>
-
-  // Suggestions
-  listSuggestions(messageId, threadId): Promise<SuggestionListResponse>
-  generateSuggestions(messageId, threadId, options?): Promise<SuggestionGenerateResponse>
-
-  getStore(): return this.store
-```
+- Creates typescript-sdk client internally (`new TamboAI({...})`)
+- State management: private `state: ClientState`, `listeners: Set<() => void>`. Public `getState()` and `subscribe()` methods directly on the class — useSyncExternalStore-compatible.
+- `run()` creates TamboStream, calls `beforeRun` callback first
+- Thread management: `switchThread`, `startNewThread`, `getThread` operate on internal state
+- Tool registration: internal `Record<string, TamboTool>`
+- Auth: `getAuthState()` computes from config on each call (pure function, not stored in state)
+- MCP: `connectMcpServer()`, `disconnectMcpServer()`, `getMcpClients()`, `getMcpToken()`
+- Suggestions: `listSuggestions()`, `generateSuggestions()` — thin wrappers around typescript-sdk
+- Thread naming: `updateThreadName()`, `generateThreadName()` — API wrappers only. Auto-naming decision logic stays in react-sdk.
+- `dispatch(action)` is private: `this.state = streamReducer(this.state, action); this.notifyListeners()`
 
 **Public API Surface (packages/client/src/index.ts):**
 
 ```typescript
-// Core class
-export { TamboClient, type TamboClientOptions } from "./tambo-client";
-
-// Stream
+// Core classes
+export {
+  TamboClient,
+  type TamboClientOptions,
+  type RunOptions,
+} from "./tambo-client";
 export { TamboStream } from "./tambo-stream";
 
-// Store
-export { type TamboStore } from "./store/types";
-export { InMemoryStore } from "./store/in-memory-store";
-
-// Types - thread, message, event, auth
+// Types consumers actually reference
 export type { TamboThread, RunStatus, StreamingState } from "./types/thread";
 export type {
-  TamboThreadMessage, Content, TextContent, TamboToolUseContent,
-  ToolResultContent, TamboComponentContent, ComponentStreamingState,
-  MessageRole, InputMessage, InitialInputMessage, ResourceContent,
-  TamboToolDisplayProps,
+  TamboThreadMessage,
+  Content,
+  TextContent,
+  TamboComponentContent,
+  TamboToolUseContent,
+  ToolResultContent,
+  ResourceContent,
+  InputMessage,
+  MessageRole,
 } from "./types/message";
-export type { TamboCustomEvent, ... } from "./types/event";
 export type { TamboAuthState } from "./types/auth";
 export type { ToolChoice } from "./types/tool-choice";
-export type { AvailableComponent } from "./types/component";
+export type { TamboTool } from "./model/component-metadata";
+export type { ClientState } from "./tambo-client";
 
-// Tool types
-export type {
-  TamboTool, SupportedSchema, ToolAnnotations,
-} from "./model/component-metadata";
-
-// State types
-export type { ClientState, ThreadState, StreamState, StreamAction } from "./utils/event-accumulator";
-
-// Utility (for advanced consumers)
-export { streamReducer } from "./utils/event-accumulator";
-export { defineTool } from "./util/define-tool";
-
-// Schema utilities
-export { schemaToJsonSchema, safeSchemaToJsonSchema } from "./schema/schema";
-
-// MCP
+// MCP (for consumers connecting to MCP servers)
 export { MCPClient } from "./mcp/mcp-client";
-export type {
-  MCPElicitationHandler, MCPSamplingHandler, MCPHandlers,
-  MCPToolSpec, MCPToolCallResult,
-} from "./mcp/mcp-client";
-export { MCPTransport, type McpServerInfo, type NormalizedMcpServerInfo } from "./model/mcp-server-info";
-export type { TamboElicitationRequest, TamboElicitationResponse } from "./mcp/elicitation";
-
-// Suggestions (re-exported from typescript-sdk types)
-export type { Suggestion, SuggestionListResponse, SuggestionGenerateResponse } from "./suggestions";
+export type { McpServerInfo } from "./model/mcp-server-info";
+export { MCPTransport } from "./model/mcp-server-info";
 ```
 
-**Commit:** `feat(client): implement TamboClient class with full API surface`
+Everything else (reducer, schema utils, keyed-throttle, tool-call-tracker, etc.) is internal. The react-sdk imports from deep paths if needed.
+
+**Commit:** `feat(client): implement TamboClient and TamboStream`
 
 Verify: `npm run build -w packages/client && npm run check-types -w packages/client && npm test -w packages/client`
 
 ---
 
-### Phase 9: React SDK Refactor
+### Phase 4: React SDK Refactor
 
 Refactor react-sdk to depend on `@tambo-ai/client` and become a thin adapter layer.
 
 **Files:**
 
-- `react-sdk/package.json` (MODIFIED) - Add `@tambo-ai/client` dependency
-- `react-sdk/src/v1/providers/tambo-v1-provider.tsx` (MODIFIED) - Create TamboClient, provide via context
-- `react-sdk/src/v1/providers/tambo-v1-stream-context.tsx` (MODIFIED) - Replace useReducer with useSyncExternalStore on client store
-- `react-sdk/src/v1/hooks/use-tambo-v1-send-message.ts` (MODIFIED) - Thin wrapper calling client.run()
-- `react-sdk/src/v1/hooks/use-tambo-v1.ts` (MODIFIED) - Reads from client store via useSyncExternalStore
-- `react-sdk/src/v1/hooks/use-tambo-v1-auth-state.ts` (MODIFIED) - Delegates to client.getAuthState()
-- `react-sdk/src/v1/hooks/use-tambo-v1-thread.ts` (MODIFIED) - Uses client.switchThread()
-- `react-sdk/src/v1/hooks/use-tambo-v1-thread-list.ts` (MODIFIED) - Uses client.listThreads()
-- `react-sdk/src/v1/hooks/use-tambo-v1-suggestions.ts` (MODIFIED) - Uses client.listSuggestions()/generateSuggestions()
-- `react-sdk/src/v1/types/message.ts` (MODIFIED) - Re-export from client + extend with renderedComponent
-- All `src/v1/utils/` files (MODIFIED) - Re-export from `@tambo-ai/client`
-- `react-sdk/src/mcp/tambo-mcp-provider.tsx` (MODIFIED) - Uses client.connectMcpServer()/disconnectMcpServer()
-- `react-sdk/src/mcp/mcp-client.ts` (DELETED) - Re-export from client
-- `react-sdk/src/mcp/mcp-constants.ts` (DELETED) - Re-export from client
-- `react-sdk/src/mcp/elicitation.ts` (MODIFIED) - Types re-exported from client, React hook stays
-- `react-sdk/src/util/mcp-server-utils.ts` (DELETED) - Re-export from client
-- `react-sdk/src/model/mcp-server-info.ts` (DELETED) - Re-export from client
-- `react-sdk/src/providers/tambo-mcp-token-provider.tsx` (MODIFIED) - Uses client.getMcpToken()
-- `react-sdk/src/v1/index.ts` (MODIFIED) - Update imports
+All files listed in the File Structure above under `react-sdk/` that are marked MODIFIED or DELETED.
 
 **Key Implementation Details:**
 
-- TamboProvider creates a `TamboClient` instance and provides it via React context
-- The client's store replaces React's useReducer for stream state
-- `useSyncExternalStore(client.getStore().subscribe, () => client.getStore().getState())` bridges the store to React's rendering cycle
-- Thread sync (fetching messages on switch) moves from `ThreadSyncManager` component to `client.switchThread()`
-- `useTamboSendMessage` becomes: call `client.run()`, await the TamboStream, handle React Query cache invalidation on success
-- Component rendering (`renderedComponent` on `TamboComponentContent`) stays entirely in react-sdk's `useTambo()` hook -- this is the React-specific transform layer
-- Re-export backward compatibility: react-sdk's `index.ts` re-exports types from `@tambo-ai/client` so existing consumers don't break
-- **MCP refactor**: `TamboMcpProvider` calls `client.connectMcpServer()` / `client.disconnectMcpServer()` instead of managing `MCPClient` instances directly. The provider still handles React lifecycle (mount/unmount cleanup), handler updates via effects, and tool registration with the React registry. `TamboMcpTokenProvider` calls `client.getMcpToken()` instead of using the raw typescript-sdk client.
-- **Suggestions refactor**: `useTamboSuggestions` calls `client.listSuggestions()` / `client.generateSuggestions()` instead of the raw typescript-sdk client. React Query caching, auto-generation, and input management stay in the hook.
+- `react-sdk/package.json`: add `@tambo-ai/client` as dependency
+- `TamboProvider` creates a `TamboClient` instance and provides it via React context
+- `useSyncExternalStore(client.subscribe, client.getState)` bridges client state to React rendering
+- Thread sync (fetching messages on switch) moves from `ThreadSyncManager` to `client.switchThread()`
+- `useTamboSendMessage` becomes: call `client.run()`, await `stream.thread`, handle React Query cache invalidation on success
+- Auto thread naming stays in react-sdk (depends on React Query cache invalidation)
+- Component rendering (`renderedComponent` on `TamboComponentContent`) stays in react-sdk's `useTambo()` hook
+- Re-export backward compatibility: react-sdk's `index.ts` re-exports types from `@tambo-ai/client` so `import { TamboThread } from '@tambo-ai/react'` still works
+- **MCP refactor**: `TamboMcpProvider` calls `client.connectMcpServer()` / `client.disconnectMcpServer()`. Provider still handles React lifecycle, handler updates, tool registration with React registry.
+- **Suggestions refactor**: `useTamboSuggestions` calls `client.listSuggestions()` / `client.generateSuggestions()`. React Query caching and auto-generation stay in the hook.
+- Existing tests update to mock client state instead of `useReducer`. Tests move alongside source. All existing react-sdk tests must still pass.
 
 ```pseudo
 // tambo-v1-provider.tsx (simplified)
 function TamboProvider({ apiKey, tools, components, ... }):
   const client = useMemo(() =>
-    new TamboClient({ apiKey, tools, components, userKey, ... }), [apiKey])
+    new TamboClient({ apiKey, tools, userKey, ... }), [apiKey])
 
   return (
     <TamboClientContext.Provider value={client}>
@@ -708,12 +440,10 @@ function TamboProvider({ apiKey, tools, components, ... }):
 // use-tambo-v1.ts (simplified)
 function useTambo():
   const client = useContext(TamboClientContext)
-  const store = client.getStore()
 
-  // This is the key bridge: React re-renders when store state changes
   const state = useSyncExternalStore(
-    store.subscribe,
-    () => store.getState()
+    client.subscribe,
+    client.getState
   )
 
   const threadState = state.threadMap[state.currentThreadId]
@@ -732,7 +462,6 @@ function useTamboSendMessage():
         threadId: currentThreadId,
         ...options,
       })
-      // Await completion
       return await stream.thread
     },
     onSuccess: (thread) => {
@@ -745,40 +474,47 @@ function useTamboSendMessage():
 
 Verify: `npm run build && npm run check-types && npm run lint && npm test`
 
-This is the most critical verification step - all existing react-sdk tests must pass after the refactor.
+This is the most critical verification step — all existing react-sdk tests must pass after the refactor.
 
 ---
 
-### Phase 10: Testing
+### Phase 5: New Tests + Documentation
 
-Ensure both packages work correctly independently and together.
-
-**Files:**
-
-- `packages/client/src/**/*.test.ts` (NEW) - Unit tests for all client modules
-- `react-sdk/src/v1/**/*.test.tsx` (MODIFIED) - Update existing tests for new architecture
+Add tests for new code (TamboClient, TamboStream) and update docs.
 
 **Key Implementation Details:**
 
-- Move existing test files alongside their source files (e.g., `event-accumulator.test.ts` moves to `packages/client/src/utils/`)
-- Tests for the reducer, tool executor, tool-call-tracker, stream-handler already exist and should pass with minimal changes (update import paths)
-- New tests needed for:
-  - `InMemoryStore` (subscribe/setState/getState lifecycle)
-  - `TamboClient` (run, switchThread, startNewThread, registration, auth)
-  - `TamboStream` (iteration modes, promise properties, auto-consume, abort, stitching)
-  - `computeAuthState()` pure function
-- React-sdk tests: existing tests should pass after refactor. Key risk is `TamboStreamProvider` tests that mock `useReducer` -- these need updating to mock the client store instead.
-- Integration test: create a `TamboClient`, register tools, call `run()`, verify tool execution loop completes and state is correct.
-- MCP tests: connect to mock MCP server, discover tools, call tools
-- Suggestions tests: list and generate suggestions via client methods
+- New tests for `TamboClient`: run, switchThread, startNewThread, registration, auth, MCP connect/disconnect, suggestions
+- New tests for `TamboStream`: async iteration, `.thread` promise, abort, multi-step tool execution stitching
+- Integration test: create a `TamboClient`, register tools, call `run()` with `autoExecuteTools: true`, verify tool loop completes
+- Update `packages/client/AGENTS.md` and `packages/client/README.md`
+- Update root `AGENTS.md` to document the new package
 
-**Commit:** `test(client): add comprehensive tests for @tambo-ai/client`
+**Commit:** `test(client): add tests for TamboClient and TamboStream`
 
-Verify: `npm run build && npm run check-types && npm run lint && npm test` (full workspace verification)
+Verify: `npm run build && npm run check-types && npm run lint && npm test`
 
 ---
 
-**Final commit:** `chore(react-sdk): update AGENTS.md and README.md for @tambo-ai/client dependency`
+**Final commit:** `docs: update AGENTS.md and README for @tambo-ai/client package`
+
+## Changes from Review
+
+The following changes were made based on review feedback:
+
+1. **Collapsed from 10 phases to 5.** Phases 2-4 (types, utils, tools) merged into one "move all files" phase. MCP and Suggestions folded into the TamboClient phase. Tests accompany each phase instead of a separate phase at the end.
+2. **Simplified TamboStream** from 5 consumption modes to 2. Dropped `.events()`, `.snapshots()`, `.messages`, `.threadId`. Just `[Symbol.asyncIterator]` + `.thread`.
+3. **No pluggable store interface.** State lives directly on `TamboClient` with `getState()` + `subscribe()`. No `TamboStore<T>` interface, no `InMemoryStore` class in public API.
+4. **Minimal public API.** ~15 exports instead of ~40. Internal utilities (reducer, schema, throttle, etc.) are not public.
+5. **`Map<string, string>` → `Record<string, string>`** in `ThreadState.accumulatingToolArgs`.
+6. **`TamboTool` defaults from `any` to `unknown`**, dropped unused `Rest` type parameter.
+7. **`@tambo-ai/typescript-sdk` as regular dependency** (not devDep) since its types leak through re-exports.
+8. **No auto-consume on `.thread`** — the processing loop always runs; deferred promise resolves naturally.
+9. **Class only, no interface** for `TamboClient`.
+10. **Removed `destroy()`** — nothing to destroy.
+11. **Auth state computed on access** (`getAuthState()`), not stored in reactive state.
+12. **Auto thread naming stays in react-sdk** — the client only exposes `generateThreadName()` / `updateThreadName()` as API wrappers.
+13. **Use typescript-sdk types directly** for component metadata — no new `AvailableComponent` type.
 
 ## Out of Scope (v1)
 
@@ -794,3 +530,4 @@ Verify: `npm run build && npm run check-types && npm run lint && npm test` (full
 - **MCP React hooks** - `useTamboMcpPromptList`, `useTamboMcpResource`, etc. stay as React Query hooks in react-sdk. The client only provides the underlying `MCPClient` class.
 - **MCP React lifecycle** - `TamboMcpProvider` stays in react-sdk (manages mount/unmount, React effects for handler updates). The client provides `connectMcpServer()`/`disconnectMcpServer()` primitives.
 - **Suggestions React hook** - `useTamboSuggestions` (auto-generation, React Query caching, input management) stays in react-sdk. The client provides `listSuggestions()`/`generateSuggestions()` API methods.
+- **Auto thread naming logic** - The "should I generate a name?" decision + React Query cache invalidation stays in react-sdk. Client exposes `generateThreadName()` as a plain API wrapper.
