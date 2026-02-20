@@ -68,8 +68,40 @@ Generate a comprehensive Tambo installation plan with these recommendation categ
 
 For each recommendation, provide:
 - Clear rationale explaining WHY this is recommended
-- Confidence score (0.0-1.0) based on signal strength
+- Confidence score (0.0-1.0) using the rubric below
 - Specific implementation details (file paths, import statements)
+
+## Confidence Scoring Rubric
+
+Score each recommendation using these criteria. Start at 0.5 and adjust:
+
+**Components (generative registration):**
+- +0.2 if component has well-defined props (typed interface/schema)
+- +0.1 if component has a description (JSDoc) explaining its purpose
+- +0.1 if component is user-facing (renders visible UI, not a layout wrapper or utility)
+- +0.1 if component's props describe data an AI could plausibly generate (e.g. product info, chart data)
+- -0.2 if component is a layout/structural wrapper (Header, Footer, Layout, Container)
+- -0.2 if component has no props or only children props
+- -0.1 if component relies heavily on external state (many hooks, context-dependent)
+
+**Interactables (AI-updatable pre-placed components):**
+- +0.2 if component represents user-editable content (forms, editors, settings)
+- +0.1 if component has well-defined props that map to observable state
+- +0.1 if component's purpose suggests bidirectional updates (e.g. filters, toggles, inputs)
+- -0.2 if component is read-only display with no meaningful state to update
+- -0.2 if component is purely decorative or structural
+
+**Tools (functions AI can call):**
+- +0.2 if function is a server action (structured, safe boundary)
+- +0.1 if function has a clear JSDoc description of what it does
+- +0.1 if function performs a distinct, useful operation (CRUD, search, computation)
+- +0.1 if function has typed parameters that can map to a Zod schema
+- -0.2 if function is an internal utility (not user-facing behavior)
+- -0.1 if function has side effects that would be dangerous to invoke automatically
+
+**Provider setup and chat widget:** Score 0.9+ unless there's a clear reason to lower (e.g. non-standard layout structure, conflicting providers).
+
+Clamp all scores to [0.0, 1.0]. Only include items scoring >= 0.5.
 
 Output your analysis as valid JSON matching this structure:
 
@@ -114,10 +146,9 @@ Output your analysis as valid JSON matching this structure:
 }
 
 IMPORTANT:
-- Only recommend high-confidence items (>0.7) unless explicitly valuable
-- Prioritize user-facing components over internal utilities
-- Consider existing architecture and conventions
-- Provide actionable, specific guidance in each rationale
+- Score every recommendation using the rubric above — do NOT guess confidence
+- Only include items with confidence >= 0.5
+- Explain which rubric factors drove the score in each rationale
 - All filePath values MUST be real filesystem paths (e.g. "app/layout.tsx", "src/lib/tambo.ts") — never include descriptions, parenthetical notes, or natural language in filePath fields
 - Output ONLY valid JSON, no additional text or markdown code blocks
 `.trim();
@@ -156,7 +187,7 @@ function buildComponentsSection(analysis: ProjectAnalysis): string {
   const componentsList = componentsToShow
     .map(
       (c) =>
-        `- ${c.name} (${c.filePath}): ${c.hasProps ? "accepts props" : "no props"}, uses [${c.hooks.join(", ")}]`,
+        `- ${c.name} (${c.filePath}): ${c.hasProps ? "accepts props" : "no props"}, uses [${c.hooks.join(", ")}]${c.description ? ` — ${c.description}` : ""}`,
     )
     .join("\n");
 

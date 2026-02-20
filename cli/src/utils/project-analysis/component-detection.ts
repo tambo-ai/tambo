@@ -179,6 +179,7 @@ function extractComponentsFromFile(
       ? params[0]?.getTypeNode()?.getText()
       : undefined;
     const hooks = extractHooks(func);
+    const description = extractJsDocDescription(func);
 
     components.push({
       name,
@@ -187,6 +188,7 @@ function extractComponentsFromFile(
       hasProps,
       propsInterface,
       hooks,
+      description,
     });
   }
 
@@ -238,6 +240,10 @@ function extractComponentsFromFile(
     }
 
     const hooks = extractHooks(initializer);
+    const variableStatement = varDecl.getVariableStatement();
+    const description = variableStatement
+      ? extractJsDocDescription(variableStatement)
+      : undefined;
 
     components.push({
       name,
@@ -246,6 +252,7 @@ function extractComponentsFromFile(
       hasProps,
       propsInterface,
       hooks,
+      description,
     });
   }
 
@@ -326,6 +333,24 @@ function hasJsxNode(node: Node): boolean {
     jsxFragments.length > 0 ||
     jsxSelfClosing.length > 0
   );
+}
+
+/**
+ * Extracts JSDoc description from a function or variable statement.
+ *
+ * @param node - Node with potential JSDoc comments
+ * @returns The description text, or undefined if no JSDoc exists
+ */
+function extractJsDocDescription(node: {
+  getJsDocs(): { getDescription(): string }[];
+}): string | undefined {
+  const jsDocs = node.getJsDocs();
+  if (jsDocs.length === 0) {
+    return undefined;
+  }
+
+  const description = jsDocs[0]?.getDescription().trim();
+  return description || undefined;
 }
 
 /**

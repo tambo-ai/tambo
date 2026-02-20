@@ -13,27 +13,50 @@ import type { InstallationPlan } from "../plan-generation/types.js";
  *
  * @returns Provider setup reference with the given API key
  */
-function buildProviderReference(apiKey: string): string {
+function buildProviderReference(envPrefix: string | null): string {
+  const apiKeyEnvVar = `${envPrefix ?? ""}TAMBO_API_KEY`;
   return `## Provider Setup
 
-Wrap your app with TamboProvider. For Next.js App Router, create a client component:
+Wrap your app with TamboProvider. For Next.js App Router, create a client component.
+
+CRITICAL: TamboProvider REQUIRES both \`apiKey\` and either \`userKey\` or \`userToken\`. The app will break without a userKey.
 
 \`\`\`tsx
 // app/providers.tsx
 "use client";
+import { useState } from "react";
 import { TamboProvider } from "@tambo-ai/react";
 import { components } from "@/lib/tambo";
 
+function getUserKey(): string {
+  if (typeof window === "undefined") return "server";
+  const stored = localStorage.getItem("tambo-user-key");
+  if (stored) return stored;
+  const key = crypto.randomUUID();
+  localStorage.setItem("tambo-user-key", key);
+  return key;
+}
+
 export function Providers({ children }: { children: React.ReactNode }) {
+  const [userKey] = useState(getUserKey);
+
   return (
-    <TamboProvider apiKey="${apiKey}" components={components}>
+    <TamboProvider
+      apiKey={process.env.${apiKeyEnvVar}!}
+      userKey={userKey}
+      components={components}
+    >
       {children}
     </TamboProvider>
   );
 }
 \`\`\`
 
-Then import and wrap children in the root layout.`;
+Then import and wrap children in the root layout.
+
+NOTE: The \`getUserKey()\` function above generates a stable anonymous user ID stored in localStorage. If the app has authentication, replace it with the authenticated user's ID instead (e.g. \`user.id\` from your auth provider).
+
+**Environment variables**: Add \`${apiKeyEnvVar}\` to your \`.env.local\` file.`;
 }
 
 /** Summarized generative component reference (from components + add-components-to-registry skills) */
@@ -120,7 +143,7 @@ export function buildExecutionPrompt(
   plan: InstallationPlan,
   selectedItems: string[],
   chatWidgetInstalled = false,
-  apiKey?: string,
+  envPrefix?: string | null,
 ): string {
   const sections: string[] = [];
 
@@ -155,8 +178,10 @@ export function buildExecutionPrompt(
   const hasTools = selectedItems.some((id) => id.startsWith("tool-"));
 
   const references: string[] = [];
-  const apiKeyValue = apiKey ?? "process.env.NEXT_PUBLIC_TAMBO_API_KEY!";
-  if (hasProvider) references.push(buildProviderReference(apiKeyValue));
+  const resolvedEnvPrefix = envPrefix ?? null;
+  const apiKeyEnvVar = `${resolvedEnvPrefix ?? ""}TAMBO_API_KEY`;
+
+  if (hasProvider) references.push(buildProviderReference(resolvedEnvPrefix));
   if (hasComponents) references.push(GENERATIVE_COMPONENT_REFERENCE);
   if (hasInteractables) references.push(INTERACTABLE_REFERENCE);
   if (hasTools) references.push(TOOL_REFERENCE);
@@ -174,17 +199,34 @@ export function buildExecutionPrompt(
     sections.push(`## 1. Provider Setup
 
 This is the most important step — TamboProvider MUST wrap the entire application.
+CRITICAL: Both \`apiKey\` and \`userKey\` are REQUIRED. The app will break without them.
 
 **Step 1:** Create \`app/providers.tsx\`:
 
 \`\`\`tsx
 "use client";
+import { useState } from "react";
 import { TamboProvider } from "@tambo-ai/react";
 import { components } from "@/lib/tambo";
 
+function getUserKey(): string {
+  if (typeof window === "undefined") return "server";
+  const stored = localStorage.getItem("tambo-user-key");
+  if (stored) return stored;
+  const key = crypto.randomUUID();
+  localStorage.setItem("tambo-user-key", key);
+  return key;
+}
+
 export function Providers({ children }: { children: React.ReactNode }) {
+  const [userKey] = useState(getUserKey);
+
   return (
-    <TamboProvider apiKey="${apiKeyValue}" components={components}>
+    <TamboProvider
+      apiKey={process.env.${apiKeyEnvVar}!}
+      userKey={userKey}
+      components={components}
+    >
       {children}
     </TamboProvider>
   );
@@ -277,7 +319,16 @@ Already installed at \`src/components/tambo/message-thread-full/\`.
   }
 
   sections.push(
-    "# Execution\n\nApply each change in order. Read files before modifying them. When done, output a brief summary of what was changed.",
+    `# Execution
+
+Apply each change in order. Read files before modifying them. When done, output a brief summary of what was changed, followed by these recommended next steps:
+
+# Next Steps
+
+1. Add your \`${apiKeyEnvVar}\` to \`.env.local\`
+2. If your app has authentication, replace the \`getUserKey()\` function in providers.tsx with your authenticated user's ID
+3. Run the dev server and test the Tambo integration
+4. Read the docs at https://docs.tambo.co for guides on components, tools, and threads`,
   );
 
   return sections.join("\n\n");
