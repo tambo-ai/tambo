@@ -1,6 +1,5 @@
 "use client";
 
-import { cn } from "@tambo-ai/ui-registry/utils";
 import {
   createElementObject,
   createLayerComponent,
@@ -8,6 +7,7 @@ import {
   type LayerProps,
   type LeafletContextInterface,
 } from "@react-leaflet/core";
+import { cn } from "@tambo-ai/ui-registry/utils";
 import { cva, type VariantProps } from "class-variance-authority";
 import L, {
   type HeatLatLngTuple,
@@ -174,7 +174,7 @@ export const mapVariants = cva(
         sm: "h-[200px]",
         md: "h-[300px]",
         lg: "h-[500px]",
-        full: "h-full w-full",
+        full: "h-full w-full min-h-[500px]",
       },
       rounded: {
         none: "rounded-none",
