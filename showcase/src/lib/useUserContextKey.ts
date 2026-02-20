@@ -1,6 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useMemo } from "react";
+
+function getOrCreateUserId(storageKey: string): string {
+  if (typeof window === "undefined") {
+    return "";
+  }
+  let userId = localStorage.getItem(storageKey);
+  if (!userId) {
+    userId = `user-${crypto.randomUUID()}`;
+    localStorage.setItem(storageKey, userId);
+  }
+  return userId;
+}
 
 /**
  * Custom hook to generate a user-specific context key
@@ -12,24 +24,11 @@ export function useUserContextKey(
   baseKey: string,
   storageKey = "tambo-user-id",
 ): string {
-  const [userContextKey, setUserContextKey] = useState<string>(baseKey);
+  const userId = useMemo(() => getOrCreateUserId(storageKey), [storageKey]);
 
-  useEffect(() => {
-    // Only run in browser
-    if (typeof window !== "undefined") {
-      // Try to get existing user ID from localStorage
-      let userId = localStorage.getItem(storageKey);
+  if (!userId) {
+    return baseKey;
+  }
 
-      // If no user ID exists, create a new one
-      if (!userId) {
-        userId = `user-${crypto.randomUUID()}`;
-        localStorage.setItem(storageKey, userId);
-      }
-
-      // Combine base context key with user ID
-      setUserContextKey(`${baseKey}-${userId}`);
-    }
-  }, [baseKey, storageKey]);
-
-  return userContextKey;
+  return `${baseKey}-${userId}`;
 }
