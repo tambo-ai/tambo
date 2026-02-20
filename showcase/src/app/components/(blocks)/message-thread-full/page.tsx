@@ -5,6 +5,28 @@ import { InstallationSection } from "@/components/installation-section";
 import { MessageThreadFull } from "@tambo-ai/ui-registry/components/message-thread-full";
 
 export default function MessageThreadFullPage() {
+  const exampleSuggestions = [
+    {
+      id: "full-suggestion-1",
+      title: "Summarize notes",
+      detailedSuggestion:
+        "Summarize my release notes into concise bullet points.",
+      messageId: "full-summarize-notes",
+    },
+    {
+      id: "full-suggestion-2",
+      title: "Draft email",
+      detailedSuggestion: "Draft a follow-up email based on this conversation.",
+      messageId: "full-draft-email",
+    },
+    {
+      id: "full-suggestion-3",
+      title: "Create tasks",
+      detailedSuggestion: "Turn the discussion into a prioritized task list.",
+      messageId: "full-create-tasks",
+    },
+  ];
+
   return (
     <div className="prose max-w-8xl space-y-12">
       {/* Title & Description */}
@@ -28,16 +50,26 @@ export default function MessageThreadFullPage() {
           <ComponentCodePreview
             title="Basic Usage"
             component={
-              <div className="w-full h-full relative flex flex-col rounded-lg overflow-hidden">
-                <MessageThreadFull className="w-full h-full rounded-lg" />
-              </div>
+              <MessageThreadFull
+                className="w-full h-full"
+                initialSuggestions={exampleSuggestions}
+              />
             }
             code={`import { MessageThreadFull } from "@/components/tambo/message-thread-full";
 
 export function ChatPage() {
+  const exampleSuggestions = [
+    {
+      id: "suggestion-1",
+      title: "Summarize notes",
+      detailedSuggestion: "Summarize this chat into key decisions.",
+      messageId: "summary-query",
+    },
+  ];
+
   return (
     <div className="h-screen">
-      <MessageThreadFull />
+      <MessageThreadFull initialSuggestions={exampleSuggestions} />
     </div>
   );
 }`}
@@ -84,6 +116,15 @@ export function ChatPage() {
                 <td>string</td>
                 <td>-</td>
                 <td>Additional CSS classes for customization</td>
+              </tr>
+              <tr>
+                <td>initialSuggestions</td>
+                <td>Suggestion[]</td>
+                <td>-</td>
+                <td>
+                  Optional caller-provided starter suggestions shown before a
+                  conversation begins
+                </td>
               </tr>
             </tbody>
           </table>

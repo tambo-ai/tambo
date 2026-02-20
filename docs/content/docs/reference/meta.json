@@ -1,4 +1,11 @@
 {
   "title": "Reference",
-  "pages": ["react-sdk", "rest-api", "cli", "llm-providers", "problems"]
+  "pages": [
+    "react-sdk",
+    "react-ui-base",
+    "rest-api",
+    "cli",
+    "llm-providers",
+    "problems"
+  ]
 }

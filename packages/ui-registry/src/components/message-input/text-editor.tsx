@@ -65,6 +65,8 @@ export function getImageItems(
 export interface TamboEditor {
   /** Focus the editor at a specific position */
   focus(position?: "start" | "end"): void;
+  /** Whether the editor currently has focus */
+  isFocused(): boolean;
   /** Set the editor content */
   setContent(content: string): void;
   /** Append text to the end of the editor content */
@@ -753,6 +755,7 @@ export const TextEditor = React.forwardRef<TamboEditor, TextEditorProps>(
       if (!editor) {
         return {
           focus: () => {},
+          isFocused: () => false,
           setContent: () => {},
           appendText: () => {},
           getTextWithResourceURIs: () => ({ text: "", resourceNames: {} }),
@@ -770,6 +773,7 @@ export const TextEditor = React.forwardRef<TamboEditor, TextEditorProps>(
             editor.commands.focus();
           }
         },
+        isFocused: () => editor.isFocused,
         setContent: (content: string) => {
           editor.commands.setContent(content);
         },

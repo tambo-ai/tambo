@@ -98,7 +98,7 @@ export function ComponentCodePreview({
         <TabsContent value="preview" className="mt-4">
           <div
             className={cn(
-              "relative rounded-md border border-border w-full",
+              "relative rounded-md overflow-hidden border border-border w-full",
               // Use flex layout for full-bleed components (p-0) so children can fill height
               isFullBleed && "flex flex-col",
               previewClassName,

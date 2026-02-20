@@ -1,6 +1,5 @@
 "use client";
 
-import { Slot } from "@radix-ui/react-slot";
 import * as React from "react";
 import { MAX_IMAGES } from "./constants";
 import { useMessageInputContext } from "./message-input-context";
@@ -22,8 +21,6 @@ export interface MessageInputFileButtonProps extends Omit<
   React.ButtonHTMLAttributes<HTMLButtonElement>,
   "children"
 > {
-  /** Render as a different element using Radix Slot */
-  asChild?: boolean;
   /** Accept attribute for file input - defaults to image types */
   accept?: string;
   /** Allow multiple file selection */
@@ -42,14 +39,7 @@ export const MessageInputFileButton = React.forwardRef<
   MessageInputFileButtonProps
 >(
   (
-    {
-      asChild,
-      accept = "image/*",
-      multiple = true,
-      children,
-      onClick,
-      ...props
-    },
+    { accept = "image/*", multiple = true, children, onClick, ...props },
     ref,
   ) => {
     const { addImages, images, setImageError } = useMessageInputContext();
@@ -94,11 +84,9 @@ export const MessageInputFileButton = React.forwardRef<
       fileInputRef,
     };
 
-    const Comp = asChild ? Slot : "button";
-
     return (
       <>
-        <Comp
+        <button
           ref={ref}
           type="button"
           onClick={handleClick}
@@ -107,7 +95,7 @@ export const MessageInputFileButton = React.forwardRef<
           {...props}
         >
           {typeof children === "function" ? children(renderProps) : children}
-        </Comp>
+        </button>
         <input
           ref={fileInputRef}
           type="file"

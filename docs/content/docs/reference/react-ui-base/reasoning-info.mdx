@@ -1,0 +1,83 @@
+---
+title: ReasoningInfo
+description: Compose reasoning status and expandable reasoning steps for assistant messages.
+---
+
+# ReasoningInfo
+
+`ReasoningInfo` in `@tambo-ai/react-ui-base` exposes reasoning-state behavior with unstyled trigger/content parts.
+
+## Demo
+
+### Tailwind
+
+```tsx
+import { ReasoningInfo } from "@tambo-ai/react-ui-base/reasoning-info";
+
+<ReasoningInfo.Root message={message}>
+  <ReasoningInfo.Trigger>
+    <ReasoningInfo.StatusText />
+  </ReasoningInfo.Trigger>
+  <ReasoningInfo.Content>
+    <ReasoningInfo.Steps />
+  </ReasoningInfo.Content>
+</ReasoningInfo.Root>;
+```
+
+## Anatomy
+
+```tsx
+<ReasoningInfo.Root message={message}>
+  <ReasoningInfo.Trigger />
+  <ReasoningInfo.Content />
+</ReasoningInfo.Root>
+```
+
+## Examples
+
+### Show Step Numbers
+
+```tsx
+<ReasoningInfo.Steps showStepNumbers />
+```
+
+### Custom Step Renderer
+
+```tsx
+<ReasoningInfo.Steps>
+  {({ steps }) => steps.map((step) => <li key={step.id}>{step.title}</li>)}
+</ReasoningInfo.Steps>
+```
+
+## API reference
+
+### Root
+
+| Prop      | Type | Default | Description |
+| --------- | ---- | ------- | ----------- |
+| `message` | `TamboThreadMessage` | Required | Source message used to resolve reasoning state. |
+
+### Trigger
+
+Toggles reasoning visibility and exposes data-state attributes.
+
+### Content
+
+Container for expanded reasoning details.
+
+### Steps
+
+Renders reasoning steps with optional numbering and render overrides.
+
+## Accessibility
+
+- Use semantic list markup for custom step renderers.
+- Ensure trigger text reflects expand/collapse state.
+
+## Styling Hooks
+
+- `data-slot="reasoning-info-root"`
+- `data-slot="reasoning-info-trigger"`
+- `data-slot="reasoning-info-content"`
+- `data-slot="reasoning-info-steps"`
+

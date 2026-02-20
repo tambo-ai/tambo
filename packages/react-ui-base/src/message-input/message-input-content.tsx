@@ -4,7 +4,6 @@ import type {
   TamboElicitationRequest,
   TamboElicitationResponse,
 } from "@tambo-ai/react/mcp";
-import { Slot } from "@radix-ui/react-slot";
 import * as React from "react";
 import { useMessageInputContext } from "./message-input-context";
 
@@ -27,8 +26,8 @@ export interface MessageInputContentProps extends Omit<
   React.HTMLAttributes<HTMLDivElement>,
   "children"
 > {
-  /** Render as a different element using Radix Slot */
-  asChild?: boolean;
+  /** Keep the element mounted while hidden during elicitation */
+  keepMounted?: boolean;
   /** Content to display, or render function */
   children?:
     | React.ReactNode
@@ -42,9 +41,10 @@ export interface MessageInputContentProps extends Omit<
 export const MessageInputContent = React.forwardRef<
   HTMLDivElement,
   MessageInputContentProps
->(({ asChild, children, ...props }, ref) => {
+>(({ keepMounted = false, children, ...props }, ref) => {
   const { elicitation, resolveElicitation, isDragging } =
     useMessageInputContext();
+  const hidden = !!elicitation;
 
   const renderProps = React.useMemo<MessageInputContentRenderProps>(
     () => ({
@@ -55,18 +55,22 @@ export const MessageInputContent = React.forwardRef<
     [isDragging, elicitation, resolveElicitation],
   );
 
-  const Comp = asChild ? Slot : "div";
+  if (hidden && !keepMounted) {
+    return null;
+  }
 
   return (
-    <Comp
+    <div
       ref={ref}
       data-slot="message-input-content"
       data-dragging={isDragging || undefined}
       data-elicitation={elicitation ? "active" : undefined}
+      data-hidden={hidden || undefined}
+      hidden={hidden && keepMounted}
       {...props}
     >
       {typeof children === "function" ? children(renderProps) : children}
-    </Comp>
+    </div>
   );
 });
 MessageInputContent.displayName = "MessageInput.Content";

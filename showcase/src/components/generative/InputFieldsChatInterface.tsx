@@ -3,8 +3,33 @@ import {
   inputFieldsSchema,
 } from "@tambo-ai/ui-registry/components/input-fields";
 import { MessageThreadFull } from "@tambo-ai/ui-registry/components/message-thread-full";
+import type { Suggestion } from "@tambo-ai/react";
 import { useTambo } from "@tambo-ai/react";
 import { useEffect } from "react";
+
+const inputFieldsThreadSuggestions = [
+  {
+    id: "input-fields-suggestion-1",
+    title: "Create sign-up fields",
+    detailedSuggestion:
+      "Create sign-up inputs with email and password validation.",
+    messageId: "input-fields-signup",
+  },
+  {
+    id: "input-fields-suggestion-2",
+    title: "Add phone validation",
+    detailedSuggestion:
+      "Add a phone field with pattern validation and helper text.",
+    messageId: "input-fields-phone",
+  },
+  {
+    id: "input-fields-suggestion-3",
+    title: "Improve errors",
+    detailedSuggestion:
+      "Show clear inline errors for invalid email and short passwords.",
+    messageId: "input-fields-errors",
+  },
+] satisfies Suggestion[];
 
 export const InputFieldsChatInterface = () => {
   const { registerComponent, currentThreadId } = useTambo();
@@ -43,7 +68,10 @@ export const InputFieldsChatInterface = () => {
 
   return (
     <div className="flex flex-col" style={{ height: "700px" }}>
-      <MessageThreadFull className="rounded-lg" />
+      <MessageThreadFull
+        className="rounded-lg"
+        initialSuggestions={inputFieldsThreadSuggestions}
+      />
     </div>
   );
 };

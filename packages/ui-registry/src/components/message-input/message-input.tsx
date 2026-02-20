@@ -17,6 +17,7 @@ import {
   AtSign,
   FileText,
   Image as ImageIcon,
+  Loader2,
   Paperclip,
   Square,
   X,
@@ -36,6 +37,7 @@ import {
   IS_PASTED_IMAGE,
   MAX_IMAGES,
   MessageInput as MessageInputBase,
+  type MessageInputSubmitButtonRenderProps as BaseMessageInputSubmitButtonRenderProps,
   type PromptProvider,
   type ResourceProvider,
   type StagedImageRenderProps,
@@ -137,38 +139,29 @@ const MessageInput = React.forwardRef<HTMLFormElement, MessageInputProps>(
         {...props}
       >
         <TooltipProvider>
-          {/* Use data-* classes for styling, render props only for behavior changes */}
           <MessageInputBase.Content
             className={cn(
               "group relative flex flex-col rounded-xl bg-background shadow-md p-2 px-3 border",
-              // Styling via data attributes - no render prop needed for drag state
               "border-border data-dragging:border-dashed data-dragging:border-emerald-400",
             )}
           >
-            {/* Render props ONLY for behavior change (elicitation vs normal content) */}
-            {({ elicitation, resolveElicitation }) => (
-              <>
-                {/* Drop overlay styled with CSS, shown via group-data-[dragging] */}
-                <div className="absolute inset-0 rounded-xl bg-emerald-50/90 dark:bg-emerald-950/30 items-center justify-center pointer-events-none z-20 hidden group-data-dragging:flex">
-                  <p className="text-emerald-700 dark:text-emerald-300 font-medium">
-                    Drop files here to add to conversation
-                  </p>
-                </div>
-
-                {elicitation && resolveElicitation ? (
-                  <ElicitationUI
-                    request={elicitation}
-                    onResponse={resolveElicitation}
-                  />
-                ) : (
-                  <>
-                    <MessageInputStagedImages />
-                    {children}
-                  </>
-                )}
-              </>
-            )}
+            <div className="absolute inset-0 rounded-xl bg-emerald-50/90 dark:bg-emerald-950/30 items-center justify-center pointer-events-none z-20 hidden group-data-dragging:flex">
+              <p className="text-emerald-700 dark:text-emerald-300 font-medium">
+                Drop files here to add to conversation
+              </p>
+            </div>
+            <MessageInputStagedImages />
+            {children}
           </MessageInputBase.Content>
+          <MessageInputBase.Elicitation
+            className={cn(
+              "rounded-xl bg-background shadow-md p-2 px-3 border border-border",
+            )}
+          >
+            {({ request, onResponse }) => (
+              <ElicitationUI request={request} onResponse={onResponse} />
+            )}
+          </MessageInputBase.Elicitation>
         </TooltipProvider>
       </MessageInputBase.Root>
     );
@@ -422,7 +415,7 @@ const MessageInputPlainTextarea = ({
   ...props
 }: MessageInputPlainTextareaProps) => {
   return (
-    <MessageInputBase.Textarea placeholder={placeholder} asChild>
+    <MessageInputBase.Textarea placeholder={placeholder}>
       {({
         value,
         setValue,
@@ -505,9 +498,15 @@ MessageInputPlainTextarea.displayName = "MessageInput.PlainTextarea";
  * Props for the MessageInputSubmitButton component.
  * Extends standard ButtonHTMLAttributes.
  */
-export interface MessageInputSubmitButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+export interface MessageInputSubmitButtonProps extends Omit<
+  React.ButtonHTMLAttributes<HTMLButtonElement>,
+  "children"
+> {
   /** Optional content to display inside the button. */
-  children?: React.ReactNode;
+  children?:
+    | React.ReactNode
+    | ((props: BaseMessageInputSubmitButtonRenderProps) => React.ReactNode);
+  keepMounted?: boolean;
 }
 
 /**
@@ -529,7 +528,7 @@ const MessageInputSubmitButton = React.forwardRef<
   MessageInputSubmitButtonProps
 >(({ className, children, ...props }, ref) => {
   const buttonClasses = cn(
-    "w-10 h-10 bg-foreground text-background rounded-lg hover:bg-foreground/90 disabled:opacity-50 flex items-center justify-center enabled:cursor-pointer",
+    "order-3 w-10 h-10 bg-foreground text-background rounded-lg hover:bg-foreground/90 disabled:opacity-50 flex items-center justify-center enabled:cursor-pointer",
     className,
   );
 
@@ -539,18 +538,39 @@ const MessageInputSubmitButton = React.forwardRef<
       className={buttonClasses}
       {...props}
     >
-      {({ showCancelButton }) =>
-        children ??
-        (showCancelButton ? (
-          <Square className="w-4 h-4" fill="currentColor" />
-        ) : (
-          <ArrowUp className="w-5 h-5" />
-        ))
-      }
+      {children ??
+        (({ loading }) =>
+          loading ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <ArrowUp className="w-5 h-5" />
+          ))}
     </MessageInputBase.SubmitButton>
   );
 });
 MessageInputSubmitButton.displayName = "MessageInput.SubmitButton";
+
+export interface MessageInputStopButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  children?: React.ReactNode;
+  keepMounted?: boolean;
+}
+
+const MessageInputStopButton = React.forwardRef<
+  HTMLButtonElement,
+  MessageInputStopButtonProps
+>(({ className, children, ...props }, ref) => {
+  const buttonClasses = cn(
+    "order-3 w-10 h-10 bg-foreground text-background rounded-lg hover:bg-foreground/90 disabled:opacity-50 flex items-center justify-center enabled:cursor-pointer",
+    className,
+  );
+
+  return (
+    <MessageInputBase.StopButton ref={ref} className={buttonClasses} {...props}>
+      {children ?? <Square className="w-4 h-4" fill="currentColor" />}
+    </MessageInputBase.StopButton>
+  );
+});
+MessageInputStopButton.displayName = "MessageInput.StopButton";
 
 const MCPIcon = () => {
   return (
@@ -967,37 +987,13 @@ const MessageInputToolbar = React.forwardRef<
   return (
     <div
       ref={ref}
-      className={cn(
-        "flex justify-between items-center mt-2 p-1 gap-2",
-        className,
-      )}
+      className={cn("flex items-center mt-2 p-1 gap-2", className)}
       data-slot="message-input-toolbar"
       {...props}
     >
-      <div className="flex items-center gap-2">
-        {/* Left side - everything except submit button */}
-        {React.Children.map(children, (child): React.ReactNode => {
-          if (
-            React.isValidElement(child) &&
-            child.type === MessageInputSubmitButton
-          ) {
-            return null; // Don't render submit button here
-          }
-          return child;
-        })}
-      </div>
-      <div className="flex items-center gap-2">
+      {children}
+      <div className="order-2 ml-auto flex items-center gap-2">
         <DictationButton />
-        {/* Right side - only submit button */}
-        {React.Children.map(children, (child): React.ReactNode => {
-          if (
-            React.isValidElement(child) &&
-            child.type === MessageInputSubmitButton
-          ) {
-            return child; // Only render submit button here
-          }
-          return null;
-        })}
       </div>
     </div>
   );
@@ -1016,6 +1012,7 @@ export {
   MessageInputMcpResourceButton,
   MessageInputPlainTextarea,
   MessageInputStagedImages,
+  MessageInputStopButton,
   MessageInputSubmitButton,
   MessageInputTextarea,
   MessageInputToolbar,

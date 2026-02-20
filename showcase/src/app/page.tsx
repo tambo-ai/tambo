@@ -1,8 +1,32 @@
 "use client";
 
+import type { Suggestion } from "@tambo-ai/react";
 import { MessageThreadFull } from "@tambo-ai/ui-registry/components/message-thread-full";
 import Link from "next/link";
 import { DemoWrapper } from "./components/demo-wrapper";
+
+const homeThreadSuggestions = [
+  {
+    id: "home-suggestion-1",
+    title: "Add a thread",
+    detailedSuggestion: "Show me how to add MessageThreadFull to a page.",
+    messageId: "home-add-thread",
+  },
+  {
+    id: "home-suggestion-2",
+    title: "Pick a variant",
+    detailedSuggestion:
+      "What should I use for my app: full, collapsible, or panel thread?",
+    messageId: "home-pick-variant",
+  },
+  {
+    id: "home-suggestion-3",
+    title: "Starter prompts",
+    detailedSuggestion:
+      "Give me three prompts I can use to test components quickly.",
+    messageId: "home-starter-prompts",
+  },
+] satisfies Suggestion[];
 
 export default function DocsPage() {
   return (
@@ -44,7 +68,7 @@ export default function DocsPage() {
         </h2>
         <DemoWrapper title="Message Thread" height={600} hidePreviewHeading>
           <div className="h-full relative flex flex-col rounded-lg overflow-hidden">
-            <MessageThreadFull />
+            <MessageThreadFull initialSuggestions={homeThreadSuggestions} />
           </div>
         </DemoWrapper>
       </section>
