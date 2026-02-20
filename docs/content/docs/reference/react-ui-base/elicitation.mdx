@@ -51,15 +51,13 @@ Single-field boolean or enum requests auto-submit when the option is selected.
 
 ```tsx
 <Elicitation.Actions>
-  {({ handleCancel, handleDecline, handleAccept, isValid }) => (
-    <>
-      <button onClick={handleCancel}>Cancel</button>
-      <button onClick={handleDecline}>Decline</button>
-      <button onClick={handleAccept} disabled={!isValid}>
-        Submit
-      </button>
-    </>
-  )}
+  <Elicitation.ActionDecline className="rounded px-3 py-2">
+    Skip
+  </Elicitation.ActionDecline>
+  <Elicitation.ActionCancel className="rounded px-3 py-2">
+    Cancel
+  </Elicitation.ActionCancel>
+  <Elicitation.ActionSubmit className="rounded px-3 py-2" />
 </Elicitation.Actions>
 ```
 
@@ -82,7 +80,13 @@ Renders field controls generated from `request.requestedSchema`.
 
 ### Actions
 
-Renders cancel/decline actions and submit for multi-field requests.
+Container for action controls. By default it renders:
+
+- `Elicitation.ActionCancel`
+- `Elicitation.ActionDecline`
+- `Elicitation.ActionSubmit` (hidden for single-entry mode)
+
+If you pass `children`, they fully replace the default action buttons.
 
 ## Accessibility
 
@@ -96,4 +100,3 @@ Renders cancel/decline actions and submit for multi-field requests.
 - `data-slot="elicitation-message"`
 - `data-slot="elicitation-fields"`
 - `data-slot="elicitation-actions"`
-
