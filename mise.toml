@@ -1,6 +1,5 @@
 [tools]
 cspell = "9.4.0"
-gh = "2.87.2"
 jq = "1.8.1"
 shellcheck = "0.11.0"
 
