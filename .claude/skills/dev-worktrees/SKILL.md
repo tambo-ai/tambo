@@ -31,7 +31,7 @@ install_command: npm install
 | `linear_prefix`   | `TAM`                                      | Linear issue prefix (case-insensitive)                 |
 | `install_command` | `npm install`                              | Dependency install command, executed as-is in worktree |
 
-If a user asks to change a preference, update or create the file in the main repo, preserving other values. Always write `worktree_base` as a fully resolved absolute path (no `~`, no `$HOME`). In a POSIX shell, resolve a user-provided path `P` via `realpath -- "$P"` if available, otherwise `cd -- "$P" && pwd`. If path resolution fails, stop and ask for a valid absolute path.
+If a user asks to change a preference, update or create the file in the main repo, preserving other values. Always write `worktree_base` as a fully resolved canonical absolute path (no `~`, no `$HOME`). On POSIX systems, resolve a user-provided path `P` via `realpath -- "$P"` if available, otherwise use a fallback that expands `~` and resolves symlinks (e.g., `python3 -c 'import os,sys; print(os.path.realpath(os.path.expanduser(sys.argv[1])))' "$P"`). If path resolution fails, stop and ask for a valid absolute path.
 
 ## Workflow
 
@@ -82,7 +82,7 @@ fi
 
 You can inspect existing worktrees with `git worktree list`, but always run `/dev-worktrees` from the primary clone.
 
-If the check above fails, explain that `/dev-worktrees` must run from the top-level primary clone (not from a worktree, submodule, or nested repo) and abort without making any changes.
+If the check above fails, explain that `/dev-worktrees` must run from the primary clone (not from a worktree, submodule, or nested repo) and abort without making any changes.
 
 Worktree path: `<worktree_base>/<branch-name-without-username-prefix>`
 Example: branch `lachieh/tam-1234-add-dark-mode` → `<worktree_base>/tam-1234-add-dark-mode`
@@ -93,8 +93,8 @@ Example: branch `lachieh/tam-1234-add-dark-mode` → `<worktree_base>/tam-1234-a
 REMOTE="origin"
 DEFAULT_BRANCH_REF="$(git symbolic-ref "refs/remotes/$REMOTE/HEAD" --short 2>/dev/null || true)"
 if [ -z "$DEFAULT_BRANCH_REF" ]; then
-  echo "Warning: $REMOTE/HEAD is not set; falling back to $REMOTE/main" >&2
-  DEFAULT_BRANCH_REF="$REMOTE/main"
+  echo "Could not determine default branch via $REMOTE/HEAD; configure it or set DEFAULT_BRANCH_REF explicitly" >&2
+  exit 1
 fi
 DEFAULT_BRANCH="${DEFAULT_BRANCH_REF#${REMOTE}/}"
 
@@ -110,6 +110,8 @@ If the branch already exists, ask to check out the existing branch instead.
 ### 5. Symlink Claude settings
 
 Link `<main-repo>/.claude/settings.local.json` into the worktree. Both paths must be fully resolved absolute paths (no `~`, no `$HOME`, no other env vars). If a user gives a path with `~` or `$HOME`, resolve it to an absolute path before using it.
+
+If `$LINK` already exists as a symlink, overwrite it to point at `$TARGET` (i.e., behave like `ln -sf`).
 
 If you normally refer to the repo as something like `~/code/tambo`, resolve it first (e.g., `realpath ~/code/tambo`) and use that output for `<main-repo>`.
 
