@@ -99,7 +99,11 @@ export const ThreadRow = memo(
                 {thread.id || "N/A"}
               </code>
             </button>
-            <CopyButton clipboardValue={thread.id || ""} className="h-6 w-6" />
+            <CopyButton
+              clipboardValue={thread.id || ""}
+              className="h-6 w-6"
+              disabled={isDeleting}
+            />
           </div>
         </TableCell>
 
