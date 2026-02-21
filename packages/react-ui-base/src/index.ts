@@ -11,11 +11,13 @@ export { Elicitation } from "./elicitation";
 export type {
   ElicitationActionsProps,
   ElicitationActionsState,
+  ElicitationContextValue,
   ElicitationField,
   ElicitationFieldsProps,
   ElicitationFieldsState,
   ElicitationMessageProps,
   ElicitationMessageState,
+  ElicitationProviderProps,
   ElicitationRootProps,
 } from "./elicitation";
 

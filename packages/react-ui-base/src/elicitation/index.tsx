@@ -12,8 +12,15 @@ export const Elicitation = {
   Actions: ElicitationActions,
 };
 
-export type { ElicitationActionsProps } from "./elicitation-actions";
-export type { ElicitationField } from "./elicitation-context";
+export type {
+  ElicitationActionsProps,
+  ElicitationActionsState,
+} from "./elicitation-actions";
+export type {
+  ElicitationContextValue,
+  ElicitationField,
+  ElicitationProviderProps,
+} from "./elicitation-context";
 export type {
   ElicitationFieldsProps,
   ElicitationFieldsState,

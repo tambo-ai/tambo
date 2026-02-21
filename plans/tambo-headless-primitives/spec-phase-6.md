@@ -70,7 +70,7 @@ npm test -w apps/web
 
 ## Implementation Tracking
 
-- **Current Status**: `Completed`
-- **Implementation PR(s)**: `codex/showcase-page-specific-suggestions`
-- **Completion Date (YYYY-MM-DD)**: `2026-02-21`
-- **Completion Notes**: `docs`/`showcase` adoption landed, including reference navigation registration plus `react-ui-base` reference pages and showcase example alignment updates.
+- **Current Status**: `Not Started`
+- **Implementation PR(s)**: `TBD`
+- **Completion Date (YYYY-MM-DD)**: `TBD`
+- **Completion Notes**: `TBD`

@@ -180,23 +180,20 @@ export const ElicitationProvider = ({
 
   const setFieldValue = React.useCallback(
     (name: string, value: unknown) => {
-      const schemaEntry = fields.find(([fieldName]) => fieldName === name);
-      if (!schemaEntry) {
-        console.error(`Elicitation field "${name}" was not found`);
-        return;
-      }
-
-      const [, schema] = schemaEntry;
-      const required = requiredFields.includes(name);
-
       setFormData((previousFormData) => {
         const nextFormData = { ...previousFormData, [name]: value };
 
         if (isSingleEntry) {
+          const schemaEntry = fields.find(([fieldName]) => fieldName === name);
+          if (!schemaEntry) {
+            throw new Error(`Elicitation field "${name}" was not found`);
+          }
+
+          const [, schema] = schemaEntry;
           const fieldValidation = validateField(
             nextFormData[name],
             schema,
-            required,
+            requiredFields.includes(name),
           );
 
           if (fieldValidation.isValid) {

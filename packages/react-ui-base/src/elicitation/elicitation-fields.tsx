@@ -157,7 +157,7 @@ export const ElicitationFields = React.forwardRef<
 >(({ render, children, ...props }, ref) => {
   const { fields, isSingleEntry } = useElicitationContext();
 
-  const defaultFields = React.useMemo(
+  const defaultContent = React.useMemo(
     () => renderDefaultFields(fields),
     [fields],
   );
@@ -171,7 +171,7 @@ export const ElicitationFields = React.forwardRef<
     >,
     props: mergeProps(props, {
       fields,
-      children: children ?? defaultFields,
+      children: children ?? defaultContent,
     }),
     state: {
       single: isSingleEntry,
