@@ -46,13 +46,13 @@ describe("useTamboSuggestions", () => {
       id: "suggestion_1",
       messageId: "msg_1",
       title: "What's the weather?",
-      detailedSuggestion: "What's the weather like today?",
+      description: "What's the weather like today?",
     },
     {
       id: "suggestion_2",
       messageId: "msg_1",
       title: "Tell me a joke",
-      detailedSuggestion: "Can you tell me a funny joke?",
+      description: "Can you tell me a funny joke?",
     },
   ];
 
@@ -472,7 +472,7 @@ describe("useTamboSuggestions", () => {
         id: "empty_suggestion",
         messageId: "msg_1",
         title: "Empty",
-        detailedSuggestion: "",
+        description: "",
       };
 
       await expect(
@@ -480,7 +480,7 @@ describe("useTamboSuggestions", () => {
       ).rejects.toThrow("Suggestion has no content");
     });
 
-    it("throws error when detailedSuggestion is only whitespace", async () => {
+    it("throws error when description is only whitespace", async () => {
       const { result } = renderHook(() => useTamboSuggestions(), {
         wrapper: createWrapper(),
       });
@@ -489,7 +489,7 @@ describe("useTamboSuggestions", () => {
         id: "whitespace_suggestion",
         messageId: "msg_1",
         title: "Whitespace",
-        detailedSuggestion: "   ",
+        description: "   ",
       };
 
       await expect(
@@ -497,7 +497,7 @@ describe("useTamboSuggestions", () => {
       ).rejects.toThrow("Suggestion has no content");
     });
 
-    it("throws error when detailedSuggestion is undefined", async () => {
+    it("throws error when description is undefined", async () => {
       const { result } = renderHook(() => useTamboSuggestions(), {
         wrapper: createWrapper(),
       });

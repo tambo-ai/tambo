@@ -315,7 +315,7 @@ export function useTamboSuggestions(
       suggestion,
       shouldSubmit = false,
     }: AcceptSuggestionOptions) => {
-      const text = suggestion.detailedSuggestion?.trim();
+      const text = suggestion.description?.trim();
       if (!text) {
         throw new Error("Suggestion has no content");
       }
