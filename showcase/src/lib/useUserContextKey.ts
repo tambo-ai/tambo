@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useLayoutEffect, useState } from "react";
 
 /**
  * Custom hook to generate a user-specific context key
@@ -12,24 +12,29 @@ export function useUserContextKey(
   baseKey: string,
   storageKey = "tambo-user-id",
 ): string {
-  const [userContextKey, setUserContextKey] = useState<string>(baseKey);
-
-  useEffect(() => {
-    // Only run in browser
-    if (typeof window !== "undefined") {
-      // Try to get existing user ID from localStorage
-      let userId = localStorage.getItem(storageKey);
-
-      // If no user ID exists, create a new one
-      if (!userId) {
-        userId = `user-${crypto.randomUUID()}`;
-        localStorage.setItem(storageKey, userId);
-      }
-
-      // Combine base context key with user ID
-      setUserContextKey(`${baseKey}-${userId}`);
+  const [userId] = useState(() => {
+    if (typeof window === "undefined") {
+      return "";
     }
-  }, [baseKey, storageKey]);
 
-  return userContextKey;
+    return localStorage.getItem(storageKey) ?? `user-${crypto.randomUUID()}`;
+  });
+
+  useLayoutEffect(() => {
+    if (typeof window === "undefined" || !userId) {
+      return;
+    }
+
+    if (localStorage.getItem(storageKey)) {
+      return;
+    }
+
+    localStorage.setItem(storageKey, userId);
+  }, [storageKey, userId]);
+
+  if (!userId) {
+    return baseKey;
+  }
+
+  return `${baseKey}-${userId}`;
 }
