@@ -1,4 +1,4 @@
-# Implementation Spec: Tambo Headless Primitives - Phase 6 (Vertical Slice: Showcase Adoption + Docs IA/Polish)
+# Implementation Spec: Tambo Headless Primitives - Phase 6 (Vertical Slice: docs + showcase Adoption)
 
 **Contract**: ./contract.md  
 **Feature Contract**: ./ui-feature-contract.md  
@@ -6,55 +6,57 @@
 
 ## Technical Approach
 
-Adopt updated contracts in non-production first-party consumers (`docs`, `showcase`) as one vertical slice after apps/web. Primitive docs content is authored in Phases 1 and 2; this phase focuses on docs information architecture integration, consistency, and showcase parity.
+Adopt the finalized primitive/registry contracts in `docs` and `showcase` as one slice focused on reference accuracy, runnable examples, and docs information architecture consistency.
+
+Primitive reference authoring is already delivered in Phases 1 and 2. This phase focuses on navigation, consistency, and consumer usage parity.
 
 ## Scope
 
 ### In Scope
 
-- Update docs/showcase usages of message input, timeline, and thread blocks.
-- Remove stale examples that imply baked suggestions or old composition internals.
-- Keep docs copies aligned with registry behavior where duplication exists.
-- Register and finalize `react-ui-base-primitives` reference section navigation.
-- Run a consistency pass over primitive docs pages created in Phases 1 and 2.
+- Update `docs` and `showcase` component usage to current primitive/block contracts.
+- Remove stale examples that imply old composition internals or baked suggestions.
+- Register/finalize `react-ui-base` reference navigation structure.
+- Run a consistency pass on primitive docs pages authored in Phases 1 and 2.
+- Ensure docs copies of CLI/registry-driven UI examples reflect current contract boundaries.
 
 ### Out of Scope
 
-- New feature development.
-- Additional base primitive domain expansion.
-- First-pass authoring of primitive docs pages for input/timeline domains.
+- New primitive behavior.
+- Additional primitive docs domains beyond agreed scope.
+- apps/web production feature changes.
 
 ## File Changes
 
 ### Modified Files
 
-| File Path                                                        | Changes                                                           |
-| ---------------------------------------------------------------- | ----------------------------------------------------------------- |
-| `docs/src/components/tambo/*.tsx`                                | align with updated registry/base contracts                        |
-| `showcase/src/app/components/**/*.tsx`                           | align primitive examples with new contracts                       |
-| `showcase/src/components/generative/*.tsx`                       | align block usage and suggestion sourcing                         |
-| `docs/content/docs/reference/meta.json`                          | register `react-ui-base-primitives` section in docs reference nav |
-| `docs/content/docs/reference/react-ui-base-primitives/index.mdx` | section landing page and cross-links                              |
-| `docs/content/docs/reference/react-ui-base-primitives/meta.json` | finalize page ordering and navigation for primitive docs          |
-| `docs/content/docs/reference/react-ui-base-primitives/*.mdx`     | consistency polish (heading structure/API table alignment)        |
+| File Path                                             | Changes                                                               |
+| ----------------------------------------------------- | --------------------------------------------------------------------- |
+| `docs/src/components/tambo/*.tsx`                     | Align docs examples with updated primitive + registry contracts       |
+| `showcase/src/app/components/**/*.tsx`                | Align showcase examples with updated composition model                |
+| `showcase/src/components/generative/*.tsx`            | Align thread blocks/suggestions usage with caller-provided semantics  |
+| `docs/content/docs/reference/meta.json`               | Register/position `react-ui-base` reference section                   |
+| `docs/content/docs/reference/react-ui-base/index.mdx` | Update landing content and cross-links                                |
+| `docs/content/docs/reference/react-ui-base/meta.json` | Finalize page order and navigation consistency                        |
+| `docs/content/docs/reference/react-ui-base/*.mdx`     | Consistency polish for heading/API/styling-hook alignment             |
 
 ## Implementation Details
 
-1. Update examples to show caller-provided suggestions where thread blocks are used.
-2. Ensure message input examples reflect submit/stop/elicitation responsibilities correctly.
-3. Keep showcase/demo behavior representative of intended consumer patterns.
-4. Ensure all primitive docs pages follow the shared Base UI-style template and heading order.
-5. Ensure reference navigation exposes primitive docs section cleanly.
+1. Ensure all examples reflect render-prop composition and current namespace exports.
+2. Ensure docs/showcase thread block usage passes suggestions from caller-owned data.
+3. Keep docs structure aligned to `spec-template-base-primitive-doc-page.md` (`Demo`, `Anatomy`, `Examples`, `API reference`).
+4. Preserve clear separation statements: behavior in `react-ui-base`, styling/orchestration in `ui-registry`.
+5. Keep examples minimal, copy/pasteable, and free from hidden fallback assumptions.
 
 ## Testing Requirements
 
 ### Manual Testing
 
-- [ ] Docs examples render and compile.
-- [ ] Showcase block pages render and function.
-- [ ] Showcase message primitive pages match current API.
-- [ ] Reference nav includes `react-ui-base-primitives`.
-- [ ] Primitive docs pages have consistent `Demo`/`Anatomy`/`Examples`/`API reference` structure.
+- [ ] Docs examples compile and render.
+- [ ] Showcase pages compile and render with updated APIs.
+- [ ] Primitive docs pages preserve required heading structure.
+- [ ] Reference navigation exposes and orders `react-ui-base` pages correctly.
+- [ ] Showcase thread blocks demonstrate caller-provided suggestions behavior.
 
 ## Validation Commands
 

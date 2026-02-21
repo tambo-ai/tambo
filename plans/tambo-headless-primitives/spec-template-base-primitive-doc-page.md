@@ -4,8 +4,8 @@
 
 ## Target Files
 
-- `docs/content/docs/reference/react-ui-base-primitives/<primitive>.mdx`
-- `docs/content/docs/reference/react-ui-base-primitives/meta.json` (page registration)
+- `docs/content/docs/reference/react-ui-base/<primitive>.mdx`
+- `docs/content/docs/reference/react-ui-base/meta.json` (page registration)
 - `docs/content/docs/reference/meta.json` (section registration, Phase 6 IA pass)
 
 ## Required Frontmatter
@@ -111,9 +111,9 @@ Compose message authoring behavior using unstyled parts in `@tambo-ai/react-ui-b
 - `data-slot`
 - `data-state`
 - `data-hidden`
+- ...
 
 ```
-
 ## Definition of Done Checklist
 
 - [ ] Page uses the required heading structure (`Demo`, `Anatomy`, `Examples`, `API reference`).

@@ -6,49 +6,53 @@
 
 ## Technical Approach
 
-Final stabilization pass after all vertical slices land. Focus on removing residual drift, validating exports/tests, and hardening release readiness.
+Execute a final integration gate after all implementation slices land. This phase is strictly for stabilization: contract drift cleanup, dependency/export verification, and cross-workspace confidence checks.
 
 ## Scope
 
 ### In Scope
 
-- Remove stale references to pre-contract architecture.
-- Verify package exports and import paths.
-- Verify first-party consumers compile together.
-- Final pass on TODOs and intentional deferred items (rename API wiring TODO remains intentionally deferred).
+- Remove stale references to pre-contract composition mechanics.
+- Verify `react-ui-base` exports and subpath exports are consistent with shipped namespaces.
+- Verify registry and first-party consumer packages compile together.
+- Confirm no first-party reintroduction of `asChild`, Radix Slot, or custom render helpers.
+- Confirm registry components/blocks compose primitives for Tambo-specific behavior boundaries.
+- Preserve intentional deferred items (rename API wiring TODO remains deferred).
 
 ### Out of Scope
 
-- New behavior/features.
-- Additional contract changes.
+- New feature work.
+- New contract definitions.
+- Additional primitive domain expansion.
 
 ## File Changes
 
 ### Modified Files
 
-| File Path                              | Changes                                          |
-| -------------------------------------- | ------------------------------------------------ |
-| `packages/react-ui-base/src/index.ts`  | final export consistency                         |
-| `packages/react-ui-base/package.json`  | final subpath export consistency                 |
-| `packages/ui-registry/package.json`    | dependency/export alignment                      |
-| `plans/tambo-headless-primitives/*.md` | closeout edits if needed for implemented reality |
+| File Path                              | Changes                                                      |
+| -------------------------------------- | ------------------------------------------------------------ |
+| `packages/react-ui-base/src/index.ts`  | Final namespace export alignment                             |
+| `packages/react-ui-base/package.json`  | Final subpath export alignment                               |
+| `packages/ui-registry/package.json`    | Dependency/export alignment for finalized primitive usage    |
+| `plans/tambo-headless-primitives/*.md` | Final closeout edits if implementation reality requires sync |
 
 ## Implementation Details
 
-1. Run full workspace validation and fix integration regressions only.
-2. Keep fail-fast behavior and explicit errors intact.
-3. Confirm no reintroduction of `asChild`/legacy composition paths.
-4. Confirm registry blocks remain registry-owned and base scope remains aligned to contract.
+1. Run full workspace validation and only fix regressions or contract drift.
+2. Keep explicit fail-fast errors and ownership boundaries intact.
+3. Verify no first-party registry component calls Tambo hooks directly where a base primitive contract exists.
+4. Confirm docs/showcase/apps/web examples match shipped APIs and behavior expectations.
 
 ## Testing Requirements
 
 ### Full Validation
 
-- [ ] Root typecheck.
-- [ ] Root lint.
-- [ ] Root tests.
-- [ ] Build for touched packages.
-- [ ] `ui-registry` export verification.
+- [ ] Root typecheck passes.
+- [ ] Root lint passes.
+- [ ] Root tests pass.
+- [ ] Build passes for touched packages.
+- [ ] `ui-registry` export verification passes.
+- [ ] Contract audit checks pass (`asChild`, Radix Slot, custom `useRender`, direct registry hook usage).
 
 ## Validation Commands
 
@@ -58,4 +62,7 @@ npm run lint
 npm test
 npm run build
 npm run verify-exports -w packages/ui-registry
+rg "asChild" packages/react-ui-base packages/ui-registry
+rg "@radix-ui/react-slot" packages/react-ui-base packages/ui-registry
+rg "useTambo" packages/ui-registry/src/components
 ```

@@ -17,18 +17,12 @@ Before more component rewrites, define one explicit behavior and composition con
 5. Add a reusable Base UI-style docs page template for primitive reference pages.
 6. Define docs rollout mapping so primitive docs ship with the relevant implementation slices (not as a late catch-up phase).
 
-## Docs Rollout Matrix
-
-| Phase   | Primitive Docs Deliverable                                                                                   |
-| ------- | ------------------------------------------------------------------------------------------------------------ |
-| Phase 1 | `message-input.mdx`, `elicitation.mdx` using `spec-template-base-primitive-doc-page.md`                      |
-| Phase 2 | `message.mdx`, `toolcall-info.mdx`, `reasoning-info.mdx` using `spec-template-base-primitive-doc-page.md`    |
-| Phase 6 | Docs IA + polish pass: `reference/meta.json` section registration, ordering, cross-links, consistency review |
-
 ## In Scope
 
 - Existing primitive domains: `message`, `toolcall-info`, `reasoning-info`, `message-input`
 - New base primitive domain: `elicitation` (and MessageInput integration contract)
+- New base primitive domains: `thread-history`, `thread-dropdown`, `thread-content`
+- New base primitive domain: `mcp-components` (will need deep analysis)
 - Registry block contracts: `message-thread-full`, `message-thread-panel`, `message-thread-collapsible`, `control-bar`
 - Registry behavior contracts: `thread-history`, `canvas-space`, `message-suggestions`
 - Base primitive docs template + page taxonomy for docs site
@@ -36,7 +30,7 @@ Before more component rewrites, define one explicit behavior and composition con
 
 ## Out of Scope
 
-- New base primitive domains for thread blocks, map, form, and input-fields
+- New base primitive domains for composed message-thread-\* blocks, map, form, and input-fields
 - Actual component implementation changes (except rollback/stabilization)
 - Styling decisions beyond what is needed for usage examples
 

@@ -2,69 +2,87 @@
 
 **Contract**: ./contract.md  
 **Feature Contract**: ./ui-feature-contract.md  
-**Estimated Effort**: M
+**Estimated Effort**: L
 
 ## Technical Approach
 
-Deliver thread control interactions as a coherent vertical slice in registry components:
+Deliver thread control interactions as one behavior-first slice by introducing dedicated headless primitives for thread controls and keeping styled orchestration in `ui-registry`.
 
-- thread history/search/switch/new-thread
-- thread dropdown actions and shortcuts
-- suggestions status/list behavior
-
-This phase keeps these features registry-owned and opinionated, per contract.
+This phase moves Tambo-specific hook usage for thread control concerns into `react-ui-base` and keeps registry components focused on visual composition and product-level interaction choices.
 
 ## Scope
 
 ### In Scope
 
-- `thread-history`, `thread-dropdown`, `message-suggestions`.
-- Caller-provided suggestion defaults behavior.
-- Rename UI kept with explicit TODO for API wiring.
-- Block-level hotkeys retained.
+- Add dedicated `ThreadHistory` primitives to `react-ui-base`.
+- Add dedicated `ThreadDropdown` primitives to `react-ui-base`.
+- Move thread list/search/switch/new-thread behavior boundaries to base primitives.
+- Keep rename UI visible and explicit with deferred backend wiring (TODO remains intentional).
+- Update registry `thread-history` and `thread-dropdown` components to compose primitives only.
+- Ensure suggestions remain caller-provided in `message-suggestions` and block entry points (no baked defaults).
 
 ### Out of Scope
 
-- Thread container layout variants (`full/panel/collapsible/control-bar`).
-- apps/web consumer migration.
+- Thread block variant layout/orchestration unification (`full/panel/collapsible/control-bar`).
+- `apps/web` adoption.
+- Docs IA polish (Phase 6).
 
 ## File Changes
 
+### New Files
+
+| File Path                                               | Changes                                           |
+| ------------------------------------------------------- | ------------------------------------------------- |
+| `packages/react-ui-base/src/thread-history/index.tsx`  | ThreadHistory namespace export                    |
+| `packages/react-ui-base/src/thread-history/**/*.tsx`   | ThreadHistory root/parts/context + behavior hooks |
+| `packages/react-ui-base/src/thread-dropdown/index.tsx` | ThreadDropdown namespace export                   |
+| `packages/react-ui-base/src/thread-dropdown/**/*.tsx`  | ThreadDropdown root/parts/context + actions       |
+| `packages/react-ui-base/src/thread-history/**/*.test.tsx` | ThreadHistory behavior + guard coverage        |
+| `packages/react-ui-base/src/thread-dropdown/**/*.test.tsx` | ThreadDropdown behavior + guard coverage      |
+
 ### Modified Files
 
-| File Path                                                                         | Changes                                                   |
-| --------------------------------------------------------------------------------- | --------------------------------------------------------- |
-| `packages/ui-registry/src/components/thread-history/thread-history.tsx`           | Keep rename UX; add TODO for rename API integration       |
-| `packages/ui-registry/src/components/thread-dropdown/thread-dropdown.tsx`         | Shortcut and action contract cleanup                      |
-| `packages/ui-registry/src/components/message-suggestions/message-suggestions.tsx` | Caller-provided suggestions contract and behavior cleanup |
+| File Path                                                                         | Changes                                                           |
+| --------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| `packages/react-ui-base/src/index.ts`                                             | Export `ThreadHistory` + `ThreadDropdown` namespaces             |
+| `packages/react-ui-base/package.json`                                             | Add `thread-history` + `thread-dropdown` subpath exports         |
+| `packages/ui-registry/src/components/thread-history/thread-history.tsx`           | Styled wrapper over base primitives; keep rename TODO             |
+| `packages/ui-registry/src/components/thread-dropdown/thread-dropdown.tsx`         | Styled wrapper over base primitives + shortcut wiring             |
+| `packages/ui-registry/src/components/message-suggestions/message-suggestions.tsx` | Enforce caller-provided suggestions behavior and empty-state path |
 
 ## Implementation Details
 
-1. Remove/avoid baked app-specific suggestion defaults in reusable components.
-2. Preserve existing hotkey behavior as registry opinion (`Alt+Shift+N`, etc.).
-3. Keep thread rename UI visible; document deferred API implementation inline.
-4. Keep empty/loading/error states explicit and non-silent.
+1. `ThreadHistory.Root` owns thread collection state derivation, selection callbacks, and search filtering inputs.
+2. `ThreadDropdown.Root` owns action availability state (switch/new-thread/rename affordances) and exposes composable trigger/content parts.
+3. Registry thread controls do not call Tambo hooks directly; they compose primitives and style via classes/data attributes.
+4. Rename UI remains visible with a clear TODO for backend rename API integration; no silent fallback behavior.
+5. Suggestions are only rendered when caller-provided data exists; do not inject reusable-component defaults.
 
 ## Testing Requirements
 
 ### Unit Tests
 
-| Test File                                                                              | Coverage                                         |
-| -------------------------------------------------------------------------------------- | ------------------------------------------------ |
-| `packages/ui-registry/src/components/thread-dropdown/thread-dropdown.test.tsx`         | switch/new thread + shortcut behavior            |
-| `packages/ui-registry/src/components/thread-history/thread-history.test.tsx`           | list/search/collapse/rename UI behavior          |
-| `packages/ui-registry/src/components/message-suggestions/message-suggestions.test.tsx` | caller-provided suggestions + selection behavior |
+| Test File                                                                              | Coverage                                                        |
+| -------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| `packages/react-ui-base/src/thread-history/**/*.test.tsx`                             | list/search/select behavior, context guards, render composition |
+| `packages/react-ui-base/src/thread-dropdown/**/*.test.tsx`                            | action availability, trigger/content behavior, context guards   |
+| `packages/ui-registry/src/components/thread-history/thread-history.test.tsx`          | styled composition + rename affordance parity                   |
+| `packages/ui-registry/src/components/thread-dropdown/thread-dropdown.test.tsx`        | keyboard shortcuts + styled action rendering                    |
+| `packages/ui-registry/src/components/message-suggestions/message-suggestions.test.tsx` | caller-provided suggestion rendering + selection flow          |
 
 ### Manual Testing
 
-- [ ] Validate search and switch thread flow.
-- [ ] Validate new-thread creation from controls and hotkey.
-- [ ] Validate rename UI presence and deferred behavior.
+- [ ] Validate thread search/filter and active-thread switching.
+- [ ] Validate new-thread action from dropdown and keyboard shortcut paths.
+- [ ] Validate rename UI presence and deferred behavior messaging.
 - [ ] Validate suggestion rendering when provided vs omitted.
+- [ ] Validate no registry thread-control component uses Tambo hooks directly.
 
 ## Validation Commands
 
 ```bash
+npm run check-types -w packages/react-ui-base
+npm run test -w packages/react-ui-base -- thread-history thread-dropdown
 npm run check-types -w packages/ui-registry
-npm run test -w packages/ui-registry -- thread-dropdown thread-history message-suggestions
+npm run test -w packages/ui-registry -- thread-history thread-dropdown message-suggestions
 ```

@@ -19,12 +19,13 @@ Developers can build fully custom AI-powered UIs using Tambo primitives without 
 
 ### In Scope
 
+- None of the ui-registry components or blocks use tambo specific hooks directly; they only compose primitives that use the hooks
 - Existing base components should be refactored into headless primitives following the compound component pattern.
   - Message
   - ReasoningInfo
   - ToolcallInfo
   - MessageInput
-- Elicitation primitive in `react-ui-base`
+- New primitives created in `react-ui-base`
 - All primitives follow compound component pattern
 - All primitives use @base-ui
   ```
@@ -43,7 +44,7 @@ Developers can build fully custom AI-powered UIs using Tambo primitives without 
 - Styling or theming system — primitives are intentionally unstyled
 - Breaking changes to react-sdk hooks/providers — primitives build on top of existing hooks
 - New framework SDKs (Vue, Svelte, React Native PRs exist but are separate efforts)
-- New base primitive domains for thread block UIs
+- New base primitive domains for messge-thread-\* block UIs
 - New base primitive domains for `map`, `form`, and `input-fields`
 - Graph primitive — pure UI, no Tambo API dependency
 - Map primitive — heavy third-party deps (Mapbox)
