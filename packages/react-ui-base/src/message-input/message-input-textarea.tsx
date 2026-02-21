@@ -1,6 +1,5 @@
 "use client";
 
-import { Slot } from "@radix-ui/react-slot";
 import * as React from "react";
 import {
   useMessageInputContext,
@@ -59,8 +58,6 @@ export interface MessageInputTextareaProps extends Omit<
   React.HTMLAttributes<HTMLDivElement>,
   "children"
 > {
-  /** Render as a different element using Radix Slot */
-  asChild?: boolean;
   /** Custom placeholder text */
   placeholder?: string;
   /** Resource provider for @ mentions (optional - MCP resources included by default) */
@@ -88,7 +85,6 @@ export const MessageInputTextarea = React.forwardRef<
 >(
   (
     {
-      asChild,
       placeholder = "What do you want to do?",
       resourceProvider,
       promptProvider,
@@ -105,8 +101,6 @@ export const MessageInputTextarea = React.forwardRef<
       submitMessage,
       handleSubmit,
       editorRef,
-      isIdle,
-      isUpdatingToken,
       addImage,
       images,
       setImageError,
@@ -132,7 +126,9 @@ export const MessageInputTextarea = React.forwardRef<
       promptFormatOptions,
     );
 
-    const disabled = !isIdle || isUpdatingToken;
+    // Keep typing enabled while generation is active or auth token is updating.
+    // Submission state is controlled by submit/stop controls and root guards.
+    const disabled = false;
 
     const renderProps: MessageInputTextareaRenderProps = {
       value,
@@ -151,17 +147,15 @@ export const MessageInputTextarea = React.forwardRef<
       setPromptSearch,
     };
 
-    const Comp = asChild ? Slot : "div";
-
     return (
-      <Comp
+      <div
         ref={ref}
         data-slot="message-input-textarea"
         data-disabled={disabled || undefined}
         {...props}
       >
         {typeof children === "function" ? children(renderProps) : children}
-      </Comp>
+      </div>
     );
   },
 );

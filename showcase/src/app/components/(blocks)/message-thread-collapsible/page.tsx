@@ -2,7 +2,29 @@
 
 import { ComponentCodePreview } from "@/components/component-code-preview";
 import { InstallationSection } from "@/components/installation-section";
+import type { Suggestion } from "@tambo-ai/react";
 import { MessageThreadCollapsible } from "@tambo-ai/ui-registry/components/message-thread-collapsible";
+
+const messageThreadCollapsibleSuggestions = [
+  {
+    id: "collapsible-suggestion-1",
+    title: "Summarize this page",
+    detailedSuggestion: "Summarize what is visible in this dashboard.",
+    messageId: "collapsible-summarize-dashboard",
+  },
+  {
+    id: "collapsible-suggestion-2",
+    title: "Find anomalies",
+    detailedSuggestion: "Point out any unusual trends worth investigating.",
+    messageId: "collapsible-find-anomalies",
+  },
+  {
+    id: "collapsible-suggestion-3",
+    title: "Suggest next steps",
+    detailedSuggestion: "What follow-up questions should I ask from this view?",
+    messageId: "collapsible-next-questions",
+  },
+] satisfies Suggestion[];
 
 export default function MessageThreadCollapsiblePage() {
   return (
@@ -45,12 +67,22 @@ export default function MessageThreadCollapsiblePage() {
                 <MessageThreadCollapsible
                   defaultOpen={false}
                   className="absolute bottom-6 right-4"
+                  initialSuggestions={messageThreadCollapsibleSuggestions}
                 />
               </div>
             }
             code={`import { MessageThreadCollapsible } from "@/components/tambo/message-thread-collapsible";
 
 export function PageWithChat() {
+  const exampleSuggestions = [
+    {
+      id: "suggestion-1",
+      title: "Summarize this page",
+      detailedSuggestion: "Summarize the dashboard before I share it.",
+      messageId: "summary-query",
+    },
+  ];
+
   return (
     <div className="relative min-h-screen p-6">
       {/* Your page content */}
@@ -61,6 +93,7 @@ export function PageWithChat() {
       <MessageThreadCollapsible
         defaultOpen={false}
         className="absolute bottom-6 right-4"
+        initialSuggestions={exampleSuggestions}
       />
     </div>
   );
@@ -122,6 +155,15 @@ export function PageWithChat() {
                 <td>
                   Height of the thread content. Supports any CSS height value
                   (e.g., &quot;700px&quot;, &quot;80vh&quot;, &quot;90%&quot;)
+                </td>
+              </tr>
+              <tr>
+                <td>initialSuggestions</td>
+                <td>Suggestion[]</td>
+                <td>-</td>
+                <td>
+                  Optional caller-provided starter suggestions shown before a
+                  conversation begins
                 </td>
               </tr>
             </tbody>

@@ -99,7 +99,7 @@ npm run lint -w docs
 
 ## Implementation Tracking
 
-- **Current Status**: `Not Started`
-- **Implementation PR(s)**: `TBD`
-- **Completion Date (YYYY-MM-DD)**: `TBD`
-- **Completion Notes**: `TBD`
+- **Current Status**: `Completed`
+- **Implementation PR(s)**: `codex/showcase-page-specific-suggestions`
+- **Completion Date (YYYY-MM-DD)**: `2026-02-21`
+- **Completion Notes**: `MessageInput` and `Elicitation` primitives landed with submit/stop `keepMounted` + `data-hidden` semantics, plus docs pages for `message-input` and `elicitation`.

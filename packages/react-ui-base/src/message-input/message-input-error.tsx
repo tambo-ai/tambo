@@ -1,6 +1,5 @@
 "use client";
 
-import { Slot } from "@radix-ui/react-slot";
 import * as React from "react";
 import { useMessageInputContext } from "./message-input-context";
 
@@ -25,8 +24,6 @@ export interface MessageInputErrorProps extends Omit<
   React.HTMLAttributes<HTMLParagraphElement>,
   "children"
 > {
-  /** Render as a different element using Radix Slot */
-  asChild?: boolean;
   /** Content to display, or render function */
   children?:
     | React.ReactNode
@@ -40,7 +37,7 @@ export interface MessageInputErrorProps extends Omit<
 export const MessageInputError = React.forwardRef<
   HTMLParagraphElement,
   MessageInputErrorProps
->(({ asChild, children, ...props }, ref) => {
+>(({ children, ...props }, ref) => {
   const { error, submitError, imageError } = useMessageInputContext();
 
   const errorMessage = error?.message ?? submitError ?? imageError ?? null;
@@ -57,10 +54,8 @@ export const MessageInputError = React.forwardRef<
     imageError,
   };
 
-  const Comp = asChild ? Slot : "p";
-
   return (
-    <Comp
+    <p
       ref={ref}
       data-slot="message-input-error"
       data-state={errorMessage ? "error" : undefined}
@@ -69,7 +64,7 @@ export const MessageInputError = React.forwardRef<
       {typeof children === "function"
         ? children(renderProps)
         : (children ?? errorMessage)}
-    </Comp>
+    </p>
   );
 });
 MessageInputError.displayName = "MessageInput.Error";

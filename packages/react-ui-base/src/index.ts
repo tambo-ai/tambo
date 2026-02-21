@@ -6,6 +6,19 @@
  * allowing consumers to apply their own design system.
  */
 
+// Elicitation components
+export { Elicitation } from "./elicitation";
+export type {
+  ElicitationActionsProps,
+  ElicitationActionsRenderProps,
+  ElicitationField,
+  ElicitationFieldsProps,
+  ElicitationFieldsRenderProps,
+  ElicitationMessageProps,
+  ElicitationMessageRenderProps,
+  ElicitationRootProps,
+} from "./elicitation";
+
 // Message components
 export { Message } from "./message";
 export type {
@@ -24,6 +37,8 @@ export type {
   MessageInputContentProps,
   MessageInputContentRenderProps,
   MessageInputContextValue,
+  MessageInputElicitationProps,
+  MessageInputElicitationRenderProps,
   MessageInputErrorProps,
   MessageInputErrorRenderProps,
   MessageInputFileButtonProps,
@@ -31,6 +46,8 @@ export type {
   MessageInputRootProps,
   MessageInputStagedImagesProps,
   MessageInputStagedImagesRenderProps,
+  MessageInputStopButtonProps,
+  MessageInputStopButtonRenderProps,
   MessageInputSubmitButtonProps,
   MessageInputSubmitButtonRenderProps,
   MessageInputTextareaProps,
