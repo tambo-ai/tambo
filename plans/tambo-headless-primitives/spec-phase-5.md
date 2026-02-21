@@ -47,11 +47,11 @@ Adopt the completed primitive + registry contracts in `apps/web` as the first pr
 
 ### Unit / Integration
 
-| Area                            | Coverage                                                                |
-| ------------------------------- | ----------------------------------------------------------------------- |
-| `apps/web` thread wrappers      | open/close/switch/new-thread behavior over updated contracts            |
-| `apps/web` input wrappers       | send/stop/elicitation/file/image/resource flows                         |
-| `apps/web` interactables wiring | rendered component insertion and canvas interaction parity              |
+| Area                            | Coverage                                                     |
+| ------------------------------- | ------------------------------------------------------------ |
+| `apps/web` thread wrappers      | open/close/switch/new-thread behavior over updated contracts |
+| `apps/web` input wrappers       | send/stop/elicitation/file/image/resource flows              |
+| `apps/web` interactables wiring | rendered component insertion and canvas interaction parity   |
 
 ### Manual Testing
 

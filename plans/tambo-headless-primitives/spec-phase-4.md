@@ -31,19 +31,19 @@ This phase covers `thread-content` and `mcp-components` behavior boundaries in `
 
 ### New Files
 
-| File Path                                                 | Changes                                             |
-| --------------------------------------------------------- | --------------------------------------------------- |
-| `packages/react-ui-base/src/thread-content/index.tsx`    | ThreadContent namespace export                      |
-| `packages/react-ui-base/src/thread-content/**/*.tsx`     | ThreadContent root/parts/context + timeline wiring |
-| `packages/react-ui-base/src/mcp-components/index.tsx`    | McpComponents namespace export                      |
-| `packages/react-ui-base/src/mcp-components/**/*.tsx`     | McpComponents root/parts/context + render behavior |
+| File Path                                                 | Changes                                            |
+| --------------------------------------------------------- | -------------------------------------------------- |
+| `packages/react-ui-base/src/thread-content/index.tsx`     | ThreadContent namespace export                     |
+| `packages/react-ui-base/src/thread-content/**/*.tsx`      | ThreadContent root/parts/context + timeline wiring |
+| `packages/react-ui-base/src/mcp-components/index.tsx`     | McpComponents namespace export                     |
+| `packages/react-ui-base/src/mcp-components/**/*.tsx`      | McpComponents root/parts/context + render behavior |
 | `packages/react-ui-base/src/thread-content/**/*.test.tsx` | ThreadContent behavior + guard coverage            |
 | `packages/react-ui-base/src/mcp-components/**/*.test.tsx` | McpComponents behavior + guard coverage            |
 
 ### Modified Files
 
-| File Path                                                                                       | Changes                                                               |
-| ----------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| File Path                                                                                       | Changes                                                              |
+| ----------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
 | `packages/react-ui-base/src/index.ts`                                                           | Export `ThreadContent` + `McpComponents` namespaces                  |
 | `packages/react-ui-base/package.json`                                                           | Add `thread-content` + `mcp-components` subpath exports              |
 | `packages/ui-registry/src/components/thread-content/thread-content.tsx`                         | Styled wrapper over `ThreadContent` primitive                        |
@@ -65,15 +65,15 @@ This phase covers `thread-content` and `mcp-components` behavior boundaries in `
 
 ### Unit Tests
 
-| Test File                                                                                                  | Coverage                                                     |
-| ---------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
-| `packages/react-ui-base/src/thread-content/**/*.test.tsx`                                                 | timeline state transitions, context guards, slot composition |
-| `packages/react-ui-base/src/mcp-components/**/*.test.tsx`                                                 | rendered component availability + state behavior             |
-| `packages/ui-registry/src/components/thread-content/thread-content.test.tsx`                              | styled timeline composition parity                           |
-| `packages/ui-registry/src/components/message-thread-panel/message-thread-panel.test.tsx`                  | panel orchestration + primitive composition                  |
-| `packages/ui-registry/src/components/message-thread-collapsible/message-thread-collapsible.test.tsx`      | collapsible orchestration + primitive composition            |
-| `packages/ui-registry/src/components/message-thread-full/message-thread-full.test.tsx`                    | full-layout composition + behavior parity                    |
-| `packages/ui-registry/src/components/control-bar/control-bar.test.tsx`                                    | block-level controls/hotkeys with updated composition        |
+| Test File                                                                                            | Coverage                                                     |
+| ---------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| `packages/react-ui-base/src/thread-content/**/*.test.tsx`                                            | timeline state transitions, context guards, slot composition |
+| `packages/react-ui-base/src/mcp-components/**/*.test.tsx`                                            | rendered component availability + state behavior             |
+| `packages/ui-registry/src/components/thread-content/thread-content.test.tsx`                         | styled timeline composition parity                           |
+| `packages/ui-registry/src/components/message-thread-panel/message-thread-panel.test.tsx`             | panel orchestration + primitive composition                  |
+| `packages/ui-registry/src/components/message-thread-collapsible/message-thread-collapsible.test.tsx` | collapsible orchestration + primitive composition            |
+| `packages/ui-registry/src/components/message-thread-full/message-thread-full.test.tsx`               | full-layout composition + behavior parity                    |
+| `packages/ui-registry/src/components/control-bar/control-bar.test.tsx`                               | block-level controls/hotkeys with updated composition        |
 
 ### Manual Testing
 

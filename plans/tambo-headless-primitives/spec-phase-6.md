@@ -30,15 +30,15 @@ Primitive reference authoring is already delivered in Phases 1 and 2. This phase
 
 ### Modified Files
 
-| File Path                                             | Changes                                                               |
-| ----------------------------------------------------- | --------------------------------------------------------------------- |
-| `docs/src/components/tambo/*.tsx`                     | Align docs examples with updated primitive + registry contracts       |
-| `showcase/src/app/components/**/*.tsx`                | Align showcase examples with updated composition model                |
-| `showcase/src/components/generative/*.tsx`            | Align thread blocks/suggestions usage with caller-provided semantics  |
-| `docs/content/docs/reference/meta.json`               | Register/position `react-ui-base` reference section                   |
-| `docs/content/docs/reference/react-ui-base/index.mdx` | Update landing content and cross-links                                |
-| `docs/content/docs/reference/react-ui-base/meta.json` | Finalize page order and navigation consistency                        |
-| `docs/content/docs/reference/react-ui-base/*.mdx`     | Consistency polish for heading/API/styling-hook alignment             |
+| File Path                                             | Changes                                                              |
+| ----------------------------------------------------- | -------------------------------------------------------------------- |
+| `docs/src/components/tambo/*.tsx`                     | Align docs examples with updated primitive + registry contracts      |
+| `showcase/src/app/components/**/*.tsx`                | Align showcase examples with updated composition model               |
+| `showcase/src/components/generative/*.tsx`            | Align thread blocks/suggestions usage with caller-provided semantics |
+| `docs/content/docs/reference/meta.json`               | Register/position `react-ui-base` reference section                  |
+| `docs/content/docs/reference/react-ui-base/index.mdx` | Update landing content and cross-links                               |
+| `docs/content/docs/reference/react-ui-base/meta.json` | Finalize page order and navigation consistency                       |
+| `docs/content/docs/reference/react-ui-base/*.mdx`     | Consistency polish for heading/API/styling-hook alignment            |
 
 ## Implementation Details
 

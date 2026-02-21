@@ -22,15 +22,15 @@ Use this table to run implementation across multiple PRs. When a phase lands, up
 **Status values**: `Not Started`, `In Progress`, `Completed`, `Blocked`
 
 | Phase | Spec File         | Status        | Implementation PR(s) | Completion Date (YYYY-MM-DD) | Notes |
-| ----- | ----------------- | ------------- | -------------------- | ----------------------------- | ----- |
-| 0     | `spec-phase-0.md` | `Not Started` | `TBD`                | `TBD`                         |       |
-| 1     | `spec-phase-1.md` | `Not Started` | `TBD`                | `TBD`                         |       |
-| 2     | `spec-phase-2.md` | `Not Started` | `TBD`                | `TBD`                         |       |
-| 3     | `spec-phase-3.md` | `Not Started` | `TBD`                | `TBD`                         |       |
-| 4     | `spec-phase-4.md` | `Not Started` | `TBD`                | `TBD`                         |       |
-| 5     | `spec-phase-5.md` | `Not Started` | `TBD`                | `TBD`                         |       |
-| 6     | `spec-phase-6.md` | `Not Started` | `TBD`                | `TBD`                         |       |
-| 7     | `spec-phase-7.md` | `Not Started` | `TBD`                | `TBD`                         |       |
+| ----- | ----------------- | ------------- | -------------------- | ---------------------------- | ----- |
+| 0     | `spec-phase-0.md` | `Not Started` | `TBD`                | `TBD`                        |       |
+| 1     | `spec-phase-1.md` | `Not Started` | `TBD`                | `TBD`                        |       |
+| 2     | `spec-phase-2.md` | `Not Started` | `TBD`                | `TBD`                        |       |
+| 3     | `spec-phase-3.md` | `Not Started` | `TBD`                | `TBD`                        |       |
+| 4     | `spec-phase-4.md` | `Not Started` | `TBD`                | `TBD`                        |       |
+| 5     | `spec-phase-5.md` | `Not Started` | `TBD`                | `TBD`                        |       |
+| 6     | `spec-phase-6.md` | `Not Started` | `TBD`                | `TBD`                        |       |
+| 7     | `spec-phase-7.md` | `Not Started` | `TBD`                | `TBD`                        |       |
 
 ## Requirements
 

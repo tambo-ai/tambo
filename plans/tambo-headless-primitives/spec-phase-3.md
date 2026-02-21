@@ -31,21 +31,21 @@ This phase moves Tambo-specific hook usage for thread control concerns into `rea
 
 ### New Files
 
-| File Path                                               | Changes                                           |
-| ------------------------------------------------------- | ------------------------------------------------- |
-| `packages/react-ui-base/src/thread-history/index.tsx`  | ThreadHistory namespace export                    |
-| `packages/react-ui-base/src/thread-history/**/*.tsx`   | ThreadHistory root/parts/context + behavior hooks |
-| `packages/react-ui-base/src/thread-dropdown/index.tsx` | ThreadDropdown namespace export                   |
-| `packages/react-ui-base/src/thread-dropdown/**/*.tsx`  | ThreadDropdown root/parts/context + actions       |
-| `packages/react-ui-base/src/thread-history/**/*.test.tsx` | ThreadHistory behavior + guard coverage        |
-| `packages/react-ui-base/src/thread-dropdown/**/*.test.tsx` | ThreadDropdown behavior + guard coverage      |
+| File Path                                                  | Changes                                           |
+| ---------------------------------------------------------- | ------------------------------------------------- |
+| `packages/react-ui-base/src/thread-history/index.tsx`      | ThreadHistory namespace export                    |
+| `packages/react-ui-base/src/thread-history/**/*.tsx`       | ThreadHistory root/parts/context + behavior hooks |
+| `packages/react-ui-base/src/thread-dropdown/index.tsx`     | ThreadDropdown namespace export                   |
+| `packages/react-ui-base/src/thread-dropdown/**/*.tsx`      | ThreadDropdown root/parts/context + actions       |
+| `packages/react-ui-base/src/thread-history/**/*.test.tsx`  | ThreadHistory behavior + guard coverage           |
+| `packages/react-ui-base/src/thread-dropdown/**/*.test.tsx` | ThreadDropdown behavior + guard coverage          |
 
 ### Modified Files
 
 | File Path                                                                         | Changes                                                           |
 | --------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
-| `packages/react-ui-base/src/index.ts`                                             | Export `ThreadHistory` + `ThreadDropdown` namespaces             |
-| `packages/react-ui-base/package.json`                                             | Add `thread-history` + `thread-dropdown` subpath exports         |
+| `packages/react-ui-base/src/index.ts`                                             | Export `ThreadHistory` + `ThreadDropdown` namespaces              |
+| `packages/react-ui-base/package.json`                                             | Add `thread-history` + `thread-dropdown` subpath exports          |
 | `packages/ui-registry/src/components/thread-history/thread-history.tsx`           | Styled wrapper over base primitives; keep rename TODO             |
 | `packages/ui-registry/src/components/thread-dropdown/thread-dropdown.tsx`         | Styled wrapper over base primitives + shortcut wiring             |
 | `packages/ui-registry/src/components/message-suggestions/message-suggestions.tsx` | Enforce caller-provided suggestions behavior and empty-state path |
@@ -64,11 +64,11 @@ This phase moves Tambo-specific hook usage for thread control concerns into `rea
 
 | Test File                                                                              | Coverage                                                        |
 | -------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
-| `packages/react-ui-base/src/thread-history/**/*.test.tsx`                             | list/search/select behavior, context guards, render composition |
-| `packages/react-ui-base/src/thread-dropdown/**/*.test.tsx`                            | action availability, trigger/content behavior, context guards   |
-| `packages/ui-registry/src/components/thread-history/thread-history.test.tsx`          | styled composition + rename affordance parity                   |
-| `packages/ui-registry/src/components/thread-dropdown/thread-dropdown.test.tsx`        | keyboard shortcuts + styled action rendering                    |
-| `packages/ui-registry/src/components/message-suggestions/message-suggestions.test.tsx` | caller-provided suggestion rendering + selection flow          |
+| `packages/react-ui-base/src/thread-history/**/*.test.tsx`                              | list/search/select behavior, context guards, render composition |
+| `packages/react-ui-base/src/thread-dropdown/**/*.test.tsx`                             | action availability, trigger/content behavior, context guards   |
+| `packages/ui-registry/src/components/thread-history/thread-history.test.tsx`           | styled composition + rename affordance parity                   |
+| `packages/ui-registry/src/components/thread-dropdown/thread-dropdown.test.tsx`         | keyboard shortcuts + styled action rendering                    |
+| `packages/ui-registry/src/components/message-suggestions/message-suggestions.test.tsx` | caller-provided suggestion rendering + selection flow           |
 
 ### Manual Testing
 
