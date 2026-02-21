@@ -11,9 +11,9 @@ Developers can build fully custom AI-powered UIs using Tambo primitives without 
 ## Execution Notes
 
 - Phase 0 remains the documentation gate (`spec-phase-0.md` + `ui-feature-contract.md`).
-- Phases 1-7 are now vertical slices: input/elicitation, timeline rendering, thread controls, block variants, apps/web adoption, docs/showcase adoption, and final stabilization.
+- Phases 1-8 are now vertical slices: input/elicitation, timeline rendering, thread controls, thread block variants, dedicated `mcp-components`, apps/web adoption, docs/showcase adoption, and final stabilization.
 - The phase sequence intentionally prioritizes end-to-end behavior slices over namespace-by-namespace migration passes.
-- Base primitive docs are integrated into implementation slices (Phase 1 + Phase 2) using `spec-template-base-primitive-doc-page.md`; Phase 6 is docs IA/polish, not first-pass docs authoring.
+- Base primitive docs are integrated into implementation slices (Phase 1 + Phase 2) using `spec-template-base-primitive-doc-page.md`; Phase 7 is docs IA/polish, not first-pass docs authoring.
 
 ## Phase Delivery Tracker
 
@@ -31,6 +31,7 @@ Use this table to run implementation across multiple PRs. When a phase lands, up
 | 5     | `spec-phase-5.md` | `Not Started` | `TBD`                | `TBD`                        |       |
 | 6     | `spec-phase-6.md` | `Not Started` | `TBD`                | `TBD`                        |       |
 | 7     | `spec-phase-7.md` | `Not Started` | `TBD`                | `TBD`                        |       |
+| 8     | `spec-phase-8.md` | `Not Started` | `TBD`                | `TBD`                        |       |
 
 ## Requirements
 

@@ -1,4 +1,4 @@
-# Implementation Spec: Tambo Headless Primitives - Phase 7 (Stabilization, Cleanup, Release Gate)
+# Implementation Spec: Tambo Headless Primitives - Phase 7 (Vertical Slice: docs + showcase Adoption)
 
 **Contract**: ./contract.md  
 **Feature Contract**: ./ui-feature-contract.md  
@@ -6,65 +6,66 @@
 
 ## Technical Approach
 
-Execute a final integration gate after all implementation slices land. This phase is strictly for stabilization: contract drift cleanup, dependency/export verification, and cross-workspace confidence checks.
+Adopt the finalized primitive/registry contracts in `docs` and `showcase` as one slice focused on reference accuracy, runnable examples, and docs information architecture consistency.
+
+Primitive reference authoring is already delivered in Phases 1 and 2. This phase focuses on navigation, consistency, and consumer usage parity.
 
 ## Scope
 
 ### In Scope
 
-- Remove stale references to pre-contract composition mechanics.
-- Verify `react-ui-base` exports and subpath exports are consistent with shipped namespaces.
-- Verify registry and first-party consumer packages compile together.
-- Confirm no first-party reintroduction of `asChild`, Radix Slot, or custom render helpers.
-- Confirm registry components/blocks compose primitives for Tambo-specific behavior boundaries.
-- Preserve intentional deferred items (rename API wiring TODO remains deferred).
+- Update `docs` and `showcase` component usage to current primitive/block contracts.
+- Remove stale examples that imply old composition internals or baked suggestions.
+- Register/finalize `react-ui-base` reference navigation structure.
+- Run a consistency pass on primitive docs pages authored in Phases 1 and 2.
+- Ensure docs copies of CLI/registry-driven UI examples reflect current contract boundaries.
 
 ### Out of Scope
 
-- New feature work.
-- New contract definitions.
-- Additional primitive domain expansion.
+- New primitive behavior.
+- Additional primitive docs domains beyond agreed scope.
+- apps/web production feature changes.
 
 ## File Changes
 
 ### Modified Files
 
-| File Path                              | Changes                                                      |
-| -------------------------------------- | ------------------------------------------------------------ |
-| `packages/react-ui-base/src/index.ts`  | Final namespace export alignment                             |
-| `packages/react-ui-base/package.json`  | Final subpath export alignment                               |
-| `packages/ui-registry/package.json`    | Dependency/export alignment for finalized primitive usage    |
-| `plans/tambo-headless-primitives/*.md` | Final closeout edits if implementation reality requires sync |
+| File Path                                             | Changes                                                              |
+| ----------------------------------------------------- | -------------------------------------------------------------------- |
+| `docs/src/components/tambo/*.tsx`                     | Align docs examples with updated primitive + registry contracts      |
+| `showcase/src/app/components/**/*.tsx`                | Align showcase examples with updated composition model               |
+| `showcase/src/components/generative/*.tsx`            | Align thread blocks/suggestions usage with caller-provided semantics |
+| `docs/content/docs/reference/meta.json`               | Register/position `react-ui-base` reference section                  |
+| `docs/content/docs/reference/react-ui-base/index.mdx` | Update landing content and cross-links                               |
+| `docs/content/docs/reference/react-ui-base/meta.json` | Finalize page order and navigation consistency                       |
+| `docs/content/docs/reference/react-ui-base/*.mdx`     | Consistency polish for heading/API/styling-hook alignment            |
 
 ## Implementation Details
 
-1. Run full workspace validation and only fix regressions or contract drift.
-2. Keep explicit fail-fast errors and ownership boundaries intact.
-3. Verify no first-party registry component calls Tambo hooks directly where a base primitive contract exists.
-4. Confirm docs/showcase/apps/web examples match shipped APIs and behavior expectations.
+1. Ensure all examples reflect render-prop composition and current namespace exports.
+2. Ensure docs/showcase thread block usage passes suggestions from caller-owned data.
+3. Keep docs structure aligned to `spec-template-base-primitive-doc-page.md` (`Demo`, `Anatomy`, `Examples`, `API reference`).
+4. Preserve clear separation statements: behavior in `react-ui-base`, styling/orchestration in `ui-registry`.
+5. Keep examples minimal, copy/pasteable, and free from hidden fallback assumptions.
 
 ## Testing Requirements
 
-### Full Validation
+### Manual Testing
 
-- [ ] Root typecheck passes.
-- [ ] Root lint passes.
-- [ ] Root tests pass.
-- [ ] Build passes for touched packages.
-- [ ] `ui-registry` export verification passes.
-- [ ] Contract audit checks pass (`asChild`, Radix Slot, custom `useRender`, direct registry hook usage).
+- [ ] Docs examples compile and render.
+- [ ] Showcase pages compile and render with updated APIs.
+- [ ] Primitive docs pages preserve required heading structure.
+- [ ] Reference navigation exposes and orders `react-ui-base` pages correctly.
+- [ ] Showcase thread blocks demonstrate caller-provided suggestions behavior.
 
 ## Validation Commands
 
 ```bash
-npm run check-types
-npm run lint
-npm test
-npm run build
-npm run verify-exports -w packages/ui-registry
-rg "asChild" packages/react-ui-base packages/ui-registry
-rg "@radix-ui/react-slot" packages/react-ui-base packages/ui-registry
-rg "useTambo" packages/ui-registry/src/components
+npm run check-types -w docs
+npm run check-types -w showcase
+npm run lint -w docs
+npm run lint -w showcase
+npm run build -w docs
 ```
 
 ## Implementation Tracking

@@ -1,7 +1,7 @@
 # Tambo Headless Primitives Contract
 
 **Created**: 2026-02-19
-**Updated**: 2026-02-20
+**Updated**: 2026-02-21
 **Confidence Score**: 97/100
 **Status**: Draft
 
@@ -32,7 +32,7 @@ Developers building custom Tambo UIs need stable, unstyled primitives that are b
 - [ ] Existing tests for `packages/react-ui-base` and `packages/ui-registry` pass, with added/updated tests covering new primitive behavior.
 - [ ] No new styling concerns are introduced into `react-ui-base`; styles stay in `ui-registry`.
 - [ ] Base primitive reference docs exist for `message-input`, `elicitation`, `message`, `toolcall-info`, and `reasoning-info`, and follow the shared page template.
-- [ ] Primitive docs land in the same delivery slices as implementation work (Phase 1: input+elicitation pages, Phase 2: timeline pages), with Phase 6 reserved for docs IA and consistency polish.
+- [ ] Primitive docs land in the same delivery slices as implementation work (Phase 1: input+elicitation pages, Phase 2: timeline pages), with Phase 7 reserved for docs IA and consistency polish.
 
 ## Scope Boundaries
 

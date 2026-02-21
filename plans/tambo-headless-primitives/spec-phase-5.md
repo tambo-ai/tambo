@@ -1,4 +1,4 @@
-# Implementation Spec: Tambo Headless Primitives - Phase 5 (Vertical Slice: apps/web Consumer Adoption)
+# Implementation Spec: Tambo Headless Primitives - Phase 5 (Vertical Slice: MCP Components Primitive)
 
 **Contract**: ./contract.md  
 **Feature Contract**: ./ui-feature-contract.md  
@@ -6,66 +6,74 @@
 
 ## Technical Approach
 
-Adopt the completed primitive + registry contracts in `apps/web` as the first production consumer slice. This phase updates wrappers and integration points to the finalized composition model without compatibility shims for removed internals.
+Deliver a dedicated phase for `McpComponents` because rendered-component behavior and canvas interoperability require focused implementation and testing.
+
+This phase introduces and hardens `McpComponents` primitives in `react-ui-base`, then aligns registry canvas/rendered-component integrations to compose those primitives.
 
 ## Scope
 
 ### In Scope
 
-- Migrate `apps/web` wrappers to updated `react-ui-base` and `ui-registry` contracts.
-- Align message input integration with submit/stop visibility and elicitation mode semantics.
-- Align thread controls/block integrations with caller-provided suggestions and updated thread primitives.
-- Verify interactables/rendered-component flows remain compatible with `mcp-components` + canvas-space contracts.
+- Add dedicated `McpComponents` primitives to `react-ui-base`.
+- Define explicit rendered-component availability/state boundaries in base primitives.
+- Align registry rendered-component/canvas integrations with the new primitive boundary.
+- Preserve `canvas-space` interoperability via the existing `tambo:showComponent` event API.
 
 ### Out of Scope
 
-- docs/showcase migration.
-- New primitive feature development.
-- Additional contract expansion.
+- Thread block variant layout orchestration (Phase 4).
+- `apps/web` adoption (Phase 6).
+- New primitive domains beyond `mcp-components`.
 
 ## File Changes
 
+### New Files
+
+| File Path                                                 | Changes                                            |
+| --------------------------------------------------------- | -------------------------------------------------- |
+| `packages/react-ui-base/src/mcp-components/index.tsx`     | McpComponents namespace export                     |
+| `packages/react-ui-base/src/mcp-components/**/*.tsx`      | McpComponents root/parts/context + render behavior |
+| `packages/react-ui-base/src/mcp-components/**/*.test.tsx` | McpComponents behavior + guard coverage            |
+
 ### Modified Files
 
-| File Path                                                           | Changes                                                           |
-| ------------------------------------------------------------------- | ----------------------------------------------------------------- |
-| `apps/web/components/ui/tambo/message-thread-panel.tsx`             | Adopt updated thread block + thread control composition           |
-| `apps/web/components/ui/tambo/message-input-with-interactables.tsx` | Adopt MessageInput/Elicitation contract and submit/stop semantics |
-| `apps/web/hooks/use-interactables-resource-provider.ts`             | Validate resource insertion compatibility with updated primitives |
-| `apps/web/components/ui/tambo/edit-with-tambo-button.tsx`           | Align orchestration path with updated thread/content contracts    |
-| `apps/web/app/subscribe/tambo-subscribe-integration.tsx`            | Adopt updated primitive + registry APIs in subscribe flow         |
+| File Path                                                           | Changes                                                              |
+| ------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| `packages/react-ui-base/src/index.ts`                               | Export `McpComponents` namespace                                     |
+| `packages/react-ui-base/package.json`                               | Add `mcp-components` subpath export                                  |
+| `packages/ui-registry/src/components/canvas-space/canvas-space.tsx` | Compose `McpComponents` behavior while keeping event API integration |
+| `packages/ui-registry/src/components/message/message.tsx`           | Align rendered-component composition boundary where applicable       |
 
 ## Implementation Details
 
-1. Remove assumptions about old toolbar child-type partitioning and `asChild`-style composition internals.
-2. Treat submit/stop visibility via primitive state and `keepMounted`/`data-hidden` semantics.
-3. Pass suggestions from app-level configuration/state into block components explicitly.
-4. Keep app-specific UX choices in `apps/web` wrappers while preserving primitive behavior boundaries.
-5. Maintain fail-fast behavior for missing required app-level configuration inputs.
+1. `McpComponents.Root` owns rendered-component availability/state boundaries and exposes explicit parts for trigger/content orchestration.
+2. Canvas integration keeps the existing global `tambo:showComponent` event API.
+3. Registry consumers keep styling/display ownership and do not own primitive behavior state.
+4. Fail-fast behavior remains explicit for invalid/unknown rendered component payloads.
 
 ## Testing Requirements
 
-### Unit / Integration
+### Unit Tests
 
-| Area                            | Coverage                                                     |
-| ------------------------------- | ------------------------------------------------------------ |
-| `apps/web` thread wrappers      | open/close/switch/new-thread behavior over updated contracts |
-| `apps/web` input wrappers       | send/stop/elicitation/file/image/resource flows              |
-| `apps/web` interactables wiring | rendered component insertion and canvas interaction parity   |
+| Test File                                                                | Coverage                                               |
+| ------------------------------------------------------------------------ | ------------------------------------------------------ |
+| `packages/react-ui-base/src/mcp-components/**/*.test.tsx`                | availability/state transitions, context guards         |
+| `packages/ui-registry/src/components/canvas-space/canvas-space.test.tsx` | canvas interoperability with `McpComponents`           |
+| `packages/ui-registry/src/components/message/message-content.test.tsx`   | rendered component composition with updated boundaries |
 
 ### Manual Testing
 
-- [ ] Validate apps/web send -> stop -> send loop.
-- [ ] Validate apps/web staged images/files + submit flow.
-- [ ] Validate thread switching/new-thread/suggestions in panel workflows.
-- [ ] Validate rendered component and canvas interaction paths.
+- [ ] Validate rendered component trigger/content behavior through `McpComponents` parts.
+- [ ] Validate `tambo:showComponent` canvas event flow remains intact.
+- [ ] Validate unknown or invalid component payloads fail fast with explicit errors.
 
 ## Validation Commands
 
 ```bash
-npm run check-types -w apps/web
-npm run lint -w apps/web
-npm test -w apps/web
+npm run check-types -w packages/react-ui-base
+npm run test -w packages/react-ui-base -- mcp-components
+npm run check-types -w packages/ui-registry
+npm run test -w packages/ui-registry -- canvas-space message
 ```
 
 ## Implementation Tracking

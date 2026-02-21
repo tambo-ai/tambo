@@ -1,71 +1,71 @@
-# Implementation Spec: Tambo Headless Primitives - Phase 6 (Vertical Slice: docs + showcase Adoption)
+# Implementation Spec: Tambo Headless Primitives - Phase 6 (Vertical Slice: apps/web Consumer Adoption)
 
 **Contract**: ./contract.md  
 **Feature Contract**: ./ui-feature-contract.md  
-**Estimated Effort**: M
+**Estimated Effort**: L
 
 ## Technical Approach
 
-Adopt the finalized primitive/registry contracts in `docs` and `showcase` as one slice focused on reference accuracy, runnable examples, and docs information architecture consistency.
-
-Primitive reference authoring is already delivered in Phases 1 and 2. This phase focuses on navigation, consistency, and consumer usage parity.
+Adopt the completed primitive + registry contracts in `apps/web` as the first production consumer slice. This phase updates wrappers and integration points to the finalized composition model without compatibility shims for removed internals.
 
 ## Scope
 
 ### In Scope
 
-- Update `docs` and `showcase` component usage to current primitive/block contracts.
-- Remove stale examples that imply old composition internals or baked suggestions.
-- Register/finalize `react-ui-base` reference navigation structure.
-- Run a consistency pass on primitive docs pages authored in Phases 1 and 2.
-- Ensure docs copies of CLI/registry-driven UI examples reflect current contract boundaries.
+- Migrate `apps/web` wrappers to updated `react-ui-base` and `ui-registry` contracts.
+- Align message input integration with submit/stop visibility and elicitation mode semantics.
+- Align thread controls/block integrations with caller-provided suggestions and updated thread primitives.
+- Verify interactables/rendered-component flows remain compatible with `mcp-components` + canvas-space contracts.
 
 ### Out of Scope
 
-- New primitive behavior.
-- Additional primitive docs domains beyond agreed scope.
-- apps/web production feature changes.
+- docs/showcase migration.
+- New primitive feature development.
+- Additional contract expansion.
 
 ## File Changes
 
 ### Modified Files
 
-| File Path                                             | Changes                                                              |
-| ----------------------------------------------------- | -------------------------------------------------------------------- |
-| `docs/src/components/tambo/*.tsx`                     | Align docs examples with updated primitive + registry contracts      |
-| `showcase/src/app/components/**/*.tsx`                | Align showcase examples with updated composition model               |
-| `showcase/src/components/generative/*.tsx`            | Align thread blocks/suggestions usage with caller-provided semantics |
-| `docs/content/docs/reference/meta.json`               | Register/position `react-ui-base` reference section                  |
-| `docs/content/docs/reference/react-ui-base/index.mdx` | Update landing content and cross-links                               |
-| `docs/content/docs/reference/react-ui-base/meta.json` | Finalize page order and navigation consistency                       |
-| `docs/content/docs/reference/react-ui-base/*.mdx`     | Consistency polish for heading/API/styling-hook alignment            |
+| File Path                                                           | Changes                                                           |
+| ------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| `apps/web/components/ui/tambo/message-thread-panel.tsx`             | Adopt updated thread block + thread control composition           |
+| `apps/web/components/ui/tambo/message-input-with-interactables.tsx` | Adopt MessageInput/Elicitation contract and submit/stop semantics |
+| `apps/web/hooks/use-interactables-resource-provider.ts`             | Validate resource insertion compatibility with updated primitives |
+| `apps/web/components/ui/tambo/edit-with-tambo-button.tsx`           | Align orchestration path with updated thread/content contracts    |
+| `apps/web/app/subscribe/tambo-subscribe-integration.tsx`            | Adopt updated primitive + registry APIs in subscribe flow         |
 
 ## Implementation Details
 
-1. Ensure all examples reflect render-prop composition and current namespace exports.
-2. Ensure docs/showcase thread block usage passes suggestions from caller-owned data.
-3. Keep docs structure aligned to `spec-template-base-primitive-doc-page.md` (`Demo`, `Anatomy`, `Examples`, `API reference`).
-4. Preserve clear separation statements: behavior in `react-ui-base`, styling/orchestration in `ui-registry`.
-5. Keep examples minimal, copy/pasteable, and free from hidden fallback assumptions.
+1. Remove assumptions about old toolbar child-type partitioning and `asChild`-style composition internals.
+2. Treat submit/stop visibility via primitive state and `keepMounted`/`data-hidden` semantics.
+3. Pass suggestions from app-level configuration/state into block components explicitly.
+4. Keep app-specific UX choices in `apps/web` wrappers while preserving primitive behavior boundaries.
+5. Maintain fail-fast behavior for missing required app-level configuration inputs.
 
 ## Testing Requirements
 
+### Unit / Integration
+
+| Area                            | Coverage                                                     |
+| ------------------------------- | ------------------------------------------------------------ |
+| `apps/web` thread wrappers      | open/close/switch/new-thread behavior over updated contracts |
+| `apps/web` input wrappers       | send/stop/elicitation/file/image/resource flows              |
+| `apps/web` interactables wiring | rendered component insertion and canvas interaction parity   |
+
 ### Manual Testing
 
-- [ ] Docs examples compile and render.
-- [ ] Showcase pages compile and render with updated APIs.
-- [ ] Primitive docs pages preserve required heading structure.
-- [ ] Reference navigation exposes and orders `react-ui-base` pages correctly.
-- [ ] Showcase thread blocks demonstrate caller-provided suggestions behavior.
+- [ ] Validate apps/web send -> stop -> send loop.
+- [ ] Validate apps/web staged images/files + submit flow.
+- [ ] Validate thread switching/new-thread/suggestions in panel workflows.
+- [ ] Validate rendered component and canvas interaction paths.
 
 ## Validation Commands
 
 ```bash
-npm run check-types -w docs
-npm run check-types -w showcase
-npm run lint -w docs
-npm run lint -w showcase
-npm run build -w docs
+npm run check-types -w apps/web
+npm run lint -w apps/web
+npm test -w apps/web
 ```
 
 ## Implementation Tracking
