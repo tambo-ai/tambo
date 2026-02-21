@@ -55,3 +55,10 @@ Before more component rewrites, define one explicit behavior and composition con
 npm run check-types
 npm run lint
 ```
+
+## Implementation Tracking
+
+- **Current Status**: `Not Started`
+- **Implementation PR(s)**: `TBD`
+- **Completion Date (YYYY-MM-DD)**: `TBD`
+- **Completion Notes**: `TBD`

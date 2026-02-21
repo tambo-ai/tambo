@@ -86,3 +86,10 @@ npm run test -w packages/react-ui-base -- thread-history thread-dropdown
 npm run check-types -w packages/ui-registry
 npm run test -w packages/ui-registry -- thread-history thread-dropdown message-suggestions
 ```
+
+## Implementation Tracking
+
+- **Current Status**: `Not Started`
+- **Implementation PR(s)**: `TBD`
+- **Completion Date (YYYY-MM-DD)**: `TBD`
+- **Completion Notes**: `TBD`

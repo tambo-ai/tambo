@@ -15,6 +15,23 @@ Developers can build fully custom AI-powered UIs using Tambo primitives without 
 - The phase sequence intentionally prioritizes end-to-end behavior slices over namespace-by-namespace migration passes.
 - Base primitive docs are integrated into implementation slices (Phase 1 + Phase 2) using `spec-template-base-primitive-doc-page.md`; Phase 6 is docs IA/polish, not first-pass docs authoring.
 
+## Phase Delivery Tracker
+
+Use this table to run implementation across multiple PRs. When a phase lands, update both this table and the phase spec's `Implementation Tracking` section.
+
+**Status values**: `Not Started`, `In Progress`, `Completed`, `Blocked`
+
+| Phase | Spec File         | Status        | Implementation PR(s) | Completion Date (YYYY-MM-DD) | Notes |
+| ----- | ----------------- | ------------- | -------------------- | ----------------------------- | ----- |
+| 0     | `spec-phase-0.md` | `Not Started` | `TBD`                | `TBD`                         |       |
+| 1     | `spec-phase-1.md` | `Not Started` | `TBD`                | `TBD`                         |       |
+| 2     | `spec-phase-2.md` | `Not Started` | `TBD`                | `TBD`                         |       |
+| 3     | `spec-phase-3.md` | `Not Started` | `TBD`                | `TBD`                         |       |
+| 4     | `spec-phase-4.md` | `Not Started` | `TBD`                | `TBD`                         |       |
+| 5     | `spec-phase-5.md` | `Not Started` | `TBD`                | `TBD`                         |       |
+| 6     | `spec-phase-6.md` | `Not Started` | `TBD`                | `TBD`                         |       |
+| 7     | `spec-phase-7.md` | `Not Started` | `TBD`                | `TBD`                         |       |
+
 ## Requirements
 
 ### In Scope

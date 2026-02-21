@@ -66,3 +66,10 @@ rg "asChild" packages/react-ui-base packages/ui-registry
 rg "@radix-ui/react-slot" packages/react-ui-base packages/ui-registry
 rg "useTambo" packages/ui-registry/src/components
 ```
+
+## Implementation Tracking
+
+- **Current Status**: `Not Started`
+- **Implementation PR(s)**: `TBD`
+- **Completion Date (YYYY-MM-DD)**: `TBD`
+- **Completion Notes**: `TBD`
