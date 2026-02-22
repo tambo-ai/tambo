@@ -89,36 +89,54 @@ function needsTranspilation(pkg) {
   const exports = pkg.exports;
   if (!exports) {
     // Fall back to main field
-    const main = pkg.main || "";
-    return main.endsWith(".ts") || main.endsWith(".tsx");
+    return isRawTypeScriptFile(pkg.main || "");
   }
 
-  // Check each export entry for raw TypeScript in production-facing conditions
-  for (const value of Object.values(exports)) {
-    if (typeof value === "string") {
-      if (value.endsWith(".ts") || value.endsWith(".tsx")) {
-        return true;
-      }
-      continue;
-    }
-    if (typeof value !== "object" || value === null) {
-      continue;
-    }
+  if (typeof exports === "string" || Array.isArray(exports)) {
+    return anyProdTargetNeedsTranspilation(exports);
+  }
 
-    // Look at non-development conditions (import, require, default)
-    for (const [condition, target] of Object.entries(value)) {
-      if (condition === "development" || condition === "types") {
-        continue;
-      }
-      let resolved = "";
-      if (typeof target === "string") {
-        resolved = target;
-      } else if (typeof target === "object" && target !== null) {
-        resolved = target.default || "";
-      }
-      if (resolved.endsWith(".ts") || resolved.endsWith(".tsx")) {
-        return true;
-      }
+  if (typeof exports !== "object" || exports === null) {
+    return false;
+  }
+
+  const isSubpathMap = Object.keys(exports).some(
+    (key) => key === "." || key.startsWith("./"),
+  );
+  if (isSubpathMap) {
+    return Object.values(exports).some(anyProdTargetNeedsTranspilation);
+  }
+
+  return anyProdTargetNeedsTranspilation(exports);
+}
+
+function isRawTypeScriptFile(path) {
+  return (
+    typeof path === "string" &&
+    (path.endsWith(".ts") || path.endsWith(".tsx")) &&
+    !path.endsWith(".d.ts")
+  );
+}
+
+function anyProdTargetNeedsTranspilation(target) {
+  if (isRawTypeScriptFile(target)) {
+    return true;
+  }
+
+  if (Array.isArray(target)) {
+    return target.some(anyProdTargetNeedsTranspilation);
+  }
+
+  if (typeof target !== "object" || target === null) {
+    return false;
+  }
+
+  for (const [condition, value] of Object.entries(target)) {
+    if (condition === "development" || condition === "types") {
+      continue;
+    }
+    if (anyProdTargetNeedsTranspilation(value)) {
+      return true;
     }
   }
 
