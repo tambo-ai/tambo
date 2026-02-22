@@ -100,6 +100,7 @@ function isRawTypeScriptFile(path) {
     return false;
   }
 
+  // Declarations are type-only artifacts; runtime entry points should not point at them.
   const clean = path.split(/[?#]/, 1)[0];
   return (
     (clean.endsWith(".ts") || clean.endsWith(".tsx")) &&
@@ -107,6 +108,8 @@ function isRawTypeScriptFile(path) {
   );
 }
 
+// Traverses Node-style `package.json#exports` targets, ignoring `development` and `types`
+// conditions so production builds validate built artifacts when available.
 function anyProdTargetNeedsTranspilation(target) {
   if (isRawTypeScriptFile(target)) {
     return true;
@@ -128,6 +131,7 @@ function anyProdTargetNeedsTranspilation(target) {
   }
 
   for (const [condition, value] of Object.entries(target)) {
+    // Intentionally ignore entire trees under these keys.
     if (condition === "development" || condition === "types") {
       continue;
     }
