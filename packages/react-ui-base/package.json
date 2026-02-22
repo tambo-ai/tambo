@@ -19,6 +19,7 @@
   "types": "./dist/esm/index.d.ts",
   "exports": {
     ".": {
+      "development": "./src/index.ts",
       "import": {
         "types": "./dist/esm/index.d.ts",
         "default": "./dist/esm/index.js"
@@ -29,6 +30,7 @@
       }
     },
     "./message": {
+      "development": "./src/message/index.tsx",
       "import": {
         "types": "./dist/esm/message/index.d.ts",
         "default": "./dist/esm/message/index.js"
@@ -39,6 +41,7 @@
       }
     },
     "./message-input": {
+      "development": "./src/message-input/index.tsx",
       "import": {
         "types": "./dist/esm/message-input/index.d.ts",
         "default": "./dist/esm/message-input/index.js"
@@ -49,6 +52,7 @@
       }
     },
     "./reasoning-info": {
+      "development": "./src/reasoning-info/index.tsx",
       "import": {
         "types": "./dist/esm/reasoning-info/index.d.ts",
         "default": "./dist/esm/reasoning-info/index.js"
@@ -59,6 +63,7 @@
       }
     },
     "./toolcall-info": {
+      "development": "./src/toolcall-info/index.tsx",
       "import": {
         "types": "./dist/esm/toolcall-info/index.d.ts",
         "default": "./dist/esm/toolcall-info/index.js"
@@ -69,6 +74,7 @@
       }
     },
     "./types": {
+      "development": "./src/types/component-render-or-children.ts",
       "import": {
         "types": "./dist/esm/types/index.d.ts",
         "default": "./dist/esm/types/index.js"

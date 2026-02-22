@@ -7,9 +7,11 @@ import rehypeKatex from "rehype-katex";
 import rehypePrettyCode from "rehype-pretty-code";
 import remarkGfm from "remark-gfm";
 import remarkMdxFrontmatter from "remark-mdx-frontmatter";
+import { getWorkspaceTranspilePackages } from "../../scripts/workspace-packages.mjs";
 import { remarkInjectBlogLayout } from "./lib/mdx/inject-blog-layout.mjs";
 
-const jiti = createJiti(fileURLToPath(import.meta.url));
+const APP_DIR = fileURLToPath(new URL(".", import.meta.url));
+const jiti = createJiti(APP_DIR);
 
 // Import env here to validate the environment variables during build. Using jiti we can import .ts files :)
 jiti.import("./lib/env").catch(console.error);
@@ -47,7 +49,7 @@ const authRedirects =
 
 /** @type {import('next').NextConfig} */
 const config = {
-  transpilePackages: ["@tambo-ai/ui-registry"],
+  transpilePackages: getWorkspaceTranspilePackages(APP_DIR),
   redirects: () => {
     return [
       ...authRedirects,
@@ -169,12 +171,19 @@ const config = {
     webpackMemoryOptimizations: true,
   },
   // Configure webpack to use SVGR for SVG imports
-  webpack(config) {
+  webpack(config, { dev }) {
     // Modify the rules for SVG files
     config.module.rules.push({
       test: /\.svg$/,
       use: ["@svgr/webpack"],
     });
+
+    if (dev) {
+      const conditionNames = config.resolve.conditionNames ?? [];
+      config.resolve.conditionNames = conditionNames.includes("development")
+        ? conditionNames
+        : ["development", ...conditionNames];
+    }
 
     // don't resolve optional peers from '@standard-community/standard-json'
     config.resolve.alias = {
