@@ -92,29 +92,18 @@ function needsTranspilation(pkg) {
     return isRawTypeScriptFile(pkg.main || "");
   }
 
-  if (typeof exports === "string" || Array.isArray(exports)) {
-    return anyProdTargetNeedsTranspilation(exports);
-  }
-
-  if (typeof exports !== "object" || exports === null) {
-    return false;
-  }
-
-  const isSubpathMap = Object.keys(exports).some(
-    (key) => key === "." || key.startsWith("./"),
-  );
-  if (isSubpathMap) {
-    return Object.values(exports).some(anyProdTargetNeedsTranspilation);
-  }
-
   return anyProdTargetNeedsTranspilation(exports);
 }
 
 function isRawTypeScriptFile(path) {
+  if (typeof path !== "string") {
+    return false;
+  }
+
+  const clean = path.split(/[?#]/, 1)[0];
   return (
-    typeof path === "string" &&
-    (path.endsWith(".ts") || path.endsWith(".tsx")) &&
-    !path.endsWith(".d.ts")
+    (clean.endsWith(".ts") || clean.endsWith(".tsx")) &&
+    !clean.endsWith(".d.ts")
   );
 }
 
@@ -129,6 +118,13 @@ function anyProdTargetNeedsTranspilation(target) {
 
   if (typeof target !== "object" || target === null) {
     return false;
+  }
+
+  const keys = Object.keys(target);
+  const isSubpathMap =
+    keys.length > 0 && keys.every((key) => key === "." || key.startsWith("./"));
+  if (isSubpathMap) {
+    return Object.values(target).some(anyProdTargetNeedsTranspilation);
   }
 
   for (const [condition, value] of Object.entries(target)) {
