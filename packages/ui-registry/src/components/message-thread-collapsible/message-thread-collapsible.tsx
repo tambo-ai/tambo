@@ -49,6 +49,7 @@ export interface MessageThreadCollapsibleProps extends React.HTMLAttributes<HTML
   height?: string;
   /** @deprecated Use height instead. This prop will be removed in a future version. */
   maxHeight?: string;
+  /** Optional starter suggestions shown before conversation begins. When omitted, no starter suggestions are shown. */
   initialSuggestions?: Suggestion[];
 }
 
