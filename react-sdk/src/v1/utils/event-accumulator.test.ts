@@ -18,6 +18,7 @@ import {
 } from "@ag-ui/core";
 import type { ToolUseContent } from "@tambo-ai/typescript-sdk/resources/threads/threads";
 import {
+  PLACEHOLDER_THREAD_ID,
   createInitialState,
   createInitialThreadState,
   streamReducer,
@@ -91,11 +92,15 @@ describe("createInitialState", () => {
   it("creates initial state with placeholder thread", () => {
     const state = createInitialState();
 
-    expect(state.currentThreadId).toBe("placeholder");
-    expect(state.threadMap.placeholder).toBeDefined();
-    expect(state.threadMap.placeholder.thread.id).toBe("placeholder");
-    expect(state.threadMap.placeholder.thread.messages).toEqual([]);
-    expect(state.threadMap.placeholder.streaming.status).toBe("idle");
+    expect(state.currentThreadId).toBe(PLACEHOLDER_THREAD_ID);
+    expect(state.threadMap[PLACEHOLDER_THREAD_ID]).toBeDefined();
+    expect(state.threadMap[PLACEHOLDER_THREAD_ID].thread.id).toBe(
+      PLACEHOLDER_THREAD_ID,
+    );
+    expect(state.threadMap[PLACEHOLDER_THREAD_ID].thread.messages).toEqual([]);
+    expect(state.threadMap[PLACEHOLDER_THREAD_ID].streaming.status).toBe(
+      "idle",
+    );
   });
 });
 
@@ -223,13 +228,17 @@ describe("streamReducer", () => {
       };
       state = streamReducer(state, {
         type: "START_NEW_THREAD",
-        threadId: "placeholder",
+        threadId: PLACEHOLDER_THREAD_ID,
         initialThread,
       });
 
-      expect(state.currentThreadId).toBe("placeholder");
-      expect(state.threadMap.placeholder.thread.messages).toHaveLength(1);
-      expect(state.threadMap.placeholder.thread.messages[0].id).toBe("seed_1");
+      expect(state.currentThreadId).toBe(PLACEHOLDER_THREAD_ID);
+      expect(
+        state.threadMap[PLACEHOLDER_THREAD_ID].thread.messages,
+      ).toHaveLength(1);
+      expect(state.threadMap[PLACEHOLDER_THREAD_ID].thread.messages[0].id).toBe(
+        "seed_1",
+      );
 
       // Simulate a completed conversation: add more messages to the placeholder
       const userMsgStart: TextMessageStartEvent = {
@@ -245,27 +254,33 @@ describe("streamReducer", () => {
       state = streamReducer(state, {
         type: "EVENT",
         event: userMsgStart,
-        threadId: "placeholder",
+        threadId: PLACEHOLDER_THREAD_ID,
       });
       state = streamReducer(state, {
         type: "EVENT",
         event: userMsgContent,
-        threadId: "placeholder",
+        threadId: PLACEHOLDER_THREAD_ID,
       });
 
-      expect(state.threadMap.placeholder.thread.messages).toHaveLength(2);
+      expect(
+        state.threadMap[PLACEHOLDER_THREAD_ID].thread.messages,
+      ).toHaveLength(2);
 
       // Second call: start a new thread again — should reset to fresh state
       state = streamReducer(state, {
         type: "START_NEW_THREAD",
-        threadId: "placeholder",
+        threadId: PLACEHOLDER_THREAD_ID,
         initialThread,
       });
 
       // Should be reset to just the initial seed message, not the old messages
-      expect(state.currentThreadId).toBe("placeholder");
-      expect(state.threadMap.placeholder.thread.messages).toHaveLength(1);
-      expect(state.threadMap.placeholder.thread.messages[0].id).toBe("seed_1");
+      expect(state.currentThreadId).toBe(PLACEHOLDER_THREAD_ID);
+      expect(
+        state.threadMap[PLACEHOLDER_THREAD_ID].thread.messages,
+      ).toHaveLength(1);
+      expect(state.threadMap[PLACEHOLDER_THREAD_ID].thread.messages[0].id).toBe(
+        "seed_1",
+      );
     });
 
     it("overwrites existing placeholder even without initialThread", () => {
@@ -279,18 +294,22 @@ describe("streamReducer", () => {
           messageId: "msg_1",
           role: "user",
         } as TextMessageStartEvent,
-        threadId: "placeholder",
+        threadId: PLACEHOLDER_THREAD_ID,
       });
-      expect(state.threadMap.placeholder.thread.messages).toHaveLength(1);
+      expect(
+        state.threadMap[PLACEHOLDER_THREAD_ID].thread.messages,
+      ).toHaveLength(1);
 
       // START_NEW_THREAD without initialThread should still reset
       state = streamReducer(state, {
         type: "START_NEW_THREAD",
-        threadId: "placeholder",
+        threadId: PLACEHOLDER_THREAD_ID,
       });
 
-      expect(state.currentThreadId).toBe("placeholder");
-      expect(state.threadMap.placeholder.thread.messages).toHaveLength(0);
+      expect(state.currentThreadId).toBe(PLACEHOLDER_THREAD_ID);
+      expect(
+        state.threadMap[PLACEHOLDER_THREAD_ID].thread.messages,
+      ).toHaveLength(0);
     });
   });
 
@@ -371,8 +390,10 @@ describe("streamReducer", () => {
         threadId: realThreadId,
       });
 
-      expect(result.threadMap.placeholder.thread.messages).toHaveLength(0);
-      expect(result.currentThreadId).toBe("placeholder");
+      expect(
+        result.threadMap[PLACEHOLDER_THREAD_ID].thread.messages,
+      ).toHaveLength(0);
+      expect(result.currentThreadId).toBe(PLACEHOLDER_THREAD_ID);
     });
 
     it("migrates messages from placeholder thread to real thread", () => {
@@ -380,7 +401,7 @@ describe("streamReducer", () => {
       const state = createInitialState();
 
       // Verify placeholder thread exists
-      expect(state.currentThreadId).toBe("placeholder");
+      expect(state.currentThreadId).toBe(PLACEHOLDER_THREAD_ID);
 
       // Add a user message to the placeholder thread
       const userMsgStart: TextMessageStartEvent = {
@@ -401,26 +422,27 @@ describe("streamReducer", () => {
       let stateWithUserMsg = streamReducer(state, {
         type: "EVENT",
         event: userMsgStart,
-        threadId: "placeholder",
+        threadId: PLACEHOLDER_THREAD_ID,
       });
       stateWithUserMsg = streamReducer(stateWithUserMsg, {
         type: "EVENT",
         event: userMsgContent,
-        threadId: "placeholder",
+        threadId: PLACEHOLDER_THREAD_ID,
       });
       stateWithUserMsg = streamReducer(stateWithUserMsg, {
         type: "EVENT",
         event: userMsgEnd,
-        threadId: "placeholder",
+        threadId: PLACEHOLDER_THREAD_ID,
       });
 
       // Verify placeholder thread has the message
-      expect(stateWithUserMsg.currentThreadId).toBe("placeholder");
+      expect(stateWithUserMsg.currentThreadId).toBe(PLACEHOLDER_THREAD_ID);
       expect(
-        stateWithUserMsg.threadMap.placeholder.thread.messages,
+        stateWithUserMsg.threadMap[PLACEHOLDER_THREAD_ID].thread.messages,
       ).toHaveLength(1);
       expect(
-        stateWithUserMsg.threadMap.placeholder.thread.messages[0].content[0],
+        stateWithUserMsg.threadMap[PLACEHOLDER_THREAD_ID].thread.messages[0]
+          .content[0],
       ).toEqual({
         type: "text",
         text: "Hello",
@@ -442,8 +464,10 @@ describe("streamReducer", () => {
       });
 
       // Placeholder thread should be reset to empty (not removed)
-      expect(finalState.threadMap.placeholder).toBeDefined();
-      expect(finalState.threadMap.placeholder.thread.messages).toHaveLength(0);
+      expect(finalState.threadMap[PLACEHOLDER_THREAD_ID]).toBeDefined();
+      expect(
+        finalState.threadMap[PLACEHOLDER_THREAD_ID].thread.messages,
+      ).toHaveLength(0);
 
       // Real thread should have the migrated user message
       expect(finalState.threadMap[realThreadId]).toBeDefined();
@@ -498,17 +522,17 @@ describe("streamReducer", () => {
       state = streamReducer(state, {
         type: "EVENT",
         event: userMsgStart,
-        threadId: "placeholder",
+        threadId: PLACEHOLDER_THREAD_ID,
       });
       state = streamReducer(state, {
         type: "EVENT",
         event: userMsgContent,
-        threadId: "placeholder",
+        threadId: PLACEHOLDER_THREAD_ID,
       });
       state = streamReducer(state, {
         type: "EVENT",
         event: userMsgEnd,
-        threadId: "placeholder",
+        threadId: PLACEHOLDER_THREAD_ID,
       });
 
       const realThreadId = "thread_real_123";
@@ -525,7 +549,9 @@ describe("streamReducer", () => {
         threadId: realThreadId,
       });
 
-      expect(result.threadMap.placeholder.thread.messages).toHaveLength(0);
+      expect(
+        result.threadMap[PLACEHOLDER_THREAD_ID].thread.messages,
+      ).toHaveLength(0);
       expect(result.threadMap[realThreadId].thread.messages).toHaveLength(1);
       expect(result.currentThreadId).toBe("thread_1");
     });
@@ -553,17 +579,17 @@ describe("streamReducer", () => {
       let stateWithUserMsg = streamReducer(state, {
         type: "EVENT",
         event: userMsgStart,
-        threadId: "placeholder",
+        threadId: PLACEHOLDER_THREAD_ID,
       });
       stateWithUserMsg = streamReducer(stateWithUserMsg, {
         type: "EVENT",
         event: userMsgContent,
-        threadId: "placeholder",
+        threadId: PLACEHOLDER_THREAD_ID,
       });
       stateWithUserMsg = streamReducer(stateWithUserMsg, {
         type: "EVENT",
         event: userMsgEnd,
-        threadId: "placeholder",
+        threadId: PLACEHOLDER_THREAD_ID,
       });
 
       const realThreadId = "thread_real_123";
@@ -577,10 +603,12 @@ describe("streamReducer", () => {
       const result = streamReducer(stateWithUserMsg, {
         type: "EVENT",
         event: runStartedEvent,
-        threadId: "placeholder",
+        threadId: PLACEHOLDER_THREAD_ID,
       });
 
-      expect(result.threadMap.placeholder.thread.messages).toHaveLength(0);
+      expect(
+        result.threadMap[PLACEHOLDER_THREAD_ID].thread.messages,
+      ).toHaveLength(0);
       expect(result.threadMap[realThreadId].thread.messages).toHaveLength(1);
       expect(result.currentThreadId).toBe(realThreadId);
     });
