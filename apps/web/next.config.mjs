@@ -7,6 +7,7 @@ import rehypeKatex from "rehype-katex";
 import rehypePrettyCode from "rehype-pretty-code";
 import remarkGfm from "remark-gfm";
 import remarkMdxFrontmatter from "remark-mdx-frontmatter";
+// Docker builds use a pruned workspace; repo-root imports (like `scripts/`) must be copied in `apps/web/Dockerfile`.
 import { getWorkspaceTranspilePackages } from "../../scripts/workspace-packages.mjs";
 import { remarkInjectBlogLayout } from "./lib/mdx/inject-blog-layout.mjs";
 
