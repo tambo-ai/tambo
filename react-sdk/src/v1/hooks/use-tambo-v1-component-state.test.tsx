@@ -106,7 +106,7 @@ describe("useTamboComponentState", () => {
           lastRunCancelled: false,
         },
         streaming: { status: "idle" },
-        accumulatingToolArgs: new Map(),
+        accumulatingToolArgs: {},
       },
     },
     currentThreadId: mockThreadId,

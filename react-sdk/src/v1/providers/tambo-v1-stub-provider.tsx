@@ -235,7 +235,7 @@ export function TamboStubProvider({
       streaming: {
         status: isStreaming ? "streaming" : "idle",
       },
-      accumulatingToolArgs: new Map(),
+      accumulatingToolArgs: {},
     };
 
     return {

@@ -1081,7 +1081,7 @@ describe("useTamboSendMessage mutation", () => {
             lastRunCancelled: false,
           },
           streaming: { status: "idle" },
-          accumulatingToolArgs: new Map(),
+          accumulatingToolArgs: {},
           lastCompletedRunId: "run_1",
         },
       },

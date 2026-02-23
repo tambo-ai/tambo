@@ -77,7 +77,7 @@ function createThreadState(
     streaming: {
       status: "idle",
     },
-    accumulatingToolArgs: new Map(),
+    accumulatingToolArgs: {},
     ...overrides,
   };
 }

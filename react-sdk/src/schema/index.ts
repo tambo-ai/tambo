@@ -1,9 +1,11 @@
-export { looksLikeJSONSchema, makeJsonSchemaPartial } from "./json-schema";
+// Re-exported from @tambo-ai/client
 export {
+  looksLikeJSONSchema,
+  makeJsonSchemaPartial,
   getParametersFromToolSchema,
   safeSchemaToJsonSchema,
   schemaToJsonSchema,
-  type SupportedSchema,
-} from "./schema";
-export { isStandardSchema } from "./standard-schema";
-export { assertNoRecordSchema } from "./validate";
+  isStandardSchema,
+  assertNoRecordSchema,
+} from "@tambo-ai/client";
+export type { SupportedSchema } from "@tambo-ai/client";
