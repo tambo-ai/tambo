@@ -21,34 +21,17 @@ Use this table to run implementation across multiple PRs. When a phase lands, up
 
 **Status values**: `Not Started`, `In Progress`, `Completed`, `Blocked`
 
-| Phase | Spec File         | Status        | Implementation PR(s) | Completion Date (YYYY-MM-DD) | Notes |
-| ----- | ----------------- | ------------- | -------------------- | ---------------------------- | ----- |
-| 0     | `spec-phase-0.md` | `Not Started` | `TBD`                | `TBD`                        |       |
-| 1     | `spec-phase-1.md` | `Not Started` | `TBD`                | `TBD`                        |       |
-| 2     | `spec-phase-2.md` | `Not Started` | `TBD`                | `TBD`                        |       |
-| 3     | `spec-phase-3.md` | `Not Started` | `TBD`                | `TBD`                        |       |
-| 4     | `spec-phase-4.md` | `Not Started` | `TBD`                | `TBD`                        |       |
-| 5     | `spec-phase-5.md` | `Not Started` | `TBD`                | `TBD`                        |       |
-| 6     | `spec-phase-6.md` | `Not Started` | `TBD`                | `TBD`                        |       |
-| 7     | `spec-phase-7.md` | `Not Started` | `TBD`                | `TBD`                        |       |
-| 8     | `spec-phase-8.md` | `Not Started` | `TBD`                | `TBD`                        |       |
-
-## Phase Delivery Tracker
-
-Use this table to run implementation across multiple PRs. When a phase lands, update both this table and the phase spec's `Implementation Tracking` section.
-
-**Status values**: `Not Started`, `In Progress`, `Completed`, `Blocked`
-
-| Phase | Spec File         | Status        | Implementation PR(s) | Completion Date (YYYY-MM-DD) | Notes |
-| ----- | ----------------- | ------------- | -------------------- | ----------------------------- | ----- |
-| 0     | `spec-phase-0.md` | `Not Started` | `TBD`                | `TBD`                         |       |
-| 1     | `spec-phase-1.md` | `Not Started` | `TBD`                | `TBD`                         |       |
-| 2     | `spec-phase-2.md` | `Not Started` | `TBD`                | `TBD`                         |       |
-| 3     | `spec-phase-3.md` | `Not Started` | `TBD`                | `TBD`                         |       |
-| 4     | `spec-phase-4.md` | `Not Started` | `TBD`                | `TBD`                         |       |
-| 5     | `spec-phase-5.md` | `Not Started` | `TBD`                | `TBD`                         |       |
-| 6     | `spec-phase-6.md` | `Not Started` | `TBD`                | `TBD`                         |       |
-| 7     | `spec-phase-7.md` | `Not Started` | `TBD`                | `TBD`                         |       |
+| Phase | Spec File         | Status        | Implementation PR(s)                       | Completion Date (YYYY-MM-DD) | Notes                                                     |
+| ----- | ----------------- | ------------- | ------------------------------------------ | ---------------------------- | --------------------------------------------------------- |
+| 0     | `spec-phase-0.md` | `Completed`   | `codex/base-ui-planning-docs-pr2`          | `2026-02-21`                 | Documentation gate, contracts, and templates landed.      |
+| 1     | `spec-phase-1.md` | `Completed`   | `codex/showcase-page-specific-suggestions` | `2026-02-21`                 | MessageInput + Elicitation primitives and docs delivered. |
+| 2     | `spec-phase-2.md` | `In Progress` | `codex/showcase-page-specific-suggestions` | `TBD`                        | Timeline docs pages landed; behavior hardening remains.   |
+| 3     | `spec-phase-3.md` | `Not Started` | `TBD`                                      | `TBD`                        |                                                           |
+| 4     | `spec-phase-4.md` | `Not Started` | `TBD`                                      | `TBD`                        |                                                           |
+| 5     | `spec-phase-5.md` | `Not Started` | `TBD`                                      | `TBD`                        |                                                           |
+| 6     | `spec-phase-6.md` | `Not Started` | `TBD`                                      | `TBD`                        |                                                           |
+| 7     | `spec-phase-7.md` | `Not Started` | `TBD`                                      | `TBD`                        |                                                           |
+| 8     | `spec-phase-8.md` | `Not Started` | `TBD`                                      | `TBD`                        |                                                           |
 
 ## Requirements
 
@@ -107,5 +90,3 @@ Use this table to run implementation across multiple PRs. When a phase lands, up
 | Hotkeys remain opinionated in registry blocks    | Product-level UX choice with callback extensibility                                    |
 | Keep `canvas-space` global event API             | Existing integration model relies on `tambo:showComponent`                             |
 | Keep thread rename UI with TODO                  | UI remains; backend rename API wiring is deferred                                      |
-
----
