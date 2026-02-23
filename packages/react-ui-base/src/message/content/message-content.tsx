@@ -1,16 +1,15 @@
-import { Slot } from "@radix-ui/react-slot";
+import { mergeProps } from "@base-ui/react/merge-props";
+import { useRender } from "@base-ui/react/use-render";
 import { TamboThreadMessage } from "@tambo-ai/react";
 import * as React from "react";
 import { checkHasContent } from "../../utils/check-has-content";
 import { convertContentToMarkdown } from "../../utils/message-content";
-import { BasePropsWithChildrenOrRenderFunction } from "../../types/component-render-or-children";
-import { useRender } from "../../use-render/use-render";
 import { useMessageRootContext } from "../root/message-root-context";
 
 /**
  * Props passed to the renderContent callback.
  */
-export interface MessageContentRenderProps {
+export interface MessageContentRenderProps extends Record<string, unknown> {
   /** The resolved content to render (from children, content prop, or message). */
   content: unknown;
   /** The content converted to markdown string. */
@@ -25,9 +24,14 @@ export interface MessageContentRenderProps {
   isReasoning: boolean;
 }
 
+type MessageContentComponentProps = useRender.ComponentProps<
+  "div",
+  MessageContentRenderProps
+>;
+
 export interface MessageContentProps extends Omit<
-  React.HTMLAttributes<HTMLDivElement>,
-  "content" | "children"
+  MessageContentComponentProps,
+  "content"
 > {
   /** Optional override for the message content. */
   content?: string | TamboThreadMessage["content"];
@@ -42,11 +46,8 @@ export interface MessageContentProps extends Omit<
  */
 export const MessageContent = React.forwardRef<
   HTMLDivElement,
-  BasePropsWithChildrenOrRenderFunction<
-    MessageContentProps,
-    MessageContentRenderProps
-  >
->(({ content: contentProp, markdown = true, asChild, ...props }, ref) => {
+  MessageContentProps
+>(({ content: contentProp, markdown = true, ...props }, ref) => {
   const { message, isLoading } = useMessageRootContext();
   const contentToRender = contentProp ?? message.content;
 
@@ -61,28 +62,27 @@ export const MessageContent = React.forwardRef<
   );
 
   const showLoading = !!isLoading && !hasContent && !message.reasoning;
-
-  const Comp = asChild ? Slot : "div";
-
-  const { content, componentProps } = useRender(props, {
+  const renderProps: MessageContentRenderProps = {
     content: contentToRender,
     markdownContent,
     markdown,
     isLoading: showLoading,
     isCancelled: false,
     isReasoning: !!message.reasoning,
-  });
+  };
 
-  return (
-    <Comp
-      ref={ref}
-      data-slot="message-content"
-      data-loading={showLoading || undefined}
-      data-has-content={hasContent || undefined}
-      {...componentProps}
-    >
-      {content}
-    </Comp>
-  );
+  const { render, ...componentProps } = props;
+
+  return useRender({
+    defaultTagName: "div",
+    ref,
+    render,
+    state: renderProps,
+    props: mergeProps(componentProps, {
+      "data-slot": "message-content",
+      "data-loading": showLoading || undefined,
+      "data-has-content": hasContent || undefined,
+    }),
+  });
 });
 MessageContent.displayName = "Message.Content";

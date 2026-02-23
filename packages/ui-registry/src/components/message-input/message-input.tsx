@@ -144,9 +144,7 @@ const MessageInput = React.forwardRef<HTMLFormElement, MessageInputProps>(
               // Styling via data attributes - no render prop needed for drag state
               "border-border data-dragging:border-dashed data-dragging:border-emerald-400",
             )}
-          >
-            {/* Render props ONLY for behavior change (elicitation vs normal content) */}
-            {({ elicitation, resolveElicitation }) => (
+            render={(_props, { elicitation, resolveElicitation }) => (
               <>
                 {/* Drop overlay styled with CSS, shown via group-data-[dragging] */}
                 <div className="absolute inset-0 rounded-xl bg-emerald-50/90 dark:bg-emerald-950/30 items-center justify-center pointer-events-none z-20 hidden group-data-dragging:flex">
@@ -168,7 +166,7 @@ const MessageInput = React.forwardRef<HTMLFormElement, MessageInputProps>(
                 )}
               </>
             )}
-          </MessageInputBase.Content>
+          />
         </TooltipProvider>
       </MessageInputBase.Root>
     );
@@ -278,22 +276,23 @@ const MessageInputTextarea = ({
       promptFormatOptions={promptFormatOptions}
       className={cn("flex-1", className)}
       data-slot="message-input-textarea"
-      {...props}
-    >
-      {({
-        value,
-        setValue,
-        handleSubmit,
-        editorRef,
-        disabled,
-        addImage,
-        images,
-        setImageError,
-        resourceItems,
-        setResourceSearch,
-        promptItems,
-        setPromptSearch,
-      }) => {
+      render={(
+        _props,
+        {
+          value,
+          setValue,
+          handleSubmit,
+          editorRef,
+          disabled,
+          addImage,
+          images,
+          setImageError,
+          resourceItems,
+          setResourceSearch,
+          promptItems,
+          setPromptSearch,
+        },
+      ) => {
         // Handle image paste - mark as pasted and add to thread
         const handleAddImage = async (file: File) => {
           if (images.length + pendingImagesRef.current >= MAX_IMAGES) {
@@ -339,7 +338,8 @@ const MessageInputTextarea = ({
           </>
         );
       }}
-    </MessageInputBase.Textarea>
+      {...props}
+    />
   );
 };
 MessageInputTextarea.displayName = "MessageInput.Textarea";
@@ -422,16 +422,20 @@ const MessageInputPlainTextarea = ({
   ...props
 }: MessageInputPlainTextareaProps) => {
   return (
-    <MessageInputBase.Textarea placeholder={placeholder} asChild>
-      {({
-        value,
-        setValue,
-        submitMessage,
-        disabled,
-        addImage,
-        images,
-        setImageError,
-      }) => {
+    <MessageInputBase.Textarea
+      placeholder={placeholder}
+      render={(
+        _props,
+        {
+          value,
+          setValue,
+          submitMessage,
+          disabled,
+          addImage,
+          images,
+          setImageError,
+        },
+      ) => {
         const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
           setValue(e.target.value);
         };
@@ -496,7 +500,7 @@ const MessageInputPlainTextarea = ({
           />
         );
       }}
-    </MessageInputBase.Textarea>
+    />
   );
 };
 MessageInputPlainTextarea.displayName = "MessageInput.PlainTextarea";
@@ -537,17 +541,18 @@ const MessageInputSubmitButton = React.forwardRef<
     <MessageInputBase.SubmitButton
       ref={ref}
       className={buttonClasses}
+      render={(_props, { showCancelButton }) => (
+        <>
+          {children ??
+            (showCancelButton ? (
+              <Square className="w-4 h-4" fill="currentColor" />
+            ) : (
+              <ArrowUp className="w-5 h-5" />
+            ))}
+        </>
+      )}
       {...props}
-    >
-      {({ showCancelButton }) =>
-        children ??
-        (showCancelButton ? (
-          <Square className="w-4 h-4" fill="currentColor" />
-        ) : (
-          <ArrowUp className="w-5 h-5" />
-        ))
-      }
-    </MessageInputBase.SubmitButton>
+    />
   );
 });
 MessageInputSubmitButton.displayName = "MessageInput.SubmitButton";
@@ -918,14 +923,15 @@ const MessageInputStagedImages = React.forwardRef<
         "flex flex-wrap items-center gap-2 pb-2 pt-1 border-b border-border empty:hidden",
         className,
       )}
+      render={(_props, { images }) => (
+        <>
+          {images.map(({ image, ...props }) => (
+            <ImageContextBadge key={image.id} image={image} {...props} />
+          ))}
+        </>
+      )}
       {...props}
-    >
-      {({ images }) =>
-        images.map(({ image, ...props }) => (
-          <ImageContextBadge key={image.id} image={image} {...props} />
-        ))
-      }
-    </MessageInputBase.StagedImages>
+    />
   );
 });
 MessageInputStagedImages.displayName = "MessageInput.StagedImages";

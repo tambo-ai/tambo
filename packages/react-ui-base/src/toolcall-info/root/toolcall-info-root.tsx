@@ -1,33 +1,47 @@
 "use client";
 
-import { Slot } from "@radix-ui/react-slot";
+import { mergeProps } from "@base-ui/react/merge-props";
+import { useRender } from "@base-ui/react/use-render";
 import type { TamboThreadMessage, TamboToolUseContent } from "@tambo-ai/react";
 import { useTambo } from "@tambo-ai/react";
 import * as React from "react";
 import { useOptionalMessageRootContext } from "../../message/root/message-root-context";
-import { BaseProps } from "../../types/component-render-or-children";
 import { getToolCallRequest } from "./get-tool-call-request";
 import { getToolStatusMessage } from "./get-tool-status-message";
 import { ToolcallInfoContext } from "./toolcall-info-context";
 
-export type ToolcallInfoRootProps = BaseProps<
-  React.HTMLAttributes<HTMLDivElement> & {
-    /** Default expanded state. */
-    defaultExpanded?: boolean;
-    /** Whether the tool call is in a loading state. */
-    isLoading?: boolean;
-    /**
-     * The full Tambo thread message object.
-     * If not provided, will be read from the parent Message.Root context.
-     */
-    message?: TamboThreadMessage;
-    /**
-     * Specific tool_use block to display.
-     * If not provided, the first tool_use block from the message is used.
-     */
-    toolUse?: TamboToolUseContent;
-  }
+export interface ToolcallInfoRootRenderProps extends Record<string, unknown> {
+  isExpanded: boolean;
+  hasToolError: boolean;
+  toolStatusMessage: string;
+  isLoading: boolean;
+  hasAssociatedResponse: boolean;
+}
+
+type ToolcallInfoRootComponentProps = useRender.ComponentProps<
+  "div",
+  ToolcallInfoRootRenderProps
 >;
+
+export type ToolcallInfoRootProps = Omit<
+  ToolcallInfoRootComponentProps,
+  "isLoading"
+> & {
+  /** Default expanded state. */
+  defaultExpanded?: boolean;
+  /** Whether the tool call is in a loading state. */
+  isLoading?: boolean;
+  /**
+   * The full Tambo thread message object.
+   * If not provided, will be read from the parent Message.Root context.
+   */
+  message?: TamboThreadMessage;
+  /**
+   * Specific tool_use block to display.
+   * If not provided, the first tool_use block from the message is used.
+   */
+  toolUse?: TamboToolUseContent;
+};
 
 /**
  * Root component for toolcall info.
@@ -39,12 +53,10 @@ export const ToolcallInfoRoot = React.forwardRef<
 >(
   (
     {
-      asChild,
       message: messageProp,
       isLoading: isLoadingProp,
       defaultExpanded = false,
       toolUse: toolUseProp,
-      children,
       ...props
     },
     ref,
@@ -132,13 +144,26 @@ export const ToolcallInfoRoot = React.forwardRef<
       return null;
     }
 
-    const Comp = asChild ? Slot : "div";
+    const { render, ...componentProps } = props;
+    const renderProps: ToolcallInfoRootRenderProps = {
+      isExpanded,
+      hasToolError,
+      toolStatusMessage,
+      isLoading: !!isLoading,
+      hasAssociatedResponse: !!associatedToolResponse,
+    };
 
     return (
       <ToolcallInfoContext.Provider value={contextValue}>
-        <Comp ref={ref} data-slot="toolcall-info" {...props}>
-          {children}
-        </Comp>
+        {useRender({
+          defaultTagName: "div",
+          ref,
+          render,
+          state: renderProps,
+          props: mergeProps(componentProps, {
+            "data-slot": "toolcall-info",
+          }),
+        })}
       </ToolcallInfoContext.Provider>
     );
   },
