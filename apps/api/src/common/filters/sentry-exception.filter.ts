@@ -20,7 +20,10 @@ export class SentryExceptionFilter extends BaseExceptionFilter {
     let status = HttpStatus.INTERNAL_SERVER_ERROR;
     if (exception instanceof HttpException) {
       status = exception.getStatus();
-    } else if (typeof exception?.statusCode === "number") {
+    } else if (
+      typeof exception?.statusCode === "number" &&
+      typeof exception?.message === "string"
+    ) {
       status = exception.statusCode;
     }
 
@@ -88,6 +91,8 @@ export class SentryExceptionFilter extends BaseExceptionFilter {
     // Log locally as well
     if (status >= 500) {
       this.logger.error(logMessage, exception.stack);
+    } else if (status >= 400) {
+      this.logger.warn(logMessage);
     } else {
       this.logger.debug(logMessage);
     }
