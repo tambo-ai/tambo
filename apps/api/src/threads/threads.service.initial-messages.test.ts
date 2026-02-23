@@ -223,13 +223,17 @@ describe("ThreadsService - Initial Messages", () => {
       const messages: MessageRequest[] = [
         {
           role: MessageRole.User,
-          content: [] as any,
+          content: [],
         },
       ];
 
       expect(() => {
         (service as any).validateInitialMessages(messages);
       }).toThrow(InputValidationError);
+
+      expect(() => {
+        (service as any).validateInitialMessages(messages);
+      }).toThrow(/Initial message at index 0 must have content/);
     });
 
     it("should reject a system message when project disallows override", () => {

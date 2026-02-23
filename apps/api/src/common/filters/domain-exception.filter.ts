@@ -6,7 +6,7 @@ import {
   Logger,
 } from "@nestjs/common";
 import { DomainError, DomainErrorKind } from "@tambo-ai-cloud/core";
-import { Response } from "express";
+import { Request, Response } from "express";
 import { ProblemDetails } from "../../threads/types/errors";
 
 const STATUS_MAP: Record<DomainErrorKind, number> = {
@@ -24,10 +24,10 @@ const TITLE_MAP: Record<DomainErrorKind, string> = {
 };
 
 const PROBLEM_TYPE_MAP: Record<DomainErrorKind, string> = {
-  validation: "https://problems-registry.smartbear.com/bad-request",
-  "not-found": "https://problems-registry.smartbear.com/not-found",
-  conflict: "https://problems-registry.smartbear.com/conflict",
-  forbidden: "https://problems-registry.smartbear.com/forbidden",
+  validation: "https://docs.tambo.co/reference/problems/validation",
+  "not-found": "https://docs.tambo.co/reference/problems/not-found",
+  conflict: "https://docs.tambo.co/reference/problems/conflict",
+  forbidden: "https://docs.tambo.co/reference/problems/forbidden",
 };
 
 /**
@@ -52,13 +52,10 @@ export class DomainExceptionFilter implements ExceptionFilter {
       status,
       title,
       detail: exception.message,
-      instance: request.url,
+      instance: request.originalUrl ?? request.url,
     };
 
-    this.logger.warn(
-      `Service error [${exception.kind}]: ${exception.message}`,
-      exception.stack,
-    );
+    this.logger.log(`Domain error [${exception.kind}]: ${exception.message}`);
 
     response
       .status(status)
