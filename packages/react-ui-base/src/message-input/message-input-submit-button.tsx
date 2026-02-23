@@ -28,7 +28,7 @@ export interface MessageInputSubmitButtonProps extends useRender.ComponentProps<
 export const MessageInputSubmitButton = React.forwardRef<
   HTMLButtonElement,
   MessageInputSubmitButtonProps
->(({ keepMounted = false, ...props }, ref) => {
+>(({ keepMounted = false, tabIndex, ...props }, ref) => {
   const { isPending, isIdle, isUpdatingToken } = useMessageInputContext();
 
   const disabled = isUpdatingToken;
@@ -53,6 +53,8 @@ export const MessageInputSubmitButton = React.forwardRef<
     props: mergeProps(componentProps, {
       disabled,
       "data-slot": "message-input-submit",
+      tabIndex: hidden ? -1 : tabIndex,
+      "aria-hidden": hidden ? "true" : undefined,
     }),
   });
 });
