@@ -227,13 +227,17 @@ describe("ThreadsService - Initial Messages", () => {
         },
       ];
 
-      expect(() => {
+      let error: unknown;
+      try {
         (service as any).validateInitialMessages(messages);
-      }).toThrow(InputValidationError);
+      } catch (e) {
+        error = e;
+      }
 
-      expect(() => {
-        (service as any).validateInitialMessages(messages);
-      }).toThrow(/Initial message at index 0 must have content/);
+      expect(error).toBeInstanceOf(InputValidationError);
+      expect((error as Error).message).toMatch(
+        /Initial message at index 0 must have content/,
+      );
     });
 
     it("should reject a system message when project disallows override", () => {
