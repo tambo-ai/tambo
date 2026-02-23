@@ -9,34 +9,36 @@ import { useMessageRootContext } from "../root/message-root-context";
 /**
  * Props passed to the renderContent callback.
  */
-export interface MessageContentRenderProps extends Record<string, unknown> {
-  /** The resolved content to render (from children, content prop, or message). */
-  content: unknown;
-  /** The content converted to markdown string. */
-  markdownContent: string;
-  /** Whether markdown rendering is enabled. */
-  markdown: boolean;
+export interface MessageContentState extends Record<string, unknown> {
   /** Whether the content is currently loading. */
-  isLoading: boolean;
-  /** Whether the message has been cancelled. */
-  isCancelled: boolean;
+  loading: boolean;
   /** Whether the message is in reasoning state. */
-  isReasoning: boolean;
+  reasoning: boolean;
+  /** Whether the message has content. */
+  hasContent: boolean;
+  /** Whether to render the content as Markdown. */
+  markdown: boolean;
 }
 
-type MessageContentComponentProps = useRender.ComponentProps<
+export interface MessageContentProps extends useRender.ComponentProps<
   "div",
-  MessageContentRenderProps
->;
-
-export interface MessageContentProps extends Omit<
-  MessageContentComponentProps,
-  "content"
+  MessageContentState
 > {
-  /** Optional override for the message content. */
-  content?: string | TamboThreadMessage["content"];
-  /** Whether to render as Markdown. Default is true. */
-  markdown?: boolean;
+  /**
+   * Optional override for the message content.
+   */
+  messageContent?: string | TamboThreadMessage["content"];
+  /**
+   * Content rendered as single Markdown string. Will be undefined if content
+   * is not provided or if renderAsMarkdown is false
+   * @default false
+   */
+  contentAsMarkdownString?: string;
+  /**
+   * Whether to render as Markdown.
+   * @default true
+   */
+  renderAsMarkdown?: boolean;
 }
 
 /**
@@ -47,13 +49,14 @@ export interface MessageContentProps extends Omit<
 export const MessageContent = React.forwardRef<
   HTMLDivElement,
   MessageContentProps
->(({ content: contentProp, markdown = true, ...props }, ref) => {
+>(({ content: contentProp, renderAsMarkdown = true, ...props }, ref) => {
   const { message, isLoading } = useMessageRootContext();
   const contentToRender = contentProp ?? message.content;
 
-  const markdownContent = React.useMemo(
-    () => convertContentToMarkdown(contentToRender),
-    [contentToRender],
+  const contentAsMarkdownString = React.useMemo(
+    () =>
+      renderAsMarkdown ? convertContentToMarkdown(contentToRender) : undefined,
+    [contentToRender, renderAsMarkdown],
   );
 
   const hasContent = React.useMemo(
@@ -62,14 +65,6 @@ export const MessageContent = React.forwardRef<
   );
 
   const showLoading = !!isLoading && !hasContent && !message.reasoning;
-  const renderProps: MessageContentRenderProps = {
-    content: contentToRender,
-    markdownContent,
-    markdown,
-    isLoading: showLoading,
-    isCancelled: false,
-    isReasoning: !!message.reasoning,
-  };
 
   const { render, ...componentProps } = props;
 
@@ -77,11 +72,16 @@ export const MessageContent = React.forwardRef<
     defaultTagName: "div",
     ref,
     render,
-    state: renderProps,
+    state: {
+      hasContent,
+      markdown: renderAsMarkdown,
+      loading: showLoading,
+      reasoning: !!message.reasoning,
+    },
     props: mergeProps(componentProps, {
       "data-slot": "message-content",
-      "data-loading": showLoading || undefined,
-      "data-has-content": hasContent || undefined,
+      content: contentToRender,
+      contentAsMarkdownString,
     }),
   });
 });

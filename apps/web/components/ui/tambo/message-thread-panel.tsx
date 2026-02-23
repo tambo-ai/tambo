@@ -21,6 +21,7 @@ import {
   MessageInputContexts,
   MessageInputError,
   MessageInputFileButton,
+  MessageInputStopButton,
   MessageInputSubmitButton,
   MessageInputToolbar,
 } from "@tambo-ai/ui-registry/components/message-input";
@@ -325,6 +326,7 @@ export const MessageThreadPanel = forwardRef<
               {/* Uncomment this to enable client-side MCP config modal button */}
               {/* <MessageInputMcpConfigButton /> */}
               <MessageInputSubmitButton />
+              <MessageInputStopButton />
             </MessageInputToolbar>
             <MessageInputError />
           </MessageInput>

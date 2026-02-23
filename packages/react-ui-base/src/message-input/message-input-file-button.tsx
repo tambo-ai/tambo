@@ -9,10 +9,7 @@ import { useMessageInputContext } from "./message-input-context";
 /**
  * Render props for the FileButton component.
  */
-export interface MessageInputFileButtonRenderProps extends Record<
-  string,
-  unknown
-> {
+export interface MessageInputFileButtonState extends Record<string, unknown> {
   /** Trigger the file picker */
   openFilePicker: () => void;
   /** The hidden file input ref */
@@ -24,7 +21,7 @@ export interface MessageInputFileButtonRenderProps extends Record<
  */
 type MessageInputFileButtonComponentProps = useRender.ComponentProps<
   "button",
-  MessageInputFileButtonRenderProps
+  MessageInputFileButtonState
 >;
 
 export interface MessageInputFileButtonProps extends MessageInputFileButtonComponentProps {
@@ -78,7 +75,7 @@ export const MessageInputFileButton = React.forwardRef<
     e.target.value = "";
   };
 
-  const renderProps: MessageInputFileButtonRenderProps = {
+  const renderProps: MessageInputFileButtonState = {
     openFilePicker,
     fileInputRef,
   };

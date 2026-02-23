@@ -35,8 +35,20 @@ export const useTamboThreadInput: Mock = jest.fn().mockReturnValue({
   value: "",
   setValue: jest.fn(),
   submit: jest.fn(),
+  error: null,
+  images: [],
+  addImages: jest.fn(async () => undefined),
+  addImage: jest.fn(async () => undefined),
+  removeImage: jest.fn(),
 });
 
 export const useTamboInteractable: Mock = jest.fn().mockReturnValue({
   setInteractableSelected: jest.fn(),
 });
+
+export const useIsTamboTokenUpdating: Mock = jest.fn().mockReturnValue(false);
+
+export const MCPTransport = {
+  HTTP: "http",
+  SSE: "sse",
+} as const;

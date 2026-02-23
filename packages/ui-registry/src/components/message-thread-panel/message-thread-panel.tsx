@@ -8,6 +8,7 @@ import {
   MessageInputFileButton,
   MessageInputMcpPromptButton,
   MessageInputMcpResourceButton,
+  MessageInputStopButton,
   MessageInputSubmitButton,
   MessageInputTextarea,
   MessageInputToolbar,
@@ -51,6 +52,7 @@ export interface MessageThreadPanelProps extends React.HTMLAttributes<HTMLDivEle
    * @example variant="compact"
    */
   variant?: VariantProps<typeof messageVariants>["variant"];
+  initialSuggestions?: Suggestion[];
 }
 
 /**
@@ -190,6 +192,7 @@ export const MessageThreadPanel = React.forwardRef<
   MessageThreadPanelProps
 >(({ className, variant, ...props }, ref) => {
   const panelRef = useRef<HTMLDivElement>(null);
+  const { initialSuggestions, ...restProps } = props;
   const { hasCanvasSpace, canvasIsOnLeft } = useCanvasDetection(panelRef);
   const { isLeftPanel, historyPosition } = usePositioning(
     className,
@@ -198,33 +201,12 @@ export const MessageThreadPanel = React.forwardRef<
   );
   const mergedRef = useMergeRefs<HTMLDivElement | null>(ref, panelRef);
 
-  const defaultSuggestions: Suggestion[] = [
-    {
-      id: "suggestion-1",
-      title: "Get started",
-      detailedSuggestion: "What can you help me with?",
-      messageId: "welcome-query",
-    },
-    {
-      id: "suggestion-2",
-      title: "Learn more",
-      detailedSuggestion: "Tell me about your capabilities.",
-      messageId: "capabilities-query",
-    },
-    {
-      id: "suggestion-3",
-      title: "Examples",
-      detailedSuggestion: "Show me some example queries I can try.",
-      messageId: "examples-query",
-    },
-  ];
-
   return (
     <ResizablePanel
       ref={mergedRef}
       isLeftPanel={isLeftPanel}
       className={className}
-      {...props}
+      {...restProps}
     >
       <div className="flex h-full relative">
         {historyPosition === "left" && (
@@ -268,14 +250,15 @@ export const MessageThreadPanel = React.forwardRef<
                 <MessageInputMcpResourceButton />
                 {/* Uncomment this to enable client-side MCP config modal button */}
                 {/* <MessageInputMcpConfigButton /> */}
-                <MessageInputSubmitButton />
+                <MessageInputSubmitButton keepMounted />
+                <MessageInputStopButton keepMounted />
               </MessageInputToolbar>
               <MessageInputError />
             </MessageInput>
           </div>
 
           {/* Message suggestions */}
-          <MessageSuggestions initialSuggestions={defaultSuggestions}>
+          <MessageSuggestions initialSuggestions={initialSuggestions}>
             <MessageSuggestionsList />
           </MessageSuggestions>
         </div>

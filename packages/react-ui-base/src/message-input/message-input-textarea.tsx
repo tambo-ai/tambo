@@ -22,10 +22,7 @@ import {
 /**
  * Render props for the Textarea component.
  */
-export interface MessageInputTextareaRenderProps extends Record<
-  string,
-  unknown
-> {
+export interface MessageInputTextareaState extends Record<string, unknown> {
   /** Current input value */
   value: string;
   /** Update the input value */
@@ -61,7 +58,7 @@ export interface MessageInputTextareaRenderProps extends Record<
  */
 type MessageInputTextareaComponentProps = useRender.ComponentProps<
   "div",
-  MessageInputTextareaRenderProps
+  MessageInputTextareaState
 >;
 
 export interface MessageInputTextareaProps extends MessageInputTextareaComponentProps {
@@ -103,8 +100,6 @@ export const MessageInputTextarea = React.forwardRef<
       submitMessage,
       handleSubmit,
       editorRef,
-      isIdle,
-      isUpdatingToken,
       addImage,
       images,
       setImageError,
@@ -130,9 +125,11 @@ export const MessageInputTextarea = React.forwardRef<
       promptFormatOptions,
     );
 
-    const disabled = !isIdle || isUpdatingToken;
+    // Keep typing enabled while generation is active or auth token is updating.
+    // Submission state is controlled by submit/stop controls and root guards.
+    const disabled = false;
 
-    const renderProps: MessageInputTextareaRenderProps = {
+    const renderProps: MessageInputTextareaState = {
       value,
       setValue,
       submitMessage,

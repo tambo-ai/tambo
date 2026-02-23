@@ -1,0 +1,88 @@
+---
+title: ToolcallInfo
+description: Compose tool call status, parameters, and results for assistant tool execution messages.
+---
+
+# ToolcallInfo
+
+`ToolcallInfo` in `@tambo-ai/react-ui-base` resolves tool call state for a message and exposes composable trigger/content parts.
+
+## Demo
+
+### Tailwind
+
+```tsx
+import { ToolcallInfo } from "@tambo-ai/react-ui-base/toolcall-info";
+
+<ToolcallInfo.Root message={message}>
+  <ToolcallInfo.Trigger>
+    <ToolcallInfo.StatusIcon />
+    <ToolcallInfo.StatusText />
+  </ToolcallInfo.Trigger>
+  <ToolcallInfo.Content>
+    <ToolcallInfo.ToolName />
+    <ToolcallInfo.Parameters />
+    <ToolcallInfo.Result />
+  </ToolcallInfo.Content>
+</ToolcallInfo.Root>;
+```
+
+## Anatomy
+
+```tsx
+<ToolcallInfo.Root message={message}>
+  <ToolcallInfo.Trigger />
+  <ToolcallInfo.Content />
+</ToolcallInfo.Root>
+```
+
+## Examples
+
+### Custom Trigger Text
+
+```tsx
+<ToolcallInfo.StatusText>
+  {({ status }) => <span>{status.toLowerCase()}</span>}
+</ToolcallInfo.StatusText>
+```
+
+### Render Parsed Result
+
+```tsx
+<ToolcallInfo.Result>
+  {({ content }) => <pre>{JSON.stringify(content, null, 2)}</pre>}
+</ToolcallInfo.Result>
+```
+
+## API reference
+
+### Root
+
+| Prop      | Type | Default | Description |
+| --------- | ---- | ------- | ----------- |
+| `message` | `TamboThreadMessage` | Required | Source message used to discover tool-use/result state. |
+
+### Trigger
+
+Toggles expanded tool information.
+
+### Content
+
+Shows detailed tool name, parameters, and result data.
+
+### Result
+
+Exposes parsed result content with render customization.
+
+## Accessibility
+
+- Keep trigger controls as real buttons when customizing.
+- Provide text alternatives for icon-only status indicators.
+
+## Styling Hooks
+
+- `data-slot="toolcall-info-root"`
+- `data-slot="toolcall-info-trigger"`
+- `data-slot="toolcall-info-content"`
+- `data-slot="toolcall-info-result"`
+

@@ -22,4 +22,9 @@ export default defineConfig([
       },
     },
   },
+  {
+    rules: {
+      "@typescript-eslint/no-namespace": ["error", { allowDeclarations: true }],
+    },
+  },
 ]);

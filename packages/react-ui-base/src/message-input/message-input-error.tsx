@@ -8,7 +8,7 @@ import { useMessageInputContext } from "./message-input-context";
 /**
  * Render props for the Error component.
  */
-export interface MessageInputErrorRenderProps extends Record<string, unknown> {
+export interface MessageInputErrorState extends Record<string, unknown> {
   /** Error message to display */
   errorMessage: string | null;
   /** The original error object if available */
@@ -24,7 +24,7 @@ export interface MessageInputErrorRenderProps extends Record<string, unknown> {
  */
 export type MessageInputErrorProps = useRender.ComponentProps<
   "p",
-  MessageInputErrorRenderProps
+  MessageInputErrorState
 >;
 
 /**
@@ -46,7 +46,7 @@ export const MessageInputError = React.forwardRef<
     return null;
   }
 
-  const renderProps: MessageInputErrorRenderProps = {
+  const renderProps: MessageInputErrorState = {
     errorMessage,
     error,
     submitError,

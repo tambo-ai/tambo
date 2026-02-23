@@ -6,11 +6,24 @@
  * allowing consumers to apply their own design system.
  */
 
+// Elicitation components
+export { Elicitation } from "./elicitation";
+export type {
+  ElicitationActionsProps,
+  ElicitationActionsState,
+  ElicitationField,
+  ElicitationFieldsProps,
+  ElicitationFieldsState,
+  ElicitationMessageProps,
+  ElicitationMessageState,
+  ElicitationRootProps,
+} from "./elicitation";
+
 // Message components
 export { Message } from "./message";
 export type {
   MessageContentProps,
-  MessageContentRenderProps,
+  MessageContentState,
   MessageImageRenderFnProps,
   MessageImagesProps,
   MessageLoadingIndicatorProps,
@@ -19,25 +32,29 @@ export type {
 } from "./message";
 
 // MessageInput components
-export { MessageInput } from "./message-input";
+export { IS_PASTED_IMAGE, MAX_IMAGES, MessageInput } from "./message-input";
 export type {
   MessageInputContentProps,
-  MessageInputContentRenderProps,
+  MessageInputContentState,
   MessageInputContextValue,
+  MessageInputElicitationProps,
+  MessageInputElicitationState,
   MessageInputErrorProps,
-  MessageInputErrorRenderProps,
+  MessageInputErrorState,
   MessageInputFileButtonProps,
-  MessageInputFileButtonRenderProps,
+  MessageInputFileButtonState,
   MessageInputRootProps,
   MessageInputStagedImagesProps,
-  MessageInputStagedImagesRenderProps,
+  MessageInputStagedImagesState,
+  MessageInputStopButtonProps,
+  MessageInputStopButtonState,
   MessageInputSubmitButtonProps,
-  MessageInputSubmitButtonRenderProps,
+  MessageInputSubmitButtonState,
   MessageInputTextareaProps,
-  MessageInputTextareaRenderProps,
+  MessageInputTextareaState,
   MessageInputToolbarProps,
   MessageInputValueAccessProps,
-  MessageInputValueAccessRenderProps,
+  MessageInputValueAccessState,
   PromptFormatOptions,
   PromptItem,
   PromptProvider,
@@ -45,10 +62,9 @@ export type {
   ResourceItem,
   ResourceProvider,
   StagedImage,
-  StagedImageRenderProps,
+  StagedImageState,
   TamboEditor,
 } from "./message-input";
-export { IS_PASTED_IMAGE, MAX_IMAGES } from "./message-input";
 
 // ReasoningInfo components
 export { ReasoningInfo } from "./reasoning-info";

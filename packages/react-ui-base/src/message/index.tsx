@@ -23,7 +23,7 @@ const Message = {
 
 export type {
   MessageContentProps,
-  MessageContentRenderProps,
+  MessageContentState,
 } from "./content/message-content";
 export type {
   MessageImageRenderFnProps,

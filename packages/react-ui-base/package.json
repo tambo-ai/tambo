@@ -40,6 +40,17 @@
         "default": "./dist/cjs/message/index.cjs"
       }
     },
+    "./elicitation": {
+      "development": "./src/elicitation/index.tsx",
+      "import": {
+        "types": "./dist/esm/elicitation/index.d.ts",
+        "default": "./dist/esm/elicitation/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/elicitation/index.d.ts",
+        "default": "./dist/cjs/elicitation/index.cjs"
+      }
+    },
     "./message-input": {
       "development": "./src/message-input/index.tsx",
       "import": {

@@ -12,10 +12,7 @@ import { useMessageInputContext } from "./message-input-context";
 /**
  * Render props for the Content component.
  */
-export interface MessageInputContentRenderProps extends Record<
-  string,
-  unknown
-> {
+export interface MessageInputContentState extends Record<string, unknown> {
   /** Whether files are being dragged over the input */
   isDragging: boolean;
   /** Current elicitation request if active */
@@ -29,8 +26,11 @@ export interface MessageInputContentRenderProps extends Record<
  */
 export type MessageInputContentProps = useRender.ComponentProps<
   "div",
-  MessageInputContentRenderProps
->;
+  MessageInputContentState
+> & {
+  /** Whether to keep the content mounted even when hidden */
+  keepMounted?: boolean;
+};
 
 /**
  * Content container that shows either children or elicitation UI.
@@ -39,11 +39,12 @@ export type MessageInputContentProps = useRender.ComponentProps<
 export const MessageInputContent = React.forwardRef<
   HTMLDivElement,
   MessageInputContentProps
->(({ ...props }, ref) => {
+>(({ keepMounted = false, ...props }, ref) => {
   const { elicitation, resolveElicitation, isDragging } =
     useMessageInputContext();
+  const hidden = !!elicitation;
 
-  const renderProps = React.useMemo<MessageInputContentRenderProps>(
+  const renderProps = React.useMemo<MessageInputContentState>(
     () => ({
       isDragging,
       elicitation,
@@ -51,6 +52,10 @@ export const MessageInputContent = React.forwardRef<
     }),
     [isDragging, elicitation, resolveElicitation],
   );
+
+  if (hidden && !keepMounted) {
+    return null;
+  }
 
   const { render, ...componentProps } = props;
 

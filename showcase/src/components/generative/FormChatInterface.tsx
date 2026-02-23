@@ -3,8 +3,33 @@ import {
   formSchema,
 } from "@tambo-ai/ui-registry/components/form";
 import { MessageThreadFull } from "@tambo-ai/ui-registry/components/message-thread-full";
+import type { Suggestion } from "@tambo-ai/react";
 import { useTambo } from "@tambo-ai/react";
 import { useEffect } from "react";
+
+const formThreadSuggestions = [
+  {
+    id: "form-suggestion-1",
+    title: "Build a contact form",
+    detailedSuggestion:
+      "Create a contact form with name, email, and message fields.",
+    messageId: "form-create-contact-form",
+  },
+  {
+    id: "form-suggestion-2",
+    title: "Add a dropdown",
+    detailedSuggestion:
+      "Add a required budget dropdown with sensible default options.",
+    messageId: "form-add-dropdown",
+  },
+  {
+    id: "form-suggestion-3",
+    title: "Tune layout",
+    detailedSuggestion:
+      "Make the form compact and add helpful field descriptions.",
+    messageId: "form-tune-layout",
+  },
+] satisfies Suggestion[];
 
 export const FormChatInterface = () => {
   const { registerComponent, currentThreadId } = useTambo();
@@ -38,7 +63,10 @@ export const FormChatInterface = () => {
 
   return (
     <div className="flex flex-col" style={{ height: "700px" }}>
-      <MessageThreadFull className="rounded-lg" />
+      <MessageThreadFull
+        className="rounded-lg"
+        initialSuggestions={formThreadSuggestions}
+      />
     </div>
   );
 };

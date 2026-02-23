@@ -12,7 +12,7 @@ import {
 /**
  * Render props for a single staged image.
  */
-export interface StagedImageRenderProps {
+export interface StagedImageState {
   /** The staged image data */
   image: StagedImage;
   /** Display name for the image */
@@ -30,12 +30,9 @@ export interface StagedImageRenderProps {
 /**
  * Render props for the StagedImages component.
  */
-export interface MessageInputStagedImagesRenderProps extends Record<
-  string,
-  unknown
-> {
+export interface MessageInputStagedImagesState extends Record<string, unknown> {
   /** Array of staged images with pre-computed props for rendering */
-  images: StagedImageRenderProps[];
+  images: StagedImageState[];
   /** Remove an image by ID */
   removeImage: (id: string) => void;
   /** Currently expanded image ID */
@@ -49,7 +46,7 @@ export interface MessageInputStagedImagesRenderProps extends Record<
  */
 export type MessageInputStagedImagesProps = useRender.ComponentProps<
   "div",
-  MessageInputStagedImagesRenderProps
+  MessageInputStagedImagesState
 >;
 
 /**
@@ -79,7 +76,7 @@ export const MessageInputStagedImages = React.forwardRef<
   );
 
   // Pre-compute image props array - only depends on rawImages and expandedImageId for isExpanded
-  const images = React.useMemo<StagedImageRenderProps[]>(
+  const images = React.useMemo<StagedImageState[]>(
     () =>
       rawImages.map((image, index) => ({
         image,
@@ -94,7 +91,7 @@ export const MessageInputStagedImages = React.forwardRef<
     [rawImages, expandedImageId, toggleImage, handleRemove],
   );
 
-  const renderProps = React.useMemo<MessageInputStagedImagesRenderProps>(
+  const State = React.useMemo<MessageInputStagedImagesState>(
     () => ({
       images,
       removeImage,
@@ -115,7 +112,7 @@ export const MessageInputStagedImages = React.forwardRef<
     defaultTagName: "div",
     ref,
     render,
-    state: renderProps,
+    state: State,
     props: mergeProps(componentProps, {
       children,
       "data-slot": "message-input-staged-images",

@@ -1,0 +1,86 @@
+---
+title: Message
+description: Compose message shell rendering for text, images, loading state, and rendered component content.
+---
+
+# Message
+
+`Message` in `@tambo-ai/react-ui-base` handles message-level behavior and content selection while leaving styling to your app or `@tambo-ai/ui-registry`.
+
+## Demo
+
+### Tailwind
+
+```tsx
+import { Message } from "@tambo-ai/react-ui-base/message";
+
+<Message.Root message={message} role={message.role}>
+  <Message.Content />
+  <Message.Images />
+  <Message.RenderedComponent>
+    <Message.RenderedComponentCanvasButton />
+    <Message.RenderedComponentContent />
+  </Message.RenderedComponent>
+</Message.Root>;
+```
+
+## Anatomy
+
+```tsx
+<Message.Root message={message} role={message.role}>
+  <Message.Content />
+  <Message.Images />
+  <Message.LoadingIndicator />
+</Message.Root>
+```
+
+## Examples
+
+### Rendered Component Area
+
+```tsx
+<Message.RenderedComponent>
+  <Message.RenderedComponentCanvasButton />
+  <Message.RenderedComponentContent />
+</Message.RenderedComponent>
+```
+
+### Custom Image Rendering
+
+```tsx
+<Message.Images renderImage={({ url, index }) => <img key={index} src={url} alt="" />} />
+```
+
+## API reference
+
+### Root
+
+| Prop      | Type | Default | Description |
+| --------- | ---- | ------- | ----------- |
+| `message` | `TamboThreadMessage` | Required | Message data for content blocks and metadata. |
+| `role`    | `string` | Required | Message role (`assistant`, `user`, etc). |
+
+### Content
+
+Renders text/resource/tool-use blocks and accepts custom `render` content transforms.
+
+### Images
+
+Renders image blocks from message content with optional custom renderer.
+
+### RenderedComponent
+
+Renders component output zones and related canvas controls.
+
+## Accessibility
+
+- Keep image `alt` text meaningful when providing custom image renderers.
+- Ensure rendered-component controls stay keyboard reachable.
+
+## Styling Hooks
+
+- `data-slot="message-root"`
+- `data-slot="message-content"`
+- `data-slot="message-images"`
+- `data-slot="message-rendered-component"`
+
