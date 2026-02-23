@@ -21,6 +21,7 @@ import {
   DEFAULT_OPENAI_MODEL,
   GenerationStage,
   getToolName,
+  InputValidationError,
   isUiToolName,
   LegacyComponentDecision,
   MCPClient,
@@ -977,7 +978,7 @@ export class ThreadsService {
 
       // If advancing an existing thread, initialMessages must not be provided
       if (unresolvedThreadId && advanceRequestDto.initialMessages?.length) {
-        throw new Error(
+        throw new InputValidationError(
           "Cannot provide initialMessages when advancing an existing thread",
         );
       }
@@ -2059,7 +2060,9 @@ export class ThreadsService {
     }
 
     if (preventCreate) {
-      throw new Error("Thread ID is required, and cannot be created");
+      throw new InputValidationError(
+        "Thread ID is required, and cannot be created",
+      );
     }
 
     // If the threadId is not provided, create a new thread
@@ -2088,7 +2091,9 @@ export class ThreadsService {
           [{ type: ContentPartType.Text, text: String(message.content) }];
 
       if (normalizedContent.length === 0) {
-        throw new Error(`Initial message at index ${index} must have content`);
+        throw new InputValidationError(
+          `Initial message at index ${index} must have content`,
+        );
       }
 
       const allowedRoles = [
@@ -2097,7 +2102,7 @@ export class ThreadsService {
         MessageRole.Assistant,
       ];
       if (!allowedRoles.includes(message.role)) {
-        throw new Error(
+        throw new InputValidationError(
           `Initial message at index ${index} has invalid role "${message.role}". Allowed roles are: ${allowedRoles.join(", ")}`,
         );
       }
@@ -2110,7 +2115,7 @@ export class ThreadsService {
             contentPart.text === null ||
             contentPart.text === "")
         ) {
-          throw new Error(
+          throw new InputValidationError(
             `Initial message at index ${index}, content part ${contentIndex} with type 'text' must have text property`,
           );
         }
@@ -2122,15 +2127,17 @@ export class ThreadsService {
       .map((m, i) => (m.role === MessageRole.System ? i : -1))
       .filter((i) => i >= 0);
     if (systemIndices.length > 1) {
-      throw new Error("Only one system message is allowed in initialMessages");
+      throw new InputValidationError(
+        "Only one system message is allowed in initialMessages",
+      );
     }
     if (systemIndices.length === 1 && systemIndices[0] !== 0) {
-      throw new Error(
+      throw new InputValidationError(
         "System message, if present, must be the first initial message",
       );
     }
     if (systemIndices.length === 1 && !allowOverride) {
-      throw new Error(
+      throw new InputValidationError(
         "Project does not allow overriding the system prompt with initial messages",
       );
     }
