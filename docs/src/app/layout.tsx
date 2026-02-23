@@ -29,11 +29,13 @@ export const metadata: Metadata = {
     url: baseUrl,
     siteName: "Tambo Docs",
     type: "website",
+    images: ["/logo/opengraph-image.jpg"],
   },
   twitter: {
     card: "summary_large_image",
     title: "Tambo Docs",
     description: docsDescription,
+    images: ["/logo/opengraph-image.jpg"],
   },
   robots: {
     index: true,
