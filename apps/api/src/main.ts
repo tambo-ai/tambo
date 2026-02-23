@@ -9,7 +9,7 @@ import * as Sentry from "@sentry/nestjs";
 import { json, urlencoded } from "express";
 import helmet from "helmet";
 import { AppModule } from "./app.module";
-import { ServiceExceptionFilter } from "./common/filters/input-validation-exception.filter";
+import { DomainExceptionFilter } from "./common/filters/input-validation-exception.filter";
 import { SentryExceptionFilter } from "./common/filters/sentry-exception.filter";
 import { generateOpenAPIConfig } from "./common/openapi";
 import { registerHandler } from "./mcp-server/server";
@@ -20,7 +20,7 @@ async function bootstrap() {
   const { httpAdapter } = app.get(HttpAdapterHost);
   app.useGlobalFilters(
     new SentryExceptionFilter(httpAdapter),
-    new ServiceExceptionFilter(),
+    new DomainExceptionFilter(),
   );
 
   app.useGlobalPipes(new ValidationPipe({ transform: true }));
