@@ -423,16 +423,11 @@ export function streamReducer(
     }
 
     case "START_NEW_THREAD": {
-      // Atomic action: initialize thread AND set as current in one reducer pass
-      // This prevents race conditions when multiple startNewThread() calls happen
+      // Atomic action: initialize thread AND set as current in one reducer pass.
+      // Always overwrites any existing thread state for this ID — the whole
+      // point of START_NEW_THREAD is to reset and start fresh (e.g. the
+      // placeholder thread must be wiped clean on every new conversation).
       const { threadId, initialThread } = action;
-      // Don't overwrite existing thread
-      if (state.threadMap[threadId]) {
-        return {
-          ...state,
-          currentThreadId: threadId,
-        };
-      }
       const baseState = createInitialThreadState(threadId);
       const threadState = initialThread
         ? {

@@ -196,6 +196,104 @@ describe("streamReducer", () => {
     });
   });
 
+  describe("START_NEW_THREAD action", () => {
+    it("creates a new thread and sets it as current", () => {
+      const state = createInitialState();
+      const result = streamReducer(state, {
+        type: "START_NEW_THREAD",
+        threadId: "new_thread",
+      });
+
+      expect(result.currentThreadId).toBe("new_thread");
+      expect(result.threadMap.new_thread).toBeDefined();
+      expect(result.threadMap.new_thread.thread.messages).toHaveLength(0);
+    });
+
+    it("overwrites existing placeholder thread on second call", () => {
+      // First call: start a new thread on the placeholder
+      let state = createInitialState();
+      const initialThread = {
+        messages: [
+          {
+            id: "seed_1",
+            role: "user" as const,
+            content: [{ type: "text" as const, text: "Hello" }],
+          },
+        ],
+      };
+      state = streamReducer(state, {
+        type: "START_NEW_THREAD",
+        threadId: "placeholder",
+        initialThread,
+      });
+
+      expect(state.currentThreadId).toBe("placeholder");
+      expect(state.threadMap.placeholder.thread.messages).toHaveLength(1);
+      expect(state.threadMap.placeholder.thread.messages[0].id).toBe("seed_1");
+
+      // Simulate a completed conversation: add more messages to the placeholder
+      const userMsgStart: TextMessageStartEvent = {
+        type: EventType.TEXT_MESSAGE_START,
+        messageId: "extra_msg",
+        role: "user",
+      };
+      const userMsgContent: TextMessageContentEvent = {
+        type: EventType.TEXT_MESSAGE_CONTENT,
+        messageId: "extra_msg",
+        delta: "Follow-up",
+      };
+      state = streamReducer(state, {
+        type: "EVENT",
+        event: userMsgStart,
+        threadId: "placeholder",
+      });
+      state = streamReducer(state, {
+        type: "EVENT",
+        event: userMsgContent,
+        threadId: "placeholder",
+      });
+
+      expect(state.threadMap.placeholder.thread.messages).toHaveLength(2);
+
+      // Second call: start a new thread again — should reset to fresh state
+      state = streamReducer(state, {
+        type: "START_NEW_THREAD",
+        threadId: "placeholder",
+        initialThread,
+      });
+
+      // Should be reset to just the initial seed message, not the old messages
+      expect(state.currentThreadId).toBe("placeholder");
+      expect(state.threadMap.placeholder.thread.messages).toHaveLength(1);
+      expect(state.threadMap.placeholder.thread.messages[0].id).toBe("seed_1");
+    });
+
+    it("overwrites existing placeholder even without initialThread", () => {
+      let state = createInitialState();
+
+      // Add a message to the placeholder
+      state = streamReducer(state, {
+        type: "EVENT",
+        event: {
+          type: EventType.TEXT_MESSAGE_START,
+          messageId: "msg_1",
+          role: "user",
+        } as TextMessageStartEvent,
+        threadId: "placeholder",
+      });
+      expect(state.threadMap.placeholder.thread.messages).toHaveLength(1);
+
+      // START_NEW_THREAD without initialThread should still reset
+      state = streamReducer(state, {
+        type: "START_NEW_THREAD",
+        threadId: "placeholder",
+      });
+
+      expect(state.currentThreadId).toBe("placeholder");
+      expect(state.threadMap.placeholder.thread.messages).toHaveLength(0);
+    });
+  });
+
   describe("RUN_STARTED event", () => {
     it("updates thread status to streaming", () => {
       const state = createTestStreamState("thread_1");
