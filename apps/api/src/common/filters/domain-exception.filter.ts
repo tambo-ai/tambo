@@ -36,8 +36,8 @@ const PROBLEM_TYPE_MAP: Record<DomainErrorKind, string> = {
  * response with RFC 9457 Problem Details.
  */
 @Catch(DomainError)
-export class ServiceExceptionFilter implements ExceptionFilter {
-  private readonly logger = new Logger(ServiceExceptionFilter.name);
+export class DomainExceptionFilter implements ExceptionFilter {
+  private readonly logger = new Logger(DomainExceptionFilter.name);
 
   catch(exception: DomainError, host: ArgumentsHost) {
     const ctx = host.switchToHttp();

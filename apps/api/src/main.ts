@@ -9,7 +9,7 @@ import * as Sentry from "@sentry/nestjs";
 import { json, urlencoded } from "express";
 import helmet from "helmet";
 import { AppModule } from "./app.module";
-import { DomainExceptionFilter } from "./common/filters/input-validation-exception.filter";
+import { DomainExceptionFilter } from "./common/filters/domain-exception.filter";
 import { SentryExceptionFilter } from "./common/filters/sentry-exception.filter";
 import { generateOpenAPIConfig } from "./common/openapi";
 import { registerHandler } from "./mcp-server/server";

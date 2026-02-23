@@ -1,5 +1,5 @@
 export * from "./assert-unreachable";
-export * from "./input-validation-error";
+export * from "./domain-error";
 export * from "./attachment";
 export * from "./ComponentDecision";
 export * from "./composio-utils";
