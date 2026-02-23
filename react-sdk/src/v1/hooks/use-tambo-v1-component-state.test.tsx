@@ -66,7 +66,7 @@ import { useTamboConfig } from "../providers/tambo-v1-provider";
 import { useStreamState } from "../providers/tambo-v1-stream-context";
 import { useComponentContentOptional } from "../utils/component-renderer";
 import { useDebouncedCallback } from "use-debounce";
-import type { StreamState } from "../utils/event-accumulator";
+import type { StreamState } from "@tambo-ai/client";
 import type { TamboComponentContent } from "../types/message";
 
 describe("useTamboComponentState", () => {

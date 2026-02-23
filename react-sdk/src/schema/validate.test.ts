@@ -1,6 +1,6 @@
 import type { JSONSchema7 } from "json-schema";
 import { z } from "zod/v4";
-import { assertNoRecordSchema } from "./validate";
+import { assertNoRecordSchema } from "@tambo-ai/client";
 
 describe("assertNoRecordSchema", () => {
   describe("falsy inputs", () => {

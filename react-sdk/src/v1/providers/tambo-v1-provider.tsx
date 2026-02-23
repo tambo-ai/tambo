@@ -38,7 +38,7 @@ import { TamboInteractableProvider } from "../../providers/tambo-interactable-pr
 import { TamboMcpTokenProvider } from "../../providers/tambo-mcp-token-provider";
 import { TamboMcpProvider } from "../../mcp/tambo-mcp-provider";
 import type { ContextHelpers } from "../../context-helpers";
-import type { McpServerInfo } from "../../model/mcp-server-info";
+import type { McpServerInfo } from "@tambo-ai/client";
 import type {
   ListResourceItem,
   ResourceSource,

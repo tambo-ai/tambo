@@ -1,4 +1,23 @@
-// Re-export types and functions from @tambo-ai/client
+// React-specific hook (not in client package)
+import type { RequestHandlerExtra } from "@modelcontextprotocol/sdk/shared/protocol.js";
+import type {
+  ClientNotification,
+  ClientRequest,
+  ElicitRequest,
+  ElicitResult,
+} from "@modelcontextprotocol/sdk/types.js";
+import { useCallback, useState } from "react";
+import type {
+  MCPElicitationHandler,
+  TamboElicitationRequest,
+  TamboElicitationResponse,
+} from "@tambo-ai/client";
+import {
+  toElicitationRequestedSchema as toSchema,
+  hasRequestedSchema as hasSchema,
+} from "@tambo-ai/client";
+
+// Re-export types and functions from @tambo-ai/client for barrel consumers
 export type {
   ElicitationRequestedSchema,
   TamboElicitationRequest,
@@ -9,25 +28,6 @@ export type {
 export {
   toElicitationRequestedSchema,
   hasRequestedSchema,
-} from "@tambo-ai/client";
-
-// React-specific hook (not in client package)
-import type { RequestHandlerExtra } from "@modelcontextprotocol/sdk/shared/protocol.js";
-import type {
-  ClientNotification,
-  ClientRequest,
-  ElicitRequest,
-  ElicitResult,
-} from "@modelcontextprotocol/sdk/types.js";
-import { useCallback, useState } from "react";
-import type { MCPElicitationHandler } from "./mcp-client";
-import type {
-  TamboElicitationRequest,
-  TamboElicitationResponse,
-} from "@tambo-ai/client";
-import {
-  toElicitationRequestedSchema as toSchema,
-  hasRequestedSchema as hasSchema,
 } from "@tambo-ai/client";
 
 /**

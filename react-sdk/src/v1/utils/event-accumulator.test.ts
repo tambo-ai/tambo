@@ -24,7 +24,7 @@ import {
   streamReducer,
   type StreamState,
   type ThreadState,
-} from "./event-accumulator";
+} from "@tambo-ai/client";
 import type { JSONSchema7 } from "json-schema";
 import type { Content, TamboComponentContent } from "../types/message";
 

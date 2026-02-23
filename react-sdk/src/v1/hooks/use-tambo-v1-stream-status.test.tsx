@@ -13,7 +13,7 @@ jest.mock("../providers/tambo-v1-stream-context", () => ({
 // Import the mocked functions
 import { useComponentContent } from "../utils/component-renderer";
 import { useStreamState } from "../providers/tambo-v1-stream-context";
-import type { StreamState, ThreadState } from "../utils/event-accumulator";
+import type { StreamState, ThreadState } from "@tambo-ai/client";
 import type {
   TamboComponentContent,
   TamboThreadMessage,

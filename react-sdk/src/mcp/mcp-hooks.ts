@@ -10,7 +10,7 @@ import { UseQueryResult } from "@tanstack/react-query";
 import * as React from "react";
 import { useTamboQueries, useTamboQuery } from "../hooks/react-query-hooks";
 import { useTamboRegistry } from "../providers/tambo-registry-provider";
-import { REGISTRY_SERVER_KEY } from "./mcp-constants";
+import { REGISTRY_SERVER_KEY } from "@tambo-ai/client";
 import {
   type ConnectedMcpServer,
   type McpServer,

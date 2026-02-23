@@ -7,8 +7,8 @@ import {
   getParametersFromToolSchema,
   safeSchemaToJsonSchema,
   schemaToJsonSchema,
-} from "./schema";
-import { isStandardSchema } from "./standard-schema";
+  isStandardSchema,
+} from "@tambo-ai/client";
 
 describe("schema utilities", () => {
   describe("looksLikeJSONSchema", () => {

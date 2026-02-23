@@ -8,7 +8,10 @@
 
 import React, { useContext } from "react";
 import { EventType, type RunErrorEvent } from "@ag-ui/core";
-import { asTamboCustomEvent, type RunAwaitingInputEvent } from "../types/event";
+import {
+  asTamboCustomEvent,
+  type RunAwaitingInputEvent,
+} from "@tambo-ai/client";
 import type TamboAI from "@tambo-ai/typescript-sdk";
 import type { Stream } from "@tambo-ai/typescript-sdk/core/streaming";
 import {
@@ -28,23 +31,17 @@ import { useTamboConfig } from "../providers/tambo-v1-provider";
 import { useTamboAuthState } from "./use-tambo-v1-auth-state";
 import { useTamboContextHelpers } from "../../providers/tambo-context-helpers-provider";
 import type { InitialInputMessage, InputMessage } from "../types/message";
-import type { ToolChoice } from "../types/tool-choice";
-import {
-  isPlaceholderThreadId,
-  type StreamAction,
-} from "../utils/event-accumulator";
-import {
-  toAvailableComponents,
-  toAvailableTools,
-} from "../utils/registry-conversion";
-import { handleEventStream } from "../utils/stream-handler";
+import type { ToolChoice } from "@tambo-ai/client";
+import { isPlaceholderThreadId, type StreamAction } from "@tambo-ai/client";
+import { toAvailableComponents, toAvailableTools } from "@tambo-ai/client";
+import { handleEventStream } from "@tambo-ai/client";
 import {
   executeAllPendingTools,
   createThrottledStreamableExecutor,
-} from "../utils/tool-executor";
+} from "@tambo-ai/client";
 import type { ToolResultContent } from "@tambo-ai/typescript-sdk/resources/threads/threads";
 import type { RunCreateParams } from "@tambo-ai/typescript-sdk/resources/threads/runs";
-import { ToolCallTracker } from "../utils/tool-call-tracker";
+import { ToolCallTracker } from "@tambo-ai/client";
 
 /**
  * Dispatches synthetic AG-UI events to show a user message in the thread.

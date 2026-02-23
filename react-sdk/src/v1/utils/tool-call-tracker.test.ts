@@ -1,7 +1,7 @@
 import { EventType } from "@ag-ui/core";
 import type { JSONSchema7 } from "json-schema";
 import type { TamboTool } from "../../model/component-metadata";
-import { ToolCallTracker } from "./tool-call-tracker";
+import { ToolCallTracker } from "@tambo-ai/client";
 
 /** Minimal tool definition for tests — only name + inputSchema are needed. */
 function fakeTool(name: string, inputSchema: JSONSchema7): TamboTool {

@@ -39,12 +39,8 @@ import type {
 import { TamboClientContext } from "../../providers/tambo-client-provider";
 import { TamboRegistryContext } from "../../providers/tambo-registry-provider";
 import type { TamboThreadMessage } from "../types/message";
-import type { TamboThread } from "../types/thread";
-import type {
-  StreamAction,
-  StreamState,
-  ThreadState,
-} from "../utils/event-accumulator";
+import type { TamboThread } from "@tambo-ai/client";
+import type { StreamAction, StreamState, ThreadState } from "@tambo-ai/client";
 import { TamboConfigContext, type TamboConfig } from "./tambo-v1-provider";
 import {
   TamboStreamProvider,

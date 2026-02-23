@@ -7,11 +7,11 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { ServerType } from "./mcp-constants";
 import {
+  ServerType,
   getMcpServerUniqueKey,
   type NormalizedMcpServerInfo,
-} from "../model/mcp-server-info";
+} from "@tambo-ai/client";
 import { useTamboMcpToken } from "../providers/tambo-mcp-token-provider";
 import {
   useTamboMcpServerInfos,
@@ -25,7 +25,7 @@ import {
   MCPHandlers,
   MCPSamplingHandler,
   MCPTransport,
-} from "./mcp-client";
+} from "@tambo-ai/client";
 
 /**
  * Extracts error message from MCP tool result content.

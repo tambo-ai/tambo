@@ -5,7 +5,7 @@ import { useTambo } from "../hooks/use-tambo-v1";
 import { useTamboThreadInput } from "../hooks/use-tambo-v1-thread-input";
 import { useTamboRegistry } from "../../providers/tambo-registry-provider";
 import { useTamboClient } from "../../providers/tambo-client-provider";
-import type { TamboThread } from "../types/thread";
+import type { TamboThread } from "@tambo-ai/client";
 
 describe("TamboStubProvider", () => {
   const mockThread: TamboThread = {

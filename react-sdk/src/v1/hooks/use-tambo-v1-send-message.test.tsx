@@ -1061,7 +1061,7 @@ describe("useTamboSendMessage mutation", () => {
     };
 
     // Provide stream state with lastCompletedRunId but no active streaming.runId
-    const stateWithLastRun: import("../utils/event-accumulator").StreamState = {
+    const stateWithLastRun: import("@tambo-ai/client").StreamState = {
       currentThreadId: "thread_123",
       threadMap: {
         thread_123: {

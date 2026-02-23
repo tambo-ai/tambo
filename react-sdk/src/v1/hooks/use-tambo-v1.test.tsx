@@ -12,7 +12,7 @@ import {
   streamReducer,
   type StreamState,
   type StreamAction,
-} from "../utils/event-accumulator";
+} from "@tambo-ai/client";
 import type {
   TamboComponentContent,
   TamboToolUseContent,

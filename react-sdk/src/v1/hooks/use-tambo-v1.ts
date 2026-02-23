@@ -22,7 +22,7 @@ import {
 } from "../../providers/tambo-client-provider";
 import { useTamboConfig } from "../providers/tambo-v1-provider";
 import { useTamboAuthState } from "./use-tambo-v1-auth-state";
-import type { TamboAuthState } from "../types/auth";
+import type { TamboAuthState } from "@tambo-ai/client";
 import {
   TamboRegistryContext,
   type TamboRegistryContext as TamboRegistryContextType,
@@ -40,11 +40,8 @@ import type {
   TamboThreadMessage,
   TamboToolUseContent,
 } from "../types/message";
-import type { StreamingState } from "../types/thread";
-import {
-  isPlaceholderThreadId,
-  type ThreadState,
-} from "../utils/event-accumulator";
+import type { StreamingState } from "@tambo-ai/client";
+import { isPlaceholderThreadId, type ThreadState } from "@tambo-ai/client";
 
 /**
  * Return type for useTambo hook
