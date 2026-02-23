@@ -27,7 +27,8 @@
     "dev:web": "turbo dev --filter=@tambo-ai-cloud/web",
     "dev:api": "turbo dev --filter=@tambo-ai-cloud/api",
     "dev:showcase": "turbo dev --filter=@tambo-ai/showcase",
-    "dev:docs": "turbo dev --filter=@tambo-ai/docs"
+    "dev:docs": "turbo dev --filter=@tambo-ai/docs",
+    "dev:mobile": "turbo dev --filter=@tambo-ai/mobile-log"
   },
   "author": "",
   "license": "MIT",
@@ -50,7 +51,8 @@
     "cli",
     "create-tambo-app",
     "packages/*",
-    "apps/*"
+    "apps/*",
+    "demos/*"
   ],
   "devEngines": {
     "runtime": {

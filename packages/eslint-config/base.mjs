@@ -58,5 +58,10 @@ export default defineConfig([
       },
     },
   },
-  globalIgnores(["examples/**", "community/templates/**"]),
+  globalIgnores([
+    "examples/**",
+    "community/templates/**",
+    "demos/**/babel.config.js",
+    "demos/**/metro.config.js",
+  ]),
 ]);

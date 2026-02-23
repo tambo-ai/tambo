@@ -136,6 +136,11 @@
         "../../packages/db/src/**"
       ]
     },
+    "@tambo-ai/mobile-log#dev": {
+      "dependsOn": ["@tambo-ai/react#build"],
+      "cache": false,
+      "persistent": true
+    },
     "clean": { "cache": false },
     "start": { "dependsOn": ["^build"] },
     "test": {
