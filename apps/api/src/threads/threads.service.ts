@@ -1,4 +1,4 @@
-import { Inject, Injectable, Logger, NotFoundException } from "@nestjs/common";
+import { Inject, Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import * as Sentry from "@sentry/nestjs";
 import {
@@ -23,6 +23,7 @@ import {
   getToolName,
   InputValidationError,
   isUiToolName,
+  NotFoundError,
   LegacyComponentDecision,
   MCPClient,
   MessageRole,
@@ -134,7 +135,7 @@ export class ThreadsService {
     });
 
     if (!threadData?.projectId) {
-      throw new NotFoundException(
+      throw new NotFoundError(
         `Thread with ID ${threadId} not found or has no project associated.`,
       );
     }
@@ -144,7 +145,7 @@ export class ThreadsService {
     // 1. Fetch project-specific LLM settings
     const project = await this.projectsService.findOne(projectId);
     if (!project) {
-      throw new NotFoundException(`Project with ID ${projectId} not found.`);
+      throw new NotFoundError(`Project with ID ${projectId} not found.`);
     }
 
     // Determine the provider, model, and baseURL from project settings
@@ -341,7 +342,7 @@ export class ThreadsService {
       false,
     );
     if (!thread) {
-      throw new NotFoundException("Thread not found");
+      throw new NotFoundError("Thread not found");
     }
     return {
       id: thread.id,
@@ -510,7 +511,7 @@ export class ThreadsService {
         await this.projectsService.findOneWithKeys(projectId);
       const project = await this.projectsService.findOne(projectId);
       if (!project) {
-        throw new NotFoundException("Project not found");
+        throw new NotFoundError("Project not found");
       }
       const providerKeys = projectWithKeys?.getProviderKeys() ?? [];
       // Check specifically if we have a key for the provider being used
@@ -828,14 +829,14 @@ export class ThreadsService {
       contextKey ?? operations.ANY_CONTEXT_KEY,
     );
     if (!thread) {
-      throw new NotFoundException("Thread not found");
+      throw new NotFoundError("Thread not found");
     }
 
     const messages = await this.getMessages({
       threadId,
     });
     if (messages.length === 0) {
-      throw new NotFoundException("No messages found for thread");
+      throw new NotFoundError("No messages found for thread");
     }
 
     const tamboBackend = await this.createTamboBackendForThread(
@@ -2151,7 +2152,7 @@ export class ThreadsService {
     const projectWithKeys =
       await this.projectsService.findOneWithKeys(projectId);
     if (!projectWithKeys) {
-      throw new NotFoundException(`Project with ID ${projectId} not found`);
+      throw new NotFoundError(`Project with ID ${projectId} not found`);
     }
 
     const providerKeys = projectWithKeys.getProviderKeys();
@@ -2160,13 +2161,13 @@ export class ThreadsService {
       if (providerName === "openai") {
         // Only allow fallback key for default model
         if (modelName !== DEFAULT_OPENAI_MODEL) {
-          throw new NotFoundException(
+          throw new NotFoundError(
             `Starter LLM calls are only available on the default model. Add your provider key to continue.`,
           );
         }
         const fallbackKey = process.env.FALLBACK_OPENAI_API_KEY;
         if (!fallbackKey) {
-          throw new NotFoundException(
+          throw new NotFoundError(
             "No provider keys found for project and no fallback key configured",
           );
         }
@@ -2175,7 +2176,7 @@ export class ThreadsService {
       this.logger.error(
         `No provider keys configured for project ${projectId}. An API key is required to proceed.`,
       );
-      throw new NotFoundException(
+      throw new NotFoundError(
         `No provider keys found for project ${projectId}. Please configure an API key.`,
       );
     }
@@ -2188,13 +2189,13 @@ export class ThreadsService {
       if (providerName === "openai") {
         // Only allow fallback key for default model
         if (modelName !== DEFAULT_OPENAI_MODEL) {
-          throw new NotFoundException(
+          throw new NotFoundError(
             `Starter LLM calls are only available on the default model. Add your provider key to continue.`,
           );
         }
         const fallbackKey = process.env.FALLBACK_OPENAI_API_KEY;
         if (!fallbackKey) {
-          throw new NotFoundException(
+          throw new NotFoundError(
             `No OpenAI key found for project ${projectId} and no fallback key configured`,
           );
         }
