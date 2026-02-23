@@ -1,0 +1,39 @@
+---
+title: Not Found
+description: Error response when a requested resource does not exist
+---
+
+The API returns a `404 Not Found` status with this problem type when the requested resource cannot be found.
+
+## Response Format
+
+```json
+{
+  "type": "https://docs.tambo.co/reference/problems/not-found",
+  "status": 404,
+  "title": "Not Found",
+  "detail": "Thread not found",
+  "instance": "/threads/thread_123"
+}
+```
+
+## Fields
+
+- **`type`** - Stable URI identifying this problem type
+- **`status`** - HTTP status code (always `404`)
+- **`title`** - Short summary of the problem (always `Not Found`)
+- **`detail`** - Human-readable description of what could not be found
+- **`instance`** - The specific request path that triggered this error
+
+## Handling
+
+When you receive this error:
+
+1. Verify the resource ID in your request
+2. Confirm the resource exists (and that your project has access to it)
+3. Retry with a valid ID
+
+## See Also
+
+- [REST API Reference](/reference/rest-api) - Complete API documentation
+- [RFC 9457 Problem Details](https://www.rfc-editor.org/rfc/rfc9457.html) - Standard for error responses
