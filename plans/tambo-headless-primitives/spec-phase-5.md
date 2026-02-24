@@ -78,7 +78,7 @@ npm run test -w packages/ui-registry -- canvas-space message
 
 ## Implementation Tracking
 
-- **Current Status**: `Not Started`
-- **Implementation PR(s)**: `TBD`
+- **Current Status**: `In Progress`
+- **Implementation PR(s)**: `codex/showcase-page-specific-suggestions`
 - **Completion Date (YYYY-MM-DD)**: `TBD`
-- **Completion Notes**: `TBD`
+- **Completion Notes**: `apps/web` adoption started via updates to `message-thread-panel` and `tambo-subscribe-integration`; remaining wrapper migrations in Phase 5 scope are pending.

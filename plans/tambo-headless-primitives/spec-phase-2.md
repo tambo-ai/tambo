@@ -84,7 +84,7 @@ npm run lint -w docs
 
 ## Implementation Tracking
 
-- **Current Status**: `Not Started`
-- **Implementation PR(s)**: `TBD`
+- **Current Status**: `In Progress`
+- **Implementation PR(s)**: `codex/showcase-page-specific-suggestions`
 - **Completion Date (YYYY-MM-DD)**: `TBD`
-- **Completion Notes**: `TBD`
+- **Completion Notes**: Reference docs pages for `message`, `toolcall-info`, and `reasoning-info` landed; timeline behavior hardening and registry timeline cleanup are still pending.

@@ -89,7 +89,7 @@ npm run test -w packages/ui-registry -- thread-history thread-dropdown message-s
 
 ## Implementation Tracking
 
-- **Current Status**: `Not Started`
-- **Implementation PR(s)**: `TBD`
+- **Current Status**: `In Progress`
+- **Implementation PR(s)**: `codex/showcase-page-specific-suggestions`
 - **Completion Date (YYYY-MM-DD)**: `TBD`
-- **Completion Notes**: `TBD`
+- **Completion Notes**: Registry `thread-history` and `message-suggestions` updates landed (caller-provided suggestions and rename TODO retention), while base `ThreadHistory`/`ThreadDropdown` primitives remain pending.

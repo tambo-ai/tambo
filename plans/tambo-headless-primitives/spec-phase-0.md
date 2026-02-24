@@ -58,7 +58,7 @@ npm run lint
 
 ## Implementation Tracking
 
-- **Current Status**: `Not Started`
-- **Implementation PR(s)**: `TBD`
-- **Completion Date (YYYY-MM-DD)**: `TBD`
-- **Completion Notes**: `TBD`
+- **Current Status**: `Completed`
+- **Implementation PR(s)**: `codex/base-ui-planning-docs-pr2`
+- **Completion Date (YYYY-MM-DD)**: `2026-02-21`
+- **Completion Notes**: Phase 0 contract set, feature contracts, and docs templates landed to gate downstream implementation phases.

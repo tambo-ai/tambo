@@ -86,7 +86,7 @@ npm run test -w packages/ui-registry -- thread-content message-thread-full messa
 
 ## Implementation Tracking
 
-- **Current Status**: `Not Started`
-- **Implementation PR(s)**: `TBD`
+- **Current Status**: `In Progress`
+- **Implementation PR(s)**: `codex/showcase-page-specific-suggestions`
 - **Completion Date (YYYY-MM-DD)**: `TBD`
-- **Completion Notes**: `TBD`
+- **Completion Notes**: Thread block variant updates landed across `message-thread-full`, `message-thread-panel`, `message-thread-collapsible`, and `control-bar`; base `ThreadContent` and `McpComponents` primitives are still pending.
