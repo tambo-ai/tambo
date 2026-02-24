@@ -52,7 +52,7 @@ export async function* handleEventStream(
 
   for await (const event of stream) {
     if (debug && process.env.NODE_ENV !== "production") {
-       
+      // eslint-disable-next-line no-console -- debug logging behind flag
       console.log("[StreamHandler] Event:", event);
     }
 
