@@ -8,6 +8,8 @@ import type {
   ResourceContent,
 } from "@tambo-ai/client";
 
+import type { TamboThreadMessage as BaseTamboThreadMessage } from "@tambo-ai/client";
+
 export type {
   TextContent,
   ToolResultContent,
@@ -48,3 +50,11 @@ export type Content =
   | ToolResultContent
   | TamboComponentContent
   | ResourceContent;
+
+/**
+ * React-specific thread message type where component content blocks
+ * include `renderedComponent`. Returned by `useTambo().messages`.
+ */
+export interface ReactTamboThreadMessage extends BaseTamboThreadMessage {
+  content: Content[];
+}

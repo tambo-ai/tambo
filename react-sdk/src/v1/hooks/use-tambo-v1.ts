@@ -36,8 +36,8 @@ import {
 } from "../providers/tambo-v1-stream-context";
 import type {
   Content,
+  ReactTamboThreadMessage,
   TamboToolDisplayProps,
-  TamboThreadMessage,
   TamboToolUseContent,
 } from "../types/message";
 import type { StreamingState } from "@tambo-ai/client";
@@ -58,9 +58,10 @@ export interface UseTamboReturn {
   thread: ThreadState | undefined;
 
   /**
-   * Messages in the current thread
+   * Messages in the current thread.
+   * Component content blocks include `renderedComponent` for direct rendering.
    */
-  messages: TamboThreadMessage[];
+  messages: ReactTamboThreadMessage[];
 
   /**
    * Current streaming state
@@ -315,7 +316,7 @@ export function useTambo(): UseTamboReturn {
     }
 
     // Transform messages to add computed properties to content blocks
-    const messages = rawMessages.map((message): TamboThreadMessage => {
+    const messages = rawMessages.map((message): ReactTamboThreadMessage => {
       const transformedContent = message.content.map((content): Content => {
         // Transform tool_use content to add computed state
         if (content.type === "tool_use") {

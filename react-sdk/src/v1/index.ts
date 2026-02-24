@@ -234,8 +234,11 @@ export type {
   TamboToolDisplayProps,
 } from "./types/message";
 
-// Thread message type
-export type { TamboThreadMessage } from "./types/message";
+// Thread message types
+export type {
+  TamboThreadMessage,
+  ReactTamboThreadMessage,
+} from "./types/message";
 
 // Content types
 export type {
