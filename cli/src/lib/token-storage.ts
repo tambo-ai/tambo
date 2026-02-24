@@ -1,4 +1,3 @@
-import envPaths from "env-paths";
 import {
   chmodSync,
   existsSync,
@@ -8,6 +7,7 @@ import {
   writeFileSync,
 } from "fs";
 import { join } from "path";
+import { getDir } from "./paths.js";
 
 /**
  * Token data structure stored on disk
@@ -25,41 +25,6 @@ export interface StoredToken {
   };
   /** When the token was stored (ISO string) */
   storedAt: string;
-}
-
-/**
- * Name of directory to store state/config/cache
- */
-const DIR_PREFIX = "tambo";
-
-/**
- * Explicit mapping of directory types to XDG environment variables.
- * Using explicit strings rather than dynamic construction for security
- * and to make these searchable in the codebase.
- */
-const XDG_ENV_VARS = {
-  cache: "XDG_CACHE_HOME",
-  config: "XDG_CONFIG_HOME",
-  data: "XDG_DATA_HOME",
-} as const;
-
-/**
- * Get OS-specific paths for tambo state storage
- * Uses XDG Base Directory Specification on Linux
- *
- * Data paths (for auth tokens and persistent data):
- * - macOS: ~/Library/Application Support/tambo/ (or $XDG_DATA_HOME/tambo/)
- * - Linux: ~/.local/share/tambo/ (or $XDG_DATA_HOME/tambo/)
- * - Windows: %LOCALAPPDATA%/tambo/
- */
-function getDir(type: keyof typeof XDG_ENV_VARS): string {
-  const envKey = XDG_ENV_VARS[type];
-  const xdgDir = process.env[envKey];
-  if (xdgDir) {
-    return join(xdgDir, DIR_PREFIX);
-  }
-  const paths = envPaths(DIR_PREFIX, { suffix: "" });
-  return paths[type];
 }
 
 /**
