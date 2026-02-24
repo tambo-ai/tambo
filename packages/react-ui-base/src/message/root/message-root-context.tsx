@@ -1,4 +1,4 @@
-import { TamboThreadMessage } from "@tambo-ai/react";
+import { type ReactTamboThreadMessage } from "@tambo-ai/react";
 import React from "react";
 
 /**
@@ -6,7 +6,7 @@ import React from "react";
  */
 export interface MessageRootContextValue {
   role: "user" | "assistant";
-  message: TamboThreadMessage;
+  message: ReactTamboThreadMessage;
   isLoading?: boolean;
 }
 

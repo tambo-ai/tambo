@@ -1,6 +1,6 @@
 import { mergeProps } from "@base-ui/react/merge-props";
 import { useRender } from "@base-ui/react/use-render";
-import { TamboThreadMessage } from "@tambo-ai/react";
+import { type ReactTamboThreadMessage } from "@tambo-ai/react";
 import * as React from "react";
 import { MessageRootContext } from "./message-root-context";
 
@@ -13,7 +13,7 @@ export type MessageRootState = {
 
 export type MessageRootRenderProps = {
   /** The full Tambo thread message object. */
-  message: TamboThreadMessage;
+  message: ReactTamboThreadMessage;
 };
 
 export type MessageRootProps = useRender.ComponentProps<
