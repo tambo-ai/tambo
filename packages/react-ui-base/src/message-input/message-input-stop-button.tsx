@@ -33,16 +33,14 @@ export const MessageInputStopButton = React.forwardRef<
     [cancel],
   );
 
-  if (hidden && !keepMounted) {
-    return null;
-  }
-
   const { render, ...componentProps } = props;
+  const enabled = !hidden || keepMounted;
 
   return useRender({
     defaultTagName: "button",
     ref,
     render,
+    enabled,
     state: {
       disabled,
       state: hidden ? "hidden" : "visible",

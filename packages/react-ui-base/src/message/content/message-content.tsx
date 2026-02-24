@@ -1,5 +1,5 @@
 import { mergeProps } from "@base-ui/react/merge-props";
-import { useRender } from "@base-ui/react/use-render";
+import { ComponentRenderFn, useRender } from "@base-ui/react/use-render";
 import { TamboThreadMessage } from "@tambo-ai/react";
 import * as React from "react";
 import { checkHasContent } from "../../utils/check-has-content";
@@ -20,10 +20,7 @@ export interface MessageContentState extends Record<string, unknown> {
   markdown: boolean;
 }
 
-export interface MessageContentProps extends useRender.ComponentProps<
-  "div",
-  MessageContentState
-> {
+export interface MessageContentRenderProps {
   /**
    * Optional override for the message content.
    */
@@ -41,15 +38,23 @@ export interface MessageContentProps extends useRender.ComponentProps<
   renderAsMarkdown?: boolean;
 }
 
+export type MessageContentProps = MessageContentRenderProps &
+  useRender.ComponentProps<
+    "div",
+    MessageContentState,
+    MessageContentRenderProps
+  >;
+
 /**
  * Content primitive for displaying message text.
  * Handles content resolution, markdown conversion, and loading state detection.
  * The actual rendering is delegated to the children render prop.
  */
-export const MessageContent = React.forwardRef<
-  HTMLDivElement,
-  MessageContentProps
->(({ content: contentProp, renderAsMarkdown = true, ...props }, ref) => {
+export const MessageContent = ({
+  content: contentProp,
+  renderAsMarkdown = true,
+  ...props
+}: MessageContentProps & MessageContentRenderProps) => {
   const { message, isLoading } = useMessageRootContext();
   const contentToRender = contentProp ?? message.content;
 
@@ -70,8 +75,10 @@ export const MessageContent = React.forwardRef<
 
   return useRender({
     defaultTagName: "div",
-    ref,
-    render,
+    render: render as ComponentRenderFn<
+      MessageContentProps & MessageContentRenderProps,
+      MessageContentState
+    >,
     state: {
       hasContent,
       markdown: renderAsMarkdown,
@@ -84,5 +91,5 @@ export const MessageContent = React.forwardRef<
       contentAsMarkdownString,
     }),
   });
-});
+};
 MessageContent.displayName = "Message.Content";

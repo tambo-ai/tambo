@@ -53,16 +53,13 @@ export const MessageInputContent = React.forwardRef<
     [isDragging, elicitation, resolveElicitation],
   );
 
-  if (hidden && !keepMounted) {
-    return null;
-  }
-
   const { render, ...componentProps } = props;
 
   return useRender({
     defaultTagName: "div",
     ref,
     render,
+    enabled: !hidden || keepMounted,
     state: renderProps,
     props: mergeProps(componentProps, {
       "data-slot": "message-input-content",

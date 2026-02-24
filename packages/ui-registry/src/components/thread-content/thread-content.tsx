@@ -1,6 +1,11 @@
 "use client";
 
 import {
+  type Content,
+  type TamboThreadMessage,
+  useTambo,
+} from "@tambo-ai/react";
+import {
   Message,
   MessageContent,
   MessageImages,
@@ -10,11 +15,6 @@ import {
   type messageVariants,
 } from "@tambo-ai/ui-registry/components/message";
 import { cn } from "@tambo-ai/ui-registry/utils";
-import {
-  type Content,
-  type TamboThreadMessage,
-  useTambo,
-} from "@tambo-ai/react";
 import { type VariantProps } from "class-variance-authority";
 import * as React from "react";
 
@@ -189,7 +189,7 @@ const ThreadContentMessages = React.forwardRef<
                       return (
                         <MessageContent
                           key={`content-${blockIndex}`}
-                          content={[block]}
+                          messageContent={[block]}
                           className={messageContentClassName}
                         />
                       );

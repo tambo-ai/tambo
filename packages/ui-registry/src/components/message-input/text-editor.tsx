@@ -140,6 +140,13 @@ export interface TextEditorProps {
   onPromptSelect: (item: PromptItem) => void;
 }
 
+interface TextEditorCallbacks {
+  onSearchResources: (query: string) => void;
+  onSearchPrompts: (query: string) => void;
+  onResourceSelect: (item: ResourceItem) => void;
+  onPromptSelect: (item: PromptItem) => void;
+}
+
 /**
  * State for a suggestion popover.
  */
@@ -152,10 +159,10 @@ interface SuggestionState<T extends SuggestionItem> {
 }
 
 /**
- * Ref value for accessing suggestion state from TipTap callbacks.
+ * Controller for suggestion state access from TipTap callbacks.
  */
-interface SuggestionRef<T extends SuggestionItem> {
-  state: SuggestionState<T>;
+interface SuggestionController<T extends SuggestionItem> {
+  getState: () => SuggestionState<T>;
   setState: (update: Partial<SuggestionState<T>>) => void;
 }
 
@@ -288,17 +295,16 @@ function checkMentionExists(editor: Editor, label: string): boolean {
 
 /**
  * Creates the resource mention configuration for TipTap Mention extension.
- * The items() function triggers the search - actual items come from props via stateRef.
+ * The items() function triggers the search and reads latest callbacks from controller state.
  */
 function createResourceMentionConfig(
-  onSearchChange: (query: string) => void,
-  onSelect: (item: ResourceItem) => void,
-  stateRef: React.MutableRefObject<SuggestionRef<ResourceItem>>,
+  getCallbacks: () => TextEditorCallbacks,
+  suggestionController: SuggestionController<ResourceItem>,
 ): Omit<SuggestionOptions, "editor"> {
   return {
     char: "@",
     items: ({ query }) => {
-      onSearchChange(query);
+      getCallbacks().onSearchResources(query);
       return [];
     },
 
@@ -311,12 +317,12 @@ function createResourceMentionConfig(
         (item: ResourceItem) => {
           if (checkMentionExists(editor, item.name)) return;
           tiptapCommand({ id: item.id, label: item.name });
-          onSelect(item);
+          getCallbacks().onResourceSelect(item);
         };
 
       return {
         onStart: (props) => {
-          stateRef.current.setState({
+          suggestionController.setState({
             isOpen: true,
             selectedIndex: 0,
             position: getPositionFromClientRect(props.clientRect),
@@ -324,14 +330,15 @@ function createResourceMentionConfig(
           });
         },
         onUpdate: (props) => {
-          stateRef.current.setState({
+          suggestionController.setState({
             position: getPositionFromClientRect(props.clientRect),
             command: createWrapCommand(props.editor, props.command),
             selectedIndex: 0,
           });
         },
         onKeyDown: ({ event }) => {
-          const { state, setState } = stateRef.current;
+          const state = suggestionController.getState();
+          const { setState } = suggestionController;
           if (!state.isOpen) return false;
 
           const handlers: Record<string, () => boolean> = {
@@ -373,7 +380,7 @@ function createResourceMentionConfig(
           return false;
         },
         onExit: () => {
-          stateRef.current.setState({ isOpen: false });
+          suggestionController.setState({ isOpen: false });
         },
       };
     },
@@ -382,12 +389,11 @@ function createResourceMentionConfig(
 
 /**
  * Creates a custom TipTap extension for prompt commands using the Suggestion plugin.
- * The items() function triggers the search - actual items come from props via stateRef.
+ * The items() function triggers the search and reads latest callbacks from controller state.
  */
 function createPromptCommandExtension(
-  onSearchChange: (query: string) => void,
-  onSelect: (item: PromptItem) => void,
-  stateRef: React.MutableRefObject<SuggestionRef<PromptItem>>,
+  getCallbacks: () => TextEditorCallbacks,
+  suggestionController: SuggestionController<PromptItem>,
 ) {
   return Extension.create({
     name: "promptCommand",
@@ -401,11 +407,11 @@ function createPromptCommandExtension(
             // Only show prompts when editor is empty (except for the "/" and query)
             const editorValue = editor.getText().replace("/", "").trim();
             if (editorValue.length > 0) {
-              stateRef.current.setState({ isOpen: false });
+              suggestionController.setState({ isOpen: false });
               return [];
             }
             // Trigger search - actual items come from props via stateRef
-            onSearchChange(query);
+            getCallbacks().onSearchPrompts(query);
             return [];
           },
           render: () => {
@@ -419,9 +425,9 @@ function createPromptCommandExtension(
                     from: props.range.from,
                     to: props.range.to,
                   });
-                  onSelect(item);
+                  getCallbacks().onPromptSelect(item);
                 };
-                stateRef.current.setState({
+                suggestionController.setState({
                   isOpen: true,
                   selectedIndex: 0,
                   position: getPositionFromClientRect(props.clientRect),
@@ -434,16 +440,17 @@ function createPromptCommandExtension(
                     from: props.range.from,
                     to: props.range.to,
                   });
-                  onSelect(item);
+                  getCallbacks().onPromptSelect(item);
                 };
-                stateRef.current.setState({
+                suggestionController.setState({
                   position: getPositionFromClientRect(props.clientRect),
                   command: createCommand,
                   selectedIndex: 0,
                 });
               },
               onKeyDown: ({ event }) => {
-                const { state, setState } = stateRef.current;
+                const state = suggestionController.getState();
+                const { setState } = suggestionController;
                 if (!state.isOpen) return false;
 
                 const handlers: Record<string, () => boolean> = {
@@ -486,7 +493,7 @@ function createPromptCommandExtension(
                 return false;
               },
               onExit: () => {
-                stateRef.current.setState({ isOpen: false });
+                suggestionController.setState({ isOpen: false });
               },
             };
           },
@@ -532,7 +539,7 @@ function getTextWithResourceURIs(editor: Editor | null): {
  */
 function useSuggestionState<T extends SuggestionItem>(
   externalItems?: T[],
-): [SuggestionState<T>, React.MutableRefObject<SuggestionRef<T>>] {
+): [SuggestionState<T>, SuggestionController<T>] {
   const [state, setStateInternal] = useState<SuggestionState<T>>({
     isOpen: false,
     items: externalItems ?? [],
@@ -544,13 +551,10 @@ function useSuggestionState<T extends SuggestionItem>(
   const setState = React.useCallback((update: Partial<SuggestionState<T>>) => {
     setStateInternal((prev) => ({ ...prev, ...update }));
   }, []);
-
-  const stateRef = React.useRef<SuggestionRef<T>>({ state, setState });
-
-  // Keep ref in sync
+  const stateRef = React.useRef(state);
   React.useEffect(() => {
-    stateRef.current = { state, setState };
-  }, [state, setState]);
+    stateRef.current = state;
+  }, [state]);
 
   // Sync external items when provided
   React.useEffect(() => {
@@ -584,7 +588,23 @@ function useSuggestionState<T extends SuggestionItem>(
     }
   }, [externalItems]);
 
-  return [state, stateRef];
+  const getState = React.useCallback(() => stateRef.current, []);
+  const suggestionController = React.useMemo(
+    () => ({ getState, setState }),
+    [getState, setState],
+  );
+
+  return [state, suggestionController];
+}
+
+function useLatestValue<T>(value: T): () => T {
+  const valueRef = React.useRef(value);
+
+  React.useEffect(() => {
+    valueRef.current = value;
+  }, [value]);
+
+  return React.useCallback(() => valueRef.current, []);
 }
 
 /**
@@ -611,48 +631,21 @@ export const TextEditor = React.forwardRef<TamboEditor, TextEditorProps>(
     },
     ref,
   ) => {
-    // Suggestion states with refs for TipTap access
-    const [resourceState, resourceRef] =
+    // Suggestion states with controllers for TipTap access
+    const [resourceState, resourceController] =
       useSuggestionState<ResourceItem>(resources);
-    const [promptState, promptRef] = useSuggestionState<PromptItem>(prompts);
-
-    // Consolidated ref for callbacks that TipTap needs to access
-    const callbacksRef = React.useRef({
-      onSearchResources,
-      onResourceSelect,
-      onSearchPrompts,
-      onPromptSelect,
-    });
-
-    React.useEffect(() => {
-      callbacksRef.current = {
+    const [promptState, promptController] =
+      useSuggestionState<PromptItem>(prompts);
+    const callbacks = React.useMemo(
+      () => ({
         onSearchResources,
-        onResourceSelect,
         onSearchPrompts,
+        onResourceSelect,
         onPromptSelect,
-      };
-    }, [onSearchResources, onResourceSelect, onSearchPrompts, onPromptSelect]);
-
-    // Stable callbacks for TipTap
-    const stableSearchResources = React.useCallback(
-      (query: string) => callbacksRef.current.onSearchResources(query),
-      [],
+      }),
+      [onSearchResources, onSearchPrompts, onResourceSelect, onPromptSelect],
     );
-
-    const stableSearchPrompts = React.useCallback(
-      (query: string) => callbacksRef.current.onSearchPrompts(query),
-      [],
-    );
-
-    const handleResourceSelect = React.useCallback(
-      (item: ResourceItem) => callbacksRef.current.onResourceSelect(item),
-      [],
-    );
-
-    const handlePromptSelect = React.useCallback(
-      (item: PromptItem) => callbacksRef.current.onPromptSelect(item),
-      [],
-    );
+    const getCallbacks = useLatestValue(callbacks);
 
     const handleKeyDown = React.useCallback(
       (e: React.KeyboardEvent) => {
@@ -680,17 +673,12 @@ export const TextEditor = React.forwardRef<TamboEditor, TextEditorProps>(
               "mention resource inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground",
           },
           suggestion: createResourceMentionConfig(
-            stableSearchResources,
-            handleResourceSelect,
-            resourceRef,
+            getCallbacks,
+            resourceController,
           ),
           renderLabel: ({ node }) => `@${(node.attrs.label as string) ?? ""}`,
         }),
-        createPromptCommandExtension(
-          stableSearchPrompts,
-          handlePromptSelect,
-          promptRef,
-        ),
+        createPromptCommandExtension(getCallbacks, promptController),
       ],
       content: value,
       editable: !disabled,
@@ -833,14 +821,14 @@ export const TextEditor = React.forwardRef<TamboEditor, TextEditorProps>(
       <div className="w-full">
         <SuggestionPopover
           state={resourceState}
-          onClose={() => resourceRef.current.setState({ isOpen: false })}
+          onClose={() => resourceController.setState({ isOpen: false })}
           defaultIcon={<Cuboid className="w-4 h-4 shrink-0 mt-0.5" />}
           emptyMessage="No results found"
           monoSecondary
         />
         <SuggestionPopover
           state={promptState}
-          onClose={() => promptRef.current.setState({ isOpen: false })}
+          onClose={() => promptController.setState({ isOpen: false })}
           defaultIcon={<FileText className="w-4 h-4 shrink-0 mt-0.5" />}
           emptyMessage="No prompts found"
         />

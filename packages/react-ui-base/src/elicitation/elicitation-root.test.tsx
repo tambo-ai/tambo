@@ -1,7 +1,7 @@
 import { describe, expect, it, jest } from "@jest/globals";
 import type { TamboElicitationRequest } from "@tambo-ai/react/mcp";
 import { fireEvent, render, screen } from "@testing-library/react";
-import { Elicitation } from "./index";
+import { Elicitation, useElicitationField } from "./index";
 
 const createRequest = (
   overrides?: Partial<TamboElicitationRequest>,
@@ -23,6 +23,27 @@ const createRequest = (
 };
 
 describe("Elicitation.Root", () => {
+  const CustomStringInput = () => {
+    const { field, inputId, label } = useElicitationField();
+    if (
+      field.schema.type !== "string" ||
+      ("enum" in field.schema && field.schema.enum)
+    ) {
+      return null;
+    }
+
+    const value = typeof field.value === "string" ? field.value : "";
+
+    return (
+      <input
+        id={inputId}
+        aria-label={label}
+        value={value}
+        onChange={(event) => field.setValue(event.currentTarget.value)}
+      />
+    );
+  };
+
   it("renders message and fields", () => {
     const request = createRequest();
 
@@ -125,5 +146,71 @@ describe("Elicitation.Root", () => {
     expect(screen.queryByRole("button", { name: "Cancel" })).toBeNull();
     expect(screen.queryByRole("button", { name: "Decline" })).toBeNull();
     expect(screen.queryByRole("button", { name: "Submit" })).toBeNull();
+  });
+
+  it("supports composed field primitives with type-gated inputs", () => {
+    const request = createRequest();
+
+    render(
+      <Elicitation.Root request={request} onResponse={jest.fn()}>
+        <Elicitation.Fields
+          render={({ fields }) => (
+            <>
+              {fields.map((field) => (
+                <Elicitation.Field key={field.name} field={field}>
+                  <Elicitation.FieldLabel />
+                  <Elicitation.FieldInput>
+                    <Elicitation.FieldStringInput
+                      data-testid={`string-${field.name}`}
+                    />
+                    <Elicitation.FieldNumberInput
+                      data-testid={`number-${field.name}`}
+                    />
+                  </Elicitation.FieldInput>
+                  <Elicitation.FieldError />
+                </Elicitation.Field>
+              ))}
+            </>
+          )}
+        />
+      </Elicitation.Root>,
+    );
+
+    expect(screen.getByTestId("string-answer")).not.toBeNull();
+    expect(screen.queryByTestId("number-answer")).toBeNull();
+  });
+
+  it("supports fully custom field input via useElicitationField", () => {
+    const onResponse = jest.fn();
+    const request = createRequest();
+
+    render(
+      <Elicitation.Root request={request} onResponse={onResponse}>
+        <Elicitation.Fields
+          render={({ fields }) => (
+            <>
+              {fields.map((field) => (
+                <Elicitation.Field key={field.name} field={field}>
+                  <Elicitation.FieldLabel />
+                  <CustomStringInput />
+                  <Elicitation.FieldError />
+                </Elicitation.Field>
+              ))}
+            </>
+          )}
+        />
+        <Elicitation.Actions />
+      </Elicitation.Root>,
+    );
+
+    fireEvent.change(screen.getByLabelText("Your answer"), {
+      target: { value: "Ship it" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Submit" }));
+
+    expect(onResponse).toHaveBeenCalledWith({
+      action: "accept",
+      content: { answer: "Ship it" },
+    });
   });
 });

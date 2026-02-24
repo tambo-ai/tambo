@@ -16,7 +16,6 @@ export type {
   ElicitationFieldsProps,
   ElicitationFieldsState,
   ElicitationMessageProps,
-  ElicitationMessageState,
   ElicitationProviderProps,
   ElicitationRootProps,
 } from "./elicitation";
@@ -85,7 +84,6 @@ export type {
   ToolcallInfoContentProps,
   ToolcallInfoContentRenderProps,
   ToolcallInfoParametersProps,
-  ToolcallInfoParametersRenderProps,
   ToolcallInfoResultProps,
   ToolcallInfoResultRenderProps,
   ToolcallInfoRootProps,

@@ -34,10 +34,6 @@ export const ToolcallInfoContent = React.forwardRef<
   ToolcallInfoContentProps
 >(({ forceMount, ...props }, ref) => {
   const { isExpanded, detailsId, message } = useToolcallInfoContext();
-
-  if (!forceMount && !isExpanded) {
-    return null;
-  }
   const { render, ...componentProps } = props;
 
   const renderProps: ToolcallInfoContentRenderProps = {
@@ -49,6 +45,7 @@ export const ToolcallInfoContent = React.forwardRef<
     defaultTagName: "div",
     ref,
     render,
+    enabled: forceMount || isExpanded,
     state: renderProps,
     props: mergeProps(componentProps, {
       id: detailsId,

@@ -7,11 +7,11 @@ import type {
 import { fireEvent, render, screen } from "@testing-library/react";
 import * as React from "react";
 import { MessageInputContent } from "./message-input-content";
-import { MessageInputElicitation } from "./message-input-elicitation";
 import {
   MessageInputContext,
   type MessageInputContextValue,
 } from "./message-input-context";
+import { MessageInputElicitation } from "./message-input-elicitation";
 import { MessageInputStopButton } from "./message-input-stop-button";
 import { MessageInputSubmitButton } from "./message-input-submit-button";
 
@@ -185,6 +185,7 @@ describe("MessageInput elicitation visibility", () => {
       />,
     );
     const wrapper = screen.getByTestId("elicitation-hidden-wrapper");
-    expect(wrapper.getAttribute("data-hidden")).toBe("true");
+    console.log(wrapper.outerHTML);
+    expect(wrapper.getAttribute("data-state")).toBe("hidden");
   });
 });

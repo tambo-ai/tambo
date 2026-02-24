@@ -41,10 +41,7 @@ export const MessageInputError = React.forwardRef<
 
   // Don't render if no errors
   const { render, ...componentProps } = props;
-
-  if (!errorMessage && !render && children == null) {
-    return null;
-  }
+  const enabled = !!errorMessage || !!render || children != null;
 
   const renderProps: MessageInputErrorState = {
     errorMessage,
@@ -57,6 +54,7 @@ export const MessageInputError = React.forwardRef<
     defaultTagName: "p",
     ref,
     render,
+    enabled,
     state: renderProps,
     props: mergeProps(componentProps, {
       children: children ?? errorMessage,

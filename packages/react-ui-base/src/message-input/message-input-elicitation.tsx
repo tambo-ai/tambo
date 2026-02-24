@@ -1,5 +1,6 @@
 "use client";
 
+import { ComponentRenderFn, mergeProps, useRender } from "@base-ui/react";
 import type {
   TamboElicitationRequest,
   TamboElicitationResponse,
@@ -9,76 +10,53 @@ import { Elicitation } from "../elicitation";
 import { useMessageInputContext } from "./message-input-context";
 
 export interface MessageInputElicitationState {
-  request: TamboElicitationRequest;
-  onResponse: (response: TamboElicitationResponse) => void;
+  state: "hidden" | "visible";
 }
 
-export interface MessageInputElicitationProps extends Omit<
-  React.HTMLAttributes<HTMLDivElement>,
-  "children"
-> {
+export type MessageInputElicitationRenderProps = {
+  request?: TamboElicitationRequest;
+  onResponse?: (response: TamboElicitationResponse) => void;
   keepMounted?: boolean;
-  children?:
-    | React.ReactNode
-    | ((props: MessageInputElicitationState) => React.ReactNode);
-}
+};
+
+export type MessageInputElicitationProps = useRender.ComponentProps<
+  "div",
+  MessageInputElicitationState,
+  MessageInputElicitationRenderProps
+> &
+  MessageInputElicitationRenderProps;
 
 export const MessageInputElicitation = React.forwardRef<
   HTMLDivElement,
   MessageInputElicitationProps
->(({ children, keepMounted = false, ...props }, ref) => {
+>(({ children, render, keepMounted = false, ...props }, ref) => {
   const { elicitation, resolveElicitation } = useMessageInputContext();
   const hidden = !elicitation || !resolveElicitation;
 
-  if (hidden && !keepMounted) {
-    return null;
-  }
+  const defaultContent = !hidden ? (
+    <Elicitation.Root request={elicitation} onResponse={resolveElicitation}>
+      <Elicitation.Message />
+      <Elicitation.Fields />
+      <Elicitation.Actions />
+    </Elicitation.Root>
+  ) : null;
 
-  if (!elicitation || !resolveElicitation) {
-    return (
-      <div
-        ref={ref}
-        data-slot="message-input-elicitation"
-        data-hidden={hidden || undefined}
-        hidden={hidden && keepMounted}
-        {...props}
-      />
-    );
-  }
-
-  const renderProps = React.useMemo<MessageInputElicitationState>(
-    () => ({
-      request: elicitation,
+  return useRender({
+    defaultTagName: "div",
+    ref,
+    enabled: !hidden || keepMounted,
+    render: render as ComponentRenderFn<
+      MessageInputElicitationProps,
+      MessageInputElicitationState
+    >,
+    state: { state: hidden ? ("hidden" as const) : ("visible" as const) },
+    props: mergeProps(props, {
+      "data-slot": "message-input-elicitation",
+      "aria-hidden": hidden || undefined,
+      children: children ?? defaultContent,
+      elicitation: elicitation,
       onResponse: resolveElicitation,
     }),
-    [elicitation, resolveElicitation],
-  );
-
-  let content: React.ReactNode;
-  if (typeof children === "function") {
-    content = children(renderProps);
-  } else if (children === undefined || children === null) {
-    content = (
-      <Elicitation.Root request={elicitation} onResponse={resolveElicitation}>
-        <Elicitation.Message />
-        <Elicitation.Fields />
-        <Elicitation.Actions />
-      </Elicitation.Root>
-    );
-  } else {
-    content = children;
-  }
-
-  return (
-    <div
-      ref={ref}
-      data-slot="message-input-elicitation"
-      data-hidden={hidden || undefined}
-      hidden={hidden && keepMounted}
-      {...props}
-    >
-      {content}
-    </div>
-  );
+  });
 });
 MessageInputElicitation.displayName = "MessageInput.Elicitation";

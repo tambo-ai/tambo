@@ -41,7 +41,7 @@
       }
     },
     "./elicitation": {
-      "development": "./src/elicitation/index.tsx",
+      "@tambo-ai/source": "./src/elicitation/index.tsx",
       "import": {
         "types": "./dist/esm/elicitation/index.d.ts",
         "default": "./dist/esm/elicitation/index.js"

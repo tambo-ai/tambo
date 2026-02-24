@@ -103,15 +103,14 @@ export const MessageInputStagedImages = React.forwardRef<
 
   const { render, ...componentProps } = props;
 
-  // Don't render if no images and no render callback is provided.
-  if (rawImages.length === 0 && !render) {
-    return null;
-  }
+  // Enable when there are images or a render callback is provided.
+  const enabled = rawImages.length > 0 || !!render;
 
   return useRender({
     defaultTagName: "div",
     ref,
     render,
+    enabled,
     state: State,
     props: mergeProps(componentProps, {
       children,

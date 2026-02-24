@@ -156,11 +156,14 @@ const MessageInput = React.forwardRef<HTMLFormElement, MessageInputProps>(
             className={cn(
               "rounded-xl bg-background shadow-md p-2 px-3 border border-border",
             )}
-          >
-            {({ request, onResponse }) => (
-              <ElicitationUI request={request} onResponse={onResponse} />
-            )}
-          </MessageInputBase.Elicitation>
+            render={({ onResponse, request }) =>
+              request && onResponse ? (
+                <ElicitationUI request={request} onResponse={onResponse} />
+              ) : (
+                <div />
+              )
+            }
+          ></MessageInputBase.Elicitation>
         </TooltipProvider>
       </MessageInputBase.Root>
     );

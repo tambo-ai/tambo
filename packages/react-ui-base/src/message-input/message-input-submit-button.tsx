@@ -35,17 +35,14 @@ export const MessageInputSubmitButton = React.forwardRef<
   const hidden = isPending || (!isIdle && !isUpdatingToken);
   const loading = isUpdatingToken && !isIdle && !isPending;
   const effectiveTabIndex = hidden ? -1 : propTabIndex;
-
-  if (!keepMounted && hidden) {
-    return null;
-  }
-
+  const enabled = !hidden || keepMounted;
   const { render, ...componentProps } = props;
 
   return useRender({
     defaultTagName: "button",
     ref,
     render,
+    enabled,
     state: {
       disabled,
       loading,

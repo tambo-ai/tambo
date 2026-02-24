@@ -48,17 +48,19 @@ import { Message } from "@tambo-ai/react-ui-base/message";
 ### Custom Image Rendering
 
 ```tsx
-<Message.Images renderImage={({ url, index }) => <img key={index} src={url} alt="" />} />
+<Message.Images
+  renderImage={({ url, index }) => <img key={index} src={url} alt="" />}
+/>
 ```
 
 ## API reference
 
 ### Root
 
-| Prop      | Type | Default | Description |
-| --------- | ---- | ------- | ----------- |
+| Prop      | Type                 | Default  | Description                                   |
+| --------- | -------------------- | -------- | --------------------------------------------- |
 | `message` | `TamboThreadMessage` | Required | Message data for content blocks and metadata. |
-| `role`    | `string` | Required | Message role (`assistant`, `user`, etc). |
+| `role`    | `string`             | Required | Message role (`assistant`, `user`, etc).      |
 
 ### Content
 
@@ -83,4 +85,3 @@ Renders component output zones and related canvas controls.
 - `data-slot="message-content"`
 - `data-slot="message-images"`
 - `data-slot="message-rendered-component"`
-

@@ -1,6 +1,6 @@
 "use client";
 
-import { ComponentRenderFn, mergeProps, useRender } from "@base-ui/react";
+import { ComponentRenderFn, useRender } from "@base-ui/react";
 import * as React from "react";
 import { useElicitationContext } from "./elicitation-context";
 
@@ -166,10 +166,7 @@ export const ElicitationActionSubmit = React.forwardRef<
       },
       [disabled, handleAccept, hidden, onClick],
     );
-
-    if (!keepMounted && hidden) {
-      return null;
-    }
+    const enabled = !hidden || keepMounted;
 
     const renderProps = React.useMemo<ElicitationActionSubmitRenderProps>(
       () => ({
@@ -179,6 +176,8 @@ export const ElicitationActionSubmit = React.forwardRef<
       }),
       [disabled, handleAccept, hidden],
     );
+
+    if (!enabled) return null;
 
     return (
       <button
@@ -221,16 +220,19 @@ export const ElicitationActions = React.forwardRef<
   return useRender({
     defaultTagName: "div",
     ref,
-    render: render as ComponentRenderFn<
-      ElicitationActionsProps,
-      ElicitationActionsState
-    >,
-    props: mergeProps(props, {
-      handleAccept,
-      handleDecline,
-      handleCancel,
-      children: children ?? content,
-    }),
+    render: ((props, state) => {
+      if (React.isValidElement(render)) {
+        return React.cloneElement(render, props);
+      }
+      if (typeof render === "function") {
+        return render(
+          { ...props, handleAccept, handleDecline, handleCancel },
+          state,
+        );
+      }
+      return children ?? content;
+    }) as ComponentRenderFn<ElicitationActionsProps, ElicitationActionsState>,
+    props,
     state: {
       single: isSingleEntry,
       valid: isValid,

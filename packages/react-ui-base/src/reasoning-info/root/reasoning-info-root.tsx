@@ -97,7 +97,8 @@ export const ReasoningInfoRoot = React.forwardRef<
     }
     const [isExpanded, setIsExpanded] = React.useState(defaultExpanded);
     const detailsId = React.useId();
-    const scrollContainerRef = React.useRef<HTMLDivElement>(null);
+    const [scrollContainerNode, setScrollContainerNode] =
+      React.useState<HTMLDivElement | null>(null);
 
     const hasReasoning = !!message.reasoning?.length;
     const statusText = getStatusText(isLoading, message.reasoningDurationMS);
@@ -112,9 +113,16 @@ export const ReasoningInfoRoot = React.forwardRef<
         reasoning: message.reasoning ?? [],
         reasoningDurationMS: message.reasoningDurationMS,
         statusText,
-        scrollContainerRef,
+        setScrollContainerNode,
       }),
-      [isExpanded, detailsId, isLoading, message, statusText],
+      [
+        isExpanded,
+        detailsId,
+        isLoading,
+        message,
+        setScrollContainerNode,
+        statusText,
+      ],
     );
 
     // Auto-collapse when content arrives and reasoning is not loading
@@ -126,11 +134,11 @@ export const ReasoningInfoRoot = React.forwardRef<
 
     // Auto-scroll to bottom when reasoning content changes
     React.useEffect(() => {
-      if (scrollContainerRef.current && isExpanded && message.reasoning) {
+      if (scrollContainerNode && isExpanded && message.reasoning) {
         const scroll = () => {
-          if (scrollContainerRef.current) {
-            scrollContainerRef.current.scrollTo({
-              top: scrollContainerRef.current.scrollHeight,
+          if (scrollContainerNode) {
+            scrollContainerNode.scrollTo({
+              top: scrollContainerNode.scrollHeight,
               behavior: "smooth",
             });
           }
@@ -143,12 +151,7 @@ export const ReasoningInfoRoot = React.forwardRef<
           return () => clearTimeout(timeoutId);
         }
       }
-    }, [message.reasoning, isExpanded, isLoading]);
-
-    // Only show if there's reasoning data
-    if (!hasReasoning) {
-      return null;
-    }
+    }, [message.reasoning, isExpanded, isLoading, scrollContainerNode]);
 
     const { render, ...componentProps } = props;
     const renderProps: ReasoningInfoRootRenderProps = {
@@ -157,18 +160,23 @@ export const ReasoningInfoRoot = React.forwardRef<
       statusText,
       reasoningCount: message.reasoning?.length ?? 0,
     };
+    const content = useRender({
+      defaultTagName: "div",
+      ref,
+      render,
+      enabled: hasReasoning,
+      state: renderProps,
+      props: mergeProps(componentProps, {
+        "data-slot": "reasoning-info",
+      }),
+    });
+
+    // Only show if there's reasoning data
+    if (!hasReasoning) return null;
 
     return (
       <ReasoningInfoRootContext.Provider value={contextValue}>
-        {useRender({
-          defaultTagName: "div",
-          ref,
-          render,
-          state: renderProps,
-          props: mergeProps(componentProps, {
-            "data-slot": "reasoning-info",
-          }),
-        })}
+        {content}
       </ReasoningInfoRootContext.Provider>
     );
   },

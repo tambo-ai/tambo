@@ -24,17 +24,23 @@ export const MessageRenderedComponentCanvasButton = React.forwardRef<
 >(({ children, ...props }, ref) => {
   const { message } = useMessageRootContext();
   const [canvasExists, setCanvasExists] = React.useState(false);
+  const rAF = React.useRef<number | null>(null);
 
   // Check if canvas exists on mount and window resize
   React.useEffect(() => {
     const checkCanvasExists = () => {
-      const canvas = document.querySelector('[data-canvas-space="true"]');
-      setCanvasExists(!!canvas);
+      rAF.current = requestAnimationFrame(() => {
+        const canvas = document.querySelector('[data-canvas-space="true"]');
+        setCanvasExists(!!canvas);
+      });
     };
 
     checkCanvasExists();
     window.addEventListener("resize", checkCanvasExists);
-    return () => window.removeEventListener("resize", checkCanvasExists);
+    return () => {
+      if (rAF.current) cancelAnimationFrame(rAF.current);
+      window.removeEventListener("resize", checkCanvasExists);
+    };
   }, []);
 
   const firstRenderedComponent = React.useMemo(() => {
@@ -58,11 +64,11 @@ export const MessageRenderedComponentCanvasButton = React.forwardRef<
     }
   }, [message.id, firstRenderedComponent]);
 
-  if (!canvasExists) return null;
   const { render, ...componentProps } = props;
+  const hasRenderedComponent = !!firstRenderedComponent;
   const renderProps: MessageRenderedComponentCanvasButtonRenderProps = {
     canvasExists,
-    hasRenderedComponent: !!firstRenderedComponent,
+    hasRenderedComponent,
   };
 
   return useRender({
@@ -70,6 +76,7 @@ export const MessageRenderedComponentCanvasButton = React.forwardRef<
     ref,
     render,
     state: renderProps,
+    enabled: canvasExists && hasRenderedComponent,
     props: mergeProps(componentProps, {
       type: "button",
       onClick: onShowInCanvas,
