@@ -24,16 +24,17 @@ import { MessageInputValueAccess } from "./message-input-value-access";
  * function MyMessageInput() {
  *   return (
  *     <MessageInput.Root className="my-form">
- *       <MessageInput.Content className="my-content">
- *         {({ isDragging, elicitation, resolveElicitation }) => (
+ *       <MessageInput.Content
+ *         className="my-content"
+ *         render={(_props, { isDragging, elicitation, resolveElicitation }) => (
  *           <>
  *             {isDragging && <div>Drop files here</div>}
  *             {elicitation && resolveElicitation ? (
  *               <div>Elicitation UI here</div>
  *             ) : (
  *               <>
- *                 <MessageInput.StagedImages>
- *                   {({ images }) => (
+ *                 <MessageInput.StagedImages
+ *                   render={(_props, { images }) => (
  *                     <div className="flex gap-2">
  *                       {images.map(({ image, displayName, onRemove }) => (
  *                         <div key={image.id}>
@@ -43,33 +44,33 @@ import { MessageInputValueAccess } from "./message-input-value-access";
  *                       ))}
  *                     </div>
  *                   )}
- *                 </MessageInput.StagedImages>
- *                 <MessageInput.Textarea>
- *                   {({ value, setValue, disabled }) => (
+ *                 />
+ *                 <MessageInput.Textarea
+ *                   render={(_props, { value, setValue, disabled }) => (
  *                     <textarea
  *                       value={value}
  *                       onChange={(e) => setValue(e.target.value)}
  *                       disabled={disabled}
  *                     />
  *                   )}
- *                 </MessageInput.Textarea>
+ *                 />
  *                 <MessageInput.Toolbar>
- *                   <MessageInput.FileButton>
- *                     {({ openFilePicker }) => (
+ *                   <MessageInput.FileButton
+ *                     render={(_props, { openFilePicker }) => (
  *                       <button onClick={openFilePicker}>Attach</button>
  *                     )}
- *                   </MessageInput.FileButton>
- *                   <MessageInput.SubmitButton>
- *                     {({ showCancelButton }) =>
- *                       showCancelButton ? "Cancel" : "Send"
- *                     }
- *                   </MessageInput.SubmitButton>
+ *                   />
+ *                   <MessageInput.SubmitButton
+ *                     render={(_props, { showCancelButton }) => (
+ *                       <>{showCancelButton ? "Cancel" : "Send"}</>
+ *                     )}
+ *                   />
  *                 </MessageInput.Toolbar>
  *               </>
  *             )}
  *           </>
  *         )}
- *       </MessageInput.Content>
+ *       />
  *       <MessageInput.Error />
  *     </MessageInput.Root>
  *   );

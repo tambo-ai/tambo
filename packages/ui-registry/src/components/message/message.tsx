@@ -215,17 +215,21 @@ const MessageContent = React.forwardRef<HTMLDivElement, MessageContentProps>(
         )}
         content={content}
         markdown={markdown}
-        render={({
-          content: contentToRender,
-          markdownContent,
-          markdown,
-          isLoading,
-          isCancelled,
-          isReasoning,
-        }: MessageBaseContentRenderProps) => {
+        render={(
+          props,
+          {
+            content: contentToRender,
+            markdownContent,
+            markdown,
+            isLoading,
+            isCancelled,
+            isReasoning,
+          }: MessageBaseContentRenderProps,
+        ) => {
           if (isLoading && !isReasoning) {
             return (
               <div
+                {...props}
                 className="flex items-center justify-start h-4 py-1"
                 data-slot="message-loading-indicator"
               >
@@ -289,7 +293,7 @@ const toolStatusIconClassName = cva("h-3 w-3 text-bold", {
 function ToolcallStatusIcon() {
   return (
     <ToolcallInfoBase.StatusIcon
-      render={({ status }) => {
+      render={(_props, { status }) => {
         let Icon = Check;
         if (status === "error") Icon = X;
         if (status === "loading") Icon = Loader2;
@@ -328,22 +332,22 @@ function ToolcallInfoContent({ markdown }: { markdown: boolean }) {
         "data-[state=open]:max-h-auto data-[state=open]:opacity-100",
         "data-[state=closed]:max-h-0 data-[state=closed]:opacity-0 data-[state=closed]:p-0",
       )}
-    >
-      {({ message }) => (
+      render={(_props, { message }) => (
         <>
           <ToolcallInfoBase.ToolName
             className="whitespace-pre-wrap pl-2"
-            render={({ toolName }) => `tool: ${toolName}`}
+            render={(_props, { toolName }) => <>{`tool: ${toolName}`}</>}
           />
           <ToolcallInfoBase.Parameters
             className="whitespace-pre-wrap pl-2"
-            render={({ parametersString }) =>
-              `parameters:\n${parametersString}`
-            }
+            render={(_props, { parametersString }) => (
+              <>{`parameters:\n${parametersString}`}</>
+            )}
           />
           <SamplingSubThread parentMessageId={message.id} />
-          <ToolcallInfoBase.Result className="pl-2">
-            {({ content, hasResult }) => (
+          <ToolcallInfoBase.Result
+            className="pl-2"
+            render={(_props, { content, hasResult }) => (
               <>
                 <span className="whitespace-pre-wrap">result:</span>
                 <div>
@@ -355,10 +359,10 @@ function ToolcallInfoContent({ markdown }: { markdown: boolean }) {
                 </div>
               </>
             )}
-          </ToolcallInfoBase.Result>
+          />
         </>
       )}
-    </ToolcallInfoBase.Content>
+    />
   );
 }
 
@@ -531,26 +535,28 @@ const ReasoningInfo = React.forwardRef<HTMLDivElement, ReasoningInfoProps>(
           >
             <ReasoningInfoBase.Steps
               className="space-y-4"
-              render={({ steps, showStepNumbers }) =>
-                steps.map((reasoningStep, index) => (
-                  <div key={index} className="flex flex-col gap-1">
-                    {showStepNumbers && (
-                      <span className="text-muted-foreground text-xs font-medium">
-                        Step {index + 1}:
-                      </span>
-                    )}
-                    {reasoningStep && (
-                      <div className="bg-muted/50 rounded-md p-3 text-xs overflow-x-auto overflow-y-auto max-w-full">
-                        <div className="whitespace-pre-wrap wrap-break-word">
-                          <Streamdown components={markdownComponents}>
-                            {reasoningStep}
-                          </Streamdown>
+              render={(_props, { steps, showStepNumbers }) => (
+                <>
+                  {steps.map((reasoningStep, index) => (
+                    <div key={index} className="flex flex-col gap-1">
+                      {showStepNumbers && (
+                        <span className="text-muted-foreground text-xs font-medium">
+                          Step {index + 1}:
+                        </span>
+                      )}
+                      {reasoningStep && (
+                        <div className="bg-muted/50 rounded-md p-3 text-xs overflow-x-auto overflow-y-auto max-w-full">
+                          <div className="whitespace-pre-wrap wrap-break-word">
+                            <Streamdown components={markdownComponents}>
+                              {reasoningStep}
+                            </Streamdown>
+                          </div>
                         </div>
-                      </div>
-                    )}
-                  </div>
-                ))
-              }
+                      )}
+                    </div>
+                  ))}
+                </>
+              )}
             />
           </ReasoningInfoBase.Content>
         </div>

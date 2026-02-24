@@ -1,9 +1,22 @@
+import { mergeProps } from "@base-ui/react/merge-props";
+import { useRender } from "@base-ui/react/use-render";
 import type { TamboComponentContent } from "@tambo-ai/react";
 import * as React from "react";
 import { useMessageRootContext } from "../root/message-root-context";
 
+export interface MessageRenderedComponentCanvasButtonRenderProps extends Record<
+  string,
+  unknown
+> {
+  canvasExists: boolean;
+  hasRenderedComponent: boolean;
+}
+
 export type MessageRenderedComponentCanvasButtonProps =
-  React.ButtonHTMLAttributes<HTMLButtonElement>;
+  useRender.ComponentProps<
+    "button",
+    MessageRenderedComponentCanvasButtonRenderProps
+  >;
 
 export const MessageRenderedComponentCanvasButton = React.forwardRef<
   HTMLButtonElement,
@@ -46,17 +59,24 @@ export const MessageRenderedComponentCanvasButton = React.forwardRef<
   }, [message.id, firstRenderedComponent]);
 
   if (!canvasExists) return null;
+  const { render, ...componentProps } = props;
+  const renderProps: MessageRenderedComponentCanvasButtonRenderProps = {
+    canvasExists,
+    hasRenderedComponent: !!firstRenderedComponent,
+  };
 
-  return (
-    <button
-      ref={ref}
-      onClick={onShowInCanvas}
-      data-slot="rendered-component-canvas-button"
-      {...props}
-    >
-      {children}
-    </button>
-  );
+  return useRender({
+    defaultTagName: "button",
+    ref,
+    render,
+    state: renderProps,
+    props: mergeProps(componentProps, {
+      type: "button",
+      onClick: onShowInCanvas,
+      children,
+      "data-slot": "rendered-component-canvas-button",
+    }),
+  });
 });
 MessageRenderedComponentCanvasButton.displayName =
   "Message.RenderedComponentCanvasButton";

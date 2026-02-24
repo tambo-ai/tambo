@@ -88,10 +88,22 @@ export const ThreadRow = memo(
 
         <TableCell className="py-2 text-sm px-2 sm:px-4 hidden sm:table-cell">
           <div className="flex items-center gap-1">
-            <code className="text-xs bg-info text-info px-1.5 py-0.5 rounded text-ellipsis overflow-hidden max-w-28 whitespace-nowrap">
-              {thread.id || "N/A"}
-            </code>
-            <CopyButton clipboardValue={thread.id || ""} className="h-6 w-6" />
+            <button
+              type="button"
+              onClick={handleViewMessages}
+              disabled={isDeleting}
+              className="group disabled:opacity-50"
+              aria-label={`View messages for thread ${thread.id.slice(0, 8)}`}
+            >
+              <code className="text-xs bg-info text-info px-1.5 py-0.5 rounded text-ellipsis overflow-hidden max-w-28 whitespace-nowrap group-hover:underline underline-offset-4 group-focus-visible:underline">
+                {thread.id || "N/A"}
+              </code>
+            </button>
+            <CopyButton
+              clipboardValue={thread.id || ""}
+              className="h-6 w-6"
+              disabled={isDeleting}
+            />
           </div>
         </TableCell>
 
@@ -100,11 +112,19 @@ export const ThreadRow = memo(
             compact ? "hidden" : ""
           }`}
         >
-          <span className="block truncate max-w-[120px] sm:max-w-none">
-            {thread.name || (
-              <span className="text-primary italic">No name</span>
-            )}
-          </span>
+          <button
+            type="button"
+            onClick={handleViewMessages}
+            disabled={isDeleting}
+            className="inline-flex items-center gap-1 text-left transition-colors duration-100 group disabled:opacity-50"
+            aria-label={`View messages for thread ${thread.name || thread.id.slice(0, 8)}`}
+          >
+            <span className="block truncate max-w-[120px] sm:max-w-none group-hover:underline underline-offset-4 group-focus-visible:underline">
+              {thread.name || (
+                <span className="text-primary italic">No name</span>
+              )}
+            </span>
+          </button>
         </TableCell>
 
         <TableCell
@@ -112,7 +132,9 @@ export const ThreadRow = memo(
             compact ? "hidden" : "hidden md:table-cell"
           }`}
         >
-          {thread.contextKey}
+          <span className="block truncate max-w-[200px]">
+            {thread.contextKey}
+          </span>
         </TableCell>
 
         <TableCell className="py-2 text-sm text-primary px-4 hidden md:table-cell">

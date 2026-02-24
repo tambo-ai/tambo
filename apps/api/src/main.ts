@@ -9,6 +9,7 @@ import * as Sentry from "@sentry/nestjs";
 import { json, urlencoded } from "express";
 import helmet from "helmet";
 import { AppModule } from "./app.module";
+import { DomainExceptionFilter } from "./common/filters/domain-exception.filter";
 import { SentryExceptionFilter } from "./common/filters/sentry-exception.filter";
 import { generateOpenAPIConfig } from "./common/openapi";
 import { registerHandler } from "./mcp-server/server";
@@ -17,7 +18,10 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule, { cors: true });
 
   const { httpAdapter } = app.get(HttpAdapterHost);
-  app.useGlobalFilters(new SentryExceptionFilter(httpAdapter));
+  app.useGlobalFilters(
+    new DomainExceptionFilter(),
+    new SentryExceptionFilter(httpAdapter),
+  );
 
   app.useGlobalPipes(new ValidationPipe({ transform: true }));
   // Security headers via Helmet (applies to all responses)

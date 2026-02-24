@@ -1,6 +1,10 @@
 import { ConfigService } from "@nestjs/config";
 import { Test, TestingModule } from "@nestjs/testing";
-import { ContentPartType, MessageRole } from "@tambo-ai-cloud/core";
+import {
+  ContentPartType,
+  InputValidationError,
+  MessageRole,
+} from "@tambo-ai-cloud/core";
 import { DATABASE } from "../common/database-provider";
 import { AnalyticsService } from "../common/services/analytics.service";
 import { AuthService } from "../common/services/auth.service";
@@ -213,6 +217,27 @@ describe("ThreadsService - Initial Messages", () => {
       expect(() => {
         (service as any).validateInitialMessages(messages, true);
       }).not.toThrow();
+    });
+
+    it("should throw InputValidationError for validation failures", () => {
+      const messages: MessageRequest[] = [
+        {
+          role: MessageRole.User,
+          content: [],
+        },
+      ];
+
+      let error: unknown;
+      try {
+        (service as any).validateInitialMessages(messages);
+      } catch (e) {
+        error = e;
+      }
+
+      expect(error).toBeInstanceOf(InputValidationError);
+      expect((error as Error).message).toMatch(
+        /Initial message at index 0 must have content/,
+      );
     });
 
     it("should reject a system message when project disallows override", () => {
