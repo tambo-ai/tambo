@@ -1,6 +1,9 @@
 import { createMDX } from "fumadocs-mdx/next";
 import { fileURLToPath } from "node:url";
-import { getWorkspaceTranspilePackages } from "../scripts/workspace-packages.mjs";
+import {
+  getWorkspaceTranspilePackages,
+  mergeConditions,
+} from "../scripts/workspace-packages.mjs";
 
 const withMDX = createMDX();
 const APP_DIR = fileURLToPath(new URL(".", import.meta.url));
@@ -10,10 +13,10 @@ const config = {
   transpilePackages: getWorkspaceTranspilePackages(APP_DIR),
   webpack(config, { dev }) {
     if (dev) {
-      const conditionNames = config.resolve.conditionNames ?? [];
-      config.resolve.conditionNames = conditionNames.includes("development")
-        ? conditionNames
-        : ["development", ...conditionNames];
+      config.resolve.conditionNames = mergeConditions(
+        config.resolve.conditionNames,
+        "@tambo-ai/source",
+      );
     }
     return config;
   },

@@ -7,6 +7,7 @@
     "jsx": "react",
     "module": "ES6",
     "moduleResolution": "node",
+    "customConditions": null,
     "rootDir": "./src",
     "declaration": true,
     "sourceMap": true,
