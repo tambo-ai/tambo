@@ -36,6 +36,19 @@ jest.unstable_mockModule("child_process", () => ({
   execFileSync: mockExecFileSync,
 }));
 
+// Mock telemetry as no-op (avoids needing to mock node:child_process, node:crypto, etc.)
+jest.unstable_mockModule("../../lib/telemetry.js", () => ({
+  EVENTS: {
+    COMMAND_COMPLETED: "cli.command.completed",
+    COMMAND_ERROR: "cli.command.error",
+    COMPONENT_ADDED: "cli.component.added",
+  },
+  isTelemetryDisabled: () => false,
+  initTelemetry: jest.fn(),
+  trackEvent: jest.fn(),
+  flushDetached: jest.fn(),
+}));
+
 // Mock inquirer for user prompts
 let inquirerResponses: Record<string, unknown> = {};
 const mockPrompt = async (

@@ -4,12 +4,13 @@ Tambo relies on a consistent observability stack across the monorepo. This docum
 
 ## Stack Overview
 
-| Layer            | Tools                                                 | Location                                                   |
-| ---------------- | ----------------------------------------------------- | ---------------------------------------------------------- |
-| API (NestJS)     | OpenTelemetry + Langfuse + Sentry                     | `apps/api/src/telemetry.ts`, `apps/api/src/sentry.ts`      |
-| Web (Next.js)    | Sentry (edge + server) + PostHog                      | `apps/web/sentry.*.config.ts`, `apps/web/lib/analytics.ts` |
-| Backend packages | Langfuse helpers + OTEL context propagation           | `packages/backend`, `packages/core`                        |
-| React SDK        | Host-app instrumentation only (no built-in telemetry) | `react-sdk/` (wrap `TamboProvider` in your own handlers)   |
+| Layer            | Tools                                                 | Location                                                     |
+| ---------------- | ----------------------------------------------------- | ------------------------------------------------------------ |
+| API (NestJS)     | OpenTelemetry + Langfuse + Sentry                     | `apps/api/src/telemetry.ts`, `apps/api/src/sentry.ts`        |
+| Web (Next.js)    | Sentry (edge + server) + PostHog                      | `apps/web/sentry.*.config.ts`, `apps/web/lib/analytics.ts`   |
+| Backend packages | Langfuse helpers + OTEL context propagation           | `packages/backend`, `packages/core`                          |
+| CLI              | Anonymous PostHog via Next.js ingest proxy            | `cli/src/lib/telemetry.ts`, `cli/src/lib/telemetry-flush.ts` |
+| React SDK        | Host-app instrumentation only (no built-in telemetry) | `react-sdk/` (wrap `TamboProvider` in your own handlers)     |
 
 ## Principles
 
@@ -38,6 +39,19 @@ Tambo relies on a consistent observability stack across the monorepo. This docum
   - Be debounced when triggered from high-frequency UI interactions.
 - For client errors, rely on Sentry’s automatic instrumentation and add meaningful context using `Sentry.setContext` inside error boundaries.
 - Never call PostHog or Sentry directly from random components; extend helper utilities so behavior stays centralized.
+
+## CLI (`cli/`)
+
+- Anonymous telemetry via a **detached flush** pattern (inspired by Next.js): events are queued in memory, written to a temp JSON file at exit, and a detached child process POSTs directly to PostHog's `/batch` endpoint via the web app's Next.js ingest proxy (`console.tambo.co/ingest`).
+- The PostHog project API key is embedded in the CLI (public by design — same as any frontend bundle). No custom API endpoint is involved.
+- Opt-out: `TAMBO_TELEMETRY_DISABLED=1` or `DO_NOT_TRACK=1`. A one-time notice is shown on first run.
+- All event names use dot notation matching the web convention: `cli.command.completed`, `cli.component.added`, `cli.init.completed`, `cli.auth.login`, `cli.auth.logout`.
+- State is stored in the XDG data directory (`env-paths`): `telemetry.json` for the anonymous UUID, and `_events_*.json` for pending flushes. Stale event files (>24 h) are cleaned on init.
+- Dev override: set `TAMBO_TELEMETRY_HOST` to point at a different PostHog-compatible ingest endpoint.
+- When adding new CLI events:
+  1. Add the event name to `EVENTS` in `cli/src/lib/telemetry.ts`.
+  2. Call `trackEvent(EVENTS.NEW_EVENT, { ... })` in the relevant command handler.
+  3. New properties are passed through automatically (no server-side allowlist).
 
 ## Backend Packages
 

@@ -16,6 +16,12 @@ import { handleListComponents } from "./commands/list/index.js";
 import { handleMigrate } from "./commands/migrate.js";
 import { handleUpdateComponents } from "./commands/update.js";
 import { handleUpgrade } from "./commands/upgrade/index.js";
+import {
+  EVENTS,
+  flushDetached,
+  initTelemetry,
+  trackEvent,
+} from "./lib/telemetry.js";
 import { GuidanceError, NonInteractiveError } from "./utils/interactive.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -742,14 +748,64 @@ function showMigrateHelp() {
 
 // Main execution
 async function main() {
+  const startTime = Date.now();
+  const command = cli.input[0];
+  const flags = cli.flags;
+
+  initTelemetry(currentVersion);
+
+  // Don't track help/version/empty commands
+  const isTrackable =
+    command && command !== "help" && !flags.help && !flags.version;
+
+  // Collect active flag names (not values — those could contain secrets like API keys)
+  const activeFlags = Object.entries(flags)
+    .filter(([key, val]) => {
+      if (val === false || val === undefined) return false;
+      // browser defaults to true — only track if explicitly set to false (--no-browser)
+      if (key === "browser" && val === true) return false;
+      return true;
+    })
+    .map(([key]) => key)
+    .join(",");
+
   try {
-    const command = cli.input[0];
-    const flags = cli.flags;
     // Check for latest version before executing command
     await checkLatestVersion();
 
     await handleCommand(command, flags);
+
+    if (isTrackable) {
+      trackEvent(EVENTS.COMMAND_COMPLETED, {
+        command,
+        duration_ms: Date.now() - startTime,
+        flags: activeFlags || undefined,
+      });
+    }
   } catch (error) {
+    if (isTrackable) {
+      let errorType = "Unknown";
+      if (error instanceof GuidanceError) {
+        errorType = "GuidanceError";
+      } else if (error instanceof NonInteractiveError) {
+        errorType = "NonInteractiveError";
+      } else if (error instanceof Error) {
+        errorType = error.constructor.name;
+      }
+
+      trackEvent(EVENTS.COMMAND_ERROR, {
+        command,
+        error_type: errorType,
+        error_message:
+          error instanceof Error ? error.message.slice(0, 200) : undefined,
+        duration_ms: Date.now() - startTime,
+        flags: activeFlags || undefined,
+      });
+    }
+
+    // Flush before exit — non-blocking (spawns detached process)
+    flushDetached();
+
     // GuidanceError: user action required - exit with code 2
     // Format is designed to be easily parsed by AI agents
     if (error instanceof GuidanceError) {
@@ -775,5 +831,8 @@ async function main() {
     );
     process.exit(1);
   }
+
+  // Flush on success — non-blocking
+  flushDetached();
 }
 void main();

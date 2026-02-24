@@ -126,10 +126,26 @@ Override with `FORCE_INTERACTIVE=1` if needed (requires real TTY).
 
 - `src/cli.ts` - Main CLI entry point with command routing
 - `src/commands/add/` - Component installation logic
+- `src/lib/telemetry.ts` - Anonymous telemetry (event queue, detached flush)
+- `src/lib/telemetry-flush.ts` - Detached flush process (spawned child)
+- `src/lib/paths.ts` - XDG-compliant directory resolution (shared by telemetry + token-storage)
 - `scripts/copy-registry.ts` - Prebuild script that copies registry from ui-registry package
 - `dist/registry/` - Built registry files (copied from `packages/ui-registry/src/`)
 - `src/constants/` - Shared constants and paths
 - `src/templates/` - Project templates
+
+## Telemetry
+
+Anonymous usage analytics. No user PII is collected.
+
+- **Opt-out**: `TAMBO_TELEMETRY_DISABLED=1` or `DO_NOT_TRACK=1`
+- **How it works**: Events queue in memory → temp JSON file written at exit → detached child process POSTs directly to PostHog's `/batch` endpoint via the web app proxy (`console.tambo.co/ingest`). The PostHog project API key is embedded in the CLI (public by design, same as any frontend bundle).
+- **Adding a new event**:
+  1. Add the event name to `EVENTS` in `src/lib/telemetry.ts`
+  2. Call `trackEvent(EVENTS.NEW_EVENT, { ... })` in the command handler
+  3. New properties are passed through automatically (no server-side allowlist)
+- **Dev override**: Set `TAMBO_TELEMETRY_HOST` to point at a different PostHog-compatible ingest endpoint.
+- **Current events**: `cli.command.completed`, `cli.command.error`, `cli.component.added`, `cli.init.completed`, `cli.auth.login`, `cli.auth.logout`
 
 ## Development Patterns
 
