@@ -51,20 +51,6 @@ const authRedirects =
 /** @type {import('next').NextConfig} */
 const config = {
   transpilePackages: getWorkspaceTranspilePackages(APP_DIR),
-  // Required by PostHog proxy — their /e/ endpoint uses trailing slashes
-  skipTrailingSlashRedirect: true,
-  rewrites: async () => ({
-    afterFiles: [
-      {
-        source: "/ingest/static/:path*",
-        destination: "https://us-assets.i.posthog.com/static/:path*",
-      },
-      {
-        source: "/ingest/:path*",
-        destination: "https://us.i.posthog.com/:path*",
-      },
-    ],
-  }),
   redirects: () => {
     return [
       ...authRedirects,

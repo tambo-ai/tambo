@@ -9,8 +9,7 @@ import { useEffect } from "react";
 if (typeof window !== "undefined") {
   if (env.NEXT_PUBLIC_POSTHOG_KEY) {
     posthog.init(env.NEXT_PUBLIC_POSTHOG_KEY, {
-      api_host: "/ingest",
-      ui_host: "https://us.posthog.com",
+      api_host: env.NEXT_PUBLIC_POSTHOG_HOST || "https://app.posthog.com",
       cross_subdomain_cookie: true,
       persistence: "localStorage+cookie",
     });
