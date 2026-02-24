@@ -45,7 +45,7 @@ Tambo relies on a consistent observability stack across the monorepo. This docum
 - Uses the `posthog-node` SDK configured for short-lived CLI processes (`flushAt: 1`, `flushInterval: 0`). Events are sent directly to PostHog (`us.i.posthog.com`) via `client.capture()`, and `await client.shutdown()` is called before the CLI exits.
 - The PostHog project API key is embedded in the CLI (public by design — same as any frontend bundle). No custom API endpoint is involved.
 - Opt-out: `TAMBO_TELEMETRY_DISABLED=1` or `DO_NOT_TRACK=1`. A one-time notice is shown on first run.
-- All event names use dot notation matching the web convention: `cli.command.completed`, `cli.component.added`, `cli.init.completed`, `cli.auth.login`, `cli.auth.logout`.
+- All event names use dot notation matching the web convention: `cli.command.completed`, `cli.command.error`, `cli.component.added`, `cli.init.completed`, `cli.auth.login`, `cli.auth.logout`.
 - State is stored in the XDG data directory (`env-paths`): `telemetry.json` for the anonymous UUID.
 - Dev override: set `TAMBO_TELEMETRY_HOST` to point at a different PostHog-compatible ingest endpoint.
 - When adding new CLI events:
