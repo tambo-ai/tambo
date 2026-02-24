@@ -18,8 +18,8 @@ import { handleUpdateComponents } from "./commands/update.js";
 import { handleUpgrade } from "./commands/upgrade/index.js";
 import {
   EVENTS,
-  flushDetached,
   initTelemetry,
+  shutdownTelemetry,
   trackEvent,
 } from "./lib/telemetry.js";
 import { GuidanceError, NonInteractiveError } from "./utils/interactive.js";
@@ -803,8 +803,8 @@ async function main() {
       });
     }
 
-    // Flush before exit — non-blocking (spawns detached process)
-    flushDetached();
+    // Flush before exit
+    await shutdownTelemetry();
 
     // GuidanceError: user action required - exit with code 2
     // Format is designed to be easily parsed by AI agents
@@ -832,7 +832,7 @@ async function main() {
     process.exit(1);
   }
 
-  // Flush on success — non-blocking
-  flushDetached();
+  // Flush on success
+  await shutdownTelemetry();
 }
 void main();

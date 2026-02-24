@@ -14,24 +14,12 @@ const mockExistsSync = jest.fn<(path: string) => boolean>();
 const mockMkdirSync = jest.fn();
 const mockReadFileSync = jest.fn<(path: string, encoding: string) => string>();
 const mockWriteFileSync = jest.fn();
-const mockReaddirSync = jest.fn<(path: string) => string[]>();
-const mockStatSync = jest.fn();
-const mockUnlinkSync = jest.fn();
 
 jest.unstable_mockModule("node:fs", () => ({
   existsSync: mockExistsSync,
   mkdirSync: mockMkdirSync,
   readFileSync: mockReadFileSync,
   writeFileSync: mockWriteFileSync,
-  readdirSync: mockReaddirSync,
-  statSync: mockStatSync,
-  unlinkSync: mockUnlinkSync,
-}));
-
-// Mock node:child_process
-const mockSpawn = jest.fn();
-jest.unstable_mockModule("node:child_process", () => ({
-  spawn: mockSpawn,
 }));
 
 // Mock node:crypto
@@ -45,7 +33,7 @@ jest.unstable_mockModule("./paths.js", () => ({
   getDir: () => "/mock/data/dir",
 }));
 
-// Mock token-storage (imported by telemetry for identity tracking)
+// Mock token-storage
 const mockLoadToken = jest.fn<
   () => {
     sessionToken: string;
@@ -58,6 +46,23 @@ jest.unstable_mockModule("./token-storage.js", () => ({
   loadToken: mockLoadToken,
 }));
 
+// Mock posthog-node — use a class so `new PostHog(...)` works correctly
+const mockCapture = jest.fn();
+const mockShutdown = jest
+  .fn<() => Promise<void>>()
+  .mockResolvedValue(undefined);
+const mockPostHogConstructor = jest.fn();
+
+jest.unstable_mockModule("posthog-node", () => ({
+  PostHog: class MockPostHog {
+    capture = mockCapture;
+    shutdown = mockShutdown;
+    constructor(...args: unknown[]) {
+      mockPostHogConstructor(...args);
+    }
+  },
+}));
+
 let telemetry: {
   readonly EVENTS: Record<string, EventName>;
   readonly isTelemetryDisabled: () => boolean;
@@ -66,32 +71,12 @@ let telemetry: {
     event: EventName,
     properties?: Record<string, unknown>,
   ) => void;
-  readonly flushDetached: () => void;
+  readonly shutdownTelemetry: () => Promise<void>;
 };
 
 beforeAll(async () => {
   telemetry = await import("./telemetry.js");
 });
-
-/** Find the _events_ temp file written by flushDetached and parse its JSON. */
-interface WrittenEventPayload {
-  posthogHost: string;
-  posthogApiKey: string;
-  batch: {
-    event: string;
-    distinct_id: string;
-    properties: Record<string, unknown>;
-    timestamp: string;
-  }[];
-}
-
-function getWrittenEventPayload(): WrittenEventPayload {
-  const call = mockWriteFileSync.mock.calls.find(
-    (c) => typeof c[0] === "string" && c[0].includes("_events_"),
-  );
-  if (!call) throw new Error("No _events_ file was written");
-  return JSON.parse(call[1] as string) as WrittenEventPayload;
-}
 
 describe("telemetry", () => {
   let originalEnv: NodeJS.ProcessEnv;
@@ -143,11 +128,9 @@ describe("telemetry", () => {
 
     it("creates a new state file on first run", () => {
       mockExistsSync.mockReturnValue(false);
-      mockReaddirSync.mockReturnValue([]);
 
       telemetry.initTelemetry("1.0.0");
 
-      // Should write the state file with anonymousId
       expect(mockWriteFileSync).toHaveBeenCalledWith(
         "/mock/data/dir/telemetry.json",
         expect.stringContaining(MOCK_UUID),
@@ -163,11 +146,9 @@ describe("telemetry", () => {
 
       mockExistsSync.mockReturnValue(true);
       mockReadFileSync.mockReturnValue(existingState);
-      mockReaddirSync.mockReturnValue([]);
 
       telemetry.initTelemetry("1.0.0");
 
-      // Should read but not write since noticeShown is already true
       expect(mockReadFileSync).toHaveBeenCalledWith(
         "/mock/data/dir/telemetry.json",
         "utf-8",
@@ -179,12 +160,7 @@ describe("telemetry", () => {
         .spyOn(process.stderr, "write")
         .mockReturnValue(true);
 
-      mockExistsSync.mockImplementation((path: string) => {
-        // State file doesn't exist, data dir does for cleanup
-        if (path === "/mock/data/dir/telemetry.json") return false;
-        return path === "/mock/data/dir";
-      });
-      mockReaddirSync.mockReturnValue([]);
+      mockExistsSync.mockReturnValue(false);
 
       telemetry.initTelemetry("1.0.0");
 
@@ -194,97 +170,130 @@ describe("telemetry", () => {
 
       stderrSpy.mockRestore();
     });
+
+    it("creates PostHog client with correct config", () => {
+      mockExistsSync.mockReturnValue(false);
+      mockPostHogConstructor.mockClear();
+
+      telemetry.initTelemetry("1.0.0");
+
+      expect(mockPostHogConstructor).toHaveBeenCalledWith(
+        "phc_MxSdt6nYWc9GZulDDw1LNTfvIIjGLbN3XW0vsBcvGgY",
+        expect.objectContaining({
+          host: "https://us.i.posthog.com",
+          flushAt: 1,
+          flushInterval: 0,
+        }),
+      );
+    });
+
+    it("uses custom telemetry host from env", () => {
+      process.env.TAMBO_TELEMETRY_HOST = "https://custom-host.example.com";
+      mockExistsSync.mockReturnValue(false);
+      mockPostHogConstructor.mockClear();
+
+      telemetry.initTelemetry("1.0.0");
+
+      expect(mockPostHogConstructor).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          host: "https://custom-host.example.com",
+        }),
+      );
+    });
   });
 
-  // Tests below rely on module-level state set by initTelemetry above.
-  // Jest runs tests sequentially within a file, so initTelemetry has
-  // already enabled tracking with a known anonymousId.
-
-  describe("trackEvent + flushDetached lifecycle", () => {
-    it("queues an event via trackEvent", () => {
-      // After initTelemetry ran above, tracking is enabled
+  describe("trackEvent", () => {
+    beforeEach(() => {
+      // Ensure telemetry is initialized before each trackEvent test
+      const existingState = JSON.stringify({
+        anonymousId: MOCK_UUID,
+        noticeShown: true,
+      });
       mockExistsSync.mockReturnValue(true);
+      mockReadFileSync.mockReturnValue(existingState);
+      telemetry.initTelemetry("1.0.0");
+      mockCapture.mockClear();
+    });
+
+    it("calls capture with correct event and properties", () => {
       mockLoadToken.mockReturnValue(null);
-      mockSpawn.mockReturnValue({ unref: jest.fn() });
 
       telemetry.trackEvent(telemetry.EVENTS.COMMAND_COMPLETED, {
         command: "test",
         duration_ms: 42,
       });
 
-      // Flush to verify the event was queued
-      telemetry.flushDetached();
-
-      expect(mockWriteFileSync).toHaveBeenCalledWith(
-        expect.stringContaining("_events_"),
-        expect.stringContaining("cli.command.completed"),
-        expect.objectContaining({ mode: 0o600 }),
+      expect(mockCapture).toHaveBeenCalledWith(
+        expect.objectContaining({
+          event: "cli.command.completed",
+          properties: expect.objectContaining({
+            command: "test",
+            duration_ms: 42,
+            source: "cli",
+          }),
+        }),
       );
     });
 
-    it("spawns a detached child process on flush", () => {
-      mockExistsSync.mockReturnValue(true);
-      mockLoadToken.mockReturnValue(null);
-      const mockUnref = jest.fn();
-      mockSpawn.mockReturnValue({ unref: mockUnref });
-
-      telemetry.trackEvent(telemetry.EVENTS.AUTH_LOGIN);
-      telemetry.flushDetached();
-
-      expect(mockSpawn).toHaveBeenCalledWith(
-        process.execPath,
-        expect.arrayContaining([expect.stringContaining("telemetry-flush.js")]),
-        expect.objectContaining({ detached: true, stdio: "ignore" }),
-      );
-      expect(mockUnref).toHaveBeenCalled();
-    });
-
-    it("uses userId as distinct_id when auth token is available", () => {
-      mockExistsSync.mockReturnValue(true);
+    it("uses userId as distinctId when auth token is available", () => {
       mockLoadToken.mockReturnValue({
         sessionToken: "test",
         expiresAt: "2099-01-01T00:00:00Z",
         storedAt: new Date().toISOString(),
         user: { id: "user_123", email: "test@example.com", name: "Test" },
       });
-      mockSpawn.mockReturnValue({ unref: jest.fn() });
 
       telemetry.trackEvent(telemetry.EVENTS.COMPONENT_ADDED, {
         component_name: "chat",
       });
-      telemetry.flushDetached();
 
-      const parsed = getWrittenEventPayload();
-      expect(parsed.batch[0].distinct_id).toBe("user_123");
-      expect(parsed.batch[0].properties.$anon_distinct_id).toBeDefined();
+      expect(mockCapture).toHaveBeenCalledWith(
+        expect.objectContaining({
+          distinctId: "user_123",
+          properties: expect.objectContaining({
+            $anon_distinct_id: MOCK_UUID,
+          }),
+        }),
+      );
     });
 
-    it("uses anonymousId as distinct_id when no auth token", () => {
-      mockExistsSync.mockReturnValue(true);
+    it("uses anonymousId as distinctId when no auth token", () => {
       mockLoadToken.mockReturnValue(null);
-      mockSpawn.mockReturnValue({ unref: jest.fn() });
 
       telemetry.trackEvent(telemetry.EVENTS.AUTH_LOGOUT);
-      telemetry.flushDetached();
 
-      const parsed = getWrittenEventPayload();
-      expect(parsed.batch[0].distinct_id).toBeDefined();
-      expect(parsed.batch[0].properties.$anon_distinct_id).toBeUndefined();
+      expect(mockCapture).toHaveBeenCalledWith(
+        expect.objectContaining({
+          distinctId: MOCK_UUID,
+        }),
+      );
+
+      const captureArg = mockCapture.mock.calls[0]?.[0] as
+        | Record<string, unknown>
+        | undefined;
+      const properties = captureArg?.properties as
+        | Record<string, unknown>
+        | undefined;
+      expect(properties?.$anon_distinct_id).toBeUndefined();
     });
+  });
 
-    it("uses custom telemetry host from env when set", () => {
-      process.env.TAMBO_TELEMETRY_HOST = "https://custom-host.example.com";
-      mockExistsSync.mockReturnValue(true);
-      mockLoadToken.mockReturnValue(null);
-      mockSpawn.mockReturnValue({ unref: jest.fn() });
-
-      telemetry.trackEvent(telemetry.EVENTS.COMMAND_COMPLETED, {
-        command: "list",
+  describe("shutdownTelemetry", () => {
+    it("calls shutdown on the PostHog client", async () => {
+      // Ensure client is initialized
+      const existingState = JSON.stringify({
+        anonymousId: MOCK_UUID,
+        noticeShown: true,
       });
-      telemetry.flushDetached();
+      mockExistsSync.mockReturnValue(true);
+      mockReadFileSync.mockReturnValue(existingState);
+      telemetry.initTelemetry("1.0.0");
+      mockShutdown.mockClear();
 
-      const parsed = getWrittenEventPayload();
-      expect(parsed.posthogHost).toBe("https://custom-host.example.com");
+      await telemetry.shutdownTelemetry();
+
+      expect(mockShutdown).toHaveBeenCalled();
     });
   });
 });

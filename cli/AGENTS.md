@@ -126,8 +126,7 @@ Override with `FORCE_INTERACTIVE=1` if needed (requires real TTY).
 
 - `src/cli.ts` - Main CLI entry point with command routing
 - `src/commands/add/` - Component installation logic
-- `src/lib/telemetry.ts` - Anonymous telemetry (event queue, detached flush)
-- `src/lib/telemetry-flush.ts` - Detached flush process (spawned child)
+- `src/lib/telemetry.ts` - Anonymous telemetry via `posthog-node` SDK
 - `src/lib/paths.ts` - XDG-compliant directory resolution (shared by telemetry + token-storage)
 - `scripts/copy-registry.ts` - Prebuild script that copies registry from ui-registry package
 - `dist/registry/` - Built registry files (copied from `packages/ui-registry/src/`)
@@ -139,7 +138,7 @@ Override with `FORCE_INTERACTIVE=1` if needed (requires real TTY).
 Anonymous usage analytics. No user PII is collected.
 
 - **Opt-out**: `TAMBO_TELEMETRY_DISABLED=1` or `DO_NOT_TRACK=1`
-- **How it works**: Events queue in memory → temp JSON file written at exit → detached child process POSTs directly to PostHog's `/batch` endpoint via the web app proxy (`console.tambo.co/ingest`). The PostHog project API key is embedded in the CLI (public by design, same as any frontend bundle).
+- **How it works**: Uses the `posthog-node` SDK configured for short-lived CLI processes (`flushAt: 1`, `flushInterval: 0`). Events are sent directly to PostHog (`us.i.posthog.com`) via `client.capture()`, and `await client.shutdown()` is called before the CLI exits. The PostHog project API key is embedded in the CLI (public by design, same as any frontend bundle).
 - **Adding a new event**:
   1. Add the event name to `EVENTS` in `src/lib/telemetry.ts`
   2. Call `trackEvent(EVENTS.NEW_EVENT, { ... })` in the command handler

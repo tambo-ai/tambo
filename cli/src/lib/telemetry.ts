@@ -1,24 +1,14 @@
-import { spawn } from "node:child_process";
 import { randomUUID } from "node:crypto";
-import {
-  existsSync,
-  mkdirSync,
-  readFileSync,
-  readdirSync,
-  statSync,
-  unlinkSync,
-  writeFileSync,
-} from "node:fs";
-import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
+import { PostHog } from "posthog-node";
 import { getDir } from "./paths.js";
 import { loadToken } from "./token-storage.js";
 
 const TELEMETRY_STATE_FILE = "telemetry.json";
-const STALE_FILE_MAX_AGE_MS = 24 * 60 * 60 * 1000; // 24 hours
 
 const POSTHOG_API_KEY = "phc_MxSdt6nYWc9GZulDDw1LNTfvIIjGLbN3XW0vsBcvGgY";
-const POSTHOG_HOST = "https://console.tambo.co/ingest";
+const POSTHOG_HOST = "https://us.i.posthog.com";
 
 export const EVENTS = {
   COMMAND_COMPLETED: "cli.command.completed",
@@ -36,15 +26,10 @@ interface TelemetryState {
   noticeShown: boolean;
 }
 
-interface QueuedEvent {
-  event: EventName;
-  properties: Record<string, unknown>;
-}
-
+let client: PostHog | undefined;
 let anonymousId: string | undefined;
 let cliVersion: string | undefined;
 let isEnabled = false;
-const eventQueue: QueuedEvent[] = [];
 
 export function isTelemetryDisabled(): boolean {
   const disabled = process.env.TAMBO_TELEMETRY_DISABLED;
@@ -63,16 +48,18 @@ export function initTelemetry(version: string): void {
   try {
     const state = loadOrCreateState();
     anonymousId = state.anonymousId;
+
+    client = new PostHog(POSTHOG_API_KEY, {
+      host: process.env.TAMBO_TELEMETRY_HOST ?? POSTHOG_HOST,
+      flushAt: 1,
+      flushInterval: 0,
+    });
+
     isEnabled = true;
 
     if (!state.noticeShown) {
       showNotice();
       saveState({ ...state, noticeShown: true });
-    }
-
-    // Run stale file cleanup probabilistically to avoid sync I/O on every invocation
-    if (Math.random() < 0.05) {
-      cleanupStaleEventFiles();
     }
   } catch {
     // Telemetry init failure must never crash the CLI
@@ -84,17 +71,9 @@ export function trackEvent(
   event: EventName,
   properties: Record<string, unknown> = {},
 ): void {
-  if (!isEnabled) return;
-  eventQueue.push({ event, properties });
-}
-
-export function flushDetached(): void {
-  if (!isEnabled || eventQueue.length === 0 || !anonymousId) return;
+  if (!isEnabled || !client || !anonymousId) return;
 
   try {
-    const posthogHost = process.env.TAMBO_TELEMETRY_HOST ?? POSTHOG_HOST;
-    const posthogApiKey = POSTHOG_API_KEY;
-
     let userId: string | undefined;
     try {
       const token = loadToken();
@@ -106,14 +85,11 @@ export function flushDetached(): void {
     }
 
     const distinctId = userId ?? anonymousId;
-    const now = new Date().toISOString();
-    const eventsToFlush = eventQueue.splice(0, eventQueue.length);
 
-    const batch = eventsToFlush.map((e) => ({
-      event: e.event,
-      distinct_id: distinctId,
+    client.capture({
+      event,
+      distinctId,
       properties: {
-        // Link anonymous → identified user when logged in
         ...(userId ? { $anon_distinct_id: anonymousId } : {}),
         cliVersion,
         nodeVersion: process.version,
@@ -121,34 +97,21 @@ export function flushDetached(): void {
         arch: process.arch,
         isCi: isCi(),
         source: "cli",
-        ...e.properties,
+        ...properties,
       },
-      timestamp: now,
-    }));
-
-    const dataDir = getDir("data");
-    if (!existsSync(dataDir)) {
-      mkdirSync(dataDir, { recursive: true, mode: 0o700 });
-    }
-
-    const tempFile = join(dataDir, `_events_${process.pid}_${Date.now()}.json`);
-    writeFileSync(
-      tempFile,
-      JSON.stringify({ posthogHost, posthogApiKey, batch }),
-      { encoding: "utf-8", mode: 0o600 },
-    );
-
-    const flusherPath = join(
-      dirname(fileURLToPath(import.meta.url)),
-      "telemetry-flush.js",
-    );
-    const child = spawn(process.execPath, [flusherPath, tempFile], {
-      detached: true,
-      stdio: "ignore",
     });
-    child.unref();
   } catch {
-    // Flush failure must never crash the CLI
+    // Capture failure must never crash the CLI
+  }
+}
+
+export async function shutdownTelemetry(): Promise<void> {
+  if (!client) return;
+
+  try {
+    await client.shutdown();
+  } catch {
+    // Shutdown failure must never crash the CLI
   }
 }
 
@@ -199,23 +162,4 @@ function showNotice(): void {
 function isCi(): boolean {
   const ci = process.env.CI;
   return ci !== undefined && ci !== "0";
-}
-
-function cleanupStaleEventFiles(): void {
-  try {
-    const dataDir = getDir("data");
-    if (!existsSync(dataDir)) return;
-
-    const now = Date.now();
-    for (const file of readdirSync(dataDir)) {
-      if (!file.startsWith("_events_") || !file.endsWith(".json")) continue;
-      const filePath = join(dataDir, file);
-      const age = now - statSync(filePath).mtimeMs;
-      if (age > STALE_FILE_MAX_AGE_MS) {
-        unlinkSync(filePath);
-      }
-    }
-  } catch {
-    // Cleanup failure is non-critical
-  }
 }

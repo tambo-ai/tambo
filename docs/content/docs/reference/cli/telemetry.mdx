@@ -24,12 +24,9 @@ Flag tracking records only the **names** of active flags, never their values. Fo
 
 ## How it works
 
-1. Commands call `trackEvent()` which queues events in memory
-2. When the CLI exits, the queue is written to a temporary JSON file
-3. A detached child process sends the events to PostHog and deletes the temp file
-4. The CLI exits immediately — network latency never blocks your workflow
-
-Events are sent to PostHog through a proxy on `console.tambo.co`. No data is stored on Tambo servers.
+1. Commands call `trackEvent()` which sends each event to PostHog via the `posthog-node` SDK
+2. When the CLI exits, `shutdown()` is called to ensure any pending events are delivered
+3. Events are sent directly to PostHog (`us.i.posthog.com`) — no data is stored on Tambo servers
 
 ## Identity
 
