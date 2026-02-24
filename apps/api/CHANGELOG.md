@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.143.3](https://github.com/tambo-ai/tambo/compare/api-v0.143.2...api-v0.143.3) (2026-02-24)
+
+
+### Bug Fixes
+
+* **api:** return 400 instead of 500 for input validation errors ([#2464](https://github.com/tambo-ai/tambo/issues/2464)) ([c45ddb6](https://github.com/tambo-ai/tambo/commit/c45ddb684ba15de04a6c4ab9057e8263b1799358))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump the nestjs group with 4 updates ([#2467](https://github.com/tambo-ai/tambo/issues/2467)) ([96deff0](https://github.com/tambo-ai/tambo/commit/96deff011a5857696141c4e616b3e70e03da3e5e))
+* **deps:** bump the sentry group with 3 updates ([#2471](https://github.com/tambo-ai/tambo/issues/2471)) ([242e53c](https://github.com/tambo-ai/tambo/commit/242e53cd52f2093b3aed346e3909ee3f18a7f921))
+* **deps:** bump the small-safe-packages group with 6 updates ([#2470](https://github.com/tambo-ai/tambo/issues/2470)) ([cb48c28](https://github.com/tambo-ai/tambo/commit/cb48c281b78b64e2e2352fd52007984681fb5ab6))
+
 ## [0.143.2](https://github.com/tambo-ai/tambo/compare/api-v0.143.1...api-v0.143.2) (2026-02-19)
 
 
