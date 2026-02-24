@@ -80,7 +80,7 @@
     "@types/react": "^18.3.23",
     "@types/react-dom": "^18.3.7",
     "clsx": "^2.1.1",
-    "eslint": "^9",
+    "eslint": "^10",
     "eslint-config-next": "16.1.6",
     "identity-obj-proxy": "^3.0.0",
     "jest": "^30.2.0",
