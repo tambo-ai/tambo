@@ -295,5 +295,24 @@ describe("telemetry", () => {
 
       expect(mockShutdown).toHaveBeenCalled();
     });
+
+    it("resets module state so trackEvent is a no-op after shutdown", async () => {
+      const existingState = JSON.stringify({
+        anonymousId: MOCK_UUID,
+        noticeShown: true,
+      });
+      mockExistsSync.mockReturnValue(true);
+      mockReadFileSync.mockReturnValue(existingState);
+      telemetry.initTelemetry("1.0.0");
+
+      await telemetry.shutdownTelemetry();
+      mockCapture.mockClear();
+
+      telemetry.trackEvent(telemetry.EVENTS.COMMAND_COMPLETED, {
+        command: "test",
+      });
+
+      expect(mockCapture).not.toHaveBeenCalled();
+    });
   });
 });

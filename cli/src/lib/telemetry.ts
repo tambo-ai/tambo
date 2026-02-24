@@ -112,6 +112,9 @@ export async function shutdownTelemetry(): Promise<void> {
     await client.shutdown();
   } catch {
     // Shutdown failure must never crash the CLI
+  } finally {
+    client = undefined;
+    isEnabled = false;
   }
 }
 
