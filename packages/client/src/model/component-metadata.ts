@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any -- SDK-inherited generic defaults require `any` */
 import type { ToolAnnotations as MCPToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 import type { StandardSchemaV1 } from "@standard-schema/spec";
 import TamboAI from "@tambo-ai/typescript-sdk";
