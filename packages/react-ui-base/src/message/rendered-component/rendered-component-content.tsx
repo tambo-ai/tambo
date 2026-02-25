@@ -40,6 +40,9 @@ export const MessageRenderedComponentContent = React.forwardRef<
     render,
     enabled: renderedComponents.length > 0,
     state: renderProps,
+    stateAttributesMapping: {
+      renderedComponents: () => null,
+    },
     props: mergeProps(componentProps, {
       children: renderedComponents,
       "data-slot": "message-rendered-component-content",

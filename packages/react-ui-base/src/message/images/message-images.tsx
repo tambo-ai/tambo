@@ -71,6 +71,9 @@ export const MessageImages = React.forwardRef<
     ref,
     render,
     state: renderProps,
+    stateAttributesMapping: {
+      images: () => null,
+    },
     props: mergeProps(componentProps, {
       children: children ?? renderedImages,
       "data-slot": "message-images",

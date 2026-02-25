@@ -163,22 +163,17 @@ const LoadingIndicator: React.FC<MessageLoadingIndicatorProps> = ({
 LoadingIndicator.displayName = "LoadingIndicator";
 
 /**
- * Internal component to render message content based on its type
+ * Internal component to render message content based on its type.
  */
 function MessageContentRenderer({
-  contentToRender,
   markdownContent,
   markdown,
 }: {
-  contentToRender: unknown;
   markdownContent?: string;
   markdown: boolean;
 }) {
-  if (!contentToRender && !markdownContent) {
+  if (!markdownContent) {
     return <span className="text-muted-foreground italic">Empty message</span>;
-  }
-  if (React.isValidElement(contentToRender)) {
-    return contentToRender;
   }
   if (markdown) {
     return (
@@ -291,8 +286,7 @@ const MessageContent = React.forwardRef<HTMLDivElement, MessageContentProps>(
             return (
               <div {...props}>
                 <MessageContentRenderer
-                  contentToRender={state.renderedComponents}
-                  markdownContent={props.contentAsMarkdownString}
+                  markdownContent={state.contentAsMarkdownString}
                   markdown={renderAsMarkdownEffective}
                 />
               </div>
@@ -459,6 +453,7 @@ const ToolcallInfo = React.forwardRef<HTMLDivElement, ToolcallInfoProps>(
   },
 );
 ToolcallInfo.displayName = "ToolcallInfo";
+
 /**
  * Displays a message's child messages in a collapsible dropdown.
  * Used for MCP sampling sub-threads.
