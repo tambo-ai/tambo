@@ -143,33 +143,42 @@ function makePropertyNullable(
     return propSchema;
   }
 
+  // Already just {type: "null"}
+  if (propSchema.type === "null") {
+    return propSchema;
+  }
+
+  const hasNullVariant = (
+    variants: JSONSchema7["anyOf"] | JSONSchema7["oneOf"],
+  ) =>
+    variants?.some((s) => typeof s !== "boolean" && s.type === "null") ?? false;
+
   // Already nullable via anyOf containing {type: "null"}
-  if (
-    propSchema.anyOf?.some((s) => typeof s !== "boolean" && s.type === "null")
-  ) {
+  if (hasNullVariant(propSchema.anyOf)) {
     return propSchema;
   }
 
   // Already nullable via oneOf containing {type: "null"}
-  if (
-    propSchema.oneOf?.some((s) => typeof s !== "boolean" && s.type === "null")
-  ) {
+  if (hasNullVariant(propSchema.oneOf)) {
     return propSchema;
+  }
+
+  // Existing anyOf without null — flatten by appending {type: "null"} to avoid nesting
+  if (propSchema.anyOf) {
+    return { ...propSchema, anyOf: [...propSchema.anyOf, { type: "null" }] };
   }
 
   // Normalize type: [T, "null"] array form to anyOf (LLMs don't handle the array form)
   if (Array.isArray(propSchema.type) && propSchema.type.includes("null")) {
-    const nonNullTypes = propSchema.type.filter((t) => t !== "null");
     const { type: _type, ...rest } = propSchema;
-    const baseSchema: JSONSchema7 =
-      nonNullTypes.length === 1
-        ? { ...rest, type: nonNullTypes[0] as JSONSchema7["type"] }
-        : { ...rest, type: nonNullTypes as JSONSchema7["type"] };
-    return { anyOf: [baseSchema, { type: "null" }] };
+    const baseSchemas = propSchema.type
+      .filter((t) => t !== "null")
+      .map((t) => ({ ...rest, type: t as JSONSchema7["type"] }));
+    return { anyOf: [...baseSchemas, { type: "null" }] };
   }
 
   // Not yet nullable — wrap in anyOf
-  return { anyOf: [propSchema, { type: "null" }] };
+  return { anyOf: [{ ...propSchema }, { type: "null" }] };
 }
 
 /**

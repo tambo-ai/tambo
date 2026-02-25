@@ -357,4 +357,58 @@ describe("makeJsonSchemaPartial", () => {
       nothing: false,
     });
   });
+
+  it("should preserve property that is already type: null", () => {
+    const schema: JSONSchema7 = {
+      type: "object",
+      properties: {
+        alwaysNull: { type: "null" },
+      },
+    };
+
+    const partial = makeJsonSchemaPartial(schema);
+
+    expect(partial.properties).toEqual({
+      alwaysNull: { type: "null" },
+    });
+  });
+
+  it("should flatten existing anyOf without null instead of nesting", () => {
+    const schema: JSONSchema7 = {
+      type: "object",
+      properties: {
+        value: {
+          anyOf: [{ type: "string" }, { type: "number" }],
+        },
+      },
+    };
+
+    const partial = makeJsonSchemaPartial(schema);
+
+    // Should append {type: "null"} to existing anyOf, not nest
+    expect(partial.properties).toEqual({
+      value: {
+        anyOf: [{ type: "string" }, { type: "number" }, { type: "null" }],
+      },
+    });
+  });
+
+  it("should expand multi-type arrays into individual anyOf entries", () => {
+    const schema: JSONSchema7 = {
+      type: "object",
+      properties: {
+        flexible: {
+          type: ["string", "number", "null"] as unknown as "string",
+        },
+      },
+    };
+
+    const partial = makeJsonSchemaPartial(schema);
+
+    expect(partial.properties).toEqual({
+      flexible: {
+        anyOf: [{ type: "string" }, { type: "number" }, { type: "null" }],
+      },
+    });
+  });
 });
