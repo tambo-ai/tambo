@@ -30,6 +30,8 @@ runs:
   steps:
     - name: Setup Mise
       uses: jdx/mise-action@v3.6.1
+      with:
+        version: "2026.2.19"
 
     - name: Setup Node Cache
       if: ${{ inputs.cache == 'true' }}

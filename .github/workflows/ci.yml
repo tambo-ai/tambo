@@ -19,6 +19,7 @@ jobs:
     env:
       TURBO_TEAM: ${{ vars.TURBO_TEAM }}
       TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+      MISE_GITHUB_TOKEN: ${{ secrets.MISE_GITHUB_TOKEN }}
 
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -107,6 +108,7 @@ jobs:
     env:
       TURBO_TEAM: ${{ vars.TURBO_TEAM }}
       TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+      MISE_GITHUB_TOKEN: ${{ secrets.MISE_GITHUB_TOKEN }}
     permissions:
       contents: read
 
@@ -130,6 +132,7 @@ jobs:
     env:
       TURBO_TEAM: ${{ vars.TURBO_TEAM }}
       TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+      MISE_GITHUB_TOKEN: ${{ secrets.MISE_GITHUB_TOKEN }}
 
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -145,6 +148,7 @@ jobs:
     env:
       TURBO_TEAM: ${{ vars.TURBO_TEAM }}
       TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+      MISE_GITHUB_TOKEN: ${{ secrets.MISE_GITHUB_TOKEN }}
 
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
