@@ -12,7 +12,7 @@ on:
 
 permissions:
   # Pullfrog mints its own GitHub App tokens and handles PR/issue updates.
-  # Keep the runner GITHUB_TOKEN read-only to avoid accidental write access.
+  # Do not grant write scopes to GITHUB_TOKEN; all writes must go through Pullfrog's tokens.
   id-token: write
   contents: read
 
