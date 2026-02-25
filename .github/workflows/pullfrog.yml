@@ -11,7 +11,8 @@ on:
         description: Run name
 
 permissions:
-  # Pullfrog mints its own GitHub App tokens; the runner token isn't currently used.
+  # Pullfrog mints its own GitHub App tokens and handles PR/issue updates.
+  # Keep the runner GITHUB_TOKEN read-only to avoid accidental write access.
   id-token: write
   contents: read
 
