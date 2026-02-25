@@ -214,15 +214,16 @@ function MessageRenderer({
 
 ### Props
 
-| Prop        | Type                                                                         | Required | Description                                              |
-| ----------- | ---------------------------------------------------------------------------- | -------- | -------------------------------------------------------- |
-| `content`   | [`TamboComponentContent`](/reference/react-sdk/types#tambocomponentcontent)  | Yes      | The component content block from a message               |
-| `threadId`  | `string`                                                                     | Yes      | Thread ID the component belongs to                       |
-| `messageId` | `string`                                                                     | Yes      | Message ID the component belongs to                      |
-| `fallback`  | `React.ReactNode`                                                            | No       | UI to render if the component is not found in registry   |
+| Prop        | Type                                                                        | Required | Description                                            |
+| ----------- | --------------------------------------------------------------------------- | -------- | ------------------------------------------------------ |
+| `content`   | [`TamboComponentContent`](/reference/react-sdk/types#tambocomponentcontent) | Yes      | The component content block from a message             |
+| `threadId`  | `string`                                                                    | Yes      | Thread ID the component belongs to                     |
+| `messageId` | `string`                                                                    | Yes      | Message ID the component belongs to                    |
+| `fallback`  | `React.ReactNode`                                                           | No       | UI to render if the component is not found in registry |
 
 <Callout type="info">
-  Use `content.id` as the React `key` to preserve component identity across re-renders during streaming.
+  Use `content.id` as the React `key` to preserve component identity across
+  re-renders during streaming.
 </Callout>
 
 ## TamboMessageProvider
@@ -268,11 +269,11 @@ function CustomMessageList({
 
 ### Props
 
-| Prop                    | Type                                                                       | Required | Description                                              |
-| ----------------------- | -------------------------------------------------------------------------- | -------- | -------------------------------------------------------- |
-| `message`               | [`TamboThreadMessage`](/reference/react-sdk/types#tambothreadmessage)     | Yes      | The message to provide as context                        |
-| `interactableMetadata`  | `InteractableMetadata`                                                     | No       | Metadata for interactable components (set automatically by `withTamboInteractable`) |
-| `children`              | `React.ReactNode`                                                          | Yes      | Components that need access to message context           |
+| Prop                   | Type                                                                  | Required | Description                                                                         |
+| ---------------------- | --------------------------------------------------------------------- | -------- | ----------------------------------------------------------------------------------- |
+| `message`              | [`TamboThreadMessage`](/reference/react-sdk/types#tambothreadmessage) | Yes      | The message to provide as context                                                   |
+| `interactableMetadata` | `InteractableMetadata`                                                | No       | Metadata for interactable components (set automatically by `withTamboInteractable`) |
+| `children`             | `React.ReactNode`                                                     | Yes      | Components that need access to message context                                      |
 
 ## ComponentContentProvider
 
@@ -291,18 +292,18 @@ import { ComponentContentProvider } from "@tambo-ai/react";
   componentName="WeatherCard"
 >
   <WeatherCard city="Seattle" temperature={65} />
-</ComponentContentProvider>
+</ComponentContentProvider>;
 ```
 
 ### Props
 
-| Prop            | Type     | Required | Description                          |
-| --------------- | -------- | -------- | ------------------------------------ |
-| `componentId`   | `string` | Yes      | Unique instance ID for the component |
-| `threadId`      | `string` | Yes      | Thread the component belongs to      |
-| `messageId`     | `string` | Yes      | Message the component belongs to     |
-| `componentName` | `string` | Yes      | Registered component name            |
-| `children`      | `React.ReactNode` | Yes | Components that need access to component content context |
+| Prop            | Type              | Required | Description                                              |
+| --------------- | ----------------- | -------- | -------------------------------------------------------- |
+| `componentId`   | `string`          | Yes      | Unique instance ID for the component                     |
+| `threadId`      | `string`          | Yes      | Thread the component belongs to                          |
+| `messageId`     | `string`          | Yes      | Message the component belongs to                         |
+| `componentName` | `string`          | Yes      | Registered component name                                |
+| `children`      | `React.ReactNode` | Yes      | Components that need access to component content context |
 
 ## Re-exported Providers
 
