@@ -94,12 +94,32 @@ describe("package-manager", () => {
       expect(detectPackageManager()).toBe("pnpm");
     });
 
+    it("should detect pnpm when pnpm-lock.yaml exists in ancestor directory", () => {
+      const projectRoot = "/monorepo/packages/myapp";
+      mockExistsSync.mockImplementation((filePath) => {
+        // pnpm-lock.yaml only exists at monorepo root
+        return filePath === "/monorepo/pnpm-lock.yaml";
+      });
+
+      expect(detectPackageManager(projectRoot)).toBe("pnpm");
+    });
+
     it("should detect yarn when yarn.lock exists", () => {
       mockExistsSync.mockImplementation((filePath) => {
         return filePath === path.join(process.cwd(), "yarn.lock");
       });
 
       expect(detectPackageManager()).toBe("yarn");
+    });
+
+    it("should detect yarn when yarn.lock exists in ancestor directory", () => {
+      const projectRoot = "/monorepo/packages/myapp";
+      mockExistsSync.mockImplementation((filePath) => {
+        // yarn.lock only exists at monorepo root
+        return filePath === "/monorepo/yarn.lock";
+      });
+
+      expect(detectPackageManager(projectRoot)).toBe("yarn");
     });
 
     it("should detect npm when package-lock.json exists", () => {
