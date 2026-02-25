@@ -1,6 +1,9 @@
 import { type NextConfig } from "next";
 import { fileURLToPath } from "node:url";
-import { getWorkspaceTranspilePackages } from "../scripts/workspace-packages.mjs";
+import {
+  getWorkspaceTranspilePackages,
+  mergeConditions,
+} from "../scripts/workspace-packages.mjs";
 
 const APP_DIR = fileURLToPath(new URL(".", import.meta.url));
 
@@ -16,10 +19,10 @@ const nextConfig: NextConfig = {
     });
 
     if (dev) {
-      const conditionNames = config.resolve.conditionNames ?? [];
-      config.resolve.conditionNames = conditionNames.includes("development")
-        ? conditionNames
-        : ["development", ...conditionNames];
+      config.resolve.conditionNames = mergeConditions(
+        config.resolve.conditionNames,
+        "@tambo-ai/source",
+      );
     }
 
     // don't resolve optional peers from '@standard-community/standard-json'

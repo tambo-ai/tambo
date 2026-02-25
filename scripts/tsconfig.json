@@ -1,13 +1,8 @@
 {
+  "extends": "../packages/typescript-config/base.json",
   "compilerOptions": {
-    "target": "ES2022",
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
-    "esModuleInterop": true,
-    "strict": true,
-    "skipLibCheck": true,
-    "noEmit": true,
-    "allowJs": true
+    "allowJs": true,
+    "noEmit": true
   },
   "include": ["*.ts", "**/*.ts", "*.mjs"]
 }
