@@ -165,10 +165,16 @@ export async function* fixStreamedToolCalls(
     currentToolCallRequest = toolCallRequest;
 
     if (streamItem.toolCallProviderOptionsById) {
-      currentToolCallProviderOptionsById = {
-        ...(currentToolCallProviderOptionsById ?? {}),
-        ...streamItem.toolCallProviderOptionsById,
-      };
+      // Merge per tool call id so provider keys don't overwrite each other.
+      currentToolCallProviderOptionsById ??= {};
+      for (const [id, providerOptions] of Object.entries(
+        streamItem.toolCallProviderOptionsById,
+      )) {
+        currentToolCallProviderOptionsById[id] = {
+          ...(currentToolCallProviderOptionsById[id] ?? {}),
+          ...providerOptions,
+        };
+      }
     }
     yield {
       decision: { ...chunk, isToolCallFinished: false },
