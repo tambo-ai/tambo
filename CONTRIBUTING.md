@@ -40,7 +40,16 @@ Supabase provides PostgreSQL with additional features. The `.env.example` files 
 
 ```bash
 # Install Supabase CLI if you haven't
-npm install -g supabase
+# https://supabase.com/docs/guides/local-development/cli/getting-started
+# on macOS
+brew install supabase/tap/supabase
+
+# on windows
+scoop bucket add supabase https://github.com/supabase/scoop-bucket.git
+scoop install supabase
+
+# on Linux
+brew install supabase/tap/supabase
 
 # Start Supabase (includes PostgreSQL on port 54322)
 supabase start
