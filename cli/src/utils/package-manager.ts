@@ -70,7 +70,7 @@ export function detectPackageManager(
     return "npm";
   }
 
-  // package-lock.json or no lockfile defaults to npm
+  // Default to npm when no other lockfile is found.
   return "npm";
 }
 

@@ -130,6 +130,16 @@ describe("package-manager", () => {
       expect(detectPackageManager()).toBe("npm");
     });
 
+    it("should detect npm when package-lock.json exists in ancestor directory", () => {
+      const projectRoot = "/monorepo/packages/myapp";
+      mockExistsSync.mockImplementation((filePath) => {
+        // package-lock.json only exists at monorepo root
+        return filePath === "/monorepo/package-lock.json";
+      });
+
+      expect(detectPackageManager(projectRoot)).toBe("npm");
+    });
+
     it("should default to npm when no lockfile exists", () => {
       mockExistsSync.mockReturnValue(false);
 
