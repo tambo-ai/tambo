@@ -18,6 +18,7 @@ This phase introduces and hardens `McpComponents` primitives in `react-ui-base`,
 - Define explicit rendered-component availability/state boundaries in base primitives.
 - Align registry rendered-component/canvas integrations with the new primitive boundary.
 - Preserve `canvas-space` interoperability via the existing `tambo:showComponent` event API.
+- Author Base UI-style primitive docs page for `McpComponents` using `spec-template-base-primitive-doc-page.md`.
 
 ### Out of Scope
 
@@ -43,6 +44,8 @@ This phase introduces and hardens `McpComponents` primitives in `react-ui-base`,
 | `packages/react-ui-base/package.json`                               | Add `mcp-components` subpath export                                  |
 | `packages/ui-registry/src/components/canvas-space/canvas-space.tsx` | Compose `McpComponents` behavior while keeping event API integration |
 | `packages/ui-registry/src/components/message/message.tsx`           | Align rendered-component composition boundary where applicable       |
+| `docs/content/docs/reference/react-ui-base/mcp-components.mdx`      | McpComponents primitive docs page                                    |
+| `docs/content/docs/reference/react-ui-base/meta.json`               | Add mcp-components docs page to section order                        |
 
 ## Implementation Details
 
@@ -50,6 +53,7 @@ This phase introduces and hardens `McpComponents` primitives in `react-ui-base`,
 2. Canvas integration keeps the existing global `tambo:showComponent` event API.
 3. Registry consumers keep styling/display ownership and do not own primitive behavior state.
 4. Fail-fast behavior remains explicit for invalid/unknown rendered component payloads.
+5. Docs page follows Base UI heading structure and includes runtime behavior notes and styling hooks.
 
 ## Testing Requirements
 
@@ -66,6 +70,7 @@ This phase introduces and hardens `McpComponents` primitives in `react-ui-base`,
 - [ ] Validate rendered component trigger/content behavior through `McpComponents` parts.
 - [ ] Validate `tambo:showComponent` canvas event flow remains intact.
 - [ ] Validate unknown or invalid component payloads fail fast with explicit errors.
+- [ ] Validate `mcp-components` docs page compiles and matches template structure.
 
 ## Validation Commands
 
@@ -74,6 +79,8 @@ npm run check-types -w packages/react-ui-base
 npm run test -w packages/react-ui-base -- mcp-components
 npm run check-types -w packages/ui-registry
 npm run test -w packages/ui-registry -- canvas-space message
+npm run check-types -w docs
+npm run lint -w docs
 ```
 
 ## Implementation Tracking

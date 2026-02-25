@@ -18,6 +18,7 @@ This phase covers thread timeline/container behavior boundaries in `react-ui-bas
 - Move timeline/container behavior boundaries from registry internals into base primitives.
 - Update all thread block variants to compose base timeline/thread-control primitives only.
 - Preserve block-owned orchestration (`open`, panel width, hotkeys, docking).
+- Author Base UI-style primitive docs page for `ThreadContent` using `spec-template-base-primitive-doc-page.md`.
 
 ### Out of Scope
 
@@ -47,6 +48,8 @@ This phase covers thread timeline/container behavior boundaries in `react-ui-bas
 | `packages/ui-registry/src/components/message-thread-panel/message-thread-panel.tsx`             | Compose updated primitives for panel layout               |
 | `packages/ui-registry/src/components/message-thread-collapsible/message-thread-collapsible.tsx` | Compose updated primitives for collapsible layout         |
 | `packages/ui-registry/src/components/control-bar/control-bar.tsx`                               | Compose updated primitives while preserving block hotkeys |
+| `docs/content/docs/reference/react-ui-base/thread-content.mdx`                                  | ThreadContent primitive docs page                         |
+| `docs/content/docs/reference/react-ui-base/meta.json`                                           | Add thread-content docs page to section order             |
 
 ## Implementation Details
 
@@ -54,6 +57,7 @@ This phase covers thread timeline/container behavior boundaries in `react-ui-bas
 2. Registry blocks remain styled display shells with opinionated layout state, but do not call Tambo hooks directly.
 3. Block variants continue to differ in presentation, not behavior ownership.
 4. Fail-fast semantics stay explicit for missing required context/inputs and unknown component payloads.
+5. Docs page follows Base UI heading structure and includes runtime behavior notes and styling hooks.
 
 ## Testing Requirements
 
@@ -74,6 +78,7 @@ This phase covers thread timeline/container behavior boundaries in `react-ui-bas
 - [ ] Validate open/close/resize/hotkey flows for panel/collapsible/control-bar variants.
 - [ ] Validate timeline empty/loading/content states in each block variant.
 - [ ] Validate no registry block uses Tambo hooks directly.
+- [ ] Validate `thread-content` docs page compiles and matches template structure.
 
 ## Validation Commands
 
@@ -82,6 +87,8 @@ npm run check-types -w packages/react-ui-base
 npm run test -w packages/react-ui-base -- thread-content
 npm run check-types -w packages/ui-registry
 npm run test -w packages/ui-registry -- thread-content message-thread-full message-thread-panel message-thread-collapsible control-bar
+npm run check-types -w docs
+npm run lint -w docs
 ```
 
 ## Implementation Tracking
