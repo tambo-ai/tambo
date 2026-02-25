@@ -154,6 +154,7 @@ export async function* fixStreamedToolCalls(
       // and clear the current tool call request and id
       currentToolCallRequest = undefined;
       currentToolCallId = undefined;
+      currentToolCallProviderOptionsById = undefined;
     }
 
     // now emit the next chunk
