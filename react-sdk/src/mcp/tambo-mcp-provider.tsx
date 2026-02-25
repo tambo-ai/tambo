@@ -717,7 +717,6 @@ function normalizeServerInfo(
   // The serverKey is kept for namespacing purposes (readable short name),
   // but the connection identity key must include all connection properties.
   const key = getMcpServerUniqueKey(server);
-  // Cast handlers to proper type if present
   const handlers = server.handlers as Partial<MCPHandlers> | undefined;
   return {
     ...server,

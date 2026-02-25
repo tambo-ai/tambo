@@ -332,21 +332,21 @@ describe("Schema Compatibility", () => {
           .returns(z3.string()),
       };
 
-      it("should throw error when using deprecated toolSchema", () => {
+      it("should throw error when using deprecated toolSchema", async () => {
         const { result } = renderHook(() => useTamboRegistry(), { wrapper });
 
         expect(() => {
-          act(() => result.current.registerTool(deprecatedTool));
+          void act(() => result.current.registerTool(deprecatedTool));
         }).toThrow(
           'Tool "deprecated-tool" uses deprecated "toolSchema" property.',
         );
       });
 
-      it("registerTools should throw error when using deprecated toolSchema", () => {
+      it("registerTools should throw error when using deprecated toolSchema", async () => {
         const { result } = renderHook(() => useTamboRegistry(), { wrapper });
 
         expect(() => {
-          act(() => result.current.registerTools([deprecatedTool]));
+          void act(() => result.current.registerTools([deprecatedTool]));
         }).toThrow(
           'Tool "deprecated-tool" uses deprecated "toolSchema" property.',
         );
