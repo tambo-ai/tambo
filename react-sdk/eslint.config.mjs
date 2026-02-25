@@ -24,7 +24,7 @@ export default tseslint.config(
   eslintPluginReact.configs.flat?.recommended ?? {},
   eslintPluginReact.configs.flat?.["jsx-runtime"] ?? {},
   {
-    settings: { react: { version: "detect" } },
+    settings: { react: { version: "18.3.1" } },
     plugins: {
       // @ts-expect-error https://github.com/facebook/react/issues/28313#issuecomment-2580001921
       "react-hooks": eslintPluginReactHooks,
