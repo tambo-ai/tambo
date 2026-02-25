@@ -123,20 +123,22 @@ import { TamboStubProvider } from "@tambo-ai/react";
 function TestApp() {
   return (
     <TamboStubProvider
-      initialMessages={[
-        {
-          id: "1",
-          role: "assistant",
-          content: [
-            {
-              type: "component",
-              id: "comp-1",
-              name: "WeatherCard",
-              props: { city: "Seattle", temperature: 65 },
-            },
-          ],
-        },
-      ]}
+      thread={{
+        messages: [
+          {
+            id: "1",
+            role: "assistant",
+            content: [
+              {
+                type: "component",
+                id: "comp-1",
+                name: "WeatherCard",
+                props: { city: "Seattle", temperature: 65 },
+              },
+            ],
+          },
+        ],
+      }}
       components={myComponents}
     >
       <YourComponent />
@@ -147,11 +149,12 @@ function TestApp() {
 
 ### Props
 
-| Prop              | Type               | Description             |
-| ----------------- | ------------------ | ----------------------- |
-| `initialMessages` | `TamboMessage[]`   | Pre-configured messages |
-| `components`      | `TamboComponent[]` | Components to register  |
-| `tools`           | `TamboTool[]`      | Tools to register       |
+| Prop         | Type                                                | Description                                      |
+| ------------ | --------------------------------------------------- | ------------------------------------------------ |
+| `thread`     | `TamboThread \| { messages: TamboThreadMessage[] }` | Thread data to display                           |
+| `threadId`   | `string`                                            | Optional thread ID (defaults to `"stub_thread"`) |
+| `components` | `TamboComponent[]`                                  | Components to register                           |
+| `tools`      | `TamboTool[]`                                       | Tools to register                                |
 
 ## TamboThreadInputProvider
 

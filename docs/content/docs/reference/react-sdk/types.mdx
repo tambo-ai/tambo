@@ -14,8 +14,8 @@ Represents a conversation thread with messages and metadata.
 ```typescript
 interface TamboThread {
   id: string;
-  title?: string;
-  messages: TamboMessage[];
+  name?: string;
+  messages: TamboThreadMessage[];
   status: RunStatus;
   metadata?: Record<string, unknown>;
   createdAt: string;
@@ -29,7 +29,7 @@ interface TamboThread {
 The status of the current run in a thread.
 
 ```typescript
-type RunStatus = "idle" | "waiting" | "streaming" | "complete" | "error";
+type RunStatus = "idle" | "waiting" | "streaming";
 ```
 
 | Status      | Description                          |
@@ -37,8 +37,8 @@ type RunStatus = "idle" | "waiting" | "streaming" | "complete" | "error";
 | `idle`      | No generation in progress            |
 | `waiting`   | Waiting for server response          |
 | `streaming` | Actively receiving streamed response |
-| `complete`  | Generation finished successfully     |
-| `error`     | An error occurred                    |
+
+Error information is tracked separately in `StreamingState.error`, not as a run status.
 
 ### StreamingState
 
@@ -236,19 +236,6 @@ const components: TamboComponent[] = [
     propsSchema: zodToJsonSchema(WeatherCardSchema),
   },
 ];
-```
-
-### TamboComponentProps
-
-Props interface for components receiving Tambo data.
-
-```typescript
-interface TamboComponentProps<TProps, TState> {
-  props: TProps;
-  state?: TState;
-  componentId: string;
-  isStreaming?: boolean;
-}
 ```
 
 ## Tool Types
