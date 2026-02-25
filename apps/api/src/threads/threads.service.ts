@@ -1729,6 +1729,39 @@ export class ThreadsService {
           legacyDecision,
         );
 
+        if (
+          currentThreadMessage.role === MessageRole.Assistant &&
+          streamItem.toolCallProviderOptionsById &&
+          Object.keys(streamItem.toolCallProviderOptionsById).length > 0
+        ) {
+          const existingMetadata = currentThreadMessage.metadata ?? {};
+          const existingTamboMetadata = existingMetadata["_tambo"];
+          const tamboMetadata =
+            typeof existingTamboMetadata === "object" &&
+            existingTamboMetadata !== null
+              ? (existingTamboMetadata as Record<string, unknown>)
+              : {};
+
+          const existingToolCallProviderOptionsById =
+            tamboMetadata["toolCallProviderOptionsById"];
+          const toolCallProviderOptionsById =
+            typeof existingToolCallProviderOptionsById === "object" &&
+            existingToolCallProviderOptionsById !== null
+              ? (existingToolCallProviderOptionsById as Record<string, unknown>)
+              : {};
+
+          currentThreadMessage.metadata = {
+            ...existingMetadata,
+            _tambo: {
+              ...tamboMetadata,
+              toolCallProviderOptionsById: {
+                ...toolCallProviderOptionsById,
+                ...streamItem.toolCallProviderOptionsById,
+              },
+            },
+          };
+        }
+
         // Unstrictify the tool call request immediately if present, before saving to DB
         const toolCallRequest = currentThreadMessage.toolCallRequest;
         if (toolCallRequest) {

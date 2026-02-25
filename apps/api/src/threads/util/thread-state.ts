@@ -132,6 +132,9 @@ export async function* fixStreamedToolCalls(
   let currentToolCallRequest: ToolCallRequest | undefined = undefined;
   let currentToolCallId: string | undefined = undefined;
   let currentDecision: LegacyComponentDecision | undefined = undefined;
+  let currentToolCallProviderOptionsById:
+    | DecisionStreamItem["toolCallProviderOptionsById"]
+    | undefined = undefined;
 
   for await (const streamItem of stream) {
     const chunk = streamItem.decision;
@@ -146,6 +149,7 @@ export async function* fixStreamedToolCalls(
           isToolCallFinished: true,
         },
         aguiEvents: [], // No AG-UI events for this synthetic transition chunk
+        toolCallProviderOptionsById: currentToolCallProviderOptionsById,
       };
       // and clear the current tool call request and id
       currentToolCallRequest = undefined;
@@ -158,9 +162,14 @@ export async function* fixStreamedToolCalls(
     currentDecisionId = chunk.id;
     currentToolCallId = chunk.toolCallId;
     currentToolCallRequest = toolCallRequest;
+
+    currentToolCallProviderOptionsById =
+      streamItem.toolCallProviderOptionsById ??
+      currentToolCallProviderOptionsById;
     yield {
       decision: { ...chunk, isToolCallFinished: false },
       aguiEvents: streamItem.aguiEvents,
+      toolCallProviderOptionsById: currentToolCallProviderOptionsById,
     };
   }
 
@@ -174,6 +183,7 @@ export async function* fixStreamedToolCalls(
         isToolCallFinished: true,
       },
       aguiEvents: [], // No AG-UI events for this synthetic final chunk
+      toolCallProviderOptionsById: currentToolCallProviderOptionsById,
     };
   }
 }
