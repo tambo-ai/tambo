@@ -190,9 +190,9 @@ function MessageRenderer({
 }) {
   return (
     <>
-      {message.content.map((block) => {
+      {message.content.map((block, i) => {
         if (block.type === "text") {
-          return <p key={block.text}>{block.text}</p>;
+          return <p key={`${message.id}:${i}`}>{block.text}</p>;
         }
         if (block.type === "component") {
           return (
