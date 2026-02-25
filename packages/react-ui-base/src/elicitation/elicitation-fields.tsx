@@ -7,16 +7,12 @@ import { useElicitationContext } from "./elicitation-context";
 
 export interface ElicitationFieldsState {
   single: boolean;
-}
-
-export interface ElicitationFieldsRenderProps {
   fields: ElicitationContextField[];
 }
 
 export type ElicitationFieldsProps = useRender.ComponentProps<
   "div",
-  ElicitationFieldsState,
-  ElicitationFieldsRenderProps
+  ElicitationFieldsState
 >;
 
 export type ElicitationFieldKind =
@@ -85,11 +81,14 @@ export const ElicitationFields = React.forwardRef<
       ElicitationFieldsState
     >,
     props: mergeProps(props, {
-      fields,
       children: children ?? defaultContent,
     }),
     state: {
       single: isSingleEntry,
+      fields,
+    },
+    stateAttributesMapping: {
+      fields: () => null,
     },
   });
 });
