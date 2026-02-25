@@ -101,9 +101,12 @@ export class ToolCallTracker {
           try {
             parsedInput = JSON.parse(jsonStr) as Record<string, unknown>;
           } catch (error) {
+            const message =
+              error instanceof Error ? error.message : String(error);
             // Fail-fast: don't silently continue with empty input
             throw new Error(
-              `Failed to parse tool call arguments for ${event.toolCallId}: ${error instanceof Error ? error.message : "Unknown error"}. JSON: ${jsonStr.slice(0, 100)}${jsonStr.length > 100 ? "..." : ""}`,
+              `Failed to parse tool call arguments for ${event.toolCallId}: ${message}. JSON: ${jsonStr.slice(0, 100)}${jsonStr.length > 100 ? "..." : ""}`,
+              { cause: error },
             );
           }
 

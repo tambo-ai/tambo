@@ -36,6 +36,7 @@ export function applyJsonPatch<T extends Record<string, unknown>>(
       `Failed to apply JSON patch operations [${opSummary}]: ` +
         `${error instanceof Error ? error.message : String(error)}. ` +
         `Target had keys: [${Object.keys(target).join(", ")}]`,
+      { cause: error },
     );
   }
 }

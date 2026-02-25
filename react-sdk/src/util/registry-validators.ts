@@ -151,12 +151,14 @@ function getSerializedProps(
     try {
       return schemaToJsonSchema(propsSchema) as Record<string, unknown>;
     } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
       console.error(
         `Error converting ${name} props schema to JSON Schema:`,
         error,
       );
       throw new Error(
-        `Error converting ${name} props schema to JSON Schema: ${error}`,
+        `Error converting ${name} props schema to JSON Schema: ${message}`,
+        { cause: error },
       );
     }
   }

@@ -1132,8 +1132,10 @@ function handleToolCallEnd(
   try {
     parsedInput = JSON.parse(accumulatedJson) as Record<string, unknown>;
   } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
     throw new Error(
-      `Failed to parse tool call arguments for ${toolCallId}: ${error instanceof Error ? error.message : String(error)}. JSON: ${accumulatedJson}`,
+      `Failed to parse tool call arguments for ${toolCallId}: ${message}. JSON: ${accumulatedJson}`,
+      { cause: error },
     );
   }
 
