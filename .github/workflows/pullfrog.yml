@@ -11,8 +11,8 @@ on:
         description: Run name
 
 permissions:
-  # Pullfrog mints its own GitHub App tokens and handles PR/issue updates.
-  # Do not grant write scopes to GITHUB_TOKEN; all writes must go through Pullfrog's tokens.
+  # Pullfrog mints its own GitHub App tokens and handles all GitHub API access
+  # (PRs, issues, checks, actions). Keep GITHUB_TOKEN limited to read-only repo contents.
   id-token: write
   contents: read
 
