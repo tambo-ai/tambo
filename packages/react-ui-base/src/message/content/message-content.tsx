@@ -1,5 +1,5 @@
 import { mergeProps } from "@base-ui/react/merge-props";
-import { useRender } from "@base-ui/react/use-render";
+import { ComponentRenderFn, useRender } from "@base-ui/react/use-render";
 import { TamboThreadMessage } from "@tambo-ai/react";
 import * as React from "react";
 import { checkHasContent } from "../../utils/check-has-content";
@@ -9,51 +9,59 @@ import { useMessageRootContext } from "../root/message-root-context";
 /**
  * Props passed to the renderContent callback.
  */
-export interface MessageContentRenderProps extends Record<string, unknown> {
-  /** The resolved content to render (from children, content prop, or message). */
-  content: unknown;
-  /** The content converted to markdown string. */
-  markdownContent: string;
-  /** Whether markdown rendering is enabled. */
-  markdown: boolean;
+export interface MessageContentState extends Record<string, unknown> {
   /** Whether the content is currently loading. */
-  isLoading: boolean;
-  /** Whether the message has been cancelled. */
-  isCancelled: boolean;
+  loading: boolean;
   /** Whether the message is in reasoning state. */
-  isReasoning: boolean;
+  reasoning: boolean;
+  /** Whether the message has content. */
+  hasContent: boolean;
+  /** Whether to render the content as Markdown. */
+  markdown: boolean;
 }
 
-type MessageContentComponentProps = useRender.ComponentProps<
-  "div",
-  MessageContentRenderProps
->;
-
-export interface MessageContentProps extends Omit<
-  MessageContentComponentProps,
-  "content"
-> {
-  /** Optional override for the message content. */
-  content?: string | TamboThreadMessage["content"];
-  /** Whether to render as Markdown. Default is true. */
-  markdown?: boolean;
+export interface MessageContentRenderProps {
+  /**
+   * Optional override for the message content.
+   */
+  messageContent?: string | TamboThreadMessage["content"];
+  /**
+   * Content rendered as single Markdown string. Will be undefined if content
+   * is not provided or if renderAsMarkdown is false
+   * @default false
+   */
+  contentAsMarkdownString?: string;
+  /**
+   * Whether to render as Markdown.
+   * @default true
+   */
+  renderAsMarkdown?: boolean;
 }
+
+export type MessageContentProps = MessageContentRenderProps &
+  useRender.ComponentProps<
+    "div",
+    MessageContentState,
+    MessageContentRenderProps
+  >;
 
 /**
  * Content primitive for displaying message text.
  * Handles content resolution, markdown conversion, and loading state detection.
  * The actual rendering is delegated to the children render prop.
  */
-export const MessageContent = React.forwardRef<
-  HTMLDivElement,
-  MessageContentProps
->(({ content: contentProp, markdown = true, ...props }, ref) => {
+export const MessageContent = ({
+  content: contentProp,
+  renderAsMarkdown = true,
+  ...props
+}: MessageContentProps & MessageContentRenderProps) => {
   const { message, isLoading } = useMessageRootContext();
   const contentToRender = contentProp ?? message.content;
 
-  const markdownContent = React.useMemo(
-    () => convertContentToMarkdown(contentToRender),
-    [contentToRender],
+  const contentAsMarkdownString = React.useMemo(
+    () =>
+      renderAsMarkdown ? convertContentToMarkdown(contentToRender) : undefined,
+    [contentToRender, renderAsMarkdown],
   );
 
   const hasContent = React.useMemo(
@@ -62,27 +70,26 @@ export const MessageContent = React.forwardRef<
   );
 
   const showLoading = !!isLoading && !hasContent && !message.reasoning;
-  const renderProps: MessageContentRenderProps = {
-    content: contentToRender,
-    markdownContent,
-    markdown,
-    isLoading: showLoading,
-    isCancelled: false,
-    isReasoning: !!message.reasoning,
-  };
 
   const { render, ...componentProps } = props;
 
   return useRender({
     defaultTagName: "div",
-    ref,
-    render,
-    state: renderProps,
+    render: render as ComponentRenderFn<
+      MessageContentProps & MessageContentRenderProps,
+      MessageContentState
+    >,
+    state: {
+      hasContent,
+      markdown: renderAsMarkdown,
+      loading: showLoading,
+      reasoning: !!message.reasoning,
+    },
     props: mergeProps(componentProps, {
       "data-slot": "message-content",
-      "data-loading": showLoading || undefined,
-      "data-has-content": hasContent || undefined,
+      content: contentToRender,
+      contentAsMarkdownString,
     }),
   });
-});
+};
 MessageContent.displayName = "Message.Content";

@@ -29,7 +29,7 @@ const config: Config = {
   },
   testPathIgnorePatterns: ["/node_modules/", "/dist/"],
   transformIgnorePatterns: ["/node_modules/"],
-  setupFilesAfterEnv: ["<rootDir>/../ui-registry/__tests__/setup.ts"],
+  setupFilesAfterEnv: ["<rootDir>/src/test-setup.ts"],
   clearMocks: true,
   resetMocks: true,
   restoreMocks: true,

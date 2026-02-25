@@ -134,7 +134,7 @@ const ThreadHistory = React.forwardRef<HTMLDivElement, ThreadHistoryProps>(
         <div
           ref={ref}
           className={cn(
-            "border-flat bg-container h-full transition-all duration-300 flex-none",
+            "bg-container h-full transition-all duration-300 flex-none",
             position === "left" ? "border-r" : "border-l",
             isCollapsed ? "w-12" : "w-64",
             className,
@@ -431,7 +431,7 @@ const ThreadHistoryList = React.forwardRef<
     e.preventDefault();
     if (!editingThread) return;
 
-    // Thread renaming is not supported in V1 API
+    // TODO(tambo): Wire thread rename submission once backend rename API is available.
     setEditingThread(null);
   };
 
@@ -568,6 +568,7 @@ const ThreadOptionsDropdown = ({
         <button
           className="p-1 hover:bg-backdrop rounded-md opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
           onClick={(e) => e.stopPropagation()}
+          aria-label="Thread actions"
         >
           <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
         </button>

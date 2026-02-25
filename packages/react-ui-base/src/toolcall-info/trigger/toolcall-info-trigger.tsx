@@ -9,7 +9,7 @@ export interface ToolcallInfoTriggerRenderProps extends Record<
   string,
   unknown
 > {
-  isExpanded: boolean;
+  state: "open" | "closed";
 }
 
 export type ToolcallInfoTriggerProps = useRender.ComponentProps<
@@ -23,7 +23,7 @@ export type ToolcallInfoTriggerProps = useRender.ComponentProps<
 export const ToolcallInfoTrigger = React.forwardRef<
   HTMLButtonElement,
   ToolcallInfoTriggerProps
->(({ children, ...props }, ref) => {
+>((props, ref) => {
   const { isExpanded, setIsExpanded, detailsId } = useToolcallInfoContext();
 
   const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -32,7 +32,7 @@ export const ToolcallInfoTrigger = React.forwardRef<
   };
   const { render, ...componentProps } = props;
   const renderProps: ToolcallInfoTriggerRenderProps = {
-    isExpanded,
+    state: isExpanded ? "open" : "closed",
   };
 
   return useRender({
@@ -45,9 +45,7 @@ export const ToolcallInfoTrigger = React.forwardRef<
       "aria-expanded": isExpanded,
       "aria-controls": detailsId,
       onClick: handleClick,
-      children,
       "data-slot": "toolcall-info-trigger",
-      "data-state": isExpanded ? "open" : "closed",
     }),
   });
 });

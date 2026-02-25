@@ -10,6 +10,7 @@ import {
   MessageInput,
   MessageInputTextarea,
   MessageInputToolbar,
+  MessageInputStopButton,
   MessageInputSubmitButton,
   MessageInputError,
   MessageInputFileButton,
@@ -31,6 +32,10 @@ import { ScrollableMessageContainer } from "@tambo-ai/ui-registry/components/scr
 export interface ControlBarProps extends React.HTMLAttributes<HTMLDivElement> {
   /** Keyboard shortcut for toggling the control bar (default: "mod+k") */
   hotkey?: string;
+  /** Additional classes for the trigger button */
+  triggerClassName?: string;
+  /** Additional classes for the modal overlay */
+  overlayClassName?: string;
   /**
    * Controls the visual styling of messages in the thread.
    * Possible values include: "default", "compact", etc.
@@ -52,7 +57,17 @@ export interface ControlBarProps extends React.HTMLAttributes<HTMLDivElement> {
  * ```
  */
 export const ControlBar = React.forwardRef<HTMLDivElement, ControlBarProps>(
-  ({ className, hotkey = "mod+k", variant, ...props }, ref) => {
+  (
+    {
+      className,
+      hotkey = "mod+k",
+      triggerClassName,
+      overlayClassName,
+      variant,
+      ...props
+    },
+    ref,
+  ) => {
     const [open, setOpen] = React.useState(false);
     const isMac =
       typeof navigator !== "undefined" && navigator.platform.startsWith("Mac");
@@ -75,7 +90,13 @@ export const ControlBar = React.forwardRef<HTMLDivElement, ControlBarProps>(
     return (
       <Dialog.Root open={open} onOpenChange={setOpen}>
         <Dialog.Trigger asChild>
-          <button className="fixed bottom-4 right-4 bg-background/50 backdrop-blur-sm border rounded-lg px-3 py-1.5 text-xs text-muted-foreground hover:bg-accent/50 transition-colors">
+          <button
+            className={cn(
+              "fixed bottom-4 right-4 z-50 bg-background/50 backdrop-blur-sm border rounded-lg px-3 py-1.5 text-xs text-muted-foreground hover:bg-accent/50 transition-colors",
+              triggerClassName,
+            )}
+            data-slot="control-bar-trigger"
+          >
             Talk to AI (
             <span suppressHydrationWarning>
               {hotkey.replace("mod", isMac ? "⌘" : "Ctrl")}
@@ -84,11 +105,14 @@ export const ControlBar = React.forwardRef<HTMLDivElement, ControlBarProps>(
           </button>
         </Dialog.Trigger>
         <Dialog.Portal>
-          <Dialog.Overlay className="fixed inset-0 bg-black/40" />
+          <Dialog.Overlay
+            className={cn("fixed inset-0 z-50 bg-black/40", overlayClassName)}
+            data-slot="control-bar-overlay"
+          />
           <Dialog.Content
             ref={ref}
             className={cn(
-              "fixed top-1/4 left-1/2 -translate-x-1/2 w-[440px] rounded-lg shadow-lg transition-all duration-200 outline-none",
+              "fixed top-1/4 left-1/2 z-50 -translate-x-1/2 w-[440px] rounded-lg shadow-lg transition-all duration-200 outline-none",
               className,
             )}
             {...props}
@@ -105,7 +129,8 @@ export const ControlBar = React.forwardRef<HTMLDivElement, ControlBarProps>(
                       <MessageInputMcpResourceButton />
                       {/* Uncomment this to enable client-side MCP config modal button */}
                       {/* <MessageInputMcpConfigButton /> */}
-                      <MessageInputSubmitButton />
+                      <MessageInputSubmitButton keepMounted />
+                      <MessageInputStopButton keepMounted />
                     </MessageInputToolbar>
                     <MessageInputError />
                   </MessageInput>

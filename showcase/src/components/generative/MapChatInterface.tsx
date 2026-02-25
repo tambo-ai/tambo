@@ -1,8 +1,32 @@
 "use client";
 
+import type { Suggestion } from "@tambo-ai/react";
 import { MessageThreadFull } from "@tambo-ai/ui-registry/components/message-thread-full";
 import { useTambo } from "@tambo-ai/react";
 import { useEffect } from "react";
+
+const mapThreadSuggestions = [
+  {
+    id: "map-suggestion-1",
+    title: "Plot offices",
+    detailedSuggestion: "Plot offices in New York, Austin, and Seattle.",
+    messageId: "map-plot-offices",
+  },
+  {
+    id: "map-suggestion-2",
+    title: "Cluster stores",
+    detailedSuggestion:
+      "Add clustered markers for 20 mock store locations around London.",
+    messageId: "map-cluster-stores",
+  },
+  {
+    id: "map-suggestion-3",
+    title: "Heatmap hotspots",
+    detailedSuggestion:
+      "Create a heatmap for support ticket hotspots in San Francisco.",
+    messageId: "map-heatmap-hotspots",
+  },
+] satisfies Suggestion[];
 
 export const MapChatInterface = () => {
   const { registerComponent } = useTambo();
@@ -46,7 +70,10 @@ export const MapChatInterface = () => {
 
   return (
     <div className="flex flex-col" style={{ height: "700px" }}>
-      <MessageThreadFull className="rounded-lg" />
+      <MessageThreadFull
+        className="rounded-lg"
+        initialSuggestions={mapThreadSuggestions}
+      />
     </div>
   );
 };

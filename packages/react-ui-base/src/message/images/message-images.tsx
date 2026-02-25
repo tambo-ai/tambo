@@ -48,24 +48,23 @@ export const MessageImages = React.forwardRef<
   const { message } = useMessageRootContext();
   const images = getMessageImages(message.content);
 
-  if (images.length === 0) {
-    return null;
-  }
   const { render, ...componentProps } = props;
   const renderProps: MessageImagesRenderProps = {
     images,
   };
-  const defaultChildren =
-    children ??
-    images.map((url: string, index: number) =>
-      renderImage ? (
-        <React.Fragment key={index}>
-          {renderImage({ url, index })}
-        </React.Fragment>
-      ) : (
-        <img key={index} src={url} alt={`Image ${index + 1}`} />
+  const renderedImages = React.useMemo(
+    () =>
+      images.map((url: string, index: number) =>
+        renderImage ? (
+          <React.Fragment key={index}>
+            {renderImage({ url, index })}
+          </React.Fragment>
+        ) : (
+          <img key={index} src={url} alt={`Image ${index + 1}`} />
+        ),
       ),
-    );
+    [images, renderImage],
+  );
 
   return useRender({
     defaultTagName: "div",
@@ -73,7 +72,7 @@ export const MessageImages = React.forwardRef<
     render,
     state: renderProps,
     props: mergeProps(componentProps, {
-      children: defaultChildren,
+      children: children ?? renderedImages,
       "data-slot": "message-images",
     }),
   });

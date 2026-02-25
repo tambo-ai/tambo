@@ -181,6 +181,94 @@ describe("useTamboThreadInput", () => {
       });
     });
 
+    it("clears input immediately when submit starts", async () => {
+      let resolveSubmit:
+        | ((value: { threadId: string | undefined }) => void)
+        | undefined;
+      const pendingSubmit = new Promise<{ threadId: string | undefined }>(
+        (resolve) => {
+          resolveSubmit = resolve;
+        },
+      );
+      mockMutateAsync.mockImplementation(async () => await pendingSubmit);
+
+      const { result } = renderHook(() => useTamboThreadInput(), {
+        wrapper: createWrapper(),
+      });
+
+      act(() => {
+        result.current.setValue("message to send");
+      });
+
+      let inFlightSubmit: Promise<{ threadId: string | undefined }> | undefined;
+      await act(async () => {
+        inFlightSubmit = result.current.submit();
+        await Promise.resolve();
+      });
+
+      await waitFor(() => {
+        expect(result.current.value).toBe("");
+      });
+
+      act(() => {
+        resolveSubmit?.({ threadId: "thread_123" });
+      });
+
+      if (!inFlightSubmit) {
+        throw new Error("Submit promise was not created");
+      }
+      await act(async () => {
+        await inFlightSubmit;
+      });
+    });
+
+    it("preserves input edits made while a previous submit is pending", async () => {
+      let resolveSubmit:
+        | ((value: { threadId: string | undefined }) => void)
+        | undefined;
+      const pendingSubmit = new Promise<{ threadId: string | undefined }>(
+        (resolve) => {
+          resolveSubmit = resolve;
+        },
+      );
+      mockMutateAsync.mockImplementation(async () => await pendingSubmit);
+
+      const { result } = renderHook(() => useTamboThreadInput(), {
+        wrapper: createWrapper(),
+      });
+
+      act(() => {
+        result.current.setValue("first message");
+      });
+
+      let inFlightSubmit: Promise<{ threadId: string | undefined }> | undefined;
+      act(() => {
+        inFlightSubmit = result.current.submit();
+      });
+
+      await waitFor(() => {
+        expect(result.current.isPending).toBe(true);
+      });
+
+      act(() => {
+        result.current.setValue("second message");
+      });
+      expect(result.current.value).toBe("second message");
+
+      act(() => {
+        resolveSubmit?.({ threadId: "thread_123" });
+      });
+
+      if (!inFlightSubmit) {
+        throw new Error("Submit promise was not created");
+      }
+      await act(async () => {
+        await inFlightSubmit;
+      });
+
+      expect(result.current.value).toBe("second message");
+    });
+
     it("throws error when submitting empty message", async () => {
       const { result } = renderHook(() => useTamboThreadInput(), {
         wrapper: createWrapper(),
@@ -306,6 +394,63 @@ describe("useTamboThreadInput", () => {
         },
         userMessageText: "Test message",
         debug: undefined,
+      });
+    });
+
+    it("preserves images added while a previous submit is pending", async () => {
+      let resolveSubmit:
+        | ((value: { threadId: string | undefined }) => void)
+        | undefined;
+      const pendingSubmit = new Promise<{ threadId: string | undefined }>(
+        (resolve) => {
+          resolveSubmit = resolve;
+        },
+      );
+      mockMutateAsync.mockImplementation(async () => await pendingSubmit);
+
+      const { result } = renderHook(() => useTamboThreadInput(), {
+        wrapper: createWrapper(),
+      });
+
+      await act(async () => {
+        await result.current.addImage(
+          new File(["image-1"], "one.png", { type: "image/png" }),
+        );
+      });
+
+      act(() => {
+        result.current.setValue("Test message");
+      });
+
+      let inFlightSubmit: Promise<{ threadId: string | undefined }> | undefined;
+      act(() => {
+        inFlightSubmit = result.current.submit();
+      });
+
+      await waitFor(() => {
+        expect(result.current.isPending).toBe(true);
+      });
+
+      await act(async () => {
+        await result.current.addImage(
+          new File(["image-2"], "two.png", { type: "image/png" }),
+        );
+      });
+
+      act(() => {
+        resolveSubmit?.({ threadId: "thread_123" });
+      });
+
+      if (!inFlightSubmit) {
+        throw new Error("Submit promise was not created");
+      }
+      await act(async () => {
+        await inFlightSubmit;
+      });
+
+      await waitFor(() => {
+        expect(result.current.images.length).toBe(1);
+        expect(result.current.images[0]?.name).toBe("two.png");
       });
     });
   });

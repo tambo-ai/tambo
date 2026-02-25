@@ -9,10 +9,7 @@ import { useMessageInputContext } from "./message-input-context";
 /**
  * Render props for the FileButton component.
  */
-export interface MessageInputFileButtonRenderProps extends Record<
-  string,
-  unknown
-> {
+export interface MessageInputFileButtonState extends Record<string, unknown> {
   /** Trigger the file picker */
   openFilePicker: () => void;
   /** The hidden file input ref */
@@ -24,7 +21,7 @@ export interface MessageInputFileButtonRenderProps extends Record<
  */
 type MessageInputFileButtonComponentProps = useRender.ComponentProps<
   "button",
-  MessageInputFileButtonRenderProps
+  MessageInputFileButtonState
 >;
 
 export interface MessageInputFileButtonProps extends MessageInputFileButtonComponentProps {
@@ -42,11 +39,23 @@ export const MessageInputFileButton = React.forwardRef<
   MessageInputFileButtonProps
 >(({ accept = "image/*", multiple = true, onClick, ...props }, ref) => {
   const { addImages, images, setImageError } = useMessageInputContext();
-  const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const [fileInputElement, setFileInputElement] =
+    React.useState<HTMLInputElement | null>(null);
+  const fileInputRef = React.useMemo<React.RefObject<HTMLInputElement | null>>(
+    () => ({ current: fileInputElement }),
+    [fileInputElement],
+  );
 
   const openFilePicker = React.useCallback(() => {
-    fileInputRef.current?.click();
-  }, []);
+    fileInputElement?.click();
+  }, [fileInputElement]);
+
+  const handleFileInputRef = React.useCallback(
+    (node: HTMLInputElement | null) => {
+      setFileInputElement(node);
+    },
+    [],
+  );
 
   const handleClick = React.useCallback(
     (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -78,7 +87,7 @@ export const MessageInputFileButton = React.forwardRef<
     e.target.value = "";
   };
 
-  const renderProps: MessageInputFileButtonRenderProps = {
+  const renderProps: MessageInputFileButtonState = {
     openFilePicker,
     fileInputRef,
   };
@@ -99,7 +108,7 @@ export const MessageInputFileButton = React.forwardRef<
         }),
       })}
       <input
-        ref={fileInputRef}
+        ref={handleFileInputRef}
         type="file"
         accept={accept}
         multiple={multiple}

@@ -5,18 +5,7 @@ import { useRender } from "@base-ui/react/use-render";
 import * as React from "react";
 import { useToolcallInfoContext } from "../root/toolcall-info-context";
 
-export interface ToolcallInfoParametersRenderProps extends Record<
-  string,
-  unknown
-> {
-  parameters: Record<string, unknown> | undefined;
-  parametersString: string;
-}
-
-export type ToolcallInfoParametersProps = useRender.ComponentProps<
-  "span",
-  ToolcallInfoParametersRenderProps
->;
+export type ToolcallInfoParametersProps = useRender.ComponentProps<"span">;
 
 /**
  * Displays the tool parameters.
@@ -24,23 +13,21 @@ export type ToolcallInfoParametersProps = useRender.ComponentProps<
 export const ToolcallInfoParameters = React.forwardRef<
   HTMLSpanElement,
   ToolcallInfoParametersProps
->(({ ...props }, ref) => {
+>(({ children, ...props }, ref) => {
   const { toolCallRequest } = useToolcallInfoContext();
 
   const parameters = toolCallRequest?.input;
-  const renderProps: ToolcallInfoParametersRenderProps = {
-    parameters,
-    parametersString: JSON.stringify(parameters, null, 2),
-  };
   const { render, ...componentProps } = props;
 
   return useRender({
     defaultTagName: "span",
     ref,
     render,
-    state: renderProps,
     props: mergeProps(componentProps, {
       "data-slot": "toolcall-info-parameters",
+      parameters,
+      parametersString: JSON.stringify(parameters, null, 2),
+      children: children ?? JSON.stringify(parameters, null, 2),
     }),
   });
 });

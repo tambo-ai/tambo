@@ -140,10 +140,6 @@ export const ToolcallInfoRoot = React.forwardRef<
       ],
     );
 
-    if (!isToolCallMessage) {
-      return null;
-    }
-
     const { render, ...componentProps } = props;
     const renderProps: ToolcallInfoRootRenderProps = {
       isExpanded,
@@ -152,18 +148,20 @@ export const ToolcallInfoRoot = React.forwardRef<
       isLoading: !!isLoading,
       hasAssociatedResponse: !!associatedToolResponse,
     };
+    const element = useRender({
+      defaultTagName: "div",
+      ref,
+      render,
+      enabled: isToolCallMessage,
+      state: renderProps,
+      props: mergeProps(componentProps, {
+        "data-slot": "toolcall-info",
+      }),
+    });
 
     return (
       <ToolcallInfoContext.Provider value={contextValue}>
-        {useRender({
-          defaultTagName: "div",
-          ref,
-          render,
-          state: renderProps,
-          props: mergeProps(componentProps, {
-            "data-slot": "toolcall-info",
-          }),
-        })}
+        {element}
       </ToolcallInfoContext.Provider>
     );
   },
