@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { api } from "@/trpc/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Check, Loader2 } from "lucide-react";
-import Link from "next/link";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -51,6 +51,53 @@ interface DeviceCodeFormProps {
   initialCode?: string;
 }
 
+const AUTO_CLOSE_SECONDS = 30;
+
+function SuccessState() {
+  const [secondsLeft, setSecondsLeft] = useState(AUTO_CLOSE_SECONDS);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setSecondsLeft((prev) => {
+        if (prev <= 1) {
+          window.close();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="rounded-lg border bg-card p-8">
+      <div className="flex flex-col items-center gap-6">
+        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-50 border border-green-200">
+          <Check className="h-6 w-6 text-green-600" />
+        </div>
+
+        <div className="text-center">
+          <h2 className="text-xl font-semibold">CLI Access Granted</h2>
+          <p className="text-muted-foreground mt-1">
+            You can close this window and return to your terminal.
+          </p>
+        </div>
+
+        <div className="w-full rounded-md border bg-muted/30 p-4">
+          <p className="text-sm text-center text-muted-foreground">
+            Your CLI will automatically detect the authorization and continue.
+          </p>
+        </div>
+
+        <p className="text-sm text-muted-foreground">
+          This page will close in {secondsLeft}s
+        </p>
+      </div>
+    </div>
+  );
+}
+
 export function DeviceCodeForm({ initialCode }: DeviceCodeFormProps) {
   const form = useForm<DeviceCodeFormValues>({
     resolver: zodResolver(deviceCodeSchema),
@@ -67,35 +114,7 @@ export function DeviceCodeForm({ initialCode }: DeviceCodeFormProps) {
 
   // Success state
   if (verifyMutation.isSuccess) {
-    return (
-      <div className="rounded-lg border bg-card p-8">
-        <div className="flex flex-col items-center gap-6">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-50 border border-green-200">
-            <Check className="h-6 w-6 text-green-600" />
-          </div>
-
-          <div className="text-center">
-            <h2 className="text-xl font-semibold">CLI Access Granted</h2>
-            <p className="text-muted-foreground mt-1">
-              You can close this window and return to your terminal.
-            </p>
-          </div>
-
-          <div className="w-full rounded-md border bg-muted/30 p-4">
-            <p className="text-sm text-center text-muted-foreground">
-              Your CLI will automatically detect the authorization and continue.
-            </p>
-          </div>
-
-          <Link
-            href="/"
-            className="text-sm text-muted-foreground hover:text-foreground"
-          >
-            Go to Dashboard →
-          </Link>
-        </div>
-      </div>
-    );
+    return <SuccessState />;
   }
 
   return (
