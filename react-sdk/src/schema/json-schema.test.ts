@@ -167,7 +167,7 @@ describe("getJsonSchemaTupleItems", () => {
 });
 
 describe("makeJsonSchemaPartial", () => {
-  it("should remove required array from schema", () => {
+  it("should remove required array and make properties nullable", () => {
     const schema: JSONSchema7 = {
       type: "object",
       properties: {
@@ -181,10 +181,14 @@ describe("makeJsonSchemaPartial", () => {
 
     expect(partial.required).toBeUndefined();
     expect(partial.type).toBe("object");
-    expect(partial.properties).toEqual(schema.properties);
+    // Properties should now be nullable via anyOf
+    expect(partial.properties).toEqual({
+      name: { anyOf: [{ type: "string" }, { type: "null" }] },
+      age: { anyOf: [{ type: "number" }, { type: "null" }] },
+    });
   });
 
-  it("should preserve all other properties", () => {
+  it("should preserve all other schema-level properties", () => {
     const schema: JSONSchema7 = {
       type: "object",
       properties: {
@@ -200,7 +204,11 @@ describe("makeJsonSchemaPartial", () => {
 
     expect(partial.required).toBeUndefined();
     expect(partial.type).toBe("object");
-    expect(partial.properties).toEqual(schema.properties);
+    expect(partial.properties).toEqual({
+      name: {
+        anyOf: [{ type: "string", description: "The name" }, { type: "null" }],
+      },
+    });
     expect(partial.additionalProperties).toBe(false);
     expect(partial.description).toBe("A person schema");
     expect(partial.title).toBe("Person");
@@ -218,7 +226,22 @@ describe("makeJsonSchemaPartial", () => {
 
     expect(partial.required).toBeUndefined();
     expect(partial.type).toBe("object");
-    expect(partial.properties).toEqual(schema.properties);
+    expect(partial.properties).toEqual({
+      name: { anyOf: [{ type: "string" }, { type: "null" }] },
+    });
+  });
+
+  it("should handle schema without properties", () => {
+    const schema: JSONSchema7 = {
+      type: "object",
+      additionalProperties: true,
+    };
+
+    const partial = makeJsonSchemaPartial(schema);
+
+    expect(partial.type).toBe("object");
+    expect(partial.additionalProperties).toBe(true);
+    expect(partial.properties).toBeUndefined();
   });
 
   it("should not mutate the original schema", () => {
@@ -234,7 +257,104 @@ describe("makeJsonSchemaPartial", () => {
 
     // Original should be unchanged
     expect(schema.required).toEqual(["name"]);
+    expect(schema.properties).toEqual({ name: { type: "string" } });
     // Partial should not have required
     expect(partial.required).toBeUndefined();
+  });
+
+  it("should preserve properties already nullable via anyOf", () => {
+    const schema: JSONSchema7 = {
+      type: "object",
+      properties: {
+        tags: {
+          anyOf: [
+            { type: "array", items: { type: "string" } },
+            { type: "null" },
+          ],
+        },
+      },
+    };
+
+    const partial = makeJsonSchemaPartial(schema);
+
+    // Should be unchanged — already nullable
+    expect(partial.properties).toEqual(schema.properties);
+  });
+
+  it("should preserve properties already nullable via oneOf", () => {
+    const schema: JSONSchema7 = {
+      type: "object",
+      properties: {
+        status: {
+          oneOf: [
+            { type: "string", enum: ["active", "inactive"] },
+            { type: "null" },
+          ],
+        },
+      },
+    };
+
+    const partial = makeJsonSchemaPartial(schema);
+
+    // Should be unchanged — already nullable
+    expect(partial.properties).toEqual(schema.properties);
+  });
+
+  it("should normalize type: [T, 'null'] array form to anyOf", () => {
+    const schema: JSONSchema7 = {
+      type: "object",
+      properties: {
+        name: { type: ["string", "null"] as unknown as "string" },
+        active: { type: ["boolean", "null"] as unknown as "boolean" },
+      },
+    };
+
+    const partial = makeJsonSchemaPartial(schema);
+
+    expect(partial.properties).toEqual({
+      name: { anyOf: [{ type: "string" }, { type: "null" }] },
+      active: { anyOf: [{ type: "boolean" }, { type: "null" }] },
+    });
+  });
+
+  it("should normalize type array with description preserved", () => {
+    const schema: JSONSchema7 = {
+      type: "object",
+      properties: {
+        name: {
+          type: ["string", "null"] as unknown as "string",
+          description: "A name field",
+        },
+      },
+    };
+
+    const partial = makeJsonSchemaPartial(schema);
+
+    expect(partial.properties).toEqual({
+      name: {
+        anyOf: [
+          { type: "string", description: "A name field" },
+          { type: "null" },
+        ],
+      },
+    });
+  });
+
+  it("should handle boolean property schemas", () => {
+    const schema: JSONSchema7 = {
+      type: "object",
+      properties: {
+        anything: true,
+        nothing: false,
+      },
+    };
+
+    const partial = makeJsonSchemaPartial(schema);
+
+    // Boolean schemas should pass through unchanged
+    expect(partial.properties).toEqual({
+      anything: true,
+      nothing: false,
+    });
   });
 });

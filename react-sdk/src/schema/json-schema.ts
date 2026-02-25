@@ -1,4 +1,4 @@
-import { JSONSchema7 } from "json-schema";
+import { JSONSchema7, JSONSchema7Definition } from "json-schema";
 import { z } from "zod/v4";
 
 const jsonSchemaType = z.union([
@@ -126,12 +126,71 @@ export function getJsonSchemaTupleItems(
 }
 
 /**
- * Creates a partial version of a JSON Schema by removing required constraints.
- * This allows LLM to provide only the properties it wants to update.
+ * Makes a single JSON Schema property nullable using the anyOf pattern.
+ * Handles schemas that are already nullable (via anyOf or type array).
+ *
+ * Uses `anyOf: [originalSchema, {type: "null"}]` because LLMs reliably
+ * interpret this form. The `type: ["string", "null"]` array form (produced
+ * by Zod v3 for simple types) is NOT reliably handled by LLMs, so we
+ * normalize it to anyOf as well.
+ * @param propSchema - The property schema to make nullable
+ * @returns A new schema that also allows null
+ */
+function makePropertyNullable(
+  propSchema: JSONSchema7Definition,
+): JSONSchema7Definition {
+  if (typeof propSchema === "boolean") {
+    return propSchema;
+  }
+
+  // Already nullable via anyOf containing {type: "null"}
+  if (
+    propSchema.anyOf?.some((s) => typeof s !== "boolean" && s.type === "null")
+  ) {
+    return propSchema;
+  }
+
+  // Already nullable via oneOf containing {type: "null"}
+  if (
+    propSchema.oneOf?.some((s) => typeof s !== "boolean" && s.type === "null")
+  ) {
+    return propSchema;
+  }
+
+  // Normalize type: [T, "null"] array form to anyOf (LLMs don't handle the array form)
+  if (Array.isArray(propSchema.type) && propSchema.type.includes("null")) {
+    const nonNullTypes = propSchema.type.filter((t) => t !== "null");
+    const { type: _type, ...rest } = propSchema;
+    const baseSchema: JSONSchema7 =
+      nonNullTypes.length === 1
+        ? { ...rest, type: nonNullTypes[0] as JSONSchema7["type"] }
+        : { ...rest, type: nonNullTypes as JSONSchema7["type"] };
+    return { anyOf: [baseSchema, { type: "null" }] };
+  }
+
+  // Not yet nullable — wrap in anyOf
+  return { anyOf: [propSchema, { type: "null" }] };
+}
+
+/**
+ * Creates a partial version of a JSON Schema by removing required constraints
+ * and making all properties nullable via the anyOf pattern. This allows the
+ * LLM to provide only the properties it wants to update, and to send null
+ * to clear optional fields.
  * @param schema - The JSON Schema to make partial
- * @returns A new JSON Schema with the required constraint removed
+ * @returns A new JSON Schema with required removed and all properties nullable
  */
 export function makeJsonSchemaPartial(schema: JSONSchema7): JSONSchema7 {
   const { required: _required, ...rest } = schema;
-  return rest;
+
+  if (!rest.properties) {
+    return rest;
+  }
+
+  const nullableProperties: Record<string, JSONSchema7Definition> = {};
+  for (const [key, propSchema] of Object.entries(rest.properties)) {
+    nullableProperties[key] = makePropertyNullable(propSchema);
+  }
+
+  return { ...rest, properties: nullableProperties };
 }
