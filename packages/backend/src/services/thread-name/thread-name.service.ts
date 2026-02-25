@@ -56,7 +56,8 @@ function extractThreadName(response: LLMResponse) {
     const parsedName = ThreadNameSchema.parse(JSON.parse(extractedName));
     return parsedName.name;
   } catch (error) {
-    console.error(error);
-    throw new Error("Thread name could not be parsed from response");
+    throw new Error("Thread name could not be parsed from response", {
+      cause: error,
+    });
   }
 }

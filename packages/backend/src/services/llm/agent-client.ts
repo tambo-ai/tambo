@@ -270,7 +270,6 @@ export class AgentClient {
                   : JSON.stringify(e.result),
             };
 
-            currentMessage = finishedMessage;
             yield {
               type: AgentResponseType.MESSAGE,
               message: finishedMessage,

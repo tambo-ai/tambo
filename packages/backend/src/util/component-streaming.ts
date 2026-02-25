@@ -197,9 +197,12 @@ export class ComponentStreamTracker {
       finalProps = parsed as Record<string, unknown>;
     } catch (error) {
       const errorMessage =
-        error instanceof Error ? error.message : "Unknown parse error";
+        error instanceof Error ? error.message : String(error);
       throw new Error(
         `Component ${this.componentId} (${this.componentName}) failed to parse final JSON: ${errorMessage}`,
+        {
+          cause: error,
+        },
       );
     }
 
