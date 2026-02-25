@@ -241,7 +241,9 @@ export function cn(...inputs: ClassValue[]) {
         }
 
         if (fileContent === undefined) {
-          throw new Error(`Failed to resolve content for ${sourcePath}`);
+          throw new Error(
+            `Failed to resolve content for '${file.name}' (sourcePath='${sourcePath}')`,
+          );
         }
 
         // Update import paths if this is a component file
