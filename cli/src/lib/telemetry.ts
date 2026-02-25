@@ -5,8 +5,7 @@ import { PostHog } from "posthog-node";
 import { getDir } from "./paths.js";
 import { loadToken } from "./token-storage.js";
 
-const TELEMETRY_STATE_FILE = "telemetry.json";
-
+const TELEMETRY_FILE = "telemetry.json";
 const POSTHOG_API_KEY = "phc_MxSdt6nYWc9GZulDDw1LNTfvIIjGLbN3XW0vsBcvGgY";
 const POSTHOG_HOST = "https://us.i.posthog.com";
 
@@ -21,23 +20,14 @@ export const EVENTS = {
 
 export type EventName = (typeof EVENTS)[keyof typeof EVENTS];
 
-interface TelemetryState {
-  anonymousId: string;
-  noticeShown: boolean;
-}
-
 let client: PostHog | undefined;
 let anonymousId: string | undefined;
 let cliVersion: string | undefined;
 let isEnabled = false;
 
 export function isTelemetryDisabled(): boolean {
-  const disabled = process.env.TAMBO_TELEMETRY_DISABLED;
-  const dnt = process.env.DO_NOT_TRACK;
-  return (
-    (disabled !== undefined && disabled !== "0") ||
-    (dnt !== undefined && dnt !== "0")
-  );
+  const env = process.env.TAMBO_TELEMETRY_DISABLED;
+  return env !== undefined && env !== "0";
 }
 
 export function initTelemetry(version: string): void {
@@ -46,23 +36,39 @@ export function initTelemetry(version: string): void {
   cliVersion = version;
 
   try {
-    const state = loadOrCreateState();
-    anonymousId = state.anonymousId;
+    const dataDir = getDir("data");
+    const filePath = join(dataDir, TELEMETRY_FILE);
+
+    let id: string | undefined;
+    try {
+      const data = JSON.parse(readFileSync(filePath, "utf-8")) as {
+        anonymousId?: string;
+      };
+      id = data.anonymousId;
+    } catch {
+      // File missing or corrupted — show notice and create it
+      showNotice();
+    }
+
+    if (!id) {
+      id = randomUUID();
+      if (!existsSync(dataDir)) {
+        mkdirSync(dataDir, { recursive: true, mode: 0o700 });
+      }
+      writeFileSync(filePath, JSON.stringify({ anonymousId: id }, null, 2), {
+        encoding: "utf-8",
+        mode: 0o600,
+      });
+    }
+
+    anonymousId = id;
 
     client = new PostHog(POSTHOG_API_KEY, {
       host: process.env.TAMBO_TELEMETRY_HOST ?? POSTHOG_HOST,
-      flushAt: 1,
-      flushInterval: 0,
     });
 
     isEnabled = true;
-
-    if (!state.noticeShown) {
-      showNotice();
-      saveState({ ...state, noticeShown: true });
-    }
   } catch {
-    // Telemetry init failure must never crash the CLI
     isEnabled = false;
   }
 }
@@ -76,10 +82,7 @@ export function trackEvent(
   try {
     let userId: string | undefined;
     try {
-      const token = loadToken();
-      if (token?.user?.id) {
-        userId = token.user.id;
-      }
+      userId = loadToken()?.user?.id;
     } catch {
       // Auth read failure must never block telemetry
     }
@@ -95,7 +98,7 @@ export function trackEvent(
         nodeVersion: process.version,
         os: process.platform,
         arch: process.arch,
-        isCi: isCi(),
+        isCi: process.env.CI !== undefined && process.env.CI !== "0",
         source: "cli",
         ...properties,
       },
@@ -118,51 +121,11 @@ export async function shutdownTelemetry(): Promise<void> {
   }
 }
 
-function loadOrCreateState(): TelemetryState {
-  const dataDir = getDir("data");
-  const filePath = join(dataDir, TELEMETRY_STATE_FILE);
-
-  if (existsSync(filePath)) {
-    try {
-      const data = JSON.parse(
-        readFileSync(filePath, "utf-8"),
-      ) as TelemetryState;
-      if (data.anonymousId) return data;
-    } catch {
-      // Corrupted file — regenerate below
-    }
-  }
-
-  const state: TelemetryState = {
-    anonymousId: randomUUID(),
-    noticeShown: false,
-  };
-  saveState(state);
-  return state;
-}
-
-function saveState(state: TelemetryState): void {
-  const dataDir = getDir("data");
-  if (!existsSync(dataDir)) {
-    mkdirSync(dataDir, { recursive: true, mode: 0o700 });
-  }
-  writeFileSync(
-    join(dataDir, TELEMETRY_STATE_FILE),
-    JSON.stringify(state, null, 2),
-    { encoding: "utf-8", mode: 0o600 },
-  );
-}
-
 function showNotice(): void {
   process.stderr.write(
-    "\nTambo collects anonymous CLI usage data to improve the developer experience.\n" +
+    "\nTambo collects CLI usage data to improve the developer experience.\n" +
       "To opt out, set TAMBO_TELEMETRY_DISABLED=1.\n" +
       "Learn more: https://docs.tambo.co/reference/cli/telemetry" +
       "\n\n",
   );
-}
-
-function isCi(): boolean {
-  const ci = process.env.CI;
-  return ci !== undefined && ci !== "0";
 }

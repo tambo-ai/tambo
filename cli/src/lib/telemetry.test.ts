@@ -84,7 +84,6 @@ describe("telemetry", () => {
   beforeEach(() => {
     originalEnv = { ...process.env };
     delete process.env.TAMBO_TELEMETRY_DISABLED;
-    delete process.env.DO_NOT_TRACK;
     delete process.env.CI;
     delete process.env.TAMBO_TELEMETRY_HOST;
   });
@@ -94,7 +93,7 @@ describe("telemetry", () => {
   });
 
   describe("isTelemetryDisabled", () => {
-    it("returns false when no env vars are set", () => {
+    it("returns false when env var is not set", () => {
       expect(telemetry.isTelemetryDisabled()).toBe(false);
     });
 
@@ -103,18 +102,8 @@ describe("telemetry", () => {
       expect(telemetry.isTelemetryDisabled()).toBe(true);
     });
 
-    it("returns true when DO_NOT_TRACK is set", () => {
-      process.env.DO_NOT_TRACK = "1";
-      expect(telemetry.isTelemetryDisabled()).toBe(true);
-    });
-
     it("returns false when TAMBO_TELEMETRY_DISABLED is '0'", () => {
       process.env.TAMBO_TELEMETRY_DISABLED = "0";
-      expect(telemetry.isTelemetryDisabled()).toBe(false);
-    });
-
-    it("returns false when DO_NOT_TRACK is '0'", () => {
-      process.env.DO_NOT_TRACK = "0";
       expect(telemetry.isTelemetryDisabled()).toBe(false);
     });
   });
@@ -126,53 +115,51 @@ describe("telemetry", () => {
       expect(mockExistsSync).not.toHaveBeenCalled();
     });
 
-    it("creates a new state file on first run", () => {
-      mockExistsSync.mockReturnValue(false);
-
-      telemetry.initTelemetry("1.0.0");
-
-      expect(mockWriteFileSync).toHaveBeenCalledWith(
-        "/mock/data/dir/telemetry.json",
-        expect.stringContaining(MOCK_UUID),
-        expect.objectContaining({ encoding: "utf-8" }),
-      );
-    });
-
-    it("loads existing state without rewriting", () => {
-      const existingState = JSON.stringify({
-        anonymousId: "existing-uuid-1234",
-        noticeShown: true,
-      });
-
-      mockExistsSync.mockReturnValue(true);
-      mockReadFileSync.mockReturnValue(existingState);
-
-      telemetry.initTelemetry("1.0.0");
-
-      expect(mockReadFileSync).toHaveBeenCalledWith(
-        "/mock/data/dir/telemetry.json",
-        "utf-8",
-      );
-    });
-
-    it("shows telemetry notice on first run", () => {
+    it("creates state file and shows notice on first run", () => {
       const stderrSpy = jest
         .spyOn(process.stderr, "write")
         .mockReturnValue(true);
 
+      mockReadFileSync.mockImplementation(() => {
+        throw new Error("ENOENT");
+      });
       mockExistsSync.mockReturnValue(false);
 
       telemetry.initTelemetry("1.0.0");
 
       expect(stderrSpy).toHaveBeenCalledWith(
-        expect.stringContaining("Tambo collects anonymous CLI usage data"),
+        expect.stringContaining("Tambo collects CLI usage data"),
+      );
+      expect(mockWriteFileSync).toHaveBeenCalledWith(
+        "/mock/data/dir/telemetry.json",
+        expect.stringContaining(MOCK_UUID),
+        expect.objectContaining({ encoding: "utf-8" }),
       );
 
       stderrSpy.mockRestore();
     });
 
-    it("creates PostHog client with correct config", () => {
-      mockExistsSync.mockReturnValue(false);
+    it("loads existing anonymousId without showing notice", () => {
+      const stderrSpy = jest
+        .spyOn(process.stderr, "write")
+        .mockReturnValue(true);
+
+      mockReadFileSync.mockReturnValue(
+        JSON.stringify({ anonymousId: "existing-uuid-1234" }),
+      );
+
+      telemetry.initTelemetry("1.0.0");
+
+      expect(stderrSpy).not.toHaveBeenCalled();
+      expect(mockWriteFileSync).not.toHaveBeenCalled();
+
+      stderrSpy.mockRestore();
+    });
+
+    it("creates PostHog client with default config", () => {
+      mockReadFileSync.mockReturnValue(
+        JSON.stringify({ anonymousId: MOCK_UUID }),
+      );
       mockPostHogConstructor.mockClear();
 
       telemetry.initTelemetry("1.0.0");
@@ -181,15 +168,15 @@ describe("telemetry", () => {
         "phc_MxSdt6nYWc9GZulDDw1LNTfvIIjGLbN3XW0vsBcvGgY",
         expect.objectContaining({
           host: "https://us.i.posthog.com",
-          flushAt: 1,
-          flushInterval: 0,
         }),
       );
     });
 
     it("uses custom telemetry host from env", () => {
       process.env.TAMBO_TELEMETRY_HOST = "https://custom-host.example.com";
-      mockExistsSync.mockReturnValue(false);
+      mockReadFileSync.mockReturnValue(
+        JSON.stringify({ anonymousId: MOCK_UUID }),
+      );
       mockPostHogConstructor.mockClear();
 
       telemetry.initTelemetry("1.0.0");
@@ -205,13 +192,9 @@ describe("telemetry", () => {
 
   describe("trackEvent", () => {
     beforeEach(() => {
-      // Ensure telemetry is initialized before each trackEvent test
-      const existingState = JSON.stringify({
-        anonymousId: MOCK_UUID,
-        noticeShown: true,
-      });
-      mockExistsSync.mockReturnValue(true);
-      mockReadFileSync.mockReturnValue(existingState);
+      mockReadFileSync.mockReturnValue(
+        JSON.stringify({ anonymousId: MOCK_UUID }),
+      );
       telemetry.initTelemetry("1.0.0");
       mockCapture.mockClear();
     });
@@ -227,6 +210,7 @@ describe("telemetry", () => {
       expect(mockCapture).toHaveBeenCalledWith(
         expect.objectContaining({
           event: "cli.command.completed",
+          distinctId: MOCK_UUID,
           properties: expect.objectContaining({
             command: "test",
             duration_ms: 42,
@@ -236,7 +220,7 @@ describe("telemetry", () => {
       );
     });
 
-    it("uses userId as distinctId when auth token is available", () => {
+    it("uses userId as distinctId when logged in", () => {
       mockLoadToken.mockReturnValue({
         sessionToken: "test",
         expiresAt: "2099-01-01T00:00:00Z",
@@ -258,7 +242,7 @@ describe("telemetry", () => {
       );
     });
 
-    it("uses anonymousId as distinctId when no auth token", () => {
+    it("falls back to anonymousId when not logged in", () => {
       mockLoadToken.mockReturnValue(null);
 
       telemetry.trackEvent(telemetry.EVENTS.AUTH_LOGOUT);
@@ -268,26 +252,14 @@ describe("telemetry", () => {
           distinctId: MOCK_UUID,
         }),
       );
-
-      const captureArg = mockCapture.mock.calls[0]?.[0] as
-        | Record<string, unknown>
-        | undefined;
-      const properties = captureArg?.properties as
-        | Record<string, unknown>
-        | undefined;
-      expect(properties?.$anon_distinct_id).toBeUndefined();
     });
   });
 
   describe("shutdownTelemetry", () => {
     it("calls shutdown on the PostHog client", async () => {
-      // Ensure client is initialized
-      const existingState = JSON.stringify({
-        anonymousId: MOCK_UUID,
-        noticeShown: true,
-      });
-      mockExistsSync.mockReturnValue(true);
-      mockReadFileSync.mockReturnValue(existingState);
+      mockReadFileSync.mockReturnValue(
+        JSON.stringify({ anonymousId: MOCK_UUID }),
+      );
       telemetry.initTelemetry("1.0.0");
       mockShutdown.mockClear();
 
@@ -297,12 +269,9 @@ describe("telemetry", () => {
     });
 
     it("resets module state so trackEvent is a no-op after shutdown", async () => {
-      const existingState = JSON.stringify({
-        anonymousId: MOCK_UUID,
-        noticeShown: true,
-      });
-      mockExistsSync.mockReturnValue(true);
-      mockReadFileSync.mockReturnValue(existingState);
+      mockReadFileSync.mockReturnValue(
+        JSON.stringify({ anonymousId: MOCK_UUID }),
+      );
       telemetry.initTelemetry("1.0.0");
 
       await telemetry.shutdownTelemetry();

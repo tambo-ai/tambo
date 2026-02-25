@@ -135,10 +135,10 @@ Override with `FORCE_INTERACTIVE=1` if needed (requires real TTY).
 
 ## Telemetry
 
-Anonymous usage analytics. No user PII is collected.
+Usage analytics. If logged in, the user's Tambo ID is attached to events.
 
-- **Opt-out**: `TAMBO_TELEMETRY_DISABLED=1` or `DO_NOT_TRACK=1`
-- **How it works**: Uses the `posthog-node` SDK configured for short-lived CLI processes (`flushAt: 1`, `flushInterval: 0`). Events are sent directly to PostHog (`us.i.posthog.com`) via `client.capture()`, and `await client.shutdown()` is called before the CLI exits. The PostHog project API key is embedded in the CLI (public by design, same as any frontend bundle).
+- **Opt-out**: `TAMBO_TELEMETRY_DISABLED=1`
+- **How it works**: Uses the `posthog-node` SDK. Events are sent directly to PostHog (`us.i.posthog.com`) via `client.capture()`, and `await client.shutdown()` is called before the CLI exits to flush pending events. If the user is logged in, their Tambo user ID is used as the distinct ID.
 - **Adding a new event**:
   1. Add the event name to `EVENTS` in `src/lib/telemetry.ts`
   2. Call `trackEvent(EVENTS.NEW_EVENT, { ... })` in the command handler

@@ -1,13 +1,13 @@
 ---
 title: CLI Telemetry
-description: How the Tambo CLI collects anonymous usage data, what is collected, and how to opt out.
+description: How the Tambo CLI collects usage data, what is collected, and how to opt out.
 ---
 
-The Tambo CLI collects anonymous usage data to help improve the developer experience. Telemetry is completely optional and can be disabled at any time.
+The Tambo CLI collects usage data to help improve the developer experience. Telemetry is completely optional and can be disabled at any time.
 
 ## What is collected
 
-The CLI tracks command-level usage events. No API keys, file contents, project names, or personally identifiable information are ever sent.
+The CLI tracks command-level usage events. No API keys, file contents, or project names are ever sent.
 
 | Event                   | When                             | Properties                                                           |
 | ----------------------- | -------------------------------- | -------------------------------------------------------------------- |
@@ -30,30 +30,24 @@ Flag tracking records only the **names** of active flags, never their values. Fo
 
 ## Identity
 
-A random anonymous UUID is generated on first run and persisted in `~/.local/share/tambo/telemetry.json`. This allows PostHog to deduplicate events without identifying you.
-
-If you are logged in via `tambo auth login`, your Tambo user ID is also attached so we can correlate CLI usage with your account. This is used solely for product analytics.
+A random UUID is generated on first run and persisted in `~/.local/share/tambo/telemetry.json`. If you are logged in via `tambo auth login`, your Tambo user ID is used as the distinct ID so we can correlate CLI usage with your account.
 
 ## How to opt out
 
-Set either of these environment variables to disable telemetry:
+Set this environment variable to disable telemetry:
 
 ```bash
-# Option 1
 export TAMBO_TELEMETRY_DISABLED=1
-
-# Option 2 (universal standard)
-export DO_NOT_TRACK=1
 ```
 
-When disabled, no events are queued, no files are written, and no network requests are made.
+When disabled, no events are sent and no network requests are made.
 
 ## First-run notice
 
 On the first invocation, the CLI prints a one-time notice to stderr:
 
 ```
-Tambo collects anonymous CLI usage data to improve the developer experience.
+Tambo collects CLI usage data to improve the developer experience.
 To opt out, set TAMBO_TELEMETRY_DISABLED=1. Learn more: https://docs.tambo.co/reference/cli/telemetry
 ```
 
