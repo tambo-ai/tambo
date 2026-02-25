@@ -99,6 +99,7 @@ export function trackEvent(
         os: process.platform,
         arch: process.arch,
         isCi: process.env.CI !== undefined && process.env.CI !== "0",
+        isInteractive: Boolean(process.stdin.isTTY && process.stdout.isTTY),
         source: "cli",
         ...properties,
       },
