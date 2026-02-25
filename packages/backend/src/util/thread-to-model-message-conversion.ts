@@ -52,6 +52,28 @@ function getToolCallProviderOptions(
     return undefined;
   }
 
+  const googleProviderOptions = (providerOptions as Record<string, unknown>)[
+    "google"
+  ];
+  if (googleProviderOptions !== undefined) {
+    if (
+      typeof googleProviderOptions !== "object" ||
+      googleProviderOptions === null
+    ) {
+      return undefined;
+    }
+
+    const thoughtSignature = (googleProviderOptions as Record<string, unknown>)[
+      "thoughtSignature"
+    ];
+    if (
+      thoughtSignature !== undefined &&
+      typeof thoughtSignature !== "string"
+    ) {
+      return undefined;
+    }
+  }
+
   return providerOptions as ProviderOptions;
 }
 

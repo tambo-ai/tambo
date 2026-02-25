@@ -164,9 +164,12 @@ export async function* fixStreamedToolCalls(
     currentToolCallId = chunk.toolCallId;
     currentToolCallRequest = toolCallRequest;
 
-    currentToolCallProviderOptionsById =
-      streamItem.toolCallProviderOptionsById ??
-      currentToolCallProviderOptionsById;
+    if (streamItem.toolCallProviderOptionsById) {
+      currentToolCallProviderOptionsById = {
+        ...(currentToolCallProviderOptionsById ?? {}),
+        ...streamItem.toolCallProviderOptionsById,
+      };
+    }
     yield {
       decision: { ...chunk, isToolCallFinished: false },
       aguiEvents: streamItem.aguiEvents,
