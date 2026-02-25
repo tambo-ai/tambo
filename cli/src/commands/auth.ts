@@ -528,36 +528,21 @@ export async function handleAuth(
     noBrowser?: boolean;
   },
 ): Promise<void> {
-  let exitCode = 0;
+  let exitCode: number;
 
   // No subcommand or 'status' - show status
   if (!subcommand || subcommand === "status") {
-    const result = await handleAuthStatus({ quiet: flags.quiet });
-    if (result !== 0) {
-      exitCode = result;
-    }
+    exitCode = await handleAuthStatus({ quiet: flags.quiet });
   } else if (subcommand === "login") {
-    const result = await handleAuthLogin({ noBrowser: flags.noBrowser });
-    if (result !== 0) {
-      exitCode = result;
-    }
+    exitCode = await handleAuthLogin({ noBrowser: flags.noBrowser });
   } else if (subcommand === "logout") {
-    const result = await handleAuthLogout({ force: flags.force });
-    if (result !== 0) {
-      exitCode = result;
-    }
+    exitCode = await handleAuthLogout({ force: flags.force });
   } else if (subcommand === "sessions") {
-    const result = await handleAuthSessions();
-    if (result !== 0) {
-      exitCode = result;
-    }
+    exitCode = await handleAuthSessions();
   } else if (subcommand === "revoke-session") {
-    const result = await handleAuthRevokeSession({
+    exitCode = await handleAuthRevokeSession({
       all: flags.all,
     });
-    if (result !== 0) {
-      exitCode = result;
-    }
   } else {
     // Unknown subcommand
     console.log(chalk.red(`Unknown auth subcommand: ${subcommand}`));

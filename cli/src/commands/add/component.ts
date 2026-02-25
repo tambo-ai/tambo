@@ -199,7 +199,7 @@ export function cn(...inputs: ClassValue[]) {
       fs.mkdirSync(path.dirname(targetPath), { recursive: true });
 
       if (!fs.existsSync(targetPath) || options.forceUpdate) {
-        let fileContent: string;
+        let fileContent: string | undefined;
 
         if (fs.existsSync(sourcePath)) {
           fileContent = fs.readFileSync(sourcePath, "utf-8");
@@ -238,6 +238,10 @@ export function cn(...inputs: ClassValue[]) {
             // If still not found, try treating file.content as literal content
             fileContent = file.content;
           }
+        }
+
+        if (fileContent === undefined) {
+          throw new Error(`Failed to resolve content for ${sourcePath}`);
         }
 
         // Update import paths if this is a component file
