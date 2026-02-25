@@ -12,6 +12,7 @@ function makeRegistry(
       description: `Test tool ${toolName}`,
       tool: impl,
       inputSchema: { type: "object", properties: {} },
+      outputSchema: { type: "object" },
     },
   };
 }

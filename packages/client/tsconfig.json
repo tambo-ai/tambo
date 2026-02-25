@@ -2,8 +2,8 @@
   "extends": "@tambo-ai/typescript-config/base.json",
   "compilerOptions": {
     "target": "ES2022",
-    "module": "ES6",
-    "moduleResolution": "node",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
     "rootDir": "./src",
     "declaration": true,
     "sourceMap": true,
