@@ -241,6 +241,61 @@ const components: TamboComponent[] = [
 ];
 ```
 
+### ComponentRendererProps
+
+Props for the [`ComponentRenderer`](/reference/react-sdk/providers#componentrenderer) component.
+
+```typescript
+interface ComponentRendererProps {
+  content: TamboComponentContent;
+  threadId: string;
+  messageId: string;
+  fallback?: React.ReactNode;
+}
+```
+
+### TamboCurrentComponent
+
+Component metadata returned by [`useTamboCurrentComponent`](/reference/react-sdk/hooks#ustambocurrentcomponent). Works for both AI-generated and interactable components.
+
+```typescript
+interface TamboCurrentComponent {
+  componentName?: string;
+  props?: Record<string, unknown>;
+  interactableId?: string;
+  description?: string;
+  threadId?: string;
+}
+```
+
+| Property         | Type                      | Description                                                       |
+| ---------------- | ------------------------- | ----------------------------------------------------------------- |
+| `componentName`  | `string \| undefined`     | Component name from the message or interactable metadata          |
+| `props`          | `Record<string, unknown>` | Component props from the message content block                    |
+| `interactableId` | `string \| undefined`     | Interactable ID (only for `withTamboInteractable` components)     |
+| `description`    | `string \| undefined`     | Description (only for `withTamboInteractable` components)         |
+| `threadId`       | `string \| undefined`     | Thread ID (not available on messages directly, always `undefined`) |
+
+### ComponentContentContext
+
+Context provided by [`ComponentContentProvider`](/reference/react-sdk/providers#componentcontentprovider) and accessed via [`useComponentContent`](/reference/react-sdk/hooks#usecomponentcontent).
+
+```typescript
+interface ComponentContentContext {
+  componentId: string;
+  threadId: string;
+  messageId: string;
+  componentName: string;
+}
+```
+
+| Property        | Type     | Description                          |
+| --------------- | -------- | ------------------------------------ |
+| `componentId`   | `string` | Unique instance ID for the component |
+| `threadId`      | `string` | Thread the component belongs to      |
+| `messageId`     | `string` | Message the component belongs to     |
+| `componentName` | `string` | Registered component name            |
+
 ## Tool Types
 
 ### TamboTool
