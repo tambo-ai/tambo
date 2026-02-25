@@ -55,19 +55,24 @@ const AUTO_CLOSE_SECONDS = 30;
 
 function SuccessState() {
   const [secondsLeft, setSecondsLeft] = useState(AUTO_CLOSE_SECONDS);
+  const [closeBlocked, setCloseBlocked] = useState(false);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setSecondsLeft((prev) => {
-        if (prev <= 1) {
-          window.close();
-          return 0;
-        }
-        return prev - 1;
-      });
+    const interval = window.setInterval(() => {
+      setSecondsLeft((prev) => Math.max(0, prev - 1));
     }, 1000);
 
-    return () => clearInterval(interval);
+    const timeout = window.setTimeout(() => {
+      window.close();
+      window.setTimeout(() => {
+        if (!window.closed) setCloseBlocked(true);
+      }, 250);
+    }, AUTO_CLOSE_SECONDS * 1000);
+
+    return () => {
+      window.clearInterval(interval);
+      window.clearTimeout(timeout);
+    };
   }, []);
 
   return (
@@ -91,7 +96,9 @@ function SuccessState() {
         </div>
 
         <p className="text-sm text-muted-foreground">
-          This page will close in {secondsLeft}s
+          {closeBlocked
+            ? "Auto-close was blocked by your browser. Please close this tab and return to your terminal."
+            : `This page will close in ${secondsLeft}s`}
         </p>
       </div>
     </div>
