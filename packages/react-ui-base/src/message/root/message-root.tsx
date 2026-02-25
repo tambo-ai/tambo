@@ -17,7 +17,7 @@ export type MessageRootProps = useRender.ComponentProps<
   "div",
   MessageRootState
 > &
-  MessageRootState;
+  Omit<MessageRootState, "slot">;
 
 /**
  * Root primitive for a message component.
