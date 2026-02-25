@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.0.3](https://github.com/tambo-ai/tambo/compare/react-v1.0.2...react-v1.0.3) (2026-02-24)
+
+
+### Bug Fixes
+
+* **react-sdk:** always reset placeholder thread in START_NEW_THREAD ([#2465](https://github.com/tambo-ai/tambo/issues/2465)) ([04138db](https://github.com/tambo-ai/tambo/commit/04138db7938974fa707e3524ff44c8a43bdfd9a1))
+
+
+### Miscellaneous Chores
+
+* enable monorepo hot reload DX ([#2427](https://github.com/tambo-ai/tambo/issues/2427)) ([c72bb66](https://github.com/tambo-ai/tambo/commit/c72bb663b86f3a751064cf5a87db84d250a7462c))
+
 ## [1.0.2](https://github.com/tambo-ai/tambo/compare/react-v1.0.1...react-v1.0.2) (2026-02-18)
 
 

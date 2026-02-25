@@ -80,12 +80,5 @@ export type {
   ToolcallInfoTriggerProps,
 } from "./toolcall-info";
 
-// Types
-export type {
-  BaseProps,
-  BasePropsWithChildrenOrRenderFunction,
-  PropsWithChildrenOrRenderFunction,
-} from "./types/component-render-or-children";
-
 // Hooks
-export { useRender } from "./use-render/use-render";
+export { useRender } from "@base-ui/react/use-render";

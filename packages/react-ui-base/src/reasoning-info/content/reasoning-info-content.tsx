@@ -1,14 +1,24 @@
-import { Slot } from "@radix-ui/react-slot";
+import { mergeProps } from "@base-ui/react/merge-props";
+import { useRender } from "@base-ui/react/use-render";
 import * as React from "react";
-import { BaseProps } from "../../types/component-render-or-children";
 import { useReasoningInfoRootContext } from "../root/reasoning-info-context";
 
-export type ReasoningInfoContentProps = BaseProps<
-  React.HTMLAttributes<HTMLDivElement> & {
-    /** Force visibility regardless of expanded state (for custom animations). */
-    forceMount?: boolean;
-  }
+export interface ReasoningInfoContentRenderProps extends Record<
+  string,
+  unknown
+> {
+  isExpanded: boolean;
+}
+
+type ReasoningInfoContentComponentProps = useRender.ComponentProps<
+  "div",
+  ReasoningInfoContentRenderProps
 >;
+
+export type ReasoningInfoContentProps = ReasoningInfoContentComponentProps & {
+  /** Force visibility regardless of expanded state (for custom animations). */
+  forceMount?: boolean;
+};
 
 /**
  * Collapsible content area for reasoning details.
@@ -17,11 +27,9 @@ export type ReasoningInfoContentProps = BaseProps<
 export const ReasoningInfoContent = React.forwardRef<
   HTMLDivElement,
   ReasoningInfoContentProps
->(({ asChild, forceMount, children, ...props }, ref) => {
+>(({ forceMount, ...props }, ref) => {
   const { isExpanded, detailsId, scrollContainerRef } =
     useReasoningInfoRootContext();
-
-  // Combine refs
   const combinedRef = React.useCallback(
     (node: HTMLDivElement | null) => {
       (
@@ -29,7 +37,9 @@ export const ReasoningInfoContent = React.forwardRef<
       ).current = node;
       if (typeof ref === "function") {
         ref(node);
-      } else if (ref) {
+        return;
+      }
+      if (ref) {
         ref.current = node;
       }
     },
@@ -40,18 +50,21 @@ export const ReasoningInfoContent = React.forwardRef<
     return null;
   }
 
-  const Comp = asChild ? Slot : "div";
+  const { render, ...componentProps } = props;
+  const renderProps: ReasoningInfoContentRenderProps = {
+    isExpanded,
+  };
 
-  return (
-    <Comp
-      ref={combinedRef}
-      id={detailsId}
-      data-slot="reasoning-info-content"
-      data-state={isExpanded ? "open" : "closed"}
-      {...props}
-    >
-      {children}
-    </Comp>
-  );
+  return useRender({
+    defaultTagName: "div",
+    ref: combinedRef,
+    render,
+    state: renderProps,
+    props: mergeProps(componentProps, {
+      id: detailsId,
+      "data-slot": "reasoning-info-content",
+      "data-state": isExpanded ? "open" : "closed",
+    }),
+  });
 });
 ReasoningInfoContent.displayName = "ReasoningInfo.Content";

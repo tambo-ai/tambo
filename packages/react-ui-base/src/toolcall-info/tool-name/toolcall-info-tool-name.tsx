@@ -1,17 +1,19 @@
 "use client";
 
-import { Slot } from "@radix-ui/react-slot";
+import { mergeProps } from "@base-ui/react/merge-props";
+import { useRender } from "@base-ui/react/use-render";
 import * as React from "react";
-import { BasePropsWithChildrenOrRenderFunction } from "../../types/component-render-or-children";
-import { useRender } from "../../use-render/use-render";
 import { useToolcallInfoContext } from "../root/toolcall-info-context";
 
-export interface ToolcallInfoToolNameRenderProps {
+export interface ToolcallInfoToolNameRenderProps extends Record<
+  string,
+  unknown
+> {
   toolName?: string;
 }
 
-export type ToolcallInfoToolNameProps = BasePropsWithChildrenOrRenderFunction<
-  React.HTMLAttributes<HTMLSpanElement>,
+export type ToolcallInfoToolNameProps = useRender.ComponentProps<
+  "span",
   ToolcallInfoToolNameRenderProps
 >;
 
@@ -21,19 +23,21 @@ export type ToolcallInfoToolNameProps = BasePropsWithChildrenOrRenderFunction<
 export const ToolcallInfoToolName = React.forwardRef<
   HTMLSpanElement,
   ToolcallInfoToolNameProps
->(({ asChild, ...props }, ref) => {
+>(({ ...props }, ref) => {
   const { toolCallRequest } = useToolcallInfoContext();
-
-  const Comp = asChild ? Slot : "span";
-
-  const { content, componentProps } = useRender(props, {
+  const renderProps: ToolcallInfoToolNameRenderProps = {
     toolName: toolCallRequest?.name,
-  });
+  };
+  const { render, ...componentProps } = props;
 
-  return (
-    <Comp ref={ref} data-slot="toolcall-info-tool-name" {...componentProps}>
-      {content}
-    </Comp>
-  );
+  return useRender({
+    defaultTagName: "span",
+    ref,
+    render,
+    state: renderProps,
+    props: mergeProps(componentProps, {
+      "data-slot": "toolcall-info-tool-name",
+    }),
+  });
 });
 ToolcallInfoToolName.displayName = "ToolcallInfo.ToolName";

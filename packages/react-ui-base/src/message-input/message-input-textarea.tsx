@@ -1,6 +1,7 @@
 "use client";
 
-import { Slot } from "@radix-ui/react-slot";
+import { mergeProps } from "@base-ui/react/merge-props";
+import { useRender } from "@base-ui/react/use-render";
 import * as React from "react";
 import {
   useMessageInputContext,
@@ -21,7 +22,10 @@ import {
 /**
  * Render props for the Textarea component.
  */
-export interface MessageInputTextareaRenderProps {
+export interface MessageInputTextareaRenderProps extends Record<
+  string,
+  unknown
+> {
   /** Current input value */
   value: string;
   /** Update the input value */
@@ -55,12 +59,12 @@ export interface MessageInputTextareaRenderProps {
 /**
  * Props for the MessageInput.Textarea component.
  */
-export interface MessageInputTextareaProps extends Omit<
-  React.HTMLAttributes<HTMLDivElement>,
-  "children"
-> {
-  /** Render as a different element using Radix Slot */
-  asChild?: boolean;
+type MessageInputTextareaComponentProps = useRender.ComponentProps<
+  "div",
+  MessageInputTextareaRenderProps
+>;
+
+export interface MessageInputTextareaProps extends MessageInputTextareaComponentProps {
   /** Custom placeholder text */
   placeholder?: string;
   /** Resource provider for @ mentions (optional - MCP resources included by default) */
@@ -71,10 +75,6 @@ export interface MessageInputTextareaProps extends Omit<
   resourceFormatOptions?: ResourceFormatOptions;
   /** Options for formatting MCP prompts into PromptItems */
   promptFormatOptions?: PromptFormatOptions;
-  /** Render prop for custom textarea implementation */
-  children?:
-    | React.ReactNode
-    | ((props: MessageInputTextareaRenderProps) => React.ReactNode);
 }
 
 /**
@@ -88,13 +88,11 @@ export const MessageInputTextarea = React.forwardRef<
 >(
   (
     {
-      asChild,
       placeholder = "What do you want to do?",
       resourceProvider,
       promptProvider,
       resourceFormatOptions,
       promptFormatOptions,
-      children,
       ...props
     },
     ref,
@@ -151,18 +149,18 @@ export const MessageInputTextarea = React.forwardRef<
       setPromptSearch,
     };
 
-    const Comp = asChild ? Slot : "div";
+    const { render, ...componentProps } = props;
 
-    return (
-      <Comp
-        ref={ref}
-        data-slot="message-input-textarea"
-        data-disabled={disabled || undefined}
-        {...props}
-      >
-        {typeof children === "function" ? children(renderProps) : children}
-      </Comp>
-    );
+    return useRender({
+      defaultTagName: "div",
+      ref,
+      render,
+      state: renderProps,
+      props: mergeProps(componentProps, {
+        "data-slot": "message-input-textarea",
+        "data-disabled": disabled || undefined,
+      }),
+    });
   },
 );
 MessageInputTextarea.displayName = "MessageInput.Textarea";

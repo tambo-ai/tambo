@@ -157,10 +157,11 @@ In general, try to fit changes into the following categories. If you can't find 
    - rest-api - OpenAPI specification for Tambo Cloud REST API
    - **problems/** (1 page)
      - endpoint-deprecated - Documentation for endpoint deprecation errors (410 Gone)
-   - **cli/** (5 pages including index)
+   - **cli/** (6 pages including index)
      - global-options - Global CLI options
      - configuration - CSS and Tailwind configuration
      - workflows - Common CLI usage patterns
+     - telemetry - Anonymous usage data collection and opt-out
      - **commands/** (8 pages)
        - create-app, init, full-send, add, list, update, upgrade, migrate
    - **llm-providers/** (8 pages including index)

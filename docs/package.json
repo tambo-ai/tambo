@@ -1,12 +1,12 @@
 {
   "name": "@tambo-ai/docs",
-  "version": "1.28.0",
+  "version": "1.29.0",
   "description": "Tambo AI documentation site",
   "license": "MIT",
   "scripts": {
     "build": "next build",
     "check-types": "tsc --noEmit",
-    "dev": "next dev --turbo -p 8263",
+    "dev": "next dev -p 8263",
     "lint": "eslint .",
     "start": "next start",
     "postinstall": "fumadocs-mdx",
@@ -25,11 +25,11 @@
     "fumadocs-ui": "15.8.5",
     "highlight.js": "^11.11.1",
     "json-stringify-pretty-compact": "^4.0.0",
-    "lucide-react": "^0.563.0",
+    "lucide-react": "^0.575.0",
     "mermaid": "^11.12.1",
     "next": "^15.5.11",
     "next-themes": "^0.4.6",
-    "posthog-js": "^1.347.0",
+    "posthog-js": "^1.351.4",
     "radix-ui": "^1.4.3",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
@@ -40,7 +40,7 @@
     "streamdown": "^1.6.10"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4.1.18",
+    "@tailwindcss/postcss": "^4.2.0",
     "@types/mdx": "^2.0.13",
     "@types/node": "22.19.8",
     "@types/react": "^18.3.23",

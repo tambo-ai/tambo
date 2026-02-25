@@ -1,6 +1,6 @@
 {
   "name": "@tambo-ai/react",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "React client package for Tambo AI!",
   "license": "MIT",
   "repository": {
@@ -14,11 +14,13 @@
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
+      "development": "./src/index.ts",
       "import": "./esm/index.js",
       "require": "./dist/index.js",
       "types": "./dist/index.d.ts"
     },
     "./mcp": {
+      "development": "./src/mcp/index.ts",
       "import": "./esm/mcp/index.js",
       "require": "./dist/mcp/index.js",
       "types": "./dist/mcp/index.d.ts"

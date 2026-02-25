@@ -1,6 +1,6 @@
 {
   "name": "tambo",
-  "version": "0.53.1",
+  "version": "0.54.0",
   "description": "Tambo CLI for scaffolding and managing AI applications",
   "license": "MIT",
   "repository": {
@@ -74,6 +74,7 @@
     "open": "^11.0.0",
     "ora": "^9.0.0",
     "postcss": "^8.5.3",
+    "posthog-node": "^5.24.9",
     "react-markdown": "^10.1.0",
     "rehype-harden": "^1.1.7",
     "sanitize-html": "^2.17.0",

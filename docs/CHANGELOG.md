@@ -1,5 +1,25 @@
 # Changelog
 
+## [1.29.0](https://github.com/tambo-ai/tambo/compare/docs-v1.28.0...docs-v1.29.0) (2026-02-25)
+
+
+### Features
+
+* **cli:** add anonymous CLI telemetry via posthog-node SDK ([#2479](https://github.com/tambo-ai/tambo/issues/2479)) ([4894767](https://github.com/tambo-ai/tambo/commit/48947679dcf25826695cc3f6a2e4eecdf1d4c4a6))
+
+
+### Bug Fixes
+
+* **api:** return 400 instead of 500 for input validation errors ([#2464](https://github.com/tambo-ai/tambo/issues/2464)) ([c45ddb6](https://github.com/tambo-ai/tambo/commit/c45ddb684ba15de04a6c4ab9057e8263b1799358))
+* **docs:** add og/twitter image to docs app ([#2455](https://github.com/tambo-ai/tambo/issues/2455)) ([6513129](https://github.com/tambo-ai/tambo/commit/65131291577e43524c4092b56c3414f0da1b7c3a))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump @tailwindcss/postcss from 4.1.18 to 4.2.0 in the tailwind group ([#2473](https://github.com/tambo-ai/tambo/issues/2473)) ([7d9303b](https://github.com/tambo-ai/tambo/commit/7d9303b3977d455da7f21256061eaa3ab843883b))
+* **deps:** bump the small-safe-packages group with 6 updates ([#2470](https://github.com/tambo-ai/tambo/issues/2470)) ([cb48c28](https://github.com/tambo-ai/tambo/commit/cb48c281b78b64e2e2352fd52007984681fb5ab6))
+* enable monorepo hot reload DX ([#2427](https://github.com/tambo-ai/tambo/issues/2427)) ([c72bb66](https://github.com/tambo-ai/tambo/commit/c72bb663b86f3a751064cf5a87db84d250a7462c))
+
 ## [1.28.0](https://github.com/tambo-ai/tambo/compare/docs-v1.27.1...docs-v1.28.0) (2026-02-20)
 
 
