@@ -293,7 +293,7 @@ const MessageContent = React.forwardRef<HTMLDivElement, MessageContentProps>(
                 <MessageContentRenderer
                   contentToRender={state.renderedComponents}
                   markdownContent={props.contentAsMarkdownString}
-                  markdown={markdown}
+                  markdown={renderAsMarkdownEffective}
                 />
               </div>
             );
