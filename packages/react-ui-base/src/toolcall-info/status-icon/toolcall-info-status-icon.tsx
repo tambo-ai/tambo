@@ -20,6 +20,7 @@ export interface ToolcallInfoStatusIconRenderProps extends Record<
   string,
   unknown
 > {
+  slot: string;
   status: ToolStatus;
 }
 
@@ -44,9 +45,8 @@ export const ToolcallInfoStatusIcon = React.forwardRef<
     defaultTagName: "span",
     ref,
     render,
-    state: { status },
+    state: { slot: "toolcall-info-status-icon", status },
     props: mergeProps(componentProps, {
-      "data-slot": "toolcall-info-status-icon",
       "data-status": status,
     }),
   });

@@ -8,6 +8,7 @@ export interface MessageRenderedComponentCanvasButtonRenderProps extends Record<
   string,
   unknown
 > {
+  slot: string;
   canvasExists: boolean;
   hasRenderedComponent: boolean;
 }
@@ -67,6 +68,7 @@ export const MessageRenderedComponentCanvasButton = React.forwardRef<
   const { render, ...componentProps } = props;
   const hasRenderedComponent = !!firstRenderedComponent;
   const renderProps: MessageRenderedComponentCanvasButtonRenderProps = {
+    slot: "rendered-component-canvas-button",
     canvasExists,
     hasRenderedComponent,
   };
@@ -81,7 +83,6 @@ export const MessageRenderedComponentCanvasButton = React.forwardRef<
       type: "button",
       onClick: onShowInCanvas,
       children,
-      "data-slot": "rendered-component-canvas-button",
     }),
   });
 });

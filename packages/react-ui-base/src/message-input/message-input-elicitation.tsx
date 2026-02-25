@@ -10,6 +10,7 @@ import { Elicitation } from "../elicitation";
 import { useMessageInputContext } from "./message-input-context";
 
 export interface MessageInputElicitationState {
+  slot: string;
   state: "hidden" | "visible";
 }
 
@@ -49,9 +50,11 @@ export const MessageInputElicitation = React.forwardRef<
       MessageInputElicitationProps,
       MessageInputElicitationState
     >,
-    state: { state: hidden ? ("hidden" as const) : ("visible" as const) },
+    state: {
+      slot: "message-input-elicitation",
+      state: hidden ? ("hidden" as const) : ("visible" as const),
+    },
     props: mergeProps(props, {
-      "data-slot": "message-input-elicitation",
       "aria-hidden": hidden || undefined,
       children: children ?? defaultContent,
       elicitation: elicitation,

@@ -9,6 +9,7 @@ import { useMessageInputContext } from "./message-input-context";
  * Render props for the Error component.
  */
 export interface MessageInputErrorState extends Record<string, unknown> {
+  slot: string;
   /** Error message to display */
   errorMessage: string | null;
   /** The original error object if available */
@@ -44,6 +45,7 @@ export const MessageInputError = React.forwardRef<
   const enabled = !!errorMessage || !!render || children != null;
 
   const renderProps: MessageInputErrorState = {
+    slot: "message-input-error",
     errorMessage,
     error,
     submitError,
@@ -58,7 +60,6 @@ export const MessageInputError = React.forwardRef<
     state: renderProps,
     props: mergeProps(componentProps, {
       children: children ?? errorMessage,
-      "data-slot": "message-input-error",
       "data-state": errorMessage ? "error" : undefined,
     }),
   });

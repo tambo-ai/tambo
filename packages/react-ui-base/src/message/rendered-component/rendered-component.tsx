@@ -7,6 +7,7 @@ export interface MessageRenderedComponentRenderProps extends Record<
   string,
   unknown
 > {
+  slot: string;
   hasRenderedComponent: boolean;
   role: "user" | "assistant";
 }
@@ -35,6 +36,7 @@ export const MessageRenderedComponent = React.forwardRef<
 
   const { render, ...componentProps } = props;
   const renderProps: MessageRenderedComponentRenderProps = {
+    slot: "message-rendered-component-area",
     hasRenderedComponent: hasComponent,
     role,
   };
@@ -47,7 +49,6 @@ export const MessageRenderedComponent = React.forwardRef<
     state: renderProps,
     props: mergeProps(componentProps, {
       children,
-      "data-slot": "message-rendered-component-area",
     }),
   });
 });

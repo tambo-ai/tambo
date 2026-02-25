@@ -31,6 +31,7 @@ export interface StagedImageState {
  * Render props for the StagedImages component.
  */
 export interface MessageInputStagedImagesState extends Record<string, unknown> {
+  slot: string;
   /** Array of staged images with pre-computed props for rendering */
   images: StagedImageState[];
   /** Remove an image by ID */
@@ -93,6 +94,7 @@ export const MessageInputStagedImages = React.forwardRef<
 
   const State = React.useMemo<MessageInputStagedImagesState>(
     () => ({
+      slot: "message-input-staged-images",
       images,
       removeImage,
       expandedImageId,
@@ -114,7 +116,6 @@ export const MessageInputStagedImages = React.forwardRef<
     state: State,
     props: mergeProps(componentProps, {
       children,
-      "data-slot": "message-input-staged-images",
       "data-count": rawImages.length,
       "data-empty": rawImages.length === 0 || undefined,
     }),

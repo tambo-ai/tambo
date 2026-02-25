@@ -7,6 +7,7 @@ export interface ReasoningInfoContentRenderProps extends Record<
   string,
   unknown
 > {
+  slot: string;
   isExpanded: boolean;
 }
 
@@ -46,6 +47,7 @@ export const ReasoningInfoContent = React.forwardRef<
 
   const { render, ...componentProps } = props;
   const renderProps: ReasoningInfoContentRenderProps = {
+    slot: "reasoning-info-content",
     isExpanded,
   };
 
@@ -57,7 +59,6 @@ export const ReasoningInfoContent = React.forwardRef<
     state: renderProps,
     props: mergeProps(componentProps, {
       id: detailsId,
-      "data-slot": "reasoning-info-content",
       "data-state": isExpanded ? "open" : "closed",
     }),
   });

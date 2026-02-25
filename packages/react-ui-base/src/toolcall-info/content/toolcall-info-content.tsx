@@ -10,6 +10,7 @@ export interface ToolcallInfoContentRenderProps extends Record<
   string,
   unknown
 > {
+  slot: string;
   /** The message containing the tool call. */
   message: TamboThreadMessage;
   /** Whether the content is expanded. */
@@ -37,6 +38,7 @@ export const ToolcallInfoContent = React.forwardRef<
   const { render, ...componentProps } = props;
 
   const renderProps: ToolcallInfoContentRenderProps = {
+    slot: "toolcall-info-content",
     message,
     isExpanded,
   };
@@ -49,7 +51,6 @@ export const ToolcallInfoContent = React.forwardRef<
     state: renderProps,
     props: mergeProps(componentProps, {
       id: detailsId,
-      "data-slot": "toolcall-info-content",
       "data-state": isExpanded ? "open" : "closed",
     }),
   });

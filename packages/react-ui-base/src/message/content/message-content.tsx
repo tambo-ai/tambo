@@ -1,4 +1,3 @@
-import { mergeProps } from "@base-ui/react/merge-props";
 import { useRender } from "@base-ui/react/use-render";
 import { TamboThreadMessage } from "@tambo-ai/react";
 import * as React from "react";
@@ -10,6 +9,7 @@ import { useMessageRootContext } from "../root/message-root-context";
  * State passed to the render callback as the second argument.
  */
 export interface MessageContentState extends Record<string, unknown> {
+  slot: string;
   /** Whether the content is currently loading. */
   loading: boolean;
   /** Whether the message is in reasoning state. */
@@ -67,6 +67,7 @@ export const MessageContent = React.forwardRef<
   const { render, ...componentProps } = props;
 
   const state: MessageContentState = {
+    slot: "message-content",
     hasContent,
     markdown: renderAsMarkdown,
     loading: showLoading,
@@ -84,9 +85,7 @@ export const MessageContent = React.forwardRef<
       content: () => null,
       contentAsMarkdownString: () => null,
     },
-    props: mergeProps(componentProps, {
-      "data-slot": "message-content",
-    }),
+    props: componentProps,
   });
 });
 MessageContent.displayName = "Message.Content";

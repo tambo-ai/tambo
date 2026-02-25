@@ -23,8 +23,8 @@ export const ToolcallInfoParameters = React.forwardRef<
     defaultTagName: "span",
     ref,
     render,
+    state: { slot: "toolcall-info-parameters" },
     props: mergeProps(componentProps, {
-      "data-slot": "toolcall-info-parameters",
       parameters,
       parametersString: JSON.stringify(parameters, null, 2),
       children: children ?? JSON.stringify(parameters, null, 2),

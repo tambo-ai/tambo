@@ -13,6 +13,7 @@ import { useMessageInputContext } from "./message-input-context";
  * Render props for the Content component.
  */
 export interface MessageInputContentState extends Record<string, unknown> {
+  slot: string;
   /** Whether files are being dragged over the input */
   isDragging: boolean;
   /** Current elicitation request if active */
@@ -46,6 +47,7 @@ export const MessageInputContent = React.forwardRef<
 
   const renderProps = React.useMemo<MessageInputContentState>(
     () => ({
+      slot: "message-input-content",
       isDragging,
       elicitation,
       resolveElicitation,
@@ -62,7 +64,6 @@ export const MessageInputContent = React.forwardRef<
     enabled: !hidden || keepMounted,
     state: renderProps,
     props: mergeProps(componentProps, {
-      "data-slot": "message-input-content",
       "data-dragging": isDragging || undefined,
       "data-elicitation": elicitation ? "active" : undefined,
     }),

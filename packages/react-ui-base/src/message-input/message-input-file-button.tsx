@@ -10,6 +10,7 @@ import { useMessageInputContext } from "./message-input-context";
  * Render props for the FileButton component.
  */
 export interface MessageInputFileButtonState extends Record<string, unknown> {
+  slot: string;
   /** Trigger the file picker */
   openFilePicker: () => void;
   /** The hidden file input ref */
@@ -88,6 +89,7 @@ export const MessageInputFileButton = React.forwardRef<
   };
 
   const renderProps: MessageInputFileButtonState = {
+    slot: "message-input-file-button",
     openFilePicker,
     fileInputRef,
   };
@@ -104,7 +106,6 @@ export const MessageInputFileButton = React.forwardRef<
           type: "button",
           onClick: handleClick,
           "aria-label": "Attach Images",
-          "data-slot": "message-input-file-button",
         }),
       })}
       <input

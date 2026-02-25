@@ -5,6 +5,7 @@ import * as React from "react";
 import { useElicitationContext } from "./elicitation-context";
 
 export interface ElicitationActionsState {
+  slot: string;
   single: boolean;
   valid: boolean;
   handleAccept: () => void;
@@ -221,10 +222,10 @@ export const ElicitationActions = React.forwardRef<
       ElicitationActionsState
     >,
     props: mergeProps(props, {
-      "data-slot": "elicitation-actions",
       children: children ?? defaultContent,
     }),
     state: {
+      slot: "elicitation-actions",
       single: isSingleEntry,
       valid: isValid,
       handleAccept,
