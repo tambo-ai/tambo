@@ -158,7 +158,9 @@ export function cn(...inputs: ClassValue[]) {
         });
       }
     } catch (error) {
-      throw new Error(`Failed to install dependencies: ${error}`);
+      throw new Error(`Failed to install dependencies: ${error}`, {
+        cause: error,
+      });
     }
   }
 
@@ -197,7 +199,7 @@ export function cn(...inputs: ClassValue[]) {
       fs.mkdirSync(path.dirname(targetPath), { recursive: true });
 
       if (!fs.existsSync(targetPath) || options.forceUpdate) {
-        let fileContent = "";
+        let fileContent: string;
 
         if (fs.existsSync(sourcePath)) {
           fileContent = fs.readFileSync(sourcePath, "utf-8");

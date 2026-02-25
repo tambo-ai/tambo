@@ -103,6 +103,7 @@ export async function safeFetch(url: string): Promise<Response> {
       throw new Error(
         `Failed to fetch from ${url}. This CLI requires Node.js v18+ or the 'node-fetch' package. ` +
           `Please upgrade Node.js or install node-fetch: npm install node-fetch`,
+        { cause: _importError },
       );
     }
   }

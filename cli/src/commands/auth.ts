@@ -528,7 +528,7 @@ export async function handleAuth(
     noBrowser?: boolean;
   },
 ): Promise<void> {
-  let exitCode = 0;
+  let exitCode: number;
 
   // No subcommand or 'status' - show status
   if (!subcommand || subcommand === "status") {

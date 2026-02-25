@@ -157,8 +157,15 @@ export function parseConfigObject(
     return result as Config;
   } catch (error) {
     if (error instanceof Error) {
-      throw new Error(`Failed to parse ${configName} config: ${error.message}`);
+      throw new Error(
+        `Failed to parse ${configName} config: ${error.message}`,
+        {
+          cause: error,
+        },
+      );
     }
-    throw new Error(`Unknown error parsing ${configName} config`);
+    throw new Error(`Unknown error parsing ${configName} config`, {
+      cause: error,
+    });
   }
 }

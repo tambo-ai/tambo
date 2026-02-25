@@ -243,6 +243,7 @@ export async function handleCreateApp(
       cloneSpinner.fail(`Failed to download ${selectedTemplate.name} template`);
       throw new Error(
         "Failed to clone template repository. Please check your internet connection and try again.",
+        { cause: _error },
       );
     }
 
@@ -329,6 +330,7 @@ export async function handleCreateApp(
       installSpinner.fail("Failed to install dependencies");
       throw new Error(
         `Failed to install dependencies. Please try running '${pm} ${installCmd.join(" ")}' manually.`,
+        { cause: _error },
       );
     }
 

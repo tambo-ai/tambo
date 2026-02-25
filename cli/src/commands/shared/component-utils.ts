@@ -82,7 +82,9 @@ export function findComponentLocation(
 
     return null;
   } catch (error) {
-    throw new Error(`Failed to locate component ${componentName}: ${error}`);
+    throw new Error(`Failed to locate component ${componentName}: ${error}`, {
+      cause: error,
+    });
   }
 }
 

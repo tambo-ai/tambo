@@ -200,7 +200,9 @@ export default config`;
             }
           }
         } catch (error) {
-          throw new Error(`Failed to merge configs: ${error}`);
+          throw new Error(`Failed to merge configs: ${error}`, {
+            cause: error,
+          });
         }
       }
     }
