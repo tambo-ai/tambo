@@ -58,6 +58,53 @@ interface StreamingState {
 }
 ```
 
+## Authentication Types
+
+### TamboAuthState
+
+Discriminated union tracking the SDK's authentication lifecycle. Returned by [`useTambo()`](/reference/react-sdk/hooks#usetambo) as `authState`.
+
+```typescript
+type TamboAuthState =
+  | { status: "identified"; source: "userKey" | "tokenExchange" }
+  | { status: "exchanging" }
+  | { status: "error"; error: Error }
+  | { status: "invalid" }
+  | { status: "unauthenticated" };
+```
+
+| Status             | Additional Properties   | Description                                                              |
+| ------------------ | ----------------------- | ------------------------------------------------------------------------ |
+| `identified`       | `source: "userKey" \| "tokenExchange"` | Ready to make API calls. `source` indicates how auth was established. |
+| `exchanging`       | —                       | A `userToken` was provided and token exchange is in progress             |
+| `error`            | `error: Error`          | Token exchange failed                                                    |
+| `invalid`          | —                       | Both `userKey` and `userToken` were provided (must use one, not both)    |
+| `unauthenticated`  | —                       | Neither `userKey` nor `userToken` was provided                           |
+
+#### Example: Auth-Aware UI
+
+```tsx
+import { useTambo } from "@tambo-ai/react";
+
+function AuthAwareChat() {
+  const { authState, isIdentified } = useTambo();
+
+  if (authState.status === "exchanging") {
+    return <div>Authenticating...</div>;
+  }
+
+  if (authState.status === "error") {
+    return <div>Auth failed: {authState.error.message}</div>;
+  }
+
+  if (!isIdentified) {
+    return <div>Please sign in to continue.</div>;
+  }
+
+  return <ChatInterface />;
+}
+```
+
 ## Message Types
 
 ### TamboThreadMessage

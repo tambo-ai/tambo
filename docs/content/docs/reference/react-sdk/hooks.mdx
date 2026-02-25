@@ -25,6 +25,10 @@ function Chat() {
     isWaiting,
     isIdle,
 
+    // Authentication
+    authState,
+    isIdentified,
+
     // Thread management
     initThread,
     switchThread,
@@ -65,6 +69,13 @@ function Chat() {
 | `isStreaming`    | `boolean`        | `true` when actively streaming a response               |
 | `isWaiting`      | `boolean`        | `true` when waiting for server response                 |
 | `isIdle`         | `boolean`        | `true` when no generation is in progress                |
+
+#### Authentication
+
+| Value            | Type                                                          | Description                                                        |
+| ---------------- | ------------------------------------------------------------- | ------------------------------------------------------------------ |
+| `authState`      | [`TamboAuthState`](/reference/react-sdk/types#tamboauthstate) | Current authentication state as a discriminated union              |
+| `isIdentified`   | `boolean`                                                     | `true` when authenticated and ready to make API calls              |
 
 #### Run Control
 
