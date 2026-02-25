@@ -165,6 +165,7 @@ const ThreadContentMessages = React.forwardRef<
             data-slot="thread-content-item"
           >
             <Message
+              slot="message"
               role={message.role === "assistant" ? "assistant" : "user"}
               message={message}
               variant={variant}
