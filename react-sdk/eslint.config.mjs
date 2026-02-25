@@ -5,7 +5,24 @@ import config from "@tambo-ai/eslint-config/base";
 import jsdoc from "eslint-plugin-jsdoc";
 import eslintPluginReact from "eslint-plugin-react";
 import eslintPluginReactHooks from "eslint-plugin-react-hooks";
+import { createRequire } from "node:module";
+import process from "node:process";
 import tseslint from "typescript-eslint";
+
+const requireFromCwd = createRequire(`${process.cwd()}/package.json`);
+const eslintMajorVersion = Number.parseInt(
+  requireFromCwd("eslint/package.json").version.split(".")[0] ?? "0",
+  10,
+);
+const installedReactVersion = (() => {
+  try {
+    return requireFromCwd("react/package.json").version;
+  } catch {
+    return "999.999.999";
+  }
+})();
+const reactConfigVersion =
+  eslintMajorVersion >= 10 ? installedReactVersion : "detect";
 
 export default tseslint.config(
   {
@@ -24,7 +41,7 @@ export default tseslint.config(
   eslintPluginReact.configs.flat?.recommended ?? {},
   eslintPluginReact.configs.flat?.["jsx-runtime"] ?? {},
   {
-    settings: { react: { version: "18.3.1" } },
+    settings: { react: { version: reactConfigVersion } },
     plugins: {
       // @ts-expect-error https://github.com/facebook/react/issues/28313#issuecomment-2580001921
       "react-hooks": eslintPluginReactHooks,

@@ -5,8 +5,25 @@ import pluginReact from "eslint-plugin-react";
 import pluginReactHooks from "eslint-plugin-react-hooks";
 import { defineConfig } from "eslint/config";
 import globals from "globals";
+import { createRequire } from "node:module";
+import process from "node:process";
 import tseslint from "typescript-eslint";
 import baseConfig from "./base.mjs";
+
+const requireFromCwd = createRequire(`${process.cwd()}/package.json`);
+const eslintMajorVersion = Number.parseInt(
+  requireFromCwd("eslint/package.json").version.split(".")[0] ?? "0",
+  10,
+);
+const installedReactVersion = (() => {
+  try {
+    return requireFromCwd("react/package.json").version;
+  } catch {
+    return "999.999.999";
+  }
+})();
+const reactConfigVersion =
+  eslintMajorVersion >= 10 ? installedReactVersion : "detect";
 
 /**
  * A custom ESLint configuration for libraries that use Next.js.
@@ -43,7 +60,7 @@ export default defineConfig([
     plugins: {
       "react-hooks": pluginReactHooks,
     },
-    settings: { react: { version: "18.3.1" } },
+    settings: { react: { version: reactConfigVersion } },
     rules: {
       ...pluginReactHooks.configs.recommended.rules,
       // React scope no longer necessary with new JSX transform.
