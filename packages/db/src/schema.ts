@@ -313,7 +313,7 @@ export const projects = pgTable(
     customLlmModelName: text("custom_llm_model_name"), // custom model name for "openai-compatible" provider type
     customLlmBaseURL: text("custom_llm_base_url"), // For "openai-compatible" provider type
     maxInputTokens: integer("max_input_tokens"), // Maximum number of input tokens to send to the model
-    maxToolCallLimit: integer("max_tool_call_limit").default(10).notNull(), // Maximum number of tool calls allowed per response
+    maxToolCallLimit: integer("max_tool_call_limit").default(100).notNull(), // Maximum number of tool calls allowed per response
     // Whether end-users are allowed to provide system prompts when creating/advancing threads
     allowSystemPromptOverride: boolean("allow_system_prompt_override")
       .default(false)
