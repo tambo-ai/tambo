@@ -70,7 +70,7 @@ describe("MessageContent rendering", () => {
           content="[object Object]"
           contentasmarkdownstring="Hello, world!"
         >
-          <div class="space-y-4 whitespace-normal">
+          <div class="space-y-4 whitespace-normal *:first:mt-0 *:last:mb-0">
             <p class="my-0">
               Hello, world!
             </p>
@@ -103,7 +103,7 @@ describe("MessageContent rendering", () => {
           content="[object Object],[object Object]"
           contentasmarkdownstring="First part. Second part."
         >
-          <div class="space-y-4 whitespace-normal">
+          <div class="space-y-4 whitespace-normal *:first:mt-0 *:last:mb-0">
             <p class="my-0">
               First part. Second part.
             </p>
@@ -135,7 +135,7 @@ describe("MessageContent rendering", () => {
           content="[object Object]"
           contentasmarkdownstring="This is **bold** and *italic* text."
         >
-          <div class="space-y-4 whitespace-normal">
+          <div class="space-y-4 whitespace-normal *:first:mt-0 *:last:mb-0">
             <p class="my-0">
               This is
               <span
@@ -186,7 +186,7 @@ describe("MessageContent rendering", () => {
           content="[object Object]"
           contentasmarkdownstring="[document.txt](tambo-resource://file%3A%2F%2F%2Fpath%2Fto%2Fdocument.txt)"
         >
-          <div class="space-y-4 whitespace-normal">
+          <div class="space-y-4 whitespace-normal *:first:mt-0 *:last:mb-0">
             <p class="my-0">
               <span
                 class="mention resource inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground cursor-default"
@@ -229,7 +229,7 @@ describe("MessageContent rendering", () => {
           content="[object Object]"
           contentasmarkdownstring="[file:///path/to/file.md](tambo-resource://file%3A%2F%2F%2Fpath%2Fto%2Ffile.md)"
         >
-          <div class="space-y-4 whitespace-normal">
+          <div class="space-y-4 whitespace-normal *:first:mt-0 *:last:mb-0">
             <p class="my-0">
               <span
                 class="mention resource inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground cursor-default"
@@ -273,7 +273,7 @@ describe("MessageContent rendering", () => {
           content="[object Object]"
           contentasmarkdownstring="[special file](tambo-resource://file%3A%2F%2F%2Fpath%2Fwith%20spaces%2Fand%23special%26chars.txt)"
         >
-          <div class="space-y-4 whitespace-normal">
+          <div class="space-y-4 whitespace-normal *:first:mt-0 *:last:mb-0">
             <p class="my-0">
               <span
                 class="mention resource inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground cursor-default"
@@ -320,7 +320,7 @@ describe("MessageContent rendering", () => {
           content="[object Object],[object Object]"
           contentasmarkdownstring="Check out this file: [readme.md](tambo-resource://file%3A%2F%2F%2Fdocs%2Freadme.md)"
         >
-          <div class="space-y-4 whitespace-normal">
+          <div class="space-y-4 whitespace-normal *:first:mt-0 *:last:mb-0">
             <p class="my-0">
               Check out this file:
               <span
@@ -366,7 +366,7 @@ describe("MessageContent rendering", () => {
           content="[object Object],[object Object]"
           contentasmarkdownstring="[config.json](tambo-resource://file%3A%2F%2F%2Fconfig.json) contains the settings you need."
         >
-          <div class="space-y-4 whitespace-normal">
+          <div class="space-y-4 whitespace-normal *:first:mt-0 *:last:mb-0">
             <p class="my-0">
               <span
                 class="mention resource inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground cursor-default"
@@ -421,7 +421,7 @@ describe("MessageContent rendering", () => {
           content="[object Object],[object Object],[object Object],[object Object],[object Object]"
           contentasmarkdownstring="Compare [old.ts](tambo-resource://file%3A%2F%2F%2Fold.ts) with [new.ts](tambo-resource://file%3A%2F%2F%2Fnew.ts) for the differences."
         >
-          <div class="space-y-4 whitespace-normal">
+          <div class="space-y-4 whitespace-normal *:first:mt-0 *:last:mb-0">
             <p class="my-0">
               Compare
               <span
@@ -535,7 +535,7 @@ describe("MessageContent rendering", () => {
           content="[object Object],[object Object],[object Object]"
           contentasmarkdownstring="Before After"
         >
-          <div class="space-y-4 whitespace-normal">
+          <div class="space-y-4 whitespace-normal *:first:mt-0 *:last:mb-0">
             <p class="my-0">
               Before After
             </p>
@@ -567,7 +567,7 @@ describe("MessageContent rendering", () => {
           content="Plain string content"
           contentasmarkdownstring="Plain string content"
         >
-          <div class="space-y-4 whitespace-normal">
+          <div class="space-y-4 whitespace-normal *:first:mt-0 *:last:mb-0">
             <p class="my-0">
               Plain string content
             </p>
@@ -602,7 +602,7 @@ describe("MessageContent rendering", () => {
           content="[object Object]"
           contentasmarkdownstring="Check out [Google](https://google.com)"
         >
-          <div class="space-y-4 whitespace-normal">
+          <div class="space-y-4 whitespace-normal *:first:mt-0 *:last:mb-0">
             <p class="my-0">
               Check out
               <a
