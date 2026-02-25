@@ -50,6 +50,7 @@ interface StreamingState {
   runId?: string;
   messageId?: string;
   startTime?: number;
+  reasoningStartTime?: number;
   error?: {
     message: string;
     code?: string;
@@ -59,17 +60,18 @@ interface StreamingState {
 
 ## Message Types
 
-### TamboMessage
+### TamboThreadMessage
 
 A message in a thread, containing an array of content blocks.
 
 ```typescript
-interface TamboMessage {
+interface TamboThreadMessage {
   id: string;
   role: MessageRole;
   content: Content[];
   createdAt?: string;
   metadata?: Record<string, unknown>;
+  parentMessageId?: string;
   reasoning?: string[];
   reasoningDurationMS?: number;
 }
@@ -77,6 +79,7 @@ interface TamboMessage {
 
 | Property              | Type       | Description                                                                                           |
 | --------------------- | ---------- | ----------------------------------------------------------------------------------------------------- |
+| `parentMessageId`     | `string`   | ID of the parent message, if created during generation of another message (e.g., MCP sampling).       |
 | `reasoning`           | `string[]` | Reasoning chunks from the model. Transient — only present during streaming, not persisted to the API. |
 | `reasoningDurationMS` | `number`   | Duration of the reasoning phase in milliseconds, for display purposes.                                |
 
@@ -95,8 +98,8 @@ Messages contain an array of typed content blocks:
 ```typescript
 type Content =
   | TextContent
-  | ComponentContent
-  | ToolUseContent
+  | TamboComponentContent
+  | TamboToolUseContent
   | ToolResultContent
   | ResourceContent;
 ```
@@ -112,12 +115,12 @@ interface TextContent {
 }
 ```
 
-#### ComponentContent
+#### TamboComponentContent
 
-A rendered component with streaming state.
+A rendered component with streaming state. Extends the base `ComponentContent` from the SDK with computed properties.
 
 ```typescript
-interface ComponentContent {
+interface TamboComponentContent {
   type: "component";
   id: string;
   name: string;
@@ -129,12 +132,12 @@ interface ComponentContent {
 
 The `renderedComponent` property contains the pre-rendered React element for the component, looked up from the registry.
 
-#### ToolUseContent
+#### TamboToolUseContent
 
-A tool invocation with display metadata.
+A tool invocation with display metadata. Extends the base `ToolUseContent` from the SDK with computed properties populated by `useTambo()`.
 
 ```typescript
-interface ToolUseContent {
+interface TamboToolUseContent {
   type: "tool_use";
   id: string;
   name: string;
@@ -156,7 +159,6 @@ Display properties extracted from tool inputs.
 
 ```typescript
 interface TamboToolDisplayProps {
-  _tambo_displayMessage?: string;
   _tambo_statusMessage?: string;
   _tambo_completionStatusMessage?: string;
 }
@@ -199,28 +201,29 @@ interface TamboComponent {
   name: string;
   description: string;
   component: ComponentType<any>;
-  propsSchema: Record<string, unknown>;
-  stateSchema?: Record<string, unknown>;
-  initialState?: () => Record<string, unknown>;
+  propsSchema?: SupportedSchema;
+  loadingComponent?: ComponentType<any>;
+  associatedTools?: TamboTool[];
+  annotations?: ToolAnnotations;
 }
 ```
 
 ### Properties
 
-| Property       | Type            | Required | Description                         |
-| -------------- | --------------- | -------- | ----------------------------------- |
-| `name`         | `string`        | Yes      | Unique identifier for the component |
-| `description`  | `string`        | Yes      | Description for AI understanding    |
-| `component`    | `ComponentType` | Yes      | The React component to render       |
-| `propsSchema`  | `object`        | Yes      | JSON Schema for component props     |
-| `stateSchema`  | `object`        | No       | JSON Schema for component state     |
-| `initialState` | `() => object`  | No       | Factory function for initial state  |
+| Property           | Type              | Required | Description                                                        |
+| ------------------ | ----------------- | -------- | ------------------------------------------------------------------ |
+| `name`             | `string`          | Yes      | Unique identifier for the component                                |
+| `description`      | `string`          | Yes      | Description for AI understanding                                   |
+| `component`        | `ComponentType`   | Yes      | The React component to render                                      |
+| `propsSchema`      | `SupportedSchema` | No       | Schema for component props (Zod, Valibot, ArkType, or JSON Schema) |
+| `loadingComponent` | `ComponentType`   | No       | Component to render while the component is loading                 |
+| `associatedTools`  | `TamboTool[]`     | No       | Tools associated with this component                               |
+| `annotations`      | `ToolAnnotations` | No       | Behavior annotations (see [ToolAnnotations](#toolannotations))     |
 
 ### Example Registration
 
 ```typescript
 import { z } from "zod";
-import { zodToJsonSchema } from "zod-to-json-schema";
 
 const WeatherCardSchema = z.object({
   city: z.string().describe("The city name"),
@@ -233,7 +236,7 @@ const components: TamboComponent[] = [
     name: "WeatherCard",
     description: "Displays current weather for a city",
     component: WeatherCard,
-    propsSchema: zodToJsonSchema(WeatherCardSchema),
+    propsSchema: WeatherCardSchema,
   },
 ];
 ```
@@ -248,6 +251,7 @@ The same `TamboTool` interface from the base SDK is used.
 interface TamboTool {
   name: string;
   description: string;
+  title?: string;
   tool: (params: Record<string, unknown>) => unknown;
   inputSchema: SupportedSchema;
   outputSchema: SupportedSchema;
@@ -261,9 +265,10 @@ interface TamboTool {
 | -------------------- | ----------------- | -------- | -------------------------------------------------------------------------------------------------------- |
 | `name`               | `string`          | Yes      | Unique identifier for the tool                                                                           |
 | `description`        | `string`          | Yes      | Description for AI understanding                                                                         |
+| `title`              | `string`          | No       | Optional human-readable name for display purposes                                                        |
 | `tool`               | `function`        | Yes      | The tool implementation function                                                                         |
 | `inputSchema`        | `SupportedSchema` | Yes      | Schema for tool input parameters                                                                         |
-| `outputSchema`       | `SupportedSchema` | Yes      | Schema for tool output                                                                                   |
+| `outputSchema`       | `SupportedSchema` | Yes      | Schema for tool output (informational, not validated at runtime)                                         |
 | `maxCalls`           | `number`          | No       | Maximum times this tool can be called in a single response. Overrides the project-level tool call limit. |
 | `annotations`        | `ToolAnnotations` | No       | Behavior annotations (see [ToolAnnotations](#toolannotations))                                           |
 | `transformToContent` | `function`        | No       | Transform tool result into content parts for richer display                                              |
@@ -272,7 +277,7 @@ interface TamboTool {
 
 ### TamboCustomEvent
 
-Custom events emitted during streaming.
+Custom events emitted during streaming. Each event uses an envelope pattern with a `name` string and a `value` object containing the payload.
 
 ```typescript
 type TamboCustomEvent =
@@ -280,7 +285,8 @@ type TamboCustomEvent =
   | ComponentPropsDeltaEvent
   | ComponentStateDeltaEvent
   | ComponentEndEvent
-  | RunAwaitingInputEvent;
+  | RunAwaitingInputEvent
+  | MessageParentEvent;
 ```
 
 #### ComponentStartEvent
@@ -288,11 +294,14 @@ type TamboCustomEvent =
 Emitted when component rendering begins.
 
 ```typescript
-interface ComponentStartEvent {
+type ComponentStartEvent = {
   name: "tambo.component.start";
-  componentId: string;
-  componentName: string;
-}
+  value: {
+    messageId: string;
+    componentId: string;
+    componentName: string;
+  };
+};
 ```
 
 #### ComponentPropsDeltaEvent
@@ -300,11 +309,13 @@ interface ComponentStartEvent {
 Emitted when component props are updated (JSON Patch format).
 
 ```typescript
-interface ComponentPropsDeltaEvent {
+type ComponentPropsDeltaEvent = {
   name: "tambo.component.props_delta";
-  componentId: string;
-  delta: JsonPatchOperation[];
-}
+  value: {
+    componentId: string;
+    operations: Operation[];
+  };
+};
 ```
 
 #### ComponentStateDeltaEvent
@@ -312,11 +323,13 @@ interface ComponentPropsDeltaEvent {
 Emitted when component state is updated (JSON Patch format).
 
 ```typescript
-interface ComponentStateDeltaEvent {
+type ComponentStateDeltaEvent = {
   name: "tambo.component.state_delta";
-  componentId: string;
-  delta: JsonPatchOperation[];
-}
+  value: {
+    componentId: string;
+    operations: Operation[];
+  };
+};
 ```
 
 #### ComponentEndEvent
@@ -324,21 +337,51 @@ interface ComponentStateDeltaEvent {
 Emitted when component rendering completes.
 
 ```typescript
-interface ComponentEndEvent {
+type ComponentEndEvent = {
   name: "tambo.component.end";
-  componentId: string;
-}
+  value: {
+    componentId: string;
+  };
+};
 ```
 
 #### RunAwaitingInputEvent
 
-Emitted when the run is waiting for tool execution.
+Emitted when the run is waiting for client-side tool execution.
 
 ```typescript
-interface RunAwaitingInputEvent {
+type RunAwaitingInputEvent = {
   name: "tambo.run.awaiting_input";
-  toolCalls: ToolCall[];
+  value: {
+    pendingToolCalls: PendingToolCall[];
+  };
+};
+```
+
+#### PendingToolCall
+
+Information about a tool call awaiting execution.
+
+```typescript
+interface PendingToolCall {
+  toolCallId: string;
+  toolName: string;
+  arguments: string;
 }
+```
+
+#### MessageParentEvent
+
+Emitted when a message was created during the generation of another message (e.g., MCP sampling or elicitation).
+
+```typescript
+type MessageParentEvent = {
+  name: "tambo.message.parent";
+  value: {
+    messageId: string;
+    parentMessageId: string;
+  };
+};
 ```
 
 ### Type Guards
@@ -446,6 +489,77 @@ type ToolAnnotations = MCPToolAnnotations & {
 | `tamboStreamableHint` | `boolean` | When `true`, the tool can be called with partially-streamed arguments as they arrive. Use for read-only tools without side effects. |
 
 `ToolAnnotations` can be set on both `TamboTool` and `TamboComponent` via the `annotations` property.
+
+## Interactable Types
+
+### InteractableConfig
+
+Configuration passed to `withTamboInteractable()` to make a component interactable.
+
+```typescript
+interface InteractableConfig<
+  Props = Record<string, unknown>,
+  State = Record<string, unknown>,
+> {
+  componentName: string;
+  description: string;
+  propsSchema?: SupportedSchema<Props>;
+  stateSchema?: SupportedSchema<State>;
+  annotations?: ToolAnnotations;
+}
+```
+
+| Property        | Type              | Required | Description                                      |
+| --------------- | ----------------- | -------- | ------------------------------------------------ |
+| `componentName` | `string`          | Yes      | Name used for identification in Tambo            |
+| `description`   | `string`          | Yes      | Description of the component for the AI          |
+| `propsSchema`   | `SupportedSchema` | No       | Schema for validating prop updates               |
+| `stateSchema`   | `SupportedSchema` | No       | Schema for validating state updates              |
+| `annotations`   | `ToolAnnotations` | No       | Annotations for the auto-registered update tools |
+
+### WithTamboInteractableProps
+
+Props injected by `withTamboInteractable()` that can be passed to the wrapped component.
+
+```typescript
+interface WithTamboInteractableProps {
+  interactableId?: string;
+  onInteractableReady?: (id: string) => void;
+  onPropsUpdate?: (newProps: Record<string, unknown>) => void;
+}
+```
+
+| Property              | Type                                          | Description                                         |
+| --------------------- | --------------------------------------------- | --------------------------------------------------- |
+| `interactableId`      | `string`                                      | Optional custom ID (auto-generated if not provided) |
+| `onInteractableReady` | `(id: string) => void`                        | Called when the component is registered             |
+| `onPropsUpdate`       | `(newProps: Record<string, unknown>) => void` | Called when Tambo updates the component's props     |
+
+## Image Types
+
+### StagedImage
+
+Represents an image staged for upload in message input.
+
+```typescript
+interface StagedImage {
+  id: string;
+  name: string;
+  dataUrl: string;
+  file: File;
+  size: number;
+  type: string;
+}
+```
+
+| Property  | Type     | Description                     |
+| --------- | -------- | ------------------------------- |
+| `id`      | `string` | Unique identifier               |
+| `name`    | `string` | File name                       |
+| `dataUrl` | `string` | Base64 data URL for preview     |
+| `file`    | `File`   | Original File object            |
+| `size`    | `number` | File size in bytes              |
+| `type`    | `string` | MIME type (e.g., `"image/png"`) |
 
 ## Re-exported Types
 

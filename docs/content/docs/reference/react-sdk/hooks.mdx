@@ -54,7 +54,7 @@ function Chat() {
 | Value             | Type                       | Description                                                      |
 | ----------------- | -------------------------- | ---------------------------------------------------------------- |
 | `thread`          | `ThreadState \| undefined` | Current thread state including messages and metadata             |
-| `messages`        | `TamboMessage[]`           | Array of messages in the current thread with computed properties |
+| `messages`        | `TamboThreadMessage[]`     | Array of messages in the current thread with computed properties |
 | `currentThreadId` | `string`                   | ID of the currently active thread                                |
 
 #### Streaming Status
@@ -74,11 +74,12 @@ function Chat() {
 
 #### Thread Management
 
-| Value            | Type                                                               | Description                                     |
-| ---------------- | ------------------------------------------------------------------ | ----------------------------------------------- |
-| `initThread`     | `(threadId: string, initialThread?: Partial<TamboThread>) => void` | Initialize a thread with optional initial state |
-| `switchThread`   | `(threadId: string) => void`                                       | Switch to a different thread by ID              |
-| `startNewThread` | `() => string`                                                     | Create a new thread and return its ID           |
+| Value              | Type                                                               | Description                                     |
+| ------------------ | ------------------------------------------------------------------ | ----------------------------------------------- |
+| `initThread`       | `(threadId: string, initialThread?: Partial<TamboThread>) => void` | Initialize a thread with optional initial state |
+| `switchThread`     | `(threadId: string) => void`                                       | Switch to a different thread by ID              |
+| `startNewThread`   | `() => string`                                                     | Create a new thread and return its ID           |
+| `updateThreadName` | `(threadId: string, name: string) => Promise<void>`                | Update a thread's display name                  |
 
 #### Registry
 
@@ -140,6 +141,7 @@ function MessageInput() {
     clearImages,
     threadId,
     isPending,
+    isDisabled,
     isError,
     error,
   } = useTamboThreadInput();
@@ -160,6 +162,7 @@ function MessageInput() {
 | `clearImages` | `() => void`                                                              | Clear all staged images                                                                  |
 | `threadId`    | `string \| undefined`                                                     | Current thread ID                                                                        |
 | `isPending`   | `boolean`                                                                 | `true` while submission is in progress                                                   |
+| `isDisabled`  | `boolean`                                                                 | `true` when input should be disabled (pending submission or not authenticated)           |
 | `isError`     | `boolean`                                                                 | `true` if submission failed                                                              |
 | `error`       | `Error \| null`                                                           | Error details if submission failed                                                       |
 
@@ -459,43 +462,199 @@ const result = useTamboSuggestions({
 | `suggestion`   | `Suggestion` | The suggestion to accept           |
 | `shouldSubmit` | `boolean`    | Submit immediately after accepting |
 
-## useTamboSendMessage
+## useTamboInteractable
 
-Low-level hook for sending messages with streaming. Most applications should use `useTamboThreadInput` instead.
+Manages the registry of interactable components — components already placed in your UI that the AI can update. Provides functions to add, remove, update, query, and select interactable components.
 
 ```tsx
-import { useTamboSendMessage } from "@tambo-ai/react";
+import { useTamboInteractable } from "@tambo-ai/react";
 
-function CustomSendButton({ threadId }: { threadId: string }) {
-  const { mutate, isPending } = useTamboSendMessage(threadId);
+function InteractableManager() {
+  const {
+    interactableComponents,
+    addInteractableComponent,
+    removeInteractableComponent,
+    updateInteractableComponentProps,
+    getInteractableComponent,
+    getInteractableComponentsByName,
+    clearAllInteractableComponents,
+    setInteractableState,
+    getInteractableComponentState,
+    setInteractableSelected,
+    clearInteractableSelections,
+  } = useTamboInteractable();
+}
+```
 
-  const handleSend = () => {
-    mutate({
-      message: {
-        role: "user",
-        content: [{ type: "text", text: "Hello!" }],
-      },
-      userMessageText: "Hello!", // For optimistic UI
-    });
-  };
+### Return Values
+
+| Value                              | Type                                                                           | Description                                     |
+| ---------------------------------- | ------------------------------------------------------------------------------ | ----------------------------------------------- |
+| `interactableComponents`           | `TamboInteractableComponent[]`                                                 | All registered interactable components          |
+| `addInteractableComponent`         | `(component: Omit<TamboInteractableComponent, "id" \| "createdAt">) => string` | Register a component, returns its generated ID  |
+| `removeInteractableComponent`      | `(id: string) => void`                                                         | Remove a component by ID                        |
+| `updateInteractableComponentProps` | `(id: string, newProps: Record<string, unknown>) => string`                    | Partially update a component's props            |
+| `getInteractableComponent`         | `(id: string) => TamboInteractableComponent \| undefined`                      | Get a component by ID                           |
+| `getInteractableComponentsByName`  | `(name: string) => TamboInteractableComponent[]`                               | Get all components matching a name              |
+| `clearAllInteractableComponents`   | `() => void`                                                                   | Remove all interactable components              |
+| `setInteractableState`             | `(componentId: string, key: string, value: unknown) => void`                   | Set a single state key on a component           |
+| `getInteractableComponentState`    | `(componentId: string) => Record<string, unknown> \| undefined`                | Get a component's state                         |
+| `setInteractableSelected`          | `(componentId: string, isSelected: boolean) => void`                           | Mark a component as selected for AI interaction |
+| `clearInteractableSelections`      | `() => void`                                                                   | Clear all component selections                  |
+
+> Most applications use `withTamboInteractable()` instead of calling this hook directly. The HOC handles registration and cleanup automatically.
+
+## useCurrentInteractablesSnapshot
+
+Returns a cloned snapshot of all currently registered interactable components. The snapshot is safe to mutate without affecting internal state.
+
+```tsx
+import { useCurrentInteractablesSnapshot } from "@tambo-ai/react";
+
+function InteractablesList() {
+  const interactables = useCurrentInteractablesSnapshot();
 
   return (
-    <button onClick={handleSend} disabled={isPending}>
-      Send
-    </button>
+    <ul>
+      {interactables.map((item) => (
+        <li key={item.id}>{item.name}</li>
+      ))}
+    </ul>
   );
 }
 ```
 
-### Parameters
+**Returns:** `TamboInteractableComponent[]` (shallow-cloned array with cloned props)
 
-| Parameter  | Type                  | Description                                  |
-| ---------- | --------------------- | -------------------------------------------- |
-| `threadId` | `string \| undefined` | Thread to send to (creates new if undefined) |
+## useTamboContextAttachment
+
+Manages context attachments — pieces of context that are automatically included with the next user message and then cleared.
+
+```tsx
+import { useTamboContextAttachment } from "@tambo-ai/react";
+
+function FileAttacher() {
+  const {
+    attachments,
+    addContextAttachment,
+    removeContextAttachment,
+    clearContextAttachments,
+  } = useTamboContextAttachment();
+
+  const attachFile = (fileContent: string, fileName: string) => {
+    addContextAttachment({
+      context: fileContent,
+      displayName: fileName,
+      type: "file",
+    });
+  };
+}
+```
 
 ### Return Values
 
-Returns a React Query `UseMutationResult`.
+| Value                     | Type                                                               | Description                               |
+| ------------------------- | ------------------------------------------------------------------ | ----------------------------------------- |
+| `attachments`             | `ContextAttachment[]`                                              | Current context attachments               |
+| `addContextAttachment`    | `(attachment: Omit<ContextAttachment, "id">) => ContextAttachment` | Add an attachment, returns it with its ID |
+| `removeContextAttachment` | `(id: string) => void`                                             | Remove an attachment by ID                |
+| `clearContextAttachments` | `() => void`                                                       | Remove all attachments                    |
+
+### ContextAttachment
+
+| Property      | Type     | Description                                     |
+| ------------- | -------- | ----------------------------------------------- |
+| `id`          | `string` | Unique identifier (auto-generated)              |
+| `context`     | `string` | The context value included in additionalContext |
+| `displayName` | `string` | Optional display name for UI rendering          |
+| `type`        | `string` | Optional type for grouping (e.g., `"file"`)     |
+
+## useTamboContextHelpers
+
+Accesses the context helpers system for managing dynamic additional context that is included with every message.
+
+```tsx
+import { useEffect } from "react";
+import { useTamboContextHelpers } from "@tambo-ai/react";
+
+function ContextManager() {
+  const { addContextHelper, removeContextHelper } = useTamboContextHelpers();
+
+  useEffect(() => {
+    addContextHelper("appState", () => ({
+      currentPage: window.location.pathname,
+      theme: "dark",
+    }));
+
+    return () => removeContextHelper("appState");
+  }, [addContextHelper, removeContextHelper]);
+}
+```
+
+### Return Values
+
+| Value                  | Type                                              | Description                                         |
+| ---------------------- | ------------------------------------------------- | --------------------------------------------------- |
+| `getAdditionalContext` | `() => Promise<AdditionalContext[]>`              | Resolve all helpers into additional context entries |
+| `getContextHelpers`    | `() => ContextHelpers`                            | Get the current context helpers map                 |
+| `addContextHelper`     | `(name: string, helper: ContextHelperFn) => void` | Register or update a context helper by name         |
+| `removeContextHelper`  | `(name: string) => void`                          | Remove a context helper by name                     |
+
+## useTamboCurrentMessage
+
+Returns the current message from the `TamboMessageProvider` context. Use this inside components rendered via the message pipeline to access the message that triggered the component.
+
+```tsx
+import { useTamboCurrentMessage } from "@tambo-ai/react";
+
+function ComponentWithMessage() {
+  const message = useTamboCurrentMessage();
+
+  return (
+    <div>
+      <p>Message ID: {message.id}</p>
+      <p>Role: {message.role}</p>
+    </div>
+  );
+}
+```
+
+**Returns:** `TamboThreadMessage` — the current message.
+
+**Throws** if used outside a `TamboMessageProvider` (i.e., outside the message rendering pipeline).
+
+## useTamboCurrentComponent
+
+Returns metadata about the current component from the message context. Works for both AI-generated components and interactable components wrapped with `withTamboInteractable`.
+
+```tsx
+import { useTamboCurrentComponent } from "@tambo-ai/react";
+
+function ComponentInfo() {
+  const component = useTamboCurrentComponent();
+
+  if (!component) return null;
+
+  return (
+    <div>
+      <p>Component: {component.componentName}</p>
+      {component.interactableId && <p>ID: {component.interactableId}</p>}
+    </div>
+  );
+}
+```
+
+### Return Values
+
+Returns `TamboCurrentComponent | null` (null if used outside `TamboMessageProvider`).
+
+| Property         | Type                      | Description                                                      |
+| ---------------- | ------------------------- | ---------------------------------------------------------------- |
+| `componentName`  | `string \| undefined`     | Component name from the message or interactable metadata         |
+| `props`          | `Record<string, unknown>` | Component props from the message content block                   |
+| `interactableId` | `string \| undefined`     | Interactable ID (only for `withTamboInteractable` components)    |
+| `description`    | `string \| undefined`     | Description (only for `withTamboInteractable` components)        |
+| `threadId`       | `string \| undefined`     | Thread ID (not available on messages directly, always undefined) |
 
 ## Re-exported Hooks
 
