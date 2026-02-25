@@ -171,8 +171,9 @@ The result of a tool execution.
 ```typescript
 interface ToolResultContent {
   type: "tool_result";
-  tool_use_id: string;
-  content: string | ContentPart[];
+  toolUseId: string;
+  content: Array<TextContent | ResourceContent>;
+  isError?: boolean;
 }
 ```
 
