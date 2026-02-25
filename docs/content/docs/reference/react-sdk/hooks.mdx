@@ -75,7 +75,7 @@ function Chat() {
 | Value            | Type                                                          | Description                                                        |
 | ---------------- | ------------------------------------------------------------- | ------------------------------------------------------------------ |
 | `authState`      | [`TamboAuthState`](/reference/react-sdk/types#tamboauthstate) | Current authentication state as a discriminated union              |
-| `isIdentified`   | `boolean`                                                     | `true` when authenticated and ready to make API calls              |
+| `isIdentified`   | `boolean`                                                     | Shorthand for `authState.status === "identified"`                  |
 
 #### Run Control
 
