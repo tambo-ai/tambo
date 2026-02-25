@@ -73,6 +73,28 @@
         "default": "./dist/cjs/reasoning-info/index.cjs"
       }
     },
+    "./thread-dropdown": {
+      "@tambo-ai/source": "./src/thread-dropdown/index.tsx",
+      "import": {
+        "types": "./dist/esm/thread-dropdown/index.d.ts",
+        "default": "./dist/esm/thread-dropdown/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/thread-dropdown/index.d.ts",
+        "default": "./dist/cjs/thread-dropdown/index.cjs"
+      }
+    },
+    "./thread-history": {
+      "@tambo-ai/source": "./src/thread-history/index.tsx",
+      "import": {
+        "types": "./dist/esm/thread-history/index.d.ts",
+        "default": "./dist/esm/thread-history/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/thread-history/index.d.ts",
+        "default": "./dist/cjs/thread-history/index.cjs"
+      }
+    },
     "./toolcall-info": {
       "@tambo-ai/source": "./src/toolcall-info/index.tsx",
       "import": {

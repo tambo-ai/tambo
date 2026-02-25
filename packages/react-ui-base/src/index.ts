@@ -67,6 +67,40 @@ export type {
   TamboEditor,
 } from "./message-input";
 
+// ThreadDropdown components
+export { ThreadDropdown } from "./thread-dropdown";
+export type {
+  ThreadDropdownContentProps,
+  ThreadDropdownContentState,
+  ThreadDropdownContextValue,
+  ThreadDropdownListItem,
+  ThreadDropdownNewThreadProps,
+  ThreadDropdownNewThreadState,
+  ThreadDropdownRootProps,
+  ThreadDropdownRootState,
+  ThreadDropdownThreadItemProps,
+  ThreadDropdownThreadItemState,
+  ThreadDropdownTriggerProps,
+  ThreadDropdownTriggerState,
+} from "./thread-dropdown";
+
+// ThreadHistory components
+export { ThreadHistory } from "./thread-history";
+export type {
+  ThreadHistoryContextValue,
+  ThreadHistoryItemProps,
+  ThreadHistoryItemState,
+  ThreadHistoryListProps,
+  ThreadHistoryListState,
+  ThreadHistoryNewThreadButtonProps,
+  ThreadHistoryNewThreadButtonState,
+  ThreadHistoryRootProps,
+  ThreadHistoryRootState,
+  ThreadHistorySearchProps,
+  ThreadHistorySearchState,
+  ThreadListItem,
+} from "./thread-history";
+
 // ReasoningInfo components
 export { ReasoningInfo } from "./reasoning-info";
 export type {
