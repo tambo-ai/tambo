@@ -6,6 +6,8 @@
     "elicitation",
     "message",
     "toolcall-info",
-    "reasoning-info"
+    "reasoning-info",
+    "thread-history",
+    "thread-dropdown"
   ]
 }
