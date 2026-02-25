@@ -439,6 +439,7 @@ export const Map = React.forwardRef<HTMLDivElement, MapProps>(
             spiderfyDistanceMultiplier={1.5}
             iconCreateFunction={(cluster: L.MarkerCluster) => {
               const count = cluster.getChildCount();
+              // <10 => small/blue; 10-99 => medium/orange; >=100 => large/red
               let size: "small" | "medium" | "large" = "small";
               let colorClass = "bg-blue-500";
 
