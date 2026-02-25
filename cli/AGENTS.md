@@ -126,10 +126,25 @@ Override with `FORCE_INTERACTIVE=1` if needed (requires real TTY).
 
 - `src/cli.ts` - Main CLI entry point with command routing
 - `src/commands/add/` - Component installation logic
+- `src/lib/telemetry.ts` - Anonymous telemetry via `posthog-node` SDK
+- `src/lib/paths.ts` - XDG-compliant directory resolution (shared by telemetry + token-storage)
 - `scripts/copy-registry.ts` - Prebuild script that copies registry from ui-registry package
 - `dist/registry/` - Built registry files (copied from `packages/ui-registry/src/`)
 - `src/constants/` - Shared constants and paths
 - `src/templates/` - Project templates
+
+## Telemetry
+
+Usage analytics. If logged in, the user's Tambo ID is attached to events.
+
+- **Opt-out**: `TAMBO_TELEMETRY_DISABLED=1`
+- **How it works**: Uses the `posthog-node` SDK. Events are sent directly to PostHog (`us.i.posthog.com`) via `client.capture()`, and `await client.shutdown()` is called before the CLI exits to flush pending events. If the user is logged in, their Tambo user ID is used as the distinct ID.
+- **Adding a new event**:
+  1. Add the event name to `EVENTS` in `src/lib/telemetry.ts`
+  2. Call `trackEvent(EVENTS.NEW_EVENT, { ... })` in the command handler
+  3. New properties are passed through automatically (no server-side allowlist)
+- **Dev override**: Set `TAMBO_TELEMETRY_HOST` to point at a different PostHog-compatible ingest endpoint.
+- **Current events**: `cli.command.completed`, `cli.command.error`, `cli.component.added`, `cli.init.completed`, `cli.auth.login`, `cli.auth.logout`
 
 ## Development Patterns
 
