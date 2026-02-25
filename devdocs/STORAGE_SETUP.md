@@ -122,8 +122,8 @@ Supabase provides S3-compatible storage but requires additional configuration.
 
 ### Prerequisites
 
-- Supabase CLI installed (`npm install -g supabase`)
-- Local Supabase project initialized (`supabase init`)
+- Supabase CLI available via `npx supabase` (or install locally with `npm install supabase --save-dev`)
+- Local Supabase project initialized (`npx supabase init`)
 
 ### Setup
 
@@ -143,8 +143,8 @@ enabled = true
 2. Restart Supabase:
 
 ```bash
-supabase stop
-supabase start
+npx supabase stop
+npx supabase start
 ```
 
 3. Note the S3 credentials from the output:
@@ -284,15 +284,15 @@ Enable the S3 protocol in `supabase/config.toml`:
 enabled = true
 ```
 
-Then restart Supabase (`supabase stop && supabase start`).
+Then restart Supabase (`npx supabase stop && npx supabase start`).
 
 ### Port conflicts with multiple Supabase projects
 
 If you have multiple Supabase projects, stop the conflicting one:
 
 ```bash
-supabase stop --project-id <other-project-id>
-supabase start
+npx supabase stop --project-id <other-project-id>
+npx supabase start
 ```
 
 ### Files upload but can't be retrieved
