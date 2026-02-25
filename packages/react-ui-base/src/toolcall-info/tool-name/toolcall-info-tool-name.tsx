@@ -34,7 +34,6 @@ export const ToolcallInfoToolName = React.forwardRef<
     render,
     state: { slot: "toolcall-info-tool-name", toolName: toolCallRequest?.name },
     props: mergeProps(componentProps, {
-      toolName: toolCallRequest?.name,
       children: children ?? toolCallRequest?.name,
     }),
   });

@@ -21,10 +21,15 @@ export const ToolcallInfoStatusText = React.forwardRef<
     defaultTagName: "span",
     ref,
     render,
-    state: { slot: "toolcall-info-status-text" },
+    state: {
+      slot: "toolcall-info-status-text",
+      toolStatusMessage,
+    },
+    stateAttributesMapping: {
+      toolStatusMessage: () => null,
+    },
     props: mergeProps(componentProps, {
       children: children ?? toolStatusMessage,
-      toolStatusMessage,
     }),
   });
 });

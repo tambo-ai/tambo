@@ -49,6 +49,9 @@ export const ToolcallInfoContent = React.forwardRef<
     render,
     enabled: forceMount || isExpanded,
     state: renderProps,
+    stateAttributesMapping: {
+      message: () => null,
+    },
     props: mergeProps(componentProps, {
       id: detailsId,
       "data-state": isExpanded ? "open" : "closed",

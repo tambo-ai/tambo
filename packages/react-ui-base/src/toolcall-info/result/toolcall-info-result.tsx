@@ -53,6 +53,9 @@ export const ToolcallInfoResult = React.forwardRef<
     render,
     enabled: hasResult,
     state: renderProps,
+    stateAttributesMapping: {
+      content: () => null,
+    },
     props: componentProps,
   });
 });

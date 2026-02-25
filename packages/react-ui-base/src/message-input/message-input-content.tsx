@@ -63,6 +63,10 @@ export const MessageInputContent = React.forwardRef<
     render,
     enabled: !hidden || keepMounted,
     state: renderProps,
+    stateAttributesMapping: {
+      elicitation: () => null,
+      resolveElicitation: () => null,
+    },
     props: mergeProps(componentProps, {
       "data-dragging": isDragging || undefined,
       "data-elicitation": elicitation ? "active" : undefined,

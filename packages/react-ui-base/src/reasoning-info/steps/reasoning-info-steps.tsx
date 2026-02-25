@@ -36,6 +36,9 @@ export const ReasoningInfoSteps = React.forwardRef<
     ref,
     render,
     state: renderProps,
+    stateAttributesMapping: {
+      steps: () => null,
+    },
     props: componentProps,
   });
 });
