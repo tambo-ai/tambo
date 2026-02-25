@@ -1,3 +1,5 @@
+#!/bin/sh
+
 # Remind about uncommitted team notes changes
 REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null) || {
   echo "post-commit hook: could not determine repo root; skipping team-notes check" >&2
