@@ -93,7 +93,7 @@ npm run lint -w docs
 
 ## Implementation Tracking
 
-- **Current Status**: `Not Started`
+- **Current Status**: `Complete`
 - **Implementation PR(s)**: `TBD`
-- **Completion Date (YYYY-MM-DD)**: `TBD`
-- **Completion Notes**: `TBD`
+- **Completion Date (YYYY-MM-DD)**: `2026-02-26`
+- **Completion Notes**: Added ThreadContent headless primitives (Root, Messages, Empty, Loading) to react-ui-base. Refactored registry thread-content and control-bar to compose base primitives instead of calling Tambo hooks directly. Added thread-content docs page and tests.

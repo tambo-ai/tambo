@@ -100,6 +100,20 @@ export type {
   ThreadListItem,
 } from "./thread-history";
 
+// ThreadContent components
+export { ThreadContent } from "./thread-content";
+export type {
+  ThreadContentContextValue,
+  ThreadContentEmptyProps,
+  ThreadContentEmptyState,
+  ThreadContentLoadingProps,
+  ThreadContentLoadingState,
+  ThreadContentMessagesProps,
+  ThreadContentMessagesState,
+  ThreadContentRootProps,
+  ThreadContentRootState,
+} from "./thread-content";
+
 // ReasoningInfo components
 export { ReasoningInfo } from "./reasoning-info";
 export type {

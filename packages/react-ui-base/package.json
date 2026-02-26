@@ -84,6 +84,17 @@
         "default": "./dist/cjs/thread-dropdown/index.cjs"
       }
     },
+    "./thread-content": {
+      "@tambo-ai/source": "./src/thread-content/index.tsx",
+      "import": {
+        "types": "./dist/esm/thread-content/index.d.ts",
+        "default": "./dist/esm/thread-content/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/thread-content/index.d.ts",
+        "default": "./dist/cjs/thread-content/index.cjs"
+      }
+    },
     "./thread-history": {
       "@tambo-ai/source": "./src/thread-history/index.tsx",
       "import": {

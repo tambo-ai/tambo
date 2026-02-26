@@ -21,17 +21,17 @@ Use this table to run implementation across multiple PRs. When a phase lands, up
 
 **Status values**: `Not Started`, `In Progress`, `Completed`, `Blocked`
 
-| Phase | Spec File         | Status        | Implementation PR(s)                       | Completion Date (YYYY-MM-DD) | Notes                                                           |
-| ----- | ----------------- | ------------- | ------------------------------------------ | ---------------------------- | --------------------------------------------------------------- |
-| 0     | `spec-phase-0.md` | `Completed`   | `codex/base-ui-planning-docs-pr2`          | `2026-02-21`                 | Documentation gate, contracts, and templates landed.            |
-| 1     | `spec-phase-1.md` | `Completed`   | `codex/showcase-page-specific-suggestions` | `2026-02-21`                 | MessageInput + Elicitation primitives and docs delivered.       |
-| 2     | `spec-phase-2.md` | `In Progress` | `codex/showcase-page-specific-suggestions` | `TBD`                        | Timeline docs pages landed; behavior hardening remains.         |
-| 3     | `spec-phase-3.md` | `Completed`   | `lachieh/headless-primitives-phase-3`      | `2026-02-25`                 | ThreadHistory + ThreadDropdown primitives; registry refactored. |
-| 4     | `spec-phase-4.md` | `Not Started` | `TBD`                                      | `TBD`                        |                                                                 |
-| 5     | `spec-phase-5.md` | `Not Started` | `TBD`                                      | `TBD`                        |                                                                 |
-| 6     | `spec-phase-6.md` | `Not Started` | `TBD`                                      | `TBD`                        |                                                                 |
-| 7     | `spec-phase-7.md` | `Not Started` | `TBD`                                      | `TBD`                        |                                                                 |
-| 8     | `spec-phase-8.md` | `Not Started` | `TBD`                                      | `TBD`                        |                                                                 |
+| Phase | Spec File         | Status        | Implementation PR(s)                                | Completion Date (YYYY-MM-DD) | Notes                                                           |
+| ----- | ----------------- | ------------- | --------------------------------------------------- | ---------------------------- | --------------------------------------------------------------- |
+| 0     | `spec-phase-0.md` | `Completed`   | `codex/base-ui-planning-docs-pr2`                   | `2026-02-21`                 | Documentation gate, contracts, and templates landed.            |
+| 1     | `spec-phase-1.md` | `Completed`   | `codex/showcase-page-specific-suggestions`          | `2026-02-21`                 | MessageInput + Elicitation primitives and docs delivered.       |
+| 2     | `spec-phase-2.md` | `In Progress` | `codex/showcase-page-specific-suggestions`          | `TBD`                        | Timeline docs pages landed; behavior hardening remains.         |
+| 3     | `spec-phase-3.md` | `Completed`   | `lachieh/headless-primitives-phase-3`               | `2026-02-25`                 | ThreadHistory + ThreadDropdown primitives; registry refactored. |
+| 4     | `spec-phase-4.md` | `Completed`   | `lachieh/base-ui-phase-4-thread-blocks-and-content` | `2026-02-26`                 | ThreadContent primitives; registry + control-bar refactored.    |
+| 5     | `spec-phase-5.md` | `Not Started` | `TBD`                                               | `TBD`                        |                                                                 |
+| 6     | `spec-phase-6.md` | `Not Started` | `TBD`                                               | `TBD`                        |                                                                 |
+| 7     | `spec-phase-7.md` | `Not Started` | `TBD`                                               | `TBD`                        |                                                                 |
+| 8     | `spec-phase-8.md` | `Not Started` | `TBD`                                               | `TBD`                        |                                                                 |
 
 ## Requirements
 
