@@ -249,10 +249,10 @@ Returns a standard React Query `UseQueryResult<ThreadRetrieveResponse>`.
 The query has a `staleTime` of 1000ms by default for real-time data freshness.
 
 <Callout type="info" title="Auth-gating">
-  This hook automatically disables the query until the user is authenticated
-  (`authState.status === "identified"`). This prevents 401 errors during token
-  exchange. You can pass additional `enabled` logic via the `options` parameter
-  — both conditions must be true for the query to run.
+  This hook automatically disables the query until the user is identified
+  (`authState.status === "identified"`). While gated, React Query keeps the
+  query disabled/idle. You can add additional `enabled` logic via the `options`
+  parameter — both conditions must be true for the query to run.
 </Callout>
 
 ## useTamboThreadList
@@ -300,8 +300,8 @@ The query has a `staleTime` of 5000ms by default.
 
 <Callout type="info" title="Auth-gating">
   Like `useTamboThread`, this hook automatically disables the query until the
-  user is authenticated. You can pass additional `enabled` logic via
-  `queryOptions` — both conditions must be true for the query to run.
+  user is identified. You can add additional `enabled` logic via `queryOptions`
+  — both conditions must be true for the query to run.
 </Callout>
 
 <Callout type="info" title="Automatic userKey merging">
