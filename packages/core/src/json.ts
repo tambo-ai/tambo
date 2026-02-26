@@ -38,26 +38,53 @@ export function tryParseJsonArray(
 }
 
 /**
- * Stringify a value as JSON, but escape characters that can break out of
- * markup-like wrappers (e.g., when embedding JSON inside an XML/HTML tag).
+ * Stringify a value as JSON safe to embed in an XML/HTML element text node.
  *
  * This keeps the output valid JSON while preventing `<`, `>`, and `&` from
  * appearing literally.
+ *
+ * Not safe for embedding in attributes or script contexts.
  *
  * Throws if the value is not JSON-serializable (for example, circular
  * references).
  *
  * @param value - The value to stringify
- * @returns A JSON string safe to embed in markup-like wrappers
+ * @returns A JSON string safe to embed in an XML/HTML element text node
  */
-export function stringifyJsonForMarkup(value: unknown): string {
-  const json = JSON.stringify(value);
+export function stringifyJsonForMarkupText(value: unknown): string {
+  let json: string | undefined;
+  try {
+    json = JSON.stringify(value);
+  } catch (error) {
+    throw new Error("Value is not JSON-serializable", {
+      cause: error,
+    });
+  }
+
   if (json === undefined) {
     throw new Error("Value is not JSON-serializable");
   }
 
-  return json
-    .replaceAll("<", "\\u003c")
-    .replaceAll(">", "\\u003e")
-    .replaceAll("&", "\\u0026");
+  // Intentionally avoid String.prototype.replaceAll for runtime compatibility.
+  return json.replace(/[<>&]/g, (character) => {
+    switch (character) {
+      case "<":
+        return "\\u003c";
+      case ">":
+        return "\\u003e";
+      case "&":
+        return "\\u0026";
+      default:
+        return character;
+    }
+  });
+}
+
+/**
+ * @deprecated Use stringifyJsonForMarkupText instead.
+ * @param value - The value to stringify
+ * @returns A JSON string safe to embed in an XML/HTML element text node
+ */
+export function stringifyJsonForMarkup(value: unknown): string {
+  return stringifyJsonForMarkupText(value);
 }
