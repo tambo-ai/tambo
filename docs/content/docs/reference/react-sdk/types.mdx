@@ -105,6 +105,59 @@ function AuthAwareChat() {
 }
 ```
 
+## Configuration Types
+
+### TamboConfig
+
+Configuration interface for the Tambo provider. Passed to [`TamboProvider`](/reference/react-sdk/providers#tamboprovider) or accessed via `useTamboConfig()`.
+
+```typescript
+interface TamboConfig {
+  userKey?: string;
+  autoGenerateThreadName?: boolean;
+  autoGenerateNameThreshold?: number;
+  initialMessages?: InitialInputMessage[];
+}
+```
+
+| Property                    | Type                    | Default | Description                                                                                   |
+| --------------------------- | ----------------------- | ------- | --------------------------------------------------------------------------------------------- |
+| `userKey`                   | `string`                | —       | User key for thread ownership and scoping                                                     |
+| `autoGenerateThreadName`    | `boolean`               | `true`  | Automatically generate thread names after a threshold of messages                             |
+| `autoGenerateNameThreshold` | `number`                | `3`     | Message count at which thread name auto-generation triggers                                   |
+| `initialMessages`           | `InitialInputMessage[]` | —       | Initial messages to seed new threads with (displayed immediately, sent on first user message) |
+
+### InitialInputMessage
+
+Message type for seeding new threads with system or assistant messages. Re-exported from `@tambo-ai/typescript-sdk`.
+
+```typescript
+type InitialInputMessage = {
+  role: "system" | "assistant";
+  content: string;
+};
+```
+
+#### Example: Seeding a Thread
+
+```tsx
+import { TamboProvider } from "@tambo-ai/react";
+
+function App() {
+  return (
+    <TamboProvider
+      apiKey="your-api-key"
+      initialMessages={[
+        { role: "system", content: "You are a helpful cooking assistant." },
+        { role: "assistant", content: "What would you like to cook today?" },
+      ]}
+    >
+      <Chat />
+    </TamboProvider>
+  );
+}
+```
+
 ## Message Types
 
 ### TamboThreadMessage
@@ -595,6 +648,31 @@ type ToolAnnotations = MCPToolAnnotations & {
 
 ## Interactable Types
 
+### TamboInteractableComponent
+
+Represents a registered interactable component instance. Extends [`TamboComponent`](#tambocomponent) with instance-specific state. Also exported as `InteractableComponent`.
+
+```typescript
+interface TamboInteractableComponent<
+  Props = Record<string, unknown>,
+  State = Record<string, unknown>,
+> extends TamboComponent {
+  id: string;
+  props: Props;
+  isSelected?: boolean;
+  state?: State;
+  stateSchema?: SupportedSchema<State>;
+}
+```
+
+| Property      | Type              | Required | Description                                                          |
+| ------------- | ----------------- | -------- | -------------------------------------------------------------------- |
+| `id`          | `string`          | Yes      | Unique identifier for this component instance                        |
+| `props`       | `Props`           | Yes      | Current props for the component                                      |
+| `isSelected`  | `boolean`         | No       | Whether the component is selected for AI interaction on next message |
+| `state`       | `State`           | No       | Current state for the component                                      |
+| `stateSchema` | `SupportedSchema` | No       | Schema for validating state updates                                  |
+
 ### InteractableConfig
 
 Configuration passed to `withTamboInteractable()` to make a component interactable.
@@ -664,9 +742,41 @@ interface StagedImage {
 | `size`    | `number` | File size in bytes              |
 | `type`    | `string` | MIME type (e.g., `"image/png"`) |
 
+## Resource Types
+
+### ResourceSource
+
+Configuration for dynamic resource sources. Implement this interface to provide custom resources that can be listed and fetched by the SDK.
+
+```typescript
+interface ResourceSource {
+  listResources: (search?: string) => Promise<ListResourceItem[]>;
+  getResource: (
+    uri: string,
+    args?: Record<string, unknown>,
+  ) => Promise<ReadResourceResult>;
+}
+```
+
+| Property        | Type       | Description                                                       |
+| --------------- | ---------- | ----------------------------------------------------------------- |
+| `listResources` | `function` | Lists available resources, optionally filtered by a search string |
+| `getResource`   | `function` | Fetches the content of a specific resource by URI                 |
+
+<Callout type="info">
+  `getResource` may be called with URIs not previously returned by
+  `listResources`. Implementations should handle unknown URIs gracefully.
+</Callout>
+
 ## Re-exported Types
 
 The following types are re-exported from the base SDK for convenience:
+
+### Hook & Provider Types
+
+- `UseTamboReturn` - Return type of [`useTambo()`](/reference/react-sdk/hooks#usetambo)
+- `TamboConfig` - Provider configuration interface
+- `TamboThreadInputContextProps` - Context interface for [`useTamboThreadInput()`](/reference/react-sdk/hooks#usetambothreadinput)
 
 ### Component & Tool Types
 
@@ -674,6 +784,8 @@ The following types are re-exported from the base SDK for convenience:
 - `TamboTool` - Tool definition interface
 - `ComponentRegistry` - Map of registered components
 - `ParameterSpec` - Parameter specification
+- `InteractableComponent` - Alias for `TamboInteractableComponent`
+- `TamboInteractableContext` - Full interactable registry context (see [`useTamboInteractable()`](/reference/react-sdk/hooks#usetambointeractable))
 
 ### Context Types
 
@@ -688,13 +800,14 @@ The following types are re-exported from the base SDK for convenience:
 - `NormalizedMcpServerInfo` - Processed server info
 - `ReadResourceResult` - Resource read result
 - `ListResourceItem` - Resource list item
-- `ResourceSource` - Resource source interface
 
 ### SDK Types
 
 - `Suggestion` - AI-generated suggestion
 - `SuggestionGenerateParams` - Suggestion generation parameters
 - `SuggestionGenerateResponse` - Suggestion generation response
+- `SuggestionListResponse` - Suggestion list response
+- `InitialInputMessage` - Initial message for seeding threads
 
 ### Error Types
 
