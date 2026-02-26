@@ -665,9 +665,9 @@ type ToolAnnotations = MCPToolAnnotations & {
 
 ## Interactable Types
 
-### TamboInteractableComponent
+### InteractableComponent
 
-Represents a registered interactable component instance. Extends [`TamboComponent`](#tambocomponent) with instance-specific state. Also exported as `InteractableComponent`.
+Represents a registered interactable component instance. Extends [`TamboComponent`](#tambocomponent) with instance-specific state. The internal type name is `TamboInteractableComponent`.
 
 ```typescript
 interface TamboInteractableComponent<
@@ -682,13 +682,13 @@ interface TamboInteractableComponent<
 }
 ```
 
-| Property      | Type              | Required | Description                                                          |
-| ------------- | ----------------- | -------- | -------------------------------------------------------------------- |
-| `id`          | `string`          | Yes      | Unique identifier for this component instance                        |
-| `props`       | `Props`           | Yes      | Current props for the component                                      |
-| `isSelected`  | `boolean`         | No       | Whether the component is selected for AI interaction on next message |
-| `state`       | `State`           | No       | Current state for the component                                      |
-| `stateSchema` | `SupportedSchema` | No       | Schema for validating state updates                                  |
+| Property      | Type                     | Required | Description                                                          |
+| ------------- | ------------------------ | -------- | -------------------------------------------------------------------- |
+| `id`          | `string`                 | Yes      | Unique identifier for this component instance                        |
+| `props`       | `Props`                  | Yes      | Current props for the component                                      |
+| `isSelected`  | `boolean`                | No       | Whether the component is selected for AI interaction on next message |
+| `state`       | `State`                  | No       | Current state for the component                                      |
+| `stateSchema` | `SupportedSchema<State>` | No       | Schema for validating state updates                                  |
 
 ### InteractableConfig
 
@@ -707,13 +707,13 @@ interface InteractableConfig<
 }
 ```
 
-| Property        | Type              | Required | Description                                      |
-| --------------- | ----------------- | -------- | ------------------------------------------------ |
-| `componentName` | `string`          | Yes      | Name used for identification in Tambo            |
-| `description`   | `string`          | Yes      | Description of the component for the AI          |
-| `propsSchema`   | `SupportedSchema` | No       | Schema for validating prop updates               |
-| `stateSchema`   | `SupportedSchema` | No       | Schema for validating state updates              |
-| `annotations`   | `ToolAnnotations` | No       | Annotations for the auto-registered update tools |
+| Property        | Type                     | Required | Description                                      |
+| --------------- | ------------------------ | -------- | ------------------------------------------------ |
+| `componentName` | `string`                 | Yes      | Name used for identification in Tambo            |
+| `description`   | `string`                 | Yes      | Description of the component for the AI          |
+| `propsSchema`   | `SupportedSchema<Props>` | No       | Schema for validating prop updates               |
+| `stateSchema`   | `SupportedSchema<State>` | No       | Schema for validating state updates              |
+| `annotations`   | `ToolAnnotations`        | No       | Annotations for the auto-registered update tools |
 
 ### WithTamboInteractableProps
 
