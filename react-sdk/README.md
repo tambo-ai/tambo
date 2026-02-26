@@ -105,7 +105,7 @@ function ChatInterface() {
 | [`useTamboThread()`](https://docs.tambo.co/concepts/conversation-storage)                          | Fetch a single thread by ID (React Query)                   |
 | [`useTamboThreadList()`](https://docs.tambo.co/concepts/conversation-storage)                      | Fetch thread list with filtering and pagination             |
 | [`useTamboStreamStatus()`](https://docs.tambo.co/reference/react-sdk/hooks#usetambostreamstatus)   | Monitor prop-level streaming status for progressive loading |
-| [`useTamboSuggestions()`](https://docs.tambo.co/concepts/suggestions)                              | Generate contextual suggestions                             |
+| [`useTamboSuggestions()`](https://docs.tambo.co/guides/build-interfaces/build-chat-interface)      | Generate contextual suggestions                             |
 | [`useTamboComponentState()`](https://docs.tambo.co/concepts/generative-interfaces/component-state) | Bidirectional component state synced with the backend       |
 | [`useTamboVoice()`](https://docs.tambo.co/reference/react-sdk/hooks#usetambovoice)                 | Voice input and transcription                               |
 

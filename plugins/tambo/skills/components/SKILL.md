@@ -65,7 +65,7 @@ function Message({
   message,
   threadId,
 }: {
-  message: TamboMessage;
+  message: TamboThreadMessage;
   threadId: string;
 }) {
   return (
@@ -73,7 +73,7 @@ function Message({
       {message.content.map((block) => {
         switch (block.type) {
           case "text":
-            return <p key={block.type}>{block.text}</p>;
+            return <p key={`${message.id}:text`}>{block.text}</p>;
           case "component":
             return (
               <ComponentRenderer
