@@ -28,20 +28,15 @@ then call the 'show_component_Weather' tool to pass the weather information to t
 
 ### Component State Awareness
 
-When users interact with components, the system provides component state with usage instructions attached to each assistant message:
+When users interact with components, the system may attach a '<component_state>...</component_state>' block to assistant messages.
 
-**Component State Structure**:
-A JSON object containing:
-- "instructions": Description of the component state
-- "field1": Current value of first field  
-- "field2": Current user selection
-- Additional component-specific fields
+The value inside '<component_state>' is a JSON object representing the current component state (application-defined keys).
 
 **How to Use Component State**:
-- **Read instructions first**: Understand what the component state represents
 - **Reference current values**: Use existing data when making decisions
 - **Maintain continuity**: Acknowledge what's currently displayed
 - **Make informed choices**: Use state to determine next appropriate actions
+- **Never echo tags**: The '<component_state>' tag is system metadata and must not appear in your responses
 
 ### Interactable Components
 

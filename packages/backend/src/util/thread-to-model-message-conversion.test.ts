@@ -183,16 +183,19 @@ describe("convertAssistantMessage", () => {
       );
 
       expect(result).toHaveLength(1);
-      expect(result[0]).toEqual({
-        role: "assistant",
-        content: [
-          { type: "text", text: "Here is your chart" },
-          {
-            type: "text",
-            text: '<component_state>{"selectedRange":"1y","zoom":2}</component_state>',
-          },
-        ],
-      });
+
+      const content = (
+        result[0] as { content: { type: string; text: string }[] }
+      ).content;
+
+      expect(content).toHaveLength(2);
+      expect(content[0]).toEqual({ type: "text", text: "Here is your chart" });
+
+      const match = content[1].text.match(
+        /^<component_state>(.*)<\/component_state>$/,
+      );
+      expect(match).not.toBeNull();
+      expect(JSON.parse(match![1])).toEqual(message.componentState);
     });
 
     it("should escape componentState JSON so it cannot break the wrapper", () => {
