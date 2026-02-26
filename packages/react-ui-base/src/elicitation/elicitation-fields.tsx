@@ -6,17 +6,14 @@ import type { ElicitationField as ElicitationContextField } from "./elicitation-
 import { useElicitationContext } from "./elicitation-context";
 
 export interface ElicitationFieldsState {
+  slot: string;
   single: boolean;
-}
-
-export interface ElicitationFieldsRenderProps {
   fields: ElicitationContextField[];
 }
 
 export type ElicitationFieldsProps = useRender.ComponentProps<
   "div",
-  ElicitationFieldsState,
-  ElicitationFieldsRenderProps
+  ElicitationFieldsState
 >;
 
 export type ElicitationFieldKind =
@@ -27,6 +24,7 @@ export type ElicitationFieldKind =
   | "unsupported";
 
 export interface ElicitationFieldState {
+  slot: string;
   kind: ElicitationFieldKind;
   required: boolean;
   invalid: boolean;
@@ -85,11 +83,15 @@ export const ElicitationFields = React.forwardRef<
       ElicitationFieldsState
     >,
     props: mergeProps(props, {
-      fields,
       children: children ?? defaultContent,
     }),
     state: {
+      slot: "elicitation-fields",
       single: isSingleEntry,
+      fields,
+    },
+    stateAttributesMapping: {
+      fields: () => null,
     },
   });
 });
@@ -133,7 +135,6 @@ export const ElicitationField = React.forwardRef<
       ElicitationFieldState
     >,
     props: mergeProps(props, {
-      "data-slot": "elicitation-field",
       "data-name": field.name,
       "data-kind": kind,
       "data-required": field.required || undefined,
@@ -141,6 +142,7 @@ export const ElicitationField = React.forwardRef<
       children: children ?? defaultContent,
     }),
     state: {
+      slot: "elicitation-field",
       kind,
       required: field.required,
       invalid,
@@ -156,6 +158,7 @@ export const ElicitationField = React.forwardRef<
 ElicitationField.displayName = "Elicitation.Field";
 
 export interface ElicitationFieldLabelState {
+  slot: string;
   required: boolean;
 }
 
@@ -186,10 +189,10 @@ export const ElicitationFieldLabel = React.forwardRef<
     >,
     props: mergeProps(props, {
       htmlFor: inputId,
-      "data-slot": "elicitation-field-label",
       children: children ?? `${label}${required ? "*" : ""}`,
     }),
     state: {
+      slot: "elicitation-field-label",
       required,
     },
   });
@@ -197,6 +200,7 @@ export const ElicitationFieldLabel = React.forwardRef<
 ElicitationFieldLabel.displayName = "Elicitation.FieldLabel";
 
 export interface ElicitationFieldErrorState {
+  slot: string;
   invalid: boolean;
 }
 
@@ -231,13 +235,13 @@ export const ElicitationFieldError = React.forwardRef<
     >,
     props: mergeProps(props, {
       id: errorId,
-      "data-slot": "elicitation-field-error",
       "aria-live": "polite",
       "aria-hidden": !invalid || undefined,
       hidden: keepMounted && !invalid,
       children: children ?? field.validationError,
     }),
     state: {
+      slot: "elicitation-field-error",
       invalid,
     },
   });
@@ -245,6 +249,7 @@ export const ElicitationFieldError = React.forwardRef<
 ElicitationFieldError.displayName = "Elicitation.FieldError";
 
 export interface ElicitationFieldInputState {
+  slot: string;
   kind: ElicitationFieldKind;
 }
 
@@ -282,11 +287,11 @@ export const ElicitationFieldInput = React.forwardRef<
       ElicitationFieldInputState
     >,
     props: mergeProps(props, {
-      "data-slot": "elicitation-field-control",
       "data-kind": kind,
       children: children ?? defaultContent,
     }),
     state: {
+      slot: "elicitation-field-control",
       kind,
     },
   });

@@ -1,4 +1,3 @@
-import { mergeProps } from "@base-ui/react/merge-props";
 import { useRender } from "@base-ui/react/use-render";
 import { TamboThreadMessage } from "@tambo-ai/react";
 import * as React from "react";
@@ -40,6 +39,7 @@ function getStatusText(
 }
 
 export interface ReasoningInfoRootRenderProps extends Record<string, unknown> {
+  slot: string;
   isExpanded: boolean;
   isLoading: boolean;
   statusText: string;
@@ -155,6 +155,7 @@ export const ReasoningInfoRoot = React.forwardRef<
 
     const { render, ...componentProps } = props;
     const renderProps: ReasoningInfoRootRenderProps = {
+      slot: "reasoning-info",
       isExpanded,
       isLoading: !!isLoading,
       statusText,
@@ -166,9 +167,7 @@ export const ReasoningInfoRoot = React.forwardRef<
       render,
       enabled: hasReasoning,
       state: renderProps,
-      props: mergeProps(componentProps, {
-        "data-slot": "reasoning-info",
-      }),
+      props: componentProps,
     });
 
     // Only show if there's reasoning data

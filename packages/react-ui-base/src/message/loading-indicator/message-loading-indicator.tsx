@@ -17,6 +17,7 @@ export const MessageLoadingIndicator = React.forwardRef<
     defaultTagName: "div",
     ref,
     render,
+    state: { slot: "loading-indicator" },
     props: mergeProps(componentProps, {
       children: children ?? (
         <>
@@ -25,7 +26,6 @@ export const MessageLoadingIndicator = React.forwardRef<
           <span data-dot="3" />
         </>
       ),
-      "data-slot": "loading-indicator",
     }),
   });
 });

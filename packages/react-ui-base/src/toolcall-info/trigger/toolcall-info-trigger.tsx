@@ -9,6 +9,7 @@ export interface ToolcallInfoTriggerRenderProps extends Record<
   string,
   unknown
 > {
+  slot: string;
   state: "open" | "closed";
 }
 
@@ -32,6 +33,7 @@ export const ToolcallInfoTrigger = React.forwardRef<
   };
   const { render, ...componentProps } = props;
   const renderProps: ToolcallInfoTriggerRenderProps = {
+    slot: "toolcall-info-trigger",
     state: isExpanded ? "open" : "closed",
   };
 
@@ -45,7 +47,6 @@ export const ToolcallInfoTrigger = React.forwardRef<
       "aria-expanded": isExpanded,
       "aria-controls": detailsId,
       onClick: handleClick,
-      "data-slot": "toolcall-info-trigger",
     }),
   });
 });

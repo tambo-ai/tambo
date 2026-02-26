@@ -1,5 +1,4 @@
-import { mergeProps } from "@base-ui/react/merge-props";
-import { ComponentRenderFn, useRender } from "@base-ui/react/use-render";
+import { useRender } from "@base-ui/react/use-render";
 import { TamboThreadMessage } from "@tambo-ai/react";
 import * as React from "react";
 import { checkHasContent } from "../../utils/check-has-content";
@@ -7,9 +6,10 @@ import { convertContentToMarkdown } from "../../utils/message-content";
 import { useMessageRootContext } from "../root/message-root-context";
 
 /**
- * Props passed to the renderContent callback.
+ * State passed to the render callback as the second argument.
  */
 export interface MessageContentState extends Record<string, unknown> {
+  slot: string;
   /** Whether the content is currently loading. */
   loading: boolean;
   /** Whether the message is in reasoning state. */
@@ -18,6 +18,10 @@ export interface MessageContentState extends Record<string, unknown> {
   hasContent: boolean;
   /** Whether to render the content as Markdown. */
   markdown: boolean;
+  /** The resolved content to render. */
+  content: string | TamboThreadMessage["content"];
+  /** Content rendered as single Markdown string. Undefined if renderAsMarkdown is false. */
+  contentAsMarkdownString?: string;
 }
 
 export interface MessageContentRenderProps {
@@ -26,12 +30,6 @@ export interface MessageContentRenderProps {
    */
   messageContent?: string | TamboThreadMessage["content"];
   /**
-   * Content rendered as single Markdown string. Will be undefined if content
-   * is not provided or if renderAsMarkdown is false
-   * @default false
-   */
-  contentAsMarkdownString?: string;
-  /**
    * Whether to render as Markdown.
    * @default true
    */
@@ -39,24 +37,19 @@ export interface MessageContentRenderProps {
 }
 
 export type MessageContentProps = MessageContentRenderProps &
-  useRender.ComponentProps<
-    "div",
-    MessageContentState,
-    MessageContentRenderProps
-  >;
+  useRender.ComponentProps<"div", MessageContentState>;
 
 /**
  * Content primitive for displaying message text.
  * Handles content resolution, markdown conversion, and loading state detection.
  * The actual rendering is delegated to the children render prop.
  */
-export const MessageContent = ({
-  content: contentProp,
-  renderAsMarkdown = true,
-  ...props
-}: MessageContentProps & MessageContentRenderProps) => {
+export const MessageContent = React.forwardRef<
+  HTMLDivElement,
+  MessageContentProps
+>(({ messageContent, renderAsMarkdown = true, ...props }, ref) => {
   const { message, isLoading } = useMessageRootContext();
-  const contentToRender = contentProp ?? message.content;
+  const contentToRender = messageContent ?? message.content;
 
   const contentAsMarkdownString = React.useMemo(
     () =>
@@ -73,23 +66,26 @@ export const MessageContent = ({
 
   const { render, ...componentProps } = props;
 
+  const state: MessageContentState = {
+    slot: "message-content",
+    hasContent,
+    markdown: renderAsMarkdown,
+    loading: showLoading,
+    reasoning: !!message.reasoning,
+    content: contentToRender,
+    contentAsMarkdownString,
+  };
+
   return useRender({
     defaultTagName: "div",
-    render: render as ComponentRenderFn<
-      MessageContentProps & MessageContentRenderProps,
-      MessageContentState
-    >,
-    state: {
-      hasContent,
-      markdown: renderAsMarkdown,
-      loading: showLoading,
-      reasoning: !!message.reasoning,
+    ref,
+    render,
+    state,
+    stateAttributesMapping: {
+      content: () => null,
+      contentAsMarkdownString: () => null,
     },
-    props: mergeProps(componentProps, {
-      "data-slot": "message-content",
-      content: contentToRender,
-      contentAsMarkdownString,
-    }),
+    props: componentProps,
   });
-};
+});
 MessageContent.displayName = "Message.Content";

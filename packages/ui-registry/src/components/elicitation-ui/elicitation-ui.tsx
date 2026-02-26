@@ -3,7 +3,7 @@
 import { Elicitation as ElicitationBase } from "@tambo-ai/react-ui-base/elicitation";
 import type {
   ElicitationField,
-  ElicitationFieldsRenderProps,
+  ElicitationFieldsState,
 } from "@tambo-ai/react-ui-base/elicitation";
 import type {
   TamboElicitationRequest,
@@ -271,7 +271,7 @@ export const ElicitationUI: React.FC<ElicitationUIProps> = ({
       <ElicitationBase.Message className="text-base font-semibold text-foreground" />
       <ElicitationBase.Fields
         className={fieldsStyles()}
-        render={({ fields }: ElicitationFieldsRenderProps) => {
+        render={(_props, { fields }: ElicitationFieldsState) => {
           return (
             <>
               {fields.map((field) => (

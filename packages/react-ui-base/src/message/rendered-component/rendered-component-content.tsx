@@ -8,6 +8,7 @@ export interface MessageRenderedComponentContentRenderProps extends Record<
   string,
   unknown
 > {
+  slot: string;
   renderedComponents: React.ReactNode[];
 }
 
@@ -31,6 +32,7 @@ export const MessageRenderedComponentContent = React.forwardRef<
 
   const { render, ...componentProps } = props;
   const renderProps: MessageRenderedComponentContentRenderProps = {
+    slot: "message-rendered-component-content",
     renderedComponents,
   };
 
@@ -40,9 +42,11 @@ export const MessageRenderedComponentContent = React.forwardRef<
     render,
     enabled: renderedComponents.length > 0,
     state: renderProps,
+    stateAttributesMapping: {
+      renderedComponents: () => null,
+    },
     props: mergeProps(componentProps, {
       children: renderedComponents,
-      "data-slot": "message-rendered-component-content",
     }),
   });
 });

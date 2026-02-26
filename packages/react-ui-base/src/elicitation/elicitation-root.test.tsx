@@ -154,7 +154,7 @@ describe("Elicitation.Root", () => {
     render(
       <Elicitation.Root request={request} onResponse={jest.fn()}>
         <Elicitation.Fields
-          render={({ fields }) => (
+          render={(_props, { fields }) => (
             <>
               {fields.map((field) => (
                 <Elicitation.Field key={field.name} field={field}>
@@ -187,7 +187,7 @@ describe("Elicitation.Root", () => {
     render(
       <Elicitation.Root request={request} onResponse={onResponse}>
         <Elicitation.Fields
-          render={({ fields }) => (
+          render={(_props, { fields }) => (
             <>
               {fields.map((field) => (
                 <Elicitation.Field key={field.name} field={field}>

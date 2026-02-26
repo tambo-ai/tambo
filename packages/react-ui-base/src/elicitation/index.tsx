@@ -73,7 +73,6 @@ export type {
   ElicitationFieldState,
   ElicitationFieldStringInputProps,
   ElicitationFieldsProps,
-  ElicitationFieldsRenderProps,
   ElicitationFieldsState,
 } from "./elicitation-fields";
 export { useElicitationField } from "./elicitation-fields";

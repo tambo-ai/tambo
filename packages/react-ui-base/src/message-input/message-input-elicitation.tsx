@@ -10,7 +10,10 @@ import { Elicitation } from "../elicitation";
 import { useMessageInputContext } from "./message-input-context";
 
 export interface MessageInputElicitationState {
+  slot: string;
   state: "hidden" | "visible";
+  elicitation: TamboElicitationRequest | null;
+  onResponse: ((response: TamboElicitationResponse) => void) | null;
 }
 
 export type MessageInputElicitationRenderProps = {
@@ -49,13 +52,19 @@ export const MessageInputElicitation = React.forwardRef<
       MessageInputElicitationProps,
       MessageInputElicitationState
     >,
-    state: { state: hidden ? ("hidden" as const) : ("visible" as const) },
+    state: {
+      slot: "message-input-elicitation",
+      state: hidden ? ("hidden" as const) : ("visible" as const),
+      elicitation,
+      onResponse: resolveElicitation,
+    },
+    stateAttributesMapping: {
+      elicitation: () => null,
+      onResponse: () => null,
+    },
     props: mergeProps(props, {
-      "data-slot": "message-input-elicitation",
       "aria-hidden": hidden || undefined,
       children: children ?? defaultContent,
-      elicitation: elicitation,
-      onResponse: resolveElicitation,
     }),
   });
 });

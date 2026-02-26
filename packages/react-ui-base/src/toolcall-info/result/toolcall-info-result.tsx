@@ -1,12 +1,12 @@
 "use client";
 
-import { mergeProps } from "@base-ui/react/merge-props";
 import { useRender } from "@base-ui/react/use-render";
 import type { TamboThreadMessage, ToolResultContent } from "@tambo-ai/react";
 import * as React from "react";
 import { useToolcallInfoContext } from "../root/toolcall-info-context";
 
 export interface ToolcallInfoResultRenderProps extends Record<string, unknown> {
+  slot: string;
   content: TamboThreadMessage["content"] | null;
   hasResult: boolean;
 }
@@ -42,6 +42,7 @@ export const ToolcallInfoResult = React.forwardRef<
   const { render, ...componentProps } = props;
   const hasResult = content !== null;
   const renderProps: ToolcallInfoResultRenderProps = {
+    slot: "toolcall-info-result",
     content,
     hasResult,
   };
@@ -52,9 +53,10 @@ export const ToolcallInfoResult = React.forwardRef<
     render,
     enabled: hasResult,
     state: renderProps,
-    props: mergeProps(componentProps, {
-      "data-slot": "toolcall-info-result",
-    }),
+    stateAttributesMapping: {
+      content: () => null,
+    },
+    props: componentProps,
   });
 });
 ToolcallInfoResult.displayName = "ToolcallInfo.Result";

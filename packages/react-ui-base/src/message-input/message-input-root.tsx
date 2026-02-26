@@ -47,6 +47,7 @@ const getValueFromSessionStorage = (key: string): string => {
  * Props for the MessageInput.Root component.
  */
 export interface MessageInputRootRenderProps extends Record<string, unknown> {
+  slot: string;
   isDragging: boolean;
   isSubmitting: boolean;
   hasError: boolean;
@@ -290,6 +291,7 @@ export const MessageInputRoot = React.forwardRef<
 
   const { render, ...componentProps } = props;
   const renderProps: MessageInputRootRenderProps = {
+    slot: "message-input-root",
     isDragging,
     isSubmitting,
     hasError: !!(error || submitError || imageError),
@@ -305,7 +307,6 @@ export const MessageInputRoot = React.forwardRef<
       onDragLeave: handleDragLeave,
       onDragOver: handleDragOver,
       onDrop: handleDrop,
-      "data-slot": "message-input-root",
       "data-state": isDragging ? "dragging" : undefined,
       "data-pending": isSubmitting || undefined,
     }),

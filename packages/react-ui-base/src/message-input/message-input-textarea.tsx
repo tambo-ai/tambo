@@ -23,6 +23,7 @@ import {
  * Render props for the Textarea component.
  */
 export interface MessageInputTextareaState extends Record<string, unknown> {
+  slot: string;
   /** Current input value */
   value: string;
   /** Update the input value */
@@ -130,6 +131,7 @@ export const MessageInputTextarea = React.forwardRef<
     const disabled = false;
 
     const renderProps: MessageInputTextareaState = {
+      slot: "message-input-textarea",
       value,
       setValue,
       submitMessage,
@@ -154,7 +156,6 @@ export const MessageInputTextarea = React.forwardRef<
       render,
       state: renderProps,
       props: mergeProps(componentProps, {
-        "data-slot": "message-input-textarea",
         "data-disabled": disabled || undefined,
       }),
     });

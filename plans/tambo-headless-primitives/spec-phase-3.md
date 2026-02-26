@@ -20,6 +20,7 @@ This phase moves Tambo-specific hook usage for thread control concerns into `rea
 - Keep rename UI visible and explicit with deferred backend wiring (TODO remains intentional).
 - Update registry `thread-history` and `thread-dropdown` components to compose primitives only.
 - Ensure suggestions remain caller-provided in `message-suggestions` and block entry points (no baked defaults).
+- Author Base UI-style primitive docs pages for `ThreadHistory` and `ThreadDropdown` using `spec-template-base-primitive-doc-page.md`.
 
 ### Out of Scope
 
@@ -49,6 +50,9 @@ This phase moves Tambo-specific hook usage for thread control concerns into `rea
 | `packages/ui-registry/src/components/thread-history/thread-history.tsx`           | Styled wrapper over base primitives; keep rename TODO             |
 | `packages/ui-registry/src/components/thread-dropdown/thread-dropdown.tsx`         | Styled wrapper over base primitives + shortcut wiring             |
 | `packages/ui-registry/src/components/message-suggestions/message-suggestions.tsx` | Enforce caller-provided suggestions behavior and empty-state path |
+| `docs/content/docs/reference/react-ui-base/thread-history.mdx`                    | ThreadHistory primitive docs page                                 |
+| `docs/content/docs/reference/react-ui-base/thread-dropdown.mdx`                   | ThreadDropdown primitive docs page                                |
+| `docs/content/docs/reference/react-ui-base/meta.json`                             | Add thread control primitive docs pages to section order          |
 
 ## Implementation Details
 
@@ -57,6 +61,7 @@ This phase moves Tambo-specific hook usage for thread control concerns into `rea
 3. Registry thread controls do not call Tambo hooks directly; they compose primitives and style via classes/data attributes.
 4. Rename UI remains visible with a clear TODO for backend rename API integration; no silent fallback behavior.
 5. Suggestions are only rendered when caller-provided data exists; do not inject reusable-component defaults.
+6. Docs pages follow Base UI heading structure and include runtime behavior notes and styling hooks.
 
 ## Testing Requirements
 
@@ -77,6 +82,7 @@ This phase moves Tambo-specific hook usage for thread control concerns into `rea
 - [ ] Validate rename UI presence and deferred behavior messaging.
 - [ ] Validate suggestion rendering when provided vs omitted.
 - [ ] Validate no registry thread-control component uses Tambo hooks directly.
+- [ ] Validate `thread-history` and `thread-dropdown` docs pages compile and match template structure.
 
 ## Validation Commands
 
@@ -85,6 +91,8 @@ npm run check-types -w packages/react-ui-base
 npm run test -w packages/react-ui-base -- thread-history thread-dropdown
 npm run check-types -w packages/ui-registry
 npm run test -w packages/ui-registry -- thread-history thread-dropdown message-suggestions
+npm run check-types -w docs
+npm run lint -w docs
 ```
 
 ## Implementation Tracking

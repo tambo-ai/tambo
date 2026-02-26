@@ -9,6 +9,7 @@ export interface ToolcallInfoToolNameRenderProps extends Record<
   string,
   unknown
 > {
+  slot: string;
   toolName?: string;
 }
 
@@ -31,9 +32,8 @@ export const ToolcallInfoToolName = React.forwardRef<
     defaultTagName: "span",
     ref,
     render,
+    state: { slot: "toolcall-info-tool-name", toolName: toolCallRequest?.name },
     props: mergeProps(componentProps, {
-      "data-slot": "toolcall-info-tool-name",
-      toolName: toolCallRequest?.name,
       children: children ?? toolCallRequest?.name,
     }),
   });

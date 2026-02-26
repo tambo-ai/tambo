@@ -1,6 +1,5 @@
 "use client";
 
-import { mergeProps } from "@base-ui/react/merge-props";
 import { useRender } from "@base-ui/react/use-render";
 import type { TamboThreadMessage, TamboToolUseContent } from "@tambo-ai/react";
 import { useTambo } from "@tambo-ai/react";
@@ -11,6 +10,7 @@ import { getToolStatusMessage } from "./get-tool-status-message";
 import { ToolcallInfoContext } from "./toolcall-info-context";
 
 export interface ToolcallInfoRootRenderProps extends Record<string, unknown> {
+  slot: string;
   isExpanded: boolean;
   hasToolError: boolean;
   toolStatusMessage: string;
@@ -142,6 +142,7 @@ export const ToolcallInfoRoot = React.forwardRef<
 
     const { render, ...componentProps } = props;
     const renderProps: ToolcallInfoRootRenderProps = {
+      slot: "toolcall-info",
       isExpanded,
       hasToolError,
       toolStatusMessage,
@@ -154,9 +155,7 @@ export const ToolcallInfoRoot = React.forwardRef<
       render,
       enabled: isToolCallMessage,
       state: renderProps,
-      props: mergeProps(componentProps, {
-        "data-slot": "toolcall-info",
-      }),
+      props: componentProps,
     });
 
     return (
