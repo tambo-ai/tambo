@@ -248,6 +248,13 @@ Returns a standard React Query `UseQueryResult<ThreadRetrieveResponse>`.
 
 The query has a `staleTime` of 1000ms by default for real-time data freshness.
 
+<Callout type="info" title="Auth-gating">
+  This hook automatically disables the query until the user is authenticated
+  (`authState.status === "identified"`). This prevents 401 errors during token
+  exchange. You can pass additional `enabled` logic via the `options` parameter
+  — both conditions must be true for the query to run.
+</Callout>
+
 ## useTamboThreadList
 
 React Query hook to list threads for the current user.
@@ -290,6 +297,18 @@ function ThreadSidebar() {
 Returns a standard React Query `UseQueryResult<ThreadListResponse>`.
 
 The query has a `staleTime` of 5000ms by default.
+
+<Callout type="info" title="Auth-gating">
+  Like `useTamboThread`, this hook automatically disables the query until the
+  user is authenticated. You can pass additional `enabled` logic via
+  `queryOptions` — both conditions must be true for the query to run.
+</Callout>
+
+<Callout type="info" title="Automatic userKey merging">
+  You don't need to pass `userKey` in `listOptions` — the hook automatically
+  uses the `userKey` from `TamboProvider`. If you do pass one explicitly, it
+  takes precedence over the provider value.
+</Callout>
 
 ## useTamboComponentState
 
