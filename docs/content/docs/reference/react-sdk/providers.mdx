@@ -149,20 +149,20 @@ function TestApp() {
 
 ### Props
 
-| Prop                | Type                                                        | Description                                                      |
-| ------------------- | ----------------------------------------------------------- | ---------------------------------------------------------------- |
-| `thread`            | `TamboThread \| { messages: TamboThreadMessage[] }`         | Thread data to display                                           |
-| `threadId`          | `string`                                                    | Optional thread ID (defaults to `"stub_thread"`)                 |
-| `components`        | `TamboComponent[]`                                          | Components to register                                           |
-| `tools`             | `TamboTool[]`                                               | Tools to register                                                |
-| `userKey`           | `string`                                                    | User key for the config context                                  |
-| `inputValue`        | `string`                                                    | Initial input value for the thread input (defaults to `""`)      |
-| `isStreaming`       | `boolean`                                                   | Simulate streaming state (defaults to `false`)                   |
-| `onSubmit`          | `() => Promise<{ threadId: string }>`                       | Override for the submit function (no-op by default)              |
-| `onSetValue`        | `(value: string \| ((prev: string) => string)) => void`     | Override for the setValue function                                |
-| `onStartNewThread`  | `() => string`                                              | Override for startNewThread (returns a random stub ID by default) |
-| `onSwitchThread`    | `(threadId: string \| null) => void`                        | Override for switchThread                                        |
-| `onInitThread`      | `(threadId: string) => void`                                | Override for initThread                                          |
+| Prop               | Type                                                    | Description                                                       |
+| ------------------ | ------------------------------------------------------- | ----------------------------------------------------------------- |
+| `thread`           | `TamboThread \| { messages: TamboThreadMessage[] }`     | Thread data to display                                            |
+| `threadId`         | `string`                                                | Optional thread ID (defaults to `"stub_thread"`)                  |
+| `components`       | `TamboComponent[]`                                      | Components to register                                            |
+| `tools`            | `TamboTool[]`                                           | Tools to register                                                 |
+| `userKey`          | `string`                                                | User key for the config context                                   |
+| `inputValue`       | `string`                                                | Initial input value for the thread input (defaults to `""`)       |
+| `isStreaming`      | `boolean`                                               | Simulate streaming state (defaults to `false`)                    |
+| `onSubmit`         | `() => Promise<{ threadId: string }>`                   | Override for the submit function (no-op by default)               |
+| `onSetValue`       | `(value: string \| ((prev: string) => string)) => void` | Override for the setValue function                                |
+| `onStartNewThread` | `() => string`                                          | Override for startNewThread (returns a random stub ID by default) |
+| `onSwitchThread`   | `(threadId: string \| null) => void`                    | Override for switchThread                                         |
+| `onInitThread`     | `(threadId: string) => void`                            | Override for initThread                                           |
 
 ## TamboThreadInputProvider
 
