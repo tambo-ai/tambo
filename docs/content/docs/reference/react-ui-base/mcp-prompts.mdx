@@ -1,0 +1,195 @@
+---
+title: McpPrompts
+description: Compose MCP prompt picker behavior with unstyled parts for listing, selecting, and inserting prompts.
+---
+
+# McpPrompts
+
+`McpPrompts` in `@tambo-ai/react-ui-base` owns the MCP prompt selection lifecycle — listing available prompts, fetching selected prompt content, validating format, and surfacing errors — while keeping styling in `@tambo-ai/ui-registry` or your own UI layer.
+
+## Demo
+
+### Tailwind
+
+```tsx
+import { McpPrompts } from "@tambo-ai/react-ui-base/mcp-prompts";
+
+export function DemoMcpPrompts() {
+  return (
+    <McpPrompts.Root onInsertText={(text) => console.log("Insert:", text)}>
+      <McpPrompts.Trigger className="rounded bg-blue-500 px-3 py-1 text-white">
+        Insert Prompt
+      </McpPrompts.Trigger>
+      <McpPrompts.List
+        render={(props, state) => (
+          <div {...props} className="flex flex-col gap-1">
+            {state.prompts.map((entry) => (
+              <McpPrompts.Item
+                key={entry.prompt.name}
+                name={entry.prompt.name}
+                description={entry.prompt.description}
+                className="rounded px-2 py-1 hover:bg-gray-100 data-selected:bg-blue-100"
+              >
+                {entry.prompt.name}
+              </McpPrompts.Item>
+            ))}
+          </div>
+        )}
+      />
+      <McpPrompts.Error
+        render={(props, state) => (
+          <div {...props} className="text-red-500 text-sm">
+            {state.error}
+          </div>
+        )}
+      />
+    </McpPrompts.Root>
+  );
+}
+```
+
+## Anatomy
+
+```tsx
+<McpPrompts.Root onInsertText={handleInsert}>
+  <McpPrompts.Trigger />
+  <McpPrompts.List>
+    <McpPrompts.Item name="..." />
+  </McpPrompts.List>
+  <McpPrompts.Error />
+</McpPrompts.Root>
+```
+
+## Examples
+
+### Prompt Selection Lifecycle
+
+The `Root` manages a selection lifecycle: `idle` -> `fetching` -> `done` (or `error`). When a prompt is selected via `Item`, the Root fetches the prompt content, validates it, and calls `onInsertText` with the extracted text.
+
+```tsx
+<McpPrompts.Root
+  onInsertText={(text) => {
+    setInputValue((prev) => (prev ? `${prev}\n\n${text}` : text));
+  }}
+>
+  {/* children */}
+</McpPrompts.Root>
+```
+
+### Accessing List State via Render Props
+
+Use the render prop on `List` to access the prompt collection for custom iteration:
+
+```tsx
+<McpPrompts.List
+  render={(props, state) => (
+    <ul {...props}>
+      {state.prompts.map((entry) => (
+        <li key={entry.prompt.name}>
+          <McpPrompts.Item
+            name={entry.prompt.name}
+            description={entry.prompt.description}
+          >
+            <strong>{entry.prompt.name}</strong>
+            <span>{entry.prompt.description}</span>
+          </McpPrompts.Item>
+        </li>
+      ))}
+    </ul>
+  )}
+/>
+```
+
+### Error Handling
+
+The `Error` part only renders when the selection lifecycle enters the `error` state (invalid format, no text content, or fetch failure). Errors auto-clear after 3 seconds.
+
+```tsx
+<McpPrompts.Error
+  render={(props, state) => (
+    <div {...props} role="alert" className="text-red-500">
+      {state.error}
+    </div>
+  )}
+/>
+```
+
+## API reference
+
+### Root
+
+| Prop           | Type                        | Description                                          |
+| -------------- | --------------------------- | ---------------------------------------------------- |
+| `onInsertText` | `(text: string) => void`    | Callback invoked when prompt text is ready.          |
+
+Renders nothing when no MCP prompts are available.
+
+**Render state:**
+
+| Field         | Type                                            | Description                              |
+| ------------- | ----------------------------------------------- | ---------------------------------------- |
+| `promptCount` | `number`                                        | Number of available prompts.             |
+| `isLoading`   | `boolean`                                       | Whether the prompt list is loading.      |
+| `status`      | `"idle" \| "fetching" \| "error" \| "done"`     | Current selection lifecycle status.      |
+
+### Trigger
+
+No custom props. Renders as a `<button>` disabled when no prompts are available.
+
+**Render state:**
+
+| Field        | Type      | Description                           |
+| ------------ | --------- | ------------------------------------- |
+| `hasPrompts` | `boolean` | Whether prompts are available.        |
+| `isLoading`  | `boolean` | Whether the prompt list is loading.   |
+
+### List
+
+No custom props. Provides the prompt collection through render state.
+
+**Render state:**
+
+| Field         | Type                | Description                     |
+| ------------- | ------------------- | ------------------------------- |
+| `prompts`     | `ListPromptEntry[]` | Array of available prompts.     |
+| `promptCount` | `number`            | Count of available prompts.     |
+
+### Item
+
+| Prop          | Type     | Description                               |
+| ------------- | -------- | ----------------------------------------- |
+| `name`        | `string` | The prompt name to select when clicked.   |
+| `description` | `string` | Optional description exposed via state.   |
+
+**Render state:**
+
+| Field         | Type                  | Description                              |
+| ------------- | --------------------- | ---------------------------------------- |
+| `name`        | `string`              | The prompt name.                         |
+| `description` | `string \| undefined` | The prompt description.                  |
+| `isSelected`  | `boolean`             | Whether this prompt is currently selected.|
+
+### Error
+
+No custom props. Renders only when the selection status is `"error"`.
+
+**Render state:**
+
+| Field   | Type              | Description          |
+| ------- | ----------------- | -------------------- |
+| `error` | `string \| null`  | The error message.   |
+
+## Accessibility
+
+- `Trigger` renders as `<button>` and is automatically disabled when no prompts are available.
+- `Item` renders as `<button>` with a `data-selected` attribute for the currently selected prompt.
+- Consumers should provide appropriate `aria-label` attributes on the trigger.
+
+## Styling Hooks
+
+- `data-slot="mcp-prompts"`
+- `data-slot="mcp-prompts-trigger"`
+- `data-slot="mcp-prompts-list"`
+- `data-slot="mcp-prompts-item"`
+- `data-slot="mcp-prompts-error"`
+- `data-selected` on `Item` when selected

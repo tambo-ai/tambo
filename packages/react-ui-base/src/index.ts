@@ -142,3 +142,36 @@ export type {
   ToolcallInfoToolStatus,
   ToolcallInfoTriggerProps,
 } from "./toolcall-info";
+
+// McpPrompts components
+export { McpPrompts } from "./mcp-prompts";
+export type {
+  McpPromptsContextValue,
+  McpPromptsErrorProps,
+  McpPromptsErrorState,
+  McpPromptsItemProps,
+  McpPromptsItemState,
+  McpPromptsListProps,
+  McpPromptsListState,
+  McpPromptsRootProps,
+  McpPromptsRootState,
+  McpPromptsStatus,
+  McpPromptsTriggerProps,
+  McpPromptsTriggerState,
+} from "./mcp-prompts";
+
+// McpResources components
+export { McpResources } from "./mcp-resources";
+export type {
+  McpResourcesContextValue,
+  McpResourcesItemProps,
+  McpResourcesItemState,
+  McpResourcesListProps,
+  McpResourcesListState,
+  McpResourcesRootProps,
+  McpResourcesRootState,
+  McpResourcesSearchProps,
+  McpResourcesSearchState,
+  McpResourcesTriggerProps,
+  McpResourcesTriggerState,
+} from "./mcp-resources";
