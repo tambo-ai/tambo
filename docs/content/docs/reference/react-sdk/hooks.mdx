@@ -656,6 +656,58 @@ Returns `TamboCurrentComponent | null` (null if used outside `TamboMessageProvid
 | `description`    | `string \| undefined`     | Description (only for `withTamboInteractable` components)        |
 | `threadId`       | `string \| undefined`     | Thread ID (not available on messages directly, always undefined) |
 
+## useComponentContent
+
+Returns metadata about the current component instance from the `ComponentContentProvider` context. This is a lower-level hook — `useTamboStreamStatus` uses it internally, and `useTamboComponentState` uses a non-throwing variant of the same context.
+
+Most applications should use `useTamboCurrentComponent` instead. Use this hook when you need the component's instance ID, thread ID, or message ID directly.
+
+```tsx
+import { useComponentContent } from "@tambo-ai/react";
+
+function DebugOverlay() {
+  const { componentId, threadId, messageId, componentName } =
+    useComponentContent();
+
+  return (
+    <pre>
+      {componentName} ({componentId}) in thread {threadId}
+    </pre>
+  );
+}
+```
+
+### Return Values
+
+| Value           | Type     | Description                          |
+| --------------- | -------- | ------------------------------------ |
+| `componentId`   | `string` | Unique instance ID for the component |
+| `threadId`      | `string` | Thread the component belongs to      |
+| `messageId`     | `string` | Message the component belongs to     |
+| `componentName` | `string` | Registered component name            |
+
+**Throws** if used outside a component rendered via `ComponentRenderer`.
+
+## useIsTamboTokenUpdating
+
+Returns whether a session token exchange is in progress. Useful for showing loading indicators or disabling UI during authentication token refresh.
+
+```tsx
+import { useIsTamboTokenUpdating } from "@tambo-ai/react";
+
+function AuthGuard({ children }: { children: React.ReactNode }) {
+  const isUpdating = useIsTamboTokenUpdating();
+
+  if (isUpdating) return <div>Authenticating...</div>;
+
+  return <>{children}</>;
+}
+```
+
+**Returns:** `boolean` — `true` while the session token is being refreshed.
+
+**Throws** if used outside a `TamboClientProvider`.
+
 ## Re-exported Hooks
 
 The following hooks are re-exported from the base SDK for convenience:

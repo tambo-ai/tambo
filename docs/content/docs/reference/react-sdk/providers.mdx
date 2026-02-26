@@ -171,6 +171,140 @@ import { TamboThreadInputProvider } from "@tambo-ai/react";
 
 The shared input state allows features like suggestions to update the input field directly, enabling seamless integration between different UI components.
 
+## ComponentRenderer
+
+Renders an AI-generated component from the registry based on a `TamboComponentContent` block. Use this in custom message renderers to display components the AI creates.
+
+`ComponentRenderer` looks up the component by name in the registry, parses props (handling partial JSON during streaming), validates props against the component's schema, and wraps the result with `ComponentContentProvider` so hooks like `useTamboComponentState` and `useTamboStreamStatus` work inside the rendered component.
+
+```tsx
+import { ComponentRenderer } from "@tambo-ai/react";
+import type { TamboThreadMessage } from "@tambo-ai/react";
+
+function MessageRenderer({
+  message,
+  threadId,
+}: {
+  message: TamboThreadMessage;
+  threadId: string;
+}) {
+  return (
+    <>
+      {message.content.map((block, i) => {
+        if (block.type === "text") {
+          return <p key={`${message.id}:${i}`}>{block.text}</p>;
+        }
+        if (block.type === "component") {
+          return (
+            <ComponentRenderer
+              key={block.id}
+              content={block}
+              threadId={threadId}
+              messageId={message.id}
+              fallback={<div>Unknown component: {block.name}</div>}
+            />
+          );
+        }
+        return null;
+      })}
+    </>
+  );
+}
+```
+
+### Props
+
+| Prop        | Type                                                                        | Required | Description                                            |
+| ----------- | --------------------------------------------------------------------------- | -------- | ------------------------------------------------------ |
+| `content`   | [`TamboComponentContent`](/reference/react-sdk/types#tambocomponentcontent) | Yes      | The component content block from a message             |
+| `threadId`  | `string`                                                                    | Yes      | Thread ID the component belongs to                     |
+| `messageId` | `string`                                                                    | Yes      | Message ID the component belongs to                    |
+| `fallback`  | `React.ReactNode`                                                           | No       | UI to render if the component is not found in registry |
+
+<Callout type="info">
+  Use `content.id` as the React `key` to preserve component identity across
+  re-renders during streaming.
+</Callout>
+
+## TamboMessageProvider
+
+Wraps components to provide message context. This enables hooks like `useTamboCurrentMessage` and `useTamboCurrentComponent` to access the message that triggered the component.
+
+You only need this directly when building a custom message rendering pipeline. The built-in UI components handle this automatically.
+
+```tsx
+import { TamboMessageProvider, ComponentRenderer } from "@tambo-ai/react";
+import type { TamboThreadMessage } from "@tambo-ai/react";
+
+function CustomMessageList({
+  messages,
+  threadId,
+}: {
+  messages: TamboThreadMessage[];
+  threadId: string;
+}) {
+  return (
+    <>
+      {messages.map((message) => (
+        <TamboMessageProvider key={message.id} message={message}>
+          {message.content.map((block) => {
+            if (block.type === "component") {
+              return (
+                <ComponentRenderer
+                  key={block.id}
+                  content={block}
+                  threadId={threadId}
+                  messageId={message.id}
+                />
+              );
+            }
+            return null;
+          })}
+        </TamboMessageProvider>
+      ))}
+    </>
+  );
+}
+```
+
+### Props
+
+| Prop                   | Type                                                                  | Required | Description                                                                         |
+| ---------------------- | --------------------------------------------------------------------- | -------- | ----------------------------------------------------------------------------------- |
+| `message`              | [`TamboThreadMessage`](/reference/react-sdk/types#tambothreadmessage) | Yes      | The message to provide as context                                                   |
+| `interactableMetadata` | `InteractableMetadata`                                                | No       | Metadata for interactable components (set automatically by `withTamboInteractable`) |
+| `children`             | `React.ReactNode`                                                     | Yes      | Components that need access to message context                                      |
+
+## ComponentContentProvider
+
+Provides component instance metadata (component ID, thread ID, message ID, component name) to child components. This is used internally by `ComponentRenderer` and enables hooks like `useTamboComponentState`, `useTamboStreamStatus`, and `useComponentContent`.
+
+You typically don't use this directly — `ComponentRenderer` wraps rendered components with it automatically.
+
+```tsx
+import { ComponentContentProvider } from "@tambo-ai/react";
+
+// Only needed for custom rendering pipelines
+<ComponentContentProvider
+  componentId="comp-abc123"
+  threadId="thread-xyz"
+  messageId="msg-456"
+  componentName="WeatherCard"
+>
+  <WeatherCard city="Seattle" temperature={65} />
+</ComponentContentProvider>;
+```
+
+### Props
+
+| Prop            | Type              | Required | Description                                              |
+| --------------- | ----------------- | -------- | -------------------------------------------------------- |
+| `componentId`   | `string`          | Yes      | Unique instance ID for the component                     |
+| `threadId`      | `string`          | Yes      | Thread the component belongs to                          |
+| `messageId`     | `string`          | Yes      | Message the component belongs to                         |
+| `componentName` | `string`          | Yes      | Registered component name                                |
+| `children`      | `React.ReactNode` | Yes      | Components that need access to component content context |
+
 ## Re-exported Providers
 
 The following providers are re-exported from the base SDK for advanced use cases:
