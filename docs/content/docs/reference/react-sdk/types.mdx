@@ -129,14 +129,21 @@ interface TamboConfig {
 
 ### InitialInputMessage
 
-Message type for seeding new threads with system or assistant messages. Re-exported from `@tambo-ai/typescript-sdk`.
+Message type for seeding new threads with initial messages. Re-exported from `@tambo-ai/typescript-sdk`.
 
 ```typescript
-type InitialInputMessage = {
-  role: "system" | "assistant";
-  content: string;
-};
+interface InitialInputMessage {
+  content: Array<TextContent | ResourceContent>;
+  role: "user" | "system" | "assistant";
+  metadata?: unknown;
+}
 ```
+
+| Property   | Type                                    | Required | Description                                  |
+| ---------- | --------------------------------------- | -------- | -------------------------------------------- |
+| `content`  | `Array<TextContent \| ResourceContent>` | Yes      | Content blocks (text or resource)            |
+| `role`     | `"user" \| "system" \| "assistant"`     | Yes      | Message role                                 |
+| `metadata` | `unknown`                               | No       | Additional metadata to attach to the message |
 
 #### Example: Seeding a Thread
 
@@ -148,8 +155,18 @@ function App() {
     <TamboProvider
       apiKey="your-api-key"
       initialMessages={[
-        { role: "system", content: "You are a helpful cooking assistant." },
-        { role: "assistant", content: "What would you like to cook today?" },
+        {
+          role: "system",
+          content: [
+            { type: "text", text: "You are a helpful cooking assistant." },
+          ],
+        },
+        {
+          role: "assistant",
+          content: [
+            { type: "text", text: "What would you like to cook today?" },
+          ],
+        },
       ]}
     >
       <Chat />
