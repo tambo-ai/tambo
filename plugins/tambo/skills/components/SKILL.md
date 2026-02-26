@@ -65,7 +65,7 @@ function Message({
   message,
   threadId,
 }: {
-  message: TamboMessage;
+  message: TamboThreadMessage;
   threadId: string;
 }) {
   return (
