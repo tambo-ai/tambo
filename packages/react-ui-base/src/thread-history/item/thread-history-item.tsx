@@ -53,6 +53,9 @@ export const ThreadHistoryItem = React.forwardRef<
     ref,
     render,
     state,
+    stateAttributesMapping: {
+      thread: () => null,
+    },
     props: mergeProps(componentProps, {
       type: "button",
       "data-active": isActive || undefined,

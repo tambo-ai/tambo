@@ -73,7 +73,6 @@ export type {
   ThreadDropdownContentProps,
   ThreadDropdownContentState,
   ThreadDropdownContextValue,
-  ThreadDropdownListItem,
   ThreadDropdownNewThreadProps,
   ThreadDropdownNewThreadState,
   ThreadDropdownRootProps,

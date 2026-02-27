@@ -2,17 +2,15 @@
 
 import { useRender } from "@base-ui/react/use-render";
 import * as React from "react";
-import {
-  useThreadDropdownContext,
-  type ThreadDropdownListItem,
-} from "../root/thread-dropdown-context";
+import { type ThreadListItem } from "../../thread-history/root/thread-history-context";
+import { useThreadDropdownContext } from "../root/thread-dropdown-context";
 
 export interface ThreadDropdownContentState extends Record<string, unknown> {
   slot: string;
   isLoading: boolean;
   hasError: boolean;
   isEmpty: boolean;
-  threads: ThreadDropdownListItem[];
+  threads: ThreadListItem[];
   error: Error | null;
 }
 
@@ -36,7 +34,7 @@ export const ThreadDropdownContent = React.forwardRef<
     slot: "thread-dropdown-content",
     isLoading,
     hasError: !!error,
-    isEmpty: threads.length === 0,
+    isEmpty: !isLoading && threads.length === 0,
     threads,
     error,
   };
@@ -46,6 +44,10 @@ export const ThreadDropdownContent = React.forwardRef<
     ref,
     render,
     state,
+    stateAttributesMapping: {
+      threads: () => null,
+      error: () => null,
+    },
     props: componentProps,
   });
 });

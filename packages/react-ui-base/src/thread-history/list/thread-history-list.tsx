@@ -36,7 +36,7 @@ export const ThreadHistoryList = React.forwardRef<
   const { render, ...componentProps } = props;
   const state: ThreadHistoryListState = {
     slot: "thread-history-list",
-    isEmpty: filteredThreads.length === 0,
+    isEmpty: !isLoading && filteredThreads.length === 0,
     isLoading,
     hasError: !!error,
     filteredThreads,
@@ -49,6 +49,10 @@ export const ThreadHistoryList = React.forwardRef<
     ref,
     render,
     state,
+    stateAttributesMapping: {
+      filteredThreads: () => null,
+      error: () => null,
+    },
     props: componentProps,
   });
 });

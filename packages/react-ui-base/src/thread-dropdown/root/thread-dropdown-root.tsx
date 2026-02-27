@@ -29,10 +29,17 @@ export const ThreadDropdownRoot = React.forwardRef<
   HTMLDivElement,
   ThreadDropdownRootProps
 >(({ onThreadChange, ...props }, ref) => {
+  const onThreadChangeRef = React.useRef(onThreadChange);
+  onThreadChangeRef.current = onThreadChange;
+
   const { data, isLoading, error, refetch } = useTamboThreadList();
-  const { switchThread, startNewThread } = useTambo();
+  const { switchThread, startNewThread, currentThreadId } = useTambo();
 
   const threads = React.useMemo(() => data?.threads ?? [], [data?.threads]);
+
+  const stableOnThreadChange = React.useCallback(() => {
+    onThreadChangeRef.current?.();
+  }, []);
 
   const contextValue = React.useMemo(
     () => ({
@@ -40,18 +47,20 @@ export const ThreadDropdownRoot = React.forwardRef<
       isLoading,
       error,
       refetch,
+      currentThreadId,
       switchThread,
       startNewThread,
-      onThreadChange,
+      onThreadChange: stableOnThreadChange,
     }),
     [
       threads,
       isLoading,
       error,
       refetch,
+      currentThreadId,
       switchThread,
       startNewThread,
-      onThreadChange,
+      stableOnThreadChange,
     ],
   );
 

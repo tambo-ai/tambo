@@ -3,14 +3,13 @@
 import { mergeProps } from "@base-ui/react/merge-props";
 import { useRender } from "@base-ui/react/use-render";
 import * as React from "react";
-import {
-  useThreadDropdownContext,
-  type ThreadDropdownListItem,
-} from "../root/thread-dropdown-context";
+import { type ThreadListItem } from "../../thread-history/root/thread-history-context";
+import { useThreadDropdownContext } from "../root/thread-dropdown-context";
 
 export interface ThreadDropdownThreadItemState extends Record<string, unknown> {
   slot: string;
-  thread: ThreadDropdownListItem;
+  isActive: boolean;
+  thread: ThreadListItem;
 }
 
 type ThreadDropdownThreadItemComponentProps = useRender.ComponentProps<
@@ -20,7 +19,7 @@ type ThreadDropdownThreadItemComponentProps = useRender.ComponentProps<
 
 export interface ThreadDropdownThreadItemProps extends ThreadDropdownThreadItemComponentProps {
   /** The thread to display and select. */
-  thread: ThreadDropdownListItem;
+  thread: ThreadListItem;
 }
 
 /**
@@ -30,7 +29,10 @@ export const ThreadDropdownThreadItem = React.forwardRef<
   HTMLButtonElement,
   ThreadDropdownThreadItemProps
 >(({ thread, ...props }, ref) => {
-  const { switchThread, onThreadChange } = useThreadDropdownContext();
+  const { switchThread, currentThreadId, onThreadChange } =
+    useThreadDropdownContext();
+
+  const isActive = currentThreadId === thread.id;
 
   const handleClick = () => {
     switchThread(thread.id);
@@ -40,6 +42,7 @@ export const ThreadDropdownThreadItem = React.forwardRef<
   const { render, ...componentProps } = props;
   const state: ThreadDropdownThreadItemState = {
     slot: "thread-dropdown-thread-item",
+    isActive,
     thread,
   };
 
@@ -48,8 +51,12 @@ export const ThreadDropdownThreadItem = React.forwardRef<
     ref,
     render,
     state,
+    stateAttributesMapping: {
+      thread: () => null,
+    },
     props: mergeProps(componentProps, {
       type: "button",
+      "data-active": isActive || undefined,
       onClick: handleClick,
     }),
   });

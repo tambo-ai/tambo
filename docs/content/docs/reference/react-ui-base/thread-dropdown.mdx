@@ -106,15 +106,17 @@ React.useEffect(() => {
   return () => document.removeEventListener("keydown", handleKeyDown);
 }, []);
 
-<ThreadDropdown.NewThread ref={newThreadRef}>New Thread</ThreadDropdown.NewThread>
+<ThreadDropdown.NewThread ref={newThreadRef}>
+  New Thread
+</ThreadDropdown.NewThread>;
 ```
 
 ## API reference
 
 ### Root
 
-| Prop             | Type         | Default     | Description                                                |
-| ---------------- | ------------ | ----------- | ---------------------------------------------------------- |
+| Prop             | Type         | Default     | Description                                                    |
+| ---------------- | ------------ | ----------- | -------------------------------------------------------------- |
 | `onThreadChange` | `() => void` | `undefined` | Callback invoked after a thread switch or new thread creation. |
 
 **Render state:**
@@ -140,13 +142,13 @@ No custom props. Provides thread data and status through render state.
 
 **Render state:**
 
-| Field      | Type                        | Description                             |
-| ---------- | --------------------------- | --------------------------------------- |
-| `isLoading`| `boolean`                   | Whether the thread list is loading.     |
-| `hasError` | `boolean`                   | Whether an error occurred.              |
-| `isEmpty`  | `boolean`                   | Whether the thread list is empty.       |
-| `threads`  | `ThreadDropdownListItem[]`  | Array of thread items.                  |
-| `error`    | `Error \| null`             | Error from thread list fetch.           |
+| Field       | Type                       | Description                         |
+| ----------- | -------------------------- | ----------------------------------- |
+| `isLoading` | `boolean`                  | Whether the thread list is loading. |
+| `hasError`  | `boolean`                  | Whether an error occurred.          |
+| `isEmpty`   | `boolean`                  | Whether the thread list is empty.   |
+| `threads`   | `ThreadDropdownListItem[]` | Array of thread items.              |
+| `error`     | `Error \| null`            | Error from thread list fetch.       |
 
 ### NewThread
 
@@ -154,17 +156,17 @@ No custom props. Renders as `<button>`. Calls `startNewThread()` and `refetch()`
 
 ### ThreadItem
 
-| Prop     | Type                       | Default  | Description                       |
-| -------- | -------------------------- | -------- | --------------------------------- |
-| `thread` | `ThreadDropdownListItem`   | Required | The thread to display and select. |
+| Prop     | Type                     | Default  | Description                       |
+| -------- | ------------------------ | -------- | --------------------------------- |
+| `thread` | `ThreadDropdownListItem` | Required | The thread to display and select. |
 
 Renders as `<button>`. Calls `switchThread()` on click.
 
 **Render state:**
 
-| Field    | Type                     | Description         |
-| -------- | ------------------------ | ------------------- |
-| `thread` | `ThreadDropdownListItem` | The thread object.  |
+| Field    | Type                     | Description        |
+| -------- | ------------------------ | ------------------ |
+| `thread` | `ThreadDropdownListItem` | The thread object. |
 
 ## Accessibility
 

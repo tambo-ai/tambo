@@ -17,10 +17,7 @@ const ThreadDropdown = {
   ThreadItem: ThreadDropdownThreadItem,
 };
 
-export type {
-  ThreadDropdownContextValue,
-  ThreadDropdownListItem,
-} from "./root/thread-dropdown-context";
+export type { ThreadDropdownContextValue } from "./root/thread-dropdown-context";
 export type {
   ThreadDropdownContentProps,
   ThreadDropdownContentState,

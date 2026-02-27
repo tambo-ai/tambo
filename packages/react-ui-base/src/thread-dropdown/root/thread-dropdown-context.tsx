@@ -1,14 +1,12 @@
-import type { ThreadListResponse } from "@tambo-ai/react";
+import { type ThreadListItem } from "../../thread-history/root/thread-history-context";
 import * as React from "react";
 
-/** Thread item from the thread list API. */
-export type ThreadDropdownListItem = ThreadListResponse["threads"][number];
-
 export interface ThreadDropdownContextValue {
-  threads: ThreadDropdownListItem[];
+  threads: ThreadListItem[];
   isLoading: boolean;
   error: Error | null;
   refetch: () => Promise<unknown>;
+  currentThreadId: string;
   switchThread: (threadId: string) => void;
   startNewThread: () => string;
   onThreadChange?: () => void;

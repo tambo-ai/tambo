@@ -1,16 +1,14 @@
 "use client";
 
-import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import {
   ThreadHistory as BaseThreadHistory,
+  type ThreadHistoryListState,
   type ThreadListItem,
 } from "@tambo-ai/react-ui-base";
 import { cn } from "@tambo-ai/ui-registry/utils";
 import {
   ArrowLeftToLine,
   ArrowRightToLine,
-  MoreHorizontal,
-  Pencil,
   PlusIcon,
   SearchIcon,
 } from "lucide-react";
@@ -171,6 +169,29 @@ const ThreadHistoryNewButton = React.forwardRef<
   React.ButtonHTMLAttributes<HTMLButtonElement>
 >(({ ...props }, ref) => {
   const { isCollapsed } = useStyledThreadHistoryContext();
+  const buttonRef = React.useRef<HTMLButtonElement>(null);
+
+  // Keyboard shortcut: Alt+Shift+N creates a new thread.
+  React.useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.target instanceof HTMLElement) {
+        const tag = event.target.tagName;
+        if (
+          tag === "INPUT" ||
+          tag === "TEXTAREA" ||
+          event.target.isContentEditable
+        )
+          return;
+      }
+      if (event.altKey && event.shiftKey && event.code === "KeyN") {
+        event.preventDefault();
+        buttonRef.current?.click();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   return (
     <BaseThreadHistory.NewThreadButton
@@ -178,6 +199,7 @@ const ThreadHistoryNewButton = React.forwardRef<
       render={(renderProps) => (
         <button
           {...renderProps}
+          ref={buttonRef}
           className={cn(
             "flex items-center rounded-md mb-4 hover:bg-backdrop transition-colors cursor-pointer relative",
             isCollapsed ? "p-1 justify-center" : "p-2 gap-2",
@@ -261,6 +283,66 @@ const ThreadHistorySearch = React.forwardRef<
 ThreadHistorySearch.displayName = "ThreadHistory.Search";
 
 /**
+ * Renders the content of the thread list based on loading/error/empty states.
+ */
+function ThreadListContent({ state }: { state: ThreadHistoryListState }) {
+  if (state.isLoading) {
+    return (
+      <div className={cn("text-sm text-muted-foreground p-2")}>
+        Loading threads...
+      </div>
+    );
+  }
+  if (state.hasError) {
+    return (
+      <div className="text-sm text-destructive p-2 whitespace-nowrap">
+        Error loading threads
+      </div>
+    );
+  }
+  if (state.isEmpty) {
+    return (
+      <div className="text-sm text-muted-foreground p-2 whitespace-nowrap">
+        {state.searchQuery ? "No matching threads" : "No previous threads"}
+      </div>
+    );
+  }
+  return (
+    <div className="space-y-1">
+      {state.filteredThreads.map((thread: ThreadListItem) => (
+        <BaseThreadHistory.Item
+          key={thread.id}
+          thread={thread}
+          render={(itemProps, itemState) => (
+            <div
+              {...itemProps}
+              className={cn(
+                "p-2 rounded-md hover:bg-backdrop cursor-pointer flex items-center",
+                itemState.isActive && "bg-muted",
+              )}
+            >
+              <div className="text-sm">
+                <span className="font-medium line-clamp-1">
+                  {`Thread ${thread.id.substring(0, 8)}`}
+                </span>
+                <p className="text-xs text-muted-foreground truncate mt-1">
+                  {new Date(thread.createdAt).toLocaleString(undefined, {
+                    month: "short",
+                    day: "numeric",
+                    hour: "numeric",
+                    minute: "2-digit",
+                  })}
+                </p>
+              </div>
+            </div>
+          )}
+        />
+      ))}
+    </div>
+  );
+}
+
+/**
  * List of thread items
  */
 const ThreadHistoryList = React.forwardRef<
@@ -269,65 +351,14 @@ const ThreadHistoryList = React.forwardRef<
 >(({ className, ...props }, ref) => {
   const { isCollapsed } = useStyledThreadHistoryContext();
 
-  const [editingThread, setEditingThread] =
-    React.useState<ThreadListItem | null>(null);
-  const [newName, setNewName] = React.useState("");
-  const inputRef = React.useRef<HTMLInputElement>(null);
-
-  // Handle click outside name editing input
-  React.useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        editingThread &&
-        inputRef.current &&
-        !inputRef.current.contains(event.target as Node)
-      ) {
-        setEditingThread(null);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [editingThread]);
-
-  // Focus input when entering edit mode
-  React.useEffect(() => {
-    if (editingThread) {
-      const timer = setTimeout(() => {
-        inputRef.current?.focus();
-      }, 100);
-      return () => clearTimeout(timer);
-    }
-  }, [editingThread]);
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Escape") {
-      setEditingThread(null);
-    }
-  };
-
-  const handleRename = (thread: ThreadListItem) => {
-    setEditingThread(thread);
-    setNewName(`Thread ${thread.id.substring(0, 8)}`);
-  };
-
-  const handleNameSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingThread) return;
-
-    // TODO(tambo): Wire thread rename submission once backend rename API is available.
-    setEditingThread(null);
-  };
-
   return (
     <BaseThreadHistory.List
-      render={(_renderProps, state) => {
+      render={(listProps, state) => {
         // While collapsed we do not need the list, avoid extra work.
         if (isCollapsed) {
           return (
             <div
+              {...listProps}
               ref={ref}
               className={cn(
                 "overflow-y-auto flex-1 transition-all duration-300 ease-in-out",
@@ -339,104 +370,9 @@ const ThreadHistoryList = React.forwardRef<
           );
         }
 
-        let content;
-        if (state.isLoading) {
-          content = (
-            <div className={cn("text-sm text-muted-foreground p-2")}>
-              Loading threads...
-            </div>
-          );
-        } else if (state.hasError) {
-          content = (
-            <div className="text-sm text-destructive p-2 whitespace-nowrap">
-              Error loading threads
-            </div>
-          );
-        } else if (state.isEmpty) {
-          content = (
-            <div className="text-sm text-muted-foreground p-2 whitespace-nowrap">
-              {state.searchQuery
-                ? "No matching threads"
-                : "No previous threads"}
-            </div>
-          );
-        } else {
-          content = (
-            <div className="space-y-1">
-              {state.filteredThreads.map((thread: ThreadListItem) => (
-                <BaseThreadHistory.Item
-                  key={thread.id}
-                  thread={thread}
-                  render={(itemProps, itemState) => (
-                    <div
-                      {...itemProps}
-                      className={cn(
-                        "p-2 rounded-md hover:bg-backdrop cursor-pointer group flex items-center justify-between",
-                        itemState.isActive ? "bg-muted" : "",
-                        editingThread?.id === thread.id ? "bg-muted" : "",
-                      )}
-                    >
-                      <div className="text-sm flex-1">
-                        {editingThread?.id === thread.id ? (
-                          <form
-                            onSubmit={handleNameSubmit}
-                            className="flex flex-col gap-1"
-                          >
-                            <input
-                              ref={inputRef}
-                              type="text"
-                              value={newName}
-                              onChange={(e) => setNewName(e.target.value)}
-                              onKeyDown={handleKeyDown}
-                              className="w-full bg-background px-1 text-sm font-medium focus:outline-none rounded-sm"
-                              onClick={(e) => e.stopPropagation()}
-                              placeholder="Thread name..."
-                            />
-                            <p className="text-xs text-muted-foreground truncate">
-                              {new Date(thread.createdAt).toLocaleString(
-                                undefined,
-                                {
-                                  month: "short",
-                                  day: "numeric",
-                                  hour: "numeric",
-                                  minute: "2-digit",
-                                },
-                              )}
-                            </p>
-                          </form>
-                        ) : (
-                          <>
-                            <span className="font-medium line-clamp-1">
-                              {`Thread ${thread.id.substring(0, 8)}`}
-                            </span>
-                            <p className="text-xs text-muted-foreground truncate mt-1">
-                              {new Date(thread.createdAt).toLocaleString(
-                                undefined,
-                                {
-                                  month: "short",
-                                  day: "numeric",
-                                  hour: "numeric",
-                                  minute: "2-digit",
-                                },
-                              )}
-                            </p>
-                          </>
-                        )}
-                      </div>
-                      <ThreadOptionsDropdown
-                        thread={thread}
-                        onRename={handleRename}
-                      />
-                    </div>
-                  )}
-                />
-              ))}
-            </div>
-          );
-        }
-
         return (
           <div
+            {...listProps}
             ref={ref}
             className={cn(
               "overflow-y-auto flex-1 transition-all duration-300 ease-in-out",
@@ -445,7 +381,7 @@ const ThreadHistoryList = React.forwardRef<
             )}
             {...props}
           >
-            {content}
+            <ThreadListContent state={state} />
           </div>
         );
       }}
@@ -454,54 +390,10 @@ const ThreadHistoryList = React.forwardRef<
 });
 ThreadHistoryList.displayName = "ThreadHistory.List";
 
-/**
- * Dropdown menu component for thread actions
- */
-const ThreadOptionsDropdown = ({
-  thread,
-  onRename,
-}: {
-  thread: ThreadListItem;
-  onRename: (thread: ThreadListItem) => void;
-}) => {
-  return (
-    <DropdownMenu.Root>
-      <DropdownMenu.Trigger asChild>
-        <button
-          className="p-1 hover:bg-backdrop rounded-md opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
-          onClick={(e) => e.stopPropagation()}
-          aria-label="Thread actions"
-        >
-          <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
-        </button>
-      </DropdownMenu.Trigger>
-      <DropdownMenu.Portal>
-        <DropdownMenu.Content
-          className="min-w-[160px] text-xs bg-popover rounded-md p-1 shadow-md border border-border"
-          sideOffset={5}
-          align="end"
-        >
-          <DropdownMenu.Item
-            className="flex items-center gap-2 px-2 py-1.5 text-foreground hover:bg-backdrop rounded-sm cursor-pointer outline-none transition-colors"
-            onClick={(e) => {
-              e.stopPropagation();
-              onRename(thread);
-            }}
-          >
-            <Pencil className="h-3 w-3" />
-            Rename
-          </DropdownMenu.Item>
-        </DropdownMenu.Content>
-      </DropdownMenu.Portal>
-    </DropdownMenu.Root>
-  );
-};
-
 export {
   ThreadHistory,
   ThreadHistoryHeader,
   ThreadHistoryList,
   ThreadHistoryNewButton,
   ThreadHistorySearch,
-  ThreadOptionsDropdown,
 };

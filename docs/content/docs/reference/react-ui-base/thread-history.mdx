@@ -99,17 +99,17 @@ Use the render prop on `List` to access filtered threads, loading, and error sta
 
 ### Root
 
-| Prop             | Type         | Default     | Description                                                |
-| ---------------- | ------------ | ----------- | ---------------------------------------------------------- |
+| Prop             | Type         | Default     | Description                                                    |
+| ---------------- | ------------ | ----------- | -------------------------------------------------------------- |
 | `onThreadChange` | `() => void` | `undefined` | Callback invoked after a thread switch or new thread creation. |
 
 **Render state:**
 
-| Field            | Type      | Description                              |
-| ---------------- | --------- | ---------------------------------------- |
-| `threadCount`    | `number`  | Count of filtered threads.               |
-| `hasSearchQuery` | `boolean` | Whether a search query is active.        |
-| `isLoading`      | `boolean` | Whether the thread list is loading.      |
+| Field            | Type      | Description                         |
+| ---------------- | --------- | ----------------------------------- |
+| `threadCount`    | `number`  | Count of filtered threads.          |
+| `hasSearchQuery` | `boolean` | Whether a search query is active.   |
+| `isLoading`      | `boolean` | Whether the thread list is loading. |
 
 ### Search
 
@@ -117,9 +117,9 @@ Renders as `<input type="text">`. No custom props. Reads and writes the search q
 
 **Render state:**
 
-| Field         | Type     | Description              |
-| ------------- | -------- | ------------------------ |
-| `searchQuery` | `string` | Current search query.    |
+| Field         | Type     | Description           |
+| ------------- | -------- | --------------------- |
+| `searchQuery` | `string` | Current search query. |
 
 ### List
 
@@ -127,29 +127,29 @@ No custom props. Provides thread data and status through render state.
 
 **Render state:**
 
-| Field             | Type               | Description                              |
-| ----------------- | ------------------ | ---------------------------------------- |
-| `isEmpty`         | `boolean`          | Whether filtered threads list is empty.  |
-| `isLoading`       | `boolean`          | Whether the thread list is loading.      |
-| `hasError`        | `boolean`          | Whether an error occurred.               |
-| `filteredThreads` | `ThreadListItem[]` | Array of search-filtered thread items.   |
-| `searchQuery`     | `string`           | Current search query.                    |
-| `error`           | `Error \| null`    | Error from thread list fetch.            |
+| Field             | Type               | Description                             |
+| ----------------- | ------------------ | --------------------------------------- |
+| `isEmpty`         | `boolean`          | Whether filtered threads list is empty. |
+| `isLoading`       | `boolean`          | Whether the thread list is loading.     |
+| `hasError`        | `boolean`          | Whether an error occurred.              |
+| `filteredThreads` | `ThreadListItem[]` | Array of search-filtered thread items.  |
+| `searchQuery`     | `string`           | Current search query.                   |
+| `error`           | `Error \| null`    | Error from thread list fetch.           |
 
 ### Item
 
-| Prop     | Type             | Default  | Description                    |
-| -------- | ---------------- | -------- | ------------------------------ |
+| Prop     | Type             | Default  | Description                       |
+| -------- | ---------------- | -------- | --------------------------------- |
 | `thread` | `ThreadListItem` | Required | The thread to display and select. |
 
 Renders as `<button>`. Sets `data-active` when the thread is the current active thread.
 
 **Render state:**
 
-| Field      | Type             | Description                                |
-| ---------- | ---------------- | ------------------------------------------ |
-| `isActive` | `boolean`        | Whether this thread is the active thread.  |
-| `thread`   | `ThreadListItem` | The thread object.                         |
+| Field      | Type             | Description                               |
+| ---------- | ---------------- | ----------------------------------------- |
+| `isActive` | `boolean`        | Whether this thread is the active thread. |
+| `thread`   | `ThreadListItem` | The thread object.                        |
 
 ### NewThreadButton
 

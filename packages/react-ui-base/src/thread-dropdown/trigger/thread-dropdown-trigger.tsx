@@ -37,7 +37,6 @@ export const ThreadDropdownTrigger = React.forwardRef<
     state,
     props: mergeProps(componentProps, {
       type: "button",
-      "aria-label": "Thread History",
     }),
   });
 });

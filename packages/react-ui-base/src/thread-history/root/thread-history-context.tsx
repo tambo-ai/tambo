@@ -5,7 +5,6 @@ import * as React from "react";
 export type ThreadListItem = ThreadListResponse["threads"][number];
 
 export interface ThreadHistoryContextValue {
-  threads: ThreadListItem[];
   filteredThreads: ThreadListItem[];
   isLoading: boolean;
   error: Error | null;

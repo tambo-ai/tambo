@@ -4,7 +4,7 @@ import { cn } from "@tambo-ai/ui-registry/utils";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import {
   ThreadDropdown as BaseThreadDropdown,
-  type ThreadDropdownListItem,
+  type ThreadListItem,
 } from "@tambo-ai/react-ui-base";
 import { ChevronDownIcon, PlusIcon } from "lucide-react";
 import * as React from "react";
@@ -33,10 +33,20 @@ export const ThreadDropdown = React.forwardRef<
   const modKey = isMac ? "⌥" : "Alt";
   const newThreadRef = React.useRef<HTMLButtonElement>(null);
 
-  // Registry-level keyboard shortcut: Alt+Shift+N creates a new thread
+  // Registry-level keyboard shortcut: Alt+Shift+N creates a new thread.
+  // Uses event.code for keyboard-layout independence (matches the UI hint).
   React.useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.altKey && event.shiftKey && event.key === "n") {
+      if (event.target instanceof HTMLElement) {
+        const tag = event.target.tagName;
+        if (
+          tag === "INPUT" ||
+          tag === "TEXTAREA" ||
+          event.target.isContentEditable
+        )
+          return;
+      }
+      if (event.altKey && event.shiftKey && event.code === "KeyN") {
         event.preventDefault();
         newThreadRef.current?.click();
       }
@@ -79,9 +89,13 @@ export const ThreadDropdown = React.forwardRef<
                       className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
                       onSelect={(e: Event) => {
                         e.preventDefault();
-                        newThreadProps.onClick?.(
-                          e as unknown as React.MouseEvent<HTMLButtonElement>,
-                        );
+                        // The base handler ignores its event argument — invoke
+                        // without forwarding the incompatible Radix Event.
+                        (
+                          newThreadProps.onClick as unknown as
+                            | (() => void)
+                            | undefined
+                        )?.();
                       }}
                     >
                       <div className="flex items-center">
@@ -130,7 +144,7 @@ function StyledThreadListContent({
 }: {
   isLoading: boolean;
   error: Error | null;
-  threads: ThreadDropdownListItem[];
+  threads: ThreadListItem[];
 }) {
   if (isLoading) {
     return (
@@ -173,9 +187,9 @@ function StyledThreadListContent({
               className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
               onSelect={(e: Event) => {
                 e.preventDefault();
-                itemProps.onClick?.(
-                  e as unknown as React.MouseEvent<HTMLButtonElement>,
-                );
+                // The base handler ignores its event argument — invoke
+                // without forwarding the incompatible Radix Event.
+                (itemProps.onClick as unknown as (() => void) | undefined)?.();
               }}
             >
               <span className="truncate max-w-[180px]">

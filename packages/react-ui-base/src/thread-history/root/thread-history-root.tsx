@@ -35,6 +35,9 @@ export const ThreadHistoryRoot = React.forwardRef<
 >(({ onThreadChange, ...props }, ref) => {
   const [searchQuery, setSearchQuery] = React.useState("");
 
+  const onThreadChangeRef = React.useRef(onThreadChange);
+  onThreadChangeRef.current = onThreadChange;
+
   const { data, isLoading, error, refetch } = useTamboThreadList();
   const { switchThread, startNewThread, currentThreadId } = useTambo();
 
@@ -43,14 +46,19 @@ export const ThreadHistoryRoot = React.forwardRef<
   const filteredThreads = React.useMemo(() => {
     if (!searchQuery) return threads;
     const query = searchQuery.toLowerCase();
-    return threads.filter((thread: ThreadListItem) =>
-      thread.id.toLowerCase().includes(query),
+    return threads.filter(
+      (thread: ThreadListItem) =>
+        thread.id.toLowerCase().includes(query) ||
+        thread.name?.toLowerCase().includes(query),
     );
   }, [threads, searchQuery]);
 
+  const stableOnThreadChange = React.useCallback(() => {
+    onThreadChangeRef.current?.();
+  }, []);
+
   const contextValue = React.useMemo(
     () => ({
-      threads,
       filteredThreads,
       isLoading,
       error,
@@ -60,10 +68,9 @@ export const ThreadHistoryRoot = React.forwardRef<
       startNewThread,
       searchQuery,
       setSearchQuery,
-      onThreadChange,
+      onThreadChange: stableOnThreadChange,
     }),
     [
-      threads,
       filteredThreads,
       isLoading,
       error,
@@ -72,7 +79,7 @@ export const ThreadHistoryRoot = React.forwardRef<
       switchThread,
       startNewThread,
       searchQuery,
-      onThreadChange,
+      stableOnThreadChange,
     ],
   );
 

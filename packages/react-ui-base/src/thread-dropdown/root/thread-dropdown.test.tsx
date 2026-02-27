@@ -58,16 +58,14 @@ describe("ThreadDropdown", () => {
     spy.mockRestore();
   });
 
-  it("renders trigger with Thread History aria-label", () => {
+  it("renders trigger as a button without hardcoded aria-label", () => {
     render(
       <ThreadDropdown.Root>
         <ThreadDropdown.Trigger>Open</ThreadDropdown.Trigger>
       </ThreadDropdown.Root>,
     );
 
-    expect(
-      screen.getByRole("button", { name: /thread history/i }),
-    ).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Open" })).toBeTruthy();
   });
 
   it("renders content with data-slot attribute", () => {

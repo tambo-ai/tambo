@@ -32,7 +32,7 @@ describe("ThreadDropdown", () => {
 
   it("renders the dropdown trigger", () => {
     render(<ThreadDropdown />);
-    const trigger = screen.getByRole("button", { name: /thread history/i });
+    const trigger = screen.getByRole("button");
     expect(trigger).toBeInTheDocument();
   });
 
@@ -50,7 +50,7 @@ describe("ThreadDropdown", () => {
   describe("keyboard navigation", () => {
     it("renders trigger as a button element for keyboard accessibility", () => {
       render(<ThreadDropdown />);
-      const trigger = screen.getByRole("button", { name: /thread history/i });
+      const trigger = screen.getByRole("button");
       expect(trigger.tagName).toBe("BUTTON");
     });
 
@@ -66,7 +66,7 @@ describe("ThreadDropdown", () => {
       } as never);
 
       render(<ThreadDropdown />);
-      const trigger = screen.getByRole("button", { name: /thread history/i });
+      const trigger = screen.getByRole("button");
 
       trigger.focus();
       await user.keyboard("{Enter}");
