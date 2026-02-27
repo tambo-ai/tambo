@@ -1,0 +1,172 @@
+---
+title: ThreadHistory
+description: Compose thread list browsing, search filtering, and thread switching with unstyled parts.
+---
+
+# ThreadHistory
+
+`ThreadHistory` in `@tambo-ai/react-ui-base` owns thread collection state, search filtering, and selection behavior while keeping styling in `@tambo-ai/ui-registry` or your own UI layer.
+
+## Demo
+
+### Tailwind
+
+```tsx
+import { ThreadHistory } from "@tambo-ai/react-ui-base/thread-history";
+
+export function DemoThreadHistory() {
+  return (
+    <ThreadHistory.Root>
+      <ThreadHistory.Search className="w-full rounded border px-2 py-1" />
+      <ThreadHistory.NewThreadButton className="rounded bg-blue-500 px-3 py-1 text-white">
+        New Thread
+      </ThreadHistory.NewThreadButton>
+      <ThreadHistory.List
+        render={(props, state) => (
+          <div {...props}>
+            {state.filteredThreads.map((thread) => (
+              <ThreadHistory.Item key={thread.id} thread={thread}>
+                {thread.id}
+              </ThreadHistory.Item>
+            ))}
+          </div>
+        )}
+      />
+    </ThreadHistory.Root>
+  );
+}
+```
+
+## Anatomy
+
+```tsx
+<ThreadHistory.Root>
+  <ThreadHistory.Search />
+  <ThreadHistory.NewThreadButton />
+  <ThreadHistory.List>
+    <ThreadHistory.Item thread={thread} />
+  </ThreadHistory.List>
+</ThreadHistory.Root>
+```
+
+## Examples
+
+### Active Thread Highlighting
+
+Use the `data-active` attribute on `Item` to style the currently selected thread:
+
+```tsx
+<ThreadHistory.Item
+  thread={thread}
+  className="rounded px-2 py-1 data-active:bg-blue-100"
+>
+  {thread.id}
+</ThreadHistory.Item>
+```
+
+### Thread Change Callback
+
+Respond to thread switches and new thread creation:
+
+```tsx
+<ThreadHistory.Root onThreadChange={() => console.log("thread changed")}>
+  {/* ... */}
+</ThreadHistory.Root>
+```
+
+### Accessing List State via Render Props
+
+Use the render prop on `List` to access filtered threads, loading, and error state:
+
+```tsx
+<ThreadHistory.List
+  render={(props, state) => (
+    <div {...props}>
+      {state.isLoading && <p>Loading...</p>}
+      {state.hasError && <p>Error: {state.error?.message}</p>}
+      {state.isEmpty && <p>No threads found</p>}
+      {state.filteredThreads.map((thread) => (
+        <ThreadHistory.Item key={thread.id} thread={thread}>
+          {thread.id}
+        </ThreadHistory.Item>
+      ))}
+    </div>
+  )}
+/>
+```
+
+## API reference
+
+### Root
+
+| Prop             | Type         | Default     | Description                                                    |
+| ---------------- | ------------ | ----------- | -------------------------------------------------------------- |
+| `onThreadChange` | `() => void` | `undefined` | Callback invoked after a thread switch or new thread creation. |
+
+**Render state:**
+
+| Field            | Type      | Description                         |
+| ---------------- | --------- | ----------------------------------- |
+| `threadCount`    | `number`  | Count of filtered threads.          |
+| `hasSearchQuery` | `boolean` | Whether a search query is active.   |
+| `isLoading`      | `boolean` | Whether the thread list is loading. |
+
+### Search
+
+Renders as `<input type="text">`. No custom props. Reads and writes the search query from Root context.
+
+**Render state:**
+
+| Field         | Type     | Description           |
+| ------------- | -------- | --------------------- |
+| `searchQuery` | `string` | Current search query. |
+
+### List
+
+No custom props. Provides thread data and status through render state.
+
+**Render state:**
+
+| Field             | Type               | Description                             |
+| ----------------- | ------------------ | --------------------------------------- |
+| `isEmpty`         | `boolean`          | Whether filtered threads list is empty. |
+| `isLoading`       | `boolean`          | Whether the thread list is loading.     |
+| `hasError`        | `boolean`          | Whether an error occurred.              |
+| `filteredThreads` | `ThreadListItem[]` | Array of search-filtered thread items.  |
+| `searchQuery`     | `string`           | Current search query.                   |
+| `error`           | `Error \| null`    | Error from thread list fetch.           |
+
+### Item
+
+| Prop     | Type             | Default  | Description                       |
+| -------- | ---------------- | -------- | --------------------------------- |
+| `thread` | `ThreadListItem` | Required | The thread to display and select. |
+
+Renders as `<button>`. Sets `data-active` when the thread is the current active thread.
+
+**Render state:**
+
+| Field      | Type             | Description                               |
+| ---------- | ---------------- | ----------------------------------------- |
+| `isActive` | `boolean`        | Whether this thread is the active thread. |
+| `thread`   | `ThreadListItem` | The thread object.                        |
+
+### NewThreadButton
+
+No custom props. Renders as `<button>`. Calls `startNewThread()` and `refetch()` on click.
+
+## Accessibility
+
+- `Item` renders as a `<button>` for keyboard and screen-reader accessibility.
+- `Search` renders as an `<input>` with appropriate type.
+- `NewThreadButton` renders as a `<button>`.
+- Consumers should provide visible labels or `aria-label` for screen readers.
+
+## Styling Hooks
+
+- `data-slot="thread-history"`
+- `data-slot="thread-history-search"`
+- `data-slot="thread-history-list"`
+- `data-slot="thread-history-item"`
+- `data-slot="thread-history-new-thread-button"`
+- `data-active` on `Item` when thread is active

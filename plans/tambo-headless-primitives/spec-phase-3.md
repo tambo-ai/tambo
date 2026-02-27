@@ -97,7 +97,7 @@ npm run lint -w docs
 
 ## Implementation Tracking
 
-- **Current Status**: `Not Started`
-- **Implementation PR(s)**: `TBD`
-- **Completion Date (YYYY-MM-DD)**: `TBD`
-- **Completion Notes**: `TBD`
+- **Current Status**: `Completed`
+- **Implementation PR(s)**: `lachieh/headless-primitives-phase-3`
+- **Completion Date (YYYY-MM-DD)**: `2026-02-25`
+- **Completion Notes**: ThreadHistory and ThreadDropdown headless primitives added to react-ui-base. Registry thread-history and thread-dropdown refactored to compose base primitives. Message-suggestions verified as caller-provided only. All tests passing (15 base + 10 registry).

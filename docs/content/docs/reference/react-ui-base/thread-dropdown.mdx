@@ -1,0 +1,183 @@
+---
+title: ThreadDropdown
+description: Compose thread switching and creation actions with an unstyled trigger/content pattern.
+---
+
+# ThreadDropdown
+
+`ThreadDropdown` in `@tambo-ai/react-ui-base` owns thread action behavior (switch, create) while keeping styling and popover/dropdown presentation in `@tambo-ai/ui-registry` or your own UI layer.
+
+## Demo
+
+### Tailwind
+
+```tsx
+import { ThreadDropdown } from "@tambo-ai/react-ui-base/thread-dropdown";
+
+export function DemoThreadDropdown() {
+  return (
+    <ThreadDropdown.Root>
+      <ThreadDropdown.Trigger className="rounded border px-3 py-1">
+        Threads
+      </ThreadDropdown.Trigger>
+      <ThreadDropdown.Content
+        render={(props, state) => (
+          <div {...props} className="rounded border bg-white p-2 shadow">
+            <ThreadDropdown.NewThread className="w-full rounded px-2 py-1 hover:bg-gray-100">
+              New Thread
+            </ThreadDropdown.NewThread>
+            {state.threads.map((thread) => (
+              <ThreadDropdown.ThreadItem
+                key={thread.id}
+                thread={thread}
+                className="w-full rounded px-2 py-1 hover:bg-gray-100"
+              >
+                {thread.id}
+              </ThreadDropdown.ThreadItem>
+            ))}
+          </div>
+        )}
+      />
+    </ThreadDropdown.Root>
+  );
+}
+```
+
+## Anatomy
+
+```tsx
+<ThreadDropdown.Root>
+  <ThreadDropdown.Trigger />
+  <ThreadDropdown.Content>
+    <ThreadDropdown.NewThread />
+    <ThreadDropdown.ThreadItem thread={thread} />
+  </ThreadDropdown.Content>
+</ThreadDropdown.Root>
+```
+
+## Examples
+
+### Thread Change Callback
+
+Respond to thread switches and new thread creation:
+
+```tsx
+<ThreadDropdown.Root onThreadChange={() => console.log("thread changed")}>
+  {/* ... */}
+</ThreadDropdown.Root>
+```
+
+### Accessing Content State via Render Props
+
+Use the render prop on `Content` to access threads, loading, and error state:
+
+```tsx
+<ThreadDropdown.Content
+  render={(props, state) => (
+    <div {...props}>
+      {state.isLoading && <p>Loading...</p>}
+      {state.hasError && <p>Error: {state.error?.message}</p>}
+      {state.isEmpty && <p>No threads yet</p>}
+      {state.threads.map((thread) => (
+        <ThreadDropdown.ThreadItem key={thread.id} thread={thread}>
+          {thread.id}
+        </ThreadDropdown.ThreadItem>
+      ))}
+    </div>
+  )}
+/>
+```
+
+### Keyboard Shortcut for New Thread
+
+Wire a keyboard shortcut using a ref on `NewThread`:
+
+```tsx
+const newThreadRef = React.useRef<HTMLButtonElement>(null);
+
+React.useEffect(() => {
+  const handleKeyDown = (e: KeyboardEvent) => {
+    if (e.altKey && e.shiftKey && e.key === "N") {
+      e.preventDefault();
+      newThreadRef.current?.click();
+    }
+  };
+  document.addEventListener("keydown", handleKeyDown);
+  return () => document.removeEventListener("keydown", handleKeyDown);
+}, []);
+
+<ThreadDropdown.NewThread ref={newThreadRef}>
+  New Thread
+</ThreadDropdown.NewThread>;
+```
+
+## API reference
+
+### Root
+
+| Prop             | Type         | Default     | Description                                                    |
+| ---------------- | ------------ | ----------- | -------------------------------------------------------------- |
+| `onThreadChange` | `() => void` | `undefined` | Callback invoked after a thread switch or new thread creation. |
+
+**Render state:**
+
+| Field         | Type      | Description                         |
+| ------------- | --------- | ----------------------------------- |
+| `threadCount` | `number`  | Number of threads in the list.      |
+| `isLoading`   | `boolean` | Whether the thread list is loading. |
+
+### Trigger
+
+No custom props. Renders as `<button>` with `aria-label="Thread History"`.
+
+**Render state:**
+
+| Field         | Type     | Description                    |
+| ------------- | -------- | ------------------------------ |
+| `threadCount` | `number` | Number of threads in the list. |
+
+### Content
+
+No custom props. Provides thread data and status through render state.
+
+**Render state:**
+
+| Field       | Type                       | Description                         |
+| ----------- | -------------------------- | ----------------------------------- |
+| `isLoading` | `boolean`                  | Whether the thread list is loading. |
+| `hasError`  | `boolean`                  | Whether an error occurred.          |
+| `isEmpty`   | `boolean`                  | Whether the thread list is empty.   |
+| `threads`   | `ThreadDropdownListItem[]` | Array of thread items.              |
+| `error`     | `Error \| null`            | Error from thread list fetch.       |
+
+### NewThread
+
+No custom props. Renders as `<button>`. Calls `startNewThread()` and `refetch()` on click.
+
+### ThreadItem
+
+| Prop     | Type                     | Default  | Description                       |
+| -------- | ------------------------ | -------- | --------------------------------- |
+| `thread` | `ThreadDropdownListItem` | Required | The thread to display and select. |
+
+Renders as `<button>`. Calls `switchThread()` on click.
+
+**Render state:**
+
+| Field    | Type                     | Description        |
+| -------- | ------------------------ | ------------------ |
+| `thread` | `ThreadDropdownListItem` | The thread object. |
+
+## Accessibility
+
+- `Trigger` renders as a `<button>` with `aria-label="Thread History"`.
+- `NewThread` and `ThreadItem` render as `<button>` elements for keyboard accessibility.
+- Consumers are responsible for popover/dropdown ARIA semantics (e.g., `aria-expanded`, `role="menu"`) since this primitive does not impose a specific dropdown pattern.
+
+## Styling Hooks
+
+- `data-slot="thread-dropdown"`
+- `data-slot="thread-dropdown-trigger"`
+- `data-slot="thread-dropdown-content"`
+- `data-slot="thread-dropdown-new-thread"`
+- `data-slot="thread-dropdown-thread-item"`

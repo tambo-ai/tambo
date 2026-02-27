@@ -27,7 +27,8 @@ const config: Config = {
     // Mock @tambo-ai/react/mcp
     "^@tambo-ai/react/mcp$":
       "<rootDir>/__tests__/__mocks__/@tambo-ai-react-mcp.ts",
-    // Map @tambo-ai/react-ui-base subpath exports to source
+    // Map @tambo-ai/react-ui-base to source
+    "^@tambo-ai/react-ui-base$": "<rootDir>/../react-ui-base/src/index.ts",
     "^@tambo-ai/react-ui-base/(.*)$":
       "<rootDir>/../react-ui-base/src/$1/index.tsx",
     // Mock CSS imports
