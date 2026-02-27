@@ -325,7 +325,7 @@ export function CustomInstructionsEditor({
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
                     transition={{ duration: 0.3, ease: "easeInOut" }}
-                    className="flex-1 whitespace-pre-wrap rounded-md text-sm"
+                    className="flex-1 min-w-0 whitespace-pre-wrap rounded-md text-sm"
                   >
                     {savedValue}
                   </motion.div>
@@ -340,7 +340,7 @@ export function CustomInstructionsEditor({
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.9 }}
                   transition={{ duration: 0.2 }}
-                  className="ml-4"
+                  className="ml-4 shrink-0"
                 >
                   <Button
                     size="sm"
