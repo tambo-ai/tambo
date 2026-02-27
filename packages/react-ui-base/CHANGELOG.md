@@ -1,5 +1,31 @@
 # Changelog
 
+## [0.1.0-alpha.8](https://github.com/tambo-ai/tambo/compare/@tambo-ai/react-ui-base-v0.1.0-alpha.7...@tambo-ai/react-ui-base-v0.1.0-alpha.8) (2026-02-27)
+
+
+### Features
+
+* **react-ui-base:** add McpPrompts and McpResources headless primitives ([#2512](https://github.com/tambo-ai/tambo/issues/2512)) ([459144d](https://github.com/tambo-ai/tambo/commit/459144d32acac499cd109f587fa6c5c2173f36e0))
+* **react-ui-base:** add ThreadContent headless primitives ([#2509](https://github.com/tambo-ai/tambo/issues/2509)) ([51dd31b](https://github.com/tambo-ai/tambo/commit/51dd31bc5c1dbdd865342114f268ce559c29087b))
+* **react-ui-base:** add ThreadHistory, ThreadDropdown base components ([#2504](https://github.com/tambo-ai/tambo/issues/2504)) ([52815e0](https://github.com/tambo-ai/tambo/commit/52815e07f60c64ea728d3d3363b5d4c168a69139))
+* **ui:** finalize message input behavior and contextual showcase prompts ([#2447](https://github.com/tambo-ai/tambo/issues/2447)) ([00434a5](https://github.com/tambo-ai/tambo/commit/00434a5de077357cc7b4725cc16cf7e78c094a2e))
+
+
+### Bug Fixes
+
+* **dev:** update custom condition usage for hmr/dev/tsconfig ([#2480](https://github.com/tambo-ai/tambo/issues/2480)) ([71a141d](https://github.com/tambo-ai/tambo/commit/71a141de9ccbd7cf82c0e5170eb3274b177b6641))
+
+
+### Miscellaneous Chores
+
+* enable monorepo hot reload DX ([#2427](https://github.com/tambo-ai/tambo/issues/2427)) ([c72bb66](https://github.com/tambo-ai/tambo/commit/c72bb663b86f3a751064cf5a87db84d250a7462c))
+
+
+### Code Refactoring
+
+* **react-ui-base:** harden useRender state/props split across primitives ([#2499](https://github.com/tambo-ai/tambo/issues/2499)) ([75c0d15](https://github.com/tambo-ai/tambo/commit/75c0d159daf62a9f82afefecafd1cbb8f8984a92))
+* **react-ui-base:** migrate primitives to base-ui useRender ([#2443](https://github.com/tambo-ai/tambo/issues/2443)) ([41e8419](https://github.com/tambo-ai/tambo/commit/41e841967338f57817d474c40c6bb2720dabb503))
+
 ## [0.1.0-alpha.7](https://github.com/tambo-ai/tambo/compare/@tambo-ai/react-ui-base-v0.1.0-alpha.6...@tambo-ai/react-ui-base-v0.1.0-alpha.7) (2026-02-18)
 
 
