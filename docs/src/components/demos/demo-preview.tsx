@@ -1,7 +1,7 @@
 "use client";
 
 import { DynamicCodeBlock } from "fumadocs-ui/components/dynamic-codeblock";
-import { type ReactNode, useState } from "react";
+import { type ReactNode, useId, useState } from "react";
 
 const COLLAPSED_HEIGHT = "13rem";
 
@@ -23,6 +23,7 @@ export function DemoPreview({
   language = "tsx",
 }: DemoPreviewProps) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const codePanelId = useId();
 
   return (
     <div
@@ -34,7 +35,7 @@ export function DemoPreview({
       <div className="bg-fd-background p-6">{children}</div>
 
       {/* Code panel — partially visible when collapsed */}
-      <div className="relative border-t border-fd-border">
+      <div id={codePanelId} className="relative border-t border-fd-border">
         <div
           style={{ maxHeight: isExpanded ? "none" : COLLAPSED_HEIGHT }}
           className="overflow-hidden [&_figure]:my-0 [&_figure]:rounded-none [&_figure]:border-0 [&_figure]:shadow-none"
@@ -51,6 +52,8 @@ export function DemoPreview({
       {/* Toggle button — sticky at viewport bottom when expanded */}
       <button
         type="button"
+        aria-expanded={isExpanded}
+        aria-controls={codePanelId}
         onClick={() => setIsExpanded((prev) => !prev)}
         className={`flex w-full items-center justify-center border-t border-fd-border bg-fd-card py-2 text-xs text-fd-muted-foreground transition-colors hover:bg-fd-accent hover:text-fd-accent-foreground ${
           isExpanded ? "sticky bottom-0 z-10" : ""

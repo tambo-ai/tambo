@@ -19,7 +19,7 @@ export function DemoElicitation({ request, onResponse }) {
     <Elicitation.Root request={request} onResponse={onResponse}>
       <Elicitation.Message className="mb-3 text-sm text-neutral-700 dark:text-neutral-300" />
       <Elicitation.Fields
-        render={({ fields }) => (
+        render={(props, { fields }) => (
           <div className="flex flex-col gap-3">
             {fields.map((field) => (
               <Elicitation.Field key={field.name} field={field}>
