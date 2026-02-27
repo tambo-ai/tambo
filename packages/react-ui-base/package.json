@@ -117,6 +117,28 @@
         "default": "./dist/cjs/toolcall-info/index.cjs"
       }
     },
+    "./mcp-prompts": {
+      "@tambo-ai/source": "./src/mcp-prompts/index.tsx",
+      "import": {
+        "types": "./dist/esm/mcp-prompts/index.d.ts",
+        "default": "./dist/esm/mcp-prompts/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/mcp-prompts/index.d.ts",
+        "default": "./dist/cjs/mcp-prompts/index.cjs"
+      }
+    },
+    "./mcp-resources": {
+      "@tambo-ai/source": "./src/mcp-resources/index.tsx",
+      "import": {
+        "types": "./dist/esm/mcp-resources/index.d.ts",
+        "default": "./dist/esm/mcp-resources/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/mcp-resources/index.d.ts",
+        "default": "./dist/cjs/mcp-resources/index.cjs"
+      }
+    },
     "./types": {
       "@tambo-ai/source": "./src/types/component-render-or-children.ts",
       "import": {

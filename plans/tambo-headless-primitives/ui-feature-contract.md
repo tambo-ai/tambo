@@ -170,19 +170,37 @@
 </ThreadContent.Root>
 ```
 
-### 9) McpComponents (Base Primitive)
+### 9) McpPrompts (Base Primitive)
 
-- **Goal**: Own rendered-component availability/state boundaries for MCP/component rendering flows.
+- **Goal**: Encapsulate MCP prompt list/select/fetch/validate lifecycle so consumers never call `useTamboMcpPromptList` or `useTamboMcpPrompt` directly.
 - **Behavior ownership**: `react-ui-base`.
 
 ```tsx
-<McpComponents.Root>
-  <McpComponents.Trigger />
-  <McpComponents.Content />
-</McpComponents.Root>
+<McpPrompts.Root onInsertText={handleInsert}>
+  <McpPrompts.Trigger />
+  <McpPrompts.List>
+    <McpPrompts.Item />
+  </McpPrompts.List>
+  <McpPrompts.Error />
+</McpPrompts.Root>
 ```
 
-### 10) Thread Blocks (Registry Blocks)
+### 10) McpResources (Base Primitive)
+
+- **Goal**: Encapsulate MCP resource list/search/select lifecycle so consumers never call `useTamboMcpResourceList` directly.
+- **Behavior ownership**: `react-ui-base`.
+
+```tsx
+<McpResources.Root onSelectResource={handleSelect}>
+  <McpResources.Trigger />
+  <McpResources.Search />
+  <McpResources.List>
+    <McpResources.Item />
+  </McpResources.List>
+</McpResources.Root>
+```
+
+### 11) Thread Blocks (Registry Blocks)
 
 - **Components**: `message-thread-full`, `message-thread-panel`, `message-thread-collapsible`, `control-bar`.
 - **Goal**: Styled block UIs with shared Tambo behavior and different display layouts.
@@ -191,7 +209,7 @@
   - They may keep orchestration state (`open`, panel width, hotkeys, etc.).
   - They should compose base primitives; they do not define new base primitive domains.
 
-### 11) ThreadHistory (Registry Component)
+### 12) ThreadHistory (Registry Component)
 
 - **Goal**: Styled `ThreadHistory` primitive composition for sidebar/list/search/new-thread UX.
 - **Ownership**: `ui-registry`.
@@ -200,7 +218,7 @@
   - Add TODO in component implementation to wire rename API when backend support exists.
   - Do not own core thread behavior; compose base primitives.
 
-### 12) ThreadDropdown (Registry Component)
+### 13) ThreadDropdown (Registry Component)
 
 - **Goal**: Styled `ThreadDropdown` primitive composition and shortcut wiring.
 - **Ownership**: `ui-registry`.
@@ -208,29 +226,29 @@
   - Keeps product-level keyboard affordances.
   - Does not own thread action state derivation.
 
-### 13) ThreadContent (Registry Component)
+### 14) ThreadContent (Registry Component)
 
 - **Goal**: Styled `ThreadContent` primitive composition for timeline presentation.
 - **Ownership**: `ui-registry`.
 - **Notes**:
   - Keeps visual layout and display concerns only.
 
-### 14) CanvasSpace (Registry Component)
+### 15) CanvasSpace (Registry Component)
 
 - **Goal**: Styled canvas display for rendered components.
 - **Ownership**: `ui-registry`.
 - **Notes**:
-  - Compose `McpComponents` behavior boundaries from `react-ui-base`.
+  - Rendered component display is handled by existing `Message.RenderedComponent*` primitives.
   - Keep global `tambo:showComponent` event API.
 
-### 15) Ready-to-Use Components (Registry Components)
+### 16) Ready-to-Use Components (Registry Components)
 
 - **Components**: `map`, `form`, `input-fields`.
 - **Ownership**: `ui-registry`.
 - **Notes**:
   - No base primitive extraction required for these components.
 
-### 16) Suggestions Behavior
+### 17) Suggestions Behavior
 
 - **Rule**: Suggestions defaults are caller-provided.
 - **Implication**: Registry blocks should accept suggestion props and avoid embedding app-specific suggestion defaults.

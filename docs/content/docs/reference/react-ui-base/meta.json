@@ -9,6 +9,8 @@
     "reasoning-info",
     "thread-content",
     "thread-history",
-    "thread-dropdown"
+    "thread-dropdown",
+    "mcp-prompts",
+    "mcp-resources"
   ]
 }
