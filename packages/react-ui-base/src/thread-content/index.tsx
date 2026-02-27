@@ -33,4 +33,6 @@ export type {
   ThreadContentLoadingState,
 } from "./loading/thread-content-loading";
 
+export type { useRender } from "@base-ui/react/use-render";
+
 export { ThreadContent };
