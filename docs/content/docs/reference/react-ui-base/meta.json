@@ -7,6 +7,7 @@
     "message",
     "toolcall-info",
     "reasoning-info",
+    "thread-content",
     "thread-history",
     "thread-dropdown"
   ]

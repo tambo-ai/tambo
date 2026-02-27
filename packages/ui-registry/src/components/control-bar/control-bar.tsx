@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import { Dialog } from "radix-ui";
-import { useTambo } from "@tambo-ai/react";
 import { cn } from "@tambo-ai/ui-registry/utils";
 import type { VariantProps } from "class-variance-authority";
 import type { messageVariants } from "@tambo-ai/ui-registry/components/message";
@@ -71,7 +70,6 @@ export const ControlBar = React.forwardRef<HTMLDivElement, ControlBarProps>(
     const [open, setOpen] = React.useState(false);
     const isMac =
       typeof navigator !== "undefined" && navigator.platform.startsWith("Mac");
-    const { messages } = useTambo();
 
     React.useEffect(() => {
       const down = (e: KeyboardEvent) => {
@@ -136,13 +134,9 @@ export const ControlBar = React.forwardRef<HTMLDivElement, ControlBarProps>(
                   </MessageInput>
                 </div>
               </div>
-              {messages.length > 0 && (
-                <ScrollableMessageContainer className="bg-background border rounded-lg p-4 max-h-[500px]">
-                  <ThreadContent variant={variant}>
-                    <ThreadContentMessages />
-                  </ThreadContent>
-                </ScrollableMessageContainer>
-              )}
+              <ThreadContent variant={variant}>
+                <ControlBarMessageArea />
+              </ThreadContent>
             </div>
           </Dialog.Content>
         </Dialog.Portal>
@@ -151,3 +145,22 @@ export const ControlBar = React.forwardRef<HTMLDivElement, ControlBarProps>(
   },
 );
 ControlBar.displayName = "ControlBar";
+
+/**
+ * Conditionally renders the scrollable messages area.
+ * Only shows the bordered container when messages exist.
+ * Uses the `has-[*]` Tailwind utility to hide the outer container when the
+ * inner message list has no visible children (all filtered out or empty thread).
+ *
+ * The `data-slot=thread-content-item` selector must match the slot defined on
+ * ThreadMessage's wrapper div in thread-content.tsx.
+ */
+function ControlBarMessageArea() {
+  return (
+    <div className="has-[[data-slot=thread-content-item]]:block hidden">
+      <ScrollableMessageContainer className="bg-background border rounded-lg p-4 max-h-[500px]">
+        <ThreadContentMessages />
+      </ScrollableMessageContainer>
+    </div>
+  );
+}
