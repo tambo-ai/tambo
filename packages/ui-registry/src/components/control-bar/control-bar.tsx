@@ -1,27 +1,26 @@
 "use client";
 
-import * as React from "react";
-import { Dialog } from "radix-ui";
-import { cn } from "@tambo-ai/ui-registry/utils";
-import type { VariantProps } from "class-variance-authority";
 import type { messageVariants } from "@tambo-ai/ui-registry/components/message";
 import {
   MessageInput,
-  MessageInputTextarea,
-  MessageInputToolbar,
-  MessageInputStopButton,
-  MessageInputSubmitButton,
   MessageInputError,
   MessageInputFileButton,
   MessageInputMcpPromptButton,
   MessageInputMcpResourceButton,
-  // MessageInputMcpConfigButton,
+  MessageInputStopButton,
+  MessageInputSubmitButton,
+  MessageInputTextarea,
+  MessageInputToolbar,
 } from "@tambo-ai/ui-registry/components/message-input";
+import { ScrollableMessageContainer } from "@tambo-ai/ui-registry/components/scrollable-message-container";
 import {
   ThreadContent,
   ThreadContentMessages,
 } from "@tambo-ai/ui-registry/components/thread-content";
-import { ScrollableMessageContainer } from "@tambo-ai/ui-registry/components/scrollable-message-container";
+import { cn } from "@tambo-ai/ui-registry/utils";
+import type { VariantProps } from "class-variance-authority";
+import { Dialog } from "radix-ui";
+import * as React from "react";
 
 /**
  * Props for the ControlBar component
@@ -127,8 +126,8 @@ export const ControlBar = React.forwardRef<HTMLDivElement, ControlBarProps>(
                       <MessageInputMcpResourceButton />
                       {/* Uncomment this to enable client-side MCP config modal button */}
                       {/* <MessageInputMcpConfigButton /> */}
-                      <MessageInputSubmitButton keepMounted />
-                      <MessageInputStopButton keepMounted />
+                      <MessageInputSubmitButton />
+                      <MessageInputStopButton />
                     </MessageInputToolbar>
                     <MessageInputError />
                   </MessageInput>
