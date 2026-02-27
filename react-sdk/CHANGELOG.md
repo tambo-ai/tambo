@@ -1,5 +1,23 @@
 # Changelog
 
+## [1.1.0](https://github.com/tambo-ai/tambo/compare/react-v1.0.3...react-v1.1.0) (2026-02-27)
+
+
+### Features
+
+* **ui:** finalize message input behavior and contextual showcase prompts ([#2447](https://github.com/tambo-ai/tambo/issues/2447)) ([00434a5](https://github.com/tambo-ai/tambo/commit/00434a5de077357cc7b4725cc16cf7e78c094a2e))
+
+
+### Bug Fixes
+
+* **dev:** update custom condition usage for hmr/dev/tsconfig ([#2480](https://github.com/tambo-ai/tambo/issues/2480)) ([71a141d](https://github.com/tambo-ai/tambo/commit/71a141de9ccbd7cf82c0e5170eb3274b177b6641))
+* **react-sdk:** remove react-dom peer dependency ([#2513](https://github.com/tambo-ai/tambo/issues/2513)) ([029cdb3](https://github.com/tambo-ai/tambo/commit/029cdb3e9bff3eab302778e048c3176834bf3032))
+
+
+### Documentation
+
+* **react-sdk:** fix README link and expand TamboStubProvider props ([#2507](https://github.com/tambo-ai/tambo/issues/2507)) ([238622b](https://github.com/tambo-ai/tambo/commit/238622be1996abeb597d3e04981d99b9f2dda0f7))
+
 ## [1.0.3](https://github.com/tambo-ai/tambo/compare/react-v1.0.2...react-v1.0.3) (2026-02-24)
 
 
