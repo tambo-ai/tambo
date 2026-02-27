@@ -118,19 +118,19 @@ The `Error` part only renders when the selection lifecycle enters the `error` st
 
 ### Root
 
-| Prop           | Type                        | Description                                          |
-| -------------- | --------------------------- | ---------------------------------------------------- |
-| `onInsertText` | `(text: string) => void`    | Optional. Callback invoked when prompt text is ready. |
+| Prop           | Type                     | Description                                           |
+| -------------- | ------------------------ | ----------------------------------------------------- |
+| `onInsertText` | `(text: string) => void` | Optional. Callback invoked when prompt text is ready. |
 
 Renders nothing when no MCP prompts are available.
 
 **Render state:**
 
-| Field         | Type                                            | Description                              |
-| ------------- | ----------------------------------------------- | ---------------------------------------- |
-| `promptCount` | `number`                                        | Number of available prompts.             |
-| `isLoading`   | `boolean`                                       | Whether the prompt list is loading.      |
-| `status`      | `"idle" \| "fetching" \| "error" \| "done"`     | Current selection lifecycle status.      |
+| Field         | Type                                        | Description                         |
+| ------------- | ------------------------------------------- | ----------------------------------- |
+| `promptCount` | `number`                                    | Number of available prompts.        |
+| `isLoading`   | `boolean`                                   | Whether the prompt list is loading. |
+| `status`      | `"idle" \| "fetching" \| "error" \| "done"` | Current selection lifecycle status. |
 
 ### Trigger
 
@@ -138,10 +138,10 @@ No custom props. Renders as a `<button>` disabled when no prompts are available.
 
 **Render state:**
 
-| Field        | Type      | Description                           |
-| ------------ | --------- | ------------------------------------- |
-| `hasPrompts` | `boolean` | Whether prompts are available.        |
-| `isLoading`  | `boolean` | Whether the prompt list is loading.   |
+| Field        | Type      | Description                         |
+| ------------ | --------- | ----------------------------------- |
+| `hasPrompts` | `boolean` | Whether prompts are available.      |
+| `isLoading`  | `boolean` | Whether the prompt list is loading. |
 
 ### List
 
@@ -149,25 +149,25 @@ No custom props. Provides the prompt collection through render state.
 
 **Render state:**
 
-| Field         | Type                | Description                     |
-| ------------- | ------------------- | ------------------------------- |
-| `prompts`     | `ListPromptEntry[]` | Array of available prompts.     |
-| `promptCount` | `number`            | Count of available prompts.     |
+| Field         | Type                | Description                 |
+| ------------- | ------------------- | --------------------------- |
+| `prompts`     | `ListPromptEntry[]` | Array of available prompts. |
+| `promptCount` | `number`            | Count of available prompts. |
 
 ### Item
 
-| Prop          | Type     | Description                               |
-| ------------- | -------- | ----------------------------------------- |
-| `name`        | `string` | The prompt name to select when clicked.   |
-| `description` | `string` | Optional description exposed via state.   |
+| Prop          | Type     | Description                             |
+| ------------- | -------- | --------------------------------------- |
+| `name`        | `string` | The prompt name to select when clicked. |
+| `description` | `string` | Optional description exposed via state. |
 
 **Render state:**
 
-| Field         | Type                  | Description                              |
-| ------------- | --------------------- | ---------------------------------------- |
-| `name`        | `string`              | The prompt name.                         |
-| `description` | `string \| undefined` | The prompt description.                  |
-| `isSelected`  | `boolean`             | Whether this prompt is currently selected.|
+| Field         | Type                  | Description                                |
+| ------------- | --------------------- | ------------------------------------------ |
+| `name`        | `string`              | The prompt name.                           |
+| `description` | `string \| undefined` | The prompt description.                    |
+| `isSelected`  | `boolean`             | Whether this prompt is currently selected. |
 
 ### Error
 
@@ -175,9 +175,9 @@ No custom props. Renders only when the selection status is `"error"`.
 
 **Render state:**
 
-| Field   | Type              | Description          |
-| ------- | ----------------- | -------------------- |
-| `error` | `string \| null`  | The error message.   |
+| Field   | Type             | Description        |
+| ------- | ---------------- | ------------------ |
+| `error` | `string \| null` | The error message. |
 
 ## Accessibility
 

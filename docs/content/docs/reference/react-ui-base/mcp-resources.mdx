@@ -123,19 +123,19 @@ Use the render prop on `List` to access filtered resources and count:
 
 ### Root
 
-| Prop               | Type                                    | Description                                    |
-| ------------------ | --------------------------------------- | ---------------------------------------------- |
-| `onSelectResource` | `(uri: string, label: string) => void`  | Optional. Callback invoked when a resource is selected. |
+| Prop               | Type                                   | Description                                             |
+| ------------------ | -------------------------------------- | ------------------------------------------------------- |
+| `onSelectResource` | `(uri: string, label: string) => void` | Optional. Callback invoked when a resource is selected. |
 
 Renders nothing when no MCP resources are available.
 
 **Render state:**
 
-| Field           | Type      | Description                              |
-| --------------- | --------- | ---------------------------------------- |
-| `resourceCount` | `number`  | Number of available resources.           |
-| `isLoading`     | `boolean` | Whether the resource list is loading.    |
-| `hasSearch`     | `boolean` | Whether a search query is active.        |
+| Field           | Type      | Description                           |
+| --------------- | --------- | ------------------------------------- |
+| `resourceCount` | `number`  | Number of available resources.        |
+| `isLoading`     | `boolean` | Whether the resource list is loading. |
+| `hasSearch`     | `boolean` | Whether a search query is active.     |
 
 ### Trigger
 
@@ -143,10 +143,10 @@ No custom props. Renders as a `<button>` disabled when no resources are availabl
 
 **Render state:**
 
-| Field          | Type      | Description                            |
-| -------------- | --------- | -------------------------------------- |
-| `hasResources` | `boolean` | Whether resources are available.       |
-| `isLoading`    | `boolean` | Whether the resource list is loading.  |
+| Field          | Type      | Description                           |
+| -------------- | --------- | ------------------------------------- |
+| `hasResources` | `boolean` | Whether resources are available.      |
+| `isLoading`    | `boolean` | Whether the resource list is loading. |
 
 ### Search
 
@@ -154,9 +154,9 @@ No custom props. Renders as an `<input>` wired to the search state from context.
 
 **Render state:**
 
-| Field    | Type     | Description                   |
-| -------- | -------- | ----------------------------- |
-| `search` | `string` | The current search query.     |
+| Field    | Type     | Description               |
+| -------- | -------- | ------------------------- |
+| `search` | `string` | The current search query. |
 
 ### List
 
@@ -164,26 +164,26 @@ No custom props. Provides the filtered resource collection through render state.
 
 **Render state:**
 
-| Field           | Type                  | Description                      |
-| --------------- | --------------------- | -------------------------------- |
-| `resources`     | `ListResourceEntry[]` | Array of filtered resources.     |
-| `resourceCount` | `number`              | Count of filtered resources.     |
+| Field           | Type                  | Description                  |
+| --------------- | --------------------- | ---------------------------- |
+| `resources`     | `ListResourceEntry[]` | Array of filtered resources. |
+| `resourceCount` | `number`              | Count of filtered resources. |
 
 ### Item
 
-| Prop          | Type     | Description                                    |
-| ------------- | -------- | ---------------------------------------------- |
-| `uri`         | `string` | The resource URI.                              |
-| `name`        | `string` | Optional display name for the resource.        |
-| `description` | `string` | Optional description exposed via state.        |
+| Prop          | Type     | Description                             |
+| ------------- | -------- | --------------------------------------- |
+| `uri`         | `string` | The resource URI.                       |
+| `name`        | `string` | Optional display name for the resource. |
+| `description` | `string` | Optional description exposed via state. |
 
 **Render state:**
 
-| Field         | Type                  | Description                     |
-| ------------- | --------------------- | ------------------------------- |
-| `uri`         | `string`              | The resource URI.               |
-| `name`        | `string \| undefined` | The resource display name.      |
-| `description` | `string \| undefined` | The resource description.       |
+| Field         | Type                  | Description                |
+| ------------- | --------------------- | -------------------------- |
+| `uri`         | `string`              | The resource URI.          |
+| `name`        | `string \| undefined` | The resource display name. |
+| `description` | `string \| undefined` | The resource description.  |
 
 ## Accessibility
 
