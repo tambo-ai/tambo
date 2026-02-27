@@ -7,7 +7,7 @@ import {
 } from "../providers/tambo-v1-thread-input-provider";
 import { TamboStreamProvider } from "../providers/tambo-v1-stream-context";
 import { useTamboSendMessage } from "./use-tambo-v1-send-message";
-import type { StreamAction, StreamState } from "../utils/event-accumulator";
+import type { StreamAction, StreamState } from "@tambo-ai/client";
 
 // Mock useTamboSendMessage
 jest.mock("./use-tambo-v1-send-message", () => ({
@@ -546,6 +546,7 @@ describe("useTamboThreadInput", () => {
     /**
      * Creates a wrapper that allows dynamically changing the thread ID.
      * This simulates switching between threads in the UI.
+     * @returns An object with the Wrapper component and a setThreadId function.
      */
     function createDynamicThreadWrapper(initialThreadId: string) {
       let currentThreadId = initialThreadId;

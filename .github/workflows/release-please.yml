@@ -27,6 +27,7 @@ jobs:
       showcase--release_created: ${{ steps.release.outputs.showcase--release_created }}
       apps/web--release_created: ${{ steps.release.outputs['apps/web--release_created'] }}
       apps/api--release_created: ${{ steps.release.outputs['apps/api--release_created'] }}
+      packages/client--release_created: ${{ steps.release.outputs['packages/client--release_created'] }}
       packages/react-ui-base--release_created: ${{ steps.release.outputs['packages/react-ui-base--release_created'] }}
 
       tag_name: ${{ steps.release.outputs.tag_name }}
@@ -39,11 +40,39 @@ jobs:
           config-file: .config/release-please/release-please-config.json
           manifest-file: .config/release-please/.release-please-manifest.json
 
-  # NPM Package Publishing - React SDK
-  publish-react-sdk:
+  # NPM Package Publishing - Client
+  publish-client:
     needs: release-please
     runs-on: ubuntu-latest
-    if: ${{ needs.release-please.outputs.react-sdk--release_created == 'true' }}
+    if: ${{ needs.release-please.outputs['packages/client--release_created'] == 'true' }}
+    permissions:
+      contents: read
+      id-token: write # Required for OIDC publishing to NPM
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup tools
+        uses: ./.github/actions/setup-tools
+
+      - name: Setup npm registry
+        uses: actions/setup-node@v6
+        with:
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Build
+        run: npx turbo build --filter=@tambo-ai/client
+
+      - name: Publish @tambo-ai/client to npm
+        working-directory: ./packages/client
+        run: npm publish --access public
+
+  # NPM Package Publishing - React SDK
+  publish-react-sdk:
+    needs: [release-please, publish-client]
+    runs-on: ubuntu-latest
+    if: ${{ !failure() && !cancelled() && needs.release-please.outputs.react-sdk--release_created == 'true' }}
     permissions:
       contents: read
       id-token: write # Required for OIDC publishing to NPM

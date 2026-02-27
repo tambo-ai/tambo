@@ -11,8 +11,8 @@ import type {
   RegisteredComponent,
   TamboTool,
   UnsupportedSchemaTamboTool,
-} from "../../model/component-metadata";
-import { schemaToJsonSchema } from "../../schema/schema";
+} from "../model/component-metadata";
+import { schemaToJsonSchema } from "../schema/schema";
 import type { RunCreateParams } from "@tambo-ai/typescript-sdk/resources/threads/runs";
 
 // Use the SDK's types for API requests

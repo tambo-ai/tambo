@@ -1,5 +1,5 @@
 import { useRender } from "@base-ui/react/use-render";
-import { TamboThreadMessage } from "@tambo-ai/react";
+import { type ReactTamboThreadMessage } from "@tambo-ai/react";
 import * as React from "react";
 import { MessageRootContext } from "./message-root-context";
 
@@ -10,7 +10,7 @@ export type MessageRootState = {
   /** Optional flag to indicate if the message is in a loading state. */
   isLoading?: boolean;
   /** The full Tambo thread message object. */
-  message: TamboThreadMessage;
+  message: ReactTamboThreadMessage;
 };
 
 export type MessageRootProps = useRender.ComponentProps<

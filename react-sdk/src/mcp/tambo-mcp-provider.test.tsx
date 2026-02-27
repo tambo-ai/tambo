@@ -14,7 +14,7 @@ import {
   TamboRegistryProvider,
   useTamboRegistry,
 } from "../providers/tambo-registry-provider";
-import { MCPClient, MCPTransport } from "./mcp-client";
+import { MCPClient, MCPTransport } from "@tambo-ai/client";
 import {
   extractErrorMessage,
   TamboMcpProvider,
@@ -40,7 +40,8 @@ function createMockExtra(): RequestHandlerExtra<
 }
 
 // Mock the MCP client to avoid ES module issues
-jest.mock("./mcp-client", () => ({
+jest.mock("@tambo-ai/client", () => ({
+  ...jest.requireActual("@tambo-ai/client"),
   MCPClient: jest.fn(),
   MCPTransport: {
     SSE: "sse",

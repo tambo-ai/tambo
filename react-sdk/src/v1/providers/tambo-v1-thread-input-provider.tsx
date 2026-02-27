@@ -26,8 +26,8 @@ import {
 } from "../../hooks/react-query-hooks";
 import { useTamboSendMessage } from "../hooks/use-tambo-v1-send-message";
 import type { InputMessage } from "../types/message";
-import type { ToolChoice } from "../types/tool-choice";
-import { isPlaceholderThreadId } from "../utils/event-accumulator";
+import type { ToolChoice } from "@tambo-ai/client";
+import { isPlaceholderThreadId } from "@tambo-ai/client";
 import { useTamboAuthState } from "../hooks/use-tambo-v1-auth-state";
 import { useStreamDispatch, useStreamState } from "./tambo-v1-stream-context";
 

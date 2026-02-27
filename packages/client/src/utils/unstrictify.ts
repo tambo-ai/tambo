@@ -19,6 +19,7 @@ import type { JSONSchema7, JSONSchema7Definition } from "json-schema";
  * This effectively reverses the process of strictifyToolCallParams, for a
  * tool call request that was built from a strict JSON Schema, by returning a
  * updated tool call request with the parameter values unstrictified.
+ * @returns The params with strictification-induced nulls stripped.
  */
 function unstrictifyToolCallParams(
   originalToolParamSchema: JSONSchema7,

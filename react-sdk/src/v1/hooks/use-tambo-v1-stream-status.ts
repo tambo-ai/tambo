@@ -12,7 +12,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useComponentContent } from "../utils/component-renderer";
 import { useStreamState } from "../providers/tambo-v1-stream-context";
-import { findComponentContent } from "../utils/thread-utils";
+import { findComponentContent } from "@tambo-ai/client";
 import type { TamboComponentContent } from "../types/message";
 
 /**

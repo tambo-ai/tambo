@@ -65,7 +65,7 @@ export interface ThreadState {
    * Accumulating tool call arguments as JSON strings (for streaming).
    * Maps tool call ID to accumulated JSON string.
    */
-  accumulatingToolArgs: Map<string, string>;
+  accumulatingToolArgs: Record<string, string>;
   /**
    * ID of the last completed run. Persists across the session so it's
    * available as `previousRunId` when sending follow-up messages, even
@@ -202,7 +202,7 @@ export function createInitialThreadState(threadId: string): ThreadState {
       lastRunCancelled: false,
     },
     streaming: initialStreamingState,
-    accumulatingToolArgs: new Map(),
+    accumulatingToolArgs: {},
   };
 }
 
@@ -1025,10 +1025,10 @@ function handleToolCallArgs(
 
   // Accumulate the JSON string delta
   const accumulatedArgs = threadState.accumulatingToolArgs;
-  const existingArgs = accumulatedArgs.get(toolCallId) ?? "";
+  const existingArgs = accumulatedArgs[toolCallId] ?? "";
   const newAccumulatedJson = existingArgs + event.delta;
-  const newAccumulatedArgs = new Map(accumulatedArgs);
-  newAccumulatedArgs.set(toolCallId, newAccumulatedJson);
+  const newAccumulatedArgs = { ...accumulatedArgs };
+  newAccumulatedArgs[toolCallId] = newAccumulatedJson;
 
   // Use pre-parsed args if provided, otherwise parse partial JSON ourselves
   let parsedInput: Record<string, unknown> | undefined = parsedToolArgs;
@@ -1121,7 +1121,7 @@ function handleToolCallEnd(
   const messages = threadState.thread.messages;
 
   // Get accumulated JSON args string
-  const accumulatedJson = threadState.accumulatingToolArgs.get(toolCallId);
+  const accumulatedJson = threadState.accumulatingToolArgs[toolCallId];
   if (!accumulatedJson) {
     // No args accumulated - tool call has empty input
     return threadState;
@@ -1178,8 +1178,8 @@ function handleToolCallEnd(
   };
 
   // Clear accumulated args for this tool call
-  const newAccumulatingToolArgs = new Map(threadState.accumulatingToolArgs);
-  newAccumulatingToolArgs.delete(toolCallId);
+  const newAccumulatingToolArgs = { ...threadState.accumulatingToolArgs };
+  delete newAccumulatingToolArgs[toolCallId];
 
   return {
     ...updateThreadMessages(
@@ -1536,6 +1536,7 @@ function handleMessageParent(
 /**
  * Generate an ephemeral message ID for reasoning messages that arrive before TEXT_MESSAGE_START.
  * Uses crypto.randomUUID() which is available in Node.js 19+ and modern browsers.
+ * @returns A unique ephemeral message ID string.
  */
 function generateEphemeralMessageId(): string {
   return `ephemeral_${crypto.randomUUID()}`;

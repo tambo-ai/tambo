@@ -9,8 +9,8 @@
 import { EventType, type AGUIEvent } from "@ag-ui/core";
 import type { JSONSchema7 } from "json-schema";
 import { parse as parsePartialJson } from "partial-json";
-import type { TamboTool } from "../../model/component-metadata";
-import { schemaToJsonSchema } from "../../schema/schema";
+import type { TamboTool } from "../model/component-metadata";
+import { schemaToJsonSchema } from "../schema/schema";
 import type { PendingToolCall } from "./tool-executor";
 import { unstrictifyToolCallParamsFromSchema } from "./unstrictify";
 
@@ -192,6 +192,7 @@ export class ToolCallTracker {
   /**
    * Unstrictify params using the schema for the given tool name.
    * Returns params unchanged if no schema is available.
+   * @returns The unstrictified params.
    */
   private unstrictify(
     toolName: string,
