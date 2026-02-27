@@ -6,9 +6,9 @@ import * as React from "react";
 import { useThreadContentContext } from "../root/thread-content-context";
 
 /**
- * Filters out system messages and standalone tool_result-only messages.
- * Tool results are consumed by ToolcallInfo on the preceding tool_use message
- * and should not render as standalone message bubbles.
+ * Filters out system messages, empty-content messages, and standalone
+ * tool_result-only messages. Tool results are consumed by ToolcallInfo on the
+ * preceding tool_use message and should not render as standalone message bubbles.
  * @returns The filtered messages array
  */
 function filterDisplayMessages(
@@ -16,10 +16,8 @@ function filterDisplayMessages(
 ): TamboThreadMessage[] {
   return messages.filter((message) => {
     if (message.role === "system") return false;
-    if (
-      message.content.length > 0 &&
-      message.content.every((block) => block.type === "tool_result")
-    ) {
+    if (message.content.length === 0) return false;
+    if (message.content.every((block) => block.type === "tool_result")) {
       return false;
     }
     return true;

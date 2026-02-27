@@ -28,10 +28,10 @@ export const ThreadContentRoot = React.forwardRef<
   HTMLDivElement,
   ThreadContentRootProps
 >((props, ref) => {
-  const { messages, isIdle } = useTambo();
-  const isGenerating = !isIdle;
-  const isEmpty = messages.length === 0;
-  const isLoading = isGenerating && isEmpty;
+  const { messages, isStreaming } = useTambo();
+  const isGenerating = isStreaming;
+  const isEmpty = messages.length === 0 && !isGenerating;
+  const isLoading = isGenerating && messages.length === 0;
 
   const contextValue = React.useMemo(
     () => ({

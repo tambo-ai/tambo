@@ -48,7 +48,7 @@ const ThreadContent = React.forwardRef<HTMLDivElement, ThreadContentProps>(
         className={cn("w-full", className)}
         {...props}
       >
-        {typeof children === "undefined" ? (
+        {children == null ? (
           <ThreadContentMessagesStyled variant={variant} />
         ) : (
           <VariantContext.Provider value={variant}>
@@ -106,11 +106,15 @@ const ThreadContentMessagesStyled = React.forwardRef<
   return (
     <ThreadContentPrimitive.Messages
       ref={ref}
+      {...props}
       render={(renderProps, state) => (
         <div
           {...renderProps}
-          className={cn("flex flex-col gap-2", className)}
-          {...props}
+          className={cn(
+            renderProps.className,
+            "flex flex-col gap-2",
+            className,
+          )}
         >
           <MessageList
             filteredMessages={state.filteredMessages}

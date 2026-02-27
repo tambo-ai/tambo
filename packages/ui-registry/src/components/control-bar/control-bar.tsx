@@ -151,6 +151,9 @@ ControlBar.displayName = "ControlBar";
  * Only shows the bordered container when messages exist.
  * Uses the `has-[*]` Tailwind utility to hide the outer container when the
  * inner message list has no visible children (all filtered out or empty thread).
+ *
+ * The `data-slot=thread-content-item` selector must match the slot defined on
+ * ThreadMessage's wrapper div in thread-content.tsx.
  */
 function ControlBarMessageArea() {
   return (
