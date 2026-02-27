@@ -29,7 +29,7 @@ Use this table to run implementation across multiple PRs. When a phase lands, up
 | 3     | `spec-phase-3.md` | `Completed`   | `lachieh/headless-primitives-phase-3`               | `2026-02-25`                 | ThreadHistory + ThreadDropdown primitives; registry refactored.           |
 | 4     | `spec-phase-4.md` | `Completed`   | `lachieh/base-ui-phase-4-thread-blocks-and-content` | `2026-02-26`                 | ThreadContent primitives; registry + control-bar refactored.              |
 | 5     | `spec-phase-5.md` | `Completed`   | `lachieh/base-ui-phase-5-mcp-primitives`            | `2026-02-26`                 | McpPrompts + McpResources primitives; registry mcp-components refactored. |
-| 6     | `spec-phase-6.md` | `Not Started` | `TBD`                                               | `TBD`                        |                                                                           |
+| 6     | `spec-phase-6.md` | `Completed`   | `lachieh/base-ui-phase-6-update-docs-and-showcase`  | `2026-02-27`                 | Fixed index.mdx links + missing primitives; demo consistency.             |
 | 7     | `spec-phase-7.md` | `Not Started` | `TBD`                                               | `TBD`                        |                                                                           |
 | 8     | `spec-phase-8.md` | `Not Started` | `TBD`                                               | `TBD`                        |                                                                           |
 

@@ -13,15 +13,24 @@ description: Compose reasoning status and expandable reasoning steps for assista
 
 ```tsx
 import { ReasoningInfo } from "@tambo-ai/react-ui-base/reasoning-info";
+import type { TamboThreadMessage } from "@tambo-ai/react";
 
-<ReasoningInfo.Root message={message}>
-  <ReasoningInfo.Trigger>
-    <ReasoningInfo.StatusText />
-  </ReasoningInfo.Trigger>
-  <ReasoningInfo.Content>
-    <ReasoningInfo.Steps />
-  </ReasoningInfo.Content>
-</ReasoningInfo.Root>;
+export function DemoReasoningInfo({
+  message,
+}: {
+  message: TamboThreadMessage;
+}) {
+  return (
+    <ReasoningInfo.Root message={message}>
+      <ReasoningInfo.Trigger>
+        <ReasoningInfo.StatusText />
+      </ReasoningInfo.Trigger>
+      <ReasoningInfo.Content>
+        <ReasoningInfo.Steps />
+      </ReasoningInfo.Content>
+    </ReasoningInfo.Root>
+  );
+}
 ```
 
 ## Anatomy

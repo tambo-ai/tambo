@@ -13,15 +13,20 @@ description: Compose message shell rendering for text, images, loading state, an
 
 ```tsx
 import { Message } from "@tambo-ai/react-ui-base/message";
+import type { TamboThreadMessage } from "@tambo-ai/react";
 
-<Message.Root message={message} role={message.role}>
-  <Message.Content />
-  <Message.Images />
-  <Message.RenderedComponent>
-    <Message.RenderedComponentCanvasButton />
-    <Message.RenderedComponentContent />
-  </Message.RenderedComponent>
-</Message.Root>;
+export function DemoMessage({ message }: { message: TamboThreadMessage }) {
+  return (
+    <Message.Root message={message} role={message.role}>
+      <Message.Content />
+      <Message.Images />
+      <Message.RenderedComponent>
+        <Message.RenderedComponentCanvasButton />
+        <Message.RenderedComponentContent />
+      </Message.RenderedComponent>
+    </Message.Root>
+  );
+}
 ```
 
 ## Anatomy

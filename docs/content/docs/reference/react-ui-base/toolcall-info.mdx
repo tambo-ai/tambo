@@ -13,18 +13,23 @@ description: Compose tool call status, parameters, and results for assistant too
 
 ```tsx
 import { ToolcallInfo } from "@tambo-ai/react-ui-base/toolcall-info";
+import type { TamboThreadMessage } from "@tambo-ai/react";
 
-<ToolcallInfo.Root message={message}>
-  <ToolcallInfo.Trigger>
-    <ToolcallInfo.StatusIcon />
-    <ToolcallInfo.StatusText />
-  </ToolcallInfo.Trigger>
-  <ToolcallInfo.Content>
-    <ToolcallInfo.ToolName />
-    <ToolcallInfo.Parameters />
-    <ToolcallInfo.Result />
-  </ToolcallInfo.Content>
-</ToolcallInfo.Root>;
+export function DemoToolcallInfo({ message }: { message: TamboThreadMessage }) {
+  return (
+    <ToolcallInfo.Root message={message}>
+      <ToolcallInfo.Trigger>
+        <ToolcallInfo.StatusIcon />
+        <ToolcallInfo.StatusText />
+      </ToolcallInfo.Trigger>
+      <ToolcallInfo.Content>
+        <ToolcallInfo.ToolName />
+        <ToolcallInfo.Parameters />
+        <ToolcallInfo.Result />
+      </ToolcallInfo.Content>
+    </ToolcallInfo.Root>
+  );
+}
 ```
 
 ## Anatomy
