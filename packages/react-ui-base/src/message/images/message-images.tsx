@@ -36,6 +36,12 @@ export interface MessageImagesProps extends Omit<
   renderImage?: (props: MessageImageRenderFnProps) => React.ReactNode;
   /** Children to render instead of the default image list. */
   children?: React.ReactNode;
+  /**
+   * Keep the element mounted when there are no images. When false (default),
+   * the component returns null if the message has no image content.
+   * @default false
+   */
+  keepMounted?: boolean;
 }
 
 /**
@@ -45,7 +51,7 @@ export interface MessageImagesProps extends Omit<
 export const MessageImages = React.forwardRef<
   HTMLDivElement,
   MessageImagesProps
->(({ renderImage, children, ...props }, ref) => {
+>(({ renderImage, children, keepMounted = false, ...props }, ref) => {
   const { message } = useMessageRootContext();
   const images = getMessageImages(message.content);
 
@@ -72,6 +78,7 @@ export const MessageImages = React.forwardRef<
     defaultTagName: "div",
     ref,
     render,
+    enabled: keepMounted || images.length > 0,
     state: renderProps,
     stateAttributesMapping: {
       images: () => null,

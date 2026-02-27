@@ -7,22 +7,33 @@ import type {
 } from "@tambo-ai/react/mcp";
 
 const mockRequest: TamboElicitationRequest = {
-  message: "Please provide the following information:",
+  message: "Please configure your project settings:",
   requestedSchema: {
     type: "object",
     properties: {
-      name: {
+      projectName: {
         type: "string",
-        title: "Name",
-        description: "Your full name",
+        title: "Project Name",
+        description: "A unique name for your project",
       },
-      age: {
+      framework: {
+        type: "string",
+        title: "Framework",
+        description: "Select your preferred framework",
+        enum: ["Next.js", "Remix", "Vite", "Astro"],
+      },
+      maxTokens: {
         type: "number",
-        title: "Age",
-        description: "Your age",
+        title: "Max Tokens",
+        description: "Maximum token limit per request",
+      },
+      enableStreaming: {
+        type: "boolean",
+        title: "Enable Streaming",
+        description: "Stream responses in real-time",
       },
     },
-    required: ["name"],
+    required: ["projectName", "framework"],
   },
 };
 

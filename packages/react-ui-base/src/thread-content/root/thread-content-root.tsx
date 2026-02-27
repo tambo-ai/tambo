@@ -1,6 +1,5 @@
 "use client";
 
-import type { UseRenderComponentProps } from "@base-ui/react/use-render";
 import { useRender } from "@base-ui/react/use-render";
 import { useTambo } from "@tambo-ai/react";
 import * as React from "react";
@@ -14,7 +13,7 @@ export interface ThreadContentRootState extends Record<string, unknown> {
   isLoading: boolean;
 }
 
-type ThreadContentRootComponentProps = UseRenderComponentProps<
+type ThreadContentRootComponentProps = useRender.ComponentProps<
   "div",
   ThreadContentRootState
 >;

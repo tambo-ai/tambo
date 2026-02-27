@@ -275,6 +275,7 @@ const MessageContent = React.forwardRef<HTMLDivElement, MessageContentProps>(
       <div data-slot="message-content-text">
         <MessageBase.Content
           ref={ref}
+          keepMounted
           className={cn(
             "relative block rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&_p]:py-1 [&_li]:list-item",
             ":not([data-markdown]):wrap-break-word",

@@ -16,6 +16,7 @@ const ThreadContent = {
 };
 
 export type { ThreadContentContextValue } from "./root/thread-content-context";
+export { useThreadContentContext } from "./root/thread-content-context";
 export type {
   ThreadContentRootProps,
   ThreadContentRootState,

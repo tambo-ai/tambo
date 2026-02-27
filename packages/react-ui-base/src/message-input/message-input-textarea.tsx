@@ -62,8 +62,7 @@ type MessageInputTextareaComponentProps = useRender.ComponentProps<
   MessageInputTextareaState
 >;
 
-export interface MessageInputTextareaProps
-  extends MessageInputTextareaComponentProps {
+export interface MessageInputTextareaProps extends MessageInputTextareaComponentProps {
   /** Custom placeholder text */
   placeholder?: string;
   /** Resource provider for @ mentions (optional - MCP resources included by default) */
