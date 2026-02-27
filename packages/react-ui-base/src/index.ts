@@ -142,6 +142,3 @@ export type {
   ToolcallInfoToolStatus,
   ToolcallInfoTriggerProps,
 } from "./toolcall-info";
-
-// Hooks
-export { useRender } from "@base-ui/react/use-render";
