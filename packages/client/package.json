@@ -64,8 +64,7 @@
     "@standard-schema/spec": "^1.1.0",
     "@tambo-ai/typescript-sdk": "0.93.0",
     "fast-json-patch": "3.1.1",
-    "partial-json": "0.1.7",
-    "type-fest": "^5.4.3"
+    "partial-json": "0.1.7"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",
