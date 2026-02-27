@@ -5,7 +5,10 @@
     "module": "CommonJS",
     "outDir": "./dist",
     "declaration": true,
-    "customConditions": null
+    "rootDir": "./src",
+    "customConditions": null,
+    "baseUrl": null,
+    "paths": {}
   },
   "include": ["src/**/*.ts", "src/**/*.tsx"],
   "exclude": ["node_modules", "./dist", "./esm"]
