@@ -14,9 +14,7 @@ export enum MCPTransport {
  * This is the type accepted by `TamboProvider` / `TamboRegistryProvider` in
  * the `mcpServers` prop.
  *
- * The `handlers` field is intentionally typed as `unknown` here so the core
- * SDK does not depend on the MCP subpackage. In the `@tambo-ai/react/mcp`
- * subpackage this is treated as `Partial<MCPHandlers>` (with
+ * The `handlers` field is typed as `Partial<MCPHandlers>` (with
  * `elicitation` / `sampling` callbacks). The `@modelcontextprotocol/sdk` is
  * included automatically with `@tambo-ai/react`. See the React SDK README for
  * any additional optional peer dependencies needed for MCP features.
@@ -45,9 +43,6 @@ export interface McpServerInfo {
   serverKey?: string;
   /**
    * Optional handlers for elicitation and sampling requests from the server.
-   *
-   * In the MCP subpackage this is interpreted as `Partial<MCPHandlers>`,
-   * i.e. `{ elicitation?: MCPElicitationHandler; sampling?: MCPSamplingHandler }`.
    *
    * Note: These callbacks should be stable (e.g., wrapped in useCallback or
    * defined outside the component) to avoid constant re-registration of the
