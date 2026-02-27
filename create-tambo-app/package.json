@@ -31,8 +31,6 @@
     "build": "tsc",
     "dev": "tsc --watch",
     "check-types": "tsc --noEmit",
-    "lint": "eslint .",
-    "lint:fix": "eslint . --fix",
     "clean": "rimraf dist"
   },
   "engines": {
@@ -42,11 +40,8 @@
     "cross-spawn": "^7.0.6"
   },
   "devDependencies": {
-    "@eslint/js": "^9.39.2",
     "@types/cross-spawn": "^6.0.6",
-    "eslint": "^9.39.2",
     "rimraf": "^6.1.2",
-    "typescript": "^5.9.3",
-    "typescript-eslint": "^8.54.0"
+    "typescript": "^5.9.3"
   }
 }

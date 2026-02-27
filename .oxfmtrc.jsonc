@@ -1,0 +1,70 @@
+// Ultracite oxfmt Configuration
+// https://oxc.rs/docs/guide/usage/formatter/config-file-reference.html
+{
+  "$schema": "https://raw.githubusercontent.com/oxc-project/oxc/main/npm/oxfmt/configuration_schema.json",
+  "printWidth": 80,
+  "tabWidth": 2,
+  "useTabs": false,
+  "semi": true,
+  "singleQuote": false,
+  "quoteProps": "as-needed",
+  "jsxSingleQuote": false,
+  "trailingComma": "all",
+  "bracketSpacing": true,
+  "bracketSameLine": false,
+  "arrowParens": "always",
+  "endOfLine": "lf",
+  "experimentalSortPackageJson": false,
+  // TODO: Enable and format all files
+  // "experimentalSortImports": {
+  //   "newlinesBetween": false,
+  //   "customGroups": [
+  //     {
+  //       "groupName": "tambo",
+  //       "elementNamePattern": ["@tambo", "@tambo-ai", "@tambo-ai-cloud", "tambo"]
+  //     }
+  //   ],
+  //   "groups": [
+  //     "style",
+  //     "side-effect",
+  //     "type-import",
+  //     ["value-builtin", "value-external"],
+  //     "tambo",
+  //     "type-internal",
+  //     "value-internal",
+  //     ["type-parent", "type-sibling", "type-index"],
+  //     ["value-parent", "value-sibling", "value-index"],
+  //     "unknown"
+  //   ]
+  // },
+  "overrides": [
+    {
+      "files": ["*.json5", "*.jsonc"],
+      "options": {
+        "quoteProps": "preserve",
+        "trailingComma": "none"
+      }
+    }
+  ],
+  "ignorePatterns": [
+    // Managed by release-please
+    ".release-please-manifest.json",
+    "**/CHANGELOG.md",
+
+    // Build outputs
+    "**/.next",
+    "apps/*/dist/",
+    "packages/*/dist/",
+    "react-sdk/esm/",
+    "react-sdk/dist/",
+
+    // Generated files
+    "docs/.source/",
+    "apps/web/.source/",
+    "packages/db/migrations/",
+
+    // IDE settings
+    ".vscode/extensions.json",
+    ".vscode/settings.json"
+  ]
+}

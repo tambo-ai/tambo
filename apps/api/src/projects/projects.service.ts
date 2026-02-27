@@ -174,7 +174,7 @@ export class ProjectsService {
   }
 
   async remove(id: string): Promise<boolean> {
-    return await operations.deleteProject(this.getDb(), id);
+    return operations.deleteProject(this.getDb(), id);
   }
 
   async generateApiKey(
@@ -213,18 +213,14 @@ export class ProjectsService {
   }
 
   async removeApiKey(projectId: string, apiKeyId: string): Promise<boolean> {
-    return await operations.deleteApiKey(this.getDb(), projectId, apiKeyId);
+    return operations.deleteApiKey(this.getDb(), projectId, apiKeyId);
   }
 
   async validateApiKey(
     projectId: string,
     providedApiKey: string,
   ): Promise<boolean> {
-    return await operations.validateApiKey(
-      this.getDb(),
-      projectId,
-      providedApiKey,
-    );
+    return operations.validateApiKey(this.getDb(), projectId, providedApiKey);
   }
 
   async addProviderKey(

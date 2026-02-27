@@ -8,8 +8,6 @@
     "dev": "next dev --port 3002",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint",
-    "lint:fix": "eslint --fix",
     "check-types": "tsc --noEmit",
     "clean": "rm -rf .next dist coverage"
   },
@@ -23,7 +21,6 @@
     "zod": "^3.25.76"
   },
   "devDependencies": {
-    "@tambo-ai/eslint-config": "*",
     "@tambo-ai/typescript-config": "*",
     "@types/node": "^22.19.8",
     "typescript": "^5.9.3"

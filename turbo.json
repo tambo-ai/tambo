@@ -101,10 +101,14 @@
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "outputs": [".next/**", "!.next/cache/**"]
     },
-    "lint": { "dependsOn": ["^lint"] },
-    "@tambo-ai/ui-registry#lint": {
-      "dependsOn": ["@tambo-ai/ui-registry#verify-exports"]
-    },
+    "//#_lint": {},
+    "//#_lint:fix": {},
+    "//#_format": {},
+    "//#_format:fix": {},
+    "lint": { "dependsOn": ["//#_lint", "^lint"] },
+    "lint:fix": { "dependsOn": ["//#_lint:fix", "^lint:fix"] },
+    "format": { "dependsOn": ["//#_format", "^format"] },
+    "format:fix": { "dependsOn": ["//#_format:fix", "^format:fix"] },
     "verify-exports": {
       "inputs": ["package.json", "src/**", "scripts/**"],
       "outputs": []

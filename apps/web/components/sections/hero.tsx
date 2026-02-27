@@ -47,7 +47,7 @@ function HeroPill() {
       </span>
       {/* Star count */}
       <span className="font-semibold text-[#5C94F7] group-hover:text-[#4A7BD6] transition-colors">
-        <AnimatedCounter target={stars || 0} />
+        <AnimatedCounter target={stars ?? 0} />
       </span>
 
       {/* "on GitHub" text */}
@@ -81,7 +81,9 @@ function HeroTitles() {
     const interval = setInterval(() => {
       setCurrentWordIndex((prev) => (prev + 1) % words.length);
     }, 2000); // Change every 2 seconds
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+    };
   }, []);
 
   const wordVariants = {
@@ -205,12 +207,10 @@ function HeroCommandBox() {
   const command = "npm create tambo-app";
   const [copied, copy] = useClipboard(command);
 
-  const handleCopy = async () => {
-    try {
-      await copy();
-    } catch (err) {
+  const handleCopy = () => {
+    copy().catch((err: unknown) => {
       console.error("Failed to copy text: ", err);
-    }
+    });
   };
 
   return (
@@ -219,10 +219,7 @@ function HeroCommandBox() {
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.9, duration: 0.6, ease: "easeOut" }}
     >
-      <div
-        onClick={handleCopy}
-        className="flex items-center rounded-xl bg-slate-50 dark:bg-slate-900 p-3 sm:p-4 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-shadow duration-300 cursor-pointer"
-      >
+      <div className="flex items-center rounded-xl bg-slate-50 dark:bg-slate-900 p-3 sm:p-4 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-shadow duration-300 cursor-pointer">
         <code className="font-mono text-xs sm:text-sm text-slate-800 dark:text-slate-200 mr-3 sm:mr-4 select-all">
           {command}
         </code>
@@ -233,7 +230,7 @@ function HeroCommandBox() {
           size="sm"
           onClick={(e) => {
             e.stopPropagation();
-            void handleCopy();
+            handleCopy();
           }}
           className="h-auto transition-transform active:scale-95 p-1.5 sm:p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg"
         >

@@ -54,6 +54,8 @@ export function convertContentToMarkdown(
 export function useMergeRefs<Instance>(
   ...refs: (React.Ref<Instance> | undefined)[]
 ): null | React.RefCallback<Instance> {
+  // oxlint-disable no-invalid-void-type -- React's callback ref types explicitly use void.
+  // eslint-disable no-confusing-void-expression -- It's confusing. But the types require it, so here we are.
   const cleanupRef = React.useRef<void | (() => void)>(undefined);
 
   const refEffect = React.useCallback((instance: Instance | null) => {

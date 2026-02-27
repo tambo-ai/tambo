@@ -22,6 +22,7 @@ import { useEffect, useState } from "react";
 export function useMergeRefs<Instance>(
   ...refs: (React.Ref<Instance> | undefined)[]
 ): null | React.RefCallback<Instance> {
+  // oxlint-disable no-invalid-void-type -- React's callback ref types explicitly use void
   const cleanupRef = React.useRef<void | (() => void)>(undefined);
 
   const refEffect = React.useCallback((instance: Instance | null) => {
@@ -163,7 +164,7 @@ export function usePositioning(
  * @returns A renderable string or React element.
  */
 export function getSafeContent(
-  content: TamboThreadMessage["content"] | React.ReactNode | undefined | null,
+  content: TamboThreadMessage["content"] | React.ReactNode | void | null,
 ): string | React.ReactElement {
   if (!content) return "";
   if (typeof content === "string") return content;
@@ -224,7 +225,7 @@ function hasContentInItem(item: unknown): boolean {
  * @returns True if there is content, false otherwise.
  */
 export function checkHasContent(
-  content: TamboThreadMessage["content"] | React.ReactNode | undefined | null,
+  content: TamboThreadMessage["content"] | React.ReactNode | void | null,
 ): boolean {
   if (!content) return false;
   if (typeof content === "string") return content.trim().length > 0;
@@ -241,7 +242,7 @@ export function checkHasContent(
  * @returns Array of image URLs
  */
 export function getMessageImages(
-  content: { type?: string; image_url?: { url?: string } }[] | undefined | null,
+  content: { type?: string; image_url?: { url?: string } }[] | void | null,
 ): string[] {
   if (!content) return [];
 

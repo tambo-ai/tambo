@@ -6,9 +6,6 @@
   "sideEffects": false,
   "private": true,
   "scripts": {
-    "format": "prettier --write .",
-    "lint": "eslint",
-    "lint:fix": "eslint --fix",
     "build": "tsdown"
   },
   "type": "module",
@@ -29,7 +26,6 @@
     "vite-tsconfig-paths": "^6.0.5"
   },
   "devDependencies": {
-    "@tambo-ai/eslint-config": "*",
     "tsdown": "^0.12.0",
     "typescript": "^5.9.3",
     "vite": "^7.3.1"

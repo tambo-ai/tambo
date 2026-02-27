@@ -14,8 +14,6 @@
     "NOTICE"
   ],
   "scripts": {
-    "lint": "eslint .",
-    "lint:fix": "eslint --fix .",
     "check-types": "tsc --noEmit",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
@@ -25,7 +23,6 @@
   },
   "devDependencies": {
     "@tambo-ai-cloud/backend": "*",
-    "@tambo-ai/eslint-config": "*",
     "@tambo-ai/typescript-config": "*",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/pg": "^8.16.0",

@@ -15,18 +15,14 @@
     "NOTICE"
   ],
   "scripts": {
-    "lint": "eslint",
-    "lint:fix": "eslint --fix",
     "check-types": "tsc --noEmit",
     "clean": "rm -rf dist coverage"
   },
   "devDependencies": {
-    "@tambo-ai/eslint-config": "*",
     "@tambo-ai/typescript-config": "*",
     "@types/jest": "^30.0.0",
     "@types/node": "^22.19.8",
     "jest": "^30.2.0",
-    "prettier-2": "npm:prettier@^2",
     "ts-jest": "^29.4.6",
     "typescript": "^5.9.3"
   },

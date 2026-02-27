@@ -64,7 +64,7 @@
   "customizations": {
     "vscode": {
       "extensions": [
-        "dbaeumer.vscode-eslint",
+        "oxc.oxc-vscode",
         "esbenp.prettier-vscode",
         "bradlc.vscode-tailwindcss",
         "ms-azuretools.vscode-docker",
@@ -75,7 +75,7 @@
         "editor.formatOnSave": true,
         "editor.defaultFormatter": "esbenp.prettier-vscode",
         "editor.codeActionsOnSave": {
-          "source.fixAll.eslint": "explicit"
+          "source.fixAll.oxc": "explicit"
         },
         "typescript.preferences.importModuleSpecifier": "relative"
       }

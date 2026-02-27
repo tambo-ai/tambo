@@ -9,7 +9,6 @@
     "build": "next build",
     "postbuild": "next-sitemap",
     "start": "next start",
-    "lint": "eslint",
     "test": "node --test tests/code-snippets.test.mjs && jest",
     "test:unit": "jest",
     "format:code": "node scripts/format-code-snippets.mjs",
@@ -65,9 +64,7 @@
     "use-debounce": "^10.1.0"
   },
   "devDependencies": {
-    "@eslint/eslintrc": "^3",
     "@svgr/webpack": "^8.1.0",
-    "@tambo-ai/eslint-config": "*",
     "@tambo-ai/typescript-config": "*",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
@@ -80,8 +77,6 @@
     "@types/react": "^18.3.23",
     "@types/react-dom": "^18.3.7",
     "clsx": "^2.1.1",
-    "eslint": "^9",
-    "eslint-config-next": "16.1.6",
     "identity-obj-proxy": "^3.0.0",
     "jest": "^30.2.0",
     "jest-environment-jsdom": "^30.2.0",

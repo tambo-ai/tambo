@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 export function useMergeRefs<Instance>(
   ...refs: (React.Ref<Instance> | undefined)[]
 ): null | React.RefCallback<Instance> {
+  // oxlint-disable no-invalid-void-type -- React's callback ref types explicitly use void
   const cleanupRef = React.useRef<void | (() => void)>(undefined);
 
   const refEffect = React.useCallback((instance: Instance | null) => {

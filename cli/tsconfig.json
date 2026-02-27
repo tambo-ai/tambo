@@ -14,7 +14,6 @@
     "forceConsistentCasingInFileNames": true,
     "strict": true,
     "skipLibCheck": true,
-    "baseUrl": ".",
     "typeRoots": [
       "./node_modules/@types",
       "../node_modules/@types",
@@ -22,7 +21,7 @@
     ],
     "types": ["node", "jest"],
     "paths": {
-      "@/*": ["src/*"],
+      "@/*": ["./src/*"],
       "@tambo-ai/react": ["../react-sdk/src"],
       "@tambo-ai/react/mcp": ["../react-sdk/src/mcp"]
     },

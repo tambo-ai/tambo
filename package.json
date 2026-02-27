@@ -10,14 +10,16 @@
     "build:sdk": "turbo build --filter=@tambo-ai/react",
     "check-types": "turbo check-types",
     "clean": "turbo clean",
-    "format": "prettier --write \"**/*.{ts,tsx,md,mdx,yml}\"",
-    "lint:fix": "turbo lint -- --fix",
     "lint": "turbo lint",
-    "format:code": "turbo run format:code",
+    "lint:fix": "turbo lint:fix",
+    "lint:count": "oxlint --type-check --type-aware -f unix | sed -n 's/.*\\[Error.*\\/\\([^]]*\\)\\].*/\\1/p' | sort | uniq -c | sort",
+    "_lint": "oxlint --type-check --type-aware",
+    "_lint:fix": "oxlint --type-check --type-aware --fix",
+    "format": "turbo format",
+    "format:fix": "turbo format:fix",
+    "_format": "oxfmt . --check",
+    "_format:fix": "oxfmt . --write",
     "prepare": "husky",
-    "prettier": "prettier",
-    "prettier-write": "prettier --write .",
-    "prettier-check": "prettier --check .",
     "test": "turbo test",
     "dev": "turbo dev --filter=@tambo-ai/showcase --filter=@tambo-ai/docs",
     "dev:sdk": "turbo dev --filter=@tambo-ai/react --filter=@tambo-ai/showcase",
@@ -32,15 +34,19 @@
   "author": "",
   "license": "MIT",
   "devDependencies": {
+    "@tambo-ai/oxlint-config": "*",
     "@types/node": "^22.19.8",
     "chokidar": "^5.0.0",
     "husky": "^9.1.7",
     "lint-staged": "^16.2.7",
-    "prettier": "^3.8.1",
+    "oxfmt": "^0.35.0",
+    "oxlint": "^1.50.0",
+    "oxlint-tsgolint": "^0.15.0",
     "tsx": "^4.21.0",
     "turbo": "^2.8.3",
     "type-fest": "^5.4.3",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "ultracite": "^7.2.4"
   },
   "packageManager": "npm@11.7.0+sha512.c22099a6fff8d5b2286c2a09df5352b4858a7c0c716320f58989d60ad8b29ecf2ce6fdfe97ccb41c23ffb1272e1fa079f868487dd6b81d02a2a9e199c095a117",
   "workspaces": [
@@ -67,5 +73,11 @@
   "volta": {
     "node": "22.22.0",
     "npm": "11.7.0"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx,json,jsonc,json5,css,scss,md,mdx}": [
+      "oxfmt --write",
+      "oxlint --fix"
+    ]
   }
 }

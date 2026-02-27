@@ -17,8 +17,6 @@
     "test:cov": "jest --coverage",
     "test:watch": "jest --watch",
     "check-types": "tsc --noEmit",
-    "lint": "eslint",
-    "lint:fix": "eslint --fix",
     "clean": "rm -rf dist coverage"
   },
   "author": "",
@@ -55,14 +53,12 @@
     "zod-to-json-schema": "^3.25.1"
   },
   "devDependencies": {
-    "@tambo-ai/eslint-config": "*",
     "@tambo-ai/typescript-config": "*",
     "@types/jest": "^30.0.0",
     "@types/json-schema": "^7.0.15",
     "@types/mime-types": "^3.0.1",
     "@types/node": "^22.19.8",
     "jest": "^30.2.0",
-    "prettier-2": "npm:prettier@^2",
     "ts-jest": "^29.4.6",
     "typescript": "^5.9.3"
   }

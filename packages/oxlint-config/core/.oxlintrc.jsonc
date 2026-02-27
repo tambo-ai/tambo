@@ -1,0 +1,368 @@
+{
+  "$schema": "https://raw.githubusercontent.com/oxc-project/oxc/main/npm/oxlint/configuration_schema.json",
+  "plugins": [
+    "eslint",
+    "import",
+    "jsdoc",
+    "oxc",
+    "promise",
+    "typescript",
+    "unicorn"
+  ],
+  "categories": {
+    "correctness": "error",
+    "perf": "error",
+    "restriction": "error",
+    "suspicious": "error",
+    // only warn for these ones, automatic fixes will still apply
+    "pedantic": "warn",
+    "style": "warn"
+  },
+  "settings": {
+    "jsdoc": {
+      "ignorePrivate": true,
+      "ignoreInternal": true
+    }
+  },
+  "rules": {
+    // ============================================================================
+    // CONFIGURED RULES - These have been explicitly configured for this project
+    // ============================================================================
+
+    "ban-ts-comment": [
+      "error",
+      {
+        "minimumDescriptionLength": 3,
+        "ts-check": false,
+        "ts-expect-error": "allow-with-description",
+        "ts-ignore": true,
+        "ts-nocheck": true
+      }
+    ],
+    "func-style": ["error", "declaration", { "allowArrowFunctions": true }],
+
+    // ============================================================================
+    // PERMANENTLY DISABLED - Opinionated, stylistic, or not useful for this project
+    // ============================================================================
+
+    // --- Style/Formatting (handled by formatter or preference) ---
+    "capitalized-comments": "off",
+    "curly": "off", // Formatter handles brace style
+    "no-inline-comments": "off",
+    "sort-keys": "off",
+    "sort-imports": "off", // use oxfmt's experimentalSortImports instead
+    "new-cap": "off",
+    "arrow-body-style": "off", // Style preference handled by formatter
+    "func-names": "off", // Anonymous functions are fine
+    "no-else-return": "off", // Early returns can hurt readability sometimes
+    "no-negated-condition": "off", // Style preference
+    "no-plusplus": "off", // Common JS pattern (i++, i--)
+    "no-nested-ternary": "off", // Covered by code review per AGENTS.md
+    "no-ternary": "off",
+    "prefer-destructuring": "off", // Not always clearer
+    "no-lonely-if": "off", // Style preference
+    "no-useless-computed-key": "off", // Minor style
+    "no-useless-rename": "off", // Minor style
+    "no-unneeded-ternary": "off", // Style preference
+    "no-useless-constructor": "off", // Minor cleanup
+    "no-useless-return": "off", // Minor cleanup
+    "default-param-last": "off", // Style preference
+    "operator-assignment": "off", // x = x + 1 vs x += 1
+    "prefer-exponentiation-operator": "off", // Math.pow vs **
+    "no-div-regex": "off", // Regex style
+
+    // --- TypeScript style preferences ---
+    "consistent-type-definitions": "off", // interface vs type is preference
+    "no-inferrable-types": "off", // Explicit types can aid readability
+    "explicit-function-return-type": "off",
+    "explicit-module-boundary-types": "off",
+    "consistent-type-imports": "off", // Would enable with proper config
+    "consistent-type-specifier-style": "off", // Would enable with proper config
+    "consistent-indexed-object-style": "off", // TypeScript style preference
+    "consistent-generic-constructors": "off", // TypeScript style preference
+    "strict-boolean-expressions": "off", // Too strict for this project
+    "default-case": "off", // Prefer typescript/switch-exhaustiveness-check over default-case for type-safe exhaustiveness
+    "unbound-method": "off", // Class methods are often used as unbound callbacks, and TS handles this well with correct typings
+
+    // --- Arbitrary limits ---
+    "complexity": "off", // Better addressed in code review
+    "max-classes-per-file": "off",
+    "max-depth": "off",
+    "max-lines": "off",
+    "max-lines-per-function": "off",
+    "max-params": "off",
+    "max-statements": "off",
+    "id-length": "off",
+
+    // --- Framework/pattern specific (false positives) ---
+    "class-methods-use-this": "off", // False positives with decorators/frameworks
+    "no-extraneous-class": "off", // NestJS uses classes extensively
+    "no-warning-comments": "off", // TODOs and FIXMEs are useful
+    "init-declarations": "off",
+    "no-continue": "off",
+
+    // --- Intentionally permissive ---
+    "no-magic-numbers": "off",
+    "no-implicit-coercion": "off",
+    "no-optional-chaining": "off",
+    "no-rest-spread-properties": "off",
+    "no-async-await": "off",
+    "no-undefined": "off",
+    "no-explicit-any": "off", // Prefer unknown, but any is sometimes needed
+    "no-shadow": "off", // ts catches most shadowing issues
+    "preserve-caught-error": "off",
+    "prefer-template": "off",
+    "array-type": "off",
+    "no-void": "off",
+    "no-meaningless-void-operator": "off",
+    "no-unnecessary-type-arguments": "off",
+    "no-unnecessary-type-assertion": "off",
+
+    // typescript(TS7006)
+    // typescript(TS2307)
+    // typescript(TS2345)
+    // typescript(TS2352)
+    // typescript(TS2339)
+    "no-duplicate-type-constituents": "off",
+    "no-misused-spread": "off",
+    "require-array-sort-compare": "off",
+    "non-nullable-type-assertion-style": "off",
+    "await-thenable": "off",
+    "no-redundant-type-constituents": "off",
+    "no-unsafe-enum-comparison": "off",
+    "use-unknown-in-catch-callback-variable": "off",
+    "no-base-to-string": "off",
+    "restrict-template-expressions": "off",
+    "no-unsafe-type-assertion": "off",
+
+    // --- Import rules (project preferences) ---
+    // NOTE: Node.js-specific rules (import/no-nodejs-modules, import/no-commonjs, import/unambiguous, no-var-requires)
+    // are in the node config - packages that need them should extend packages/oxlint-config/node/.oxlintrc.jsonc
+    "no-barrel-file": "off", // Package entry points use barrels
+    "import/no-named-export": "off",
+    "import/exports-last": "off",
+    "import/group-exports": "off",
+    "import/max-dependencies": "off",
+    "import/no-anonymous-default-export": "off",
+    "import/no-dynamic-require": "off",
+    "import/no-namespace": "off",
+    "import/prefer-default-export": "off",
+    "import/first": "off",
+    "import/no-named-as-default": "off",
+    "import/no-default-export": "off",
+    "import/no-relative-parent-imports": "off",
+    "import/extensions": "off", // Noisy with mixed .js/.ts
+    "import/namespace": "off", // TypeScript handles this
+    "import/no-named-as-default-member": "off",
+    "import/no-unassigned-import": "off",
+    "no-duplicate-imports": "off",
+    "no-import-type-side-effects": "off",
+
+    // --- JSDoc rules (too strict for this project) ---
+    "jsdoc/require-param": "off",
+    "jsdoc/require-returns": "off",
+    "jsdoc/require-param-description": "off",
+    "jsdoc/require-yields": "off",
+    "jsdoc/check-tag-names": "off",
+    "jsdoc/require-returns-type": "off",
+    "jsdoc/require-param-type": "off",
+
+    // --- Promise rules (too strict or style) ---
+    "promise/avoid-new": "off", // new Promise is sometimes needed
+    "promise/always-return": "off", // Too strict for async handlers
+    "promise/prefer-await-to-callbacks": "off", // Not always applicable
+    "promise/prefer-await-to-then": "off", // Sometimes .then() is clearer
+    "promise/param-names": "off", // resolve/reject naming preference
+    "promise/catch-or-return": "off", // Context-dependent
+    "promise/no-promise-in-callback": "off", // Context-dependent
+    "promise/prefer-catch": "off", // Style preference
+    "promise/valid-params": "off", // False positives on NestJS exception filter .catch(exception, host)
+
+    // --- Restriction rules (context-dependent) ---
+    "no-bitwise": "off", // Sometimes intentional (flags, hashing)
+    "no-new": "off", // Sometimes side effects are intentional
+    "no-dynamic-delete": "off", // Sometimes necessary
+    "no-template-curly-in-string": "off", // False positives on strings containing literal ${} syntax
+
+    // --- Unicorn rules (stylistic or compatibility) ---
+    "unicorn/explicit-length-check": "off", // Style preference
+    "unicorn/no-array-callback-reference": "off", // easy to footgun with map/filter/reduce
+    "unicorn/prefer-top-level-await": "off", // that's just like, your opinion, man
+    "unicorn/no-null": "off", // null is explicitly needed in react
+    "unicorn/filename-case": "off", // Project uses kebab-case, enforced elsewhere
+    "unicorn/catch-error-name": "off", // Style preference (error vs err vs e)
+    "unicorn/no-nested-ternary": "off", // Covered by code review
+    "unicorn/prefer-string-replace-all": "off", // Compatibility concerns
+    "unicorn/prefer-optional-catch-binding": "off", // Minor preference
+    "unicorn/prefer-spread": "off", // Style preference
+    "unicorn/prefer-number-properties": "off", // Minor preference
+    "unicorn/prefer-at": "off", // ES2022 compatibility
+    "unicorn/numeric-separators-style": "off", // Style preference
+    "unicorn/no-useless-undefined": "off", // Sometimes explicit undefined is intentional
+    "unicorn/switch-case-braces": "off", // Style preference
+    "unicorn/consistent-function-scoping": "off", // Too many false positives
+    "unicorn/no-array-for-each": "off", // forEach is fine, for-of preferred
+    "unicorn/prefer-node-protocol": "off", // Node.js version compatibility
+    "unicorn/text-encoding-identifier-case": "off", // Minor style
+    "unicorn/no-array-sort": "off", // sort() is fine with awareness of mutation
+    "unicorn/no-process-exit": "off", // Needed in CLI tools
+    "unicorn/prefer-string-raw": "off", // Rarely applicable
+    "unicorn/escape-case": "off", // Minor style
+    "unicorn/no-hex-escape": "off", // Minor style
+    "unicorn/prefer-global-this": "off", // Compatibility concerns
+    "unicorn/no-typeof-undefined": "off", // Style preference
+    "unicorn/prefer-bigint-literals": "off", // Minor style
+    "unicorn/prefer-date-now": "off", // Minor preference
+    "unicorn/prefer-logical-operator-over-ternary": "off", // Style preference
+    "unicorn/prefer-object-from-entries": "off", // Style preference
+    "unicorn/prefer-response-static-json": "off", // Minor preference
+    "unicorn/consistent-existence-index-check": "off", // Style preference
+    "unicorn/no-await-expression-member": "off", // Style preference
+    "unicorn/number-literal-case": "off", // Hex case style
+    "unicorn/prefer-array-some": "off", // Style preference
+    "unicorn/prefer-code-point": "off", // Minor preference
+    "unicorn/prefer-dom-node-append": "off", // DOM style preference
+    "unicorn/prefer-dom-node-dataset": "off", // DOM style preference
+    "unicorn/prefer-dom-node-remove": "off", // DOM style preference
+    "unicorn/prefer-math-trunc": "off", // Minor style
+    "unicorn/no-lonely-if": "off", // Style preference
+    "unicorn/prefer-add-event-listener": "off", // Style preference
+    "unicorn/prefer-native-coercion-functions": "off", // Minor style
+    "unicorn/no-console-spaces": "off", // Very minor
+    "unicorn/prefer-string-slice": "off", // substring vs slice preference
+    "unicorn/no-useless-fallback-in-spread": "off", // Minor cleanup
+    "unicorn/no-zero-fractions": "off", // 1.0 vs 1 style
+    "unicorn/no-useless-spread": "off", // Minor cleanup
+    "unicorn/prefer-set-has": "off", // Minor performance/style
+    "unicorn/no-array-reduce": "off", // AGENTS.md says avoid reduce, but don't lint it
+    "unicorn/prefer-array-find": "off", // Style preference
+    "unicorn/prefer-type-error": "off", // Minor preference
+    "unicorn/new-for-builtins": "off", // Array() vs new Array() - both work
+    "unicorn/no-immediate-mutation": "off", // Sometimes two-step initialization is clearer
+
+    // --- OXC rules ---
+    "oxc/no-async-endpoint-handlers": "off", // NestJS handles async correctly
+
+    // ============================================================================
+    // RULES TO REVISIT - Potentially valuable but need gradual adoption
+    // These have been disabled due to high violation counts but may be worth
+    // enabling in the future with dedicated cleanup efforts.
+    // ============================================================================
+
+    // --- Style rules ---
+    "radix": "off", // TODO: Enable and fix 7 violations - parseInt() should have explicit radix
+    "no-console": ["off", { "allow": ["warn", "error", "info", "debug"] }], // TODO: Enable no-console and fix 68 violations - use logger instead of console
+    "no-param-reassign": "off", // TODO: Enable and fix 7 violations - reassigning params is confusing
+    "no-empty": "off", // TODO: Enable and fix 2 violations - add comments to intentional empty catch blocks
+
+    // --- Correctness rules (high value, need fixes) ---
+    "eqeqeq": "off", // TODO: Enable eqeqeq and fix 34 violations - prevents type coercion bugs
+    "no-eq-null": "off", // Related to eqeqeq
+    "no-use-before-define": ["off", { "functions": false, "classes": false }], // TODO: Enable and review 95 violations - functions/classes are hoisted so allow those
+    "no-await-in-loop": "off", // TODO: Enable and review 41 violations - sequential awaits are often unintentional
+    "require-await": "off", // TODO: Enable and review 209 violations - async without await is misleading
+    "no-unused-vars": "off", // TODO: Enable and fix 48 violations - dead code detection
+    "no-non-null-assertion": "off", // TODO: Enable and review 108 violations - potential null safety issues
+    "no-empty-function": "off", // TODO: Enable and review 129 violations - often intentional but worth checking
+    "no-promise-executor-return": "off", // TODO: Enable and review - prevents subtle promise bugs
+    "no-throw-literal": "off", // TODO: Enable and fix 1 violation - throw Error objects, not raw values
+    "array-callback-return": "off", // TODO: Enable and fix 6 violations - array methods should return values
+
+    // --- JSDoc rules ---
+    "jsdoc/empty-tags": "warn", // TODO: remove descriptions from void tags like @internal
+
+    // --- Import organization (autofixable when enabled) ---
+    "import/no-cycle": "off", // TODO: Enable and fix 17 violations - circular dependencies
+    "import/no-duplicates": "off", // TODO: Enable and fix 5 violations - combine duplicate imports
+
+    // --- Unicorn rules ---
+    "unicorn/no-useless-collection-argument": "off", // TODO: Enable and fix 3 violations - remove unnecessary fallback args
+    "unicorn/no-object-as-default-parameter": "off", // TODO: Enable and fix 2 violations - extract default to const
+    "unicorn/no-useless-switch-case": "off", // TODO: Enable and fix 2 violations - remove cases that just fall through to default
+    "unicorn/no-document-cookie": "off", // TODO: Enable and fix 2 violations - use a cookie utility instead of document.cookie
+    "unicorn/no-array-reverse": "off", // TODO: Enable and fix 1 violation - reverse() mutates the array, use .toReversed() instead
+    "unicorn/no-unnecessary-await": "off", // TODO: Enable and fix violations - remove unnecessary await keywords
+
+    // --- Performance ---
+    "no-map-spread": "off", // TODO: Enable and review - spread in maps can be expensive
+    "oxc/no-accumulating-spread": "off" // TODO: Enable and fix 4 violations - O(n²) performance issue
+  },
+  "overrides": [
+    {
+      "files": [
+        "**/*.test.ts",
+        "**/*.test.tsx",
+        "**/*.spec.ts",
+        "**/*.spec.tsx",
+        "**/jest.setup.ts",
+        "**/vitest.setup.ts",
+        "**/test-utils/**",
+        "**/__tests__/**",
+        "**/__mocks__/**",
+        "**/__fixtures__/**"
+      ],
+      "env": {
+        "jest": true
+        // "vitest": true
+      },
+      "plugins": [
+        "jest"
+        // "vitest"
+      ],
+      "rules": {
+        // ============================================================================
+        // TEST FILE RULES - Permanently disabled for test files
+        // ============================================================================
+
+        // --- Style preferences for tests ---
+        "jest/consistent-test-it": "off", // test() vs it() is preference
+        "jest/prefer-lowercase-title": "off", // Title case is fine
+        "jest/no-hooks": "off", // beforeEach/afterEach are useful
+        "jest/max-expects": "off", // Arbitrary limit
+        "jest/require-hook": "off", // Not always needed
+        "vitest/prefer-describe-function-title": "off", // Style preference
+        "vitest/prefer-to-be-falsy": "off", // toBe(false) is often clearer
+        "vitest/prefer-to-be-truthy": "off", // toBe(true) is often clearer
+
+        // --- Test patterns that are sometimes necessary ---
+        "jest/no-conditional-in-test": "off", // Sometimes needed for test setup
+        "jest/no-conditional-expect": "off", // Sometimes needed
+        "jest/no-large-snapshots": "off", // Large snapshots can be valid
+        "jest/prefer-strict-equal": "off", // toEqual is often more appropriate
+        "no-throw-literal": "off", // Tests may intentionally throw non-Error objects
+        "unicorn/no-thenable": "off", // Tests may create thenable objects intentionally
+        "no-import-assign": "off", // Test fixtures reassign imports for mocking
+        "no-loop-func": "off", // Test mocks may define functions in loops
+        "no-unassigned-vars": "off", // Test setup may declare vars assigned later in beforeEach
+
+        // ============================================================================
+        // RULES TO REVISIT - May be worth enabling with cleanup
+        // ============================================================================
+
+        "jest/expect-expect": "off", // TODO: Review and potentially enable these test best practices
+        "jest/no-commented-out-tests": "off",
+        "jest/no-identical-title": "off",
+        "jest/no-jasmine-globals": "off",
+        "jest/prefer-todo": "off",
+        "vitest/no-import-node-test": "off",
+        "jest/no-disabled-tests": "off",
+        "jest/no-export": "off",
+        "jest/prefer-expect-resolves": "off",
+        "jest/prefer-hooks-in-order": "off",
+        "jest/padding-around-test-blocks": "off",
+        "jest/require-top-level-describe": "off",
+        "jest/prefer-to-be": "off",
+        "jest/require-to-throw-message": "off",
+        "jest/prefer-spy-on": "off",
+        "jest/prefer-called-with": "off",
+        "vitest/prefer-called-once": "off",
+        "jest/prefer-to-have-length": "off",
+        "jest/prefer-jest-mocked": "off",
+        "jest/no-untyped-mock-factory": "off",
+
+        /* KNOWN ISSUE: This rule has a bug causing false positives */
+        "jest/no-confusing-set-timeout": "off"
+      }
+    }
+  ]
+}

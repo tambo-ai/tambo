@@ -8,8 +8,6 @@
     "dev": "next dev -p 8260",
     "build": "SKIP_ENV_VALIDATION=true next build --no-lint",
     "start": "next start",
-    "lint": "eslint",
-    "lint:fix": "eslint --fix",
     "check-types": "tsc --noEmit",
     "clean": "rm -rf dist .next coverage",
     "test": "jest",
@@ -118,7 +116,6 @@
   },
   "devDependencies": {
     "@tailwindcss/typography": "^0.5.19",
-    "@tambo-ai/eslint-config": "*",
     "@tambo-ai/typescript-config": "*",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",

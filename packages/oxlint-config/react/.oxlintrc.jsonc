@@ -1,0 +1,97 @@
+{
+  "$schema": "https://raw.githubusercontent.com/oxc-project/oxc/main/npm/oxlint/configuration_schema.json",
+  // React library config - extends core
+  "plugins": ["react", "react-perf", "jsx-a11y"],
+  "overrides": [
+    {
+      // Config files, scripts, tests, and mocks run in Node.js
+      "files": [
+        "**/*.config.*",
+        "**/scripts/**",
+        "**/__tests__/**",
+        "**/__mocks__/**",
+        "**/tests/**",
+        "**/*.test.*",
+        "**/setupTests.*"
+      ],
+      "rules": {
+        "import/no-nodejs-modules": "off",
+        "import/no-commonjs": "off",
+        "import/unambiguous": "off",
+        "no-var-requires": "off"
+      }
+    }
+  ],
+  "env": {
+    "browser": true,
+    "serviceworker": true
+  },
+  "rules": {
+    // ============================================================================
+    // CONFIGURED RULES
+    // ============================================================================
+
+    "react/jsx-filename-extension": "off", // Style preference - allow .tsx without JSX
+    "react/jsx-no-constructed-context-values": "off", // this will be taken care of by the runtime
+
+    // ============================================================================
+    // RULES TO REVISIT - Potentially valuable but need gradual adoption
+    // These have been disabled due to high violation counts but may be worth
+    // enabling in the future with dedicated cleanup efforts.
+    // ============================================================================
+
+    "react-hooks/rules-of-hooks": "warn", // TODO: fix 5 violations and switch to error - hooks must follow React rules
+
+    // --- Style preferences ---
+    // Buttons without type="button" default to type="submit", causing unexpected form submissions
+    "react/button-has-type": "off", // TODO: Enable and fix 45 violations - add type="button" to non-submit buttons
+
+    // --- Accessibility preferences ---
+    "jsx-a11y/prefer-tag-over-role": "off", // TODO: Enable and fix 13 violations - use <button> instead of role="button"
+    "jsx-a11y/click-events-have-key-events": "off", // TODO: Enable and fix 9 violations - keyboard a11y
+    "react/no-danger": "off", // TODO: Review usages and ensure all use sanitization
+    "jsx-a11y/heading-has-content": "off", // False positives on wrapper components
+    "jsx-a11y/img-redundant-alt": "off", // TODO: Enable and fix 3 violations - alt text shouldn't contain "image"
+    "jsx-a11y/label-has-associated-control": "off", // TODO: Enable and fix 2 violations - labels need htmlFor or nested input
+    "jsx-a11y/alt-text": "off", // TODO: Fix a11y violations (1 each) and re-enable
+    "no-static-element-interactions": "off", // TODO: Enable and fix 7 violations - add role or handlers to static elements
+
+    // ============================================================================
+    // PERMANENTLY DISABLED - Not useful for this project
+    // ============================================================================
+
+    // --- Style preferences ---
+    "react/jsx-props-no-spreading": "off", // Spreading is common pattern
+    "react/jsx-max-depth": "off", // Arbitrary limit
+    "react/only-export-components": "off", // Multiple exports common
+    "react/no-multi-comp": "off", // Multiple components per file is fine
+    "react/react-in-jsx-scope": "off", // Not needed with modern React
+    "react/jsx-handler-names": "off", // Handler naming preference
+    "react/jsx-curly-brace-presence": "off", // Brace style preference
+    "react/jsx-boolean-value": "off", // prop={true} vs prop preference
+    "react/jsx-pascal-case": "off", // PascalCase preference - many valid exceptions
+    "react/self-closing-comp": "off", // Autofixable style preference
+    "react/jsx-no-useless-fragment": "off", // Sometimes fragments are clearer
+    "react/no-array-index-key": "off", // Index keys are acceptable for static lists
+
+    // --- Accessibility preferences ---
+    "jsx-a11y/no-autofocus": "off", // Autofocus is sometimes needed
+    "jsx-a11y/anchor-ambiguous-text": "off",
+    "jsx-a11y/anchor-has-content": "off",
+    "jsx-a11y/html-has-lang": "off",
+    "jsx-a11y/lang": "off",
+    "jsx-a11y/media-has-caption": "off",
+    "jsx-a11y/no-aria-hidden-on-focusable": "off",
+    "jsx-a11y/role-has-required-aria-props": "off",
+    "jsx-a11y/aria-role": [
+      "error",
+      { "allowedInvalidRoles": ["assistant", "user"] }
+    ], // Allow custom roles for chat components
+
+    // --- Performance rules (too strict) ---
+    "react_perf/jsx-no-jsx-as-prop": "off", // Common pattern, not always a problem
+    "react_perf/jsx-no-new-array-as-prop": "off", // Common pattern
+    "react_perf/jsx-no-new-object-as-prop": "off", // Common pattern
+    "react-perf/jsx-no-new-function-as-prop": "off" // Common pattern
+  }
+}

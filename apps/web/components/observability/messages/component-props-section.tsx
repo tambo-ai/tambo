@@ -37,10 +37,10 @@ export function ComponentPropsSection({
           View Props
         </span>
         <div className="flex items-center gap-1 sm:gap-2">
-          <span
-            onClick={async (e) => {
+          <button
+            onClick={(e) => {
               e.stopPropagation();
-              await copy();
+              void copy();
             }}
             className="h-5 w-5 sm:h-6 sm:w-6 p-0 flex items-center justify-center cursor-pointer hover:bg-muted rounded-sm transition-colors text-primary"
           >
@@ -49,7 +49,7 @@ export function ComponentPropsSection({
             ) : (
               <Copy className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-primary" />
             )}
-          </span>
+          </button>
           <ChevronDown
             className={cn(
               "h-3 w-3 sm:h-4 sm:w-4 transition-transform duration-200",

@@ -125,8 +125,6 @@
   "scripts": {
     "build": "vite build",
     "dev": "vite build --watch",
-    "lint": "eslint",
-    "lint:fix": "eslint --fix",
     "check-types": "tsc --noEmit",
     "test": "NODE_OPTIONS=--experimental-vm-modules jest",
     "clean": "rimraf dist"
@@ -140,7 +138,6 @@
     "@base-ui/react": "^1.2.0"
   },
   "devDependencies": {
-    "@tambo-ai/eslint-config": "*",
     "@tambo-ai/react": "*",
     "@tambo-ai/typescript-config": "*",
     "@tambo-ai/typescript-sdk": "^0.93.0",
