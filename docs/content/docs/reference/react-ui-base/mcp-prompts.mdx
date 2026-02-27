@@ -102,7 +102,7 @@ Use the render prop on `List` to access the prompt collection for custom iterati
 
 ### Error Handling
 
-The `Error` part only renders when the selection lifecycle enters the `error` state (invalid format, no text content, or fetch failure). Errors auto-clear after 3 seconds.
+The `Error` part only renders when the selection lifecycle enters the `error` state (invalid format, no text content, or fetch failure). Consumers are responsible for managing error dismissal.
 
 ```tsx
 <McpPrompts.Error
@@ -120,7 +120,7 @@ The `Error` part only renders when the selection lifecycle enters the `error` st
 
 | Prop           | Type                        | Description                                          |
 | -------------- | --------------------------- | ---------------------------------------------------- |
-| `onInsertText` | `(text: string) => void`    | Callback invoked when prompt text is ready.          |
+| `onInsertText` | `(text: string) => void`    | Optional. Callback invoked when prompt text is ready. |
 
 Renders nothing when no MCP prompts are available.
 

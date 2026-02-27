@@ -13,7 +13,7 @@ import * as React from "react";
 /**
  * Props for the McpPromptButton component.
  */
-export interface McpPromptButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+export interface McpPromptButtonProps extends React.HTMLAttributes<HTMLDivElement> {
   /** Callback to insert text into the input */
   onInsertText: (text: string) => void;
   /** Current input value */
@@ -35,7 +35,7 @@ export interface McpPromptButtonProps extends React.ButtonHTMLAttributes<HTMLBut
  * ```
  */
 export const McpPromptButton = React.forwardRef<
-  HTMLButtonElement,
+  HTMLDivElement,
   McpPromptButtonProps
 >(({ className, onInsertText, value, ...props }, ref) => {
   const handleInsertText = React.useCallback(
@@ -67,7 +67,7 @@ McpPromptButton.displayName = "McpPromptButton";
  * Internal styled prompt picker that composes base McpPrompts parts with Radix DropdownMenu.
  */
 const StyledPromptPicker = React.forwardRef<
-  HTMLButtonElement,
+  HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement> & {
     className?: string;
     hasError: boolean;
@@ -79,7 +79,7 @@ const StyledPromptPicker = React.forwardRef<
   );
 
   return (
-    <div {...divProps}>
+    <div {...divProps} ref={ref}>
       <TooltipProvider>
         <Tooltip
           content={hasError ? "Prompt error" : "Insert MCP Prompt"}
@@ -92,7 +92,6 @@ const StyledPromptPicker = React.forwardRef<
           <DropdownMenu.Root>
             <DropdownMenu.Trigger asChild>
               <button
-                ref={ref}
                 type="button"
                 className={cn(
                   buttonClasses,
@@ -131,13 +130,11 @@ const StyledPromptPicker = React.forwardRef<
                             key={`${promptEntry.server.url}-${promptEntry.prompt.name}`}
                             name={promptEntry.prompt.name}
                             description={promptEntry.prompt.description}
-                            render={(itemProps, itemState) => (
+                            render={(_itemProps, itemState) => (
                               <DropdownMenu.Item
                                 className="relative flex cursor-pointer select-none items-start flex-col rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
                                 onSelect={() => {
-                                  itemProps.onClick?.(
-                                    {} as React.MouseEvent<HTMLButtonElement>,
-                                  );
+                                  itemState.select();
                                 }}
                               >
                                 <span className="font-medium truncate max-w-full">
@@ -283,13 +280,11 @@ export const McpResourceButton = React.forwardRef<
                                   description={
                                     resourceEntry.resource.description
                                   }
-                                  render={(itemProps) => (
+                                  render={(_itemProps, itemState) => (
                                     <DropdownMenu.Item
                                       className="relative flex cursor-pointer select-none items-start flex-col rounded-sm px-2 py-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 focus:bg-accent focus:text-accent-foreground"
                                       onSelect={() => {
-                                        itemProps.onClick?.(
-                                          {} as React.MouseEvent<HTMLButtonElement>,
-                                        );
+                                        itemState.select();
                                       }}
                                     >
                                       <div className="flex items-start justify-between w-full gap-2">

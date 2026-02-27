@@ -118,7 +118,7 @@ describe("McpPrompts", () => {
 
     // Verify useTamboMcpPrompt was called with the selected name
     // The effect that processes the prompt data would be triggered
-    expect(mockUseTamboMcpPrompt).toHaveBeenCalled();
+    expect(mockUseTamboMcpPrompt).toHaveBeenCalledWith("test:greeting");
   });
 
   it("marks selected item with data-selected attribute", async () => {

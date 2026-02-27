@@ -45,7 +45,6 @@ export const McpResourcesTrigger = React.forwardRef<
       type: "button",
       disabled: !hasResources || undefined,
     }),
-    enabled: hasResources,
   });
 });
 McpResourcesTrigger.displayName = "McpResources.Trigger";

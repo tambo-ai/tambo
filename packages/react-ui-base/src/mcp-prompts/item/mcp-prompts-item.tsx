@@ -10,6 +10,7 @@ export interface McpPromptsItemState extends Record<string, unknown> {
   name: string;
   description: string | undefined;
   isSelected: boolean;
+  select: () => void;
 }
 
 type McpPromptsItemComponentProps = useRender.ComponentProps<
@@ -44,6 +45,7 @@ export const McpPromptsItem = React.forwardRef<
     name,
     description,
     isSelected,
+    select: handleClick,
   };
 
   return useRender({

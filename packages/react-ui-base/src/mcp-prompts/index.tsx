@@ -42,4 +42,6 @@ export type {
   McpPromptsTriggerState,
 } from "./trigger/mcp-prompts-trigger";
 
+export type { useRender } from "@base-ui/react/use-render";
+
 export { McpPrompts };

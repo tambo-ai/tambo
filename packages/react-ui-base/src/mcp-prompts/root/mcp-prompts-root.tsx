@@ -94,6 +94,9 @@ export const McpPromptsRoot = React.forwardRef<
     selectedPromptName ?? undefined,
   );
 
+  const onInsertTextRef = React.useRef(onInsertText);
+  onInsertTextRef.current = onInsertText;
+
   // Handle prompt data when fetched
   React.useEffect(() => {
     if (!selectedPromptName || !promptData) return;
@@ -117,9 +120,9 @@ export const McpPromptsRoot = React.forwardRef<
     setError(null);
     setInsertedText(text);
     setStatus("done");
-    onInsertText?.(text);
+    onInsertTextRef.current?.(text);
     setSelectedPromptName(null);
-  }, [promptData, selectedPromptName, onInsertText]);
+  }, [promptData, selectedPromptName]);
 
   // Handle fetch errors
   React.useEffect(() => {
@@ -129,17 +132,6 @@ export const McpPromptsRoot = React.forwardRef<
       setSelectedPromptName(null);
     }
   }, [fetchError]);
-
-  // Auto-clear error after delay
-  React.useEffect(() => {
-    if (error) {
-      const timer = setTimeout(() => {
-        setError(null);
-        setStatus("idle");
-      }, 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [error]);
 
   const select = React.useCallback((promptName: string) => {
     setSelectedPromptName(promptName);
@@ -180,16 +172,18 @@ export const McpPromptsRoot = React.forwardRef<
     status,
   };
 
+  const enabled = hasPrompts || isLoading;
+
   const element = useRender({
     defaultTagName: "div",
     ref,
     render,
     state,
     props: componentProps,
-    enabled: hasPrompts,
+    enabled,
   });
 
-  if (!hasPrompts && !isLoading) {
+  if (!enabled) {
     return null;
   }
 

@@ -1,6 +1,6 @@
 import { describe, expect, it, jest } from "@jest/globals";
 import { useTamboMcpResourceList } from "@tambo-ai/react/mcp";
-import { render, screen } from "@testing-library/react";
+import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { McpResources } from "../index";
 
@@ -99,7 +99,8 @@ describe("McpResources", () => {
   });
 
   it("renders search input that updates search value", async () => {
-    const user = userEvent.setup();
+    jest.useFakeTimers();
+    const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
 
     render(
       <McpResources.Root>
@@ -112,6 +113,14 @@ describe("McpResources", () => {
 
     await user.type(searchInput, "doc");
     expect((searchInput as HTMLInputElement).value).toBe("doc");
+
+    // Advance past the 150ms debounce so the hook receives the search value
+    act(() => {
+      jest.advanceTimersByTime(150);
+    });
+    expect(mockUseTamboMcpResourceList).toHaveBeenCalledWith("doc");
+
+    jest.useRealTimers();
   });
 
   it("calls onSelectResource when item is clicked", async () => {

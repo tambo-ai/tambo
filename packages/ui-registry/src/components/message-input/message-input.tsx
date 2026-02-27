@@ -741,7 +741,7 @@ MessageInputFileButton.displayName = "MessageInput.FileButton";
  * Props for the MessageInputMcpPromptButton component.
  */
 export type MessageInputMcpPromptButtonProps =
-  React.ButtonHTMLAttributes<HTMLButtonElement>;
+  React.HTMLAttributes<HTMLDivElement>;
 
 /**
  * MCP Prompt picker button component for inserting prompts from MCP servers.
@@ -760,7 +760,7 @@ export type MessageInputMcpPromptButtonProps =
  * ```
  */
 const MessageInputMcpPromptButton = React.forwardRef<
-  HTMLButtonElement,
+  HTMLDivElement,
   MessageInputMcpPromptButtonProps
 >(({ ...props }, ref) => {
   return (

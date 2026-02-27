@@ -39,4 +39,6 @@ export type {
   McpResourcesTriggerState,
 } from "./trigger/mcp-resources-trigger";
 
+export type { useRender } from "@base-ui/react/use-render";
+
 export { McpResources };

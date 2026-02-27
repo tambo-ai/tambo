@@ -10,6 +10,7 @@ export interface McpResourcesItemState extends Record<string, unknown> {
   uri: string;
   name: string | undefined;
   description: string | undefined;
+  select: () => void;
 }
 
 type McpResourcesItemComponentProps = useRender.ComponentProps<
@@ -45,6 +46,7 @@ export const McpResourcesItem = React.forwardRef<
     uri,
     name,
     description,
+    select: handleClick,
   };
 
   return useRender({

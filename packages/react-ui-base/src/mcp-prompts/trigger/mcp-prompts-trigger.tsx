@@ -45,7 +45,6 @@ export const McpPromptsTrigger = React.forwardRef<
       type: "button",
       disabled: !hasPrompts || undefined,
     }),
-    enabled: hasPrompts,
   });
 });
 McpPromptsTrigger.displayName = "McpPrompts.Trigger";

@@ -31,10 +31,21 @@ export const McpResourcesRoot = React.forwardRef<
   McpResourcesRootProps
 >(({ onSelectResource, ...props }, ref) => {
   const [search, setSearch] = React.useState("");
-  const { data: resources, isLoading } = useTamboMcpResourceList(search);
+  const [debouncedSearch, setDebouncedSearch] = React.useState("");
+
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 150);
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  const { data: resources, isLoading } =
+    useTamboMcpResourceList(debouncedSearch);
 
   const resourceList = React.useMemo(() => resources ?? [], [resources]);
   const hasResources = resourceList.length > 0;
+  const enabled = hasResources || isLoading || search.length > 0;
 
   const handleSelectResource = React.useCallback(
     (uri: string, label: string) => {
@@ -68,10 +79,10 @@ export const McpResourcesRoot = React.forwardRef<
     render,
     state,
     props: componentProps,
-    enabled: hasResources,
+    enabled,
   });
 
-  if (!hasResources && !isLoading) {
+  if (!enabled) {
     return null;
   }
 
