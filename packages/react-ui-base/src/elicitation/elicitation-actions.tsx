@@ -1,15 +1,13 @@
 "use client";
 
-import { ComponentRenderFn, useRender } from "@base-ui/react";
+import { ComponentRenderFn, mergeProps, useRender } from "@base-ui/react";
 import * as React from "react";
 import { useElicitationContext } from "./elicitation-context";
 
 export interface ElicitationActionsState {
+  slot: string;
   single: boolean;
   valid: boolean;
-}
-
-interface ElicitationRenderProps {
   handleAccept: () => void;
   handleDecline: () => void;
   handleCancel: () => void;
@@ -17,8 +15,7 @@ interface ElicitationRenderProps {
 
 export type ElicitationActionsProps = useRender.ComponentProps<
   "div",
-  ElicitationActionsState,
-  useRender.ElementProps<"div"> & ElicitationRenderProps
+  ElicitationActionsState
 >;
 
 export interface ElicitationActionCancelRenderProps {
@@ -209,7 +206,7 @@ export const ElicitationActions = React.forwardRef<
   const { isSingleEntry, isValid, handleAccept, handleDecline, handleCancel } =
     useElicitationContext();
 
-  const content = children ?? (
+  const defaultContent = children ?? (
     <>
       <ElicitationActionCancel />
       <ElicitationActionDecline />
@@ -220,22 +217,25 @@ export const ElicitationActions = React.forwardRef<
   return useRender({
     defaultTagName: "div",
     ref,
-    render: ((props, state) => {
-      if (React.isValidElement(render)) {
-        return React.cloneElement(render, props);
-      }
-      if (typeof render === "function") {
-        return render(
-          { ...props, handleAccept, handleDecline, handleCancel },
-          state,
-        );
-      }
-      return children ?? content;
-    }) as ComponentRenderFn<ElicitationActionsProps, ElicitationActionsState>,
-    props,
+    render: render as ComponentRenderFn<
+      ElicitationActionsProps,
+      ElicitationActionsState
+    >,
+    props: mergeProps(props, {
+      children: children ?? defaultContent,
+    }),
     state: {
+      slot: "elicitation-actions",
       single: isSingleEntry,
       valid: isValid,
+      handleAccept,
+      handleDecline,
+      handleCancel,
+    },
+    stateAttributesMapping: {
+      handleAccept: () => null,
+      handleDecline: () => null,
+      handleCancel: () => null,
     },
   });
 });

@@ -16,10 +16,12 @@ Adopt the completed primitive + registry contracts in `apps/web` as the first pr
 - Align message input integration with submit/stop visibility and elicitation mode semantics.
 - Align thread controls/block integrations with caller-provided suggestions and updated thread primitives.
 - Verify interactables/rendered-component flows remain compatible with `mcp-components` + canvas-space contracts.
+- Verify all existing `react-ui-base` docs pages in `docs/content/docs/reference/react-ui-base/` compile against updated APIs.
+- Update `docs/content/docs/reference/react-ui-base/meta.json` and `docs/content/docs/reference/meta.json` section ordering for docs IA consistency.
 
 ### Out of Scope
 
-- docs/showcase migration.
+- docs/showcase full migration or new page authoring (pages authored in Phases 1-5).
 - New primitive feature development.
 - Additional contract expansion.
 
@@ -34,6 +36,8 @@ Adopt the completed primitive + registry contracts in `apps/web` as the first pr
 | `apps/web/hooks/use-interactables-resource-provider.ts`             | Validate resource insertion compatibility with updated primitives |
 | `apps/web/components/ui/tambo/edit-with-tambo-button.tsx`           | Align orchestration path with updated thread/content contracts    |
 | `apps/web/app/subscribe/tambo-subscribe-integration.tsx`            | Adopt updated primitive + registry APIs in subscribe flow         |
+| `docs/content/docs/reference/react-ui-base/meta.json`               | Final section ordering IA pass                                    |
+| `docs/content/docs/reference/meta.json`                             | Section registration for react-ui-base reference area             |
 
 ## Implementation Details
 
@@ -42,6 +46,7 @@ Adopt the completed primitive + registry contracts in `apps/web` as the first pr
 3. Pass suggestions from app-level configuration/state into block components explicitly.
 4. Keep app-specific UX choices in `apps/web` wrappers while preserving primitive behavior boundaries.
 5. Maintain fail-fast behavior for missing required app-level configuration inputs.
+6. All `react-ui-base` docs pages (authored in Phases 1-5) must compile against finalized APIs; fix any stale snippets or API tables.
 
 ## Testing Requirements
 
@@ -59,6 +64,7 @@ Adopt the completed primitive + registry contracts in `apps/web` as the first pr
 - [ ] Validate apps/web staged images/files + submit flow.
 - [ ] Validate thread switching/new-thread/suggestions in panel workflows.
 - [ ] Validate rendered component and canvas interaction paths.
+- [ ] Validate all `react-ui-base` docs pages compile and API tables match finalized TypeScript signatures.
 
 ## Validation Commands
 
@@ -66,6 +72,8 @@ Adopt the completed primitive + registry contracts in `apps/web` as the first pr
 npm run check-types -w apps/web
 npm run lint -w apps/web
 npm test -w apps/web
+npm run check-types -w docs
+npm run lint -w docs
 ```
 
 ## Implementation Tracking

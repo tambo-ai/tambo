@@ -24,8 +24,13 @@ export const ElicitationMessage = React.forwardRef<
     defaultTagName: "p",
     ref,
     render: render as ComponentRenderFn<ElicitationMessageProps, unknown>,
-    props: mergeProps(props, {
+    state: {
       message: request.message,
+    },
+    stateAttributesMapping: {
+      message: () => null,
+    },
+    props: mergeProps(props, {
       children: children ?? request.message,
     }),
   });

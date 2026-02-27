@@ -63,12 +63,10 @@ describe("MessageContent rendering", () => {
       const contentElement = getMessageContentTextSlot(container);
       expect(contentElement.innerHTML).toMatchInlineSnapshot(`
         <div
+          data-slot="message-content"
           data-hascontent
           data-markdown
           class="relative block rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&amp;_p]:py-1 [&amp;_li]:list-item :not([data-markdown]):wrap-break-word"
-          data-slot="message-content"
-          content="[object Object]"
-          contentasmarkdownstring="Hello, world!"
         >
           <div class="space-y-4 whitespace-normal *:first:mt-0 *:last:mb-0">
             <p class="my-0">
@@ -96,12 +94,10 @@ describe("MessageContent rendering", () => {
       const contentElement = getMessageContentTextSlot(container);
       expect(contentElement.innerHTML).toMatchInlineSnapshot(`
         <div
+          data-slot="message-content"
           data-hascontent
           data-markdown
           class="relative block rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&amp;_p]:py-1 [&amp;_li]:list-item :not([data-markdown]):wrap-break-word"
-          data-slot="message-content"
-          content="[object Object],[object Object]"
-          contentasmarkdownstring="First part. Second part."
         >
           <div class="space-y-4 whitespace-normal *:first:mt-0 *:last:mb-0">
             <p class="my-0">
@@ -128,12 +124,10 @@ describe("MessageContent rendering", () => {
       const contentElement = getMessageContentTextSlot(container);
       expect(contentElement.innerHTML).toMatchInlineSnapshot(`
         <div
+          data-slot="message-content"
           data-hascontent
           data-markdown
           class="relative block rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&amp;_p]:py-1 [&amp;_li]:list-item :not([data-markdown]):wrap-break-word"
-          data-slot="message-content"
-          content="[object Object]"
-          contentasmarkdownstring="This is **bold** and *italic* text."
         >
           <div class="space-y-4 whitespace-normal *:first:mt-0 *:last:mb-0">
             <p class="my-0">
@@ -179,12 +173,10 @@ describe("MessageContent rendering", () => {
       const contentElement = getMessageContentTextSlot(container);
       expect(contentElement.innerHTML).toMatchInlineSnapshot(`
         <div
+          data-slot="message-content"
           data-hascontent
           data-markdown
           class="relative block rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&amp;_p]:py-1 [&amp;_li]:list-item :not([data-markdown]):wrap-break-word"
-          data-slot="message-content"
-          content="[object Object]"
-          contentasmarkdownstring="[document.txt](tambo-resource://file%3A%2F%2F%2Fpath%2Fto%2Fdocument.txt)"
         >
           <div class="space-y-4 whitespace-normal *:first:mt-0 *:last:mb-0">
             <p class="my-0">
@@ -222,12 +214,10 @@ describe("MessageContent rendering", () => {
       const contentElement = getMessageContentTextSlot(container);
       expect(contentElement.innerHTML).toMatchInlineSnapshot(`
         <div
+          data-slot="message-content"
           data-hascontent
           data-markdown
           class="relative block rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&amp;_p]:py-1 [&amp;_li]:list-item :not([data-markdown]):wrap-break-word"
-          data-slot="message-content"
-          content="[object Object]"
-          contentasmarkdownstring="[file:///path/to/file.md](tambo-resource://file%3A%2F%2F%2Fpath%2Fto%2Ffile.md)"
         >
           <div class="space-y-4 whitespace-normal *:first:mt-0 *:last:mb-0">
             <p class="my-0">
@@ -266,12 +256,10 @@ describe("MessageContent rendering", () => {
       const contentElement = getMessageContentTextSlot(container);
       expect(contentElement.innerHTML).toMatchInlineSnapshot(`
         <div
+          data-slot="message-content"
           data-hascontent
           data-markdown
           class="relative block rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&amp;_p]:py-1 [&amp;_li]:list-item :not([data-markdown]):wrap-break-word"
-          data-slot="message-content"
-          content="[object Object]"
-          contentasmarkdownstring="[special file](tambo-resource://file%3A%2F%2F%2Fpath%2Fwith%20spaces%2Fand%23special%26chars.txt)"
         >
           <div class="space-y-4 whitespace-normal *:first:mt-0 *:last:mb-0">
             <p class="my-0">
@@ -313,12 +301,10 @@ describe("MessageContent rendering", () => {
       const contentElement = getMessageContentTextSlot(container);
       expect(contentElement.innerHTML).toMatchInlineSnapshot(`
         <div
+          data-slot="message-content"
           data-hascontent
           data-markdown
           class="relative block rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&amp;_p]:py-1 [&amp;_li]:list-item :not([data-markdown]):wrap-break-word"
-          data-slot="message-content"
-          content="[object Object],[object Object]"
-          contentasmarkdownstring="Check out this file: [readme.md](tambo-resource://file%3A%2F%2F%2Fdocs%2Freadme.md)"
         >
           <div class="space-y-4 whitespace-normal *:first:mt-0 *:last:mb-0">
             <p class="my-0">
@@ -359,12 +345,10 @@ describe("MessageContent rendering", () => {
       const contentElement = getMessageContentTextSlot(container);
       expect(contentElement.innerHTML).toMatchInlineSnapshot(`
         <div
+          data-slot="message-content"
           data-hascontent
           data-markdown
           class="relative block rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&amp;_p]:py-1 [&amp;_li]:list-item :not([data-markdown]):wrap-break-word"
-          data-slot="message-content"
-          content="[object Object],[object Object]"
-          contentasmarkdownstring="[config.json](tambo-resource://file%3A%2F%2F%2Fconfig.json) contains the settings you need."
         >
           <div class="space-y-4 whitespace-normal *:first:mt-0 *:last:mb-0">
             <p class="my-0">
@@ -414,12 +398,10 @@ describe("MessageContent rendering", () => {
       const contentElement = getMessageContentTextSlot(container);
       expect(contentElement.innerHTML).toMatchInlineSnapshot(`
         <div
+          data-slot="message-content"
           data-hascontent
           data-markdown
           class="relative block rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&amp;_p]:py-1 [&amp;_li]:list-item :not([data-markdown]):wrap-break-word"
-          data-slot="message-content"
-          content="[object Object],[object Object],[object Object],[object Object],[object Object]"
-          contentasmarkdownstring="Compare [old.ts](tambo-resource://file%3A%2F%2F%2Fold.ts) with [new.ts](tambo-resource://file%3A%2F%2F%2Fnew.ts) for the differences."
         >
           <div class="space-y-4 whitespace-normal *:first:mt-0 *:last:mb-0">
             <p class="my-0">
@@ -464,11 +446,9 @@ describe("MessageContent rendering", () => {
       const contentElement = getMessageContentTextSlot(container);
       expect(contentElement.innerHTML).toMatchInlineSnapshot(`
         <div
+          data-slot="message-content"
           data-markdown
           class="relative block rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&amp;_p]:py-1 [&amp;_li]:list-item :not([data-markdown]):wrap-break-word"
-          data-slot="message-content"
-          content
-          contentasmarkdownstring
         >
           <span class="text-muted-foreground italic">
             Empty message
@@ -491,11 +471,9 @@ describe("MessageContent rendering", () => {
       const contentElement = getMessageContentTextSlot(container);
       expect(contentElement.innerHTML).toMatchInlineSnapshot(`
         <div
+          data-slot="message-content"
           data-markdown
           class="relative block rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&amp;_p]:py-1 [&amp;_li]:list-item :not([data-markdown]):wrap-break-word"
-          data-slot="message-content"
-          content="[object Object]"
-          contentasmarkdownstring
         >
           <span class="text-muted-foreground italic">
             Empty message
@@ -528,12 +506,10 @@ describe("MessageContent rendering", () => {
       // Resource without URI should be skipped, text parts joined with space
       expect(contentElement.innerHTML).toMatchInlineSnapshot(`
         <div
+          data-slot="message-content"
           data-hascontent
           data-markdown
           class="relative block rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&amp;_p]:py-1 [&amp;_li]:list-item :not([data-markdown]):wrap-break-word"
-          data-slot="message-content"
-          content="[object Object],[object Object],[object Object]"
-          contentasmarkdownstring="Before After"
         >
           <div class="space-y-4 whitespace-normal *:first:mt-0 *:last:mb-0">
             <p class="my-0">
@@ -560,12 +536,10 @@ describe("MessageContent rendering", () => {
       const contentElement = getMessageContentTextSlot(container);
       expect(contentElement.innerHTML).toMatchInlineSnapshot(`
         <div
+          data-slot="message-content"
           data-hascontent
           data-markdown
           class="relative block rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&amp;_p]:py-1 [&amp;_li]:list-item :not([data-markdown]):wrap-break-word"
-          data-slot="message-content"
-          content="Plain string content"
-          contentasmarkdownstring="Plain string content"
         >
           <div class="space-y-4 whitespace-normal *:first:mt-0 *:last:mb-0">
             <p class="my-0">
@@ -595,12 +569,10 @@ describe("MessageContent rendering", () => {
       // Regular links should render as <a> tags with external link icon
       expect(contentElement.innerHTML).toMatchInlineSnapshot(`
         <div
+          data-slot="message-content"
           data-hascontent
           data-markdown
           class="relative block rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&amp;_p]:py-1 [&amp;_li]:list-item :not([data-markdown]):wrap-break-word"
-          data-slot="message-content"
-          content="[object Object]"
-          contentasmarkdownstring="Check out [Google](https://google.com)"
         >
           <div class="space-y-4 whitespace-normal *:first:mt-0 *:last:mb-0">
             <p class="my-0">

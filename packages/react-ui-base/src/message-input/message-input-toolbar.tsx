@@ -23,9 +23,9 @@ export const MessageInputToolbar = React.forwardRef<
     defaultTagName: "div",
     ref,
     render,
+    state: { slot: "message-input-toolbar" },
     props: mergeProps(componentProps, {
       children,
-      "data-slot": "message-input-toolbar",
     }),
   });
 });

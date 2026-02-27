@@ -9,6 +9,7 @@ import { useMessageInputContext } from "./message-input-context";
  * Render props for the SubmitButton component.
  */
 export interface MessageInputSubmitButtonState extends Record<string, unknown> {
+  slot: string;
   /** Whether the button is disabled */
   disabled: boolean;
   /** Whether the button is in a loading state */
@@ -44,13 +45,13 @@ export const MessageInputSubmitButton = React.forwardRef<
     render,
     enabled,
     state: {
+      slot: "message-input-submit",
       disabled,
       loading,
       state: hidden ? "hidden" : "visible",
     },
     props: mergeProps(componentProps, {
       disabled,
-      "data-slot": "message-input-submit",
       tabIndex: effectiveTabIndex,
       "aria-hidden": hidden ? "true" : undefined,
     }),

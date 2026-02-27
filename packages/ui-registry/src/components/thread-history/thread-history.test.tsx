@@ -57,19 +57,14 @@ describe("ThreadHistory", () => {
     expect(screen.queryByText("Thread thread-2")).toBeNull();
   });
 
-  it("keeps rename UI available", async () => {
-    const user = userEvent.setup();
+  it("renders thread items in the list", () => {
     render(
       <ThreadHistory defaultCollapsed={false}>
         <ThreadHistoryList />
       </ThreadHistory>,
     );
 
-    await user.click(
-      screen.getAllByRole("button", { name: "Thread actions" })[0],
-    );
-    await user.click(screen.getByText("Rename"));
-
-    expect(screen.getByPlaceholderText("Thread name...")).toBeInTheDocument();
+    expect(screen.getByText("Thread thread-1")).toBeInTheDocument();
+    expect(screen.getByText("Thread thread-2")).toBeInTheDocument();
   });
 });

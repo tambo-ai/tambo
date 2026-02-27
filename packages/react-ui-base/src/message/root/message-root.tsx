@@ -1,17 +1,14 @@
-import { mergeProps } from "@base-ui/react/merge-props";
 import { useRender } from "@base-ui/react/use-render";
 import { type ReactTamboThreadMessage } from "@tambo-ai/react";
 import * as React from "react";
 import { MessageRootContext } from "./message-root-context";
 
 export type MessageRootState = {
+  slot: string;
   /** The role of the message sender ('user' or 'assistant'). */
   role: "user" | "assistant";
   /** Optional flag to indicate if the message is in a loading state. */
   isLoading?: boolean;
-};
-
-export type MessageRootRenderProps = {
   /** The full Tambo thread message object. */
   message: ReactTamboThreadMessage;
 };
@@ -20,8 +17,7 @@ export type MessageRootProps = useRender.ComponentProps<
   "div",
   MessageRootState
 > &
-  MessageRootState &
-  MessageRootRenderProps;
+  Omit<MessageRootState, "slot">;
 
 /**
  * Root primitive for a message component.
@@ -35,18 +31,21 @@ export const MessageRoot = React.forwardRef<HTMLDivElement, MessageRootProps>(
       [role, isLoading, message],
     );
     const { render, ...componentProps } = props;
+    const state = {
+      slot: "message-root" as const,
+      role,
+      isLoading,
+      message,
+    };
     const element = useRender({
       defaultTagName: "div",
       ref,
       render,
-      state: {
-        role,
-        isLoading,
+      state,
+      stateAttributesMapping: {
+        message: () => null,
       },
-      props: mergeProps(componentProps, {
-        "data-slot": "message-root",
-        message,
-      }),
+      props: componentProps,
     });
 
     return (

@@ -17,6 +17,7 @@ export interface MessageImageRenderFnProps {
 }
 
 export interface MessageImagesRenderProps extends Record<string, unknown> {
+  slot: string;
   images: string[];
 }
 
@@ -50,6 +51,7 @@ export const MessageImages = React.forwardRef<
 
   const { render, ...componentProps } = props;
   const renderProps: MessageImagesRenderProps = {
+    slot: "message-images",
     images,
   };
   const renderedImages = React.useMemo(
@@ -71,9 +73,11 @@ export const MessageImages = React.forwardRef<
     ref,
     render,
     state: renderProps,
+    stateAttributesMapping: {
+      images: () => null,
+    },
     props: mergeProps(componentProps, {
       children: children ?? renderedImages,
-      "data-slot": "message-images",
     }),
   });
 });

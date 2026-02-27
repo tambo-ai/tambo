@@ -6,6 +6,11 @@
     "elicitation",
     "message",
     "toolcall-info",
-    "reasoning-info"
+    "reasoning-info",
+    "thread-content",
+    "thread-history",
+    "thread-dropdown",
+    "mcp-prompts",
+    "mcp-resources"
   ]
 }

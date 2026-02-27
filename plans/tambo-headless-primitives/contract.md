@@ -42,7 +42,7 @@ Developers building custom Tambo UIs need stable, unstyled primitives that are b
 - New headless elicitation primitive in `react-ui-base`.
 - Base-managed mode switching between message input content and elicitation UI.
 - New headless base primitives for `thread-history`, `thread-dropdown`, and `thread-content`
-- New headless base primitive for `mcp-components` (these will need deep analysis)
+- New headless base primitives for `mcp-prompts` and `mcp-resources` (MCP prompt picker and resource picker)
 - `ui-registry` updates to consume migrated/new base primitives.
 - Compound namespace consistency and render prop API consistency (all use the `useRender` + `mergeProps` imports, no `asChild` usage).
 - Registry block updates for caller-provided suggestions and opinionated hotkey behavior.

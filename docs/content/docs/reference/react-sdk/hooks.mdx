@@ -25,6 +25,10 @@ function Chat() {
     isWaiting,
     isIdle,
 
+    // Authentication
+    authState,
+    isIdentified,
+
     // Thread management
     initThread,
     switchThread,
@@ -65,6 +69,13 @@ function Chat() {
 | `isStreaming`    | `boolean`        | `true` when actively streaming a response               |
 | `isWaiting`      | `boolean`        | `true` when waiting for server response                 |
 | `isIdle`         | `boolean`        | `true` when no generation is in progress                |
+
+#### Authentication
+
+| Value          | Type                                                          | Description                                           |
+| -------------- | ------------------------------------------------------------- | ----------------------------------------------------- |
+| `authState`    | [`TamboAuthState`](/reference/react-sdk/types#tamboauthstate) | Current authentication state as a discriminated union |
+| `isIdentified` | `boolean`                                                     | Shorthand for `authState.status === "identified"`     |
 
 #### Run Control
 
@@ -237,6 +248,13 @@ Returns a standard React Query `UseQueryResult<ThreadRetrieveResponse>`.
 
 The query has a `staleTime` of 1000ms by default for real-time data freshness.
 
+<Callout type="info" title="Auth-gating">
+  This hook automatically disables the query until the user is identified
+  (`authState.status === "identified"`). While gated, React Query keeps the
+  query disabled/idle. You can add additional `enabled` logic via the `options`
+  parameter — both conditions must be true for the query to run.
+</Callout>
+
 ## useTamboThreadList
 
 React Query hook to list threads for the current user.
@@ -279,6 +297,18 @@ function ThreadSidebar() {
 Returns a standard React Query `UseQueryResult<ThreadListResponse>`.
 
 The query has a `staleTime` of 5000ms by default.
+
+<Callout type="info" title="Auth-gating">
+  Like `useTamboThread`, this hook automatically disables the query until the
+  user is identified. You can add additional `enabled` logic via `queryOptions`
+  — both conditions must be true for the query to run.
+</Callout>
+
+<Callout type="info" title="Automatic userKey merging">
+  You don't need to pass `userKey` in `listOptions` — the hook automatically
+  uses the `userKey` from `TamboProvider`. If you do pass one explicitly, it
+  takes precedence over the provider value.
+</Callout>
 
 ## useTamboComponentState
 
@@ -655,6 +685,58 @@ Returns `TamboCurrentComponent | null` (null if used outside `TamboMessageProvid
 | `interactableId` | `string \| undefined`     | Interactable ID (only for `withTamboInteractable` components)    |
 | `description`    | `string \| undefined`     | Description (only for `withTamboInteractable` components)        |
 | `threadId`       | `string \| undefined`     | Thread ID (not available on messages directly, always undefined) |
+
+## useComponentContent
+
+Returns metadata about the current component instance from the `ComponentContentProvider` context. This is a lower-level hook — `useTamboStreamStatus` uses it internally, and `useTamboComponentState` uses a non-throwing variant of the same context.
+
+Most applications should use `useTamboCurrentComponent` instead. Use this hook when you need the component's instance ID, thread ID, or message ID directly.
+
+```tsx
+import { useComponentContent } from "@tambo-ai/react";
+
+function DebugOverlay() {
+  const { componentId, threadId, messageId, componentName } =
+    useComponentContent();
+
+  return (
+    <pre>
+      {componentName} ({componentId}) in thread {threadId}
+    </pre>
+  );
+}
+```
+
+### Return Values
+
+| Value           | Type     | Description                          |
+| --------------- | -------- | ------------------------------------ |
+| `componentId`   | `string` | Unique instance ID for the component |
+| `threadId`      | `string` | Thread the component belongs to      |
+| `messageId`     | `string` | Message the component belongs to     |
+| `componentName` | `string` | Registered component name            |
+
+**Throws** if used outside a component rendered via `ComponentRenderer`.
+
+## useIsTamboTokenUpdating
+
+Returns whether a session token exchange is in progress. Useful for showing loading indicators or disabling UI during authentication token refresh.
+
+```tsx
+import { useIsTamboTokenUpdating } from "@tambo-ai/react";
+
+function AuthGuard({ children }: { children: React.ReactNode }) {
+  const isUpdating = useIsTamboTokenUpdating();
+
+  if (isUpdating) return <div>Authenticating...</div>;
+
+  return <>{children}</>;
+}
+```
+
+**Returns:** `boolean` — `true` while the session token is being refreshed.
+
+**Throws** if used outside a `TamboClientProvider`.
 
 ## Re-exported Hooks
 

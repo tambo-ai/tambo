@@ -1,10 +1,10 @@
 "use client";
 
+import { type Content, type TamboThreadMessage } from "@tambo-ai/react";
 import {
-  type Content,
-  type TamboThreadMessage,
-  useTambo,
-} from "@tambo-ai/react";
+  ThreadContent as ThreadContentPrimitive,
+  type ThreadContentMessagesState,
+} from "@tambo-ai/react-ui-base/thread-content";
 import {
   Message,
   MessageContent,
@@ -19,42 +19,6 @@ import { type VariantProps } from "class-variance-authority";
 import * as React from "react";
 
 /**
- * @typedef ThreadContentContextValue
- * @property {Array} messages - Array of message objects in the thread
- * @property {boolean} isGenerating - Whether a response is being generated
- * @property {string|undefined} generationStage - Current generation stage
- * @property {VariantProps<typeof messageVariants>["variant"]} [variant] - Optional styling variant for messages
- */
-interface ThreadContentContextValue {
-  messages: TamboThreadMessage[];
-  isGenerating: boolean;
-  variant?: VariantProps<typeof messageVariants>["variant"];
-}
-
-/**
- * React Context for sharing thread data among sub-components.
- * @internal
- */
-const ThreadContentContext =
-  React.createContext<ThreadContentContextValue | null>(null);
-
-/**
- * Hook to access the thread content context.
- * @returns {ThreadContentContextValue} The thread content context value.
- * @throws {Error} If used outside of ThreadContent.
- * @internal
- */
-const useThreadContentContext = () => {
-  const context = React.useContext(ThreadContentContext);
-  if (!context) {
-    throw new Error(
-      "ThreadContent sub-components must be used within a ThreadContent",
-    );
-  }
-  return context;
-};
-
-/**
  * Props for the ThreadContent component.
  * Extends standard HTMLDivElement attributes.
  */
@@ -67,7 +31,7 @@ export interface ThreadContentProps extends React.HTMLAttributes<HTMLDivElement>
 
 /**
  * The root container for thread content.
- * It establishes the context for its children using data from the Tambo hook.
+ * Styled wrapper over the ThreadContent base primitive.
  * @component ThreadContent
  * @example
  * ```tsx
@@ -78,33 +42,28 @@ export interface ThreadContentProps extends React.HTMLAttributes<HTMLDivElement>
  */
 const ThreadContent = React.forwardRef<HTMLDivElement, ThreadContentProps>(
   ({ children, className, variant, ...props }, ref) => {
-    const { messages, isIdle } = useTambo();
-    const isGenerating = !isIdle;
-
-    const contextValue = React.useMemo(
-      () => ({
-        messages,
-        isGenerating,
-        variant,
-      }),
-      [messages, isGenerating, variant],
-    );
-
     return (
-      <ThreadContentContext.Provider value={contextValue}>
-        <div
-          ref={ref}
-          className={cn("w-full", className)}
-          data-slot="thread-content-container"
-          {...props}
-        >
-          {children}
-        </div>
-      </ThreadContentContext.Provider>
+      <ThreadContentPrimitive.Root
+        ref={ref}
+        className={cn("w-full", className)}
+        {...props}
+      >
+        {children == null ? (
+          <ThreadContentMessagesStyled variant={variant} />
+        ) : (
+          <VariantContext.Provider value={variant}>
+            {children}
+          </VariantContext.Provider>
+        )}
+      </ThreadContentPrimitive.Root>
     );
   },
 );
 ThreadContent.displayName = "ThreadContent";
+
+const VariantContext = React.createContext<
+  VariantProps<typeof messageVariants>["variant"] | undefined
+>(undefined);
 
 /**
  * Props for the ThreadContentMessages component.
@@ -114,116 +73,165 @@ export type ThreadContentMessagesProps = React.HTMLAttributes<HTMLDivElement>;
 
 /**
  * Renders the list of messages in the thread.
- * Automatically connects to the context to display messages.
- * @component ThreadContent.Messages
- * @example
- * ```tsx
- * <ThreadContent>
- *   <ThreadContent.Messages />
- * </ThreadContent>
- * ```
+ * Styled wrapper that uses the base primitive's render prop for message rendering.
  */
 const ThreadContentMessages = React.forwardRef<
   HTMLDivElement,
   ThreadContentMessagesProps
 >(({ className, ...props }, ref) => {
-  const { messages, isGenerating, variant } = useThreadContentContext();
-
-  const filteredMessages = messages.filter((message) => {
-    if (message.role === "system") return false;
-    // Hide messages that only contain tool_result content blocks.
-    // These are consumed by ToolcallInfo on the preceding tool_use message
-    // and shouldn't render as standalone message bubbles.
-    if (
-      message.content.length > 0 &&
-      message.content.every((block) => block.type === "tool_result")
-    ) {
-      return false;
-    }
-    return true;
-  });
+  const variant = React.useContext(VariantContext);
 
   return (
-    <div
+    <ThreadContentMessagesStyled
       ref={ref}
-      className={cn("flex flex-col gap-2", className)}
-      data-slot="thread-content-messages"
+      className={className}
+      variant={variant}
       {...props}
-    >
-      {filteredMessages.map((message, index) => {
-        const messageContentClassName =
-          message.role === "assistant"
-            ? "text-foreground font-sans"
-            : "text-foreground bg-container hover:bg-backdrop font-sans";
-
-        return (
-          <div
-            key={
-              message.id ??
-              `${message.role}-${message.createdAt ?? `${index}`}-${message.content?.toString().substring(0, 10)}`
-            }
-            data-slot="thread-content-item"
-          >
-            <Message
-              role={message.role === "assistant" ? "assistant" : "user"}
-              message={message}
-              variant={variant}
-              isLoading={isGenerating && index === filteredMessages.length - 1}
-              className={cn(
-                "flex w-full",
-                message.role === "assistant" ? "justify-start" : "justify-end",
-              )}
-            >
-              <div
-                className={cn(
-                  "flex flex-col",
-                  message.role === "assistant" ? "w-full" : "max-w-3xl",
-                )}
-              >
-                <ReasoningInfo />
-                <MessageImages />
-                {message.content.map((block, blockIndex) => {
-                  switch (block.type) {
-                    case "text":
-                    case "resource":
-                      return (
-                        <MessageContent
-                          key={`content-${blockIndex}`}
-                          messageContent={[block]}
-                          className={messageContentClassName}
-                        />
-                      );
-                    case "tool_use":
-                      return (
-                        <ToolcallInfo
-                          key={`tool-${block.id ?? blockIndex}`}
-                          toolUse={block}
-                        />
-                      );
-                    case "tool_result":
-                    case "component":
-                      // tool_result is rendered by ToolcallInfo on the preceding assistant message.
-                      // component is rendered by MessageRenderedComponentArea below.
-                      return null;
-                    default: {
-                      const _exhaustive: never = block;
-                      console.error(
-                        "Unknown content block type:",
-                        (_exhaustive as Content).type,
-                      );
-                      return null;
-                    }
-                  }
-                })}
-                <MessageRenderedComponentArea className="w-full" />
-              </div>
-            </Message>
-          </div>
-        );
-      })}
-    </div>
+    />
   );
 });
 ThreadContentMessages.displayName = "ThreadContent.Messages";
+
+interface ThreadContentMessagesStyledProps extends React.HTMLAttributes<HTMLDivElement> {
+  variant?: VariantProps<typeof messageVariants>["variant"];
+}
+
+/**
+ * Internal component rendering the styled message list via the base primitive's render prop.
+ */
+const ThreadContentMessagesStyled = React.forwardRef<
+  HTMLDivElement,
+  ThreadContentMessagesStyledProps
+>(({ className, variant, ...props }, ref) => {
+  return (
+    <ThreadContentPrimitive.Messages
+      ref={ref}
+      {...props}
+      render={(renderProps, state) => (
+        <div
+          {...renderProps}
+          className={cn(
+            renderProps.className,
+            "flex flex-col gap-2",
+            className,
+          )}
+        >
+          <MessageList
+            filteredMessages={state.filteredMessages}
+            isGenerating={state.isGenerating}
+            variant={variant}
+          />
+        </div>
+      )}
+    />
+  );
+});
+ThreadContentMessagesStyled.displayName = "ThreadContentMessagesStyled";
+
+interface MessageListProps {
+  filteredMessages: ThreadContentMessagesState["filteredMessages"];
+  isGenerating: boolean;
+  variant?: VariantProps<typeof messageVariants>["variant"];
+}
+
+function MessageList({
+  filteredMessages,
+  isGenerating,
+  variant,
+}: MessageListProps) {
+  return (
+    <>
+      {filteredMessages.map((message, index) => (
+        <ThreadMessage
+          key={
+            message.id ??
+            `${message.role}-${message.createdAt ?? `${index}`}-${message.content?.toString().substring(0, 10)}`
+          }
+          message={message}
+          isLast={index === filteredMessages.length - 1}
+          isGenerating={isGenerating}
+          variant={variant}
+        />
+      ))}
+    </>
+  );
+}
+
+interface ThreadMessageProps {
+  message: TamboThreadMessage;
+  isLast: boolean;
+  isGenerating: boolean;
+  variant?: VariantProps<typeof messageVariants>["variant"];
+}
+
+function ThreadMessage({
+  message,
+  isLast,
+  isGenerating,
+  variant,
+}: ThreadMessageProps) {
+  const messageContentClassName =
+    message.role === "assistant"
+      ? "text-foreground font-sans"
+      : "text-foreground bg-container hover:bg-backdrop font-sans";
+
+  return (
+    <div data-slot="thread-content-item">
+      <Message
+        slot="message"
+        role={message.role === "assistant" ? "assistant" : "user"}
+        message={message}
+        variant={variant}
+        isLoading={isGenerating && isLast}
+        className={cn(
+          "flex w-full",
+          message.role === "assistant" ? "justify-start" : "justify-end",
+        )}
+      >
+        <div
+          className={cn(
+            "flex flex-col",
+            message.role === "assistant" ? "w-full" : "max-w-3xl",
+          )}
+        >
+          <ReasoningInfo />
+          <MessageImages />
+          {message.content.map((block, blockIndex) => {
+            switch (block.type) {
+              case "text":
+              case "resource":
+                return (
+                  <MessageContent
+                    key={`content-${blockIndex}`}
+                    messageContent={[block]}
+                    className={messageContentClassName}
+                  />
+                );
+              case "tool_use":
+                return (
+                  <ToolcallInfo
+                    key={`tool-${block.id ?? blockIndex}`}
+                    toolUse={block}
+                  />
+                );
+              case "tool_result":
+              case "component":
+                return null;
+              default: {
+                const _exhaustive: never = block;
+                console.error(
+                  "Unknown content block type:",
+                  (_exhaustive as Content).type,
+                );
+                return null;
+              }
+            }
+          })}
+          <MessageRenderedComponentArea className="w-full" />
+        </div>
+      </Message>
+    </div>
+  );
+}
 
 export { ThreadContent, ThreadContentMessages };

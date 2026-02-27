@@ -39,11 +39,8 @@ Choose **one** of these options:
 Supabase provides PostgreSQL with additional features. The `.env.example` files are pre-configured for this option.
 
 ```bash
-# Install Supabase CLI if you haven't
-npm install -g supabase
-
 # Start Supabase (includes PostgreSQL on port 54322)
-supabase start
+npx supabase start
 ```
 
 The default `DATABASE_URL` in `.env.example` files already points to Supabase:
@@ -201,9 +198,9 @@ npm run dev:sdk          # SDK watch mode + showcase (for SDK development)
 
 **For Supabase:**
 
-1. Verify Supabase is running: `supabase status`
+1. Verify Supabase is running: `npx supabase status`
 2. Check `DATABASE_URL` uses port `54322`
-3. Restart if needed: `supabase stop && supabase start`
+3. Restart if needed: `npx supabase stop && npx supabase start`
 
 **For Docker PostgreSQL:**
 

@@ -67,6 +67,53 @@ export type {
   TamboEditor,
 } from "./message-input";
 
+// ThreadDropdown components
+export { ThreadDropdown } from "./thread-dropdown";
+export type {
+  ThreadDropdownContentProps,
+  ThreadDropdownContentState,
+  ThreadDropdownContextValue,
+  ThreadDropdownNewThreadProps,
+  ThreadDropdownNewThreadState,
+  ThreadDropdownRootProps,
+  ThreadDropdownRootState,
+  ThreadDropdownThreadItemProps,
+  ThreadDropdownThreadItemState,
+  ThreadDropdownTriggerProps,
+  ThreadDropdownTriggerState,
+} from "./thread-dropdown";
+
+// ThreadHistory components
+export { ThreadHistory } from "./thread-history";
+export type {
+  ThreadHistoryContextValue,
+  ThreadHistoryItemProps,
+  ThreadHistoryItemState,
+  ThreadHistoryListProps,
+  ThreadHistoryListState,
+  ThreadHistoryNewThreadButtonProps,
+  ThreadHistoryNewThreadButtonState,
+  ThreadHistoryRootProps,
+  ThreadHistoryRootState,
+  ThreadHistorySearchProps,
+  ThreadHistorySearchState,
+  ThreadListItem,
+} from "./thread-history";
+
+// ThreadContent components
+export { ThreadContent } from "./thread-content";
+export type {
+  ThreadContentContextValue,
+  ThreadContentEmptyProps,
+  ThreadContentEmptyState,
+  ThreadContentLoadingProps,
+  ThreadContentLoadingState,
+  ThreadContentMessagesProps,
+  ThreadContentMessagesState,
+  ThreadContentRootProps,
+  ThreadContentRootState,
+} from "./thread-content";
+
 // ReasoningInfo components
 export { ReasoningInfo } from "./reasoning-info";
 export type {
@@ -96,5 +143,35 @@ export type {
   ToolcallInfoTriggerProps,
 } from "./toolcall-info";
 
-// Hooks
-export { useRender } from "@base-ui/react/use-render";
+// McpPrompts components
+export { McpPrompts } from "./mcp-prompts";
+export type {
+  McpPromptsContextValue,
+  McpPromptsErrorProps,
+  McpPromptsErrorState,
+  McpPromptsItemProps,
+  McpPromptsItemState,
+  McpPromptsListProps,
+  McpPromptsListState,
+  McpPromptsRootProps,
+  McpPromptsRootState,
+  McpPromptsStatus,
+  McpPromptsTriggerProps,
+  McpPromptsTriggerState,
+} from "./mcp-prompts";
+
+// McpResources components
+export { McpResources } from "./mcp-resources";
+export type {
+  McpResourcesContextValue,
+  McpResourcesItemProps,
+  McpResourcesItemState,
+  McpResourcesListProps,
+  McpResourcesListState,
+  McpResourcesRootProps,
+  McpResourcesRootState,
+  McpResourcesSearchProps,
+  McpResourcesSearchState,
+  McpResourcesTriggerProps,
+  McpResourcesTriggerState,
+} from "./mcp-resources";

@@ -139,7 +139,7 @@ The SDK supports real-time streaming of AI responses:
 
 ### Dependencies
 
-- **Peer Dependencies** - React 18/19, React DOM, TypeScript types
+- **Peer Dependencies** - React 18/19, TypeScript types (no react-dom requirement, enabling React Native support)
 - **Core Dependencies** - Tambo TypeScript SDK, React Query, `@modelcontextprotocol/sdk`
 - **Optional Peer Dependencies**
   - `zod` (`^3.25` or `^4.0`) and `zod-to-json-schema` (`^3.25.0`) for component schemas and JSON Schema generation when using the `@tambo-ai/react/mcp` subpath
