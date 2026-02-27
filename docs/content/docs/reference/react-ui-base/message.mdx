@@ -3,22 +3,25 @@ title: Message
 description: Compose message shell rendering for text, images, loading state, and rendered component content.
 ---
 
+import { DemoPreview } from "@/components/demos/demo-preview";
+import { MessageDemo } from "@/components/demos/message-demo";
+
 # Message
 
 `Message` in `@tambo-ai/react-ui-base` handles message-level behavior and content selection while leaving styling to your app or `@tambo-ai/ui-registry`.
 
 ## Demo
 
-### Tailwind
-
-```tsx
-import { Message } from "@tambo-ai/react-ui-base/message";
+<DemoPreview code={`import { Message } from "@tambo-ai/react-ui-base/message";
 import type { TamboThreadMessage } from "@tambo-ai/react";
 
 export function DemoMessage({ message }: { message: TamboThreadMessage }) {
   return (
-    <Message.Root message={message} role={message.role}>
-      <Message.Content />
+    <Message.Root message={message} role={message.role} className="flex flex-col gap-2">
+      <div className="text-xs font-medium text-neutral-500 dark:text-neutral-400">
+        {message.role}
+      </div>
+      <Message.Content className="text-sm text-neutral-900 dark:text-neutral-100" />
       <Message.Images />
       <Message.RenderedComponent>
         <Message.RenderedComponentCanvasButton />
@@ -26,8 +29,9 @@ export function DemoMessage({ message }: { message: TamboThreadMessage }) {
       </Message.RenderedComponent>
     </Message.Root>
   );
-}
-```
+}`}>
+  <MessageDemo />
+</DemoPreview>
 
 ## Anatomy
 

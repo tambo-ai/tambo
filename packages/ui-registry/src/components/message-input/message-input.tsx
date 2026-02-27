@@ -105,7 +105,8 @@ const messageInputVariants = cva("w-full", {
  * Props for the MessageInput component.
  * Extends standard HTMLFormElement attributes.
  */
-export interface MessageInputProps extends React.HTMLAttributes<HTMLFormElement> {
+export interface MessageInputProps
+  extends React.HTMLAttributes<HTMLFormElement> {
   /** Optional styling variant for the input container. */
   variant?: VariantProps<typeof messageInputVariants>["variant"];
   /** Optional ref to forward to the TamboEditor instance. */
@@ -177,7 +178,8 @@ MessageInput.displayName = "MessageInput";
  * Props for the MessageInputTextarea component.
  * Extends standard TextareaHTMLAttributes.
  */
-export interface MessageInputTextareaProps extends React.HTMLAttributes<HTMLDivElement> {
+export interface MessageInputTextareaProps
+  extends React.HTMLAttributes<HTMLTextAreaElement> {
   /** Custom placeholder text. */
   placeholder?: string;
   /** Resource provider for @ mentions (optional - includes interactables by default) */
@@ -401,7 +403,8 @@ const McpPromptEffect: React.FC<McpPromptEffectProps> = ({
  * Props for the legacy plain textarea message input component.
  * This preserves the original MessageInput.Textarea API for backward compatibility.
  */
-export interface MessageInputPlainTextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
+export interface MessageInputPlainTextareaProps
+  extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
   /** Custom placeholder text. */
   placeholder?: string;
 }
@@ -506,10 +509,8 @@ MessageInputPlainTextarea.displayName = "MessageInput.PlainTextarea";
  * Props for the MessageInputSubmitButton component.
  * Extends standard ButtonHTMLAttributes.
  */
-export interface MessageInputSubmitButtonProps extends Omit<
-  React.ButtonHTMLAttributes<HTMLButtonElement>,
-  "children"
-> {
+export interface MessageInputSubmitButtonProps
+  extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, "children"> {
   keepMounted?: boolean;
 }
 
@@ -555,7 +556,8 @@ const MessageInputSubmitButton = React.forwardRef<
 });
 MessageInputSubmitButton.displayName = "MessageInput.SubmitButton";
 
-export interface MessageInputStopButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+export interface MessageInputStopButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   children?: React.ReactNode;
   keepMounted?: boolean;
 }
@@ -691,7 +693,8 @@ MessageInputError.displayName = "MessageInput.Error";
 /**
  * Props for the MessageInputFileButton component.
  */
-export interface MessageInputFileButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+export interface MessageInputFileButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   /** Accept attribute for file input - defaults to image types */
   accept?: string;
   /** Allow multiple file selection */

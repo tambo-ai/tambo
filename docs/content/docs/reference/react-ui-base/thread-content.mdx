@@ -3,35 +3,43 @@ title: ThreadContent
 description: Compose thread timeline behavior with unstyled parts for empty, loading, and populated states.
 ---
 
+import { DemoPreview } from "@/components/demos/demo-preview";
+import { ThreadContentDemo } from "@/components/demos/thread-content-demo";
+
 # ThreadContent
 
 `ThreadContent` in `@tambo-ai/react-ui-base` owns thread timeline state derivation — messages, generation status, empty/loading detection — while keeping styling in `@tambo-ai/ui-registry` or your own UI layer.
 
 ## Demo
 
-### Tailwind
-
-```tsx
-import { ThreadContent } from "@tambo-ai/react-ui-base/thread-content";
+<DemoPreview code={`import { ThreadContent } from "@tambo-ai/react-ui-base/thread-content";
 
 export function DemoThreadContent() {
   return (
     <ThreadContent.Root className="flex flex-col gap-4">
-      <ThreadContent.Loading className="p-4 text-muted-foreground">
+      <ThreadContent.Loading className="flex items-center gap-2 p-4 text-sm text-neutral-500 dark:text-neutral-400">
+        <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-neutral-300 border-t-neutral-600 dark:border-neutral-600 dark:border-t-neutral-300" />
         Generating...
       </ThreadContent.Loading>
-      <ThreadContent.Empty className="p-4 text-muted-foreground">
+      <ThreadContent.Empty className="p-4 text-center text-sm text-neutral-500 dark:text-neutral-400">
         No messages yet. Start a conversation!
       </ThreadContent.Empty>
       <ThreadContent.Messages
         render={(props, state) => (
           <div {...props} className="flex flex-col gap-2">
             {state.filteredMessages.map((message) => (
-              <div key={message.id} className="rounded border p-2">
-                <strong>{message.role}:</strong>{" "}
-                {message.content.map((block) =>
-                  block.type === "text" ? block.text : null,
-                )}
+              <div
+                key={message.id}
+                className="rounded-lg border border-neutral-200 p-3 text-sm dark:border-neutral-700"
+              >
+                <span className="font-medium text-neutral-900 dark:text-neutral-100">
+                  {message.role}:
+                </span>{" "}
+                <span className="text-neutral-700 dark:text-neutral-300">
+                  {message.content.map((block) =>
+                    block.type === "text" ? block.text : null,
+                  )}
+                </span>
               </div>
             ))}
           </div>
@@ -39,8 +47,9 @@ export function DemoThreadContent() {
       />
     </ThreadContent.Root>
   );
-}
-```
+}`}>
+  <ThreadContentDemo />
+</DemoPreview>
 
 ## Anatomy
 

@@ -3,32 +3,34 @@ title: McpPrompts
 description: Compose MCP prompt picker behavior with unstyled parts for listing, selecting, and inserting prompts.
 ---
 
+import { DemoPreview } from "@/components/demos/demo-preview";
+import { McpPromptsDemo } from "@/components/demos/mcp-prompts-demo";
+
 # McpPrompts
 
 `McpPrompts` in `@tambo-ai/react-ui-base` owns the MCP prompt selection lifecycle — listing available prompts, fetching selected prompt content, validating format, and surfacing errors — while keeping styling in `@tambo-ai/ui-registry` or your own UI layer.
 
 ## Demo
 
-### Tailwind
-
-```tsx
-import { McpPrompts } from "@tambo-ai/react-ui-base/mcp-prompts";
+<DemoPreview code={`import { McpPrompts } from "@tambo-ai/react-ui-base/mcp-prompts";
+import { Sparkles } from "lucide-react";
 
 export function DemoMcpPrompts() {
   return (
     <McpPrompts.Root onInsertText={(text) => console.log("Insert:", text)}>
-      <McpPrompts.Trigger className="rounded bg-blue-500 px-3 py-1 text-white">
+      <McpPrompts.Trigger className="flex items-center gap-2 rounded-lg border border-neutral-200 px-3 py-1.5 text-sm text-neutral-700 hover:bg-neutral-100 disabled:opacity-40 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800">
+        <Sparkles className="h-3.5 w-3.5" />
         Insert Prompt
       </McpPrompts.Trigger>
       <McpPrompts.List
         render={(props, state) => (
-          <div {...props} className="flex flex-col gap-1">
+          <div {...props} className="mt-1 flex flex-col gap-1 rounded-lg border border-neutral-200 bg-white p-1 shadow-lg dark:border-neutral-700 dark:bg-neutral-800">
             {state.prompts.map((entry) => (
               <McpPrompts.Item
                 key={entry.prompt.name}
                 name={entry.prompt.name}
                 description={entry.prompt.description}
-                className="rounded px-2 py-1 hover:bg-gray-100 data-selected:bg-blue-100"
+                className="w-full rounded-md px-3 py-1.5 text-left text-sm text-neutral-700 hover:bg-neutral-100 data-[selected]:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-700"
               >
                 {entry.prompt.name}
               </McpPrompts.Item>
@@ -38,15 +40,16 @@ export function DemoMcpPrompts() {
       />
       <McpPrompts.Error
         render={(props, state) => (
-          <div {...props} className="text-red-500 text-sm">
+          <div {...props} className="mt-2 text-sm text-red-600 dark:text-red-400">
             {state.error}
           </div>
         )}
       />
     </McpPrompts.Root>
   );
-}
-```
+}`}>
+  <McpPromptsDemo />
+</DemoPreview>
 
 ## Anatomy
 
