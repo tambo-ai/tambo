@@ -8,6 +8,6 @@ export function mapSuggestionToDto(
     id: suggestion.id,
     messageId: suggestion.messageId,
     title: suggestion.title,
-    detailedSuggestion: suggestion.detailedSuggestion,
+    description: suggestion.detailedSuggestion,
   };
 }

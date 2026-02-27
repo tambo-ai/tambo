@@ -33,7 +33,7 @@ export class SuggestionDto {
   })
   @IsString()
   @IsNotEmpty()
-  detailedSuggestion!: string;
+  description!: string;
 
   @ApiProperty({
     description: "Additional metadata for the suggestion",
