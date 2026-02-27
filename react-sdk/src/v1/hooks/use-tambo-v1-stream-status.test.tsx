@@ -27,7 +27,8 @@ const mockUseTamboComponentContent = jest.mocked(useComponentContent);
 const mockUseStreamState = jest.mocked(useStreamState);
 
 /**
- * Helper to create a component content block
+ * Helper to create a component content block.
+ * @returns A TamboComponentContent with test defaults.
  */
 function createComponentContent(
   overrides: Partial<TamboComponentContent> = {},
@@ -43,7 +44,8 @@ function createComponentContent(
 }
 
 /**
- * Helper to create a message with a component
+ * Helper to create a message with a component.
+ * @returns A TamboThreadMessage with a component content block.
  */
 function createMessage(
   componentContent: TamboComponentContent,
@@ -59,7 +61,8 @@ function createMessage(
 }
 
 /**
- * Helper to create a thread state
+ * Helper to create a thread state.
+ * @returns A ThreadState with test defaults.
  */
 function createThreadState(
   messages: TamboThreadMessage[],
@@ -83,7 +86,8 @@ function createThreadState(
 }
 
 /**
- * Helper to create a stream state
+ * Helper to create a stream state.
+ * @returns A StreamState with test defaults.
  */
 function createStreamState(
   threadState: ThreadState,

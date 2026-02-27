@@ -20,6 +20,7 @@ import {
 /**
  * Check if an error is an MCP MethodNotFound error (-32601).
  * This error occurs when a server doesn't support a particular method.
+ * @returns True if the error is a MethodNotFound MCP error.
  */
 function isMethodNotFoundError(error: unknown): boolean {
   return error instanceof McpError && error.code === ErrorCode.MethodNotFound;
@@ -29,6 +30,7 @@ function isMethodNotFoundError(error: unknown): boolean {
  * Check if an MCP server supports listing prompts.
  * Returns true if capabilities are unknown (undefined) to maintain backward compatibility,
  * since some servers don't properly report capabilities.
+ * @returns True if the server supports prompts.
  */
 function serverSupportsPrompts(server: ConnectedMcpServer): boolean {
   const capabilities = server.client.getServerCapabilities?.();
@@ -41,6 +43,7 @@ function serverSupportsPrompts(server: ConnectedMcpServer): boolean {
  * Check if an MCP server supports listing resources.
  * Returns true if capabilities are unknown (undefined) to maintain backward compatibility,
  * since some servers don't properly report capabilities.
+ * @returns True if the server supports resources.
  */
 function serverSupportsResources(server: ConnectedMcpServer): boolean {
   const capabilities = server.client.getServerCapabilities?.();

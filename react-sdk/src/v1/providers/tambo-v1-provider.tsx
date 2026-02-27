@@ -182,6 +182,7 @@ export interface TamboProviderProps extends Pick<
  * Internal component that emits console warnings for auth misconfiguration.
  * Rendered inside the provider tree so both TamboClientContext and
  * TamboConfigContext are available.
+ * @returns null (renders nothing).
  */
 function TamboAuthWarnings(): null {
   const authState = useTamboAuthState();
@@ -236,6 +237,7 @@ function TamboAuthWarnings(): null {
  * @param props.userKey - User key for thread ownership (required if not using userToken)
  * @param props.autoGenerateThreadName - Whether to automatically generate thread names. Defaults to true.
  * @param props.autoGenerateNameThreshold - The message count threshold at which the thread name will be auto-generated. Defaults to 3.
+ * @param props.initialMessages - Optional initial messages to prepend to the first thread.
  * @param props.children - Child components
  * @returns Provider component tree
  * @example

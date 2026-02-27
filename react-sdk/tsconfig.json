@@ -17,6 +17,9 @@
     "strict": true,
     "skipLibCheck": true
   },
+  "paths": {
+    "@tambo-ai/client": "../packages/client/src/index.ts"
+  },
   "include": ["src/**/*.ts", "src/**/*.tsx"],
   "exclude": ["node_modules", "./dist"]
 }

@@ -1,5 +1,5 @@
 /**
- * @tambo-ai/client - Framework-agnostic client for Tambo AI
+ * `@tambo-ai/client` - Framework-agnostic client for Tambo AI
  *
  * Provides streaming, tool execution, and thread management
  * without React dependencies.

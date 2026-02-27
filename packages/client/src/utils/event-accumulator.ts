@@ -1536,6 +1536,7 @@ function handleMessageParent(
 /**
  * Generate an ephemeral message ID for reasoning messages that arrive before TEXT_MESSAGE_START.
  * Uses crypto.randomUUID() which is available in Node.js 19+ and modern browsers.
+ * @returns A unique ephemeral message ID string.
  */
 function generateEphemeralMessageId(): string {
   return `ephemeral_${crypto.randomUUID()}`;

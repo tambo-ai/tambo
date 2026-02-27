@@ -3,7 +3,10 @@ import type { JSONSchema7 } from "json-schema";
 import type { TamboTool } from "../../model/component-metadata";
 import { ToolCallTracker } from "@tambo-ai/client";
 
-/** Minimal tool definition for tests — only name + inputSchema are needed. */
+/**
+ * Minimal tool definition for tests — only name + inputSchema are needed.
+ * @returns A TamboTool with test defaults.
+ */
 function fakeTool(name: string, inputSchema: JSONSchema7): TamboTool {
   return {
     name,
@@ -14,7 +17,10 @@ function fakeTool(name: string, inputSchema: JSONSchema7): TamboTool {
   } as TamboTool;
 }
 
-/** Helper to create a tracker with a started tool call. */
+/**
+ * Helper to create a tracker with a started tool call.
+ * @returns A ToolCallTracker with a pending tool call.
+ */
 function createTrackerWithToolCall(
   toolCallId = "call_1",
   toolCallName = "get_weather",

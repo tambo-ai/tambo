@@ -1,7 +1,7 @@
 /**
  * TamboClient - Framework-agnostic client for Tambo AI
  *
- * Main entry point for the @tambo-ai/client package. Manages threads,
+ * Main entry point for the `@tambo-ai/client` package. Manages threads,
  * tool registration, streaming, and state. Compatible with
  * useSyncExternalStore for React integration.
  */
@@ -603,6 +603,7 @@ export class TamboClient {
    * @param messageId - The message ID.
    * @param threadId - The thread ID.
    * @param options - Generation options.
+   * @param options.maxSuggestions - Maximum number of suggestions to generate.
    * @returns Array of generated suggestions.
    */
   async generateSuggestions(

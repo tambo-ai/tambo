@@ -1,3 +1,5 @@
+import { MCPHandlers } from "../mcp";
+
 /**
  * The transport protocol to use for MCP connections.
  */
@@ -51,7 +53,7 @@ export interface McpServerInfo {
    * defined outside the component) to avoid constant re-registration of the
    * MCP server on every render.
    */
-  handlers?: unknown;
+  handlers?: Partial<MCPHandlers>;
 }
 
 /**

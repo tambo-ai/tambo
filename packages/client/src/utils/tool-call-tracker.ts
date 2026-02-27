@@ -192,6 +192,7 @@ export class ToolCallTracker {
   /**
    * Unstrictify params using the schema for the given tool name.
    * Returns params unchanged if no schema is available.
+   * @returns The unstrictified params.
    */
   private unstrictify(
     toolName: string,

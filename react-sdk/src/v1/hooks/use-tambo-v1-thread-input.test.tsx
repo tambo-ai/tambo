@@ -546,6 +546,7 @@ describe("useTamboThreadInput", () => {
     /**
      * Creates a wrapper that allows dynamically changing the thread ID.
      * This simulates switching between threads in the UI.
+     * @returns An object with the Wrapper component and a setThreadId function.
      */
     function createDynamicThreadWrapper(initialThreadId: string) {
       let currentThreadId = initialThreadId;
