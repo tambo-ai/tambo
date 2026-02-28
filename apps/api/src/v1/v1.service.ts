@@ -1489,6 +1489,7 @@ export class V1Service {
       messageId: suggestion.messageId,
       title: suggestion.title,
       description: suggestion.detailedSuggestion,
+      detailedSuggestion: suggestion.detailedSuggestion,
       createdAt: suggestion.createdAt.toISOString(),
     };
   }
