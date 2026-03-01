@@ -3,50 +3,15 @@ title: McpResources
 description: Compose MCP resource picker behavior with unstyled parts for listing, searching, and selecting resources.
 ---
 
+import { McpResourcesDemoPreview } from "./_demos/mcp-resources-demo";
+
 # McpResources
 
 `McpResources` in `@tambo-ai/react-ui-base` owns MCP resource discovery — listing available resources, search filtering, and selection handling — while keeping styling in `@tambo-ai/ui-registry` or your own UI layer.
 
 ## Demo
 
-### Tailwind
-
-```tsx
-import { McpResources } from "@tambo-ai/react-ui-base/mcp-resources";
-
-export function DemoMcpResources() {
-  return (
-    <McpResources.Root
-      onSelectResource={(uri, label) => console.log("Selected:", uri, label)}
-    >
-      <McpResources.Trigger className="rounded bg-blue-500 px-3 py-1 text-white">
-        Insert Resource
-      </McpResources.Trigger>
-      <McpResources.Search
-        placeholder="Search resources..."
-        className="w-full rounded border px-2 py-1"
-      />
-      <McpResources.List
-        render={(props, state) => (
-          <div {...props} className="flex flex-col gap-1">
-            {state.resources.map((entry) => (
-              <McpResources.Item
-                key={entry.resource.uri}
-                uri={entry.resource.uri}
-                name={entry.resource.name}
-                description={entry.resource.description}
-                className="rounded px-2 py-1 hover:bg-gray-100"
-              >
-                {entry.resource.name ?? entry.resource.uri}
-              </McpResources.Item>
-            ))}
-          </div>
-        )}
-      />
-    </McpResources.Root>
-  );
-}
-```
+<McpResourcesDemoPreview />
 
 ## Anatomy
 

@@ -269,7 +269,9 @@ export const McpResourceButton = React.forwardRef<
                           <div {...listProps}>
                             {listState.resourceCount === 0 ? (
                               <div className="px-2 py-8 text-center text-sm text-muted-foreground">
-                                No resources available
+                                {listState.hasSearch
+                                  ? "No resources matching your search"
+                                  : "No resources available"}
                               </div>
                             ) : (
                               listState.resources.map((resourceEntry) => (

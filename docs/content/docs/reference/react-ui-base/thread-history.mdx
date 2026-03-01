@@ -3,39 +3,15 @@ title: ThreadHistory
 description: Compose thread list browsing, search filtering, and thread switching with unstyled parts.
 ---
 
+import { ThreadHistoryDemoPreview } from "./_demos/thread-history-demo";
+
 # ThreadHistory
 
 `ThreadHistory` in `@tambo-ai/react-ui-base` owns thread collection state, search filtering, and selection behavior while keeping styling in `@tambo-ai/ui-registry` or your own UI layer.
 
 ## Demo
 
-### Tailwind
-
-```tsx
-import { ThreadHistory } from "@tambo-ai/react-ui-base/thread-history";
-
-export function DemoThreadHistory() {
-  return (
-    <ThreadHistory.Root>
-      <ThreadHistory.Search className="w-full rounded border px-2 py-1" />
-      <ThreadHistory.NewThreadButton className="rounded bg-blue-500 px-3 py-1 text-white">
-        New Thread
-      </ThreadHistory.NewThreadButton>
-      <ThreadHistory.List
-        render={(props, state) => (
-          <div {...props}>
-            {state.filteredThreads.map((thread) => (
-              <ThreadHistory.Item key={thread.id} thread={thread}>
-                {thread.id}
-              </ThreadHistory.Item>
-            ))}
-          </div>
-        )}
-      />
-    </ThreadHistory.Root>
-  );
-}
-```
+<ThreadHistoryDemoPreview />
 
 ## Anatomy
 

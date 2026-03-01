@@ -37,8 +37,8 @@ export default function MessageInputPage() {
                 <MessageInputTextarea placeholder="Type your message or paste images..." />
                 <MessageInputToolbar>
                   <MessageInputFileButton />
-                  <MessageInputSubmitButton keepMounted />
-                  <MessageInputStopButton keepMounted />
+                  <MessageInputSubmitButton />
+                  <MessageInputStopButton />
                 </MessageInputToolbar>
                 <MessageInputError />
               </MessageInput>
@@ -59,8 +59,8 @@ export function ChatInput() {
       <MessageInputTextarea placeholder="Type your message or paste images..." />
       <MessageInputToolbar>
         <MessageInputFileButton />
-        <MessageInputSubmitButton keepMounted />
-        <MessageInputStopButton keepMounted />
+        <MessageInputSubmitButton />
+        <MessageInputStopButton />
       </MessageInputToolbar>
       <MessageInputError />
     </MessageInput>
@@ -76,8 +76,8 @@ export function ChatInput() {
                 <MessageInputTextarea placeholder="Type your message or paste images..." />
                 <MessageInputToolbar>
                   <MessageInputFileButton />
-                  <MessageInputSubmitButton keepMounted />
-                  <MessageInputStopButton keepMounted />
+                  <MessageInputSubmitButton />
+                  <MessageInputStopButton />
                 </MessageInputToolbar>
                 <MessageInputError />
               </MessageInput>
@@ -98,8 +98,8 @@ export function SolidChatInput() {
       <MessageInputTextarea placeholder="Type your message or paste images..." />
       <MessageInputToolbar>
         <MessageInputFileButton />
-        <MessageInputSubmitButton keepMounted />
-        <MessageInputStopButton keepMounted />
+        <MessageInputSubmitButton />
+        <MessageInputStopButton />
       </MessageInputToolbar>
       <MessageInputError />
     </MessageInput>
@@ -115,8 +115,8 @@ export function SolidChatInput() {
                 <MessageInputTextarea placeholder="Type your message or paste images..." />
                 <MessageInputToolbar>
                   <MessageInputFileButton />
-                  <MessageInputSubmitButton keepMounted />
-                  <MessageInputStopButton keepMounted />
+                  <MessageInputSubmitButton />
+                  <MessageInputStopButton />
                 </MessageInputToolbar>
                 <MessageInputError />
               </MessageInput>
@@ -137,8 +137,8 @@ export function BorderedChatInput() {
       <MessageInputTextarea placeholder="Type your message or paste images..." />
       <MessageInputToolbar>
         <MessageInputFileButton />
-        <MessageInputSubmitButton keepMounted />
-        <MessageInputStopButton keepMounted />
+        <MessageInputSubmitButton />
+        <MessageInputStopButton />
       </MessageInputToolbar>
       <MessageInputError />
     </MessageInput>
@@ -155,8 +155,8 @@ export function BorderedChatInput() {
                 <MessageInputToolbar>
                   <MessageInputFileButton />
                   <MessageInputMcpConfigButton />
-                  <MessageInputSubmitButton keepMounted />
-                  <MessageInputStopButton keepMounted />
+                  <MessageInputSubmitButton />
+                  <MessageInputStopButton />
                 </MessageInputToolbar>
                 <MessageInputError />
               </MessageInput>
@@ -179,8 +179,8 @@ export function FullFeaturedInput() {
       <MessageInputToolbar>
         <MessageInputFileButton />
         <MessageInputMcpConfigButton />
-        <MessageInputSubmitButton keepMounted />
-        <MessageInputStopButton keepMounted />
+        <MessageInputSubmitButton />
+        <MessageInputStopButton />
       </MessageInputToolbar>
       <MessageInputError />
     </MessageInput>

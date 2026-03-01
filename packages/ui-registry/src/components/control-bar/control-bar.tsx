@@ -1,27 +1,27 @@
 "use client";
 
-import * as React from "react";
-import { Dialog } from "radix-ui";
-import { cn } from "@tambo-ai/ui-registry/utils";
-import type { VariantProps } from "class-variance-authority";
+import { useThreadContentContext } from "@tambo-ai/react-ui-base/thread-content";
 import type { messageVariants } from "@tambo-ai/ui-registry/components/message";
 import {
   MessageInput,
-  MessageInputTextarea,
-  MessageInputToolbar,
-  MessageInputStopButton,
-  MessageInputSubmitButton,
   MessageInputError,
   MessageInputFileButton,
   MessageInputMcpPromptButton,
   MessageInputMcpResourceButton,
-  // MessageInputMcpConfigButton,
+  MessageInputStopButton,
+  MessageInputSubmitButton,
+  MessageInputTextarea,
+  MessageInputToolbar,
 } from "@tambo-ai/ui-registry/components/message-input";
+import { ScrollableMessageContainer } from "@tambo-ai/ui-registry/components/scrollable-message-container";
 import {
   ThreadContent,
   ThreadContentMessages,
 } from "@tambo-ai/ui-registry/components/thread-content";
-import { ScrollableMessageContainer } from "@tambo-ai/ui-registry/components/scrollable-message-container";
+import { cn } from "@tambo-ai/ui-registry/utils";
+import type { VariantProps } from "class-variance-authority";
+import { Dialog } from "radix-ui";
+import * as React from "react";
 
 /**
  * Props for the ControlBar component
@@ -127,8 +127,8 @@ export const ControlBar = React.forwardRef<HTMLDivElement, ControlBarProps>(
                       <MessageInputMcpResourceButton />
                       {/* Uncomment this to enable client-side MCP config modal button */}
                       {/* <MessageInputMcpConfigButton /> */}
-                      <MessageInputSubmitButton keepMounted />
-                      <MessageInputStopButton keepMounted />
+                      <MessageInputSubmitButton />
+                      <MessageInputStopButton />
                     </MessageInputToolbar>
                     <MessageInputError />
                   </MessageInput>
@@ -149,18 +149,16 @@ ControlBar.displayName = "ControlBar";
 /**
  * Conditionally renders the scrollable messages area.
  * Only shows the bordered container when messages exist.
- * Uses the `has-[*]` Tailwind utility to hide the outer container when the
- * inner message list has no visible children (all filtered out or empty thread).
- *
- * The `data-slot=thread-content-item` selector must match the slot defined on
- * ThreadMessage's wrapper div in thread-content.tsx.
+ * Uses ThreadContent context to determine visibility instead of DOM selectors.
  */
 function ControlBarMessageArea() {
+  const { isEmpty } = useThreadContentContext();
+
+  if (isEmpty) return null;
+
   return (
-    <div className="has-[[data-slot=thread-content-item]]:block hidden">
-      <ScrollableMessageContainer className="bg-background border rounded-lg p-4 max-h-[500px]">
-        <ThreadContentMessages />
-      </ScrollableMessageContainer>
-    </div>
+    <ScrollableMessageContainer className="bg-background border rounded-lg p-4 max-h-[500px]">
+      <ThreadContentMessages />
+    </ScrollableMessageContainer>
   );
 }

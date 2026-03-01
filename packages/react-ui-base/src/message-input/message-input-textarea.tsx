@@ -58,7 +58,7 @@ export interface MessageInputTextareaState extends Record<string, unknown> {
  * Props for the MessageInput.Textarea component.
  */
 type MessageInputTextareaComponentProps = useRender.ComponentProps<
-  "div",
+  "textarea",
   MessageInputTextareaState
 >;
 
@@ -81,7 +81,7 @@ export interface MessageInputTextareaProps extends MessageInputTextareaComponent
  * Handles MCP resource/prompt integration internally.
  */
 export const MessageInputTextarea = React.forwardRef<
-  HTMLDivElement,
+  HTMLTextAreaElement,
   MessageInputTextareaProps
 >(
   (
@@ -150,12 +150,23 @@ export const MessageInputTextarea = React.forwardRef<
 
     const { render, ...componentProps } = props;
 
+    const handleChange = React.useCallback(
+      (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+        setValue(e.target.value);
+      },
+      [setValue],
+    );
+
     return useRender({
-      defaultTagName: "div",
+      defaultTagName: "textarea",
       ref,
       render,
       state: renderProps,
       props: mergeProps(componentProps, {
+        value,
+        onChange: handleChange,
+        placeholder,
+        disabled,
         "data-disabled": disabled || undefined,
       }),
     });

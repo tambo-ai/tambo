@@ -3,33 +3,15 @@ title: Elicitation
 description: Build composable elicitation request UIs from MCP form schemas with unstyled base primitives.
 ---
 
+import { ElicitationDemoPreview } from "./_demos/elicitation-demo";
+
 # Elicitation
 
 `Elicitation` in `@tambo-ai/react-ui-base` owns schema parsing, validation, and accept/decline/cancel behavior while exposing composable UI primitives.
 
 ## Demo
 
-### Tailwind
-
-```tsx
-import { Elicitation } from "@tambo-ai/react-ui-base/elicitation";
-
-export function DemoElicitation({
-  request,
-  onResponse,
-}: {
-  request: TamboElicitationRequest;
-  onResponse: (response: TamboElicitationResponse) => void;
-}) {
-  return (
-    <Elicitation.Root request={request} onResponse={onResponse}>
-      <Elicitation.Message />
-      <Elicitation.Fields />
-      <Elicitation.Actions />
-    </Elicitation.Root>
-  );
-}
-```
+<ElicitationDemoPreview />
 
 ## Anatomy
 

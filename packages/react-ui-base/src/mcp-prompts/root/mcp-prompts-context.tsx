@@ -10,7 +10,6 @@ export interface McpPromptsContextValue {
   status: McpPromptsStatus;
   error: string | null;
   select: (promptName: string) => void;
-  insertedText: string | null;
 }
 
 export const McpPromptsContext =

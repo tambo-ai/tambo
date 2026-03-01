@@ -101,7 +101,7 @@ export type {
 } from "./thread-history";
 
 // ThreadContent components
-export { ThreadContent } from "./thread-content";
+export { ThreadContent, useThreadContentContext } from "./thread-content";
 export type {
   ThreadContentContextValue,
   ThreadContentEmptyProps,

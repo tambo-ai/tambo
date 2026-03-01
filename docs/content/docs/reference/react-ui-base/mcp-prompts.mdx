@@ -3,50 +3,15 @@ title: McpPrompts
 description: Compose MCP prompt picker behavior with unstyled parts for listing, selecting, and inserting prompts.
 ---
 
+import { McpPromptsDemoPreview } from "./_demos/mcp-prompts-demo";
+
 # McpPrompts
 
 `McpPrompts` in `@tambo-ai/react-ui-base` owns the MCP prompt selection lifecycle — listing available prompts, fetching selected prompt content, validating format, and surfacing errors — while keeping styling in `@tambo-ai/ui-registry` or your own UI layer.
 
 ## Demo
 
-### Tailwind
-
-```tsx
-import { McpPrompts } from "@tambo-ai/react-ui-base/mcp-prompts";
-
-export function DemoMcpPrompts() {
-  return (
-    <McpPrompts.Root onInsertText={(text) => console.log("Insert:", text)}>
-      <McpPrompts.Trigger className="rounded bg-blue-500 px-3 py-1 text-white">
-        Insert Prompt
-      </McpPrompts.Trigger>
-      <McpPrompts.List
-        render={(props, state) => (
-          <div {...props} className="flex flex-col gap-1">
-            {state.prompts.map((entry) => (
-              <McpPrompts.Item
-                key={entry.prompt.name}
-                name={entry.prompt.name}
-                description={entry.prompt.description}
-                className="rounded px-2 py-1 hover:bg-gray-100 data-selected:bg-blue-100"
-              >
-                {entry.prompt.name}
-              </McpPrompts.Item>
-            ))}
-          </div>
-        )}
-      />
-      <McpPrompts.Error
-        render={(props, state) => (
-          <div {...props} className="text-red-500 text-sm">
-            {state.error}
-          </div>
-        )}
-      />
-    </McpPrompts.Root>
-  );
-}
-```
+<McpPromptsDemoPreview />
 
 ## Anatomy
 

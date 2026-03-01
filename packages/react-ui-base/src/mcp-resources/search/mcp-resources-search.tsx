@@ -27,11 +27,11 @@ export const McpResourcesSearch = React.forwardRef<
 >((props, ref) => {
   const { search, setSearch } = useMcpResourcesContext();
 
-  const { render, ...componentProps } = props;
+  const { render, onChange, ...rest } = props;
 
   const handleChange: React.ChangeEventHandler<HTMLInputElement> = (event) => {
-    componentProps.onChange?.(event);
-    setSearch(event.target.value);
+    onChange?.(event);
+    if (!event.defaultPrevented) setSearch(event.target.value);
   };
   const state: McpResourcesSearchState = {
     slot: "mcp-resources-search",
@@ -43,7 +43,7 @@ export const McpResourcesSearch = React.forwardRef<
     ref,
     render,
     state,
-    props: mergeProps(componentProps, {
+    props: mergeProps(rest, {
       type: "text",
       value: search,
       onChange: handleChange,

@@ -3,36 +3,15 @@ title: MessageInput
 description: Compose message text input, staged images, submit/stop controls, and elicitation mode with unstyled parts.
 ---
 
+import { MessageInputDemoPreview } from "./_demos/message-input-demo";
+
 # MessageInput
 
 `MessageInput` in `@tambo-ai/react-ui-base` owns message-authoring behavior while keeping styling in `@tambo-ai/ui-registry` or your own UI layer.
 
 ## Demo
 
-### Tailwind
-
-```tsx
-import { MessageInput } from "@tambo-ai/react-ui-base/message-input";
-
-export function DemoMessageInput() {
-  return (
-    <MessageInput.Root>
-      <MessageInput.Content>
-        <MessageInput.Textarea />
-        <MessageInput.Toolbar>
-          <MessageInput.FileButton>Attach</MessageInput.FileButton>
-          <MessageInput.SubmitButton keepMounted>
-            Send
-          </MessageInput.SubmitButton>
-          <MessageInput.StopButton keepMounted>Stop</MessageInput.StopButton>
-        </MessageInput.Toolbar>
-      </MessageInput.Content>
-      <MessageInput.Elicitation />
-      <MessageInput.Error />
-    </MessageInput.Root>
-  );
-}
-```
+<MessageInputDemoPreview />
 
 ## Anatomy
 

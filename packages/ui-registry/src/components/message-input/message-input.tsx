@@ -177,7 +177,7 @@ MessageInput.displayName = "MessageInput";
  * Props for the MessageInputTextarea component.
  * Extends standard TextareaHTMLAttributes.
  */
-export interface MessageInputTextareaProps extends React.HTMLAttributes<HTMLDivElement> {
+export interface MessageInputTextareaProps extends React.HTMLAttributes<HTMLTextAreaElement> {
   /** Custom placeholder text. */
   placeholder?: string;
   /** Resource provider for @ mentions (optional - includes interactables by default) */

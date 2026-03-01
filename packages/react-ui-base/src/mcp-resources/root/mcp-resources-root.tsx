@@ -47,11 +47,14 @@ export const McpResourcesRoot = React.forwardRef<
   const hasResources = resourceList.length > 0;
   const enabled = hasResources || isLoading || search.length > 0;
 
+  const onSelectResourceRef = React.useRef(onSelectResource);
+  onSelectResourceRef.current = onSelectResource;
+
   const handleSelectResource = React.useCallback(
     (uri: string, label: string) => {
-      onSelectResource?.(uri, label);
+      onSelectResourceRef.current?.(uri, label);
     },
-    [onSelectResource],
+    [],
   );
 
   const contextValue = React.useMemo(

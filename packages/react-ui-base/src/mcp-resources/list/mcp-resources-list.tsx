@@ -9,6 +9,7 @@ export interface McpResourcesListState extends Record<string, unknown> {
   slot: string;
   resources: ListResourceEntry[];
   resourceCount: number;
+  hasSearch: boolean;
 }
 
 type McpResourcesListComponentProps = useRender.ComponentProps<
@@ -26,13 +27,14 @@ export const McpResourcesList = React.forwardRef<
   HTMLDivElement,
   McpResourcesListProps
 >((props, ref) => {
-  const { resources } = useMcpResourcesContext();
+  const { resources, search } = useMcpResourcesContext();
 
   const { render, ...componentProps } = props;
   const state: McpResourcesListState = {
     slot: "mcp-resources-list",
     resources,
     resourceCount: resources.length,
+    hasSearch: search.length > 0,
   };
 
   return useRender({

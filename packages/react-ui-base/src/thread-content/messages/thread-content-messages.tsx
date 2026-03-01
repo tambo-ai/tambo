@@ -67,6 +67,9 @@ export const ThreadContentMessages = React.forwardRef<
     ref,
     render,
     state,
+    stateAttributesMapping: {
+      filteredMessages: () => null,
+    },
     props: componentProps,
   });
 });

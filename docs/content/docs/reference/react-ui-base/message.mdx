@@ -3,26 +3,15 @@ title: Message
 description: Compose message shell rendering for text, images, loading state, and rendered component content.
 ---
 
+import { MessageDemoPreview } from "./_demos/message-demo";
+
 # Message
 
 `Message` in `@tambo-ai/react-ui-base` handles message-level behavior and content selection while leaving styling to your app or `@tambo-ai/ui-registry`.
 
 ## Demo
 
-### Tailwind
-
-```tsx
-import { Message } from "@tambo-ai/react-ui-base/message";
-
-<Message.Root message={message} role={message.role}>
-  <Message.Content />
-  <Message.Images />
-  <Message.RenderedComponent>
-    <Message.RenderedComponentCanvasButton />
-    <Message.RenderedComponentContent />
-  </Message.RenderedComponent>
-</Message.Root>;
-```
+<MessageDemoPreview />
 
 ## Anatomy
 

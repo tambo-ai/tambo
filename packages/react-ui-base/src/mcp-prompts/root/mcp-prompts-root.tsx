@@ -88,8 +88,6 @@ export const McpPromptsRoot = React.forwardRef<
   >(null);
   const [status, setStatus] = React.useState<McpPromptsStatus>("idle");
   const [error, setError] = React.useState<string | null>(null);
-  const [insertedText, setInsertedText] = React.useState<string | null>(null);
-
   const { data: promptData, error: fetchError } = useTamboMcpPrompt(
     selectedPromptName ?? undefined,
   );
@@ -118,7 +116,6 @@ export const McpPromptsRoot = React.forwardRef<
     }
 
     setError(null);
-    setInsertedText(text);
     setStatus("done");
     onInsertTextRef.current?.(text);
     setSelectedPromptName(null);
@@ -137,7 +134,6 @@ export const McpPromptsRoot = React.forwardRef<
     setSelectedPromptName(promptName);
     setStatus("fetching");
     setError(null);
-    setInsertedText(null);
   }, []);
 
   const promptList = React.useMemo(() => prompts ?? [], [prompts]);
@@ -151,17 +147,8 @@ export const McpPromptsRoot = React.forwardRef<
       status,
       error,
       select,
-      insertedText,
     }),
-    [
-      promptList,
-      isLoading,
-      selectedPromptName,
-      status,
-      error,
-      select,
-      insertedText,
-    ],
+    [promptList, isLoading, selectedPromptName, status, error, select],
   );
 
   const { render, ...componentProps } = props;

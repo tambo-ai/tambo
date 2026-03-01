@@ -3,44 +3,15 @@ title: ThreadContent
 description: Compose thread timeline behavior with unstyled parts for empty, loading, and populated states.
 ---
 
+import { ThreadContentDemoPreview } from "./_demos/thread-content-demo";
+
 # ThreadContent
 
 `ThreadContent` in `@tambo-ai/react-ui-base` owns thread timeline state derivation — messages, generation status, empty/loading detection — while keeping styling in `@tambo-ai/ui-registry` or your own UI layer.
 
 ## Demo
 
-### Tailwind
-
-```tsx
-import { ThreadContent } from "@tambo-ai/react-ui-base/thread-content";
-
-export function DemoThreadContent() {
-  return (
-    <ThreadContent.Root className="flex flex-col gap-4">
-      <ThreadContent.Loading className="p-4 text-muted-foreground">
-        Generating...
-      </ThreadContent.Loading>
-      <ThreadContent.Empty className="p-4 text-muted-foreground">
-        No messages yet. Start a conversation!
-      </ThreadContent.Empty>
-      <ThreadContent.Messages
-        render={(props, state) => (
-          <div {...props} className="flex flex-col gap-2">
-            {state.filteredMessages.map((message) => (
-              <div key={message.id} className="rounded border p-2">
-                <strong>{message.role}:</strong>{" "}
-                {message.content.map((block) =>
-                  block.type === "text" ? block.text : null,
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-      />
-    </ThreadContent.Root>
-  );
-}
-```
+<ThreadContentDemoPreview />
 
 ## Anatomy
 

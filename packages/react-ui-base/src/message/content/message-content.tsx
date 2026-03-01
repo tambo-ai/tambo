@@ -34,6 +34,12 @@ export interface MessageContentRenderProps {
    * @default true
    */
   renderAsMarkdown?: boolean;
+  /**
+   * Keep the element mounted when there is no content. When false (default),
+   * the component returns null if the message has no text content.
+   * @default false
+   */
+  keepMounted?: boolean;
 }
 
 export type MessageContentProps = MessageContentRenderProps &
@@ -47,45 +53,56 @@ export type MessageContentProps = MessageContentRenderProps &
 export const MessageContent = React.forwardRef<
   HTMLDivElement,
   MessageContentProps
->(({ messageContent, renderAsMarkdown = true, ...props }, ref) => {
-  const { message, isLoading } = useMessageRootContext();
-  const contentToRender = messageContent ?? message.content;
-
-  const contentAsMarkdownString = React.useMemo(
-    () =>
-      renderAsMarkdown ? convertContentToMarkdown(contentToRender) : undefined,
-    [contentToRender, renderAsMarkdown],
-  );
-
-  const hasContent = React.useMemo(
-    () => checkHasContent(contentToRender),
-    [contentToRender],
-  );
-
-  const showLoading = !!isLoading && !hasContent && !message.reasoning;
-
-  const { render, ...componentProps } = props;
-
-  const state: MessageContentState = {
-    slot: "message-content",
-    hasContent,
-    markdown: renderAsMarkdown,
-    loading: showLoading,
-    reasoning: !!message.reasoning,
-    content: contentToRender,
-    contentAsMarkdownString,
-  };
-
-  return useRender({
-    defaultTagName: "div",
+>(
+  (
+    { messageContent, renderAsMarkdown = true, keepMounted = false, ...props },
     ref,
-    render,
-    state,
-    stateAttributesMapping: {
-      content: () => null,
-      contentAsMarkdownString: () => null,
-    },
-    props: componentProps,
-  });
-});
+  ) => {
+    const { message, isLoading } = useMessageRootContext();
+    const contentToRender = messageContent ?? message.content;
+
+    const contentAsMarkdownString = React.useMemo(
+      () =>
+        renderAsMarkdown
+          ? convertContentToMarkdown(contentToRender)
+          : undefined,
+      [contentToRender, renderAsMarkdown],
+    );
+
+    const hasContent = React.useMemo(
+      () => checkHasContent(contentToRender),
+      [contentToRender],
+    );
+
+    const showLoading = !!isLoading && !hasContent && !message.reasoning;
+
+    const { render, children, ...componentProps } = props;
+
+    const state: MessageContentState = {
+      slot: "message-content",
+      hasContent,
+      markdown: renderAsMarkdown,
+      loading: showLoading,
+      reasoning: !!message.reasoning,
+      content: contentToRender,
+      contentAsMarkdownString,
+    };
+
+    // Default to rendering the markdown string when no children or render prop
+    const defaultChildren = children ?? (contentAsMarkdownString || null);
+
+    return useRender({
+      defaultTagName: "div",
+      ref,
+      render,
+      enabled: keepMounted || hasContent,
+      state,
+      stateAttributesMapping: {
+        content: () => null,
+        contentAsMarkdownString: () => null,
+      },
+      props: { ...componentProps, children: defaultChildren },
+    });
+  },
+);
 MessageContent.displayName = "Message.Content";
