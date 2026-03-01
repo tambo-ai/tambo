@@ -3,8 +3,7 @@ title: ReasoningInfo
 description: Compose reasoning status and expandable reasoning steps for assistant messages.
 ---
 
-import { DemoPreview } from "@/components/demos/demo-preview";
-import { ReasoningInfoDemo } from "./_demos/reasoning-info-demo";
+import { ReasoningInfoDemoPreview } from "./_demos/reasoning-info-demo";
 
 # ReasoningInfo
 
@@ -12,28 +11,7 @@ import { ReasoningInfoDemo } from "./_demos/reasoning-info-demo";
 
 ## Demo
 
-<DemoPreview code={`import { ReasoningInfo } from "@tambo-ai/react-ui-base/reasoning-info";
-import type { TamboThreadMessage } from "@tambo-ai/react";
-import { ChevronDown } from "lucide-react";
-
-// message.reasoning is a string[] of reasoning steps
-// message.reasoningDurationMS is the total thinking time
-export function DemoReasoningInfo({ message }: { message: TamboThreadMessage }) {
-return (
-<ReasoningInfo.Root message={message} isLoading={false} autoCollapse={false}>
-<ReasoningInfo.Trigger className="flex items-center gap-2 text-sm text-neutral-600 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-neutral-100">
-<ChevronDown className="h-3.5 w-3.5" />
-<ReasoningInfo.StatusText />
-</ReasoningInfo.Trigger>
-<ReasoningInfo.Content className="mt-2 max-h-48 overflow-y-auto rounded-lg border border-neutral-200 bg-neutral-50 p-3 dark:border-neutral-700 dark:bg-neutral-800">
-<ReasoningInfo.Steps className="space-y-2 text-sm text-neutral-700 dark:text-neutral-300" />
-</ReasoningInfo.Content>
-</ReasoningInfo.Root>
-);
-}`}>
-
-  <ReasoningInfoDemo />
-</DemoPreview>
+<ReasoningInfoDemoPreview />
 
 ## Anatomy
 

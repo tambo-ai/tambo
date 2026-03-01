@@ -3,8 +3,7 @@ title: Message
 description: Compose message shell rendering for text, images, loading state, and rendered component content.
 ---
 
-import { DemoPreview } from "@/components/demos/demo-preview";
-import { MessageDemo } from "./_demos/message-demo";
+import { MessageDemoPreview } from "./_demos/message-demo";
 
 # Message
 
@@ -12,68 +11,7 @@ import { MessageDemo } from "./_demos/message-demo";
 
 ## Demo
 
-<DemoPreview code={`import { Message } from "@tambo-ai/react-ui-base/message";
-import type { TamboThreadMessage } from "@tambo-ai/react";
-import { Bot, User } from "lucide-react";
-
-function MessageBubble({ message, isLoading }: { message: TamboThreadMessage; isLoading?: boolean }) {
-const role = message.role as "user" | "assistant";
-
-return (
-<Message.Root
-message={message}
-role={role}
-isLoading={isLoading}
-className="flex gap-2.5 [[data-role=user]&]:flex-row-reverse" >
-<div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-neutral-200 text-neutral-600 [[data-role=user]_&]:bg-neutral-900 [[data-role=user]_&]:text-white dark:bg-neutral-700 dark:text-neutral-300 dark:[[data-role=user]_&]:bg-neutral-100 dark:[[data-role=user]_&]:text-neutral-900">
-<User className="hidden h-3.5 w-3.5 [[data-role=user]_&]:block" />
-<Bot className="h-3.5 w-3.5 [[data-role=user]_&]:hidden" />
-</div>
-<div className="flex max-w-[80%] flex-col gap-2 rounded-2xl rounded-tl-md bg-neutral-200/70 px-4 py-3 text-neutral-900 [[data-role=user]_&]:rounded-2xl [[data-role=user]_&]:rounded-tr-md [[data-role=user]_&]:bg-neutral-900 [[data-role=user]_&]:text-white dark:bg-neutral-700 dark:text-neutral-100 dark:[[data-role=user]_&]:bg-neutral-100 dark:[[data-role=user]_&]:text-neutral-900">
-<Message.Content className="text-sm" />
-<Message.Images className="flex gap-2 [&_img]:max-h-40 [&_img]:rounded-lg [&_img]:object-cover" />
-<Message.RenderedComponent>
-<Message.RenderedComponentContent />
-</Message.RenderedComponent>
-<Message.LoadingIndicator className="flex items-center gap-1" />
-</div>
-</Message.Root>
-);
-}
-
-export function DemoMessage() {
-  return (
-    <div className="flex flex-col gap-3">
-      <MessageBubble message={userMessage} />
-      <MessageBubble message={assistantMessage} />
-    </div>
-  );
-}
-
-// --- Mock data ---
-
-const userMessage = {
-id: "msg-1",
-role: "user",
-content: [{ type: "text", text: "What's the weather like in San Francisco?" }],
-createdAt: new Date().toISOString(),
-metadata: {},
-} as TamboThreadMessage;
-
-const assistantMessage = {
-id: "msg-2",
-role: "assistant",
-content: [
-{ type: "text", text: "It's currently 72°F and partly cloudy in San Francisco." },
-{ type: "image_url", image_url: { url: "https://example.com/sf.jpg" } },
-{ type: "component", component: "WeatherCard", props: {}, renderedComponent: <WeatherCard /> },
-],
-createdAt: new Date().toISOString(),
-metadata: {},
-} as TamboThreadMessage;`}>
-
-  <MessageDemo />
-</DemoPreview>
+<MessageDemoPreview />
 
 ## Anatomy
 

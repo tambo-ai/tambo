@@ -1,7 +1,8 @@
 "use client";
 
 import { useDemoControls } from "@/components/demos/demo-controls";
-import type { Content, TamboThreadMessage } from "@tambo-ai/react";
+import { DemoPreview } from "@/components/demos/demo-preview";
+import type { Content, ReactTamboThreadMessage } from "@tambo-ai/react";
 import { Message } from "@tambo-ai/react-ui-base/message";
 import type { ChatCompletionContentPart } from "@tambo-ai/typescript-sdk/resources/beta/threads/threads";
 import { Bot, User } from "lucide-react";
@@ -24,7 +25,15 @@ function DemoWeatherCard() {
 const IMAGE_URL =
   "https://images.unsplash.com/photo-1501594907352-04cda38ebc29?w=400&h=200&fit=crop";
 
-export function MessageDemo() {
+export function MessageDemoPreview() {
+  return (
+    <DemoPreview code={messageDemoCode}>
+      <MessageDemo />
+    </DemoPreview>
+  );
+}
+
+function MessageDemo() {
   const { images, component, loading } = useDemoControls({
     images: { default: true, label: "Images" },
     component: { default: true, label: "Component" },
@@ -65,23 +74,23 @@ export function MessageDemo() {
             ? []
             : [
                 {
-                  type: "text",
+                  type: "text" as const,
                   text: "It's currently 72°F and partly cloudy in San Francisco.",
-                } satisfies Content,
+                },
                 ...(component
                   ? [
                       {
-                        type: "component",
+                        type: "component" as const,
                         id: "demo-weather",
                         name: "WeatherCard",
                         props: {},
                         renderedComponent: <DemoWeatherCard />,
-                      } satisfies Content,
+                      },
                     ]
                   : []),
               ]),
         ],
-      }) satisfies TamboThreadMessage,
+      }) satisfies ReactTamboThreadMessage,
     [component, loading],
   );
 
@@ -97,12 +106,75 @@ export function MessageDemo() {
   );
 }
 
+export const messageDemoCode = [
+  {
+    name: "message-bubble.tsx",
+    code: `
+import { Message } from "@tambo-ai/react-ui-base/message";
+import type { TamboThreadMessage } from "@tambo-ai/react";
+import { Bot, User } from "lucide-react";
+
+export function MessageBubble({
+  message,
+  role,
+  isLoading,
+}: {
+  message: TamboThreadMessage;
+  role: "user" | "assistant";
+  isLoading?: boolean;
+}) {
+  return (
+    <Message.Root
+      message={message}
+      role={role}
+      isLoading={isLoading}
+      className="flex gap-2.5 [[data-role=user]&]:flex-row-reverse"
+    >
+      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-neutral-200 text-neutral-600 [[data-role=user]_&]:bg-neutral-900 [[data-role=user]_&]:text-white dark:bg-neutral-700 dark:text-neutral-300">
+        <User className="hidden h-3.5 w-3.5 [[data-role=user]_&]:block" />
+        <Bot className="hidden h-3.5 w-3.5 [[data-role=assistant]_&]:block" />
+      </div>
+      <div className="flex max-w-[80%] flex-col gap-2 rounded-2xl rounded-tl-md bg-neutral-200/70 px-4 py-3 text-neutral-900 [[data-role=user]_&]:rounded-2xl [[data-role=user]_&]:rounded-tr-md [[data-role=user]_&]:bg-neutral-900 [[data-role=user]_&]:text-white dark:bg-neutral-700 dark:text-neutral-100">
+        <Message.Content className="text-sm" />
+        <Message.Images className="flex gap-2 [&_img]:max-h-40 [&_img]:rounded-lg [&_img]:object-cover" />
+        <Message.RenderedComponent>
+          <Message.RenderedComponentContent />
+        </Message.RenderedComponent>
+        <Message.LoadingIndicator className="flex items-center gap-1" />
+      </div>
+    </Message.Root>
+  );
+}`.trimStart(),
+  },
+  {
+    name: "mock-data.ts",
+    code: `
+import type { TamboThreadMessage } from "@tambo-ai/react";
+
+export const userMessage = {
+  id: "msg-1",
+  role: "user",
+  content: [
+    { type: "text", text: "What's the weather like in San Francisco?" },
+  ],
+} satisfies TamboThreadMessage;
+
+export const assistantMessage = {
+  id: "msg-2",
+  role: "assistant",
+  content: [
+    { type: "text", text: "It's currently 72°F and partly cloudy in San Francisco." },
+  ],
+} satisfies TamboThreadMessage;`,
+  },
+];
+
 function MessageBubble({
   message,
   role,
   isLoading = false,
 }: {
-  message: TamboThreadMessage;
+  message: ReactTamboThreadMessage;
   role: "user" | "assistant";
   isLoading?: boolean;
 }) {
