@@ -1,11 +1,11 @@
 ---
-name: start-from-scratch
-description: Guides creation of a new Tambo project from scratch with technology recommendations. Use when user wants to start a NEW project, build a new app with Tambo, create something from nothing, or needs help choosing technologies for a new generative UI application. For adding Tambo to EXISTING projects, use add-to-existing-project skill instead.
+name: generative-ui
+description: Build generative UI apps with Tambo — one-shot generation of rich, interactive React components (dashboards, Three.js scenes, data visualizations, and more). Use when user wants to create a NEW generative UI project, build an AI-powered app with Tambo, or generate dynamic UI from natural language. For adding Tambo to EXISTING projects, use add-to-existing-project skill instead.
 ---
 
-# Start From Scratch
+# Generative UI
 
-Guide users through creating a new Tambo project with recommended technologies.
+Build generative UI apps with Tambo — create rich, interactive React components from natural language.
 
 ## Quick Start (Recommended Stack)
 
