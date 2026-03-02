@@ -41,7 +41,7 @@
     "streamdown": "^2.3.0"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4.2.0",
+    "@tailwindcss/postcss": "^4.2.1",
     "@types/mdx": "^2.0.13",
     "@types/node": "22.19.8",
     "@types/react": "^18.3.23",
