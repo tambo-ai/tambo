@@ -96,7 +96,7 @@ export function MinimalChat() {
           <Message.Root
             key={message.id}
             message={message}
-            role={message.role}
+            role={message.role === "system" ? "assistant" : message.role}
             style={{
               display: "flex",
               gap: 8,

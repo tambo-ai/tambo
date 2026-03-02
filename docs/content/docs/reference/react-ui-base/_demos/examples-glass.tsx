@@ -16,7 +16,7 @@ const containerStyles: React.CSSProperties = {
   minHeight: 320,
 };
 
-const messageCardStyle = (role: string): React.CSSProperties => ({
+const glassCardStyles: React.CSSProperties = {
   background: "rgba(255,255,255,0.3)",
   color: "#002173",
   backdropFilter: "blur(12px)",
@@ -24,16 +24,12 @@ const messageCardStyle = (role: string): React.CSSProperties => ({
   border: "1px solid rgba(255,255,255,0.4)",
   borderRadius: 14,
   padding: "10px 14px",
-});
+};
+
+const messageCardStyles: React.CSSProperties = glassCardStyles;
 
 const inputCardStyles: React.CSSProperties = {
-  background: "rgba(255,255,255,0.3)",
-  color: "#002173",
-  backdropFilter: "blur(12px)",
-  WebkitBackdropFilter: "blur(12px)",
-  border: "1px solid rgba(255,255,255,0.4)",
-  borderRadius: 14,
-  padding: "10px 14px",
+  ...glassCardStyles,
   marginTop: "auto",
 };
 
@@ -70,7 +66,7 @@ export function GlassChat() {
             message={message}
             // Treat 'system' messages as 'assistant' for styling
             role={message.role === "system" ? "assistant" : message.role}
-            style={messageCardStyle(message.role)}
+            style={messageCardStyles}
           >
             <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
               <span style={{ fontSize: 18, flexShrink: 0 }}>
