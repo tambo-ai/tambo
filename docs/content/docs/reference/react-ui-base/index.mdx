@@ -3,22 +3,43 @@ title: Overview
 description: Reference for unstyled base primitives in @tambo-ai/react-ui-base.
 ---
 
+import { ExamplesDemoPreview } from "./_demos/examples-demo";
+
 The `@tambo-ai/react-ui-base` package exposes behavior-focused primitives. These components are intentionally unstyled and designed for composition in your own UI layer.
 
-## Primitive Pages
+The same components — `Message`, `MessageInput`, and their sub-parts — can produce wildly different interfaces just by changing styles. Use the **Theme** control below to see three variations built with the exact same primitives.
 
-- [MessageInput](/docs/reference/react-ui-base/message-input)
-- [Elicitation](/docs/reference/react-ui-base/elicitation)
-- [Message](/docs/reference/react-ui-base/message)
-- [ToolcallInfo](/docs/reference/react-ui-base/toolcall-info)
-- [ReasoningInfo](/docs/reference/react-ui-base/reasoning-info)
-- [ThreadContent](/docs/reference/react-ui-base/thread-content)
-- [ThreadHistory](/docs/reference/react-ui-base/thread-history)
-- [ThreadDropdown](/docs/reference/react-ui-base/thread-dropdown)
-- [McpPrompts](/docs/reference/react-ui-base/mcp-prompts)
-- [McpResources](/docs/reference/react-ui-base/mcp-resources)
+<ExamplesDemoPreview />
 
-## Ownership Model
+## Primitives
+
+- [Message](/docs/reference/react-ui-base/message) — message display, content blocks, images, loading
+- [MessageInput](/docs/reference/react-ui-base/message-input) — input, submit, stop, file upload, elicitation
+- [ThreadContent](/docs/reference/react-ui-base/thread-content) — thread-level message list and empty/loading states
+- [ThreadHistory](/docs/reference/react-ui-base/thread-history) — sidebar thread list with search
+- [ThreadDropdown](/docs/reference/react-ui-base/thread-dropdown) — compact thread switcher dropdown
+- [ToolcallInfo](/docs/reference/react-ui-base/toolcall-info) — tool call status and details
+- [ReasoningInfo](/docs/reference/react-ui-base/reasoning-info) — AI reasoning step display
+- [Elicitation](/docs/reference/react-ui-base/elicitation) — MCP elicitation form
+- [McpPrompts](/docs/reference/react-ui-base/mcp-prompts) — MCP prompt picker
+- [McpResources](/docs/reference/react-ui-base/mcp-resources) — MCP resource picker
+
+## Ownership model
 
 - `@tambo-ai/react-ui-base`: behavior, state, and composition contracts.
 - `@tambo-ai/ui-registry`: styled components and block-level orchestration.
+
+## Key patterns
+
+### Role-based styling
+
+Each component exposes `data-role` attributes. Style user and assistant messages differently:
+
+```tsx
+<Message.Root message={message} role={message.role}
+  style={{ flexDirection: message.role === "user" ? "row-reverse" : "row" }}>
+```
+
+### No CSS framework required
+
+The examples above use plain inline styles — no Tailwind, no CSS modules, no styled-components. The base components work with any styling approach.
