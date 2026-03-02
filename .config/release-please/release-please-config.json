@@ -33,6 +33,7 @@
     "apps/web": {},
     "apps/api": {}
   },
+  "plugins": [{ "type": "node-workspace" }],
   "changelog-sections": [
     {
       "type": "feat",

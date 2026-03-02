@@ -70,9 +70,9 @@ jobs:
 
   # NPM Package Publishing - React SDK
   publish-react-sdk:
-    needs: [release-please, publish-client]
+    needs: release-please
     runs-on: ubuntu-latest
-    if: ${{ !failure() && !cancelled() && needs.release-please.outputs.react-sdk--release_created == 'true' }}
+    if: ${{ needs.release-please.outputs.react-sdk--release_created == 'true' }}
     permissions:
       contents: read
       id-token: write # Required for OIDC publishing to NPM

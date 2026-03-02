@@ -14,7 +14,7 @@
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "development": "./src/index.ts",
+      "@tambo-ai/source": "./src/index.ts",
       "import": {
         "types": "./esm/index.d.ts",
         "default": "./esm/index.js"
