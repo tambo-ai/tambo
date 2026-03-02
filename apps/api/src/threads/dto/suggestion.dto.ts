@@ -36,6 +36,15 @@ export class SuggestionDto {
   detailedSuggestion!: string;
 
   @ApiProperty({
+    description:
+      "Detailed explanation of the suggestion (alias for detailedSuggestion)",
+    example: "Add try-catch block to handle potential API errors",
+  })
+  @IsString()
+  @IsNotEmpty()
+  description!: string;
+
+  @ApiProperty({
     description: "Additional metadata for the suggestion",
     required: false,
     additionalProperties: { type: "string" },

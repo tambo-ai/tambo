@@ -52,6 +52,17 @@ export class V1SuggestionDto {
   description!: string;
 
   @ApiProperty({
+    description:
+      "Detailed explanation of the suggestion (deprecated, use description)",
+    example:
+      "Add try-catch blocks to handle potential API errors and provide user feedback",
+    deprecated: true,
+  })
+  @IsString()
+  @IsNotEmpty()
+  detailedSuggestion!: string;
+
+  @ApiProperty({
     description: "When the suggestion was created (ISO 8601)",
     example: "2024-01-15T12:00:00Z",
   })

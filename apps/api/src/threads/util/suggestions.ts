@@ -9,5 +9,6 @@ export function mapSuggestionToDto(
     messageId: suggestion.messageId,
     title: suggestion.title,
     detailedSuggestion: suggestion.detailedSuggestion,
+    description: suggestion.detailedSuggestion,
   };
 }
