@@ -3,8 +3,33 @@
 import { CanvasSpace } from "@tambo-ai/ui-registry/components/canvas-space";
 import { Graph, graphSchema } from "@tambo-ai/ui-registry/components/graph";
 import { MessageThreadPanel } from "@tambo-ai/ui-registry/components/message-thread-panel";
+import type { Suggestion } from "@tambo-ai/react";
 import { useTambo } from "@tambo-ai/react";
 import { useEffect } from "react";
+
+const canvasThreadSuggestions = [
+  {
+    id: "canvas-suggestion-1",
+    title: "Add users chart",
+    detailedSuggestion:
+      "Add a bar chart of weekly active users in the top-left of the canvas.",
+    messageId: "canvas-users-chart",
+  },
+  {
+    id: "canvas-suggestion-2",
+    title: "Compare metrics",
+    detailedSuggestion:
+      "Create a second line chart comparing signups versus activations.",
+    messageId: "canvas-compare-metrics",
+  },
+  {
+    id: "canvas-suggestion-3",
+    title: "Change chart type",
+    detailedSuggestion:
+      "Convert the first chart to a pie chart and keep the same dataset.",
+    messageId: "canvas-change-chart-type",
+  },
+] satisfies Suggestion[];
 
 export const CanvasChatInterface = () => {
   const { registerComponent, currentThreadId } = useTambo();
@@ -61,7 +86,10 @@ export const CanvasChatInterface = () => {
   return (
     <div className="rounded-lg border border-border/40 h-full relative flex flex-row overflow-hidden">
       <CanvasSpace className="bg-background rounded-l-lg flex-1 h-full" />
-      <MessageThreadPanel className="right rounded-r-lg h-full" />
+      <MessageThreadPanel
+        className="right rounded-r-lg h-full"
+        initialSuggestions={canvasThreadSuggestions}
+      />
     </div>
   );
 };

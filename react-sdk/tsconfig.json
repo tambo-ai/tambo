@@ -7,14 +7,18 @@
     "jsx": "react",
     "module": "ES6",
     "moduleResolution": "node",
-    "rootDir": "./src",
+    "customConditions": null,
     "declaration": true,
     "sourceMap": true,
     "inlineSources": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "strict": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "baseUrl": ".",
+    "paths": {
+      "@tambo-ai/client": ["../packages/client/src/index.ts"]
+    }
   },
   "include": ["src/**/*.ts", "src/**/*.tsx"],
   "exclude": ["node_modules", "./dist"]

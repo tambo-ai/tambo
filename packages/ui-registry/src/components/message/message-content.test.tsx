@@ -62,10 +62,17 @@ describe("MessageContent rendering", () => {
 
       const contentElement = getMessageContentTextSlot(container);
       expect(contentElement.innerHTML).toMatchInlineSnapshot(`
-        <div class="space-y-4 whitespace-normal">
-          <p class="my-0">
-            Hello, world!
-          </p>
+        <div
+          data-slot="message-content"
+          data-hascontent
+          data-markdown
+          class="relative block rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&amp;_p]:py-1 [&amp;_li]:list-item :not([data-markdown]):wrap-break-word"
+        >
+          <div class="space-y-4 whitespace-normal *:first:mt-0 *:last:mb-0">
+            <p class="my-0">
+              Hello, world!
+            </p>
+          </div>
         </div>
       `);
     });
@@ -86,10 +93,17 @@ describe("MessageContent rendering", () => {
 
       const contentElement = getMessageContentTextSlot(container);
       expect(contentElement.innerHTML).toMatchInlineSnapshot(`
-        <div class="space-y-4 whitespace-normal">
-          <p class="my-0">
-            First part. Second part.
-          </p>
+        <div
+          data-slot="message-content"
+          data-hascontent
+          data-markdown
+          class="relative block rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&amp;_p]:py-1 [&amp;_li]:list-item :not([data-markdown]):wrap-break-word"
+        >
+          <div class="space-y-4 whitespace-normal *:first:mt-0 *:last:mb-0">
+            <p class="my-0">
+              First part. Second part.
+            </p>
+          </div>
         </div>
       `);
     });
@@ -109,21 +123,28 @@ describe("MessageContent rendering", () => {
 
       const contentElement = getMessageContentTextSlot(container);
       expect(contentElement.innerHTML).toMatchInlineSnapshot(`
-        <div class="space-y-4 whitespace-normal">
-          <p class="my-0">
-            This is
-            <span
-              class="font-semibold"
-              data-streamdown="strong"
-            >
-              bold
-            </span>
-            and
-            <em>
-              italic
-            </em>
-            text.
-          </p>
+        <div
+          data-slot="message-content"
+          data-hascontent
+          data-markdown
+          class="relative block rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&amp;_p]:py-1 [&amp;_li]:list-item :not([data-markdown]):wrap-break-word"
+        >
+          <div class="space-y-4 whitespace-normal *:first:mt-0 *:last:mb-0">
+            <p class="my-0">
+              This is
+              <span
+                class="font-semibold"
+                data-streamdown="strong"
+              >
+                bold
+              </span>
+              and
+              <em>
+                italic
+              </em>
+              text.
+            </p>
+          </div>
         </div>
       `);
     });
@@ -151,16 +172,23 @@ describe("MessageContent rendering", () => {
 
       const contentElement = getMessageContentTextSlot(container);
       expect(contentElement.innerHTML).toMatchInlineSnapshot(`
-        <div class="space-y-4 whitespace-normal">
-          <p class="my-0">
-            <span
-              class="mention resource inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground cursor-default"
-              data-resource-uri="file:///path/to/document.txt"
-              title="file:///path/to/document.txt"
-            >
-              @document.txt
-            </span>
-          </p>
+        <div
+          data-slot="message-content"
+          data-hascontent
+          data-markdown
+          class="relative block rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&amp;_p]:py-1 [&amp;_li]:list-item :not([data-markdown]):wrap-break-word"
+        >
+          <div class="space-y-4 whitespace-normal *:first:mt-0 *:last:mb-0">
+            <p class="my-0">
+              <span
+                class="mention resource inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground cursor-default"
+                data-resource-uri="file:///path/to/document.txt"
+                title="file:///path/to/document.txt"
+              >
+                @document.txt
+              </span>
+            </p>
+          </div>
         </div>
       `);
     });
@@ -185,16 +213,23 @@ describe("MessageContent rendering", () => {
 
       const contentElement = getMessageContentTextSlot(container);
       expect(contentElement.innerHTML).toMatchInlineSnapshot(`
-        <div class="space-y-4 whitespace-normal">
-          <p class="my-0">
-            <span
-              class="mention resource inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground cursor-default"
-              data-resource-uri="file:///path/to/file.md"
-              title="file:///path/to/file.md"
-            >
-              @file:///path/to/file.md
-            </span>
-          </p>
+        <div
+          data-slot="message-content"
+          data-hascontent
+          data-markdown
+          class="relative block rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&amp;_p]:py-1 [&amp;_li]:list-item :not([data-markdown]):wrap-break-word"
+        >
+          <div class="space-y-4 whitespace-normal *:first:mt-0 *:last:mb-0">
+            <p class="my-0">
+              <span
+                class="mention resource inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground cursor-default"
+                data-resource-uri="file:///path/to/file.md"
+                title="file:///path/to/file.md"
+              >
+                @file:///path/to/file.md
+              </span>
+            </p>
+          </div>
         </div>
       `);
     });
@@ -220,16 +255,23 @@ describe("MessageContent rendering", () => {
 
       const contentElement = getMessageContentTextSlot(container);
       expect(contentElement.innerHTML).toMatchInlineSnapshot(`
-        <div class="space-y-4 whitespace-normal">
-          <p class="my-0">
-            <span
-              class="mention resource inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground cursor-default"
-              data-resource-uri="file:///path/with spaces/and#special&amp;chars.txt"
-              title="file:///path/with spaces/and#special&amp;chars.txt"
-            >
-              @special file
-            </span>
-          </p>
+        <div
+          data-slot="message-content"
+          data-hascontent
+          data-markdown
+          class="relative block rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&amp;_p]:py-1 [&amp;_li]:list-item :not([data-markdown]):wrap-break-word"
+        >
+          <div class="space-y-4 whitespace-normal *:first:mt-0 *:last:mb-0">
+            <p class="my-0">
+              <span
+                class="mention resource inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground cursor-default"
+                data-resource-uri="file:///path/with spaces/and#special&amp;chars.txt"
+                title="file:///path/with spaces/and#special&amp;chars.txt"
+              >
+                @special file
+              </span>
+            </p>
+          </div>
         </div>
       `);
     });
@@ -258,17 +300,24 @@ describe("MessageContent rendering", () => {
 
       const contentElement = getMessageContentTextSlot(container);
       expect(contentElement.innerHTML).toMatchInlineSnapshot(`
-        <div class="space-y-4 whitespace-normal">
-          <p class="my-0">
-            Check out this file:
-            <span
-              class="mention resource inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground cursor-default"
-              data-resource-uri="file:///docs/readme.md"
-              title="file:///docs/readme.md"
-            >
-              @readme.md
-            </span>
-          </p>
+        <div
+          data-slot="message-content"
+          data-hascontent
+          data-markdown
+          class="relative block rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&amp;_p]:py-1 [&amp;_li]:list-item :not([data-markdown]):wrap-break-word"
+        >
+          <div class="space-y-4 whitespace-normal *:first:mt-0 *:last:mb-0">
+            <p class="my-0">
+              Check out this file:
+              <span
+                class="mention resource inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground cursor-default"
+                data-resource-uri="file:///docs/readme.md"
+                title="file:///docs/readme.md"
+              >
+                @readme.md
+              </span>
+            </p>
+          </div>
         </div>
       `);
     });
@@ -295,17 +344,24 @@ describe("MessageContent rendering", () => {
 
       const contentElement = getMessageContentTextSlot(container);
       expect(contentElement.innerHTML).toMatchInlineSnapshot(`
-        <div class="space-y-4 whitespace-normal">
-          <p class="my-0">
-            <span
-              class="mention resource inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground cursor-default"
-              data-resource-uri="file:///config.json"
-              title="file:///config.json"
-            >
-              @config.json
-            </span>
-            contains the settings you need.
-          </p>
+        <div
+          data-slot="message-content"
+          data-hascontent
+          data-markdown
+          class="relative block rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&amp;_p]:py-1 [&amp;_li]:list-item :not([data-markdown]):wrap-break-word"
+        >
+          <div class="space-y-4 whitespace-normal *:first:mt-0 *:last:mb-0">
+            <p class="my-0">
+              <span
+                class="mention resource inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground cursor-default"
+                data-resource-uri="file:///config.json"
+                title="file:///config.json"
+              >
+                @config.json
+              </span>
+              contains the settings you need.
+            </p>
+          </div>
         </div>
       `);
     });
@@ -341,26 +397,33 @@ describe("MessageContent rendering", () => {
 
       const contentElement = getMessageContentTextSlot(container);
       expect(contentElement.innerHTML).toMatchInlineSnapshot(`
-        <div class="space-y-4 whitespace-normal">
-          <p class="my-0">
-            Compare
-            <span
-              class="mention resource inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground cursor-default"
-              data-resource-uri="file:///old.ts"
-              title="file:///old.ts"
-            >
-              @old.ts
-            </span>
-            with
-            <span
-              class="mention resource inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground cursor-default"
-              data-resource-uri="file:///new.ts"
-              title="file:///new.ts"
-            >
-              @new.ts
-            </span>
-            for the differences.
-          </p>
+        <div
+          data-slot="message-content"
+          data-hascontent
+          data-markdown
+          class="relative block rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&amp;_p]:py-1 [&amp;_li]:list-item :not([data-markdown]):wrap-break-word"
+        >
+          <div class="space-y-4 whitespace-normal *:first:mt-0 *:last:mb-0">
+            <p class="my-0">
+              Compare
+              <span
+                class="mention resource inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground cursor-default"
+                data-resource-uri="file:///old.ts"
+                title="file:///old.ts"
+              >
+                @old.ts
+              </span>
+              with
+              <span
+                class="mention resource inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground cursor-default"
+                data-resource-uri="file:///new.ts"
+                title="file:///new.ts"
+              >
+                @new.ts
+              </span>
+              for the differences.
+            </p>
+          </div>
         </div>
       `);
     });
@@ -382,7 +445,14 @@ describe("MessageContent rendering", () => {
 
       const contentElement = getMessageContentTextSlot(container);
       expect(contentElement.innerHTML).toMatchInlineSnapshot(`
-        <div class="space-y-4 whitespace-normal">
+        <div
+          data-slot="message-content"
+          data-markdown
+          class="relative block rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&amp;_p]:py-1 [&amp;_li]:list-item :not([data-markdown]):wrap-break-word"
+        >
+          <span class="text-muted-foreground italic">
+            Empty message
+          </span>
         </div>
       `);
     });
@@ -400,7 +470,14 @@ describe("MessageContent rendering", () => {
 
       const contentElement = getMessageContentTextSlot(container);
       expect(contentElement.innerHTML).toMatchInlineSnapshot(`
-        <div class="space-y-4 whitespace-normal">
+        <div
+          data-slot="message-content"
+          data-markdown
+          class="relative block rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&amp;_p]:py-1 [&amp;_li]:list-item :not([data-markdown]):wrap-break-word"
+        >
+          <span class="text-muted-foreground italic">
+            Empty message
+          </span>
         </div>
       `);
     });
@@ -428,10 +505,17 @@ describe("MessageContent rendering", () => {
       const contentElement = getMessageContentTextSlot(container);
       // Resource without URI should be skipped, text parts joined with space
       expect(contentElement.innerHTML).toMatchInlineSnapshot(`
-        <div class="space-y-4 whitespace-normal">
-          <p class="my-0">
-            Before After
-          </p>
+        <div
+          data-slot="message-content"
+          data-hascontent
+          data-markdown
+          class="relative block rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&amp;_p]:py-1 [&amp;_li]:list-item :not([data-markdown]):wrap-break-word"
+        >
+          <div class="space-y-4 whitespace-normal *:first:mt-0 *:last:mb-0">
+            <p class="my-0">
+              Before After
+            </p>
+          </div>
         </div>
       `);
     });
@@ -451,10 +535,17 @@ describe("MessageContent rendering", () => {
 
       const contentElement = getMessageContentTextSlot(container);
       expect(contentElement.innerHTML).toMatchInlineSnapshot(`
-        <div class="space-y-4 whitespace-normal">
-          <p class="my-0">
-            Plain string content
-          </p>
+        <div
+          data-slot="message-content"
+          data-hascontent
+          data-markdown
+          class="relative block rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&amp;_p]:py-1 [&amp;_li]:list-item :not([data-markdown]):wrap-break-word"
+        >
+          <div class="space-y-4 whitespace-normal *:first:mt-0 *:last:mb-0">
+            <p class="my-0">
+              Plain string content
+            </p>
+          </div>
         </div>
       `);
     });
@@ -477,40 +568,47 @@ describe("MessageContent rendering", () => {
       const contentElement = getMessageContentTextSlot(container);
       // Regular links should render as <a> tags with external link icon
       expect(contentElement.innerHTML).toMatchInlineSnapshot(`
-        <div class="space-y-4 whitespace-normal">
-          <p class="my-0">
-            Check out
-            <a
-              href="https://google.com/"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="inline-flex items-center gap-1.5 text-foreground underline underline-offset-4 decoration-muted-foreground hover:text-foreground hover:decoration-foreground transition-colors"
-            >
-              <span>
-                Google
-              </span>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewbox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                class="lucide lucide-external-link w-3 h-3"
-                aria-hidden="true"
+        <div
+          data-slot="message-content"
+          data-hascontent
+          data-markdown
+          class="relative block rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&amp;_p]:py-1 [&amp;_li]:list-item :not([data-markdown]):wrap-break-word"
+        >
+          <div class="space-y-4 whitespace-normal *:first:mt-0 *:last:mb-0">
+            <p class="my-0">
+              Check out
+              <a
+                href="https://google.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="inline-flex items-center gap-1.5 text-foreground underline underline-offset-4 decoration-muted-foreground hover:text-foreground hover:decoration-foreground transition-colors"
               >
-                <path d="M15 3h6v6">
-                </path>
-                <path d="M10 14 21 3">
-                </path>
-                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6">
-                </path>
-              </svg>
-            </a>
-          </p>
+                <span>
+                  Google
+                </span>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewbox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  class="lucide lucide-external-link w-3 h-3"
+                  aria-hidden="true"
+                >
+                  <path d="M15 3h6v6">
+                  </path>
+                  <path d="M10 14 21 3">
+                  </path>
+                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6">
+                  </path>
+                </svg>
+              </a>
+            </p>
+          </div>
         </div>
       `);
     });

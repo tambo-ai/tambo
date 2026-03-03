@@ -9,6 +9,7 @@ export interface ToolcallInfoToolNameRenderProps extends Record<
   string,
   unknown
 > {
+  slot: string;
   toolName?: string;
 }
 
@@ -23,20 +24,17 @@ export type ToolcallInfoToolNameProps = useRender.ComponentProps<
 export const ToolcallInfoToolName = React.forwardRef<
   HTMLSpanElement,
   ToolcallInfoToolNameProps
->(({ ...props }, ref) => {
+>(({ children, ...props }, ref) => {
   const { toolCallRequest } = useToolcallInfoContext();
-  const renderProps: ToolcallInfoToolNameRenderProps = {
-    toolName: toolCallRequest?.name,
-  };
   const { render, ...componentProps } = props;
 
   return useRender({
     defaultTagName: "span",
     ref,
     render,
-    state: renderProps,
+    state: { slot: "toolcall-info-tool-name", toolName: toolCallRequest?.name },
     props: mergeProps(componentProps, {
-      "data-slot": "toolcall-info-tool-name",
+      children: children ?? toolCallRequest?.name,
     }),
   });
 });

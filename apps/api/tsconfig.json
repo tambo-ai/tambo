@@ -11,6 +11,7 @@
     "noImplicitAny": false,
     "moduleResolution": "node",
     "module": "commonjs",
+    "customConditions": null,
     "resolveJsonModule": true,
     "sourceMap": true,
     "paths": {

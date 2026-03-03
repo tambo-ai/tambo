@@ -1,6 +1,6 @@
 {
   "name": "tambo",
-  "version": "0.53.1",
+  "version": "0.54.0",
   "description": "Tambo CLI for scaffolding and managing AI applications",
   "license": "MIT",
   "repository": {
@@ -56,7 +56,7 @@
   },
   "dependencies": {
     "@tambo-ai/react": "*",
-    "@tambo-ai/typescript-sdk": "^0.93.0",
+    "@tambo-ai/typescript-sdk": "^0.93.1",
     "@trpc/client": "^11.10.0",
     "@trpc/server": "^11.7.2",
     "chalk": "^5.6.0",
@@ -68,17 +68,18 @@
     "diff": "^8.0.3",
     "dotenv": "^17.2.3",
     "env-paths": "^4.0.0",
-    "fast-equals": "^5.3.3",
+    "fast-equals": "^6.0.0",
     "inquirer": "^13.2.4",
     "meow": "^14.0.0",
     "open": "^11.0.0",
     "ora": "^9.0.0",
     "postcss": "^8.5.3",
+    "posthog-node": "^5.24.9",
     "react-markdown": "^10.1.0",
     "rehype-harden": "^1.1.7",
     "sanitize-html": "^2.17.0",
     "semver": "^7.7.3",
-    "streamdown": "^1.6.10",
+    "streamdown": "^2.3.0",
     "superjson": "^2.2.6",
     "ts-morph": "^27.0.2"
   },

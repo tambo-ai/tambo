@@ -1,5 +1,5 @@
 import type { ReadResourceResult } from "@modelcontextprotocol/sdk/types.js";
-import { REGISTRY_SERVER_KEY, ServerType } from "../mcp/mcp-constants";
+import { REGISTRY_SERVER_KEY, ServerType } from "@tambo-ai/client";
 import type { ConnectedMcpServer, McpServer } from "../mcp/tambo-mcp-provider";
 import type { ResourceSource } from "../model/resource-info";
 

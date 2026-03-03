@@ -1,0 +1,1 @@
+ALTER TABLE "projects" ALTER COLUMN "max_tool_call_limit" SET DEFAULT 100;

@@ -7,8 +7,8 @@ import {
   executeStreamableToolCall,
   createThrottledStreamableExecutor,
   type PendingToolCall,
-} from "./tool-executor";
-import { ToolCallTracker } from "./tool-call-tracker";
+  ToolCallTracker,
+} from "@tambo-ai/client";
 
 describe("tool-executor", () => {
   describe("executeClientTool", () => {

@@ -1,6 +1,6 @@
 {
   "name": "@tambo-ai/react-ui-base",
-  "version": "0.1.0-alpha.7",
+  "version": "0.1.0-alpha.8",
   "description": "Headless base components for Tambo AI",
   "author": {
     "name": "Tambo",
@@ -19,7 +19,7 @@
   "types": "./dist/esm/index.d.ts",
   "exports": {
     ".": {
-      "development": "./src/index.ts",
+      "@tambo-ai/source": "./src/index.ts",
       "import": {
         "types": "./dist/esm/index.d.ts",
         "default": "./dist/esm/index.js"
@@ -30,7 +30,7 @@
       }
     },
     "./message": {
-      "development": "./src/message/index.tsx",
+      "@tambo-ai/source": "./src/message/index.tsx",
       "import": {
         "types": "./dist/esm/message/index.d.ts",
         "default": "./dist/esm/message/index.js"
@@ -40,8 +40,19 @@
         "default": "./dist/cjs/message/index.cjs"
       }
     },
+    "./elicitation": {
+      "@tambo-ai/source": "./src/elicitation/index.tsx",
+      "import": {
+        "types": "./dist/esm/elicitation/index.d.ts",
+        "default": "./dist/esm/elicitation/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/elicitation/index.d.ts",
+        "default": "./dist/cjs/elicitation/index.cjs"
+      }
+    },
     "./message-input": {
-      "development": "./src/message-input/index.tsx",
+      "@tambo-ai/source": "./src/message-input/index.tsx",
       "import": {
         "types": "./dist/esm/message-input/index.d.ts",
         "default": "./dist/esm/message-input/index.js"
@@ -52,7 +63,7 @@
       }
     },
     "./reasoning-info": {
-      "development": "./src/reasoning-info/index.tsx",
+      "@tambo-ai/source": "./src/reasoning-info/index.tsx",
       "import": {
         "types": "./dist/esm/reasoning-info/index.d.ts",
         "default": "./dist/esm/reasoning-info/index.js"
@@ -62,8 +73,41 @@
         "default": "./dist/cjs/reasoning-info/index.cjs"
       }
     },
+    "./thread-dropdown": {
+      "@tambo-ai/source": "./src/thread-dropdown/index.tsx",
+      "import": {
+        "types": "./dist/esm/thread-dropdown/index.d.ts",
+        "default": "./dist/esm/thread-dropdown/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/thread-dropdown/index.d.ts",
+        "default": "./dist/cjs/thread-dropdown/index.cjs"
+      }
+    },
+    "./thread-content": {
+      "@tambo-ai/source": "./src/thread-content/index.tsx",
+      "import": {
+        "types": "./dist/esm/thread-content/index.d.ts",
+        "default": "./dist/esm/thread-content/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/thread-content/index.d.ts",
+        "default": "./dist/cjs/thread-content/index.cjs"
+      }
+    },
+    "./thread-history": {
+      "@tambo-ai/source": "./src/thread-history/index.tsx",
+      "import": {
+        "types": "./dist/esm/thread-history/index.d.ts",
+        "default": "./dist/esm/thread-history/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/thread-history/index.d.ts",
+        "default": "./dist/cjs/thread-history/index.cjs"
+      }
+    },
     "./toolcall-info": {
-      "development": "./src/toolcall-info/index.tsx",
+      "@tambo-ai/source": "./src/toolcall-info/index.tsx",
       "import": {
         "types": "./dist/esm/toolcall-info/index.d.ts",
         "default": "./dist/esm/toolcall-info/index.js"
@@ -73,8 +117,30 @@
         "default": "./dist/cjs/toolcall-info/index.cjs"
       }
     },
+    "./mcp-prompts": {
+      "@tambo-ai/source": "./src/mcp-prompts/index.tsx",
+      "import": {
+        "types": "./dist/esm/mcp-prompts/index.d.ts",
+        "default": "./dist/esm/mcp-prompts/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/mcp-prompts/index.d.ts",
+        "default": "./dist/cjs/mcp-prompts/index.cjs"
+      }
+    },
+    "./mcp-resources": {
+      "@tambo-ai/source": "./src/mcp-resources/index.tsx",
+      "import": {
+        "types": "./dist/esm/mcp-resources/index.d.ts",
+        "default": "./dist/esm/mcp-resources/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/mcp-resources/index.d.ts",
+        "default": "./dist/cjs/mcp-resources/index.cjs"
+      }
+    },
     "./types": {
-      "development": "./src/types/component-render-or-children.ts",
+      "@tambo-ai/source": "./src/types/component-render-or-children.ts",
       "import": {
         "types": "./dist/esm/types/index.d.ts",
         "default": "./dist/esm/types/index.js"
@@ -110,7 +176,7 @@
     "@tambo-ai/eslint-config": "*",
     "@tambo-ai/react": "*",
     "@tambo-ai/typescript-config": "*",
-    "@tambo-ai/typescript-sdk": "^0.93.0",
+    "@tambo-ai/typescript-sdk": "^0.93.1",
     "@tambo-ai/vite-config": "*",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.3.2",

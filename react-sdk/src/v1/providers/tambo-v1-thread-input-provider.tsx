@@ -26,8 +26,8 @@ import {
 } from "../../hooks/react-query-hooks";
 import { useTamboSendMessage } from "../hooks/use-tambo-v1-send-message";
 import type { InputMessage } from "../types/message";
-import type { ToolChoice } from "../types/tool-choice";
-import { isPlaceholderThreadId } from "../utils/event-accumulator";
+import type { ToolChoice } from "@tambo-ai/client";
+import { isPlaceholderThreadId } from "@tambo-ai/client";
 import { useTamboAuthState } from "../hooks/use-tambo-v1-auth-state";
 import { useStreamDispatch, useStreamState } from "./tambo-v1-stream-context";
 
@@ -186,6 +186,8 @@ export function TamboThreadInputProvider({ children }: PropsWithChildren) {
       }
 
       const trimmedValue = inputValue.trim();
+      const valueAtSubmitTime = inputValue;
+      const imageIdsAtSubmitTime = imageState.images.map((image) => image.id);
 
       // Check if we have content to send
       if (!trimmedValue && imageState.images.length === 0) {
@@ -202,26 +204,42 @@ export function TamboThreadInputProvider({ children }: PropsWithChildren) {
         content.push(stagedImageToResourceContent(image));
       }
 
-      const result = await sendMessage.mutateAsync({
-        message: {
-          role: "user",
-          content,
-        },
-        userMessageText: trimmedValue, // Pass text for optimistic display
-        debug: options?.debug,
-        toolChoice: options?.toolChoice,
-      });
-
-      // Clear input and images after successful submission
+      // Optimistically clear submitted text so users can start typing the next
+      // message immediately while the current request is pending.
       setInputValue("");
-      imageState.clearImages();
 
-      // Update stream context's currentThreadId if a new thread was created
-      if (result.threadId && isNewThread) {
-        dispatch({ type: "SET_CURRENT_THREAD", threadId: result.threadId });
+      try {
+        const result = await sendMessage.mutateAsync({
+          message: {
+            role: "user",
+            content,
+          },
+          userMessageText: trimmedValue, // Pass text for optimistic display
+          debug: options?.debug,
+          toolChoice: options?.toolChoice,
+        });
+
+        // Clear only submitted images so images added while pending are kept.
+        if (imageIdsAtSubmitTime.length > 0) {
+          imageIdsAtSubmitTime.forEach((id) => {
+            imageState.removeImage(id);
+          });
+        }
+
+        // Update stream context's currentThreadId if a new thread was created
+        if (result.threadId && isNewThread) {
+          dispatch({ type: "SET_CURRENT_THREAD", threadId: result.threadId });
+        }
+
+        return result;
+      } catch (error) {
+        // If the user has not started typing a new message, restore the
+        // submitted value so failed sends don't silently lose input.
+        setInputValue((currentValue) =>
+          currentValue.length > 0 ? currentValue : valueAtSubmitTime,
+        );
+        throw error;
       }
-
-      return result;
     },
     // `stagedImageToResourceContent` is a pure module-level helper (not a hook value).
     [inputValue, imageState, sendMessage, isNewThread, dispatch, isIdentified],

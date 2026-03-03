@@ -1,0 +1,238 @@
+---
+title: Elicitation
+description: Build composable elicitation request UIs from MCP form schemas with unstyled base primitives.
+---
+
+import { ElicitationDemoPreview } from "./_demos/elicitation-demo";
+
+# Elicitation
+
+`Elicitation` in `@tambo-ai/react-ui-base` owns schema parsing, validation, and accept/decline/cancel behavior while exposing composable UI primitives.
+
+## Demo
+
+<ElicitationDemoPreview />
+
+## Anatomy
+
+```tsx
+<Elicitation.Root request={request} onResponse={onResponse}>
+  <Elicitation.Message />
+  <Elicitation.Fields />
+  <Elicitation.Actions />
+</Elicitation.Root>
+```
+
+## Examples
+
+### Single-Entry Auto Submit
+
+Single-field boolean or enum requests auto-submit when the option is selected.
+
+### Custom Actions
+
+```tsx
+<Elicitation.Actions>
+  <Elicitation.ActionDecline className="rounded px-3 py-2">
+    Skip
+  </Elicitation.ActionDecline>
+  <Elicitation.ActionCancel className="rounded px-3 py-2">
+    Cancel
+  </Elicitation.ActionCancel>
+  <Elicitation.ActionSubmit className="rounded px-3 py-2" />
+</Elicitation.Actions>
+```
+
+### Compose Fields With Base Primitives
+
+```tsx
+<Elicitation.Fields
+  render={({ fields }) => (
+    <>
+      {fields.map((field) => (
+        <Elicitation.Field key={field.name} field={field}>
+          <Elicitation.FieldLabel className="text-sm font-medium" />
+          <Elicitation.FieldInput className="mt-2">
+            <Elicitation.FieldBooleanInput />
+            <Elicitation.FieldEnumInput />
+            <Elicitation.FieldStringInput className="rounded border px-3 py-2" />
+            <Elicitation.FieldNumberInput className="rounded border px-3 py-2" />
+          </Elicitation.FieldInput>
+          <Elicitation.FieldError className="mt-1 text-xs text-red-600" />
+        </Elicitation.Field>
+      ))}
+    </>
+  )}
+/>
+```
+
+`Elicitation.FieldBooleanInput`, `Elicitation.FieldEnumInput`, `Elicitation.FieldStringInput`, and `Elicitation.FieldNumberInput` are schema-aware. Each one only renders when it matches the current field kind and returns `null` otherwise, so you can compose all of them inside `Elicitation.FieldInput` and only the correct control will appear. If you provide `children` to `Elicitation.FieldInput`, you replace its default stack and fully control input rendering/order.
+
+### Build A Fully Custom Input
+
+Use `useElicitationField` inside `Elicitation.Field` to own rendering while keeping base state/validation/actions.
+
+```tsx
+import {
+  Elicitation,
+  useElicitationField,
+} from "@tambo-ai/react-ui-base/elicitation";
+
+function CustomInput() {
+  const { field, inputId, errorId, invalid, label } = useElicitationField();
+
+  if (field.schema.type !== "string") {
+    return null;
+  }
+
+  const value = typeof field.value === "string" ? field.value : "";
+
+  return (
+    <textarea
+      id={inputId}
+      aria-label={label}
+      aria-invalid={invalid || undefined}
+      aria-describedby={invalid ? errorId : undefined}
+      value={value}
+      onChange={(event) => field.setValue(event.currentTarget.value)}
+    />
+  );
+}
+
+<Elicitation.Fields
+  render={({ fields }) => (
+    <>
+      {fields.map((field) => (
+        <Elicitation.Field key={field.name} field={field}>
+          <Elicitation.FieldLabel />
+          <CustomInput />
+          <Elicitation.FieldError />
+        </Elicitation.Field>
+      ))}
+    </>
+  )}
+/>;
+```
+
+## API reference
+
+### Root
+
+| Prop         | Type                                           | Default  | Description                                      |
+| ------------ | ---------------------------------------------- | -------- | ------------------------------------------------ |
+| `request`    | `TamboElicitationRequest`                      | Required | Incoming elicitation request schema and message. |
+| `onResponse` | `(response: TamboElicitationResponse) => void` | Required | Callback for accept/decline/cancel responses.    |
+
+### Message
+
+Renders the request message from `Root`.
+
+### Fields
+
+Resolves `fields` from `request.requestedSchema` and renders default fields when no `children` or `render` is provided.
+
+### Field
+
+Field-scoped container that provides field context for nested parts.
+
+Default children:
+
+- `Elicitation.FieldLabel`
+- `Elicitation.FieldInput`
+- `Elicitation.FieldError`
+
+### FieldLabel
+
+Renders the field label and required marker by default.
+
+### FieldInput
+
+Input container with default typed input stack.
+
+Default children:
+
+- `Elicitation.FieldBooleanInput`
+- `Elicitation.FieldEnumInput`
+- `Elicitation.FieldStringInput`
+- `Elicitation.FieldNumberInput`
+
+If you pass `children`, they replace this default stack.
+
+### FieldBooleanInput
+
+Boolean yes/no buttons, enabled only for boolean schema fields.
+
+### FieldEnumInput
+
+Option button list, enabled only for enum string schema fields.
+
+### FieldStringInput
+
+Text-like input (including format-based types like email/url/date), enabled for non-enum string fields.
+
+### FieldNumberInput
+
+Number input, enabled for `number` and `integer` schema fields.
+
+### FieldError
+
+Renders validation message for the current field.
+
+| Prop          | Type      | Default | Description                                                           |
+| ------------- | --------- | ------- | --------------------------------------------------------------------- |
+| `keepMounted` | `boolean` | `false` | Keep mounted while valid and toggle visibility instead of unmounting. |
+
+### Actions
+
+Container for action controls. By default it renders:
+
+- `Elicitation.ActionCancel`
+- `Elicitation.ActionDecline`
+- `Elicitation.ActionSubmit` (hidden for single-entry mode)
+
+If you pass `children`, they fully replace the default action buttons.
+
+### ActionSubmit
+
+| Prop          | Type      | Default | Description                                                                               |
+| ------------- | --------- | ------- | ----------------------------------------------------------------------------------------- |
+| `keepMounted` | `boolean` | `false` | Keep mounted while hidden in single-entry mode and expose hidden state via `data-hidden`. |
+
+### useElicitationField
+
+Hook for custom field UIs inside `Elicitation.Field`.
+
+Returns:
+
+- `field`: full field model (`name`, `schema`, `value`, `setValue`, validation metadata)
+- `kind`: one of `"boolean" | "enum" | "string" | "number" | "unsupported"`
+- `label`, `inputId`, `errorId`
+- `required`, `invalid`
+
+## Accessibility
+
+- Keep `label` to input associations (`htmlFor`/`id`) when replacing `FieldLabel`.
+- Preserve validation associations (`aria-invalid` and `aria-describedby`) for custom inputs.
+- Keep action controls keyboard-accessible (`button` semantics).
+
+## Styling Hooks
+
+- `data-slot="elicitation-root"`
+- `data-slot="elicitation-field"`
+- `data-slot="elicitation-field-label"`
+- `data-slot="elicitation-field-control"`
+- `data-slot="elicitation-field-input"`
+- `data-slot="elicitation-field-error"`
+- `data-slot="elicitation-field-boolean-options"`
+- `data-slot="elicitation-field-boolean-true"`
+- `data-slot="elicitation-field-boolean-false"`
+- `data-slot="elicitation-field-enum-options"`
+- `data-slot="elicitation-field-enum-option"`
+- `data-slot="elicitation-action-cancel"`
+- `data-slot="elicitation-action-decline"`
+- `data-slot="elicitation-action-submit"`
+- `data-mode="single" | "multiple"` on root
+- `data-kind` on field and field-control
+- `data-state="selected" | "unselected"` on boolean/enum buttons
+- `data-required` and `data-invalid` on field
+- `data-hidden` and `data-disabled` on submit action

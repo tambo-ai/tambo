@@ -24,7 +24,7 @@ import {
   streamReducer,
   type StreamState,
   type ThreadState,
-} from "./event-accumulator";
+} from "@tambo-ai/client";
 import type { JSONSchema7 } from "json-schema";
 import type { Content, TamboComponentContent } from "../types/message";
 
@@ -83,8 +83,7 @@ describe("createInitialThreadState", () => {
     expect(state.thread.messages).toEqual([]);
     expect(state.thread.status).toBe("idle");
     expect(state.streaming.status).toBe("idle");
-    expect(state.accumulatingToolArgs).toBeInstanceOf(Map);
-    expect(state.accumulatingToolArgs.size).toBe(0);
+    expect(state.accumulatingToolArgs).toEqual({});
   });
 });
 

@@ -27,3 +27,17 @@ export const useTamboMcpResource: Mock = jest.fn().mockReturnValue({
   data: undefined,
   error: undefined,
 });
+
+export const useTamboMcpElicitation: Mock = jest.fn().mockReturnValue({
+  elicitation: null,
+  resolveElicitation: jest.fn(),
+});
+
+export const useTamboElicitationContext = useTamboMcpElicitation;
+
+export const useTamboMcpServers: Mock = jest.fn().mockReturnValue([]);
+
+export const isMcpResourceEntry: Mock = jest.fn().mockReturnValue(false);
+
+export const TamboMcpProvider = jest.fn();
+export const MCPTransport = jest.fn();

@@ -70,16 +70,16 @@ This schema tells Tambo:
 - What types and values are valid
 - Which props are optional
 
-## Step 3: Wrap with `withInteractable`
+## Step 3: Wrap with `withTamboInteractable`
 
-Use `withInteractable` to create an Interactable version of your component:
+Use `withTamboInteractable` to create an Interactable version of your component:
 
 ```tsx
-import { withInteractable } from "@tambo-ai/react";
+import { withTamboInteractable } from "@tambo-ai/react";
 import { Note } from "./note";
 import { NotePropsSchema } from "./note-schema";
 
-export const InteractableNote = withInteractable(Note, {
+export const InteractableNote = withTamboInteractable(Note, {
   componentName: "Note",
   description: "A simple note that can change title, and content",
   propsSchema: NotePropsSchema,
@@ -132,7 +132,7 @@ Here's a complete working example:
 ```tsx
 import {
   useTamboComponentState,
-  withInteractable,
+  withTamboInteractable,
   TamboProvider,
 } from "@tambo-ai/react";
 import { z } from "zod";
@@ -162,13 +162,13 @@ function Note({ title, content }: NoteProps) {
   );
 }
 
-// Step 2 & 3: Schema and wrap with withInteractable
+// Step 2 & 3: Schema and wrap with withTamboInteractable
 const NotePropsSchema = z.object({
   title: z.string(),
   content: z.string(),
 });
 
-export const InteractableNote = withInteractable(Note, {
+export const InteractableNote = withTamboInteractable(Note, {
   componentName: "Note",
   description: "A simple note that can change title, and content",
   propsSchema: NotePropsSchema,

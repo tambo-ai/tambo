@@ -20,7 +20,7 @@ import React, {
 import { useTamboQuery } from "../../hooks/react-query-hooks";
 import { useTamboClient } from "../../providers/tambo-client-provider";
 import type { InitialInputMessage, TamboThreadMessage } from "../types/message";
-import type { TamboThread } from "../types/thread";
+import type { TamboThread } from "@tambo-ai/client";
 import {
   createInitialState,
   createInitialStateWithMessages,
@@ -30,7 +30,7 @@ import {
   streamReducer,
   type StreamAction,
   type StreamState,
-} from "../utils/event-accumulator";
+} from "@tambo-ai/client";
 import { useTamboConfig } from "./tambo-v1-provider";
 
 /**

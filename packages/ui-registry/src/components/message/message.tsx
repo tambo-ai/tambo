@@ -4,7 +4,6 @@ import { TamboThreadMessage, TamboToolUseContent } from "@tambo-ai/react";
 import {
   Message as MessageBase,
   type MessageContentProps as MessageBaseContentProps,
-  type MessageContentRenderProps as MessageBaseContentRenderProps,
   type MessageImagesProps as MessageBaseImagesProps,
   type MessageRenderedComponentProps as MessageBaseRenderedComponentProps,
   type MessageLoadingIndicatorProps,
@@ -22,12 +21,48 @@ import { cn } from "@tambo-ai/ui-registry/utils";
 import { cva, type VariantProps } from "class-variance-authority";
 import { Check, ChevronDown, ExternalLink, Loader2, X } from "lucide-react";
 import * as React from "react";
+import { harden } from "rehype-harden";
+import rehypeRaw from "rehype-raw";
+import rehypeSanitize, { defaultSchema } from "rehype-sanitize";
 import { Streamdown } from "streamdown";
+import type { PluggableList } from "unified";
 import { getSafeContent } from "../../lib/thread-hooks";
 import {
   createMarkdownComponents,
   markdownComponents,
 } from "./markdown-components";
+
+const streamdownSanitizeSchema = {
+  ...defaultSchema,
+  protocols: {
+    ...defaultSchema.protocols,
+    href: [...(defaultSchema.protocols?.href ?? []), "tambo-resource"],
+  },
+};
+
+const streamdownAllowedProtocols = streamdownSanitizeSchema.protocols.href.map(
+  (protocol) => {
+    const normalized = protocol.endsWith(":")
+      ? protocol.slice(0, -1)
+      : protocol;
+    return `${normalized}:`;
+  },
+);
+
+const streamdownRehypePlugins: PluggableList = [
+  rehypeRaw,
+  [rehypeSanitize, streamdownSanitizeSchema],
+  [
+    harden,
+    {
+      allowedImagePrefixes: ["*"],
+      allowedLinkPrefixes: ["*"],
+      allowedProtocols: streamdownAllowedProtocols,
+      defaultOrigin: undefined,
+      allowDataImages: true,
+    },
+  ],
+];
 
 /**
  * CSS variants for the message container
@@ -128,26 +163,26 @@ const LoadingIndicator: React.FC<MessageLoadingIndicatorProps> = ({
 LoadingIndicator.displayName = "LoadingIndicator";
 
 /**
- * Internal component to render message content based on its type
+ * Internal component to render message content based on its type.
  */
 function MessageContentRenderer({
-  contentToRender,
   markdownContent,
   markdown,
 }: {
-  contentToRender: unknown;
-  markdownContent: string;
+  markdownContent?: string;
   markdown: boolean;
 }) {
-  if (!contentToRender) {
+  if (!markdownContent) {
     return <span className="text-muted-foreground italic">Empty message</span>;
-  }
-  if (React.isValidElement(contentToRender)) {
-    return contentToRender;
   }
   if (markdown) {
     return (
-      <Streamdown components={markdownComponents}>{markdownContent}</Streamdown>
+      <Streamdown
+        components={markdownComponents}
+        rehypePlugins={streamdownRehypePlugins}
+      >
+        {markdownContent}
+      </Streamdown>
     );
   }
   return markdownContent;
@@ -197,7 +232,25 @@ MessageImages.displayName = "MessageImages";
 /**
  * Props for the MessageContent component.
  */
-export type MessageContentProps = Omit<MessageBaseContentProps, "children">;
+export type MessageContentProps = Omit<
+  MessageBaseContentProps,
+  "children" | "content"
+> &
+  // TODO(lachieh): Remove these props after July 2026
+  {
+    /**
+     * Optional flag to render content as Markdown. Default is true.
+     * @deprecated use `renderAsMarkdown` instead
+     */
+    markdown?: boolean;
+    /**
+     * Optional content override. Can be a string or an array of content blocks.
+     * If not provided, uses the content from the message context.
+     * This allows for dynamic content updates or custom content rendering.
+     * @deprecated use `messageContent` prop instead
+     */
+    content?: string | TamboThreadMessage["content"];
+  };
 
 /**
  * Displays the message content with optional markdown formatting.
@@ -205,60 +258,44 @@ export type MessageContentProps = Omit<MessageBaseContentProps, "children">;
  * @component MessageContent
  */
 const MessageContent = React.forwardRef<HTMLDivElement, MessageContentProps>(
-  ({ className, content, markdown = true, ...props }, ref) => {
+  (
+    {
+      className,
+      content,
+      messageContent,
+      markdown = true,
+      renderAsMarkdown,
+      ...props
+    },
+    ref,
+  ) => {
+    const contentEffective = messageContent ?? content;
+    const renderAsMarkdownEffective = renderAsMarkdown ?? markdown;
     return (
-      <MessageBase.Content
-        ref={ref}
-        className={cn(
-          "relative block rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&_p]:py-1 [&_li]:list-item",
-          className,
-        )}
-        content={content}
-        markdown={markdown}
-        render={(
-          props,
-          {
-            content: contentToRender,
-            markdownContent,
-            markdown,
-            isLoading,
-            isCancelled,
-            isReasoning,
-          }: MessageBaseContentRenderProps,
-        ) => {
-          if (isLoading && !isReasoning) {
+      <div data-slot="message-content-text">
+        <MessageBase.Content
+          ref={ref}
+          keepMounted
+          className={cn(
+            "relative block rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&_p]:py-1 [&_li]:list-item",
+            ":not([data-markdown]):wrap-break-word",
+            className,
+          )}
+          messageContent={contentEffective}
+          renderAsMarkdown={renderAsMarkdownEffective}
+          render={(props, state) => {
             return (
-              <div
-                {...props}
-                className="flex items-center justify-start h-4 py-1"
-                data-slot="message-loading-indicator"
-              >
-                <LoadingIndicator />
+              <div {...props}>
+                <MessageContentRenderer
+                  markdownContent={state.contentAsMarkdownString}
+                  markdown={renderAsMarkdownEffective}
+                />
               </div>
             );
-          }
-
-          return (
-            <div
-              className={cn(
-                "wrap-break-word",
-                !markdown && "whitespace-pre-wrap",
-              )}
-              data-slot="message-content-text"
-            >
-              <MessageContentRenderer
-                contentToRender={contentToRender}
-                markdownContent={markdownContent}
-                markdown={markdown}
-              />
-              {isCancelled && (
-                <span className="text-muted-foreground text-xs">cancelled</span>
-              )}
-            </div>
-          );
-        }}
-        {...props}
-      />
+          }}
+          {...props}
+        />
+      </div>
     );
   },
 );
@@ -328,39 +365,38 @@ function ToolcallInfoContent({ markdown }: { markdown: boolean }) {
     <ToolcallInfoBase.Content
       forceMount
       className={cn(
-        "flex flex-col gap-1 p-3 pl-7 overflow-auto transition-[max-height,opacity,padding] duration-300 w-full truncate",
+        "flex flex-col gap-1 p-3 pl-7 overflow-auto transition-[max-height,opacity,padding] duration-300 truncate",
         "data-[state=open]:max-h-auto data-[state=open]:opacity-100",
         "data-[state=closed]:max-h-0 data-[state=closed]:opacity-0 data-[state=closed]:p-0",
       )}
-      render={(_props, { message }) => (
-        <>
-          <ToolcallInfoBase.ToolName
-            className="whitespace-pre-wrap pl-2"
-            render={(_props, { toolName }) => <>{`tool: ${toolName}`}</>}
-          />
-          <ToolcallInfoBase.Parameters
-            className="whitespace-pre-wrap pl-2"
-            render={(_props, { parametersString }) => (
-              <>{`parameters:\n${parametersString}`}</>
-            )}
-          />
+      render={(props, { message }) => (
+        <div {...props}>
+          <span>
+            tool:{" "}
+            <ToolcallInfoBase.ToolName className="font-mono bg-muted/50 p-0.5 -m-0.5 ml-0.5 rounded-sm" />
+          </span>
+          <span>
+            parameters:{" "}
+            <ToolcallInfoBase.Parameters className="font-mono bg-muted/50 p-0.5 -m-0.5 ml-0.5 rounded-sm" />
+          </span>
           <SamplingSubThread parentMessageId={message.id} />
-          <ToolcallInfoBase.Result
-            className="pl-2"
-            render={(_props, { content, hasResult }) => (
-              <>
-                <span className="whitespace-pre-wrap">result:</span>
-                <div>
-                  <ToolResultDisplay
-                    content={content}
-                    hasResult={hasResult}
-                    enableMarkdown={markdown}
-                  />
-                </div>
-              </>
-            )}
-          />
-        </>
+          <span>
+            result:{" "}
+            <ToolcallInfoBase.Result
+              render={(props, { content, hasResult }) => {
+                return (
+                  <div {...props}>
+                    <ToolResultDisplay
+                      content={content}
+                      hasResult={hasResult}
+                      enableMarkdown={markdown}
+                    />
+                  </div>
+                );
+              }}
+            />
+          </span>
+        </div>
       )}
     />
   );
@@ -418,6 +454,7 @@ const ToolcallInfo = React.forwardRef<HTMLDivElement, ToolcallInfoProps>(
   },
 );
 ToolcallInfo.displayName = "ToolcallInfo";
+
 /**
  * Displays a message's child messages in a collapsible dropdown.
  * Used for MCP sampling sub-threads.
@@ -547,7 +584,10 @@ const ReasoningInfo = React.forwardRef<HTMLDivElement, ReasoningInfoProps>(
                       {reasoningStep && (
                         <div className="bg-muted/50 rounded-md p-3 text-xs overflow-x-auto overflow-y-auto max-w-full">
                           <div className="whitespace-pre-wrap wrap-break-word">
-                            <Streamdown components={markdownComponents}>
+                            <Streamdown
+                              components={markdownComponents}
+                              rehypePlugins={streamdownRehypePlugins}
+                            >
                               {reasoningStep}
                             </Streamdown>
                           </div>
@@ -737,10 +777,19 @@ function ToolResultText({
   text: string;
   enableMarkdown: boolean;
 }) {
-  if (!text) return null;
+  const [parsedJson, setParsedJson] = React.useState<string | null>(null);
 
-  try {
-    const parsed = JSON.parse(text);
+  React.useEffect(() => {
+    if (!text) return;
+    try {
+      const parsed = JSON.parse(text);
+      setParsedJson(JSON.stringify(parsed, null, 2));
+    } catch {
+      setParsedJson(null);
+    }
+  }, [text]);
+
+  if (parsedJson) {
     return (
       <pre
         className={cn(
@@ -748,15 +797,22 @@ function ToolResultText({
         )}
       >
         <code className="font-mono wrap-break-word whitespace-pre-wrap">
-          {JSON.stringify(parsed, null, 2)}
+          {parsedJson}
         </code>
       </pre>
     );
-  } catch {
-    // JSON parsing failed, render as markdown or plain text
-    if (!enableMarkdown) return text;
-    return <Streamdown components={markdownComponents}>{text}</Streamdown>;
   }
+
+  // JSON parsing failed, render as markdown or plain text
+  if (!enableMarkdown) return text;
+  return (
+    <Streamdown
+      components={markdownComponents}
+      rehypePlugins={streamdownRehypePlugins}
+    >
+      {text}
+    </Streamdown>
+  );
 }
 
 /**

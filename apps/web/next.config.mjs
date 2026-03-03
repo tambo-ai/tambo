@@ -8,7 +8,10 @@ import rehypePrettyCode from "rehype-pretty-code";
 import remarkGfm from "remark-gfm";
 import remarkMdxFrontmatter from "remark-mdx-frontmatter";
 // Docker builds use a pruned workspace; repo-root imports (like `scripts/`) must be copied in `apps/web/Dockerfile`.
-import { getWorkspaceTranspilePackages } from "../../scripts/workspace-packages.mjs";
+import {
+  getWorkspaceTranspilePackages,
+  mergeConditions,
+} from "../../scripts/workspace-packages.mjs";
 import { remarkInjectBlogLayout } from "./lib/mdx/inject-blog-layout.mjs";
 
 const APP_DIR = fileURLToPath(new URL(".", import.meta.url));
@@ -180,10 +183,10 @@ const config = {
     });
 
     if (dev) {
-      const conditionNames = config.resolve.conditionNames ?? [];
-      config.resolve.conditionNames = conditionNames.includes("development")
-        ? conditionNames
-        : ["development", ...conditionNames];
+      config.resolve.conditionNames = mergeConditions(
+        config.resolve.conditionNames,
+        "@tambo-ai/source",
+      );
     }
 
     // don't resolve optional peers from '@standard-community/standard-json'

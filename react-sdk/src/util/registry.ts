@@ -29,7 +29,7 @@ export const getAvailableComponents = (
   const availableComponents: TamboAI.AvailableComponent[] = [];
 
   for (const [name, componentEntry] of Object.entries(componentRegistry)) {
-    const associatedToolNames = toolAssociations[name] || [];
+    const associatedToolNames = toolAssociations[name] ?? [];
 
     const contextTools = associatedToolNames
       .map((toolName) => {

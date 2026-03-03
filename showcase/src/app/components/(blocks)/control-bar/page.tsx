@@ -28,12 +28,12 @@ export default function ControlBarPage() {
           <ComponentCodePreview
             title="Basic Usage"
             component={
-              <div className="h-full w-full relative bg-muted/20 flex flex-col items-center justify-center p-8">
-                <div className="text-center space-y-4 mb-8">
+              <div className="h-full w-full overflow-hidden bg-muted/20 p-8 flex flex-col gap-8">
+                <div className="text-center space-y-4">
                   <h3 className="text-base font-500">Interactive Demo</h3>
-                  <p className="text-muted-foreground max-w-md">
-                    The control bar appears as a floating button in the
-                    bottom-right corner. Click the button or press{" "}
+                  <p className="text-muted-foreground max-w-md mx-auto">
+                    The control bar appears as a floating button. Click the
+                    button or press{" "}
                     <kbd className="px-2 py-1 bg-muted rounded text-xs">
                       Cmd+K
                     </kbd>{" "}
@@ -44,35 +44,31 @@ export default function ControlBarPage() {
                     (Windows/Linux) to open it.
                   </p>
                 </div>
-
-                <div className="flex-1 w-full bg-background/50 rounded-lg border-2 border-dashed border-muted-foreground/20 flex items-center justify-center">
-                  <p className="text-muted-foreground text-sm">
-                    Main content area - the control bar floats above this
-                    content
-                  </p>
+                <div className="flex-1 rounded-lg border-2 border-dashed border-muted-foreground/20 flex items-center justify-center">
+                  <ControlBar
+                    triggerClassName="relative bottom-auto right-auto"
+                    overlayClassName="bg-black/35 backdrop-blur-sm"
+                  />
                 </div>
-
-                <ControlBar />
               </div>
             }
             code={`import { ControlBar } from "@/components/tambo/control-bar";
 
 export function ChatInterface() {
   return (
-    <div className="relative">
-      {/* Your main content */}
-      <div className="min-h-screen">
-        <h1>Your App Content</h1>
+    <div className="relative min-h-screen p-8">
+      <div className="flex-1 rounded-lg border-2 border-dashed border-muted-foreground/20 flex items-center justify-center">
+        <ControlBar
+          triggerClassName="relative bottom-auto right-auto"
+          overlayClassName="bg-black/35 backdrop-blur-sm"
+        />
       </div>
-
-      {/* Control bar floats on top */}
-      <ControlBar />
     </div>
   );
 }`}
             previewClassName="p-0"
             fullBleed
-            minHeight={650}
+            minHeight={350}
             enableFullscreen
             fullscreenTitle="Control Bar"
           />
@@ -122,6 +118,18 @@ export function ChatInterface() {
                 <td>string</td>
                 <td>-</td>
                 <td>Additional CSS classes for customization</td>
+              </tr>
+              <tr>
+                <td>triggerClassName</td>
+                <td>string</td>
+                <td>-</td>
+                <td>Additional CSS classes for the trigger button</td>
+              </tr>
+              <tr>
+                <td>overlayClassName</td>
+                <td>string</td>
+                <td>-</td>
+                <td>Additional CSS classes for the modal overlay</td>
               </tr>
             </tbody>
           </table>

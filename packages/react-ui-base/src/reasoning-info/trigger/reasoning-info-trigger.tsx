@@ -7,6 +7,7 @@ export interface ReasoningInfoTriggerRenderProps extends Record<
   string,
   unknown
 > {
+  slot: string;
   isExpanded: boolean;
 }
 
@@ -31,6 +32,7 @@ export const ReasoningInfoTrigger = React.forwardRef<
   };
   const { render, ...componentProps } = props;
   const renderProps: ReasoningInfoTriggerRenderProps = {
+    slot: "reasoning-info-trigger",
     isExpanded,
   };
 
@@ -45,7 +47,6 @@ export const ReasoningInfoTrigger = React.forwardRef<
       "aria-controls": detailsId,
       onClick: handleClick,
       children,
-      "data-slot": "reasoning-info-trigger",
       "data-state": isExpanded ? "open" : "closed",
     }),
   });

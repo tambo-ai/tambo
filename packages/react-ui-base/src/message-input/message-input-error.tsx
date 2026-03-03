@@ -8,7 +8,8 @@ import { useMessageInputContext } from "./message-input-context";
 /**
  * Render props for the Error component.
  */
-export interface MessageInputErrorRenderProps extends Record<string, unknown> {
+export interface MessageInputErrorState extends Record<string, unknown> {
+  slot: string;
   /** Error message to display */
   errorMessage: string | null;
   /** The original error object if available */
@@ -24,7 +25,7 @@ export interface MessageInputErrorRenderProps extends Record<string, unknown> {
  */
 export type MessageInputErrorProps = useRender.ComponentProps<
   "p",
-  MessageInputErrorRenderProps
+  MessageInputErrorState
 >;
 
 /**
@@ -41,12 +42,10 @@ export const MessageInputError = React.forwardRef<
 
   // Don't render if no errors
   const { render, ...componentProps } = props;
+  const enabled = !!errorMessage || !!render || children != null;
 
-  if (!errorMessage && !render && children == null) {
-    return null;
-  }
-
-  const renderProps: MessageInputErrorRenderProps = {
+  const renderProps: MessageInputErrorState = {
+    slot: "message-input-error",
     errorMessage,
     error,
     submitError,
@@ -57,10 +56,10 @@ export const MessageInputError = React.forwardRef<
     defaultTagName: "p",
     ref,
     render,
+    enabled,
     state: renderProps,
     props: mergeProps(componentProps, {
       children: children ?? errorMessage,
-      "data-slot": "message-input-error",
       "data-state": errorMessage ? "error" : undefined,
     }),
   });

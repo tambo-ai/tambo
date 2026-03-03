@@ -12,6 +12,12 @@
       "prerelease": true,
       "prerelease-type": "alpha"
     },
+    "packages/client": {
+      "component": "client",
+      "include-component-in-tag": true,
+      "include-v-in-tag": true,
+      "force-tag-creation": true
+    },
     "react-sdk": {
       "component": "react",
       "include-component-in-tag": true,
@@ -27,6 +33,7 @@
     "apps/web": {},
     "apps/api": {}
   },
+  "plugins": [{ "type": "node-workspace" }],
   "changelog-sections": [
     {
       "type": "feat",

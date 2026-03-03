@@ -63,7 +63,7 @@ function Chat() {
           {msg.content.map((block) => {
             switch (block.type) {
               case "text":
-                return <p key={block.type}>{block.text}</p>;
+                return <p key={`${msg.id}:text`}>{block.text}</p>;
               case "component":
                 return (
                   <ComponentRenderer
@@ -115,13 +115,13 @@ const { streamingState } = useTambo();
 
 Messages contain an array of content blocks. Handle each type:
 
-| Type          | Description            | Key Fields               |
-| ------------- | ---------------------- | ------------------------ |
-| `text`        | Plain text             | `text`                   |
-| `component`   | AI-generated component | `id`, `name`, `props`    |
-| `tool_use`    | Tool invocation        | `id`, `name`, `input`    |
-| `tool_result` | Tool response          | `tool_use_id`, `content` |
-| `resource`    | MCP resource           | `uri`, `name`, `text`    |
+| Type          | Description            | Key Fields             |
+| ------------- | ---------------------- | ---------------------- |
+| `text`        | Plain text             | `text`                 |
+| `component`   | AI-generated component | `id`, `name`, `props`  |
+| `tool_use`    | Tool invocation        | `id`, `name`, `input`  |
+| `tool_result` | Tool response          | `toolUseId`, `content` |
+| `resource`    | MCP resource           | `uri`, `name`, `text`  |
 
 ### Submit Options
 
@@ -129,10 +129,8 @@ Messages contain an array of content blocks. Handle each type:
 const { submit } = useTamboThreadInput();
 
 await submit({
-  threadId: "specific-thread", // Override target thread
   toolChoice: "auto", // "auto" | "required" | "none" | { name: "toolName" }
-  maxTokens: 4096, // Max response tokens
-  systemPrompt: "Be helpful", // Override system prompt
+  debug: true, // Enable debug logging for the stream
 });
 ```
 

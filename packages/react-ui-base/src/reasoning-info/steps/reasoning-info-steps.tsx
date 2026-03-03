@@ -1,4 +1,3 @@
-import { mergeProps } from "@base-ui/react/merge-props";
 import { useRender } from "@base-ui/react/use-render";
 import * as React from "react";
 import { useReasoningInfoRootContext } from "../root/reasoning-info-context";
@@ -7,6 +6,7 @@ export interface ReasoningInfoStepsRenderFunctionProps extends Record<
   string,
   unknown
 > {
+  slot: string;
   steps: string[];
   showStepNumbers: boolean;
 }
@@ -25,6 +25,7 @@ export const ReasoningInfoSteps = React.forwardRef<
 >(({ ...props }, ref) => {
   const { reasoning } = useReasoningInfoRootContext();
   const renderProps: ReasoningInfoStepsRenderFunctionProps = {
+    slot: "reasoning-info-steps",
     steps: reasoning,
     showStepNumbers: reasoning.length > 1,
   };
@@ -35,9 +36,10 @@ export const ReasoningInfoSteps = React.forwardRef<
     ref,
     render,
     state: renderProps,
-    props: mergeProps(componentProps, {
-      "data-slot": "reasoning-info-steps",
-    }),
+    stateAttributesMapping: {
+      steps: () => null,
+    },
+    props: componentProps,
   });
 });
 ReasoningInfoSteps.displayName = "ReasoningInfo.Steps";

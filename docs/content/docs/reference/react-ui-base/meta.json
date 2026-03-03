@@ -1,0 +1,16 @@
+{
+  "title": "React UI Base",
+  "pages": [
+    "index",
+    "message",
+    "message-input",
+    "thread-content",
+    "thread-history",
+    "thread-dropdown",
+    "toolcall-info",
+    "reasoning-info",
+    "elicitation",
+    "mcp-prompts",
+    "mcp-resources"
+  ]
+}

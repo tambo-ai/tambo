@@ -7,9 +7,34 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import type { Suggestion } from "@tambo-ai/react";
 import { withTamboInteractable } from "@tambo-ai/react";
 import { useCallback, useState } from "react";
 import { z } from "zod";
+
+const editWithTamboThreadSuggestions = [
+  {
+    id: "edit-with-tambo-suggestion-1",
+    title: "Convert to support",
+    detailedSuggestion:
+      "Turn this into a support request form with an urgency field.",
+    messageId: "edit-with-tambo-support-form",
+  },
+  {
+    id: "edit-with-tambo-suggestion-2",
+    title: "Polish copy",
+    detailedSuggestion:
+      "Rewrite all labels to sound professional and enterprise-ready.",
+    messageId: "edit-with-tambo-polish-copy",
+  },
+  {
+    id: "edit-with-tambo-suggestion-3",
+    title: "Update defaults",
+    detailedSuggestion:
+      "Change the prefilled values for a startup founder inquiry.",
+    messageId: "edit-with-tambo-update-defaults",
+  },
+] satisfies Suggestion[];
 
 // Schema for the contact form (only editable props)
 const ContactFormPropsSchema = z.object({
@@ -225,7 +250,11 @@ export const EditWithTamboInterface = () => {
       </div>
 
       {/* Collapsible message thread */}
-      <MessageThreadCollapsible defaultOpen={isThreadOpen} className="z-60" />
+      <MessageThreadCollapsible
+        defaultOpen={isThreadOpen}
+        className="z-60"
+        initialSuggestions={editWithTamboThreadSuggestions}
+      />
     </div>
   );
 };

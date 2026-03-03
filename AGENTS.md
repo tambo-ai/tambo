@@ -15,6 +15,13 @@ This is a Turborepo monorepo containing both the Tambo AI framework packages and
   - Exports: hooks, providers, types for component registration and thread management
   - Build outputs: CommonJS (`dist/`) and ESM (`esm/`) for broad compatibility
 
+- **packages/client/** - Framework-agnostic client (`@tambo-ai/client`)
+  - Streaming, tool execution, thread management without React dependencies
+  - `TamboClient` class with `getState()`/`subscribe()` for framework integration
+  - `TamboStream` async iterable for streaming AI responses
+  - Used by `@tambo-ai/react` as its core engine; also usable standalone (Node.js, Vue, Svelte, etc.)
+  - Build outputs: CommonJS (`dist/`) and ESM (`esm/`)
+
 - **cli/** - Command-line interface (`tambo`)
   - Project scaffolding, component generation, and development utilities
   - Component registry auto-syncs to `/showcase/src/components/tambo/` from `/cli/src/registry/`
