@@ -22,12 +22,14 @@ Ask the user what kind of app they're building. This drives which starter compon
 **Question 2: Framework**
 
 Options:
+
 - Next.js (Recommended) - Full-stack React with App Router
 - Vite - Fast, lightweight React setup
 
 **Question 3: API Key**
 
 Options:
+
 - Yes, I'll enter it now
 - No, I'll set it up later
 
@@ -52,12 +54,14 @@ All templates (`standard`, `vite`, `analytics`) come with chat UI, TamboProvider
 #### 3a. Scaffold the project
 
 For Next.js (recommended):
+
 ```bash
 npx tambo create-app <app-name> --template=standard --skip-tambo-init
 cd <app-name>
 ```
 
 For Vite:
+
 ```bash
 npx tambo create-app <app-name> --template=vite --skip-tambo-init
 cd <app-name>
@@ -68,6 +72,7 @@ Use `--skip-tambo-init` since `create-app` normally tries to run `tambo init` in
 #### 3b. Set up API key
 
 If the user provided a key:
+
 ```bash
 npx tambo init --api-key=<USER_PROVIDED_KEY>
 ```
@@ -89,6 +94,7 @@ The template includes basic components, but add 1-2 components tailored to what 
 - **Generic / unclear** → `ContentCard`
 
 Each component needs:
+
 1. A Zod schema with `.describe()` on every field
 2. The React component itself
 3. Registration in the existing component registry (`lib/tambo.ts` — add to the existing `components` array, don't replace it)
@@ -108,7 +114,12 @@ export const StatsCardSchema = z.object({
 
 type StatsCardProps = z.infer<typeof StatsCardSchema>;
 
-export function StatsCard({ title, value, change, trend = "flat" }: StatsCardProps) {
+export function StatsCard({
+  title,
+  value,
+  change,
+  trend = "flat",
+}: StatsCardProps) {
   // ... implementation with Tailwind styling
 }
 ```
@@ -143,6 +154,7 @@ Run this in the background so the user can see their app immediately.
 ### Step 4: Summary
 
 After everything is running, give a brief summary:
+
 - What was set up
 - What components were created and what they do
 - The URL where the app is running (typically `http://localhost:3000` for Next.js, `http://localhost:5173` for Vite)
@@ -204,6 +216,7 @@ export const components: TamboComponent[] = [
 ```
 
 Key rules:
+
 - **propsSchema**: Zod object with `.describe()` on every field — this is how the AI knows what to pass
 - **description**: Tell the AI when to use this component — be specific about trigger phrases
 - **Streaming**: Props arrive incrementally, so handle undefined gracefully (optional fields or defaults)
