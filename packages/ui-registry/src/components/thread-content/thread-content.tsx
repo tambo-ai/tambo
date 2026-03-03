@@ -173,12 +173,11 @@ function ThreadMessage({
   const messageContentClassName =
     message.role === "assistant"
       ? "text-foreground font-sans"
-      : "text-foreground bg-container hover:bg-backdrop font-sans";
+      : "text-foreground bg-container font-sans";
 
   return (
     <div data-slot="thread-content-item">
       <Message
-        slot="message"
         role={message.role === "assistant" ? "assistant" : "user"}
         message={message}
         variant={variant}

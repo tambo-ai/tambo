@@ -1,6 +1,6 @@
 "use client";
 
-import { TamboThreadMessage, TamboToolUseContent } from "@tambo-ai/react";
+import { ReactTamboThreadMessage, TamboToolUseContent } from "@tambo-ai/react";
 import {
   Message as MessageBase,
   type MessageContentProps as MessageBaseContentProps,
@@ -70,21 +70,20 @@ const streamdownRehypePlugins: PluggableList = [
  * @property {string} default - Default styling
  * @property {string} solid - Solid styling with shadow effects
  */
-const messageVariants = cva("flex", {
+const messageVariants = cva("hidden data-[hascontent]:flex", {
   variants: {
     variant: {
       default: "",
-      solid: [
-        "[&>div>div:first-child]:shadow-md",
-        "[&>div>div:first-child]:bg-container/50",
-        "[&>div>div:first-child]:hover:bg-container",
-        "[&>div>div:first-child]:transition-all",
-        "[&>div>div:first-child]:duration-200",
-      ].join(" "),
+      solid: "shadow-md bg-container/50 transition-all duration-200",
+    },
+    role: {
+      user: "justify-end",
+      assistant: "justify-start shadow-none",
     },
   },
   defaultVariants: {
     variant: "default",
+    role: "assistant",
   },
 });
 
@@ -95,6 +94,14 @@ export interface MessageProps extends MessageRootProps {
   /** Optional styling variant for the message container. */
   variant?: VariantProps<typeof messageVariants>["variant"];
 }
+
+type MessageContextValue = {
+  variant: VariantProps<typeof messageVariants>["variant"];
+  role: "user" | "assistant";
+  message: ReactTamboThreadMessage;
+};
+
+const MessageContext = React.createContext<MessageContextValue | null>(null);
 
 /**
  * The root container for a message component.
@@ -111,19 +118,17 @@ export interface MessageProps extends MessageRootProps {
 const Message = React.forwardRef<HTMLDivElement, MessageProps>(
   ({ className, variant, message, children, role, ...props }, ref) => {
     return (
-      <MessageBase.Root
-        ref={ref}
-        className={cn(
-          messageVariants({ variant }),
-          "data-[message-role=assistant]:w-full",
-          className,
-        )}
-        message={message}
-        role={role}
-        {...props}
-      >
-        {children}
-      </MessageBase.Root>
+      <MessageContext.Provider value={{ variant, role, message }}>
+        <MessageBase.Root
+          ref={ref}
+          className={cn("data-[message-role=assistant]:w-full", className)}
+          message={message}
+          role={role}
+          {...props}
+        >
+          {children}
+        </MessageBase.Root>
+      </MessageContext.Provider>
     );
   },
 );
@@ -249,7 +254,7 @@ export type MessageContentProps = Omit<
      * This allows for dynamic content updates or custom content rendering.
      * @deprecated use `messageContent` prop instead
      */
-    content?: string | TamboThreadMessage["content"];
+    content?: string | ReactTamboThreadMessage["content"];
   };
 
 /**
@@ -271,14 +276,15 @@ const MessageContent = React.forwardRef<HTMLDivElement, MessageContentProps>(
   ) => {
     const contentEffective = messageContent ?? content;
     const renderAsMarkdownEffective = renderAsMarkdown ?? markdown;
+    const { variant, role } = React.useContext(MessageContext) ?? {};
     return (
       <div data-slot="message-content-text">
         <MessageBase.Content
           ref={ref}
           keepMounted
           className={cn(
-            "relative block rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&_p]:py-1 [&_li]:list-item",
-            ":not([data-markdown]):wrap-break-word",
+            "relative rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&_p]:py-1 [&_li]:list-item",
+            messageVariants({ variant, role }),
             className,
           )}
           messageContent={contentEffective}
@@ -345,7 +351,7 @@ function ToolResultDisplay({
   hasResult,
   enableMarkdown,
 }: {
-  content: TamboThreadMessage["content"] | null;
+  content: ReactTamboThreadMessage["content"] | null;
   hasResult: boolean;
   enableMarkdown: boolean;
 }) {
@@ -471,7 +477,7 @@ const SamplingSubThread = ({
 
   // In V1, messages no longer have parentMessageId, so sub-threads are not supported.
   // Render nothing until a V1 equivalent is available.
-  const childMessages: TamboThreadMessage[] = [];
+  const childMessages: ReactTamboThreadMessage[] = [];
 
   if (!childMessages.length) return null;
 
@@ -506,7 +512,7 @@ const SamplingSubThread = ({
       >
         <div className="pl-2">
           <div className="border-l-2 border-muted-foreground p-2 flex flex-col gap-4">
-            {childMessages?.map((m: TamboThreadMessage) => (
+            {childMessages?.map((m: ReactTamboThreadMessage) => (
               <div key={m.id} className={`${m.role === "user" && "pl-2"}`}>
                 <span
                   className={cn(
@@ -692,7 +698,7 @@ function ToolResultContent({
   content,
   enableMarkdown = true,
 }: {
-  content: TamboThreadMessage["content"];
+  content: ReactTamboThreadMessage["content"];
   enableMarkdown?: boolean;
 }) {
   if (!content) return null;
