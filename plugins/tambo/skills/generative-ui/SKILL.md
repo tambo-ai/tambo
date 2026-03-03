@@ -96,6 +96,12 @@ Each component needs:
 2. The React component itself
 3. Registration in the existing component registry (`lib/tambo.ts` — add to the existing `components` array, don't replace it)
 
+**Schema constraints — Tambo will reject invalid schemas at runtime:**
+
+- **No `z.record()`** — Record types (objects with dynamic keys) are not supported anywhere in the schema, including nested inside arrays or objects. Use `z.object()` with explicit named keys instead.
+- **No `z.map()` or `z.set()`** — Use arrays and objects instead.
+- For tabular data like rows, use `z.array(z.object({ col1: z.string(), col2: z.number() }))` with explicit column keys — NOT `z.array(z.record(z.string(), z.unknown()))`.
+
 Example:
 
 ```tsx
