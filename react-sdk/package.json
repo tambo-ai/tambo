@@ -79,7 +79,7 @@
     "@ag-ui/core": "^0.0.44",
     "@tambo-ai/client": "1.0.0",
     "@modelcontextprotocol/sdk": "^1.26.0",
-    "@tambo-ai/typescript-sdk": "^0.93.0",
+    "@tambo-ai/typescript-sdk": "^0.93.1",
     "@tanstack/react-query": "^5.90.16",
     "fast-equals": "^6.0.0",
     "partial-json": "^0.1.7",
