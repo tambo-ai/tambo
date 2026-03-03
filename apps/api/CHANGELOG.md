@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.144.0](https://github.com/tambo-ai/tambo/compare/api-v0.143.3...api-v0.144.0) (2026-03-03)
+
+
+### Features
+
+* **api:** increase default tool call limit from 10 to 100 ([#2484](https://github.com/tambo-ai/tambo/issues/2484)) ([5dd1c1e](https://github.com/tambo-ai/tambo/commit/5dd1c1e7b587c2597f109d852e9b59999b3317d7))
+
+
+### Bug Fixes
+
+* **api:** return both description and detailedSuggestion in suggestion responses ([#2521](https://github.com/tambo-ai/tambo/issues/2521)) ([8271ad7](https://github.com/tambo-ai/tambo/commit/8271ad72b2c49b9bbd938b68106cdec2f82bc9b7))
+* **dev:** update custom condition usage for hmr/dev/tsconfig ([#2480](https://github.com/tambo-ai/tambo/issues/2480)) ([71a141d](https://github.com/tambo-ai/tambo/commit/71a141de9ccbd7cf82c0e5170eb3274b177b6641))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump the sentry group with 3 updates ([#2535](https://github.com/tambo-ai/tambo/issues/2535)) ([e3dc2a4](https://github.com/tambo-ai/tambo/commit/e3dc2a45834fdd962f85cf88b180f929b8de2f1d))
+* **deps:** bump the small-safe-packages group with 4 updates ([#2534](https://github.com/tambo-ai/tambo/issues/2534)) ([3694fe4](https://github.com/tambo-ai/tambo/commit/3694fe448691c1b9c4730b457d22bb971ad72d1f))
+
 ## [0.143.3](https://github.com/tambo-ai/tambo/compare/api-v0.143.2...api-v0.143.3) (2026-02-24)
 
 
