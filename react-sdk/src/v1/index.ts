@@ -77,8 +77,11 @@ export {
   type TamboConfig,
 } from "./providers/tambo-v1-provider";
 
-// Re-export registry provider
-export { TamboRegistryProvider } from "../providers/tambo-registry-provider";
+// Re-export registry provider and hook
+export {
+  TamboRegistryProvider,
+  useTamboRegistry,
+} from "../providers/tambo-registry-provider";
 
 // Re-export client provider
 export {

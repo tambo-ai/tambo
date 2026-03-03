@@ -3,6 +3,7 @@
 import { env } from "@/lib/env";
 import { tamboRegisteredComponents } from "@/lib/tambo/config";
 import { TamboProvider, currentPageContextHelper } from "@tambo-ai/react";
+import { TamboDevtools } from "@tambo-ai/react-devtools";
 
 type TamboProviderWrapperProps = Readonly<{
   children: React.ReactNode;
@@ -24,6 +25,7 @@ export function TamboProviderWrapper({
       }}
     >
       {children}
+      <TamboDevtools />
     </TamboProvider>
   );
 }
