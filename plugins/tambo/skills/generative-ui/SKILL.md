@@ -7,64 +7,169 @@ description: Build generative UI apps with Tambo — one-shot generation of rich
 
 Build generative UI apps with Tambo — create rich, interactive React components from natural language.
 
-## Quick Start (Recommended Stack)
+## One-Prompt Flow
+
+The goal is to get the user from zero to a running app in a single prompt. Ask all questions upfront using AskUserQuestion with multiple questions, then execute everything without stopping.
+
+### Step 1: Gather All Non-Sensitive Preferences (Single AskUserQuestion Call)
+
+Use AskUserQuestion with up to 4 questions in ONE call. The API key is collected as free-text input here — no follow-up needed.
+
+**Question 1: What do you want to build?**
+
+Ask the user what kind of app they're building. This drives which starter components to create. Examples: "a dashboard", "a chatbot", "a data visualization tool", "a task manager". If the user already said what they want in their initial message, skip this question.
+
+**Question 2: Framework**
+
+Options:
+
+- Next.js (Recommended) - Full-stack React with App Router
+- Vite - Fast, lightweight React setup
+
+**Question 3: API Key**
+
+Do NOT use AskUserQuestion for the API key. Instead, after collecting the other preferences, explicitly ask the user in a plain text message to paste their API key. Say something like:
+
+"Paste your Tambo API key below (get one at https://console.tambo.co). This is a client-side public key (like NEXT_PUBLIC_TAMBO_API_KEY) — not a secret, safe to share here. Or just say 'skip' if you don't have one yet."
+
+Then wait for their response. If they paste a key (starts with `tambo_`), use it. If they say "skip" or similar, move on without it.
+
+**This means Step 1 only has 3 questions in AskUserQuestion** (app idea, framework, app name). The API key is collected as a plain message exchange right after.
+
+**Question 4: App name**
+
+Let the user pick a name for their project directory. Default suggestion: derive from what they want to build (e.g., "my-dashboard", "my-chatbot"). Use kebab-case (letters, numbers, hyphens only). If the user gives a non-slug name like "Sales Dashboard", propose `sales-dashboard` instead.
+
+**Skip questions when the user already told you the answer.** If they said "build me a Next.js dashboard app called analytics", you already know the framework, the app idea, and the name — just ask for the API key.
+
+### Step 2: Execute Everything (No Stopping)
+
+Run all of these sequentially without asking for confirmation between steps. If any command fails, stop the flow, surface the error, and ask the user how to proceed — do not continue to later steps.
+
+All templates (`standard`, `vite`, `analytics`) come with chat UI, TamboProvider wiring, component registry, and starter components already included. You do NOT need to add chat UI or wire up the app — just scaffold, configure the API key, add custom components, and start the server.
+
+#### 2a. Scaffold the project
+
+For Next.js (recommended):
 
 ```bash
-npx tambo create-app my-app --template=standard
-cd my-app
+npx tambo create-app <app-name> --template=standard --skip-tambo-init
+cd <app-name>
+```
+
+For Vite:
+
+```bash
+npx tambo create-app <app-name> --template=vite --skip-tambo-init
+cd <app-name>
+```
+
+Use `--skip-tambo-init` since `create-app` normally tries to run `tambo init` interactively, which won't work in non-interactive environments like coding agents. We handle the API key in the next step.
+
+#### 2b. Set up API key
+
+If the user provided a key:
+
+```bash
+npx tambo init --api-key=<USER_PROVIDED_KEY>
+```
+
+This writes the key to the correct `.env` file with the framework-appropriate variable name (`NEXT_PUBLIC_TAMBO_API_KEY`, `VITE_TAMBO_API_KEY`, etc.).
+
+If the user skipped, tell them once at the end to run `npx tambo init` when ready. Don't nag about it during setup.
+
+**IMPORTANT:** Do NOT hardcode `--api-key=sk_...` in commands you run. The `--api-key` flag should only be used with an actual key the user has provided.
+
+#### 2c. Create custom starter components
+
+The template includes basic components, but add 1-2 components tailored to what the user wants to build. Don't use generic examples:
+
+- **Dashboard app** → `StatsCard`, `DataTable`
+- **Chatbot** → `BotResponse` with markdown support
+- **Data visualization** → `Chart` with configurable data
+- **Task manager** → `TaskCard`, `TaskBoard`
+- **Generic / unclear** → `ContentCard`
+
+Each component needs:
+
+1. A Zod schema with `.describe()` on every field
+2. The React component itself
+3. Registration in the existing component registry (`lib/tambo.ts` — add to the existing `components` array, don't replace it)
+
+**Schema constraints — Tambo will reject invalid schemas at runtime:**
+
+- **No `z.record()`** — Record types (objects with dynamic keys) are not supported anywhere in the schema, including nested inside arrays or objects. Use `z.object()` with explicit named keys instead.
+- **No `z.map()` or `z.set()`** — Use arrays and objects instead.
+- For tabular data like rows, use `z.array(z.object({ col1: z.string(), col2: z.number() }))` with explicit column keys — NOT `z.array(z.record(z.string(), z.unknown()))`.
+
+**React best practices for generated components:**
+
+- Always add unique `key` props when rendering lists (`.map()`). Use a unique field from the data (like `id`) — not the array index.
+- Include an `id` field (e.g., `z.string().describe("Unique identifier")`) in schemas for array items so there's always a stable key available.
+
+Example:
+
+```tsx
+// src/components/StatsCard.tsx
+import { z } from "zod/v4";
+
+export const StatsCardSchema = z.object({
+  title: z.string().describe("Metric name"),
+  value: z.number().describe("Current value"),
+  change: z.number().optional().describe("Percent change from previous period"),
+  trend: z.enum(["up", "down", "flat"]).optional().describe("Trend direction"),
+});
+
+type StatsCardProps = z.infer<typeof StatsCardSchema>;
+
+export function StatsCard({
+  title,
+  value,
+  change,
+  trend = "flat",
+}: StatsCardProps) {
+  // ... implementation with Tailwind styling
+}
+```
+
+Then add to the existing registry in `lib/tambo.ts`:
+
+```tsx
+// Add to the existing components array — don't replace what's already there
+// Next.js: import { StatsCard, StatsCardSchema } from "@/components/StatsCard";
+// Vite: import { StatsCard, StatsCardSchema } from "../components/StatsCard";
+import { StatsCard, StatsCardSchema } from "@/components/StatsCard";
+
+// ... existing components ...
+{
+  name: "StatsCard",
+  component: StatsCard,
+  description: "Displays a metric with value and trend. Use when user asks about stats, metrics, or KPIs.",
+  propsSchema: StatsCardSchema,
+},
+```
+
+#### 2d. Start the dev server
+
+Only start the dev server after all code changes (scaffolding, init, component creation, registry updates) are complete.
+
+```bash
 npm run dev
 ```
 
-This creates a Next.js + Tailwind + TypeScript + Zod project ready for generative UI.
+Run this in the background so the user can see their app immediately.
 
-## Guided Flow
+### Step 3: Summary
 
-When user wants to start fresh, ask about their preferences:
+After everything is running, give a brief summary:
 
-### Question 1: Framework
+- What was set up
+- What components were created and what they do
+- The URL where the app is running (typically `http://localhost:3000` for Next.js, `http://localhost:5173` for Vite)
+- If they skipped the API key: remind them once to run `npx tambo init` to set it up
+- A suggestion for what to try first (e.g., "Try asking it to show you a stats card for monthly revenue")
 
-```
-What framework would you like to use?
-
-1. Next.js (Recommended) - Full-stack React with App Router
-2. Vite - Fast, lightweight React setup
-3. Other - I'll adapt to your choice
-```
-
-**Recommendation reasoning:**
-
-- Next.js: Best for production apps, built-in API routes, great DX
-- Vite: Great for SPAs, faster dev server, simpler setup
-
-### Question 2: Styling
-
-```
-How would you like to style your app?
-
-1. Tailwind CSS (Recommended) - Utility-first, works great with Tambo components
-2. Plain CSS/CSS Modules - No framework, full control
-3. Other (styled-components, Emotion, etc.)
-```
-
-**Recommendation reasoning:**
-
-- Tailwind: Tambo CLI components use Tailwind by default
-- Plain CSS: Works fine, but need to style Tambo components manually
-
-### Question 3: TypeScript
-
-```
-Use TypeScript?
-
-1. Yes (Recommended) - Type safety, better IDE support
-2. No - Plain JavaScript
-```
-
-**Recommendation reasoning:**
-
-- TypeScript: Tambo's Zod schemas provide excellent type inference
-
-## Technology Stacks
+## Technology Stacks Reference
 
 ### Recommended Stack (Default)
 
@@ -90,17 +195,7 @@ Vite + React
 └── @tambo-ai/react
 ```
 
-```bash
-npm create vite@latest my-app -- --template react-ts
-cd my-app
-npm install
-npm install @tambo-ai/react zod
-npm install -D tailwindcss postcss autoprefixer
-npx tailwindcss init -p
-npx tambo init --api-key=sk_...
-```
-
-### Minimal Stack
+### Minimal Stack (No Tailwind)
 
 ```
 Vite + React
@@ -110,149 +205,39 @@ Vite + React
 └── @tambo-ai/react
 ```
 
-```bash
-npm create vite@latest my-app -- --template react-ts
-cd my-app
-npm install @tambo-ai/react zod
-npx tambo init --api-key=sk_...
-```
+## Component Registry Pattern
 
-## Setup Steps by Stack
-
-### Next.js (Recommended)
-
-```bash
-# 1. Create app
-npx tambo create-app my-app --template=standard
-cd my-app
-
-# 2. Initialize with API key
-npx tambo init --api-key=sk_...
-
-# 3. Start development
-npm run dev
-```
-
-### Vite + Tailwind
-
-```bash
-# 1. Create Vite app
-npm create vite@latest my-app -- --template react-ts
-cd my-app
-
-# 2. Install dependencies
-npm install @tambo-ai/react zod
-npm install -D tailwindcss postcss autoprefixer
-npx tailwindcss init -p
-
-# 3. Configure Tailwind (tailwind.config.js)
-# content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"]
-
-# 4. Add Tailwind directives to src/index.css
-# @tailwind base; @tailwind components; @tailwind utilities;
-
-# 5. Initialize Tambo (sets up .env.local automatically)
-npx tambo init --api-key=sk_...
-
-# 6. Start development
-npm run dev
-```
-
-### Vite Minimal (No Tailwind)
-
-```bash
-# 1. Create Vite app
-npm create vite@latest my-app -- --template react-ts
-cd my-app
-
-# 2. Install dependencies
-npm install @tambo-ai/react zod
-
-# 3. Initialize Tambo (sets up .env.local automatically)
-npx tambo init --api-key=sk_...
-
-# 4. Start development
-npm run dev
-```
-
-## Project Structure
-
-After setup, create this structure:
-
-```
-my-app/
-├── src/
-│   ├── components/
-│   │   └── tambo/           # Tambo UI components (from CLI)
-│   ├── lib/
-│   │   └── tambo.ts         # Component registry
-│   ├── App.tsx              # Main app with TamboProvider
-│   └── main.tsx             # Entry point
-├── .env.local               # API key
-└── package.json
-```
-
-## First Component
-
-After project setup, guide user to create their first component:
+Every generative component must be registered:
 
 ```tsx
-// src/components/Greeting.tsx
-import { z } from "zod";
-
-export const GreetingSchema = z.object({
-  name: z.string().describe("Person's name"),
-  mood: z.enum(["happy", "excited", "friendly"]).optional(),
-});
-
-type GreetingProps = z.infer<typeof GreetingSchema>;
-
-export function Greeting({ name, mood = "friendly" }: GreetingProps) {
-  const emojis = { happy: "😊", excited: "🎉", friendly: "👋" };
-  return (
-    <div className="p-4 bg-blue-100 rounded-lg">
-      <p className="text-lg">
-        Hello, {name}! {emojis[mood]}
-      </p>
-    </div>
-  );
-}
-```
-
-```tsx
-// src/lib/tambo.ts
 import { TamboComponent } from "@tambo-ai/react";
-import { Greeting, GreetingSchema } from "@/components/Greeting";
+import { ComponentName, ComponentNameSchema } from "@/components/ComponentName";
 
 export const components: TamboComponent[] = [
   {
-    name: "Greeting",
-    component: Greeting,
-    description:
-      "Greets a person by name. Use when user wants to say hello or greet someone.",
-    propsSchema: GreetingSchema,
+    name: "ComponentName",
+    component: ComponentName,
+    description: "What it does. When to use it.",
+    propsSchema: ComponentNameSchema,
   },
 ];
 ```
 
-## Adding Chat UI
+Key rules:
+
+- **propsSchema**: Zod object with `.describe()` on every field — this is how the AI knows what to pass
+- **description**: Tell the AI when to use this component — be specific about trigger phrases
+- **Streaming**: Props arrive incrementally, so handle undefined gracefully (optional fields or defaults)
+
+## Adding More Chat UI (Optional)
+
+Templates already include chat UI. These are only needed if the user wants additional UI primitives beyond what the template provides:
 
 ```bash
-npx tambo add message-thread-full --yes
-```
-
-Then use in your app:
-
-```tsx
-import { MessageThreadFull } from "@/components/tambo/message-thread-full";
-
-function App() {
-  return (
-    <div className="h-screen">
-      <MessageThreadFull />
-    </div>
-  );
-}
+npx tambo add message-thread-full --yes    # Complete chat interface
+npx tambo add control-bar --yes            # Controls and actions
+npx tambo add canvas-space --yes           # Rendered component display area
+npx tambo add thread-history --yes         # Conversation history sidebar
 ```
 
 ## Supported Technologies
