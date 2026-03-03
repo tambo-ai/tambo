@@ -28,13 +28,13 @@ Options:
 
 **Question 3: API Key**
 
-Ask the user to paste their Tambo API key directly. Use a free-text input question (not multiple choice). Options:
+Do NOT use AskUserQuestion for the API key. Instead, after collecting the other preferences, explicitly ask the user in a plain text message to paste their API key. Say something like:
 
-- Skip for now — I'll set it up later
+"Paste your Tambo API key below (get one at https://console.tambo.co). This is a client-side public key (like NEXT_PUBLIC_TAMBO_API_KEY) — not a secret, safe to share here. Or just say 'skip' if you don't have one yet."
 
-Include in the description: "Paste your Tambo API key (get one at https://console.tambo.co). This is a client-side public key (like NEXT_PUBLIC_TAMBO_API_KEY) — not a secret. It gets written to .env.local and is exposed to the browser by design, so it's totally safe to enter here. Select 'Skip' if you don't have one yet."
+Then wait for their response. If they paste a key (starts with `tambo_`), use it. If they say "skip" or similar, move on without it.
 
-If the user types their key (starts with `sk_`), use it directly. If they select "Skip", move on without it.
+**This means Step 1 only has 3 questions in AskUserQuestion** (app idea, framework, app name). The API key is collected as a plain message exchange right after.
 
 **Question 4: App name**
 
@@ -101,6 +101,11 @@ Each component needs:
 - **No `z.record()`** — Record types (objects with dynamic keys) are not supported anywhere in the schema, including nested inside arrays or objects. Use `z.object()` with explicit named keys instead.
 - **No `z.map()` or `z.set()`** — Use arrays and objects instead.
 - For tabular data like rows, use `z.array(z.object({ col1: z.string(), col2: z.number() }))` with explicit column keys — NOT `z.array(z.record(z.string(), z.unknown()))`.
+
+**React best practices for generated components:**
+
+- Always add unique `key` props when rendering lists (`.map()`). Use a unique field from the data (like `id`) — not the array index.
+- Include an `id` field (e.g., `z.string().describe("Unique identifier")`) in schemas for array items so there's always a stable key available.
 
 Example:
 
