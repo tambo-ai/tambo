@@ -11,9 +11,9 @@ Build generative UI apps with Tambo — create rich, interactive React component
 
 The goal is to get the user from zero to a running app in a single prompt. Ask all questions upfront using AskUserQuestion with multiple questions, then execute everything without stopping.
 
-### Step 1: Gather All Preferences (Single AskUserQuestion Call)
+### Step 1: Gather All Non-Sensitive Preferences (Single AskUserQuestion Call)
 
-Use AskUserQuestion with up to 4 questions in ONE call:
+Use AskUserQuestion with up to 4 questions in ONE call. This collects preferences only — the actual API key value is collected separately in Step 2.
 
 **Question 1: What do you want to build?**
 
@@ -35,17 +35,17 @@ Include in the description: "You can get one at https://console.tambo.co. This i
 
 **Question 4: App name**
 
-Let the user pick a name for their project directory. Default suggestion: derive from what they want to build (e.g., "my-dashboard", "my-chatbot").
+Let the user pick a name for their project directory. Default suggestion: derive from what they want to build (e.g., "my-dashboard", "my-chatbot"). Use kebab-case (letters, numbers, hyphens only). If the user gives a non-slug name like "Sales Dashboard", propose `sales-dashboard` instead.
 
 **Skip questions when the user already told you the answer.** If they said "build me a Next.js dashboard app called analytics", you already know the framework, the app idea, and the name — just ask for the API key.
 
 ### Step 2: Collect API Key (If Needed)
 
-If the user said "Yes" to the API key question, use a follow-up AskUserQuestion to collect the actual key value. Don't combine this with Step 1 since the key is sensitive input.
+If the user said "Yes" to the API key question, use exactly one additional AskUserQuestion call to collect the actual key value. This is the only allowed follow-up — don't combine it with Step 1 since the key is sensitive input.
 
 ### Step 3: Execute Everything (No Stopping)
 
-Run all of these sequentially without asking for confirmation between steps.
+Run all of these sequentially without asking for confirmation between steps. If any command fails, stop the flow, surface the error, and ask the user how to proceed — do not continue to later steps.
 
 All templates (`standard`, `vite`, `analytics`) come with chat UI, TamboProvider wiring, component registry, and starter components already included. You do NOT need to add chat UI or wire up the app — just scaffold, configure the API key, add custom components, and start the server.
 
@@ -97,7 +97,7 @@ Example:
 
 ```tsx
 // src/components/StatsCard.tsx
-import { z } from "zod";
+import { z } from "zod/v4";
 
 export const StatsCardSchema = z.object({
   title: z.string().describe("Metric name"),
@@ -117,6 +117,8 @@ Then add to the existing registry in `lib/tambo.ts`:
 
 ```tsx
 // Add to the existing components array — don't replace what's already there
+// Next.js: import { StatsCard, StatsCardSchema } from "@/components/StatsCard";
+// Vite: import { StatsCard, StatsCardSchema } from "../components/StatsCard";
 import { StatsCard, StatsCardSchema } from "@/components/StatsCard";
 
 // ... existing components ...
@@ -129,6 +131,8 @@ import { StatsCard, StatsCardSchema } from "@/components/StatsCard";
 ```
 
 #### 3d. Start the dev server
+
+Only start the dev server after all code changes (scaffolding, init, component creation, registry updates) are complete.
 
 ```bash
 npm run dev
@@ -187,6 +191,7 @@ Every generative component must be registered:
 
 ```tsx
 import { TamboComponent } from "@tambo-ai/react";
+import { ComponentName, ComponentNameSchema } from "@/components/ComponentName";
 
 export const components: TamboComponent[] = [
   {
@@ -203,7 +208,9 @@ Key rules:
 - **description**: Tell the AI when to use this component — be specific about trigger phrases
 - **Streaming**: Props arrive incrementally, so handle undefined gracefully (optional fields or defaults)
 
-## Adding More Chat UI
+## Adding More Chat UI (Optional)
+
+Templates already include chat UI. These are only needed if the user wants additional UI primitives beyond what the template provides:
 
 ```bash
 npx tambo add message-thread-full --yes    # Complete chat interface
