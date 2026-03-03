@@ -13,7 +13,7 @@ The goal is to get the user from zero to a running app in a single prompt. Ask a
 
 ### Step 1: Gather All Non-Sensitive Preferences (Single AskUserQuestion Call)
 
-Use AskUserQuestion with up to 4 questions in ONE call. This collects preferences only — the actual API key value is collected separately in Step 2.
+Use AskUserQuestion with up to 4 questions in ONE call. The API key is collected as free-text input here — no follow-up needed.
 
 **Question 1: What do you want to build?**
 
@@ -28,12 +28,13 @@ Options:
 
 **Question 3: API Key**
 
-Options:
+Ask the user to paste their Tambo API key directly. Use a free-text input question (not multiple choice). Options:
 
-- Yes, I'll enter it now
-- No, I'll set it up later
+- Skip for now — I'll set it up later
 
-Include in the description: "You can get one at https://console.tambo.co. This is a client-side public key (like NEXT_PUBLIC_TAMBO_API_KEY) — not a secret. It gets written to .env.local and is exposed to the browser by design, so it's safe to enter here."
+Include in the description: "Paste your Tambo API key (get one at https://console.tambo.co). This is a client-side public key (like NEXT_PUBLIC_TAMBO_API_KEY) — not a secret. It gets written to .env.local and is exposed to the browser by design, so it's totally safe to enter here. Select 'Skip' if you don't have one yet."
+
+If the user types their key (starts with `sk_`), use it directly. If they select "Skip", move on without it.
 
 **Question 4: App name**
 
@@ -41,17 +42,13 @@ Let the user pick a name for their project directory. Default suggestion: derive
 
 **Skip questions when the user already told you the answer.** If they said "build me a Next.js dashboard app called analytics", you already know the framework, the app idea, and the name — just ask for the API key.
 
-### Step 2: Collect API Key (If Needed)
-
-If the user said "Yes" to the API key question, use exactly one additional AskUserQuestion call to collect the actual key value. This is the only allowed follow-up — don't combine it with Step 1 since the key is sensitive input.
-
-### Step 3: Execute Everything (No Stopping)
+### Step 2: Execute Everything (No Stopping)
 
 Run all of these sequentially without asking for confirmation between steps. If any command fails, stop the flow, surface the error, and ask the user how to proceed — do not continue to later steps.
 
 All templates (`standard`, `vite`, `analytics`) come with chat UI, TamboProvider wiring, component registry, and starter components already included. You do NOT need to add chat UI or wire up the app — just scaffold, configure the API key, add custom components, and start the server.
 
-#### 3a. Scaffold the project
+#### 2a. Scaffold the project
 
 For Next.js (recommended):
 
@@ -69,7 +66,7 @@ cd <app-name>
 
 Use `--skip-tambo-init` since `create-app` normally tries to run `tambo init` interactively, which won't work in non-interactive environments like coding agents. We handle the API key in the next step.
 
-#### 3b. Set up API key
+#### 2b. Set up API key
 
 If the user provided a key:
 
@@ -83,7 +80,7 @@ If the user skipped, tell them once at the end to run `npx tambo init` when read
 
 **IMPORTANT:** Do NOT hardcode `--api-key=sk_...` in commands you run. The `--api-key` flag should only be used with an actual key the user has provided.
 
-#### 3c. Create custom starter components
+#### 2c. Create custom starter components
 
 The template includes basic components, but add 1-2 components tailored to what the user wants to build. Don't use generic examples:
 
@@ -141,7 +138,7 @@ import { StatsCard, StatsCardSchema } from "@/components/StatsCard";
 },
 ```
 
-#### 3d. Start the dev server
+#### 2d. Start the dev server
 
 Only start the dev server after all code changes (scaffolding, init, component creation, registry updates) are complete.
 
@@ -151,7 +148,7 @@ npm run dev
 
 Run this in the background so the user can see their app immediately.
 
-### Step 4: Summary
+### Step 3: Summary
 
 After everything is running, give a brief summary:
 
