@@ -1,0 +1,85 @@
+{
+  "name": "@tambo-ai/react-devtools",
+  "version": "0.1.0",
+  "description": "DevTools panel for inspecting Tambo AI component and tool registries",
+  "author": {
+    "name": "Tambo",
+    "url": "https://tambo.co"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tambo-ai/tambo.git",
+    "directory": "packages/react-devtools"
+  },
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "main": "./dist/cjs/index.cjs",
+  "module": "./dist/esm/index.js",
+  "types": "./dist/esm/index.d.ts",
+  "exports": {
+    ".": {
+      "@tambo-ai/source": "./src/index.ts",
+      "import": {
+        "types": "./dist/esm/index.d.ts",
+        "default": "./dist/esm/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/index.d.ts",
+        "default": "./dist/cjs/index.cjs"
+      }
+    },
+    "./production": {
+      "@tambo-ai/source": "./src/production.ts",
+      "import": {
+        "types": "./dist/esm/production.d.ts",
+        "default": "./dist/esm/production.js"
+      },
+      "require": {
+        "types": "./dist/cjs/production.d.ts",
+        "default": "./dist/cjs/production.cjs"
+      }
+    }
+  },
+  "files": [
+    "dist",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite build --watch",
+    "check-types": "tsc --noEmit",
+    "test": "vitest run",
+    "lint": "eslint",
+    "lint:fix": "eslint --fix",
+    "clean": "rimraf dist"
+  },
+  "dependencies": {
+    "shiki": "^3.4.2"
+  },
+  "peerDependencies": {
+    "@tambo-ai/client": "*",
+    "@tambo-ai/react": "*",
+    "react": "^18.0.0 || ^19.0.0",
+    "react-dom": "^18.0.0 || ^19.0.0"
+  },
+  "devDependencies": {
+    "@tambo-ai/client": "*",
+    "@tambo-ai/eslint-config": "*",
+    "@tambo-ai/react": "*",
+    "@tambo-ai/typescript-config": "*",
+    "@tambo-ai/vite-config": "*",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.3.2",
+    "@types/node": "^22.19.8",
+    "@vitejs/plugin-react": "^4.5.2",
+    "@vitest/coverage-v8": "^4.0.18",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "rimraf": "^6.0.1",
+    "typescript": "^5.9.3",
+    "vite": "^7.3.1",
+    "vite-plugin-svgr": "^4.5.0",
+    "vitest": "^4.0.18"
+  }
+}

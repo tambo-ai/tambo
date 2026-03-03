@@ -1,0 +1,89 @@
+---
+title: Tambo DevTools
+description: Inspect registered components and tools at runtime with a floating DevTools panel.
+---
+
+The `@tambo-ai/devtools` package provides a floating panel that surfaces your registered components and tools at runtime. When a component or tool doesn't appear in AI responses, open the panel to verify what's actually registered, what schemas are configured, and which tools are associated with which components.
+
+## Installation
+
+```bash title="Install the package"
+npm install @tambo-ai/devtools
+```
+
+## Quick start
+
+Place `<TamboDevtools />` anywhere inside your `<TamboProvider>`:
+
+```tsx
+import { TamboProvider } from "@tambo-ai/react";
+import { TamboDevtools } from "@tambo-ai/devtools";
+
+function App() {
+  return (
+    <TamboProvider apiKey="your-api-key">
+      <YourApp />
+      <TamboDevtools />
+    </TamboProvider>
+  );
+}
+```
+
+A floating button appears in the bottom-right corner. Click it to open the panel.
+
+## Production behavior
+
+The default import (`@tambo-ai/devtools`) renders nothing when `process.env.NODE_ENV` is not `"development"`. Bundlers eliminate the component code entirely in production builds.
+
+If you need the devtools in a production or staging environment, use the `/production` export:
+
+```tsx
+import { TamboDevtools } from "@tambo-ai/devtools/production";
+```
+
+This always renders the panel regardless of environment.
+
+## Props
+
+| Prop          | Type                            | Default    | Description                                                                                                    |
+| ------------- | ------------------------------- | ---------- | -------------------------------------------------------------------------------------------------------------- |
+| `initialOpen` | `boolean`                       | `false`    | Whether the panel starts open on first load. After the first interaction, localStorage state takes precedence. |
+| `theme`       | `'light' \| 'dark' \| 'system'` | `'system'` | Force light or dark theme, or follow system preference with `'system'`.                                        |
+
+## Panel tabs
+
+### Components
+
+Lists all components registered via `TamboProvider`'s `components` prop or `useTamboRegistry()`. Each entry shows:
+
+- **Name** and **description**
+- **Associated tools** (from `componentToolAssociations`)
+- **Props schema** (expandable JSON view)
+
+### Tools
+
+Lists all registered tools. Each entry shows:
+
+- **Name** and **description**
+- **Input schema** and **output schema** (expandable JSON views)
+
+Both tabs show item counts in the tab label and display guidance text when no items are registered.
+
+## Panel behavior
+
+- **Position**: Fixed in the bottom-right corner. Panel expands upward.
+- **Resize**: Drag the top edge of the panel to resize. Minimum height 150px, maximum 80% of the viewport.
+- **Persistence**: Open/closed state, active tab, and panel height persist to `localStorage` and sync across browser tabs.
+- **Theme**: Automatically follows your system's light/dark preference.
+- **Keyboard**: Press `Escape` to close the panel. Standard tab navigation works within the panel.
+
+## Error handling
+
+`TamboDevtools` throws a descriptive error if rendered outside a `TamboProvider`. If you see this error, make sure the component is a descendant of `TamboProvider` in your React tree.
+
+## Accessibility
+
+- Trigger button uses `aria-label` and `aria-expanded`
+- Panel uses `role="dialog"` with `aria-label`
+- Tabs use `role="tablist"` / `role="tab"` / `role="tabpanel"` with `aria-selected`
+- Focus moves to the panel on open and returns to the trigger on close

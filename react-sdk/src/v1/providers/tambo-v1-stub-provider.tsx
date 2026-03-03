@@ -310,6 +310,7 @@ export function TamboStubProvider({
   // Registry context
   const registryContext = useMemo<TamboRegistryContext>(
     () => ({
+      __initialized: true as const,
       componentList,
       toolRegistry,
       componentToolAssociations: {},

@@ -6,6 +6,7 @@ import { useUserContextKey } from "@/lib/useUserContextKey";
 import { MobileProvider } from "@/providers/mobile-provider";
 import { ThemeProvider } from "@/providers/theme-provider";
 import { defineTool, TamboProvider } from "@tambo-ai/react";
+import { TamboDevtools } from "@tambo-ai/react-devtools";
 import { MCPTransport } from "@tambo-ai/react/mcp";
 import { usePathname } from "next/navigation";
 import { z } from "zod";
@@ -91,6 +92,7 @@ export default function Template({
                   <div className="container mx-auto px-4 md:px-6 pt-6">
                     {children}
                   </div>
+                  <TamboDevtools />
                 </TamboProvider>
               )}
             </main>

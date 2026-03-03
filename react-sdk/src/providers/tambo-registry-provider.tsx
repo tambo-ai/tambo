@@ -34,6 +34,8 @@ import {
 } from "../util/resource-validators";
 
 export interface TamboRegistryContext {
+  /** Whether this context was provided by a real TamboRegistryProvider (not the default) */
+  __initialized: boolean;
   componentList: ComponentRegistry;
   toolRegistry: TamboToolRegistry;
   componentToolAssociations: Record<string, string[]>;
@@ -60,6 +62,7 @@ export interface TamboRegistryContext {
 }
 
 export const TamboRegistryContext = createContext<TamboRegistryContext>({
+  __initialized: false,
   componentList: {},
   toolRegistry: {},
   componentToolAssociations: {},
@@ -372,6 +375,7 @@ export const TamboRegistryProvider: React.FC<
   }, [staticMcpServerInfos, dynamicMcpServerInfos]);
 
   const value = {
+    __initialized: true as const,
     componentList,
     toolRegistry,
     componentToolAssociations,

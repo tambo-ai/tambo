@@ -3,6 +3,7 @@
   "pages": [
     "react-sdk",
     "react-ui-base",
+    "devtools",
     "rest-api",
     "cli",
     "llm-providers",
