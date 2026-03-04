@@ -9,14 +9,14 @@ Detect tech stack and integrate Tambo while preserving existing patterns.
 
 ## Reference Guides
 
-Load these resources when the task scope needs deeper implementation details:
+Use these guides when you need deeper implementation details for a specific area:
 
-- [components](references/components.md)
-- [component-rendering](references/component-rendering.md)
-- [threads](references/threads.md)
-- [tools-and-context](references/tools-and-context.md)
-- [cli](references/cli.md)
-- [add-components-to-registry](references/add-components-to-registry.md)
+- [Components](references/components.md)
+- [Component Rendering](references/component-rendering.md)
+- [Threads and Input](references/threads.md)
+- [Tools and Context](references/tools-and-context.md)
+- [CLI Reference](references/cli.md)
+- [Add Components to Registry](references/add-components-to-registry.md)
 
 ## Workflow
 

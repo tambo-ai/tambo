@@ -1,6 +1,6 @@
 ---
 name: generative-ui
-description: Create a new Tambo generative UI app from scratch. Use for new projects where users describe UI in natural language and the app renders interactive React components.
+description: Create a new Tambo generative UI app from scratch. Use for brand-new projects where users describe UI in natural language. For existing apps, use build-with-tambo.
 ---
 
 # Generative UI

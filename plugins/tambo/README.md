@@ -26,7 +26,7 @@ Skills are automatically selected based on your question, or invoke directly:
 /tambo:build-with-tambo           # Build with Tambo in existing projects
 ```
 
-The two skills load deeper guides from `plugins/tambo/skills/build-with-tambo/references/` for components, rendering, threads, tools/context, CLI, and registry workflows.
+Deeper implementation guides are linked from `build-with-tambo` and live in `plugins/tambo/skills/build-with-tambo/references/` (components, rendering, threads, tools/context, CLI, and registry workflows).
 
 ## Managing the Plugin
 

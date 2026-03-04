@@ -4,7 +4,7 @@ Convert existing React components into Tambo-registered components that AI can r
 
 ## Quick Start
 
-```bash
+```
 # Start with the build-with-tambo skill, then follow this guide
 # Point to a component file or folder and implement the workflow below
 # Example targets:
