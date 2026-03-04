@@ -16,6 +16,10 @@ FROM base AS installer
 WORKDIR /workspace
 
 COPY turbo.json package.json package-lock.json ./
+
+# install repo root dependencies for consistent tooling
+RUN npm ci --workspaces=false
+
 COPY packages ./packages
 COPY apps/api ./apps/api
 
