@@ -1,6 +1,6 @@
 ---
 name: build-with-tambo
-description: Add Tambo to an existing React app. Use when integrating into an existing codebase, wiring providers and env vars, and adapting setup to the current stack.
+description: Build with Tambo in an existing React app. Use for existing codebases (providers, env vars, components, threads, tools). For brand-new apps, use generative-ui.
 ---
 
 # Build with Tambo
