@@ -4,10 +4,7 @@ import { vercel } from "@t3-oss/env-nextjs/presets-zod";
 import { z } from "zod/v3";
 
 function allowEmptyString(value: string) {
-  if (value === "" || /^\.{2,}$/.test(value)) {
-    return undefined;
-  }
-  return value;
+  return value === "" ? undefined : value;
 }
 export const env = createEnv({
   extends: [vercel()],
