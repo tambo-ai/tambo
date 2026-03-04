@@ -1,7 +1,7 @@
 {
   "name": "@tambo-ai/react",
   "version": "1.1.0",
-  "description": "React client package for Tambo AI!",
+  "description": "React client package for Tambo AI",
   "license": "MIT",
   "repository": {
     "type": "git",
