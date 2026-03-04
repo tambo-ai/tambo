@@ -19,7 +19,8 @@ COPY turbo.json package.json package-lock.json ./
 COPY packages ./packages
 COPY apps/api ./apps/api
 
-RUN npx turbo prune @tambo-ai-cloud/api --docker
+RUN TURBO_VERSION="$(node -p "require('./package-lock.json').packages['node_modules/turbo'].version")" \
+  && npx turbo@"$TURBO_VERSION" prune @tambo-ai-cloud/api --docker --skip-infer
 
 # ---- /installer ----
 
