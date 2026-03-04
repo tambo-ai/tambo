@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.1](https://github.com/tambo-ai/tambo/compare/client-v1.0.0...client-v1.0.1) (2026-03-04)
+
+
+### Miscellaneous Chores
+
+* **deps:** bump @modelcontextprotocol/sdk from 1.26.0 to 1.27.1 ([#2537](https://github.com/tambo-ai/tambo/issues/2537)) ([5625dc8](https://github.com/tambo-ai/tambo/commit/5625dc89ea973e52bf4e0cc99f888e9baa780d6e))
+
 ## [1.0.0](https://github.com/tambo-ai/tambo/compare/client-v0.1.0...client-v1.0.0) (2026-03-04)
 
 
