@@ -11,12 +11,14 @@ Detect tech stack and integrate Tambo while preserving existing patterns.
 
 Use these guides when you need deeper implementation details for a specific area:
 
-- [Components](references/components.md)
-- [Component Rendering](references/component-rendering.md)
-- [Threads and Input](references/threads.md)
-- [Tools and Context](references/tools-and-context.md)
-- [CLI Reference](references/cli.md)
-- [Add Components to Registry](references/add-components-to-registry.md)
+- [Components](references/components.md) - Create and register Tambo components (generative and interactable).
+- [Component Rendering](references/component-rendering.md) - Handle streaming props, loading states, and persistent component state.
+- [Threads and Input](references/threads.md) - Manage conversations, suggestions, voice input, image attachments, and thread switching.
+- [Tools and Context](references/tools-and-context.md) - Add custom tools, MCP servers, context helpers, and resources.
+- [CLI Reference](references/cli.md) - Use `tambo init`, `tambo add`, and `create-app` with non-interactive flags and exit codes.
+- [Add Components to Registry](references/add-components-to-registry.md) - Convert existing React components into Tambo-ready registrations with schemas and descriptions.
+
+These references are duplicated across both skills so each skill works independently.
 
 ## Workflow
 

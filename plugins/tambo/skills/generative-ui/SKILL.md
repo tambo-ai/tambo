@@ -11,11 +11,13 @@ Build generative UI apps with Tambo — create rich, interactive React component
 
 For deeper implementation details beyond bootstrap flow, load:
 
-- [components](../build-with-tambo/references/components.md)
-- [component-rendering](../build-with-tambo/references/component-rendering.md)
-- [threads](../build-with-tambo/references/threads.md)
-- [tools-and-context](../build-with-tambo/references/tools-and-context.md)
-- [cli](../build-with-tambo/references/cli.md)
+- [components](references/components.md)
+- [component-rendering](references/component-rendering.md)
+- [threads](references/threads.md)
+- [tools-and-context](references/tools-and-context.md)
+- [cli](references/cli.md)
+
+These references are duplicated across both skills so each skill works independently.
 
 ## One-Prompt Flow
 
