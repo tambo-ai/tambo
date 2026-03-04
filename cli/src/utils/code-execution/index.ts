@@ -22,11 +22,8 @@ function debug(msg: string, ...args: unknown[]): void {
 import chalk from "chalk";
 import inquirer from "inquirer";
 import ora from "ora";
-import {
-  createTamboClient,
-  createToolRegistry,
-  executeRun,
-} from "@tambo-ai/client-core";
+import { EventType } from "@ag-ui/core";
+import { TamboClient, type TamboTool } from "@tambo-ai/client";
 import {
   createBackup,
   restoreBackups,
@@ -49,6 +46,40 @@ import type {
   BackupManifest,
   InstallationPlan,
 } from "./types.js";
+
+/**
+ * Wrap a TamboTool with side-effect callbacks for tracking and retry limiting.
+ * Keeps tool definitions pure while injecting orchestration concerns.
+ *
+ * @returns A new TamboTool with wrapped `tool` function
+ */
+function wrapTool(
+  baseTool: TamboTool,
+  callbacks: {
+    onExecute: (name: string, input: unknown) => void;
+    onSuccess: (name: string, input: unknown, result: unknown) => void;
+    onError: (name: string, input: unknown, err: Error) => void;
+  },
+): TamboTool {
+  return {
+    ...baseTool,
+    async tool(input: unknown) {
+      callbacks.onExecute(baseTool.name, input);
+      try {
+        const result = await baseTool.tool(input);
+        callbacks.onSuccess(baseTool.name, input, result);
+        return result;
+      } catch (err) {
+        callbacks.onError(
+          baseTool.name,
+          input,
+          err instanceof Error ? err : new Error(String(err)),
+        );
+        throw err;
+      }
+    },
+  };
+}
 
 /** Options for executeCodeChanges */
 export interface ExecuteCodeChangesOptions {
@@ -178,43 +209,38 @@ export async function executeCodeChanges(
       await createBackup(filePath, manifest);
     }
 
-    // Set up tool registry with filesystem tools
+    // Set up wrapped tools with tracking side effects
     spinner.text = "Setting up execution agent...";
-    const registry = createToolRegistry();
 
     // Track consecutive failures per tool for retry limiting
     const MAX_CONSECUTIVE_FAILURES = 3;
     const consecutiveFailures = new Map<string, number>();
 
-    for (const tool of agentTools) {
-      registry.register({
-        ...tool,
-        execute: async (input: unknown) => {
+    const wrappedTools = agentTools.map((tool) =>
+      wrapTool(tool, {
+        onExecute: (name, input) => {
           const typedInput = input as Record<string, unknown>;
 
           // Check retry limit before executing
-          const failures = consecutiveFailures.get(tool.name) ?? 0;
+          const failures = consecutiveFailures.get(name) ?? 0;
           if (failures >= MAX_CONSECUTIVE_FAILURES) {
-            const msg = `Tool "${tool.name}" failed ${MAX_CONSECUTIVE_FAILURES} times consecutively. Skipping to avoid infinite loop.`;
+            const msg = `Tool "${name}" failed ${MAX_CONSECUTIVE_FAILURES} times consecutively. Skipping to avoid infinite loop.`;
             debug(msg);
             throw new Error(msg);
           }
 
           // Update spinner with tool activity
-          if (
-            tool.name === "readFile" &&
-            typeof typedInput.filePath === "string"
-          ) {
+          if (name === "readFile" && typeof typedInput.filePath === "string") {
             setStatus(`Reading ${typedInput.filePath}`);
             filesRead.add(typedInput.filePath);
           } else if (
-            tool.name === "writeFile" &&
+            name === "writeFile" &&
             typeof typedInput.filePath === "string"
           ) {
             setStatus(`Writing ${typedInput.filePath}`);
             filesWritten.add(typedInput.filePath);
           } else if (
-            tool.name === "readFiles" &&
+            name === "readFiles" &&
             Array.isArray(typedInput.filePaths)
           ) {
             const paths = typedInput.filePaths as string[];
@@ -222,80 +248,74 @@ export async function executeCodeChanges(
             for (const p of paths) {
               filesRead.add(p);
             }
-          } else if (tool.name === "listFiles") {
+          } else if (name === "listFiles") {
             const dir =
               typeof typedInput.dirPath === "string" ? typedInput.dirPath : ".";
             setStatus(`Listing files in ${dir}`);
           }
 
-          debug(`Executing tool: ${tool.name}`, typedInput);
-          try {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any -- generic tool execution
-            const result = await (tool as any).execute(input);
-            debug(`Tool ${tool.name} completed`, typeof result);
+          debug(`Executing tool: ${name}`, typedInput);
+        },
+        onSuccess: (name, input, result) => {
+          debug(`Tool ${name} completed`, typeof result);
+          consecutiveFailures.set(name, 0);
 
-            // Success resets consecutive failure count
-            consecutiveFailures.set(tool.name, 0);
+          const typedInput = input as Record<string, unknown>;
 
-            // Update plan tracking state after execution
-            if (tool.name === "submitPlan" && result?.steps) {
-              planSteps = result.steps as PlanStep[];
+          // Update plan tracking state after execution
+          if (
+            name === "submitPlan" &&
+            result &&
+            typeof result === "object" &&
+            "steps" in result
+          ) {
+            planSteps = (result as { steps: PlanStep[] }).steps;
 
-              setProgress(
-                0,
-                planSteps.length,
-                planSteps[0]?.description ?? "Starting...",
-              );
-            } else if (tool.name === "updatePlan") {
-              // Mark the step done in our local copy
-              const stepId = typedInput.stepId as string;
-              const doneStep = planSteps.find((s) => s.id === stepId);
-              if (doneStep) {
-                doneStep.status = "done";
-              }
-
-              const doneCount = planSteps.filter(
-                (s) => s.status === "done",
-              ).length;
-
-              const next = planSteps.find((s) => s.status === "pending");
-              setProgress(
-                doneCount,
-                planSteps.length,
-                next?.description ?? "All steps complete",
-              );
+            setProgress(
+              0,
+              planSteps.length,
+              planSteps[0]?.description ?? "Starting...",
+            );
+          } else if (name === "updatePlan") {
+            const stepId = typedInput.stepId as string;
+            const doneStep = planSteps.find((s) => s.id === stepId);
+            if (doneStep) {
+              doneStep.status = "done";
             }
 
-            return result;
-          } catch (err) {
-            const count = (consecutiveFailures.get(tool.name) ?? 0) + 1;
-            consecutiveFailures.set(tool.name, count);
+            const doneCount = planSteps.filter(
+              (s) => s.status === "done",
+            ).length;
 
-            const errMsg = err instanceof Error ? err.message : String(err);
-            debug(
-              `Tool ${tool.name} failed (${count}/${MAX_CONSECUTIVE_FAILURES}): ${errMsg}`,
+            const next = planSteps.find((s) => s.status === "pending");
+            setProgress(
+              doneCount,
+              planSteps.length,
+              next?.description ?? "All steps complete",
             );
-            setStatus(
-              `Error in ${tool.name}: ${errMsg} (retry ${count}/${MAX_CONSECUTIVE_FAILURES})`,
-            );
-
-            // Re-throw so the registry catches it and sends the error back to the model
-            throw err;
           }
         },
-      });
-    }
+        onError: (name, _input, err) => {
+          const count = (consecutiveFailures.get(name) ?? 0) + 1;
+          consecutiveFailures.set(name, count);
 
-    // Create Tambo client and thread
+          debug(
+            `Tool ${name} failed (${count}/${MAX_CONSECUTIVE_FAILURES}): ${err.message}`,
+          );
+          setStatus(
+            `Error in ${name}: ${err.message} (retry ${count}/${MAX_CONSECUTIVE_FAILURES})`,
+          );
+        },
+      }),
+    );
+
+    // Create Tambo client with tools
     spinner.text = "Creating execution thread...";
-    const client = createTamboClient({
+    const client = new TamboClient({
       apiKey: options.apiKey,
       userKey: options.userKey ?? "cli",
-      ...(options.baseUrl ? { baseUrl: options.baseUrl } : {}),
-    });
-
-    const thread = await client.threads.create({
-      metadata: { purpose: "magic-init-execution" },
+      ...(options.baseUrl ? { tamboUrl: options.baseUrl } : {}),
+      tools: wrappedTools,
     });
 
     // Pre-install chat widget via `tambo add` if selected
@@ -321,107 +341,144 @@ export async function executeCodeChanges(
     );
 
     // Execute the agentic loop
-    debug("Starting agentic loop", { threadId: thread.id });
+    debug("Starting agentic loop");
     debug("Prompt length:", prompt.length);
     spinner.text = "Waiting for agent...";
     const SOFT_ROUND_LIMIT = 50;
     let extendedLimit = false;
-    await executeRun(client, thread.id, prompt, {
-      tools: registry,
-      maxToolRounds: 200,
-      async onRoundComplete(round: number) {
-        debug(`Round ${round} complete`);
-        if (round === SOFT_ROUND_LIMIT && !extendedLimit) {
-          spinner.stop();
+    let isCancelledByUser = false;
 
-          // Reprint the progress block so it's visible above the prompt
-          if (planSteps.length > 0) {
-            const doneCount = planSteps.filter(
-              (s) => s.status === "done",
-            ).length;
-            writeProgressBlock(doneCount, planSteps.length);
-          }
+    /**
+     * Run the agentic stream, iterating events for UI updates.
+     * Uses autoExecuteTools so the stream handles tool call loops internally.
+     * Returns the thread ID for continuation runs.
+     *
+     * @returns The thread ID from the completed run
+     */
+    async function runStream(
+      message: string,
+      runOptions: { threadId?: string; maxSteps: number },
+    ): Promise<string | undefined> {
+      const stream = client.run(message, {
+        threadId: runOptions.threadId,
+        autoExecuteTools: true,
+        maxSteps: runOptions.maxSteps,
+      });
 
-          if (options.yes) {
-            // Non-interactive: just keep going
-            extendedLimit = true;
-            spinner.start("Agent is working...");
-            return true;
-          }
-          const { shouldContinue } = await inquirer.prompt<{
-            shouldContinue: boolean;
-          }>([
-            {
-              type: "confirm",
-              name: "shouldContinue",
-              message: `Agent has used ${round} tool rounds. Continue?`,
-              default: true,
-            },
-          ]);
-          if (!shouldContinue) {
-            return false;
-          }
-          extendedLimit = true;
-          spinner.start("Agent is working...");
-        }
-        return true;
-      },
-      onEvent: (event: unknown) => {
-        const data = event as {
-          type: string;
-          delta?: string;
-          toolCallName?: string;
-          toolCallId?: string;
-        };
+      let threadId: string | undefined = runOptions.threadId;
 
+      for await (const { event } of stream) {
+        const data = event as Record<string, unknown>;
         debug(
-          `Event: ${data.type}`,
+          `Event: ${event.type}`,
           data.toolCallName ?? data.toolCallId ?? "",
         );
 
-        switch (data.type) {
-          case "RUN_STARTED":
+        switch (event.type) {
+          case EventType.RUN_STARTED:
             setStatus("Agent is thinking...");
+            if (typeof data.threadId === "string") {
+              threadId = data.threadId;
+            }
             break;
-          case "TEXT_MESSAGE_CONTENT":
-            if (data.delta) {
+          case EventType.TEXT_MESSAGE_CONTENT:
+            if (typeof data.delta === "string" && data.delta) {
               setStatus("Agent is working...");
               options.onProgress?.(data.delta);
             }
             break;
-          case "TOOL_CALL_START":
-            setStatus(`Calling ${data.toolCallName ?? "tool"}...`);
-            if (data.toolCallId && data.toolCallName) {
+          case EventType.TOOL_CALL_START:
+            setStatus(
+              `Calling ${typeof data.toolCallName === "string" ? data.toolCallName : "tool"}...`,
+            );
+            if (
+              typeof data.toolCallId === "string" &&
+              typeof data.toolCallName === "string"
+            ) {
               toolCallNames.set(data.toolCallId, data.toolCallName);
             }
             break;
-          case "TOOL_CALL_ARGS":
-            {
-              // Keep spinner alive during arg streaming so it doesn't look frozen
-              const toolName = data.toolCallId
+          case EventType.TOOL_CALL_ARGS: {
+            const toolName =
+              typeof data.toolCallId === "string"
                 ? toolCallNames.get(data.toolCallId)
                 : undefined;
-              setStatus(`Receiving ${toolName ?? "tool"} data...`);
-              break;
-            }
+            setStatus(`Receiving ${toolName ?? "tool"} data...`);
             break;
-          case "TOOL_CALL_END":
+          }
+          case EventType.TOOL_CALL_END:
             debug(`Tool call ended: ${data.toolCallId}`);
             break;
-          case "RUN_FINISHED":
+          case EventType.RUN_FINISHED:
             debug("Run finished");
             break;
-          case "RUN_ERROR":
+          case EventType.RUN_ERROR:
             debug("Run error", data);
             setStatus(
               chalk.red(
-                `Agent error: ${(data as { message?: string }).message ?? "unknown error"}`,
+                `Agent error: ${typeof data.message === "string" ? data.message : "unknown error"}`,
               ),
             );
             break;
         }
-      },
-    });
+      }
+
+      return threadId;
+    }
+
+    // First run: use soft round limit as maxSteps
+    const threadId = await runStream(prompt, { maxSteps: SOFT_ROUND_LIMIT });
+
+    // Check if we hit the soft limit and need to continue
+    // The stream completes when maxSteps is reached with pending tool calls.
+    // We check plan progress to determine if more rounds are needed.
+    const hasPendingWork =
+      planSteps.length > 0 && planSteps.some((s) => s.status === "pending");
+
+    if (hasPendingWork && !extendedLimit) {
+      spinner.stop();
+
+      // Reprint the progress block so it's visible above the prompt
+      if (planSteps.length > 0) {
+        const doneCount = planSteps.filter((s) => s.status === "done").length;
+        writeProgressBlock(doneCount, planSteps.length);
+      }
+
+      if (options.yes) {
+        // Non-interactive: just keep going
+        extendedLimit = true;
+        spinner.start("Agent is working...");
+      } else {
+        const { shouldContinue } = await inquirer.prompt<{
+          shouldContinue: boolean;
+        }>([
+          {
+            type: "confirm",
+            name: "shouldContinue",
+            message: `Agent has used ${SOFT_ROUND_LIMIT} tool rounds. Continue?`,
+            default: true,
+          },
+        ]);
+        if (!shouldContinue) {
+          isCancelledByUser = true;
+        } else {
+          extendedLimit = true;
+          spinner.start("Agent is working...");
+        }
+      }
+
+      // Continue on the same thread with remaining budget
+      if (extendedLimit && threadId) {
+        await runStream("Continue executing the remaining plan steps.", {
+          threadId,
+          maxSteps: 200 - SOFT_ROUND_LIMIT,
+        });
+      }
+    }
+
+    if (isCancelledByUser) {
+      throw new Error("Execution aborted by user at soft round limit");
+    }
 
     // Install dependencies
     spinner.text = "Installing dependencies...";
@@ -462,7 +519,7 @@ export async function executeCodeChanges(
     return result;
   } catch (err) {
     const errMsg = err instanceof Error ? err.message : String(err);
-    const isCancelled = errMsg.includes("aborted by onRoundComplete");
+    const isCancelled = errMsg.includes("aborted by user at soft round limit");
 
     spinner.prefixText = "";
 

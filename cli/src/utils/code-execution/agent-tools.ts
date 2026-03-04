@@ -5,7 +5,7 @@
  * to read, write, and list files during code execution.
  */
 
-import type { ToolDefinition } from "@tambo-ai/client-core";
+import type { TamboTool } from "@tambo-ai/client";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { z } from "zod";
@@ -46,7 +46,7 @@ function resolvePath(filePath: string): string {
 /**
  * Tool: read a file's contents
  */
-export const readFileTool: ToolDefinition<
+export const readFileTool: TamboTool<
   z.infer<typeof readFileInputSchema>,
   string
 > = {
@@ -54,7 +54,8 @@ export const readFileTool: ToolDefinition<
   description:
     "Read the contents of a file. Returns the file content as a string.",
   inputSchema: readFileInputSchema,
-  async execute({ filePath }) {
+  outputSchema: z.string(),
+  async tool({ filePath }) {
     const resolved = resolvePath(filePath);
     return await fs.readFile(resolved, "utf-8");
   },
@@ -63,7 +64,7 @@ export const readFileTool: ToolDefinition<
 /**
  * Tool: write content to a file, creating directories as needed
  */
-export const writeFileTool: ToolDefinition<
+export const writeFileTool: TamboTool<
   z.infer<typeof writeFileInputSchema>,
   string
 > = {
@@ -71,7 +72,8 @@ export const writeFileTool: ToolDefinition<
   description:
     "Write content to a file. Creates parent directories if they don't exist. Returns the absolute path of the written file.",
   inputSchema: writeFileInputSchema,
-  async execute({ filePath, content }) {
+  outputSchema: z.string(),
+  async tool({ filePath, content }) {
     const resolved = resolvePath(filePath);
     await fs.mkdir(path.dirname(resolved), { recursive: true });
     await fs.writeFile(resolved, content, "utf-8");
@@ -124,7 +126,7 @@ async function listFilesRecursive(
 /**
  * Tool: list files in a directory
  */
-export const listFilesTool: ToolDefinition<
+export const listFilesTool: TamboTool<
   z.infer<typeof listFilesInputSchema>,
   string[]
 > = {
@@ -132,7 +134,8 @@ export const listFilesTool: ToolDefinition<
   description:
     "List files in a directory. Optionally filter by file extension suffix (e.g. '.tsx'). Returns an array of relative file paths. Automatically excludes node_modules, .git, and other build directories.",
   inputSchema: listFilesInputSchema,
-  async execute({ dirPath, pattern }) {
+  outputSchema: z.array(z.string()),
+  async tool({ dirPath, pattern }) {
     const resolved = resolvePath(dirPath);
     let files = await listFilesRecursive(resolved, resolved);
 
@@ -153,7 +156,15 @@ const readFilesInputSchema = z.object({
 /**
  * Tool: read multiple files in a single call
  */
-export const readFilesTool: ToolDefinition<
+const readFilesOutputSchema = z.array(
+  z.object({
+    filePath: z.string(),
+    content: z.string().optional(),
+    error: z.string().optional(),
+  }),
+);
+
+export const readFilesTool: TamboTool<
   z.infer<typeof readFilesInputSchema>,
   { filePath: string; content?: string; error?: string }[]
 > = {
@@ -161,7 +172,8 @@ export const readFilesTool: ToolDefinition<
   description:
     "Read multiple files at once. Returns an array of objects with filePath and content (or error if the file could not be read).",
   inputSchema: readFilesInputSchema,
-  async execute({ filePaths }) {
+  outputSchema: readFilesOutputSchema,
+  async tool({ filePaths }) {
     return await Promise.all(
       filePaths.map(async (filePath) => {
         try {
@@ -226,7 +238,13 @@ const PLAN_FILE = ".tambo/execution-plan.md";
 /**
  * Tool: submit an execution plan with steps
  */
-export const submitPlanTool: ToolDefinition<
+const planStepSchema = z.object({
+  id: z.string(),
+  description: z.string(),
+  status: z.enum(["pending", "done"]),
+});
+
+export const submitPlanTool: TamboTool<
   z.infer<typeof submitPlanInputSchema>,
   { steps: PlanStep[] }
 > = {
@@ -234,7 +252,8 @@ export const submitPlanTool: ToolDefinition<
   description:
     "Submit a structured execution plan before making changes. Call this first with parallel arrays of step IDs and descriptions.",
   inputSchema: submitPlanInputSchema,
-  async execute({ stepIds, stepDescriptions }) {
+  outputSchema: z.object({ steps: z.array(planStepSchema) }),
+  async tool({ stepIds, stepDescriptions }) {
     const planSteps: PlanStep[] = stepIds.map((id, i) => ({
       id,
       description: stepDescriptions[i] ?? id,
@@ -254,7 +273,7 @@ const updatePlanInputSchema = z.object({
 /**
  * Tool: mark a plan step as done
  */
-export const updatePlanTool: ToolDefinition<
+export const updatePlanTool: TamboTool<
   z.infer<typeof updatePlanInputSchema>,
   { remaining: number }
 > = {
@@ -262,7 +281,8 @@ export const updatePlanTool: ToolDefinition<
   description:
     "Mark a plan step as done after completing it. Returns the number of remaining steps.",
   inputSchema: updatePlanInputSchema,
-  async execute({ stepId }) {
+  outputSchema: z.object({ remaining: z.number() }),
+  async tool({ stepId }) {
     const resolved = resolvePath(PLAN_FILE);
     const content = await fs.readFile(resolved, "utf-8");
 

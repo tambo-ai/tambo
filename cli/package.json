@@ -56,7 +56,8 @@
     ]
   },
   "dependencies": {
-    "@tambo-ai/client-core": "*",
+    "@ag-ui/core": "^0.0.44",
+    "@tambo-ai/client": "*",
     "@tambo-ai/react": "*",
     "@tambo-ai/typescript-sdk": "^0.93.1",
     "@trpc/client": "^11.10.0",

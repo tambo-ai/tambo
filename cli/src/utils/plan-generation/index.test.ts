@@ -5,19 +5,62 @@
 import { jest } from "@jest/globals";
 import type { ProjectAnalysis } from "../project-analysis/types.js";
 
-// Mock client-core module BEFORE importing index
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const mockCreateTamboClient = jest.fn() as any;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const mockExecuteRun = jest.fn() as any;
+// Mock @ag-ui/core EventType enum
+const MockEventType = {
+  RUN_STARTED: "RUN_STARTED",
+  TEXT_MESSAGE_CONTENT: "TEXT_MESSAGE_CONTENT",
+  RUN_FINISHED: "RUN_FINISHED",
+  RUN_ERROR: "RUN_ERROR",
+  TOOL_CALL_START: "TOOL_CALL_START",
+  TOOL_CALL_ARGS: "TOOL_CALL_ARGS",
+  TOOL_CALL_END: "TOOL_CALL_END",
+  CUSTOM: "CUSTOM",
+} as const;
 
-jest.unstable_mockModule("@tambo-ai/client-core", () => ({
-  createTamboClient: mockCreateTamboClient,
-  executeRun: mockExecuteRun,
+jest.unstable_mockModule("@ag-ui/core", () => ({
+  EventType: MockEventType,
+}));
+
+// Mock @tambo-ai/client
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const mockRun = jest.fn() as any;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const mockTamboClientConstructor = jest.fn() as any;
+
+jest.unstable_mockModule("@tambo-ai/client", () => ({
+  TamboClient: class {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    constructor(opts: any) {
+      mockTamboClientConstructor(opts);
+      this.run = mockRun;
+    }
+    run = mockRun;
+  },
 }));
 
 // Dynamic import after mocking
 const { generatePlan } = await import("./index.js");
+
+/**
+ * Helper: create a mock async iterable stream from events
+ */
+function createMockStream(
+  events: { type: string; delta?: string }[],
+): AsyncIterable<{ event: { type: string; delta?: string } }> {
+  return {
+    [Symbol.asyncIterator]() {
+      let i = 0;
+      return {
+        async next() {
+          if (i < events.length) {
+            return { value: { event: events[i++] }, done: false };
+          }
+          return { value: undefined, done: true };
+        },
+      };
+    },
+  };
+}
 
 describe("generatePlan", () => {
   const mockProjectAnalysis: ProjectAnalysis = {
@@ -45,47 +88,36 @@ describe("generatePlan", () => {
     toolCandidates: [],
   };
 
-  const mockThread = {
-    id: "test-thread-123",
-    createdAt: "2024-01-01T00:00:00Z",
-    updatedAt: "2024-01-01T00:00:00Z",
-    runStatus: "idle" as const,
-  };
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const mockThreadsCreate = jest.fn() as any;
-  const mockClient = {
-    sdk: {},
-    threads: {
-      create: mockThreadsCreate,
+  const validPlanJson = JSON.stringify({
+    providerSetup: {
+      filePath: "/app/layout.tsx",
+      nestingLevel: 0,
+      rationale: "Main layout file",
+      confidence: 0.9,
     },
-  };
+    componentRecommendations: [],
+    toolRecommendations: [],
+    interactableRecommendations: [],
+    chatWidgetSetup: {
+      filePath: "/app/layout.tsx",
+      position: "bottom-right",
+      rationale: "Standard placement",
+      confidence: 0.8,
+    },
+  });
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockCreateTamboClient.mockReturnValue(mockClient);
-    mockThreadsCreate.mockResolvedValue(mockThread);
   });
 
   it("creates TamboClient with provided apiKey and baseUrl", async () => {
-    const validPlan = JSON.stringify({
-      providerSetup: {
-        filePath: "/app/layout.tsx",
-        nestingLevel: 0,
-        rationale: "Main layout file",
-        confidence: 0.9,
-      },
-      componentRecommendations: [],
-      toolRecommendations: [],
-      interactableRecommendations: [],
-      chatWidgetSetup: {
-        filePath: "/app/layout.tsx",
-        position: "bottom-right",
-        rationale: "Standard placement",
-        confidence: 0.8,
-      },
-    });
-
-    mockExecuteRun.mockResolvedValue(validPlan);
+    mockRun.mockReturnValue(
+      createMockStream([
+        { type: MockEventType.RUN_STARTED },
+        { type: MockEventType.TEXT_MESSAGE_CONTENT, delta: validPlanJson },
+        { type: MockEventType.RUN_FINISHED },
+      ]),
+    );
 
     await generatePlan({
       projectAnalysis: mockProjectAnalysis,
@@ -93,117 +125,62 @@ describe("generatePlan", () => {
       baseUrl: "https://api.test.com",
     });
 
-    expect(mockCreateTamboClient).toHaveBeenCalledWith({
+    expect(mockTamboClientConstructor).toHaveBeenCalledWith({
       apiKey: "sk_test_123",
       userKey: "cli",
-      baseUrl: "https://api.test.com",
+      tamboUrl: "https://api.test.com",
     });
   });
 
-  it("creates thread for plan generation", async () => {
-    const validPlan = JSON.stringify({
-      providerSetup: {
-        filePath: "/app/layout.tsx",
-        nestingLevel: 0,
-        rationale: "Main layout file",
-        confidence: 0.9,
-      },
-      componentRecommendations: [],
-      toolRecommendations: [],
-      interactableRecommendations: [],
-      chatWidgetSetup: {
-        filePath: "/app/layout.tsx",
-        position: "bottom-right",
-        rationale: "Standard placement",
-        confidence: 0.8,
-      },
-    });
-
-    mockExecuteRun.mockResolvedValue(validPlan);
+  it("passes prompt to client.run with autoExecuteTools: false", async () => {
+    mockRun.mockReturnValue(
+      createMockStream([
+        { type: MockEventType.RUN_STARTED },
+        { type: MockEventType.TEXT_MESSAGE_CONTENT, delta: validPlanJson },
+        { type: MockEventType.RUN_FINISHED },
+      ]),
+    );
 
     await generatePlan({
       projectAnalysis: mockProjectAnalysis,
       apiKey: "sk_test_123",
     });
 
-    expect(mockThreadsCreate).toHaveBeenCalled();
-  });
-
-  it("passes buildPlanPrompt output to executeRun", async () => {
-    const validPlan = JSON.stringify({
-      providerSetup: {
-        filePath: "/app/layout.tsx",
-        nestingLevel: 0,
-        rationale: "Main layout file",
-        confidence: 0.9,
-      },
-      componentRecommendations: [],
-      toolRecommendations: [],
-      interactableRecommendations: [],
-      chatWidgetSetup: {
-        filePath: "/app/layout.tsx",
-        position: "bottom-right",
-        rationale: "Standard placement",
-        confidence: 0.8,
-      },
-    });
-
-    mockExecuteRun.mockResolvedValue(validPlan);
-
-    await generatePlan({
-      projectAnalysis: mockProjectAnalysis,
-      apiKey: "sk_test_123",
-    });
-
-    expect(mockExecuteRun).toHaveBeenCalledWith(
-      mockClient,
-      "test-thread-123",
+    expect(mockRun).toHaveBeenCalledWith(
       expect.stringContaining("Next.js"),
-      expect.any(Object),
+      expect.objectContaining({ autoExecuteTools: false }),
     );
   });
 
   it("calls onProgress callback with text deltas from streaming events", async () => {
-    const validPlan = JSON.stringify({
-      providerSetup: {
-        filePath: "/app/layout.tsx",
-        nestingLevel: 0,
-        rationale: "Main layout file",
-        confidence: 0.9,
-      },
-      componentRecommendations: [],
-      toolRecommendations: [],
-      interactableRecommendations: [],
-      chatWidgetSetup: {
-        filePath: "/app/layout.tsx",
-        position: "bottom-right",
-        rationale: "Standard placement",
-        confidence: 0.8,
-      },
-    });
-
     const progressChunks: string[] = [];
     const onProgress = jest.fn((chunk: string) => {
       progressChunks.push(chunk);
     });
 
-    // Mock executeRun to call onEvent with text deltas
-    mockExecuteRun.mockImplementation(
-      async (
-        _client: unknown,
-        _threadId: unknown,
-        _prompt: unknown,
-        options?: {
-          onEvent?: (event: { type: string; delta?: string }) => void;
+    mockRun.mockReturnValue(
+      createMockStream([
+        { type: MockEventType.RUN_STARTED },
+        { type: MockEventType.TEXT_MESSAGE_CONTENT, delta: "Hello" },
+        { type: MockEventType.TEXT_MESSAGE_CONTENT, delta: " world" },
+        {
+          type: MockEventType.TEXT_MESSAGE_CONTENT,
+          delta: validPlanJson.slice(0, 0),
         },
-      ) => {
-        // Simulate streaming events
-        options?.onEvent?.({ type: "RUN_STARTED" });
-        options?.onEvent?.({ type: "TEXT_MESSAGE_CONTENT", delta: "Hello" });
-        options?.onEvent?.({ type: "TEXT_MESSAGE_CONTENT", delta: " world" });
-        options?.onEvent?.({ type: "RUN_FINISHED" });
-        return validPlan;
-      },
+        { type: MockEventType.RUN_FINISHED },
+      ]),
+    );
+
+    // Need to provide valid JSON across all deltas
+    // Reset and use a simpler approach: full JSON in first delta
+    mockRun.mockReturnValue(
+      createMockStream([
+        { type: MockEventType.RUN_STARTED },
+        { type: MockEventType.TEXT_MESSAGE_CONTENT, delta: "Hello" },
+        { type: MockEventType.TEXT_MESSAGE_CONTENT, delta: " world " },
+        { type: MockEventType.TEXT_MESSAGE_CONTENT, delta: validPlanJson },
+        { type: MockEventType.RUN_FINISHED },
+      ]),
     );
 
     await generatePlan({
@@ -212,13 +189,14 @@ describe("generatePlan", () => {
       onProgress,
     });
 
-    expect(onProgress).toHaveBeenCalledTimes(2);
+    expect(onProgress).toHaveBeenCalledTimes(3);
     expect(onProgress).toHaveBeenNthCalledWith(1, "Hello");
-    expect(onProgress).toHaveBeenNthCalledWith(2, " world");
+    expect(onProgress).toHaveBeenNthCalledWith(2, " world ");
+    expect(onProgress).toHaveBeenNthCalledWith(3, validPlanJson);
   });
 
   it("successfully generates plan from valid JSON", async () => {
-    const validPlan = JSON.stringify({
+    const planWithComponent = JSON.stringify({
       providerSetup: {
         filePath: "/app/layout.tsx",
         nestingLevel: 0,
@@ -243,7 +221,13 @@ describe("generatePlan", () => {
       },
     });
 
-    mockExecuteRun.mockResolvedValue(validPlan);
+    mockRun.mockReturnValue(
+      createMockStream([
+        { type: MockEventType.RUN_STARTED },
+        { type: MockEventType.TEXT_MESSAGE_CONTENT, delta: planWithComponent },
+        { type: MockEventType.RUN_FINISHED },
+      ]),
+    );
 
     const result = await generatePlan({
       projectAnalysis: mockProjectAnalysis,
@@ -277,7 +261,16 @@ describe("generatePlan", () => {
   });
 
   it("throws descriptive error when model returns invalid JSON", async () => {
-    mockExecuteRun.mockResolvedValue("This is not JSON at all");
+    mockRun.mockReturnValue(
+      createMockStream([
+        { type: MockEventType.RUN_STARTED },
+        {
+          type: MockEventType.TEXT_MESSAGE_CONTENT,
+          delta: "This is not JSON at all",
+        },
+        { type: MockEventType.RUN_FINISHED },
+      ]),
+    );
 
     await expect(
       generatePlan({
@@ -304,7 +297,13 @@ describe("generatePlan", () => {
       },
     });
 
-    mockExecuteRun.mockResolvedValue(invalidPlan);
+    mockRun.mockReturnValue(
+      createMockStream([
+        { type: MockEventType.RUN_STARTED },
+        { type: MockEventType.TEXT_MESSAGE_CONTENT, delta: invalidPlan },
+        { type: MockEventType.RUN_FINISHED },
+      ]),
+    );
 
     await expect(
       generatePlan({

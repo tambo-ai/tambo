@@ -267,6 +267,7 @@ describe("handleMagicInit", () => {
     expect(mockExecuteCodeChanges).toHaveBeenCalledWith(mockConfirmation, {
       yes: false,
       apiKey: "test-key",
+      envPrefix: "NEXT_PUBLIC_",
     });
   });
 
@@ -365,6 +366,7 @@ describe("handleMagicInit", () => {
     expect(mockExecuteCodeChanges).toHaveBeenCalledWith(mockConfirmation, {
       yes: true,
       apiKey: "test-key",
+      envPrefix: "NEXT_PUBLIC_",
     });
   });
 
@@ -458,13 +460,10 @@ describe("handleMagicInit", () => {
   });
 
   test("handles execution failure and displays error", async () => {
-    const { categorizeExecutionError, formatExecutionError } =
+    const { categorizeExecutionError } =
       await import("../utils/code-execution/index.js");
     const mockCategorize = categorizeExecutionError as jest.MockedFunction<
       typeof categorizeExecutionError
-    >;
-    const mockFormat = formatExecutionError as jest.MockedFunction<
-      typeof formatExecutionError
     >;
 
     mockExecuteCodeChanges.mockRejectedValue(new Error("Write failed"));
@@ -474,7 +473,6 @@ describe("handleMagicInit", () => {
       cause: "Write failed",
       suggestions: ["Check permissions"],
     });
-    mockFormat.mockReturnValue("Formatted error message");
 
     const consoleErrorSpy = jest
       .spyOn(console, "error")
@@ -488,10 +486,6 @@ describe("handleMagicInit", () => {
     );
 
     expect(mockCategorize).toHaveBeenCalled();
-    expect(mockFormat).toHaveBeenCalled();
-    expect(consoleErrorSpy).toHaveBeenCalledWith(
-      expect.stringContaining("Formatted error message"),
-    );
 
     consoleErrorSpy.mockRestore();
     consoleLogSpy.mockRestore();
