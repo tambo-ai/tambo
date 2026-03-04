@@ -5,7 +5,7 @@ Convert existing React components into Tambo-registered components that AI can r
 ## Quick Start
 
 ```bash
-# Use this guide from /tambo:build-with-tambo
+# Start with the build-with-tambo skill, then follow this guide
 # Point to a component file or folder and implement the workflow below
 # Example targets:
 src/components/ProductCard.tsx
