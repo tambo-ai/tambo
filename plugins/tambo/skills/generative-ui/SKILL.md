@@ -1,11 +1,21 @@
 ---
 name: generative-ui
-description: Build generative UI apps with Tambo — one-shot generation of rich, interactive React components (dashboards, Three.js scenes, data visualizations, and more). Use when user wants to create a NEW generative UI project, build an AI-powered app with Tambo, or generate dynamic UI from natural language. For adding Tambo to EXISTING projects, use add-to-existing-project skill instead.
+description: Create a new Tambo generative UI app from scratch. Use for new projects where users describe UI in natural language and the app renders interactive React components.
 ---
 
 # Generative UI
 
 Build generative UI apps with Tambo — create rich, interactive React components from natural language.
+
+## Reference Guides
+
+For deeper implementation details beyond bootstrap flow, load:
+
+- [components](../build-with-tambo/references/components.md)
+- [component-rendering](../build-with-tambo/references/component-rendering.md)
+- [threads](../build-with-tambo/references/threads.md)
+- [tools-and-context](../build-with-tambo/references/tools-and-context.md)
+- [cli](../build-with-tambo/references/cli.md)
 
 ## One-Prompt Flow
 
