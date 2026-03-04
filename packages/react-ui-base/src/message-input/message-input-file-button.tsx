@@ -102,6 +102,10 @@ export const MessageInputFileButton = React.forwardRef<
         ref,
         render,
         state: renderProps,
+        stateAttributesMapping: {
+          openFilePicker: () => null,
+          fileInputRef: () => null,
+        },
         props: mergeProps(componentProps, {
           type: "button",
           onClick: handleClick,

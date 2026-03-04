@@ -66,7 +66,7 @@ describe("MessageContent rendering", () => {
           data-slot="message-content"
           data-hascontent
           data-markdown
-          class="relative block rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&amp;_p]:py-1 [&amp;_li]:list-item :not([data-markdown]):wrap-break-word"
+          class="relative rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&amp;_p]:py-1 [&amp;_li]:list-item hidden data-[hascontent]:flex justify-start shadow-none"
         >
           <div class="space-y-4 whitespace-normal *:first:mt-0 *:last:mb-0">
             <p class="my-0">
@@ -97,7 +97,7 @@ describe("MessageContent rendering", () => {
           data-slot="message-content"
           data-hascontent
           data-markdown
-          class="relative block rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&amp;_p]:py-1 [&amp;_li]:list-item :not([data-markdown]):wrap-break-word"
+          class="relative rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&amp;_p]:py-1 [&amp;_li]:list-item hidden data-[hascontent]:flex justify-start shadow-none"
         >
           <div class="space-y-4 whitespace-normal *:first:mt-0 *:last:mb-0">
             <p class="my-0">
@@ -127,7 +127,7 @@ describe("MessageContent rendering", () => {
           data-slot="message-content"
           data-hascontent
           data-markdown
-          class="relative block rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&amp;_p]:py-1 [&amp;_li]:list-item :not([data-markdown]):wrap-break-word"
+          class="relative rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&amp;_p]:py-1 [&amp;_li]:list-item hidden data-[hascontent]:flex justify-start shadow-none"
         >
           <div class="space-y-4 whitespace-normal *:first:mt-0 *:last:mb-0">
             <p class="my-0">
@@ -176,7 +176,7 @@ describe("MessageContent rendering", () => {
           data-slot="message-content"
           data-hascontent
           data-markdown
-          class="relative block rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&amp;_p]:py-1 [&amp;_li]:list-item :not([data-markdown]):wrap-break-word"
+          class="relative rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&amp;_p]:py-1 [&amp;_li]:list-item hidden data-[hascontent]:flex justify-start shadow-none"
         >
           <div class="space-y-4 whitespace-normal *:first:mt-0 *:last:mb-0">
             <p class="my-0">
@@ -217,7 +217,7 @@ describe("MessageContent rendering", () => {
           data-slot="message-content"
           data-hascontent
           data-markdown
-          class="relative block rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&amp;_p]:py-1 [&amp;_li]:list-item :not([data-markdown]):wrap-break-word"
+          class="relative rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&amp;_p]:py-1 [&amp;_li]:list-item hidden data-[hascontent]:flex justify-start shadow-none"
         >
           <div class="space-y-4 whitespace-normal *:first:mt-0 *:last:mb-0">
             <p class="my-0">
@@ -259,7 +259,7 @@ describe("MessageContent rendering", () => {
           data-slot="message-content"
           data-hascontent
           data-markdown
-          class="relative block rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&amp;_p]:py-1 [&amp;_li]:list-item :not([data-markdown]):wrap-break-word"
+          class="relative rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&amp;_p]:py-1 [&amp;_li]:list-item hidden data-[hascontent]:flex justify-start shadow-none"
         >
           <div class="space-y-4 whitespace-normal *:first:mt-0 *:last:mb-0">
             <p class="my-0">
@@ -304,7 +304,7 @@ describe("MessageContent rendering", () => {
           data-slot="message-content"
           data-hascontent
           data-markdown
-          class="relative block rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&amp;_p]:py-1 [&amp;_li]:list-item :not([data-markdown]):wrap-break-word"
+          class="relative rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&amp;_p]:py-1 [&amp;_li]:list-item hidden data-[hascontent]:flex justify-start shadow-none"
         >
           <div class="space-y-4 whitespace-normal *:first:mt-0 *:last:mb-0">
             <p class="my-0">
@@ -348,7 +348,7 @@ describe("MessageContent rendering", () => {
           data-slot="message-content"
           data-hascontent
           data-markdown
-          class="relative block rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&amp;_p]:py-1 [&amp;_li]:list-item :not([data-markdown]):wrap-break-word"
+          class="relative rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&amp;_p]:py-1 [&amp;_li]:list-item hidden data-[hascontent]:flex justify-start shadow-none"
         >
           <div class="space-y-4 whitespace-normal *:first:mt-0 *:last:mb-0">
             <p class="my-0">
@@ -401,7 +401,7 @@ describe("MessageContent rendering", () => {
           data-slot="message-content"
           data-hascontent
           data-markdown
-          class="relative block rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&amp;_p]:py-1 [&amp;_li]:list-item :not([data-markdown]):wrap-break-word"
+          class="relative rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&amp;_p]:py-1 [&amp;_li]:list-item hidden data-[hascontent]:flex justify-start shadow-none"
         >
           <div class="space-y-4 whitespace-normal *:first:mt-0 *:last:mb-0">
             <p class="my-0">
@@ -448,7 +448,7 @@ describe("MessageContent rendering", () => {
         <div
           data-slot="message-content"
           data-markdown
-          class="relative block rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&amp;_p]:py-1 [&amp;_li]:list-item :not([data-markdown]):wrap-break-word"
+          class="relative rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&amp;_p]:py-1 [&amp;_li]:list-item hidden data-[hascontent]:flex justify-start shadow-none"
         >
           <span class="text-muted-foreground italic">
             Empty message
@@ -473,7 +473,7 @@ describe("MessageContent rendering", () => {
         <div
           data-slot="message-content"
           data-markdown
-          class="relative block rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&amp;_p]:py-1 [&amp;_li]:list-item :not([data-markdown]):wrap-break-word"
+          class="relative rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&amp;_p]:py-1 [&amp;_li]:list-item hidden data-[hascontent]:flex justify-start shadow-none"
         >
           <span class="text-muted-foreground italic">
             Empty message
@@ -509,7 +509,7 @@ describe("MessageContent rendering", () => {
           data-slot="message-content"
           data-hascontent
           data-markdown
-          class="relative block rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&amp;_p]:py-1 [&amp;_li]:list-item :not([data-markdown]):wrap-break-word"
+          class="relative rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&amp;_p]:py-1 [&amp;_li]:list-item hidden data-[hascontent]:flex justify-start shadow-none"
         >
           <div class="space-y-4 whitespace-normal *:first:mt-0 *:last:mb-0">
             <p class="my-0">
@@ -539,7 +539,7 @@ describe("MessageContent rendering", () => {
           data-slot="message-content"
           data-hascontent
           data-markdown
-          class="relative block rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&amp;_p]:py-1 [&amp;_li]:list-item :not([data-markdown]):wrap-break-word"
+          class="relative rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&amp;_p]:py-1 [&amp;_li]:list-item hidden data-[hascontent]:flex justify-start shadow-none"
         >
           <div class="space-y-4 whitespace-normal *:first:mt-0 *:last:mb-0">
             <p class="my-0">
@@ -572,7 +572,7 @@ describe("MessageContent rendering", () => {
           data-slot="message-content"
           data-hascontent
           data-markdown
-          class="relative block rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&amp;_p]:py-1 [&amp;_li]:list-item :not([data-markdown]):wrap-break-word"
+          class="relative rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&amp;_p]:py-1 [&amp;_li]:list-item hidden data-[hascontent]:flex justify-start shadow-none"
         >
           <div class="space-y-4 whitespace-normal *:first:mt-0 *:last:mb-0">
             <p class="my-0">
