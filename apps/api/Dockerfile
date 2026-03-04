@@ -19,7 +19,7 @@ COPY turbo.json package.json package-lock.json ./
 COPY packages ./packages
 COPY apps/api ./apps/api
 
-RUN npx turbo@2.8.3 prune @tambo-ai-cloud/api --docker
+RUN npx turbo prune @tambo-ai-cloud/api --docker
 
 # ---- /installer ----
 
