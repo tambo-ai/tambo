@@ -2,6 +2,13 @@
 
 Two component types: **generative** (AI creates on-demand) and **interactable** (pre-placed, AI updates).
 
+## Contents
+
+- [Quick Start](#quick-start)
+- [Generative Components](#generative-components) — registration, ComponentRenderer, propsSchema
+- [Interactable Components](#interactable-components) — withTamboInteractable, auto-registration, bidirectional updates
+- [When to Use Each](#when-to-use-each)
+
 ## Quick Start
 
 ```tsx

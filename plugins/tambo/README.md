@@ -12,10 +12,10 @@ Build agents that speak your UI.
 
 ## Available Skills
 
-| Skill                    | Description                             | Triggers                                     |
-| ------------------------ | --------------------------------------- | -------------------------------------------- |
-| `tambo:generative-ui`    | Build generative UI apps from scratch   | "new project", "generative UI", "create app" |
-| `tambo:build-with-tambo` | Build with Tambo in existing React apps | "add Tambo", "existing project", "integrate" |
+| Skill                       | Description                             | Triggers                                     |
+| --------------------------- | --------------------------------------- | -------------------------------------------- |
+| `tambo:generative-ui`       | Build generative UI apps from scratch   | "new project", "generative UI", "create app" |
+| `tambo:building-with-tambo` | Build with Tambo in existing React apps | "add Tambo", "existing project", "integrate" |
 
 ## Usage
 
@@ -23,10 +23,16 @@ Skills are automatically selected based on your question, or invoke directly:
 
 ```
 /tambo:generative-ui              # Build new generative UI apps
-/tambo:build-with-tambo           # Build with Tambo in existing projects
+/tambo:building-with-tambo           # Build with Tambo in existing projects
 ```
 
-Deeper implementation guides are linked from `build-with-tambo` and live in `plugins/tambo/skills/build-with-tambo/references/` (components, rendering, threads, tools/context, CLI, and registry workflows).
+Deeper implementation guides are linked from `building-with-tambo` and live in `plugins/tambo/skills/building-with-tambo/references/` (components, rendering, threads, tools/context, CLI, and registry workflows).
+
+When shared reference docs are updated, sync them into `generative-ui/references` with:
+
+```bash
+plugins/tambo/scripts/sync-shared-skill-references.sh
+```
 
 ## Managing the Plugin
 

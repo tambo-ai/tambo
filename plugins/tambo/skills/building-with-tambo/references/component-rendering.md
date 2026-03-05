@@ -2,6 +2,13 @@
 
 Handles streaming props and persistent component state.
 
+## Contents
+
+- [Quick Start](#quick-start)
+- [Stream Status](#stream-status) — useTamboStreamStatus, per-prop status
+- [Component State](#component-state) — useTamboComponentState, persistence, debouncing
+- [Streaming Best Practices](#streaming-best-practices) — optional props, skeletons, optional chaining
+
 ## Quick Start
 
 ```tsx
