@@ -12,7 +12,7 @@
     "NOTICE"
   ],
   "scripts": {
-    "build": "tsc",
+    "build": "tsc -p tsconfig.build.json",
     "test": "jest",
     "test:cov": "jest --coverage",
     "test:watch": "jest --watch",
