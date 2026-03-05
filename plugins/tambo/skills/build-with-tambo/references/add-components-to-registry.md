@@ -1,18 +1,15 @@
----
-name: add-components-to-registry
-description: Registers existing React components with Tambo so AI can render them. Use when user wants to make their existing components available to AI, register components for generative UI, convert React components to Tambo components, or mentions /add-components-to-registry. For creating NEW components, see the components skill. For project setup, use add-to-existing-project or generative-ui skills.
----
-
 # Add Components to Registry
 
 Convert existing React components into Tambo-registered components that AI can render.
 
 ## Quick Start
 
-```bash
-# Point to a component file or folder
-/add-components-to-registry src/components/ProductCard.tsx
-/add-components-to-registry src/components/cards/
+```
+# Start with the build-with-tambo skill, then follow this guide
+# Point to a component file or folder and implement the workflow below
+# Example targets:
+src/components/ProductCard.tsx
+src/components/cards/
 ```
 
 ## Workflow

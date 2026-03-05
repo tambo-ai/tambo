@@ -1,8 +1,3 @@
----
-name: components
-description: Creates and registers Tambo components - generative (AI creates on-demand) and interactable (pre-placed, AI updates). Use when defining components, working with TamboComponent, withTamboInteractable, propsSchema, or registering components for AI to render or update.
----
-
 # Tambo Components
 
 Two component types: **generative** (AI creates on-demand) and **interactable** (pre-placed, AI updates).
