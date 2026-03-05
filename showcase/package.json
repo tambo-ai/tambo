@@ -25,6 +25,7 @@
     "@react-leaflet/core": "^2.1.0",
     "@tailwindcss/postcss": "^4.2.1",
     "@tailwindcss/typography": "^0.5.19",
+    "@tambo-ai/react-devtools": "*",
     "@tambo-ai/react": "*",
     "@tambo-ai/typescript-sdk": "^0.93.1",
     "@tambo-ai/ui-registry": "*",

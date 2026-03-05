@@ -38,6 +38,7 @@ function createMockRegistry(
   componentList: TamboRegistryContextType["componentList"] = {},
 ): TamboRegistryContextType {
   return {
+    __initialized: true,
     componentList,
     toolRegistry: {},
     componentToolAssociations: {},

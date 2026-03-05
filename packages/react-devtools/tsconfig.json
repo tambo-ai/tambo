@@ -1,0 +1,10 @@
+{
+  "extends": "@tambo-ai/typescript-config/react-library.json",
+  "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "types": ["vitest/globals"]
+  },
+  "include": ["src/**/*.ts", "src/**/*.tsx", "vitest.setup.ts"],
+  "exclude": ["dist", "node_modules"]
+}

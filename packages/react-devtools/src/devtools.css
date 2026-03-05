@@ -1,0 +1,68 @@
+.tdt-light {
+  --tdt-bg: oklch(1 0 0);
+  --tdt-text: oklch(0.16 0.03 265);
+  --tdt-text-muted: oklch(0.55 0.02 260);
+  --tdt-text-faint: oklch(0.7 0.02 255);
+  --tdt-text-code: oklch(0.35 0.02 260);
+  --tdt-accent: oklch(0.7 0.17 164);
+  --tdt-border: oklch(0.9 0.15 164 / 0.25);
+  --tdt-border-subtle: oklch(0.9 0.15 164 / 0.12);
+  --tdt-active-bg: oklch(0.9 0.15 164 / 0.15);
+  --tdt-code-bg: oklch(0.9 0.15 164 / 0.05);
+  --tdt-glow: oklch(0.9 0.15 164 / 0.6);
+  --tdt-glow-hover: oklch(0.9 0.15 164 / 0.8);
+  --tdt-shadow: oklch(0.9 0.15 164 / 0.1);
+}
+
+.tdt-dark {
+  --tdt-bg: oklch(19.2% 0.004 285);
+  --tdt-text: oklch(0.88 0.03 278);
+  --tdt-text-muted: oklch(0.74 0.02 271);
+  --tdt-text-faint: oklch(0.52 0.02 271);
+  --tdt-text-code: oklch(0.74 0.02 271);
+  --tdt-accent: oklch(0.92 0.14 164);
+  --tdt-border: oklch(0.9 0.15 164 / 0.16);
+  --tdt-border-subtle: oklch(0.9 0.15 164 / 0.08);
+  --tdt-active-bg: oklch(0.9 0.15 164 / 0.2);
+  --tdt-code-bg: oklch(0.9 0.15 164 / 0.04);
+  --tdt-glow: oklch(0.9 0.15 164 / 0.6);
+  --tdt-glow-hover: oklch(0.9 0.15 164 / 0.8);
+  --tdt-shadow: oklch(0.9 0.15 164 / 0.08);
+}
+
+/* Shiki dual-theme support: map shiki CSS variables to active theme */
+.tdt-light .tdt-schema-view .shiki,
+.tdt-light .tdt-schema-view .shiki span {
+  color: var(--shiki-light) !important;
+  background-color: transparent !important;
+  font-style: var(--shiki-light-font-style) !important;
+  font-weight: var(--shiki-light-font-weight) !important;
+}
+
+.tdt-dark .tdt-schema-view .shiki,
+.tdt-dark .tdt-schema-view .shiki span {
+  color: var(--shiki-dark) !important;
+  background-color: transparent !important;
+  font-style: var(--shiki-dark-font-style) !important;
+  font-weight: var(--shiki-dark-font-weight) !important;
+}
+
+.tdt-schema-view .shiki {
+  margin: 0;
+  padding: 0;
+  background: transparent !important;
+}
+
+/* Reset default outline on interactive elements within devtools */
+[data-tdt] button,
+[data-tdt] input,
+[data-tdt] [role="option"] {
+  outline: none;
+}
+
+/* Consistent focus-visible ring on all interactive elements */
+[data-tdt] :focus-visible {
+  outline: 2px solid var(--tdt-accent);
+  outline-offset: -2px;
+  border-radius: 4px;
+}
