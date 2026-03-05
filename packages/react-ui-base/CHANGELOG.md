@@ -1,5 +1,33 @@
 # Changelog
 
+## [1.0.0](https://github.com/tambo-ai/tambo/compare/@tambo-ai/react-ui-base-v0.0.1...@tambo-ai/react-ui-base-v1.0.0) (2026-03-05)
+
+
+### Features
+
+* **client:** extract @tambo-ai/client package from react-sdk ([#2442](https://github.com/tambo-ai/tambo/issues/2442)) ([8a245ba](https://github.com/tambo-ai/tambo/commit/8a245ba64972ba665da7b324b70c1d3cd1ec71b1))
+* **docs:** phase 6 - live demos, DemoPreview, and docs polish for react-ui-base ([#2515](https://github.com/tambo-ai/tambo/issues/2515)) ([40fc632](https://github.com/tambo-ai/tambo/commit/40fc632df2554cd610940c95a82415fe17a3f466))
+* **docs:** phase 7 - web consumer adoption docs, demos, and smoketest improvements ([#2540](https://github.com/tambo-ai/tambo/issues/2540)) ([be436ea](https://github.com/tambo-ai/tambo/commit/be436eaf5e5c498ebcbed67374419fcd0517dbf4))
+* **react-ui-base:** add McpPrompts and McpResources headless primitives ([#2512](https://github.com/tambo-ai/tambo/issues/2512)) ([459144d](https://github.com/tambo-ai/tambo/commit/459144d32acac499cd109f587fa6c5c2173f36e0))
+* **react-ui-base:** add ThreadContent headless primitives ([#2509](https://github.com/tambo-ai/tambo/issues/2509)) ([51dd31b](https://github.com/tambo-ai/tambo/commit/51dd31bc5c1dbdd865342114f268ce559c29087b))
+* **react-ui-base:** add ThreadHistory, ThreadDropdown base components ([#2504](https://github.com/tambo-ai/tambo/issues/2504)) ([52815e0](https://github.com/tambo-ai/tambo/commit/52815e07f60c64ea728d3d3363b5d4c168a69139))
+
+
+### Bug Fixes
+
+* **react-ui-base:** FileButton and Error component bugfixes ([#2559](https://github.com/tambo-ai/tambo/issues/2559)) ([ba79506](https://github.com/tambo-ai/tambo/commit/ba795063df2497a5449fcaace90f422378e1ebe1))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump @tambo-ai/typescript-sdk from 0.93.0 to 0.93.1 in the tambo-ai group ([#2533](https://github.com/tambo-ai/tambo/issues/2533)) ([97158c3](https://github.com/tambo-ai/tambo/commit/97158c36ca0514d34cdae57fc0ebd3031957b55c))
+* **main:** release @tambo-ai/react-ui-base 0.1.0-alpha.8 ([#2458](https://github.com/tambo-ai/tambo/issues/2458)) ([98cc02b](https://github.com/tambo-ai/tambo/commit/98cc02bb60a793243e68ec6a849e23cfe0d88828))
+
+
+### Code Refactoring
+
+* **react-ui-base:** harden useRender state/props split across primitives ([#2499](https://github.com/tambo-ai/tambo/issues/2499)) ([75c0d15](https://github.com/tambo-ai/tambo/commit/75c0d159daf62a9f82afefecafd1cbb8f8984a92))
+
 ## [0.1.0-alpha.8](https://github.com/tambo-ai/tambo/compare/@tambo-ai/react-ui-base-v0.1.0-alpha.7...@tambo-ai/react-ui-base-v0.1.0-alpha.8) (2026-02-27)
 
 ### Features
