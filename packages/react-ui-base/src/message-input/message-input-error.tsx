@@ -23,10 +23,13 @@ export interface MessageInputErrorState extends Record<string, unknown> {
 /**
  * Props for the MessageInput.Error component.
  */
-export type MessageInputErrorProps = useRender.ComponentProps<
+export interface MessageInputErrorProps extends useRender.ComponentProps<
   "p",
   MessageInputErrorState
->;
+> {
+  /** Keep the element mounted in the DOM when hidden. Defaults to false. */
+  keepMounted?: boolean;
+}
 
 /**
  * Error message component for displaying submission errors.
@@ -35,14 +38,15 @@ export type MessageInputErrorProps = useRender.ComponentProps<
 export const MessageInputError = React.forwardRef<
   HTMLParagraphElement,
   MessageInputErrorProps
->(({ children, ...props }, ref) => {
+>(({ children, keepMounted = false, ...props }, ref) => {
   const { error, submitError, imageError } = useMessageInputContext();
 
   const errorMessage = error?.message ?? submitError ?? imageError ?? null;
+  const hasError = !!errorMessage;
+  const isVisible = hasError || children != null;
 
-  // Don't render if no errors
   const { render, ...componentProps } = props;
-  const enabled = !!errorMessage || !!render || children != null;
+  const enabled = isVisible || keepMounted;
 
   const renderProps: MessageInputErrorState = {
     slot: "message-input-error",
@@ -60,7 +64,8 @@ export const MessageInputError = React.forwardRef<
     state: renderProps,
     props: mergeProps(componentProps, {
       children: children ?? errorMessage,
-      "data-state": errorMessage ? "error" : undefined,
+      "data-state": isVisible ? "visible" : "hidden",
+      "aria-hidden": !isVisible ? "true" : undefined,
     }),
   });
 });
