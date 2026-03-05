@@ -19,8 +19,8 @@ async function bootstrap() {
 
   const { httpAdapter } = app.get(HttpAdapterHost);
   app.useGlobalFilters(
-    new DomainExceptionFilter(),
     new SentryExceptionFilter(httpAdapter),
+    new DomainExceptionFilter(),
   );
 
   app.useGlobalPipes(new ValidationPipe({ transform: true }));

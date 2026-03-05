@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.144.1](https://github.com/tambo-ai/tambo/compare/api-v0.144.0...api-v0.144.1) (2026-03-05)
+
+
+### Bug Fixes
+
+* **api:** fix Docker image build ([#2551](https://github.com/tambo-ai/tambo/issues/2551)) ([925bfe8](https://github.com/tambo-ai/tambo/commit/925bfe80c288a1d4ba18caf06e88a1129911deb5))
+* **api:** return 4xx for DomainError instead of 500 ([#2557](https://github.com/tambo-ai/tambo/issues/2557)) ([9d58c01](https://github.com/tambo-ai/tambo/commit/9d58c01e2e330a2a7bc867edd10a1c7178b7ffde))
+
 ## [0.144.0](https://github.com/tambo-ai/tambo/compare/api-v0.143.3...api-v0.144.0) (2026-03-03)
 
 

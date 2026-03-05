@@ -1,11 +1,24 @@
 ---
-name: add-to-existing-project
-description: Integrates Tambo into EXISTING React projects by detecting the tech stack and adapting installation. Use when adding Tambo to an existing app, integrating with current frameworks, or when the user has an existing codebase they want to add AI/generative UI to. For starting a NEW generative UI project, use generative-ui skill instead. For registering existing components, use add-components-to-registry skill.
+name: build-with-tambo
+description: Build with Tambo in an existing React app. Use for existing codebases (providers, env vars, components, threads, tools). For brand-new apps, use generative-ui.
 ---
 
-# Add Tambo to Existing Project
+# Build with Tambo
 
 Detect tech stack and integrate Tambo while preserving existing patterns.
+
+## Reference Guides
+
+Use these guides when you need deeper implementation details for a specific area:
+
+- [Components](references/components.md) - Create and register Tambo components (generative and interactable).
+- [Component Rendering](references/component-rendering.md) - Handle streaming props, loading states, and persistent component state.
+- [Threads and Input](references/threads.md) - Manage conversations, suggestions, voice input, image attachments, and thread switching.
+- [Tools and Context](references/tools-and-context.md) - Add custom tools, MCP servers, context helpers, and resources.
+- [CLI Reference](references/cli.md) - Use `tambo init`, `tambo add`, and `create-app` with non-interactive flags and exit codes.
+- [Add Components to Registry](references/add-components-to-registry.md) - Convert existing React components into Tambo-ready registrations with schemas and descriptions.
+
+These references are duplicated across both skills so each skill works independently.
 
 ## Workflow
 

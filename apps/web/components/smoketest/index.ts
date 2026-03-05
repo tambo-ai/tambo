@@ -9,8 +9,3 @@ export { LinearIssueList } from "./linear-issue-list";
 export { LinearProjectList } from "./linear-project-list";
 export { LocalFileList, LocalFileContents } from "./local-file-list";
 export { StreamingStory } from "./streaming-story";
-export {
-  ThreadList,
-  type ThreadListProps,
-  type ThreadListThread,
-} from "./thread-list";

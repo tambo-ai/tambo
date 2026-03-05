@@ -7,10 +7,7 @@
   "commit-search-depth": 50,
   "packages": {
     "packages/react-ui-base": {
-      "component": "@tambo-ai/react-ui-base",
-      "versioning": "prerelease",
-      "prerelease": true,
-      "prerelease-type": "alpha"
+      "component": "@tambo-ai/react-ui-base"
     },
     "packages/client": {
       "component": "client",

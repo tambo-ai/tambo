@@ -171,12 +171,22 @@ export const createMessageItems = (
 
     // Errors
     if (isErrorMessage(message)) {
+      let errorMessageId = message.id;
+      if (message.role === "tool" && message.toolCallId) {
+        const parentMessage = messages.find(
+          (msg) => msg.toolCallRequest && msg.toolCallId === message.toolCallId,
+        );
+        if (parentMessage) {
+          errorMessageId = parentMessage.id;
+        }
+      }
+
       errorItems.push({
         id: `err-${message.id}`,
         type: "error",
         title: "Error detected",
         subtitle: `In ${message.role} message`,
-        messageId: message.id,
+        messageId: errorMessageId,
       });
     }
 
