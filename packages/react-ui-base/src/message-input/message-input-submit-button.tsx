@@ -30,8 +30,7 @@ export const MessageInputSubmitButton = React.forwardRef<
   HTMLButtonElement,
   MessageInputSubmitButtonProps
 >(({ keepMounted = false, tabIndex: propTabIndex, ...props }, ref) => {
-  const { isPending, isIdle, isUpdatingToken, submit } =
-    useMessageInputContext();
+  const { isPending, isIdle, isUpdatingToken } = useMessageInputContext();
 
   const disabled = isUpdatingToken;
   const hidden = isPending || (!isIdle && !isUpdatingToken);
@@ -52,9 +51,9 @@ export const MessageInputSubmitButton = React.forwardRef<
       state: hidden ? "hidden" : "visible",
     },
     props: mergeProps(componentProps, {
-      onClick: () => void submit(),
       disabled,
       tabIndex: effectiveTabIndex,
+      type: "submit",
       "aria-hidden": hidden ? "true" : undefined,
     }),
   });
