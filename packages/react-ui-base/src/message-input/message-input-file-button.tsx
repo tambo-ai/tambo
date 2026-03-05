@@ -25,14 +25,13 @@ type MessageInputFileButtonComponentProps = useRender.ComponentProps<
   MessageInputFileButtonState
 >;
 
-export interface MessageInputFileButtonProps
-  extends MessageInputFileButtonComponentProps {
+export interface MessageInputFileButtonProps extends MessageInputFileButtonComponentProps {
   /** Accept attribute for file input - defaults to image types */
   accept?: string;
   /** Allow multiple file selection */
   multiple?: boolean;
-  /** Custom styles for the hidden file input element */
-  inputStyles?: React.CSSProperties;
+  /** When true, removes the visually-hidden styles from the file input. Defaults to false. */
+  inputVisible?: boolean;
 }
 
 /**
@@ -43,7 +42,13 @@ export const MessageInputFileButton = React.forwardRef<
   MessageInputFileButtonProps
 >(
   (
-    { accept = "image/*", multiple = true, inputStyles, onClick, ...props },
+    {
+      accept = "image/*",
+      multiple = true,
+      inputVisible = false,
+      onClick,
+      ...props
+    },
     ref,
   ) => {
     const { addImages, images, setImageError } = useMessageInputContext();
@@ -125,17 +130,19 @@ export const MessageInputFileButton = React.forwardRef<
           multiple={multiple}
           onChange={handleFileChange}
           style={
-            inputStyles ?? {
-              position: "absolute",
-              width: 1,
-              height: 1,
-              padding: 0,
-              margin: -1,
-              overflow: "hidden",
-              clip: "rect(0, 0, 0, 0)",
-              whiteSpace: "nowrap",
-              borderWidth: 0,
-            }
+            inputVisible
+              ? undefined
+              : {
+                  position: "absolute",
+                  width: 1,
+                  height: 1,
+                  padding: 0,
+                  margin: -1,
+                  overflow: "hidden",
+                  clip: "rect(0, 0, 0, 0)",
+                  whiteSpace: "nowrap",
+                  borderWidth: 0,
+                }
           }
           aria-hidden="true"
         />

@@ -23,8 +23,10 @@ export interface MessageInputErrorState extends Record<string, unknown> {
 /**
  * Props for the MessageInput.Error component.
  */
-export interface MessageInputErrorProps
-  extends useRender.ComponentProps<"p", MessageInputErrorState> {
+export interface MessageInputErrorProps extends useRender.ComponentProps<
+  "p",
+  MessageInputErrorState
+> {
   /** Keep the element mounted in the DOM when hidden. Defaults to false. */
   keepMounted?: boolean;
 }
