@@ -1,6 +1,8 @@
 ---
 name: creating-styled-wrappers
 description: Creates styled wrapper components that compose headless/base compound components. Use when refactoring styled components to use base primitives, implementing opinionated design systems on top of headless components, or when the user mentions "use base components", "compose primitives", "styled wrapper", or "refactor to use base".
+metadata:
+  internal: true
 ---
 
 # Styling Compound Wrappers
