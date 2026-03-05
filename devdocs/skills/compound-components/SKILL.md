@@ -1,6 +1,8 @@
 ---
 name: building-compound-components
 description: Creates unstyled compound components that separate business logic from styles. Use when building headless UI primitives, creating component libraries, implementing Radix-style namespaced components, or when the user mentions "compound components", "headless", "unstyled", "primitives", or "render props".
+metadata:
+  internal: true
 ---
 
 # Building Compound Components

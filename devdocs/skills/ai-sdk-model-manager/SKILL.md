@@ -1,6 +1,8 @@
 ---
 name: ai-sdk-model-manager
 description: Manages AI SDK model configurations - updates packages, identifies missing models, adds new models with research, and updates documentation
+metadata:
+  internal: true
 ---
 
 # AI SDK Model Manager
