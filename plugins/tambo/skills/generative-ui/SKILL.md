@@ -1,6 +1,6 @@
 ---
 name: generative-ui
-description: Creates a new Tambo generative UI React app from scratch with AI-powered components, chat interface, and Zod schemas. Scaffolds with create-tambo-app, wires TamboProvider, and registers starter components. Use for brand-new projects where users describe UI in natural language. For existing apps, use building-with-tambo.
+description: Creates a new Tambo generative UI React app from scratch with AI-powered components, chat interface, and Zod schemas. Scaffolds with tambo create-app, wires TamboProvider, and registers starter components. Use for brand-new projects where users describe UI in natural language. For existing apps, use building-with-tambo.
 ---
 
 # Generative UI
@@ -269,10 +269,14 @@ npx tambo add thread-history --yes         # Conversation history sidebar
 
 ## Verification
 
-Tell the user how to verify the app works:
+Have the user verify the app works by:
 
-1. Open the app URL in a browser
-2. Type a prompt that should trigger one of the registered components (e.g., "Show me a stats card for monthly revenue")
-3. Verify the component renders with AI-generated props
+1. Opening the app URL in a browser
+2. Typing a prompt that should trigger one of the registered components (e.g., "Show me a stats card for monthly revenue")
+3. Verifying the component renders with AI-generated props
 
-If something doesn't work: check the registry includes the component, the description matches the prompt, and the dev server has no console errors.
+If something doesn't work:
+
+- Check the registry includes the component
+- Check the description matches the prompt
+- Check the dev server has no console errors
