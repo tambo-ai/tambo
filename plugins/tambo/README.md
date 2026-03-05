@@ -28,12 +28,6 @@ Skills are automatically selected based on your question, or invoke directly:
 
 Deeper implementation guides are linked from `building-with-tambo` and live in `plugins/tambo/skills/building-with-tambo/references/` (components, rendering, threads, tools/context, CLI, and registry workflows).
 
-When shared reference docs are updated, sync them into `generative-ui/references` with:
-
-```bash
-plugins/tambo/scripts/sync-shared-skill-references.sh
-```
-
 ## Managing the Plugin
 
 ```bash
