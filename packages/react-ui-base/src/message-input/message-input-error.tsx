@@ -65,7 +65,7 @@ export const MessageInputError = React.forwardRef<
     props: mergeProps(componentProps, {
       children: children ?? errorMessage,
       "data-state": isVisible ? "visible" : "hidden",
-      "aria-hidden": !isVisible,
+      "aria-hidden": !isVisible ? "true" : undefined,
     }),
   });
 });
