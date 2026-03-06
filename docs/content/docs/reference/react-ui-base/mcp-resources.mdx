@@ -92,7 +92,7 @@ Use the render prop on `List` to access filtered resources and count:
 | ------------------ | -------------------------------------- | ------------------------------------------------------- |
 | `onSelectResource` | `(uri: string, label: string) => void` | Optional. Callback invoked when a resource is selected. |
 
-Renders nothing when no MCP resources are available.
+Renders nothing when no MCP resources are available, not loading, and no search query is active.
 
 **Render state:**
 
@@ -129,10 +129,11 @@ No custom props. Provides the filtered resource collection through render state.
 
 **Render state:**
 
-| Field           | Type                  | Description                  |
-| --------------- | --------------------- | ---------------------------- |
-| `resources`     | `ListResourceEntry[]` | Array of filtered resources. |
-| `resourceCount` | `number`              | Count of filtered resources. |
+| Field           | Type                  | Description                       |
+| --------------- | --------------------- | --------------------------------- |
+| `resources`     | `ListResourceEntry[]` | Array of filtered resources.      |
+| `resourceCount` | `number`              | Count of filtered resources.      |
+| `hasSearch`     | `boolean`             | Whether a search query is active. |
 
 ### Item
 
@@ -149,6 +150,7 @@ No custom props. Provides the filtered resource collection through render state.
 | `uri`         | `string`              | The resource URI.          |
 | `name`        | `string \| undefined` | The resource display name. |
 | `description` | `string \| undefined` | The resource description.  |
+| `select`      | `() => void`          | Selects this resource.     |
 
 ## Accessibility
 

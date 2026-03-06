@@ -125,15 +125,19 @@ function CustomInput() {
 
 ### Message
 
-Renders the request message from `Root`.
+Renders the request message from `Root`. Supports `render` prop for custom rendering. Exposes `message` in render props.
 
 ### Fields
 
-Resolves `fields` from `request.requestedSchema` and renders default fields when no `children` or `render` is provided.
+Resolves `fields` from `request.requestedSchema` and renders default fields when no `children` or `render` is provided. Exposes `fields` and `single` in render props.
 
 ### Field
 
-Field-scoped container that provides field context for nested parts.
+Field-scoped container that provides field context for nested parts. Supports `render` prop with `field`, `kind`, `label`, `inputId`, `errorId`, `required`, and `invalid` in render props.
+
+| Prop    | Type               | Default  | Description                    |
+| ------- | ------------------ | -------- | ------------------------------ |
+| `field` | `ElicitationField` | Required | The field model from `Fields`. |
 
 Default children:
 
@@ -143,11 +147,11 @@ Default children:
 
 ### FieldLabel
 
-Renders the field label and required marker by default.
+Renders the field label and required marker by default. Supports `render` prop with `label`, `required`, and `inputId` in render props.
 
 ### FieldInput
 
-Input container with default typed input stack.
+Input container with default typed input stack. Supports `render` prop with `kind` in render props. Not rendered when the field kind is `"unsupported"`.
 
 Default children:
 
@@ -160,23 +164,35 @@ If you pass `children`, they replace this default stack.
 
 ### FieldBooleanInput
 
-Boolean yes/no buttons, enabled only for boolean schema fields.
+Boolean yes/no buttons, enabled only for boolean schema fields. Extends `React.HTMLAttributes<HTMLDivElement>` (minus `children`).
+
+| Prop               | Type                                   | Default | Description                               |
+| ------------------ | -------------------------------------- | ------- | ----------------------------------------- |
+| `trueLabel`        | `React.ReactNode`                      | `"Yes"` | Label for the true button.                |
+| `falseLabel`       | `React.ReactNode`                      | `"No"`  | Label for the false button.               |
+| `trueButtonProps`  | `React.ButtonHTMLAttributes` (partial) | —       | Extra props spread onto the true button.  |
+| `falseButtonProps` | `React.ButtonHTMLAttributes` (partial) | —       | Extra props spread onto the false button. |
 
 ### FieldEnumInput
 
-Option button list, enabled only for enum string schema fields.
+Option button list, enabled only for enum string schema fields. Extends `React.HTMLAttributes<HTMLDivElement>` (minus `children`).
+
+| Prop             | Type                                                                     | Default | Description                                                  |
+| ---------------- | ------------------------------------------------------------------------ | ------- | ------------------------------------------------------------ |
+| `getOptionLabel` | `(option: string, index: number) => React.ReactNode`                     | —       | Custom label renderer per option. Falls back to `enumNames`. |
+| `getOptionProps` | `(option: string, index: number, selected: boolean) => ButtonAttributes` | —       | Extra props spread onto each option button.                  |
 
 ### FieldStringInput
 
-Text-like input (including format-based types like email/url/date), enabled for non-enum string fields.
+Text-like input (including format-based types like email/url/date), enabled for non-enum string fields. Extends `React.InputHTMLAttributes<HTMLInputElement>` (minus `id`, `type`, `value`, `autoFocus`, `required`).
 
 ### FieldNumberInput
 
-Number input, enabled for `number` and `integer` schema fields.
+Number input, enabled for `number` and `integer` schema fields. Extends `React.InputHTMLAttributes<HTMLInputElement>` (minus `id`, `type`, `value`, `autoFocus`, `required`).
 
 ### FieldError
 
-Renders validation message for the current field.
+Renders validation message for the current field. Supports `render` prop with `error`, `errorId`, and `invalid` in render props.
 
 | Prop          | Type      | Default | Description                                                           |
 | ------------- | --------- | ------- | --------------------------------------------------------------------- |
@@ -184,7 +200,7 @@ Renders validation message for the current field.
 
 ### Actions
 
-Container for action controls. By default it renders:
+Container for action controls. Supports `render` prop with `single`, `valid`, `handleAccept`, `handleDecline`, and `handleCancel` in render props. By default it renders:
 
 - `Elicitation.ActionCancel`
 - `Elicitation.ActionDecline`
@@ -192,7 +208,23 @@ Container for action controls. By default it renders:
 
 If you pass `children`, they fully replace the default action buttons.
 
+### ActionCancel
+
+Button that fires `onResponse` with `{ action: "cancel" }`. Extends `React.ButtonHTMLAttributes<HTMLButtonElement>`. Default label is `"Cancel"`.
+
+Accepts `children` as a render function `(props: { handleCancel }) => ReactNode` for custom rendering.
+
+### ActionDecline
+
+Button that fires `onResponse` with `{ action: "decline" }`. Extends `React.ButtonHTMLAttributes<HTMLButtonElement>`. Default label is `"Decline"`.
+
+Accepts `children` as a render function `(props: { handleDecline }) => ReactNode` for custom rendering.
+
 ### ActionSubmit
+
+Button that fires `onResponse` with `{ action: "accept", content }`. Extends `React.ButtonHTMLAttributes<HTMLButtonElement>`. Default label is `"Submit"`. Hidden in single-entry mode. Disabled when the form is invalid.
+
+Accepts `children` as a render function `(props: { hidden, disabled, handleAccept }) => ReactNode` for custom rendering.
 
 | Prop          | Type      | Default | Description                                                                               |
 | ------------- | --------- | ------- | ----------------------------------------------------------------------------------------- |
@@ -218,21 +250,24 @@ Returns:
 ## Styling Hooks
 
 - `data-slot="elicitation-root"`
+- `data-slot="elicitation-fields"`
 - `data-slot="elicitation-field"`
 - `data-slot="elicitation-field-label"`
-- `data-slot="elicitation-field-control"`
-- `data-slot="elicitation-field-input"`
+- `data-slot="elicitation-field-control"` (on `FieldInput` container)
+- `data-slot="elicitation-field-input"` (on `FieldStringInput` and `FieldNumberInput` elements)
 - `data-slot="elicitation-field-error"`
 - `data-slot="elicitation-field-boolean-options"`
 - `data-slot="elicitation-field-boolean-true"`
 - `data-slot="elicitation-field-boolean-false"`
 - `data-slot="elicitation-field-enum-options"`
 - `data-slot="elicitation-field-enum-option"`
+- `data-slot="elicitation-actions"`
 - `data-slot="elicitation-action-cancel"`
 - `data-slot="elicitation-action-decline"`
 - `data-slot="elicitation-action-submit"`
 - `data-mode="single" | "multiple"` on root
 - `data-kind` on field and field-control
+- `data-name` on field
 - `data-state="selected" | "unselected"` on boolean/enum buttons
 - `data-required` and `data-invalid` on field
 - `data-hidden` and `data-disabled` on submit action
