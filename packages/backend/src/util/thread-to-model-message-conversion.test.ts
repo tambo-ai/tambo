@@ -183,16 +183,19 @@ describe("convertAssistantMessage", () => {
       );
 
       expect(result).toHaveLength(1);
-      expect(result[0]).toEqual({
-        role: "assistant",
-        content: [
-          { type: "text", text: "Here is your chart" },
-          {
-            type: "text",
-            text: '<component_state>{"selectedRange":"1y","zoom":2}</component_state>',
-          },
-        ],
-      });
+
+      const content = (
+        result[0] as { content: { type: string; text: string }[] }
+      ).content;
+
+      expect(content).toHaveLength(2);
+      expect(content[0]).toEqual({ type: "text", text: "Here is your chart" });
+
+      const match = content[1].text.match(
+        /^<component_state>(.*)<\/component_state>$/,
+      );
+      expect(match).not.toBeNull();
+      expect(JSON.parse(match![1])).toEqual(message.componentState);
     });
 
     it("should escape componentState JSON so it cannot break the wrapper", () => {
@@ -220,11 +223,15 @@ describe("convertAssistantMessage", () => {
       const componentStateText = content[1].text;
       expect(componentStateText).toContain("<component_state>");
       expect(componentStateText).toContain("</component_state>");
-      expect(componentStateText).toContain("\\u003c/component_state\\u003e");
-      expect(componentStateText).toContain(
-        '\\u003ctool_call id=\\"pwn\\" /\\u003e',
-      );
       expect(componentStateText).not.toContain("</component_state><tool_call");
+
+      const match = componentStateText.match(
+        /^<component_state>(.*)<\/component_state>$/,
+      );
+      expect(match).not.toBeNull();
+      expect(match![1]).not.toContain("</component_state>");
+      expect(match![1]).not.toContain("<tool_call");
+      expect(JSON.parse(match![1])).toEqual(message.componentState);
     });
 
     it("should handle multiple text content parts", () => {
