@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.1](https://github.com/tambo-ai/tambo/compare/create-tambo-app-v0.3.0...create-tambo-app-v0.3.1) (2026-03-05)
+
+
+### Miscellaneous Chores
+
+* **deps:** bump streamdown from 1.6.10 to 2.3.0 ([#2344](https://github.com/tambo-ai/tambo/issues/2344)) ([11f9f37](https://github.com/tambo-ai/tambo/commit/11f9f37cad3e3bbe17264a54c4d5f6de0d1aaea7))
+
 ## [0.3.0](https://github.com/tambo-ai/tambo/compare/create-tambo-app-v0.2.3...create-tambo-app-v0.3.0) (2026-02-11)
 
 
