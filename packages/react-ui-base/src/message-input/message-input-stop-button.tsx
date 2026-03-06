@@ -53,6 +53,7 @@ export const MessageInputStopButton = React.forwardRef<
       disabled,
       tabIndex: effectiveTabIndex,
       onClick,
+      tabIndex: effectiveTabIndex,
       "aria-hidden": hidden ? "true" : undefined,
     }),
   });
