@@ -192,6 +192,8 @@ export const MessageInputTextarea = React.forwardRef<
       render,
       state: renderProps,
       stateAttributesMapping: {
+        value: () => null,
+        setValue: () => null,
         submitMessage: () => null,
         handleSubmit: () => null,
         placeholder: () => null,
