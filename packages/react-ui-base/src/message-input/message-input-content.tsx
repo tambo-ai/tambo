@@ -68,7 +68,7 @@ export const MessageInputContent = React.forwardRef<
       resolveElicitation: () => null,
     },
     props: mergeProps(componentProps, {
-      "data-dragging": isDragging || undefined,
+      "data-dragging": isDragging ? "true" : undefined,
       "data-elicitation": elicitation ? "active" : undefined,
     }),
   });

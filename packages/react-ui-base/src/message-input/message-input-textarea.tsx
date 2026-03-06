@@ -212,7 +212,7 @@ export const MessageInputTextarea = React.forwardRef<
         onKeyDown: handleKeyDown,
         placeholder,
         disabled,
-        "data-disabled": disabled || undefined,
+        "data-disabled": disabled ? "true" : undefined,
       }),
     });
   },
