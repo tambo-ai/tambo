@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.1](https://github.com/tambo-ai/tambo/compare/@tambo-ai/react-ui-base-v0.1.0...@tambo-ai/react-ui-base-v0.1.1) (2026-03-06)
+
+
+### Bug Fixes
+
+* **react-ui-base:** fix MessageInput.SubmitButton event callback ([#2567](https://github.com/tambo-ai/tambo/issues/2567)) ([286df2a](https://github.com/tambo-ai/tambo/commit/286df2a16b87eedc31dfa1371b8b159b8b082a64))
+
 ## [0.1.0](https://github.com/tambo-ai/tambo/compare/@tambo-ai/react-ui-base-v0.1.0...@tambo-ai/react-ui-base-v0.1.0) (2026-03-05)
 
 
