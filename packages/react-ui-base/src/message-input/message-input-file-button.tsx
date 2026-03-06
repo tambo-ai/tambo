@@ -129,6 +129,7 @@ export const MessageInputFileButton = React.forwardRef<
           accept={accept}
           multiple={multiple}
           onChange={handleFileChange}
+          tabIndex={inputVisible ? 0 : -1}
           style={
             inputVisible
               ? undefined

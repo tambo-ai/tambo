@@ -178,7 +178,7 @@ jobs:
 
       - name: Publish @tambo-ai/react-ui-base to npm
         working-directory: ./packages/react-ui-base
-        run: npm publish --access public --tag next
+        run: npm publish --access public
 
   # Web App Deployment
   deploy-web:
