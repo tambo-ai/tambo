@@ -5,7 +5,7 @@
   "create-tambo-app": "0.3.0",
   "docs": "1.30.0",
   "packages/client": "1.0.1",
-  "packages/react-ui-base": "0.1.0",
+  "packages/react-ui-base": "0.1.1",
   "react-sdk": "1.2.0",
   "showcase": "0.37.2"
 }
