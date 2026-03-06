@@ -31,7 +31,7 @@ const toolCallLimitEditorSuggestions: Suggestion[] = [
   {
     id: "update-tool-call-limit",
     title: "Update Tool Call Limit",
-    detailedSuggestion: "Update the tool call limit for this project to 10",
+    detailedSuggestion: "Update the tool call limit for this project to 100",
     messageId: "update-tool-call-limit",
   },
   {

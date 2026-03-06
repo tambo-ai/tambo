@@ -129,7 +129,8 @@ describe("V1Service - Suggestions", () => {
         id: "sug_abc123",
         messageId,
         title: "Test suggestion",
-        description: "This is a test suggestion description", // Note: renamed from detailedSuggestion
+        description: "This is a test suggestion description",
+        detailedSuggestion: "This is a test suggestion description",
         createdAt: "2024-01-15T12:00:00.000Z",
       });
     });

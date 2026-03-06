@@ -38,16 +38,16 @@ export function findFileInAncestors(
 }
 
 /**
- * Detects the package manager used in a project by checking for lockfiles
+ * Detects the package manager used in a project by checking for lockfiles.
  * Priority order: rush.json > pnpm-lock.yaml > yarn.lock > package-lock.json > npm (default)
  *
  * Rush is checked first because Rush monorepos may also contain other lockfiles
  * (pnpm-lock.yaml, yarn.lock) since Rush can use different package managers internally.
  *
- * For Rush, we search ancestor directories since rush.json exists at the monorepo root
- * but commands are typically run from project subdirectories.
+ * We search ancestor directories because lockfiles typically live at the monorepo root,
+ * but tambo commands are often run from package subdirectories.
  *
- * @param projectRoot The root directory of the project (defaults to cwd)
+ * @param projectRoot The directory to start searching from (defaults to cwd)
  * @returns The detected package manager
  */
 export function detectPackageManager(
@@ -58,15 +58,19 @@ export function detectPackageManager(
     return "rush";
   }
 
-  if (fs.existsSync(path.join(projectRoot, "pnpm-lock.yaml"))) {
+  if (findFileInAncestors("pnpm-lock.yaml", projectRoot) !== null) {
     return "pnpm";
   }
 
-  if (fs.existsSync(path.join(projectRoot, "yarn.lock"))) {
+  if (findFileInAncestors("yarn.lock", projectRoot) !== null) {
     return "yarn";
   }
 
-  // package-lock.json or no lockfile defaults to npm
+  if (findFileInAncestors("package-lock.json", projectRoot) !== null) {
+    return "npm";
+  }
+
+  // Default to npm when no other lockfile is found.
   return "npm";
 }
 

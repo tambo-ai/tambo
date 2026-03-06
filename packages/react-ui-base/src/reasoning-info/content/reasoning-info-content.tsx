@@ -7,6 +7,7 @@ export interface ReasoningInfoContentRenderProps extends Record<
   string,
   unknown
 > {
+  slot: string;
   isExpanded: boolean;
 }
 
@@ -28,13 +29,11 @@ export const ReasoningInfoContent = React.forwardRef<
   HTMLDivElement,
   ReasoningInfoContentProps
 >(({ forceMount, ...props }, ref) => {
-  const { isExpanded, detailsId, scrollContainerRef } =
+  const { isExpanded, detailsId, setScrollContainerNode } =
     useReasoningInfoRootContext();
   const combinedRef = React.useCallback(
     (node: HTMLDivElement | null) => {
-      (
-        scrollContainerRef as React.MutableRefObject<HTMLDivElement | null>
-      ).current = node;
+      setScrollContainerNode(node);
       if (typeof ref === "function") {
         ref(node);
         return;
@@ -43,15 +42,12 @@ export const ReasoningInfoContent = React.forwardRef<
         ref.current = node;
       }
     },
-    [ref, scrollContainerRef],
+    [ref, setScrollContainerNode],
   );
-
-  if (!forceMount && !isExpanded) {
-    return null;
-  }
 
   const { render, ...componentProps } = props;
   const renderProps: ReasoningInfoContentRenderProps = {
+    slot: "reasoning-info-content",
     isExpanded,
   };
 
@@ -59,10 +55,10 @@ export const ReasoningInfoContent = React.forwardRef<
     defaultTagName: "div",
     ref: combinedRef,
     render,
+    enabled: forceMount || isExpanded,
     state: renderProps,
     props: mergeProps(componentProps, {
       id: detailsId,
-      "data-slot": "reasoning-info-content",
       "data-state": isExpanded ? "open" : "closed",
     }),
   });

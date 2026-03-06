@@ -1,5 +1,8 @@
 import type { JSONSchema7, JSONSchema7Definition } from "json-schema";
-import { canBeNull, unstrictifyToolCallParamsFromSchema } from "./unstrictify";
+import {
+  canBeNull,
+  unstrictifyToolCallParamsFromSchema,
+} from "@tambo-ai/client";
 
 describe("canBeNull", () => {
   it("should return true for schema with type null", () => {

@@ -17,10 +17,7 @@ import type {
   TamboTool,
   TamboToolRegistry,
 } from "../model/component-metadata";
-import type {
-  McpServerInfo,
-  NormalizedMcpServerInfo,
-} from "../model/mcp-server-info";
+import type { McpServerInfo, NormalizedMcpServerInfo } from "@tambo-ai/client";
 import type { ListResourceItem, ResourceSource } from "../model/resource-info";
 import {
   deduplicateMcpServers,

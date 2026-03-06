@@ -7,6 +7,7 @@ import {
   MessageInputError,
   MessageInputFileButton,
   MessageInputMcpConfigButton,
+  MessageInputStopButton,
   MessageInputSubmitButton,
   MessageInputTextarea,
   MessageInputToolbar,
@@ -37,6 +38,7 @@ export default function MessageInputPage() {
                 <MessageInputToolbar>
                   <MessageInputFileButton />
                   <MessageInputSubmitButton />
+                  <MessageInputStopButton />
                 </MessageInputToolbar>
                 <MessageInputError />
               </MessageInput>
@@ -45,6 +47,7 @@ export default function MessageInputPage() {
   MessageInput,
   MessageInputTextarea,
   MessageInputFileButton,
+  MessageInputStopButton,
   MessageInputSubmitButton,
   MessageInputError,
   MessageInputToolbar,
@@ -57,6 +60,7 @@ export function ChatInput() {
       <MessageInputToolbar>
         <MessageInputFileButton />
         <MessageInputSubmitButton />
+        <MessageInputStopButton />
       </MessageInputToolbar>
       <MessageInputError />
     </MessageInput>
@@ -73,6 +77,7 @@ export function ChatInput() {
                 <MessageInputToolbar>
                   <MessageInputFileButton />
                   <MessageInputSubmitButton />
+                  <MessageInputStopButton />
                 </MessageInputToolbar>
                 <MessageInputError />
               </MessageInput>
@@ -81,6 +86,7 @@ export function ChatInput() {
   MessageInput,
   MessageInputTextarea,
   MessageInputFileButton,
+  MessageInputStopButton,
   MessageInputSubmitButton,
   MessageInputError,
   MessageInputToolbar,
@@ -93,6 +99,7 @@ export function SolidChatInput() {
       <MessageInputToolbar>
         <MessageInputFileButton />
         <MessageInputSubmitButton />
+        <MessageInputStopButton />
       </MessageInputToolbar>
       <MessageInputError />
     </MessageInput>
@@ -109,6 +116,7 @@ export function SolidChatInput() {
                 <MessageInputToolbar>
                   <MessageInputFileButton />
                   <MessageInputSubmitButton />
+                  <MessageInputStopButton />
                 </MessageInputToolbar>
                 <MessageInputError />
               </MessageInput>
@@ -117,6 +125,7 @@ export function SolidChatInput() {
   MessageInput,
   MessageInputTextarea,
   MessageInputFileButton,
+  MessageInputStopButton,
   MessageInputSubmitButton,
   MessageInputError,
   MessageInputToolbar,
@@ -129,6 +138,7 @@ export function BorderedChatInput() {
       <MessageInputToolbar>
         <MessageInputFileButton />
         <MessageInputSubmitButton />
+        <MessageInputStopButton />
       </MessageInputToolbar>
       <MessageInputError />
     </MessageInput>
@@ -146,6 +156,7 @@ export function BorderedChatInput() {
                   <MessageInputFileButton />
                   <MessageInputMcpConfigButton />
                   <MessageInputSubmitButton />
+                  <MessageInputStopButton />
                 </MessageInputToolbar>
                 <MessageInputError />
               </MessageInput>
@@ -155,6 +166,7 @@ export function BorderedChatInput() {
   MessageInputTextarea,
   MessageInputFileButton,
   MessageInputMcpConfigButton,
+  MessageInputStopButton,
   MessageInputSubmitButton,
   MessageInputError,
   MessageInputToolbar,
@@ -168,6 +180,7 @@ export function FullFeaturedInput() {
         <MessageInputFileButton />
         <MessageInputMcpConfigButton />
         <MessageInputSubmitButton />
+        <MessageInputStopButton />
       </MessageInputToolbar>
       <MessageInputError />
     </MessageInput>
@@ -267,8 +280,13 @@ export function MinimalInput() {
               </li>
               <li>
                 <strong>MessageInputSubmitButton</strong> - Button to submit the
-                message form. Shows loading state during submission and is
-                disabled when input is empty.
+                message form. Use <code>keepMounted</code> to preserve layout
+                while the stop action is active.
+              </li>
+              <li>
+                <strong>MessageInputStopButton</strong> - Button to stop an
+                in-progress response. It appears while generation is active and
+                supports <code>keepMounted</code> for stable layouts.
               </li>
               <li>
                 <strong>MessageInputError</strong> - Displays error messages

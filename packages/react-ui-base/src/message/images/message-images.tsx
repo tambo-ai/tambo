@@ -17,6 +17,7 @@ export interface MessageImageRenderFnProps {
 }
 
 export interface MessageImagesRenderProps extends Record<string, unknown> {
+  slot: string;
   images: string[];
 }
 
@@ -35,6 +36,12 @@ export interface MessageImagesProps extends Omit<
   renderImage?: (props: MessageImageRenderFnProps) => React.ReactNode;
   /** Children to render instead of the default image list. */
   children?: React.ReactNode;
+  /**
+   * Keep the element mounted when there are no images. When false (default),
+   * the component returns null if the message has no image content.
+   * @default false
+   */
+  keepMounted?: boolean;
 }
 
 /**
@@ -44,37 +51,40 @@ export interface MessageImagesProps extends Omit<
 export const MessageImages = React.forwardRef<
   HTMLDivElement,
   MessageImagesProps
->(({ renderImage, children, ...props }, ref) => {
+>(({ renderImage, children, keepMounted = false, ...props }, ref) => {
   const { message } = useMessageRootContext();
   const images = getMessageImages(message.content);
 
-  if (images.length === 0) {
-    return null;
-  }
   const { render, ...componentProps } = props;
   const renderProps: MessageImagesRenderProps = {
+    slot: "message-images",
     images,
   };
-  const defaultChildren =
-    children ??
-    images.map((url: string, index: number) =>
-      renderImage ? (
-        <React.Fragment key={index}>
-          {renderImage({ url, index })}
-        </React.Fragment>
-      ) : (
-        <img key={index} src={url} alt={`Image ${index + 1}`} />
+  const renderedImages = React.useMemo(
+    () =>
+      images.map((url: string, index: number) =>
+        renderImage ? (
+          <React.Fragment key={index}>
+            {renderImage({ url, index })}
+          </React.Fragment>
+        ) : (
+          <img key={index} src={url} alt={`Image ${index + 1}`} />
+        ),
       ),
-    );
+    [images, renderImage],
+  );
 
   return useRender({
     defaultTagName: "div",
     ref,
     render,
+    enabled: keepMounted || images.length > 0,
     state: renderProps,
+    stateAttributesMapping: {
+      images: () => null,
+    },
     props: mergeProps(componentProps, {
-      children: defaultChildren,
-      "data-slot": "message-images",
+      children: children ?? renderedImages,
     }),
   });
 });

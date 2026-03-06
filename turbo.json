@@ -102,6 +102,9 @@
       "outputs": [".next/**", "!.next/cache/**"]
     },
     "lint": { "dependsOn": ["^lint"] },
+    "@tambo-ai/react#lint": {
+      "dependsOn": ["^build", "^lint"]
+    },
     "@tambo-ai/ui-registry#lint": {
       "dependsOn": ["@tambo-ai/ui-registry#verify-exports"]
     },

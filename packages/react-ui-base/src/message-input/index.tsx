@@ -5,10 +5,12 @@ import {
   MAX_IMAGES as _MAX_IMAGES,
 } from "./constants";
 import { MessageInputContent } from "./message-input-content";
+import { MessageInputElicitation } from "./message-input-elicitation";
 import { MessageInputError } from "./message-input-error";
 import { MessageInputFileButton } from "./message-input-file-button";
 import { MessageInputRoot } from "./message-input-root";
 import { MessageInputStagedImages } from "./message-input-staged-images";
+import { MessageInputStopButton } from "./message-input-stop-button";
 import { MessageInputSubmitButton } from "./message-input-submit-button";
 import { MessageInputTextarea } from "./message-input-textarea";
 import { MessageInputToolbar } from "./message-input-toolbar";
@@ -24,53 +26,39 @@ import { MessageInputValueAccess } from "./message-input-value-access";
  * function MyMessageInput() {
  *   return (
  *     <MessageInput.Root className="my-form">
- *       <MessageInput.Content
- *         className="my-content"
- *         render={(_props, { isDragging, elicitation, resolveElicitation }) => (
- *           <>
- *             {isDragging && <div>Drop files here</div>}
- *             {elicitation && resolveElicitation ? (
- *               <div>Elicitation UI here</div>
- *             ) : (
- *               <>
- *                 <MessageInput.StagedImages
- *                   render={(_props, { images }) => (
- *                     <div className="flex gap-2">
- *                       {images.map(({ image, displayName, onRemove }) => (
- *                         <div key={image.id}>
- *                           <img src={image.dataUrl} alt={displayName} />
- *                           <button onClick={onRemove}>Remove</button>
- *                         </div>
- *                       ))}
- *                     </div>
- *                   )}
- *                 />
- *                 <MessageInput.Textarea
- *                   render={(_props, { value, setValue, disabled }) => (
- *                     <textarea
- *                       value={value}
- *                       onChange={(e) => setValue(e.target.value)}
- *                       disabled={disabled}
- *                     />
- *                   )}
- *                 />
- *                 <MessageInput.Toolbar>
- *                   <MessageInput.FileButton
- *                     render={(_props, { openFilePicker }) => (
- *                       <button onClick={openFilePicker}>Attach</button>
- *                     )}
- *                   />
- *                   <MessageInput.SubmitButton
- *                     render={(_props, { showCancelButton }) => (
- *                       <>{showCancelButton ? "Cancel" : "Send"}</>
- *                     )}
- *                   />
- *                 </MessageInput.Toolbar>
- *               </>
+ *       <MessageInput.Content className="my-content">
+ *         <MessageInput.StagedImages>
+ *           {({ images }) => (
+ *             <div className="flex gap-2">
+ *               {images.map(({ image, displayName, onRemove }) => (
+ *                 <div key={image.id}>
+ *                   <img src={image.dataUrl} alt={displayName} />
+ *                   <button onClick={onRemove}>Remove</button>
+ *                 </div>
+ *               ))}
+ *             </div>
+ *           )}
+ *         </MessageInput.StagedImages>
+ *         <MessageInput.Textarea>
+ *           {({ value, setValue, disabled }) => (
+ *             <textarea
+ *               value={value}
+ *               onChange={(e) => setValue(e.target.value)}
+ *               disabled={disabled}
+ *             />
+ *           )}
+ *         </MessageInput.Textarea>
+ *         <MessageInput.Toolbar>
+ *           <MessageInput.FileButton>
+ *             {({ openFilePicker }) => (
+ *               <button onClick={openFilePicker}>Attach</button>
  *             )}
- *           </>
- *         )}
- *       />
+ *           </MessageInput.FileButton>
+ *           <MessageInput.SubmitButton keepMounted>Send</MessageInput.SubmitButton>
+ *           <MessageInput.StopButton keepMounted>Stop</MessageInput.StopButton>
+ *         </MessageInput.Toolbar>
+ *       </MessageInput.Content>
+ *       <MessageInput.Elicitation />
  *       <MessageInput.Error />
  *     </MessageInput.Root>
  *   );
@@ -80,8 +68,10 @@ import { MessageInputValueAccess } from "./message-input-value-access";
 export const MessageInput = {
   Root: MessageInputRoot,
   Content: MessageInputContent,
+  Elicitation: MessageInputElicitation,
   Textarea: MessageInputTextarea,
   SubmitButton: MessageInputSubmitButton,
+  StopButton: MessageInputStopButton,
   FileButton: MessageInputFileButton,
   Error: MessageInputError,
   StagedImages: MessageInputStagedImages,
@@ -95,7 +85,7 @@ export const MAX_IMAGES: typeof _MAX_IMAGES = _MAX_IMAGES;
 export const IS_PASTED_IMAGE: typeof _IS_PASTED_IMAGE = _IS_PASTED_IMAGE;
 export type {
   MessageInputContentProps,
-  MessageInputContentRenderProps,
+  MessageInputContentState,
 } from "./message-input-content";
 export type {
   MessageInputContextValue,
@@ -107,31 +97,39 @@ export type {
   TamboEditor,
 } from "./message-input-context";
 export type {
+  MessageInputElicitationProps,
+  MessageInputElicitationState,
+} from "./message-input-elicitation";
+export type {
   MessageInputErrorProps,
-  MessageInputErrorRenderProps,
+  MessageInputErrorState,
 } from "./message-input-error";
 export type {
   MessageInputFileButtonProps,
-  MessageInputFileButtonRenderProps,
+  MessageInputFileButtonState,
 } from "./message-input-file-button";
 export type { MessageInputRootProps } from "./message-input-root";
 export type {
   MessageInputStagedImagesProps,
-  MessageInputStagedImagesRenderProps,
-  StagedImageRenderProps,
+  MessageInputStagedImagesState,
+  StagedImageState,
 } from "./message-input-staged-images";
 export type {
+  MessageInputStopButtonProps,
+  MessageInputStopButtonState,
+} from "./message-input-stop-button";
+export type {
   MessageInputSubmitButtonProps,
-  MessageInputSubmitButtonRenderProps,
+  MessageInputSubmitButtonState,
 } from "./message-input-submit-button";
 export type {
   MessageInputTextareaProps,
-  MessageInputTextareaRenderProps,
+  MessageInputTextareaState,
 } from "./message-input-textarea";
 export type { MessageInputToolbarProps } from "./message-input-toolbar";
 export type {
   MessageInputValueAccessProps,
-  MessageInputValueAccessRenderProps,
+  MessageInputValueAccessState,
 } from "./message-input-value-access";
 export type {
   PromptFormatOptions,

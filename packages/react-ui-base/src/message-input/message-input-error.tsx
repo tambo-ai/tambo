@@ -8,7 +8,8 @@ import { useMessageInputContext } from "./message-input-context";
 /**
  * Render props for the Error component.
  */
-export interface MessageInputErrorRenderProps extends Record<string, unknown> {
+export interface MessageInputErrorState extends Record<string, unknown> {
+  slot: string;
   /** Error message to display */
   errorMessage: string | null;
   /** The original error object if available */
@@ -22,10 +23,13 @@ export interface MessageInputErrorRenderProps extends Record<string, unknown> {
 /**
  * Props for the MessageInput.Error component.
  */
-export type MessageInputErrorProps = useRender.ComponentProps<
+export interface MessageInputErrorProps extends useRender.ComponentProps<
   "p",
-  MessageInputErrorRenderProps
->;
+  MessageInputErrorState
+> {
+  /** Keep the element mounted in the DOM when hidden. Defaults to false. */
+  keepMounted?: boolean;
+}
 
 /**
  * Error message component for displaying submission errors.
@@ -34,19 +38,18 @@ export type MessageInputErrorProps = useRender.ComponentProps<
 export const MessageInputError = React.forwardRef<
   HTMLParagraphElement,
   MessageInputErrorProps
->(({ children, ...props }, ref) => {
+>(({ children, keepMounted = false, ...props }, ref) => {
   const { error, submitError, imageError } = useMessageInputContext();
 
   const errorMessage = error?.message ?? submitError ?? imageError ?? null;
+  const hasError = !!errorMessage;
+  const isVisible = hasError || children != null;
 
-  // Don't render if no errors
   const { render, ...componentProps } = props;
+  const enabled = isVisible || keepMounted;
 
-  if (!errorMessage && !render && children == null) {
-    return null;
-  }
-
-  const renderProps: MessageInputErrorRenderProps = {
+  const renderProps: MessageInputErrorState = {
+    slot: "message-input-error",
     errorMessage,
     error,
     submitError,
@@ -57,11 +60,12 @@ export const MessageInputError = React.forwardRef<
     defaultTagName: "p",
     ref,
     render,
+    enabled,
     state: renderProps,
     props: mergeProps(componentProps, {
       children: children ?? errorMessage,
-      "data-slot": "message-input-error",
-      "data-state": errorMessage ? "error" : undefined,
+      "data-state": isVisible ? "visible" : "hidden",
+      "aria-hidden": !isVisible ? "true" : undefined,
     }),
   });
 });

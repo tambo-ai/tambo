@@ -1,27 +1,27 @@
 "use client";
 
-import * as React from "react";
-import { Dialog } from "radix-ui";
-import { useTambo } from "@tambo-ai/react";
-import { cn } from "@tambo-ai/ui-registry/utils";
-import type { VariantProps } from "class-variance-authority";
+import { useThreadContentContext } from "@tambo-ai/react-ui-base/thread-content";
 import type { messageVariants } from "@tambo-ai/ui-registry/components/message";
 import {
   MessageInput,
-  MessageInputTextarea,
-  MessageInputToolbar,
-  MessageInputSubmitButton,
   MessageInputError,
   MessageInputFileButton,
   MessageInputMcpPromptButton,
   MessageInputMcpResourceButton,
-  // MessageInputMcpConfigButton,
+  MessageInputStopButton,
+  MessageInputSubmitButton,
+  MessageInputTextarea,
+  MessageInputToolbar,
 } from "@tambo-ai/ui-registry/components/message-input";
+import { ScrollableMessageContainer } from "@tambo-ai/ui-registry/components/scrollable-message-container";
 import {
   ThreadContent,
   ThreadContentMessages,
 } from "@tambo-ai/ui-registry/components/thread-content";
-import { ScrollableMessageContainer } from "@tambo-ai/ui-registry/components/scrollable-message-container";
+import { cn } from "@tambo-ai/ui-registry/utils";
+import type { VariantProps } from "class-variance-authority";
+import { Dialog } from "radix-ui";
+import * as React from "react";
 
 /**
  * Props for the ControlBar component
@@ -31,6 +31,10 @@ import { ScrollableMessageContainer } from "@tambo-ai/ui-registry/components/scr
 export interface ControlBarProps extends React.HTMLAttributes<HTMLDivElement> {
   /** Keyboard shortcut for toggling the control bar (default: "mod+k") */
   hotkey?: string;
+  /** Additional classes for the trigger button */
+  triggerClassName?: string;
+  /** Additional classes for the modal overlay */
+  overlayClassName?: string;
   /**
    * Controls the visual styling of messages in the thread.
    * Possible values include: "default", "compact", etc.
@@ -52,11 +56,20 @@ export interface ControlBarProps extends React.HTMLAttributes<HTMLDivElement> {
  * ```
  */
 export const ControlBar = React.forwardRef<HTMLDivElement, ControlBarProps>(
-  ({ className, hotkey = "mod+k", variant, ...props }, ref) => {
+  (
+    {
+      className,
+      hotkey = "mod+k",
+      triggerClassName,
+      overlayClassName,
+      variant,
+      ...props
+    },
+    ref,
+  ) => {
     const [open, setOpen] = React.useState(false);
     const isMac =
       typeof navigator !== "undefined" && navigator.platform.startsWith("Mac");
-    const { messages } = useTambo();
 
     React.useEffect(() => {
       const down = (e: KeyboardEvent) => {
@@ -75,7 +88,13 @@ export const ControlBar = React.forwardRef<HTMLDivElement, ControlBarProps>(
     return (
       <Dialog.Root open={open} onOpenChange={setOpen}>
         <Dialog.Trigger asChild>
-          <button className="fixed bottom-4 right-4 bg-background/50 backdrop-blur-sm border rounded-lg px-3 py-1.5 text-xs text-muted-foreground hover:bg-accent/50 transition-colors">
+          <button
+            className={cn(
+              "fixed bottom-4 right-4 z-50 bg-background/50 backdrop-blur-sm border rounded-lg px-3 py-1.5 text-xs text-muted-foreground hover:bg-accent/50 transition-colors",
+              triggerClassName,
+            )}
+            data-slot="control-bar-trigger"
+          >
             Talk to AI (
             <span suppressHydrationWarning>
               {hotkey.replace("mod", isMac ? "⌘" : "Ctrl")}
@@ -84,11 +103,14 @@ export const ControlBar = React.forwardRef<HTMLDivElement, ControlBarProps>(
           </button>
         </Dialog.Trigger>
         <Dialog.Portal>
-          <Dialog.Overlay className="fixed inset-0 bg-black/40" />
+          <Dialog.Overlay
+            className={cn("fixed inset-0 z-50 bg-black/40", overlayClassName)}
+            data-slot="control-bar-overlay"
+          />
           <Dialog.Content
             ref={ref}
             className={cn(
-              "fixed top-1/4 left-1/2 -translate-x-1/2 w-[440px] rounded-lg shadow-lg transition-all duration-200 outline-none",
+              "fixed top-1/4 left-1/2 z-50 -translate-x-1/2 w-[440px] rounded-lg shadow-lg transition-all duration-200 outline-none",
               className,
             )}
             {...props}
@@ -106,18 +128,15 @@ export const ControlBar = React.forwardRef<HTMLDivElement, ControlBarProps>(
                       {/* Uncomment this to enable client-side MCP config modal button */}
                       {/* <MessageInputMcpConfigButton /> */}
                       <MessageInputSubmitButton />
+                      <MessageInputStopButton />
                     </MessageInputToolbar>
                     <MessageInputError />
                   </MessageInput>
                 </div>
               </div>
-              {messages.length > 0 && (
-                <ScrollableMessageContainer className="bg-background border rounded-lg p-4 max-h-[500px]">
-                  <ThreadContent variant={variant}>
-                    <ThreadContentMessages />
-                  </ThreadContent>
-                </ScrollableMessageContainer>
-              )}
+              <ThreadContent variant={variant}>
+                <ControlBarMessageArea />
+              </ThreadContent>
             </div>
           </Dialog.Content>
         </Dialog.Portal>
@@ -126,3 +145,20 @@ export const ControlBar = React.forwardRef<HTMLDivElement, ControlBarProps>(
   },
 );
 ControlBar.displayName = "ControlBar";
+
+/**
+ * Conditionally renders the scrollable messages area.
+ * Only shows the bordered container when messages exist.
+ * Uses ThreadContent context to determine visibility instead of DOM selectors.
+ */
+function ControlBarMessageArea() {
+  const { isEmpty } = useThreadContentContext();
+
+  if (isEmpty) return null;
+
+  return (
+    <ScrollableMessageContainer className="bg-background border rounded-lg p-4 max-h-[500px]">
+      <ThreadContentMessages />
+    </ScrollableMessageContainer>
+  );
+}

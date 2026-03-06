@@ -7,6 +7,7 @@ export interface ReasoningInfoStatusTextRenderProps extends Record<
   string,
   unknown
 > {
+  slot: string;
   text: string;
   isLoading: boolean | undefined;
   stepCount: number;
@@ -27,6 +28,7 @@ export const ReasoningInfoStatusText = React.forwardRef<
   const { statusText, isLoading, reasoning } = useReasoningInfoRootContext();
 
   const renderProps: ReasoningInfoStatusTextRenderProps = {
+    slot: "reasoning-info-status-text",
     text: statusText,
     isLoading,
     stepCount: reasoning.length,
@@ -45,7 +47,6 @@ export const ReasoningInfoStatusText = React.forwardRef<
       },
       componentProps,
       {
-        "data-slot": "reasoning-info-status-text",
         "data-loading": isLoading || undefined,
       },
     ),

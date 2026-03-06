@@ -22,10 +22,8 @@ import {
 /**
  * Render props for the Textarea component.
  */
-export interface MessageInputTextareaRenderProps extends Record<
-  string,
-  unknown
-> {
+export interface MessageInputTextareaState extends Record<string, unknown> {
+  slot: string;
   /** Current input value */
   value: string;
   /** Update the input value */
@@ -60,8 +58,8 @@ export interface MessageInputTextareaRenderProps extends Record<
  * Props for the MessageInput.Textarea component.
  */
 type MessageInputTextareaComponentProps = useRender.ComponentProps<
-  "div",
-  MessageInputTextareaRenderProps
+  "textarea",
+  MessageInputTextareaState
 >;
 
 export interface MessageInputTextareaProps extends MessageInputTextareaComponentProps {
@@ -83,7 +81,7 @@ export interface MessageInputTextareaProps extends MessageInputTextareaComponent
  * Handles MCP resource/prompt integration internally.
  */
 export const MessageInputTextarea = React.forwardRef<
-  HTMLDivElement,
+  HTMLTextAreaElement,
   MessageInputTextareaProps
 >(
   (
@@ -103,8 +101,6 @@ export const MessageInputTextarea = React.forwardRef<
       submitMessage,
       handleSubmit,
       editorRef,
-      isIdle,
-      isUpdatingToken,
       addImage,
       images,
       setImageError,
@@ -130,9 +126,12 @@ export const MessageInputTextarea = React.forwardRef<
       promptFormatOptions,
     );
 
-    const disabled = !isIdle || isUpdatingToken;
+    // Keep typing enabled while generation is active or auth token is updating.
+    // Submission state is controlled by submit/stop controls and root guards.
+    const disabled = false;
 
-    const renderProps: MessageInputTextareaRenderProps = {
+    const renderProps: MessageInputTextareaState = {
+      slot: "message-input-textarea",
       value,
       setValue,
       submitMessage,
@@ -151,13 +150,23 @@ export const MessageInputTextarea = React.forwardRef<
 
     const { render, ...componentProps } = props;
 
+    const handleChange = React.useCallback(
+      (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+        setValue(e.target.value);
+      },
+      [setValue],
+    );
+
     return useRender({
-      defaultTagName: "div",
+      defaultTagName: "textarea",
       ref,
       render,
       state: renderProps,
       props: mergeProps(componentProps, {
-        "data-slot": "message-input-textarea",
+        value,
+        onChange: handleChange,
+        placeholder,
+        disabled,
         "data-disabled": disabled || undefined,
       }),
     });

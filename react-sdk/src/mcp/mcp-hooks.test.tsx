@@ -4,7 +4,7 @@ import React, { useEffect } from "react";
 import { TamboClientContext } from "../providers/tambo-client-provider";
 import { TamboMcpTokenProvider } from "../providers/tambo-mcp-token-provider";
 import { TamboRegistryProvider } from "../providers/tambo-registry-provider";
-import { MCPTransport } from "./mcp-client";
+import { MCPTransport } from "@tambo-ai/client";
 import { TamboMcpProvider, useTamboMcpServers } from "./tambo-mcp-provider";
 import {
   useTamboMcpPromptList,
@@ -17,7 +17,8 @@ import {
 
 // Mock the MCP client to avoid ES module issues
 let createImpl: jest.Mock = jest.fn();
-jest.mock("./mcp-client", () => ({
+jest.mock("@tambo-ai/client", () => ({
+  ...jest.requireActual("@tambo-ai/client"),
   MCPClient: { create: (...args: any[]) => createImpl(...args) },
   MCPTransport: { SSE: "sse", HTTP: "http" },
 }));

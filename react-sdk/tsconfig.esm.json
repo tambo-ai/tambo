@@ -3,7 +3,11 @@
   "compilerOptions": {
     "module": "ESNext",
     "outDir": "./esm",
-    "declaration": true
+    "declaration": true,
+    "rootDir": "./src",
+    "customConditions": null,
+    "baseUrl": null,
+    "paths": {}
   },
   "include": ["src/**/*.ts", "src/**/*.tsx"],
   "exclude": ["node_modules", "./dist", "./esm"]

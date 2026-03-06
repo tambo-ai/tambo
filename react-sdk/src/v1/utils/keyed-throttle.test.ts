@@ -1,4 +1,4 @@
-import { createKeyedThrottle } from "./keyed-throttle";
+import { createKeyedThrottle } from "@tambo-ai/client";
 
 describe("createKeyedThrottle", () => {
   beforeEach(() => {

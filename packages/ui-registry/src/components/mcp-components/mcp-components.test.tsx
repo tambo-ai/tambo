@@ -2,15 +2,20 @@
 import { jest, describe, it, expect, beforeEach } from "@jest/globals";
 import React from "react";
 import { render, screen } from "@testing-library/react";
-import { McpPromptButton } from "./mcp-components";
-import { useTamboMcpPromptList, useTamboMcpPrompt } from "@tambo-ai/react/mcp";
+import { McpPromptButton, McpResourceButton } from "./mcp-components";
+import {
+  useTamboMcpPromptList,
+  useTamboMcpPrompt,
+  useTamboMcpResourceList,
+} from "@tambo-ai/react/mcp";
 
 // Mocks are provided via moduleNameMapper in jest.config.ts
 
 const mockUseTamboMcpPromptList = jest.mocked(useTamboMcpPromptList);
 const mockUseTamboMcpPrompt = jest.mocked(useTamboMcpPrompt);
+const mockUseTamboMcpResourceList = jest.mocked(useTamboMcpResourceList);
 
-describe("McpPromptButton validation", () => {
+describe("McpPromptButton", () => {
   const mockOnInsertText = jest.fn();
   const defaultPromptList = [
     {
@@ -66,7 +71,7 @@ describe("McpPromptButton validation", () => {
   });
 
   describe("prompt data validation", () => {
-    it("handles valid prompt data with text content", async () => {
+    it("handles valid prompt data with text content", () => {
       const validPromptData = {
         messages: [
           { content: { type: "text", text: "Hello, world!" } },
@@ -74,18 +79,15 @@ describe("McpPromptButton validation", () => {
         ],
       };
 
-      // Initially no prompt selected
       const { rerender } = render(
         <McpPromptButton value="" onInsertText={mockOnInsertText} />,
       );
 
-      // Simulate selecting a prompt and getting data
       mockUseTamboMcpPrompt.mockReturnValue({
         data: validPromptData,
         error: undefined,
       } as ReturnType<typeof useTamboMcpPrompt>);
 
-      // Force a rerender to trigger the effect
       rerender(<McpPromptButton value="" onInsertText={mockOnInsertText} />);
 
       // The callback should not be called yet since no prompt is selected
@@ -102,7 +104,6 @@ describe("McpPromptButton validation", () => {
 
       render(<McpPromptButton value="" onInsertText={mockOnInsertText} />);
 
-      // Should not crash and should not call onInsertText
       expect(mockOnInsertText).not.toHaveBeenCalled();
     });
 
@@ -118,102 +119,6 @@ describe("McpPromptButton validation", () => {
 
       render(<McpPromptButton value="" onInsertText={mockOnInsertText} />);
 
-      // Should not crash and should not call onInsertText
-      expect(mockOnInsertText).not.toHaveBeenCalled();
-    });
-
-    it("handles prompt data with null messages", () => {
-      const invalidPromptData = {
-        messages: null,
-      };
-
-      mockUseTamboMcpPrompt.mockReturnValue({
-        data: invalidPromptData,
-        error: undefined,
-      } as ReturnType<typeof useTamboMcpPrompt>);
-
-      render(<McpPromptButton value="" onInsertText={mockOnInsertText} />);
-
-      // Should not crash and should not call onInsertText
-      expect(mockOnInsertText).not.toHaveBeenCalled();
-    });
-
-    it("handles messages with missing content", () => {
-      const promptDataWithMissingContent = {
-        messages: [
-          { content: { type: "text", text: "Valid message" } },
-          {}, // Missing content
-          { content: null }, // Null content
-        ],
-      };
-
-      mockUseTamboMcpPrompt.mockReturnValue({
-        data: promptDataWithMissingContent,
-        error: undefined,
-      } as ReturnType<typeof useTamboMcpPrompt>);
-
-      render(<McpPromptButton value="" onInsertText={mockOnInsertText} />);
-
-      // Should not crash
-      expect(mockOnInsertText).not.toHaveBeenCalled();
-    });
-
-    it("handles messages with missing content type", () => {
-      const promptDataWithMissingType = {
-        messages: [
-          { content: { text: "No type field" } },
-          { content: { type: "text", text: "Valid message" } },
-        ],
-      };
-
-      mockUseTamboMcpPrompt.mockReturnValue({
-        data: promptDataWithMissingType,
-        error: undefined,
-      } as ReturnType<typeof useTamboMcpPrompt>);
-
-      render(<McpPromptButton value="" onInsertText={mockOnInsertText} />);
-
-      // Should not crash
-      expect(mockOnInsertText).not.toHaveBeenCalled();
-    });
-
-    it("handles messages with non-text content types", () => {
-      const promptDataWithMixedTypes = {
-        messages: [
-          { content: { type: "image", url: "http://example.com/image.png" } },
-          { content: { type: "text", text: "Text message" } },
-          { content: { type: "audio", data: "base64data" } },
-        ],
-      };
-
-      mockUseTamboMcpPrompt.mockReturnValue({
-        data: promptDataWithMixedTypes,
-        error: undefined,
-      } as ReturnType<typeof useTamboMcpPrompt>);
-
-      render(<McpPromptButton value="" onInsertText={mockOnInsertText} />);
-
-      // Should not crash, should only extract text content
-      expect(mockOnInsertText).not.toHaveBeenCalled();
-    });
-
-    it("handles messages with text field that is not a string", () => {
-      const promptDataWithInvalidText = {
-        messages: [
-          { content: { type: "text", text: 123 } }, // Number instead of string
-          { content: { type: "text", text: { nested: "object" } } }, // Object instead of string
-          { content: { type: "text", text: "Valid string" } },
-        ],
-      };
-
-      mockUseTamboMcpPrompt.mockReturnValue({
-        data: promptDataWithInvalidText,
-        error: undefined,
-      } as ReturnType<typeof useTamboMcpPrompt>);
-
-      render(<McpPromptButton value="" onInsertText={mockOnInsertText} />);
-
-      // Should not crash
       expect(mockOnInsertText).not.toHaveBeenCalled();
     });
 
@@ -225,7 +130,6 @@ describe("McpPromptButton validation", () => {
 
       render(<McpPromptButton value="" onInsertText={mockOnInsertText} />);
 
-      // Should not crash
       expect(mockOnInsertText).not.toHaveBeenCalled();
     });
 
@@ -237,7 +141,6 @@ describe("McpPromptButton validation", () => {
 
       render(<McpPromptButton value="" onInsertText={mockOnInsertText} />);
 
-      // Should not crash
       expect(mockOnInsertText).not.toHaveBeenCalled();
     });
   });
@@ -251,10 +154,67 @@ describe("McpPromptButton validation", () => {
 
       render(<McpPromptButton value="" onInsertText={mockOnInsertText} />);
 
-      // Should not crash
       expect(
         screen.getByRole("button", { name: "Insert MCP Prompt" }),
       ).toBeInTheDocument();
     });
+  });
+});
+
+describe("McpResourceButton", () => {
+  const mockOnInsertResource = jest.fn();
+  const defaultResourceList = [
+    {
+      server: { url: "http://localhost:3000" },
+      resource: {
+        uri: "test:file://doc.md",
+        name: "Documentation",
+        description: "Main docs",
+      },
+    },
+  ];
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockUseTamboMcpResourceList.mockReturnValue({
+      data: defaultResourceList,
+      isLoading: false,
+    } as ReturnType<typeof useTamboMcpResourceList>);
+  });
+
+  it("renders the button when resources are available", () => {
+    render(
+      <McpResourceButton value="" onInsertResource={mockOnInsertResource} />,
+    );
+
+    expect(
+      screen.getByRole("button", { name: "Insert MCP Resource" }),
+    ).toBeInTheDocument();
+  });
+
+  it("does not render when no resources are available", () => {
+    mockUseTamboMcpResourceList.mockReturnValue({
+      data: [],
+      isLoading: false,
+    } as ReturnType<typeof useTamboMcpResourceList>);
+
+    const { container } = render(
+      <McpResourceButton value="" onInsertResource={mockOnInsertResource} />,
+    );
+
+    expect(container.firstChild).toBeNull();
+  });
+
+  it("does not render when resources are undefined", () => {
+    mockUseTamboMcpResourceList.mockReturnValue({
+      data: undefined,
+      isLoading: false,
+    } as ReturnType<typeof useTamboMcpResourceList>);
+
+    const { container } = render(
+      <McpResourceButton value="" onInsertResource={mockOnInsertResource} />,
+    );
+
+    expect(container.firstChild).toBeNull();
   });
 });

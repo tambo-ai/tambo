@@ -166,3 +166,22 @@ function findRepoRoot(dir) {
   }
   throw new Error("Could not find repo root with workspaces");
 }
+
+/**
+ * Merge a custom condition into webpack config's resolve.conditionNames while
+ * preserving existing conditions and webpack's defaults.
+ * @param {import('webpack').Configuration} config Webpack Config
+ * @param {string} condition
+ * @param {boolean} includeWebpackDefaults Whether to include webpack's default conditions
+ * @returns {string[]} A new array of condition names
+ */
+export function mergeConditions(
+  config,
+  condition,
+  includeWebpackDefaults = true,
+) {
+  const existing = config?.resolve?.conditionNames ?? [];
+  const merged = [condition, ...existing];
+  if (includeWebpackDefaults) merged.push("...");
+  return [...new Set(merged)];
+}
