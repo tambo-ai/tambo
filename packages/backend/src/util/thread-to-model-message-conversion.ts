@@ -17,8 +17,65 @@ import type {
   UserContent,
   UserModelMessage,
 } from "ai";
+import type { ProviderOptions } from "@ai-sdk/provider-utils";
 import * as mimeTypes from "mime-types";
 import { formatFunctionCall, generateAdditionalContext } from "./tools";
+
+function getToolCallProviderOptions(
+  message: ThreadMessage,
+  toolCallId: string,
+): ProviderOptions | undefined {
+  const metadata = message.metadata;
+  if (!metadata) {
+    return undefined;
+  }
+
+  const tamboMetadata = metadata["_tambo"];
+  if (typeof tamboMetadata !== "object" || tamboMetadata === null) {
+    return undefined;
+  }
+
+  const toolCallProviderOptionsById = (
+    tamboMetadata as Record<string, unknown>
+  )["toolCallProviderOptionsById"];
+  if (
+    typeof toolCallProviderOptionsById !== "object" ||
+    toolCallProviderOptionsById === null
+  ) {
+    return undefined;
+  }
+
+  const providerOptions = (
+    toolCallProviderOptionsById as Record<string, unknown>
+  )[toolCallId];
+  if (typeof providerOptions !== "object" || providerOptions === null) {
+    return undefined;
+  }
+
+  const googleProviderOptions = (providerOptions as Record<string, unknown>)[
+    "google"
+  ];
+  if (googleProviderOptions !== undefined) {
+    if (
+      typeof googleProviderOptions !== "object" ||
+      googleProviderOptions === null
+    ) {
+      return undefined;
+    }
+
+    const thoughtSignature = (googleProviderOptions as Record<string, unknown>)[
+      "thoughtSignature"
+    ];
+    if (
+      thoughtSignature !== undefined &&
+      typeof thoughtSignature !== "string"
+    ) {
+      return undefined;
+    }
+  }
+
+  return providerOptions as ProviderOptions;
+}
 
 /**
  * Directly convert ThreadMessage[] to AI SDK ModelMessage[] format.
@@ -243,11 +300,13 @@ export function convertAssistantMessage(
     const toolCalls = formatFunctionCall(toolCallRequest, toolCallId);
     toolCalls.forEach((call) => {
       if (call.type === "function") {
+        const providerOptions = getToolCallProviderOptions(message, call.id);
         content.push({
           type: "tool-call",
           toolCallId: call.id,
           toolName: call.function.name,
           input: tryParseJson(call.function.arguments),
+          providerOptions,
         } satisfies ToolCallPart);
       }
     });

@@ -41,7 +41,7 @@ export const ThreadHistoryItem = React.forwardRef<
     onThreadChange?.();
   };
 
-  const { render, ...componentProps } = props;
+  const { render, children, ...componentProps } = props;
   const state: ThreadHistoryItemState = {
     slot: "thread-history-item",
     isActive,
@@ -58,8 +58,10 @@ export const ThreadHistoryItem = React.forwardRef<
     },
     props: mergeProps(componentProps, {
       type: "button",
+      "aria-current": isActive ? "true" : undefined,
       "data-active": isActive ? "true" : undefined,
       onClick: handleClick,
+      children: children ?? (thread.name || thread.id),
     }),
   });
 });

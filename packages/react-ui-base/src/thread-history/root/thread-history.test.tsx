@@ -1,4 +1,4 @@
-import { describe, expect, it, jest } from "@jest/globals";
+import { jest } from "@jest/globals";
 import { useTambo, useTamboThreadList } from "@tambo-ai/react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -100,7 +100,7 @@ describe("ThreadHistory", () => {
     expect(mockSwitchThread).toHaveBeenCalledWith("thread-2");
   });
 
-  it("marks active thread item with data-active attribute", () => {
+  it("marks active thread item with data-active and aria-current attributes", () => {
     const { container } = render(
       <ThreadHistory.Root>
         <ThreadHistory.Item thread={makeThread("thread-1")}>
@@ -116,7 +116,38 @@ describe("ThreadHistory", () => {
       '[data-slot="thread-history-item"]',
     );
     expect(buttons[0].hasAttribute("data-active")).toBe(true);
+    expect(buttons[0].getAttribute("aria-current")).toBe("true");
     expect(buttons[1].hasAttribute("data-active")).toBe(false);
+    expect(buttons[1].hasAttribute("aria-current")).toBe(false);
+  });
+
+  it("renders thread name as default children, falling back to id", () => {
+    render(
+      <ThreadHistory.Root>
+        <ThreadHistory.Item
+          thread={{ ...makeThread("thread-1"), name: "My Thread" }}
+        />
+        <ThreadHistory.Item thread={makeThread("thread-2")} />
+      </ThreadHistory.Root>,
+    );
+
+    expect(screen.getByText("My Thread")).toBeInTheDocument();
+    expect(screen.getByText("thread-2")).toBeInTheDocument();
+  });
+
+  it("renders explicit children instead of thread name", () => {
+    render(
+      <ThreadHistory.Root>
+        <ThreadHistory.Item
+          thread={{ ...makeThread("thread-1"), name: "Thread Name" }}
+        >
+          Custom Label
+        </ThreadHistory.Item>
+      </ThreadHistory.Root>,
+    );
+
+    expect(screen.getByText("Custom Label")).toBeInTheDocument();
+    expect(screen.queryByText("Thread Name")).not.toBeInTheDocument();
   });
 
   it("calls startNewThread and refetch when new thread button is clicked", async () => {
