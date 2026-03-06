@@ -100,7 +100,7 @@ describe("ThreadHistory", () => {
     expect(mockSwitchThread).toHaveBeenCalledWith("thread-2");
   });
 
-  it("marks active thread item with data-active attribute", () => {
+  it("marks active thread item with data-active and aria-current attributes", () => {
     const { container } = render(
       <ThreadHistory.Root>
         <ThreadHistory.Item thread={makeThread("thread-1")}>
@@ -116,7 +116,23 @@ describe("ThreadHistory", () => {
       '[data-slot="thread-history-item"]',
     );
     expect(buttons[0].hasAttribute("data-active")).toBe(true);
+    expect(buttons[0].getAttribute("aria-current")).toBe("true");
     expect(buttons[1].hasAttribute("data-active")).toBe(false);
+    expect(buttons[1].hasAttribute("aria-current")).toBe(false);
+  });
+
+  it("renders thread name as default children, falling back to id", () => {
+    render(
+      <ThreadHistory.Root>
+        <ThreadHistory.Item
+          thread={{ ...makeThread("thread-1"), name: "My Thread" }}
+        />
+        <ThreadHistory.Item thread={makeThread("thread-2")} />
+      </ThreadHistory.Root>,
+    );
+
+    expect(screen.getByText("My Thread")).toBeTruthy();
+    expect(screen.getByText("thread-2")).toBeTruthy();
   });
 
   it("calls startNewThread and refetch when new thread button is clicked", async () => {
