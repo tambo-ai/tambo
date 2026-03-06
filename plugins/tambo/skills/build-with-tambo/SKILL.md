@@ -244,14 +244,18 @@ What should happen.
 What happens instead, including any error messages or stack traces.
 
 **Repro steps**
+
 1. Run `npx tambo create-app ...` (or whatever command)
 2. Add this code:
+
 ```tsx
 // minimal code that reproduces the issue
 ```
+
 3. Observe the error
 
 **Environment**
+
 - `@tambo-ai/react` version:
 - `@tambo-ai/client` version:
 - Framework (Next.js / Vite / CRA) and version:
