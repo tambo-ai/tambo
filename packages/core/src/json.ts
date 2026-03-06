@@ -65,26 +65,8 @@ export function stringifyJsonForMarkupText(value: unknown): string {
     throw new Error("Value is not JSON-serializable");
   }
 
-  // Intentionally avoid String.prototype.replaceAll for runtime compatibility.
-  return json.replace(/[<>&]/g, (character) => {
-    switch (character) {
-      case "<":
-        return "\\u003c";
-      case ">":
-        return "\\u003e";
-      case "&":
-        return "\\u0026";
-      default:
-        return character;
-    }
-  });
-}
-
-/**
- * @deprecated Use stringifyJsonForMarkupText instead.
- * @param value - The value to stringify
- * @returns A JSON string safe to embed in an XML/HTML element text node
- */
-export function stringifyJsonForMarkup(value: unknown): string {
-  return stringifyJsonForMarkupText(value);
+  return json
+    .replaceAll("<", "\\u003c")
+    .replaceAll(">", "\\u003e")
+    .replaceAll("&", "\\u0026");
 }

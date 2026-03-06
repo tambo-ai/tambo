@@ -184,16 +184,6 @@ function findToolNameById(
   return undefined;
 }
 
-function hasOwnKeys(value: Record<string, unknown>): boolean {
-  for (const key in value) {
-    if (Object.prototype.hasOwnProperty.call(value, key)) {
-      return true;
-    }
-  }
-
-  return false;
-}
-
 /**
  * Convert assistant messages, handling tool calls and component decisions
  * This is the most complex conversion with multiple cases
@@ -264,7 +254,10 @@ export function convertAssistantMessage(
   }
 
   // Include component state so the LLM can see it on follow-up messages
-  if (message.componentState && hasOwnKeys(message.componentState)) {
+  if (
+    message.componentState &&
+    Object.keys(message.componentState).length > 0
+  ) {
     const safeJson = stringifyJsonForMarkupText(message.componentState);
     content.push({
       type: "text",
