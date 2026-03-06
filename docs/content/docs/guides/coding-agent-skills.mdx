@@ -13,18 +13,23 @@ Works with Claude Code, Cursor, Codex, Cline, Windsurf, and [35+ other agents](h
 npx skills add tambo-ai/tambo
 ```
 
-This installs 8 skills that teach your agent the Tambo SDK:
+This installs 2 skills that teach your agent the full Tambo SDK:
 
-| Skill                        | What Your Agent Learns                                       |
-| ---------------------------- | ------------------------------------------------------------ |
-| `components`                 | Register and render generative UI components                 |
-| `component-rendering`        | Streaming states, optimistic updates, error handling         |
-| `threads`                    | Thread management, suggestions, voice input                  |
-| `tools-and-context`          | Custom tools, MCP servers, context helpers                   |
-| `cli`                        | CLI commands like `npx tambo init` and `npx tambo add`       |
-| `generative-ui`              | Build generative UI apps with one-shot component generation  |
-| `add-to-existing-project`    | Integrate Tambo into existing React apps                     |
-| `add-components-to-registry` | Convert existing components into Tambo generative components |
+| Skill              | What Your Agent Learns                                                                                                                         |
+| ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `generative-ui`    | Create new Tambo apps from scratch — scaffolding, component creation, registry setup, and dev server in a single prompt                        |
+| `build-with-tambo` | Integrate Tambo into existing React apps — tech stack detection, provider setup, component registration, threads, tools, MCP servers, and more |
+
+Each skill bundles the same set of reference guides, so your agent has full SDK knowledge regardless of which skill activates:
+
+| Reference                      | Covers                                                              |
+| ------------------------------ | ------------------------------------------------------------------- |
+| **Components**                 | Generative and interactable component creation, Zod schemas         |
+| **Component Rendering**        | Streaming props, loading states, optimistic updates, error handling |
+| **Threads and Input**          | Thread management, suggestions, voice input, image attachments      |
+| **Tools and Context**          | Custom tools, MCP servers, context helpers, resources               |
+| **CLI**                        | `tambo init`, `tambo add`, `create-app`, non-interactive flags      |
+| **Add Components to Registry** | Converting existing React components into Tambo registrations       |
 
 ## Quick Start
 
@@ -38,11 +43,12 @@ Your agent will use the skills to scaffold your project and build AI-powered com
 
 With Tambo skills installed, your coding agent can help you:
 
-- **Create new projects** - Scaffold a complete Tambo app with `npx tambo init`
-- **Add generative components** - Register React components that AI can render dynamically
-- **Build chat interfaces** - Create conversational UIs with streaming responses
-- **Connect tools** - Give AI access to your app's data and actions
-- **Integrate MCP servers** - Connect to external services and APIs
+- **Create new projects** — Scaffold a complete Tambo app with `npx tambo create-app`
+- **Add Tambo to existing apps** — Detect your tech stack and integrate without breaking existing patterns
+- **Register generative components** — Create React components that AI can render dynamically with Zod schemas
+- **Build chat interfaces** — Create conversational UIs with streaming responses
+- **Connect tools** — Give AI access to your app's data and actions
+- **Integrate MCP servers** — Connect to external services and APIs
 
 ## Example Prompts
 

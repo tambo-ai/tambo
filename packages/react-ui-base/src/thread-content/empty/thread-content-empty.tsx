@@ -46,7 +46,7 @@ export const ThreadContentEmpty = React.forwardRef<
     state,
     props: {
       ...componentProps,
-      "data-hidden": !isEmpty || undefined,
+      "data-hidden": !isEmpty ? "true" : undefined,
     },
   });
 });

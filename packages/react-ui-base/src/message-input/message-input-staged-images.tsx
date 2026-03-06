@@ -117,7 +117,7 @@ export const MessageInputStagedImages = React.forwardRef<
     props: mergeProps(componentProps, {
       children,
       "data-count": rawImages.length,
-      "data-empty": rawImages.length === 0 || undefined,
+      "data-empty": rawImages.length === 0 ? "true" : undefined,
     }),
   });
 });

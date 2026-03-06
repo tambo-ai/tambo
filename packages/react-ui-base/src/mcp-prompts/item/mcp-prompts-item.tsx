@@ -55,7 +55,7 @@ export const McpPromptsItem = React.forwardRef<
     state,
     props: mergeProps(componentProps, {
       type: "button",
-      "data-selected": isSelected || undefined,
+      "data-selected": isSelected ? "true" : undefined,
       onClick: handleClick,
     }),
   });

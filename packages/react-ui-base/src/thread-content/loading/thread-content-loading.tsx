@@ -46,7 +46,7 @@ export const ThreadContentLoading = React.forwardRef<
     state,
     props: {
       ...componentProps,
-      "data-hidden": !isLoading || undefined,
+      "data-hidden": !isLoading ? "true" : undefined,
     },
   });
 });

@@ -70,7 +70,7 @@ const streamdownRehypePlugins: PluggableList = [
  * @property {string} default - Default styling
  * @property {string} solid - Solid styling with shadow effects
  */
-const messageVariants = cva("hidden data-[hascontent]:flex", {
+const messageVariants = cva("flex flex-col", {
   variants: {
     variant: {
       default: "",
@@ -90,10 +90,12 @@ const messageVariants = cva("hidden data-[hascontent]:flex", {
 /**
  * Props for the Message component.
  */
-export interface MessageProps extends MessageRootProps {
+export type MessageProps = MessageRootProps & {
+  /** The role of the message, either "user" or "assistant". Determines alignment and styling. */
+  message: ReactTamboThreadMessage;
   /** Optional styling variant for the message container. */
   variant?: VariantProps<typeof messageVariants>["variant"];
-}
+};
 
 type MessageContextValue = {
   variant: VariantProps<typeof messageVariants>["variant"];
@@ -116,14 +118,14 @@ const MessageContext = React.createContext<MessageContextValue | null>(null);
  * ```
  */
 const Message = React.forwardRef<HTMLDivElement, MessageProps>(
-  ({ className, variant, message, children, role, ...props }, ref) => {
+  ({ className, variant, message, children, ...props }, ref) => {
+    const role = message?.role === "assistant" ? "assistant" : "user";
     return (
-      <MessageContext.Provider value={{ variant, role, message }}>
+      <MessageContext.Provider value={{ variant, message, role }}>
         <MessageBase.Root
           ref={ref}
           className={cn("data-[message-role=assistant]:w-full", className)}
           message={message}
-          role={role}
           {...props}
         >
           {children}
@@ -172,19 +174,21 @@ LoadingIndicator.displayName = "LoadingIndicator";
  */
 function MessageContentRenderer({
   markdownContent,
-  markdown,
+  renderAsMarkdown,
+  ...props
 }: {
   markdownContent?: string;
-  markdown: boolean;
+  renderAsMarkdown: boolean;
 }) {
   if (!markdownContent) {
     return <span className="text-muted-foreground italic">Empty message</span>;
   }
-  if (markdown) {
+  if (renderAsMarkdown) {
     return (
       <Streamdown
         components={markdownComponents}
         rehypePlugins={streamdownRehypePlugins}
+        {...props}
       >
         {markdownContent}
       </Streamdown>
@@ -291,12 +295,11 @@ const MessageContent = React.forwardRef<HTMLDivElement, MessageContentProps>(
           renderAsMarkdown={renderAsMarkdownEffective}
           render={(props, state) => {
             return (
-              <div {...props}>
-                <MessageContentRenderer
-                  markdownContent={state.contentAsMarkdownString}
-                  markdown={renderAsMarkdownEffective}
-                />
-              </div>
+              <MessageContentRenderer
+                markdownContent={state.contentAsMarkdownString}
+                renderAsMarkdown={state.markdown}
+                {...props}
+              />
             );
           }}
           {...props}

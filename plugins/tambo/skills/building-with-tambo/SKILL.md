@@ -221,3 +221,57 @@ function TestComponent() {
   return <div>Tambo is set up!</div>;
 }
 ```
+
+## Reporting Bugs & Feedback
+
+If you encounter any of these while helping a user, suggest filing a GitHub issue:
+
+- A bug in `@tambo-ai/react`, `@tambo-ai/client`, or the `tambo` CLI
+- Documentation that contradicts actual behavior
+- Missing or misleading instructions in this skill
+
+### Issue Template
+
+Use this template when drafting an issue for `tambo-ai/tambo`:
+
+````markdown
+**Title:** [Short description of the problem]
+
+**Expected behavior**
+What should happen.
+
+**Actual behavior**
+What happens instead, including any error messages or stack traces.
+
+**Repro steps**
+
+1. Run `npx tambo create-app ...` (or whatever command)
+2. Add this code:
+
+```tsx
+// minimal code that reproduces the issue
+```
+
+3. Observe the error
+
+**Environment**
+
+- `@tambo-ai/react` version:
+- `@tambo-ai/client` version:
+- Framework (Next.js / Vite / CRA) and version:
+- Node.js version:
+- OS:
+
+**Additional context**
+Link to relevant docs or skill file path if applicable.
+````
+
+**Security:** Redact API keys, tokens, and any customer data before including logs or code snippets in the issue.
+
+### Suggesting an Issue to the User
+
+When you hit a problem that looks like a Tambo bug, say something like:
+
+> This looks like a bug in `@tambo-ai/react`. Want me to open a GitHub issue on `tambo-ai/tambo` with the repro steps and environment details?
+
+Always wait for the user to confirm before filing.

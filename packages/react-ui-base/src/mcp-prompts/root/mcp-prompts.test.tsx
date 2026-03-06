@@ -151,10 +151,11 @@ describe("McpPrompts", () => {
       const [, setRenderCount] = React.useState(0);
       return (
         <McpPrompts.Root onInsertText={onInsertText}>
-          <McpPrompts.Item name="test:greeting">
-            <button onClick={() => setRenderCount((c) => c + 1)}>
-              Greeting
-            </button>
+          <McpPrompts.Item
+            name="test:greeting"
+            render={<button onClick={() => setRenderCount((c) => c + 1)} />}
+          >
+            Greeting
           </McpPrompts.Item>
         </McpPrompts.Root>
       );
