@@ -2,18 +2,20 @@
 
 ## [1.2.0](https://github.com/tambo-ai/tambo/compare/react-v1.1.0...react-v1.2.0) (2026-03-05)
 
+
 ### Features
 
-- **client:** extract @tambo-ai/client package from react-sdk ([#2442](https://github.com/tambo-ai/tambo/issues/2442)) ([8a245ba](https://github.com/tambo-ai/tambo/commit/8a245ba64972ba665da7b324b70c1d3cd1ec71b1))
+* **client:** extract @tambo-ai/client package from react-sdk ([#2442](https://github.com/tambo-ai/tambo/issues/2442)) ([8a245ba](https://github.com/tambo-ai/tambo/commit/8a245ba64972ba665da7b324b70c1d3cd1ec71b1))
+
 
 ### Miscellaneous Chores
 
-- **client:** update version for release ([#2543](https://github.com/tambo-ai/tambo/issues/2543)) ([c0162e5](https://github.com/tambo-ai/tambo/commit/c0162e5419deb0535cbc5adc4a95c7e9eefff946))
-- **deps:** bump @modelcontextprotocol/sdk from 1.26.0 to 1.27.1 ([#2537](https://github.com/tambo-ai/tambo/issues/2537)) ([5625dc8](https://github.com/tambo-ai/tambo/commit/5625dc89ea973e52bf4e0cc99f888e9baa780d6e))
-- **deps:** bump @tambo-ai/typescript-sdk from 0.93.0 to 0.93.1 in the tambo-ai group ([#2533](https://github.com/tambo-ai/tambo/issues/2533)) ([97158c3](https://github.com/tambo-ai/tambo/commit/97158c36ca0514d34cdae57fc0ebd3031957b55c))
-- **deps:** bump fast-equals from 5.3.3 to 6.0.0 ([#2538](https://github.com/tambo-ai/tambo/issues/2538)) ([a429e3f](https://github.com/tambo-ai/tambo/commit/a429e3fb804282cf1f91055b03f76d1f3044def1))
-- **react-sdk:** remove ! from description ([#2549](https://github.com/tambo-ai/tambo/issues/2549)) ([970c3ea](https://github.com/tambo-ai/tambo/commit/970c3ea1b553fda3223a1187ee1f608597ea9a81))
-- **test:** bump coverage thresholds (2026-03-02) ([#2524](https://github.com/tambo-ai/tambo/issues/2524)) ([373de1a](https://github.com/tambo-ai/tambo/commit/373de1ac056130cc0425ae5a271354a33796a246))
+* **client:** update version for release ([#2543](https://github.com/tambo-ai/tambo/issues/2543)) ([c0162e5](https://github.com/tambo-ai/tambo/commit/c0162e5419deb0535cbc5adc4a95c7e9eefff946))
+* **deps:** bump @modelcontextprotocol/sdk from 1.26.0 to 1.27.1 ([#2537](https://github.com/tambo-ai/tambo/issues/2537)) ([5625dc8](https://github.com/tambo-ai/tambo/commit/5625dc89ea973e52bf4e0cc99f888e9baa780d6e))
+* **deps:** bump @tambo-ai/typescript-sdk from 0.93.0 to 0.93.1 in the tambo-ai group ([#2533](https://github.com/tambo-ai/tambo/issues/2533)) ([97158c3](https://github.com/tambo-ai/tambo/commit/97158c36ca0514d34cdae57fc0ebd3031957b55c))
+* **deps:** bump fast-equals from 5.3.3 to 6.0.0 ([#2538](https://github.com/tambo-ai/tambo/issues/2538)) ([a429e3f](https://github.com/tambo-ai/tambo/commit/a429e3fb804282cf1f91055b03f76d1f3044def1))
+* **react-sdk:** remove ! from description ([#2549](https://github.com/tambo-ai/tambo/issues/2549)) ([970c3ea](https://github.com/tambo-ai/tambo/commit/970c3ea1b553fda3223a1187ee1f608597ea9a81))
+* **test:** bump coverage thresholds (2026-03-02) ([#2524](https://github.com/tambo-ai/tambo/issues/2524)) ([373de1a](https://github.com/tambo-ai/tambo/commit/373de1ac056130cc0425ae5a271354a33796a246))
 
 ## [1.1.0](https://github.com/tambo-ai/tambo/compare/react-v1.0.3...react-v1.1.0) (2026-02-27)
 
