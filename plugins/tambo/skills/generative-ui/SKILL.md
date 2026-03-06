@@ -308,7 +308,7 @@ What happens instead, including any error messages or stack traces.
 - OS:
 
 **Additional context**
-Link to relevant docs (https://docs.tambo.co/...) or skill file path if applicable.
+Link to relevant docs or skill file path if applicable.
 ````
 
 **Security:** Redact API keys, tokens, and any customer data before including logs or code snippets in the issue.
