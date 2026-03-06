@@ -1,6 +1,6 @@
 ---
 name: generative-ui
-description: Create a new Tambo generative UI app from scratch. Use for brand-new projects where users describe UI in natural language. For existing apps, use build-with-tambo.
+description: Creates a new Tambo generative UI React app from scratch with AI-powered components, chat interface, and Zod schemas. Scaffolds with tambo create-app, wires TamboProvider, and registers starter components. Use for brand-new projects where users describe UI in natural language. For existing apps, use building-with-tambo.
 ---
 
 # Generative UI
@@ -11,13 +11,13 @@ Build generative UI apps with Tambo — create rich, interactive React component
 
 For deeper implementation details beyond bootstrap flow, load:
 
-- [components](references/components.md)
-- [component-rendering](references/component-rendering.md)
-- [threads](references/threads.md)
-- [tools-and-context](references/tools-and-context.md)
-- [cli](references/cli.md)
+- [Components](references/components.md) - Create and register Tambo components (generative and interactable).
+- [Component Rendering](references/component-rendering.md) - Handle streaming props, loading states, and persistent component state.
+- [Threads and Input](references/threads.md) - Manage conversations, suggestions, voice input, image attachments, and thread switching.
+- [Tools and Context](references/tools-and-context.md) - Add custom tools, MCP servers, context helpers, and resources.
+- [CLI Reference](references/cli.md) - Use `tambo init`, `tambo add`, and `create-app` with non-interactive flags and exit codes.
 
-These references are duplicated across both skills so each skill works independently.
+These shared references are duplicated from building-with-tambo so each skill works independently.
 
 ## One-Prompt Flow
 
@@ -266,6 +266,20 @@ npx tambo add thread-history --yes         # Conversation history sidebar
 | Plain CSS        | Full          | Need custom component styling     |
 | CSS Modules      | Full          | Supported                         |
 | Zod              | Required      | Used for all schemas              |
+
+## Verification
+
+Have the user verify the app works by:
+
+1. Opening the app URL in a browser
+2. Typing a prompt that should trigger one of the registered components (e.g., "Show me a stats card for monthly revenue")
+3. Verifying the component renders with AI-generated props
+
+If something doesn't work:
+
+- Check the registry includes the component
+- Check the description matches the prompt
+- Check the dev server has no console errors
 
 ## Reporting Bugs & Feedback
 

@@ -1,9 +1,9 @@
 ---
-name: build-with-tambo
-description: Build with Tambo in an existing React app. Use for existing codebases (providers, env vars, components, threads, tools). For brand-new apps, use generative-ui.
+name: building-with-tambo
+description: Integrates Tambo into existing React apps — detects tech stack, installs @tambo-ai/react, wires TamboProvider, registers components with Zod schemas, and sets up tools/context. Use when adding AI-powered generative UI to an existing codebase. For brand-new projects, use generative-ui.
 ---
 
-# Build with Tambo
+# Building with Tambo
 
 Detect tech stack and integrate Tambo while preserving existing patterns.
 
@@ -18,7 +18,7 @@ Use these guides when you need deeper implementation details for a specific area
 - [CLI Reference](references/cli.md) - Use `tambo init`, `tambo add`, and `create-app` with non-interactive flags and exit codes.
 - [Add Components to Registry](references/add-components-to-registry.md) - Convert existing React components into Tambo-ready registrations with schemas and descriptions.
 
-These references are duplicated across both skills so each skill works independently.
+Shared references (components, rendering, threads, tools/context, CLI) are duplicated into generative-ui so each skill works independently. `add-components-to-registry` is unique to this skill.
 
 ## Workflow
 

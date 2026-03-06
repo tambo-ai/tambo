@@ -2,6 +2,15 @@
 
 Gives Tambo access to data and capabilities through tools, MCP servers, and context.
 
+## Contents
+
+- [Quick Start](#quick-start)
+- [Custom Tools](#custom-tools) — defineTool(), inputSchema, outputSchema
+- [MCP Servers](#mcp-servers) — server-side and client-side setup
+- [Context Helpers](#context-helpers) — dynamic per-message context, runtime registration
+- [Context Attachments](#context-attachments) — one-time context for next message
+- [Local Resources](#local-resources) — static, dynamic, and programmatic @ mentionable resources
+
 ## Quick Start
 
 ```tsx

@@ -2,6 +2,15 @@
 
 Agent-friendly CLI for project setup and component management.
 
+## Contents
+
+- [Quick Start](#quick-start)
+- [Non-Interactive Mode](#non-interactive-mode) — detection logic, exit codes
+- [Commands for Agents](#commands-for-agents) — init, add, create-app, auth, full-send
+- [Component Library](#component-library) — available components, what you get
+- [Agent Docs](#agent-docs) — auto-generated AGENTS.md
+- [Key Flags Summary](#key-flags-summary)
+
 ## Quick Start
 
 ```bash
