@@ -308,7 +308,7 @@ export const MessageInputRoot = React.forwardRef<
       onDragOver: handleDragOver,
       onDrop: handleDrop,
       "data-state": isDragging ? "dragging" : undefined,
-      "data-pending": isSubmitting || undefined,
+      "data-pending": isSubmitting ? "true" : undefined,
     }),
   });
 

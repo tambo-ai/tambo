@@ -58,7 +58,7 @@ export const ThreadHistoryItem = React.forwardRef<
     },
     props: mergeProps(componentProps, {
       type: "button",
-      "data-active": isActive || undefined,
+      "data-active": isActive ? "true" : undefined,
       onClick: handleClick,
     }),
   });
