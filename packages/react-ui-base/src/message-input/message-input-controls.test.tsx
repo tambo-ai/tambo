@@ -159,6 +159,7 @@ describe("MessageInput controls", () => {
     }
     expect(button.getAttribute("data-state")).toBe("hidden");
     expect(button.getAttribute("aria-hidden")).toBe("true");
+    expect(button.getAttribute("tabindex")).toBe("-1");
   });
 });
 
