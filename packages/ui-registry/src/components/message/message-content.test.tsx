@@ -62,7 +62,7 @@ describe("MessageContent rendering", () => {
 
       const contentElement = getMessageContentTextSlot(container);
       expect(contentElement.innerHTML).toMatchInlineSnapshot(`
-        <div class="space-y-4 whitespace-normal *:first:mt-0 *:last:mb-0 relative rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&amp;_p]:py-1 [&amp;_li]:list-item hidden data-[has-text-content=true]:flex justify-start shadow-none">
+        <div class="space-y-4 whitespace-normal *:first:mt-0 *:last:mb-0 relative rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&amp;_p]:py-1 [&amp;_li]:list-item flex flex-col justify-start shadow-none">
           <p class="my-0">
             Hello, world!
           </p>
@@ -86,7 +86,7 @@ describe("MessageContent rendering", () => {
 
       const contentElement = getMessageContentTextSlot(container);
       expect(contentElement.innerHTML).toMatchInlineSnapshot(`
-        <div class="space-y-4 whitespace-normal *:first:mt-0 *:last:mb-0 relative rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&amp;_p]:py-1 [&amp;_li]:list-item hidden data-[has-text-content=true]:flex justify-start shadow-none">
+        <div class="space-y-4 whitespace-normal *:first:mt-0 *:last:mb-0 relative rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&amp;_p]:py-1 [&amp;_li]:list-item flex flex-col justify-start shadow-none">
           <p class="my-0">
             First part. Second part.
           </p>
@@ -109,7 +109,7 @@ describe("MessageContent rendering", () => {
 
       const contentElement = getMessageContentTextSlot(container);
       expect(contentElement.innerHTML).toMatchInlineSnapshot(`
-        <div class="space-y-4 whitespace-normal *:first:mt-0 *:last:mb-0 relative rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&amp;_p]:py-1 [&amp;_li]:list-item hidden data-[has-text-content=true]:flex justify-start shadow-none">
+        <div class="space-y-4 whitespace-normal *:first:mt-0 *:last:mb-0 relative rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&amp;_p]:py-1 [&amp;_li]:list-item flex flex-col justify-start shadow-none">
           <p class="my-0">
             This is
             <span
@@ -151,7 +151,7 @@ describe("MessageContent rendering", () => {
 
       const contentElement = getMessageContentTextSlot(container);
       expect(contentElement.innerHTML).toMatchInlineSnapshot(`
-        <div class="space-y-4 whitespace-normal *:first:mt-0 *:last:mb-0 relative rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&amp;_p]:py-1 [&amp;_li]:list-item hidden data-[has-text-content=true]:flex justify-start shadow-none">
+        <div class="space-y-4 whitespace-normal *:first:mt-0 *:last:mb-0 relative rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&amp;_p]:py-1 [&amp;_li]:list-item flex flex-col justify-start shadow-none">
           <p class="my-0">
             <span
               class="mention resource inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground cursor-default"
@@ -185,7 +185,7 @@ describe("MessageContent rendering", () => {
 
       const contentElement = getMessageContentTextSlot(container);
       expect(contentElement.innerHTML).toMatchInlineSnapshot(`
-        <div class="space-y-4 whitespace-normal *:first:mt-0 *:last:mb-0 relative rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&amp;_p]:py-1 [&amp;_li]:list-item hidden data-[has-text-content=true]:flex justify-start shadow-none">
+        <div class="space-y-4 whitespace-normal *:first:mt-0 *:last:mb-0 relative rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&amp;_p]:py-1 [&amp;_li]:list-item flex flex-col justify-start shadow-none">
           <p class="my-0">
             <span
               class="mention resource inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground cursor-default"
@@ -220,7 +220,7 @@ describe("MessageContent rendering", () => {
 
       const contentElement = getMessageContentTextSlot(container);
       expect(contentElement.innerHTML).toMatchInlineSnapshot(`
-        <div class="space-y-4 whitespace-normal *:first:mt-0 *:last:mb-0 relative rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&amp;_p]:py-1 [&amp;_li]:list-item hidden data-[has-text-content=true]:flex justify-start shadow-none">
+        <div class="space-y-4 whitespace-normal *:first:mt-0 *:last:mb-0 relative rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&amp;_p]:py-1 [&amp;_li]:list-item flex flex-col justify-start shadow-none">
           <p class="my-0">
             <span
               class="mention resource inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground cursor-default"
@@ -258,7 +258,7 @@ describe("MessageContent rendering", () => {
 
       const contentElement = getMessageContentTextSlot(container);
       expect(contentElement.innerHTML).toMatchInlineSnapshot(`
-        <div class="space-y-4 whitespace-normal *:first:mt-0 *:last:mb-0 relative rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&amp;_p]:py-1 [&amp;_li]:list-item hidden data-[has-text-content=true]:flex justify-start shadow-none">
+        <div class="space-y-4 whitespace-normal *:first:mt-0 *:last:mb-0 relative rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&amp;_p]:py-1 [&amp;_li]:list-item flex flex-col justify-start shadow-none">
           <p class="my-0">
             Check out this file:
             <span
@@ -295,7 +295,7 @@ describe("MessageContent rendering", () => {
 
       const contentElement = getMessageContentTextSlot(container);
       expect(contentElement.innerHTML).toMatchInlineSnapshot(`
-        <div class="space-y-4 whitespace-normal *:first:mt-0 *:last:mb-0 relative rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&amp;_p]:py-1 [&amp;_li]:list-item hidden data-[has-text-content=true]:flex justify-start shadow-none">
+        <div class="space-y-4 whitespace-normal *:first:mt-0 *:last:mb-0 relative rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&amp;_p]:py-1 [&amp;_li]:list-item flex flex-col justify-start shadow-none">
           <p class="my-0">
             <span
               class="mention resource inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground cursor-default"
@@ -341,7 +341,7 @@ describe("MessageContent rendering", () => {
 
       const contentElement = getMessageContentTextSlot(container);
       expect(contentElement.innerHTML).toMatchInlineSnapshot(`
-        <div class="space-y-4 whitespace-normal *:first:mt-0 *:last:mb-0 relative rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&amp;_p]:py-1 [&amp;_li]:list-item hidden data-[has-text-content=true]:flex justify-start shadow-none">
+        <div class="space-y-4 whitespace-normal *:first:mt-0 *:last:mb-0 relative rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&amp;_p]:py-1 [&amp;_li]:list-item flex flex-col justify-start shadow-none">
           <p class="my-0">
             Compare
             <span
@@ -430,7 +430,7 @@ describe("MessageContent rendering", () => {
       const contentElement = getMessageContentTextSlot(container);
       // Resource without URI should be skipped, text parts joined with space
       expect(contentElement.innerHTML).toMatchInlineSnapshot(`
-        <div class="space-y-4 whitespace-normal *:first:mt-0 *:last:mb-0 relative rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&amp;_p]:py-1 [&amp;_li]:list-item hidden data-[has-text-content=true]:flex justify-start shadow-none">
+        <div class="space-y-4 whitespace-normal *:first:mt-0 *:last:mb-0 relative rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&amp;_p]:py-1 [&amp;_li]:list-item flex flex-col justify-start shadow-none">
           <p class="my-0">
             Before After
           </p>
@@ -453,7 +453,7 @@ describe("MessageContent rendering", () => {
 
       const contentElement = getMessageContentTextSlot(container);
       expect(contentElement.innerHTML).toMatchInlineSnapshot(`
-        <div class="space-y-4 whitespace-normal *:first:mt-0 *:last:mb-0 relative rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&amp;_p]:py-1 [&amp;_li]:list-item hidden data-[has-text-content=true]:flex justify-start shadow-none">
+        <div class="space-y-4 whitespace-normal *:first:mt-0 *:last:mb-0 relative rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&amp;_p]:py-1 [&amp;_li]:list-item flex flex-col justify-start shadow-none">
           <p class="my-0">
             Plain string content
           </p>
@@ -479,7 +479,7 @@ describe("MessageContent rendering", () => {
       const contentElement = getMessageContentTextSlot(container);
       // Regular links should render as <a> tags with external link icon
       expect(contentElement.innerHTML).toMatchInlineSnapshot(`
-        <div class="space-y-4 whitespace-normal *:first:mt-0 *:last:mb-0 relative rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&amp;_p]:py-1 [&amp;_li]:list-item hidden data-[has-text-content=true]:flex justify-start shadow-none">
+        <div class="space-y-4 whitespace-normal *:first:mt-0 *:last:mb-0 relative rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&amp;_p]:py-1 [&amp;_li]:list-item flex flex-col justify-start shadow-none">
           <p class="my-0">
             Check out
             <a
