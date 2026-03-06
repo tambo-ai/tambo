@@ -72,6 +72,7 @@ import {
   SuggestionNotFoundException,
 } from "./types/errors";
 import { contentPartToDbFormat, convertContentPartToDto } from "./util/content";
+import { retryWithBackoff } from "./util/retry";
 import { addMessage, threadMessageToDto, updateMessage } from "./util/messages";
 import { mapSuggestionToDto } from "./util/suggestions";
 import { createMcpHandlers } from "./util/thread-mcp-handlers";
@@ -634,9 +635,10 @@ export class ThreadsService {
     messageId: string,
   ): Promise<schema.DBMessageWithThread> {
     try {
-      const message = await operations.getMessageWithAccess(
-        this.getDb(),
-        messageId,
+      const message = await retryWithBackoff(
+        async () =>
+          await operations.getMessageWithAccess(this.getDb(), messageId),
+        { maxRetries: 5, initialDelayMs: 50, backoffMultiplier: 1.5 },
       );
       if (!message) {
         this.logger.warn(`Message not found: ${messageId}`);
@@ -644,6 +646,9 @@ export class ThreadsService {
       }
       return message;
     } catch (error: unknown) {
+      if (error instanceof InvalidSuggestionRequestError) {
+        throw error;
+      }
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error";
       const errorStack = error instanceof Error ? error.stack : undefined;
