@@ -4,7 +4,8 @@ import { mergeProps, useRender } from "@base-ui/react";
 import * as React from "react";
 import { useMessageInputContext } from "./message-input-context";
 
-export interface MessageInputStopButtonState {
+export interface MessageInputStopButtonState extends Record<string, unknown> {
+  slot: string;
   disabled: boolean;
 }
 
@@ -42,12 +43,15 @@ export const MessageInputStopButton = React.forwardRef<
     render,
     enabled,
     state: {
+      slot: "message-input-stop",
       disabled,
       state: hidden ? "hidden" : "visible",
     },
     props: mergeProps(componentProps, {
+      type: "button",
       disabled,
       onClick,
+      "aria-hidden": hidden ? "true" : undefined,
     }),
   });
 });
