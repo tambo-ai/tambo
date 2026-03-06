@@ -61,7 +61,7 @@ export const ThreadHistoryItem = React.forwardRef<
       "aria-current": isActive ? "true" : undefined,
       "data-active": isActive ? "true" : undefined,
       onClick: handleClick,
-      children: children ?? thread.name ?? thread.id,
+      children: children ?? (thread.name || thread.id),
     }),
   });
 });

@@ -1,4 +1,4 @@
-import { describe, expect, it, jest } from "@jest/globals";
+import { jest } from "@jest/globals";
 import { useTambo, useTamboThreadList } from "@tambo-ai/react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -131,8 +131,23 @@ describe("ThreadHistory", () => {
       </ThreadHistory.Root>,
     );
 
-    expect(screen.getByText("My Thread")).toBeTruthy();
-    expect(screen.getByText("thread-2")).toBeTruthy();
+    expect(screen.getByText("My Thread")).toBeInTheDocument();
+    expect(screen.getByText("thread-2")).toBeInTheDocument();
+  });
+
+  it("renders explicit children instead of thread name", () => {
+    render(
+      <ThreadHistory.Root>
+        <ThreadHistory.Item
+          thread={{ ...makeThread("thread-1"), name: "Thread Name" }}
+        >
+          Custom Label
+        </ThreadHistory.Item>
+      </ThreadHistory.Root>,
+    );
+
+    expect(screen.getByText("Custom Label")).toBeInTheDocument();
+    expect(screen.queryByText("Thread Name")).not.toBeInTheDocument();
   });
 
   it("calls startNewThread and refetch when new thread button is clicked", async () => {
