@@ -252,4 +252,52 @@ describe("convertAssistantMessage", () => {
       });
     });
   });
+
+  describe("tool call provider options", () => {
+    it("should include providerOptions on tool-call parts when present in message metadata", () => {
+      const toolCallId = "tool_123";
+      const message: ThreadAssistantMessage = {
+        ...baseAssistantMessage,
+        content: [{ type: ContentPartType.Text, text: "Calling a tool" }],
+        tool_call_id: toolCallId,
+        toolCallRequest: {
+          toolName: "default_api:readSpreadsheetRange",
+          parameters: [{ parameterName: "range", parameterValue: "A1:B2" }],
+        },
+        metadata: {
+          _tambo: {
+            toolCallProviderOptionsById: {
+              [toolCallId]: {
+                google: { thoughtSignature: "sig_abc" },
+              },
+            },
+          },
+        },
+      };
+
+      const result = convertAssistantMessage(
+        message,
+        [toolCallId],
+        testMimeTypePredicate,
+      );
+
+      expect(result).toEqual([
+        {
+          role: "assistant",
+          content: [
+            { type: "text", text: "Calling a tool" },
+            {
+              type: "tool-call",
+              toolCallId,
+              toolName: "default_api:readSpreadsheetRange",
+              input: { range: "A1:B2" },
+              providerOptions: {
+                google: { thoughtSignature: "sig_abc" },
+              },
+            },
+          ],
+        },
+      ]);
+    });
+  });
 });
