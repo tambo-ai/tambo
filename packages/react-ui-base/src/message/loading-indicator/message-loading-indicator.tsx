@@ -34,11 +34,15 @@ export const MessageLoadingIndicator = React.forwardRef<
   const showLoading = !!isLoading && !hasContent && !message.reasoning;
 
   const { render, ...componentProps } = props;
+
+  if (!showLoading && !keepMounted) {
+    return null;
+  }
+
   return useRender({
     defaultTagName: "div",
     ref,
     render,
-    enabled: keepMounted || showLoading,
     state: { slot: "loading-indicator" },
     props: mergeProps(componentProps, {
       children: children ?? (
@@ -48,6 +52,7 @@ export const MessageLoadingIndicator = React.forwardRef<
           <span data-dot="3" />
         </>
       ),
+      "data-hidden": !showLoading ? "true" : undefined,
     }),
   });
 });

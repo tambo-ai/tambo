@@ -73,7 +73,7 @@ Use the render prop on `Root` to access timeline state for custom layouts:
 
 ### Root
 
-No custom props. Derives timeline state from Tambo hooks and provides it to children via context.
+No custom props. Derives timeline state from Tambo hooks and provides it to children via context. Accepts `render` and `ref` via base-ui.
 
 **Render state:**
 
@@ -86,7 +86,7 @@ No custom props. Derives timeline state from Tambo hooks and provides it to chil
 
 ### Messages
 
-No custom props. Provides filtered messages through render state. System messages and standalone tool_result-only messages are automatically filtered out.
+No custom props. Provides filtered messages through render state. Accepts `render` and `ref` via base-ui. System messages, empty-content messages, and standalone tool_result-only messages are automatically filtered out.
 
 **Render state:**
 

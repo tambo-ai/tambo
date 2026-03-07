@@ -17,46 +17,89 @@ import { ReasoningInfoDemoPreview } from "./_demos/reasoning-info-demo";
 
 ```tsx
 <ReasoningInfo.Root message={message}>
+  <ReasoningInfo.StatusText />
   <ReasoningInfo.Trigger />
-  <ReasoningInfo.Content />
+  <ReasoningInfo.Content>
+    <ReasoningInfo.Steps />
+  </ReasoningInfo.Content>
 </ReasoningInfo.Root>
 ```
 
 ## Examples
 
-### Show Step Numbers
-
-```tsx
-<ReasoningInfo.Steps showStepNumbers />
-```
-
 ### Custom Step Renderer
 
 ```tsx
 <ReasoningInfo.Steps>
-  {({ steps }) => steps.map((step) => <li key={step.id}>{step.title}</li>)}
+  {({ steps, showStepNumbers }) =>
+    steps.map((step, i) => (
+      <li key={i}>
+        {showStepNumbers && <span>{i + 1}.</span>} {step}
+      </li>
+    ))
+  }
 </ReasoningInfo.Steps>
+```
+
+### Custom Status Text
+
+```tsx
+<ReasoningInfo.StatusText>
+  {({ text, isLoading, stepCount }) => (
+    <span>
+      {isLoading ? "Thinking..." : text}
+      {stepCount > 1 && ` (${stepCount} steps)`}
+    </span>
+  )}
+</ReasoningInfo.StatusText>
 ```
 
 ## API reference
 
 ### Root
 
-| Prop      | Type                 | Default  | Description                                     |
-| --------- | -------------------- | -------- | ----------------------------------------------- |
-| `message` | `TamboThreadMessage` | Required | Source message used to resolve reasoning state. |
+| Prop              | Type                 | Default     | Description                                                                        |
+| ----------------- | -------------------- | ----------- | ---------------------------------------------------------------------------------- |
+| `message`         | `TamboThreadMessage` | `undefined` | Source message. If omitted, read from a parent `Message.Root` context.             |
+| `defaultExpanded` | `boolean`            | `true`      | Initial expanded state.                                                            |
+| `autoCollapse`    | `boolean`            | `true`      | Collapse automatically when the message content arrives and reasoning is complete. |
+| `isLoading`       | `boolean`            | `undefined` | Loading flag. If omitted, read from a parent `Message.Root` context.               |
+
+**Render state:** `isExpanded`, `isLoading`, `statusText`, `reasoningCount`.
+
+Returns `null` when the message has no reasoning data.
+
+### StatusText
+
+Displays a computed status label (e.g. "Thinking", "Thought for 5 seconds").
+
+**Render state:** `text`, `isLoading`, `stepCount`.
+
+Default children render `text` plus a step count suffix when there are multiple steps.
 
 ### Trigger
 
-Toggles reasoning visibility and exposes data-state attributes.
+Toggles reasoning visibility.
+
+**Render state:** `isExpanded`.
 
 ### Content
 
-Container for expanded reasoning details.
+Collapsible container for reasoning details. Includes auto-scroll behavior.
+
+| Prop         | Type      | Default | Description                                                 |
+| ------------ | --------- | ------- | ----------------------------------------------------------- |
+| `forceMount` | `boolean` | `false` | Keep mounted regardless of expanded state (for animations). |
+
+**Render state:** `isExpanded`.
 
 ### Steps
 
-Renders reasoning steps with optional numbering and render overrides.
+Provides reasoning step data for rendering.
+
+**Render state:** `steps` (`string[]`), `showStepNumbers` (`true` when `steps.length > 1`).
+
+`showStepNumbers` is computed, not a prop.
 
 ## Accessibility
 
@@ -65,7 +108,10 @@ Renders reasoning steps with optional numbering and render overrides.
 
 ## Styling Hooks
 
-- `data-slot="reasoning-info-root"`
+- `data-slot="reasoning-info"` (Root)
+- `data-slot="reasoning-info-status-text"`
 - `data-slot="reasoning-info-trigger"`
 - `data-slot="reasoning-info-content"`
 - `data-slot="reasoning-info-steps"`
+- `data-state="open" | "closed"` on Trigger and Content
+- `data-loading` on StatusText (present when loading)
