@@ -55,6 +55,7 @@ export const MessageImages = React.forwardRef<
   const { message } = useMessageRootContext();
   const images = getMessageImages(message.content);
 
+  const hasImages = images.length > 0;
   const { render, ...componentProps } = props;
   const renderProps: MessageImagesRenderProps = {
     slot: "message-images",
@@ -74,17 +75,21 @@ export const MessageImages = React.forwardRef<
     [images, renderImage],
   );
 
+  if (!hasImages && !keepMounted) {
+    return null;
+  }
+
   return useRender({
     defaultTagName: "div",
     ref,
     render,
-    enabled: keepMounted || images.length > 0,
     state: renderProps,
     stateAttributesMapping: {
       images: () => null,
     },
     props: mergeProps(componentProps, {
       children: children ?? renderedImages,
+      "data-hidden": !hasImages ? "true" : undefined,
     }),
   });
 });
