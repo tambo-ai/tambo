@@ -1,6 +1,6 @@
 {
   "name": "@tambo-ai/react-ui-base",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Headless base components/Primitives for Tambo AI",
   "author": {
     "name": "Tambo",
