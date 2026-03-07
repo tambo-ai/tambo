@@ -43,9 +43,7 @@ Instead of passing the full message object, you can pass `id` and the component 
 
 ```tsx
 <Message.Images
-  renderImage={({ url, index, alt }) => (
-    <img key={index} src={url} alt={alt ?? ""} />
-  )}
+  renderImage={({ url, index }) => <img key={index} src={url} alt="" />}
 />
 ```
 
