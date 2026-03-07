@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.30.1](https://github.com/tambo-ai/tambo/compare/docs-v1.30.0...docs-v1.30.1) (2026-03-07)
+
+
+### Miscellaneous Chores
+
+* **deps:** bump dompurify from 3.3.1 to 3.3.2 ([#2560](https://github.com/tambo-ai/tambo/issues/2560)) ([9f59466](https://github.com/tambo-ai/tambo/commit/9f59466fab9b3639baf3aba4e23b8fac7e9b40dd))
+
 ## [1.30.0](https://github.com/tambo-ai/tambo/compare/docs-v1.29.0...docs-v1.30.0) (2026-03-05)
 
 
