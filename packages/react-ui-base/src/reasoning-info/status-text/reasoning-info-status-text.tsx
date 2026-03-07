@@ -47,7 +47,7 @@ export const ReasoningInfoStatusText = React.forwardRef<
       },
       componentProps,
       {
-        "data-loading": isLoading || undefined,
+        "data-loading": isLoading ? "true" : undefined,
       },
     ),
   });

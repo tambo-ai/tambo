@@ -2,10 +2,23 @@
 
 Convert existing React components into Tambo-registered components that AI can render.
 
+## Contents
+
+- [Quick Start](#quick-start)
+- [Workflow](#workflow) — analyze, generate Zod schema, write description, register
+- [Step 1: Analyze Component](#step-1-analyze-component) — extract props, types, purpose
+- [Step 2: Generate Zod Schema](#step-2-generate-zod-schema) — type mapping from TypeScript to Zod
+- [Step 3: Write Description](#step-3-write-description) — effective AI trigger descriptions
+- [Step 4: Add to Registry](#step-4-add-to-registry) — lib/tambo.ts registration
+- [Batch Registration](#batch-registration) — process folders of components
+- [Schema File Location](#schema-file-location) — co-located vs dedicated folder
+- [Handling Complex Props](#handling-complex-props) — nested objects, callbacks, children
+- [Verification](#verification) — test in chat
+
 ## Quick Start
 
 ```
-# Start with the build-with-tambo skill, then follow this guide
+# Start with the building-with-tambo skill, then follow this guide
 # Point to a component file or folder and implement the workflow below
 # Example targets:
 src/components/ProductCard.tsx

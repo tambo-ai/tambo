@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.1.2](https://github.com/tambo-ai/tambo/compare/@tambo-ai/react-ui-base-v0.1.1...@tambo-ai/react-ui-base-v0.1.2) (2026-03-06)
+
+
+### Features
+
+* **react-ui-base:** add aria-current and default children to ThreadHistory.Item ([#2577](https://github.com/tambo-ai/tambo/issues/2577)) ([75efa40](https://github.com/tambo-ai/tambo/commit/75efa40c34e4db84eed111209166131c184165c1))
+
+
+### Bug Fixes
+
+* **react-ui-base:** align MessageInput.StopButton with useRender state/props pattern ([#2582](https://github.com/tambo-ai/tambo/issues/2582)) ([ae6bd85](https://github.com/tambo-ai/tambo/commit/ae6bd851f8182576f279499cc0d48107d84c7a62))
+* **react-ui-base:** suppress non-HTML state attributes on MessageInput.Textarea ([#2578](https://github.com/tambo-ai/tambo/issues/2578)) ([6449bd1](https://github.com/tambo-ai/tambo/commit/6449bd1b35b29ee9f7b912e8eae2c8d253f222d3))
+* **react-ui-base:** use explicit "true" for boolean data attributes ([#2580](https://github.com/tambo-ai/tambo/issues/2580)) ([bb4c281](https://github.com/tambo-ai/tambo/commit/bb4c281ea32726f7fcc03803558a84b1ad85c9f2))
+
+## [0.1.1](https://github.com/tambo-ai/tambo/compare/@tambo-ai/react-ui-base-v0.1.0...@tambo-ai/react-ui-base-v0.1.1) (2026-03-06)
+
+
+### Bug Fixes
+
+* **react-ui-base:** fix MessageInput.SubmitButton event callback ([#2567](https://github.com/tambo-ai/tambo/issues/2567)) ([286df2a](https://github.com/tambo-ai/tambo/commit/286df2a16b87eedc31dfa1371b8b159b8b082a64))
+
 ## [0.1.0](https://github.com/tambo-ai/tambo/compare/@tambo-ai/react-ui-base-v0.1.0...@tambo-ai/react-ui-base-v0.1.0) (2026-03-05)
 
 

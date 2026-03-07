@@ -1,9 +1,9 @@
 ---
-name: build-with-tambo
-description: Build with Tambo in an existing React app. Use for existing codebases (providers, env vars, components, threads, tools). For brand-new apps, use generative-ui.
+name: building-with-tambo
+description: Integrates Tambo into existing React apps — detects tech stack, installs @tambo-ai/react, wires TamboProvider, registers components with Zod schemas, and sets up tools/context. Use when adding AI-powered generative UI to an existing codebase. For brand-new projects, use generative-ui.
 ---
 
-# Build with Tambo
+# Building with Tambo
 
 Detect tech stack and integrate Tambo while preserving existing patterns.
 
@@ -18,7 +18,7 @@ Use these guides when you need deeper implementation details for a specific area
 - [CLI Reference](references/cli.md) - Use `tambo init`, `tambo add`, and `create-app` with non-interactive flags and exit codes.
 - [Add Components to Registry](references/add-components-to-registry.md) - Convert existing React components into Tambo-ready registrations with schemas and descriptions.
 
-These references are duplicated across both skills so each skill works independently.
+Shared references (components, rendering, threads, tools/context, CLI) are duplicated into generative-ui so each skill works independently. `add-components-to-registry` is unique to this skill.
 
 ## Workflow
 
@@ -221,3 +221,57 @@ function TestComponent() {
   return <div>Tambo is set up!</div>;
 }
 ```
+
+## Reporting Bugs & Feedback
+
+If you encounter any of these while helping a user, suggest filing a GitHub issue:
+
+- A bug in `@tambo-ai/react`, `@tambo-ai/client`, or the `tambo` CLI
+- Documentation that contradicts actual behavior
+- Missing or misleading instructions in this skill
+
+### Issue Template
+
+Use this template when drafting an issue for `tambo-ai/tambo`:
+
+````markdown
+**Title:** [Short description of the problem]
+
+**Expected behavior**
+What should happen.
+
+**Actual behavior**
+What happens instead, including any error messages or stack traces.
+
+**Repro steps**
+
+1. Run `npx tambo create-app ...` (or whatever command)
+2. Add this code:
+
+```tsx
+// minimal code that reproduces the issue
+```
+
+3. Observe the error
+
+**Environment**
+
+- `@tambo-ai/react` version:
+- `@tambo-ai/client` version:
+- Framework (Next.js / Vite / CRA) and version:
+- Node.js version:
+- OS:
+
+**Additional context**
+Link to relevant docs or skill file path if applicable.
+````
+
+**Security:** Redact API keys, tokens, and any customer data before including logs or code snippets in the issue.
+
+### Suggesting an Issue to the User
+
+When you hit a problem that looks like a Tambo bug, say something like:
+
+> This looks like a bug in `@tambo-ai/react`. Want me to open a GitHub issue on `tambo-ai/tambo` with the repro steps and environment details?
+
+Always wait for the user to confirm before filing.

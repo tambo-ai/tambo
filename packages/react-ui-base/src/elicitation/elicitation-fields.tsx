@@ -137,8 +137,8 @@ export const ElicitationField = React.forwardRef<
     props: mergeProps(props, {
       "data-name": field.name,
       "data-kind": kind,
-      "data-required": field.required || undefined,
-      "data-invalid": invalid || undefined,
+      "data-required": field.required ? "true" : undefined,
+      "data-invalid": invalid ? "true" : undefined,
       children: children ?? defaultContent,
     }),
     state: {

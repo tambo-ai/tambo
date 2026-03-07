@@ -1,6 +1,6 @@
 ---
 name: generative-ui
-description: Create a new Tambo generative UI app from scratch. Use for brand-new projects where users describe UI in natural language. For existing apps, use build-with-tambo.
+description: Creates a new Tambo generative UI React app from scratch with AI-powered components, chat interface, and Zod schemas. Scaffolds with tambo create-app, wires TamboProvider, and registers starter components. Use for brand-new projects where users describe UI in natural language. For existing apps, use building-with-tambo.
 ---
 
 # Generative UI
@@ -11,13 +11,13 @@ Build generative UI apps with Tambo — create rich, interactive React component
 
 For deeper implementation details beyond bootstrap flow, load:
 
-- [components](references/components.md)
-- [component-rendering](references/component-rendering.md)
-- [threads](references/threads.md)
-- [tools-and-context](references/tools-and-context.md)
-- [cli](references/cli.md)
+- [Components](references/components.md) - Create and register Tambo components (generative and interactable).
+- [Component Rendering](references/component-rendering.md) - Handle streaming props, loading states, and persistent component state.
+- [Threads and Input](references/threads.md) - Manage conversations, suggestions, voice input, image attachments, and thread switching.
+- [Tools and Context](references/tools-and-context.md) - Add custom tools, MCP servers, context helpers, and resources.
+- [CLI Reference](references/cli.md) - Use `tambo init`, `tambo add`, and `create-app` with non-interactive flags and exit codes.
 
-These references are duplicated across both skills so each skill works independently.
+These shared references are duplicated from building-with-tambo so each skill works independently.
 
 ## One-Prompt Flow
 
@@ -266,3 +266,71 @@ npx tambo add thread-history --yes         # Conversation history sidebar
 | Plain CSS        | Full          | Need custom component styling     |
 | CSS Modules      | Full          | Supported                         |
 | Zod              | Required      | Used for all schemas              |
+
+## Verification
+
+Have the user verify the app works by:
+
+1. Opening the app URL in a browser
+2. Typing a prompt that should trigger one of the registered components (e.g., "Show me a stats card for monthly revenue")
+3. Verifying the component renders with AI-generated props
+
+If something doesn't work:
+
+- Check the registry includes the component
+- Check the description matches the prompt
+- Check the dev server has no console errors
+
+## Reporting Bugs & Feedback
+
+If you encounter any of these while helping a user, suggest filing a GitHub issue:
+
+- A bug in `@tambo-ai/react`, `@tambo-ai/client`, or the `tambo` CLI
+- Documentation that contradicts actual behavior
+- Missing or misleading instructions in this skill
+
+### Issue Template
+
+Use this template when drafting an issue for `tambo-ai/tambo`:
+
+````markdown
+**Title:** [Short description of the problem]
+
+**Expected behavior**
+What should happen.
+
+**Actual behavior**
+What happens instead, including any error messages or stack traces.
+
+**Repro steps**
+
+1. Run `npx tambo create-app ...` (or whatever command)
+2. Add this code:
+
+```tsx
+// minimal code that reproduces the issue
+```
+
+3. Observe the error
+
+**Environment**
+
+- `@tambo-ai/react` version:
+- `@tambo-ai/client` version:
+- Framework (Next.js / Vite / CRA) and version:
+- Node.js version:
+- OS:
+
+**Additional context**
+Link to relevant docs or skill file path if applicable.
+````
+
+**Security:** Redact API keys, tokens, and any customer data before including logs or code snippets in the issue.
+
+### Suggesting an Issue to the User
+
+When you hit a problem that looks like a Tambo bug, say something like:
+
+> This looks like a bug in `@tambo-ai/react`. Want me to open a GitHub issue on `tambo-ai/tambo` with the repro steps and environment details?
+
+Always wait for the user to confirm before filing.

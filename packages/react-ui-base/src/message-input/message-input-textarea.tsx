@@ -65,6 +65,10 @@ type MessageInputTextareaComponentProps = useRender.ComponentProps<
 export interface MessageInputTextareaProps extends MessageInputTextareaComponentProps {
   /** Custom placeholder text */
   placeholder?: string;
+  /** Whether pressing Enter submits the message or inserts a newline. Defaults to "newline". */
+  enterKeyBehaviour?: "newline" | "submit";
+  /** Disables Cmd/Ctrl+Enter submit shortcut in "newline" mode. Defaults to false. */
+  disableModifierSubmit?: boolean;
   /** Resource provider for @ mentions (optional - MCP resources included by default) */
   resourceProvider?: ResourceProvider;
   /** Prompt provider for / commands (optional - MCP prompts included by default) */
@@ -87,6 +91,8 @@ export const MessageInputTextarea = React.forwardRef<
   (
     {
       placeholder = "What do you want to do?",
+      enterKeyBehaviour = "newline",
+      disableModifierSubmit = false,
       resourceProvider,
       promptProvider,
       resourceFormatOptions,
@@ -157,17 +163,56 @@ export const MessageInputTextarea = React.forwardRef<
       [setValue],
     );
 
+    const handleKeyDown = React.useCallback(
+      (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+        if (e.key !== "Enter") return;
+
+        const hasModifier = e.metaKey || e.ctrlKey;
+
+        if (enterKeyBehaviour === "submit") {
+          // Enter (no modifier) submits; Shift+Enter is always a newline
+          if (!e.shiftKey && !hasModifier) {
+            e.preventDefault();
+            void submitMessage();
+          }
+        } else {
+          // "newline" mode: Cmd/Ctrl+Enter submits (unless disabled)
+          if (hasModifier && !disableModifierSubmit) {
+            e.preventDefault();
+            void submitMessage();
+          }
+        }
+      },
+      [enterKeyBehaviour, disableModifierSubmit, submitMessage],
+    );
+
     return useRender({
       defaultTagName: "textarea",
       ref,
       render,
       state: renderProps,
+      stateAttributesMapping: {
+        value: () => null,
+        setValue: () => null,
+        submitMessage: () => null,
+        handleSubmit: () => null,
+        placeholder: () => null,
+        editorRef: () => null,
+        addImage: () => null,
+        images: () => null,
+        setImageError: () => null,
+        resourceItems: () => null,
+        setResourceSearch: () => null,
+        promptItems: () => null,
+        setPromptSearch: () => null,
+      },
       props: mergeProps(componentProps, {
         value,
         onChange: handleChange,
+        onKeyDown: handleKeyDown,
         placeholder,
         disabled,
-        "data-disabled": disabled || undefined,
+        "data-disabled": disabled ? "true" : undefined,
       }),
     });
   },

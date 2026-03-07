@@ -7,7 +7,7 @@ import React from "react";
 export interface MessageRootContextValue {
   role: "user" | "assistant";
   message: ReactTamboThreadMessage;
-  isLoading?: boolean;
+  isLoading: boolean;
 }
 
 const MessageRootContext = React.createContext<MessageRootContextValue | null>(

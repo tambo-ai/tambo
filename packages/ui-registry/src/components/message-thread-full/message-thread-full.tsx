@@ -1,5 +1,6 @@
 "use client";
 
+import type { Suggestion } from "@tambo-ai/react";
 import type { messageVariants } from "@tambo-ai/ui-registry/components/message";
 import {
   MessageInput,
@@ -18,7 +19,6 @@ import {
   MessageSuggestionsStatus,
 } from "@tambo-ai/ui-registry/components/message-suggestions";
 import { ScrollableMessageContainer } from "@tambo-ai/ui-registry/components/scrollable-message-container";
-import { ThreadContainer, useThreadContainerContext } from "./thread-container";
 import {
   ThreadContent,
   ThreadContentMessages,
@@ -31,9 +31,9 @@ import {
   ThreadHistorySearch,
 } from "@tambo-ai/ui-registry/components/thread-history";
 import { useMergeRefs } from "@tambo-ai/ui-registry/lib/thread-hooks";
-import type { Suggestion } from "@tambo-ai/react";
 import type { VariantProps } from "class-variance-authority";
 import * as React from "react";
+import { ThreadContainer, useThreadContainerContext } from "./thread-container";
 
 /**
  * Props for the MessageThreadFull component
@@ -102,8 +102,8 @@ export const MessageThreadFull = React.forwardRef<
               <MessageInputMcpResourceButton />
               {/* Uncomment this to enable client-side MCP config modal button */}
               {/* <MessageInputMcpConfigButton /> */}
-              <MessageInputSubmitButton keepMounted />
-              <MessageInputStopButton keepMounted />
+              <MessageInputSubmitButton />
+              <MessageInputStopButton />
             </MessageInputToolbar>
             <MessageInputError />
           </MessageInput>

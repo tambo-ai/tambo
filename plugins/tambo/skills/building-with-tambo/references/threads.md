@@ -2,6 +2,17 @@
 
 Manages conversations, suggestions, voice input, and image attachments.
 
+## Contents
+
+- [Quick Start](#quick-start)
+- [Thread Management](#thread-management) — useTambo(), useTamboThreadInput(), streaming state, content blocks, submit options
+- [Fetching a Thread by ID](#fetching-a-thread-by-id) — useTamboThread() for read-only access
+- [Thread List](#thread-list) — useTamboThreadList(), pagination
+- [Suggestions](#suggestions) — useTamboSuggestions(), auto-generate, manual generation
+- [Voice Input](#voice-input) — useTamboVoice(), recording, transcription
+- [Image Attachments](#image-attachments) — addImage, addImages, removeImage, StagedImage
+- [User Authentication](#user-authentication) — userKey, userToken, per-user thread isolation
+
 ## Quick Start
 
 ```tsx

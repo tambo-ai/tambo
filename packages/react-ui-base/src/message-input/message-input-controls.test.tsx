@@ -146,6 +146,21 @@ describe("MessageInput controls", () => {
 
     expect(screen.queryByRole("button", { name: "Stop" })).toBeNull();
   });
+
+  it("keeps stop button mounted with data-hidden while idle", () => {
+    const { container } = renderWithContext(
+      <MessageInputStopButton keepMounted>Stop</MessageInputStopButton>,
+      { isIdle: true },
+    );
+
+    const button = container.querySelector('[data-slot="message-input-stop"]');
+    if (!button) {
+      throw new Error("Stop button was not rendered");
+    }
+    expect(button.getAttribute("data-state")).toBe("hidden");
+    expect(button.getAttribute("aria-hidden")).toBe("true");
+    expect(button.getAttribute("tabindex")).toBe("-1");
+  });
 });
 
 describe("MessageInput elicitation visibility", () => {

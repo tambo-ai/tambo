@@ -53,6 +53,7 @@ export const MessageInputSubmitButton = React.forwardRef<
     props: mergeProps(componentProps, {
       disabled,
       tabIndex: effectiveTabIndex,
+      type: "submit",
       "aria-hidden": hidden ? "true" : undefined,
     }),
   });

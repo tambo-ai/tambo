@@ -1,5 +1,5 @@
 import {
-  stringifyJsonForMarkup,
+  stringifyJsonForMarkupText,
   tryParseJson,
   tryParseJsonArray,
   tryParseJsonObject,
@@ -62,9 +62,9 @@ describe("JSON utilities", () => {
     });
   });
 
-  describe("stringifyJsonForMarkup", () => {
+  describe("stringifyJsonForMarkupText", () => {
     it("should stringify JSON without changing safe values", () => {
-      expect(stringifyJsonForMarkup({ a: 1, b: "ok" })).toBe(
+      expect(stringifyJsonForMarkupText({ a: 1, b: "ok" })).toBe(
         '{"a":1,"b":"ok"}',
       );
     });
@@ -74,13 +74,19 @@ describe("JSON utilities", () => {
         text: "</component_state> & <tag>",
       };
 
-      const result = stringifyJsonForMarkup(value);
-      expect(result).toContain("\\u003c/component_state\\u003e");
-      expect(result).toContain("\\u0026");
-      expect(result).toContain("\\u003ctag\\u003e");
+      const result = stringifyJsonForMarkupText(value);
       expect(result).not.toContain("</component_state>");
+      expect(result).not.toContain("<tag>");
+      expect(result).not.toContain("&");
 
       expect(JSON.parse(result)).toEqual(value);
+    });
+
+    it("should throw when the value is not JSON-serializable", () => {
+      const value: Record<string, unknown> = {};
+      value.self = value;
+
+      expect(() => stringifyJsonForMarkupText(value)).toThrow();
     });
   });
 });
