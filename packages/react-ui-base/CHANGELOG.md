@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.1.3](https://github.com/tambo-ai/tambo/compare/@tambo-ai/react-ui-base-v0.1.2...@tambo-ai/react-ui-base-v0.1.3) (2026-03-07)
+
+
+### Features
+
+* **react-ui-base:** add GenerationStage headless primitive ([#2585](https://github.com/tambo-ai/tambo/issues/2585)) ([40a1c1f](https://github.com/tambo-ai/tambo/commit/40a1c1ff4323abb9393cc2916c05f1ecac885b67))
+
+
+### Documentation
+
+* **react-ui-base:** audit and fix all component reference pages ([#2584](https://github.com/tambo-ai/tambo/issues/2584)) ([d42c5b9](https://github.com/tambo-ai/tambo/commit/d42c5b9bf9fb3123670183699cd41c8961caa8d2))
+
 ## [0.1.2](https://github.com/tambo-ai/tambo/compare/@tambo-ai/react-ui-base-v0.1.1...@tambo-ai/react-ui-base-v0.1.2) (2026-03-06)
 
 
