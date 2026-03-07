@@ -139,6 +139,17 @@
         "default": "./dist/cjs/mcp-resources/index.cjs"
       }
     },
+    "./generation-stage": {
+      "@tambo-ai/source": "./src/generation-stage/index.tsx",
+      "import": {
+        "types": "./dist/esm/generation-stage/index.d.ts",
+        "default": "./dist/esm/generation-stage/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/generation-stage/index.d.ts",
+        "default": "./dist/cjs/generation-stage/index.cjs"
+      }
+    },
     "./types": {
       "@tambo-ai/source": "./src/types/component-render-or-children.ts",
       "import": {
