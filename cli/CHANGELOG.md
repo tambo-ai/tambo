@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.54.1](https://github.com/tambo-ai/tambo/compare/tambo-v0.54.0...tambo-v0.54.1) (2026-03-08)
+
+
+### Miscellaneous Chores
+
+* **deps:** bump @tambo-ai/typescript-sdk from 0.93.0 to 0.93.1 in the tambo-ai group ([#2533](https://github.com/tambo-ai/tambo/issues/2533)) ([97158c3](https://github.com/tambo-ai/tambo/commit/97158c36ca0514d34cdae57fc0ebd3031957b55c))
+* **test:** bump coverage thresholds (2026-03-02) ([#2524](https://github.com/tambo-ai/tambo/issues/2524)) ([373de1a](https://github.com/tambo-ai/tambo/commit/373de1ac056130cc0425ae5a271354a33796a246))
+
 ## [0.54.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.53.1...tambo-v0.54.0) (2026-02-25)
 
 
