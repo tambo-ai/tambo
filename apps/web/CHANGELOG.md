@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.133.0](https://github.com/tambo-ai/tambo/compare/web-v0.132.2...web-v0.133.0) (2026-03-08)
+
+
+### Features
+
+* **docs:** phase 7 - web consumer adoption docs, demos, and smoketest improvements ([#2540](https://github.com/tambo-ai/tambo/issues/2540)) ([be436ea](https://github.com/tambo-ai/tambo/commit/be436eaf5e5c498ebcbed67374419fcd0517dbf4))
+
+
+### Bug Fixes
+
+* **api:** fix Docker image build ([#2551](https://github.com/tambo-ai/tambo/issues/2551)) ([925bfe8](https://github.com/tambo-ai/tambo/commit/925bfe80c288a1d4ba18caf06e88a1129911deb5))
+* **web:** add `suppressHydrationWarning` to body tag ([#2548](https://github.com/tambo-ai/tambo/issues/2548)) ([4a4eaee](https://github.com/tambo-ai/tambo/commit/4a4eaeee2cfa46cae198d8beba521575296080fb))
+* **web:** prompt reauth for legacy sessions missing userToken ([#2571](https://github.com/tambo-ai/tambo/issues/2571)) ([3a5dd56](https://github.com/tambo-ai/tambo/commit/3a5dd5651aabf8789da1e74b31b82951b624937a))
+* **web:** resolve error dropdown navigation to parent tool call message ([#2511](https://github.com/tambo-ai/tambo/issues/2511)) ([77a34d8](https://github.com/tambo-ai/tambo/commit/77a34d89b5d0641b3d454aa5fa0f0cf8f42b2581))
+* **web:** treat placeholder OAuth credentials as unset in .env.example ([#2547](https://github.com/tambo-ai/tambo/issues/2547)) ([d69b8ed](https://github.com/tambo-ai/tambo/commit/d69b8ed79884c7646abbcded731211d68a984aaa))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump @modelcontextprotocol/sdk from 1.26.0 to 1.27.1 ([#2537](https://github.com/tambo-ai/tambo/issues/2537)) ([5625dc8](https://github.com/tambo-ai/tambo/commit/5625dc89ea973e52bf4e0cc99f888e9baa780d6e))
+* **deps:** bump @tambo-ai/typescript-sdk from 0.93.0 to 0.93.1 in the tambo-ai group ([#2533](https://github.com/tambo-ai/tambo/issues/2533)) ([97158c3](https://github.com/tambo-ai/tambo/commit/97158c36ca0514d34cdae57fc0ebd3031957b55c))
+* **deps:** bump dompurify from 3.3.1 to 3.3.2 ([#2560](https://github.com/tambo-ai/tambo/issues/2560)) ([9f59466](https://github.com/tambo-ai/tambo/commit/9f59466fab9b3639baf3aba4e23b8fac7e9b40dd))
+* **deps:** bump the small-safe-packages group with 4 updates ([#2534](https://github.com/tambo-ai/tambo/issues/2534)) ([3694fe4](https://github.com/tambo-ai/tambo/commit/3694fe448691c1b9c4730b457d22bb971ad72d1f))
+
 ## [0.132.2](https://github.com/tambo-ai/tambo/compare/web-v0.132.1...web-v0.132.2) (2026-02-20)
 
 
