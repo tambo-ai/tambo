@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.144.2](https://github.com/tambo-ai/tambo/compare/api-v0.144.1...api-v0.144.2) (2026-03-08)
+
+
+### Bug Fixes
+
+* **api:** support Gemini 3 tool calls ([#2501](https://github.com/tambo-ai/tambo/issues/2501)) ([9937634](https://github.com/tambo-ai/tambo/commit/9937634f8a11d7499fa58a7d82dcb239e8c5a73f))
+
 ## [0.144.1](https://github.com/tambo-ai/tambo/compare/api-v0.144.0...api-v0.144.1) (2026-03-05)
 
 
