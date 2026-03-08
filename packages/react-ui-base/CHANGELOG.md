@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.4](https://github.com/tambo-ai/tambo/compare/@tambo-ai/react-ui-base-v0.1.3...@tambo-ai/react-ui-base-v0.1.4) (2026-03-08)
+
+
+### Features
+
+* **react-ui-base:** export GenerationStage from package barrel ([#2588](https://github.com/tambo-ai/tambo/issues/2588)) ([facec3b](https://github.com/tambo-ai/tambo/commit/facec3bdf6338be4b0298bc8406ace1c55d4d988))
+
 ## [0.1.3](https://github.com/tambo-ai/tambo/compare/@tambo-ai/react-ui-base-v0.1.2...@tambo-ai/react-ui-base-v0.1.3) (2026-03-07)
 
 
