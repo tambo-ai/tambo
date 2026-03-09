@@ -87,7 +87,7 @@ jobs:
 
       - name: Login to GitHub Container Registry
         if: needs.meta.outputs.should-push == 'true'
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: tambo-bot
