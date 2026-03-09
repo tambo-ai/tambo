@@ -83,7 +83,7 @@ jobs:
 
       - name: Set up Docker Buildx
         id: setup-buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Login to GitHub Container Registry
         if: needs.meta.outputs.should-push == 'true'
