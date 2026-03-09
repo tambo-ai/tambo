@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.30.2](https://github.com/tambo-ai/tambo/compare/docs-v1.30.1...docs-v1.30.2) (2026-03-09)
+
+
+### Documentation
+
+* **react-ui-base:** audit and fix all component reference pages ([#2584](https://github.com/tambo-ai/tambo/issues/2584)) ([d42c5b9](https://github.com/tambo-ai/tambo/commit/d42c5b9bf9fb3123670183699cd41c8961caa8d2))
+
 ## [1.30.1](https://github.com/tambo-ai/tambo/compare/docs-v1.30.0...docs-v1.30.1) (2026-03-07)
 
 
