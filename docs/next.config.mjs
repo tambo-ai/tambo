@@ -12,12 +12,24 @@ const APP_DIR = fileURLToPath(new URL(".", import.meta.url));
 const config = {
   transpilePackages: getWorkspaceTranspilePackages(APP_DIR),
   webpack(config, { dev }) {
+    config.module.rules.push({
+      test: /\.svg$/,
+      use: ["@svgr/webpack"],
+    });
+
     if (dev) {
       config.resolve.conditionNames = mergeConditions(
         config.resolve.conditionNames,
         "@tambo-ai/source",
       );
     }
+
+    // Suppress optional peer dependency warnings from @standard-community/standard-json
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      effect: false,
+      sury: false,
+    };
     return config;
   },
   reactStrictMode: true,

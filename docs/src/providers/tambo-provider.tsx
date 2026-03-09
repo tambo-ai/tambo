@@ -1,6 +1,7 @@
 "use client";
 
 import { currentPageContextHelper, TamboProvider } from "@tambo-ai/react";
+import { TamboDevtools } from "@tambo-ai/react-devtools";
 import { components } from "@/lib/tambo";
 
 export function TamboRootProvider({ children }: { children: React.ReactNode }) {
@@ -13,6 +14,7 @@ export function TamboRootProvider({ children }: { children: React.ReactNode }) {
       components={components}
     >
       {children}
+      <TamboDevtools />
     </TamboProvider>
   );
 }
