@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.37.3](https://github.com/tambo-ai/tambo/compare/showcase-v0.37.2...showcase-v0.37.3) (2026-03-09)
+
+
+### Miscellaneous Chores
+
+* **deps:** bump dompurify from 3.3.1 to 3.3.2 ([#2560](https://github.com/tambo-ai/tambo/issues/2560)) ([9f59466](https://github.com/tambo-ai/tambo/commit/9f59466fab9b3639baf3aba4e23b8fac7e9b40dd))
+
 ## [0.37.2](https://github.com/tambo-ai/tambo/compare/showcase-v0.37.1...showcase-v0.37.2) (2026-02-11)
 
 
