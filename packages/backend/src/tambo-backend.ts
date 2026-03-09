@@ -10,10 +10,8 @@ import OpenAI from "openai";
 import { AvailableComponent } from "./model/component-metadata";
 import { Provider } from "./model/providers";
 import { runAgentLoop } from "./services/decision-loop/agent-loop";
-import {
-  DecisionStreamItem,
-  runDecisionLoop,
-} from "./services/decision-loop/decision-loop-service";
+import { runDecisionLoop } from "./services/decision-loop/decision-loop-service";
+import type { DecisionStreamItem } from "./services/decision-loop/decision-loop-service";
 import { AgentClient } from "./services/llm/agent-client";
 import { AISdkClient } from "./services/llm/ai-sdk-client";
 import { EventHandlerParams } from "./services/llm/async-adapters";

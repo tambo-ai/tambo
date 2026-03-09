@@ -27,10 +27,7 @@ export type {
   ToolcallInfoContentProps,
   ToolcallInfoContentRenderProps,
 } from "./content/toolcall-info-content";
-export type {
-  ToolcallInfoParametersProps,
-  ToolcallInfoParametersRenderProps,
-} from "./parameters/toolcall-info-parameters";
+export type { ToolcallInfoParametersProps } from "./parameters/toolcall-info-parameters";
 export type {
   ToolcallInfoResultProps,
   ToolcallInfoResultRenderProps,

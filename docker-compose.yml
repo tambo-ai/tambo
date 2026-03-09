@@ -62,11 +62,11 @@ services:
         NODE_ENV: ${NODE_ENV:-production}
     container_name: tambo_web
     ports:
-      - "3210:3000"
+      - "8260:3000"
     environment:
       - PORT=3000
       - NODE_ENV=${NODE_ENV:-production}
-      - NEXT_PUBLIC_TAMBO_API_URL=${NEXT_PUBLIC_TAMBO_API_URL:-http://localhost:3211}
+      - NEXT_PUBLIC_TAMBO_API_URL=${NEXT_PUBLIC_TAMBO_API_URL:-http://localhost:8261}
       - NEXT_PUBLIC_TAMBO_API_KEY=${NEXT_PUBLIC_TAMBO_API_KEY:-}
       - NEXT_PUBLIC_POSTHOG_HOST=${NEXT_PUBLIC_POSTHOG_HOST:-}
       - NEXT_PUBLIC_POSTHOG_KEY=${NEXT_PUBLIC_POSTHOG_KEY:-}
@@ -109,7 +109,7 @@ services:
         NODE_ENV: ${NODE_ENV:-production}
     container_name: tambo_api
     ports:
-      - "3211:3000"
+      - "8261:3000"
     environment:
       - PORT=3000
       - NODE_ENV=${NODE_ENV:-production}

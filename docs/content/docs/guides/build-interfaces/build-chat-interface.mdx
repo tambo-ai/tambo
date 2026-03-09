@@ -34,29 +34,30 @@ export default function MessageList() {
         <div key={message.id} className={`message message-${message.role}`}>
           <div className="message-sender">{message.role}</div>
 
-          {/* Render text content */}
-          {message.content.map((contentPart, idx) => {
-            if (contentPart.type === "text") {
-              return <p key={idx}>{contentPart.text}</p>;
+          {/* Render content blocks */}
+          {message.content.map((content, idx) => {
+            if (content.type === "text") {
+              return <p key={idx}>{content.text}</p>;
+            }
+            if (content.type === "tool_use") {
+              return (
+                <div
+                  key={idx}
+                  className="text-sm text-gray-500 p-2 w-full text-left animate-fade-in"
+                >
+                  -&gt; {content.name}
+                </div>
+              );
+            }
+            if (content.type === "component" && content.renderedComponent) {
+              return (
+                <div key={idx} className="message-component">
+                  {content.renderedComponent}
+                </div>
+              );
             }
             return null;
           })}
-
-          {/* Show tool calls */}
-          {message.role === "assistant" && message.toolCallRequest && (
-            <div className="tool-calls">
-              {message.component?.toolCallRequest && (
-                <div className="text-sm text-gray-500 p-2 w-full text-left animate-fade-in">
-                  -&gt; {message.component.toolCallRequest.toolName}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Render component if present */}
-          {message.renderedComponent && (
-            <div className="message-component">{message.renderedComponent}</div>
-          )}
         </div>
       ))}
     </div>
@@ -64,7 +65,7 @@ export default function MessageList() {
 }
 ```
 
-Messages contain text content, images, generated components, and tool calls. The `renderedComponent` property contains any component Tambo created in response to the message. Tool calls show which tools the AI invoked, useful for debugging or transparency.
+Messages contain an array of content blocks — text, tool calls, tool results, and components. Content blocks with `type: "component"` include a `renderedComponent` property containing any component Tambo created. Tool call blocks (`type: "tool_use"`) show which tools the AI invoked, useful for debugging or transparency.
 
 **Alternative: Canvas-Style Display**
 
@@ -72,14 +73,20 @@ For interfaces showing only the latest component (dashboards, workspaces), walk 
 
 ```tsx
 import { useTambo } from "@tambo-ai/react";
+import { type ReactNode } from "react";
 
 function CanvasView() {
   const { messages } = useTambo();
 
-  const latestComponent = messages
-    .slice()
-    .reverse()
-    .find((message) => message.renderedComponent)?.renderedComponent;
+  // Find the most recent rendered component by scanning forward (last wins)
+  let latestComponent: ReactNode | null = null;
+  for (const message of messages) {
+    for (const block of message.content) {
+      if (block.type === "component" && block.renderedComponent) {
+        latestComponent = block.renderedComponent;
+      }
+    }
+  }
 
   return (
     <div className="canvas">
@@ -218,7 +225,11 @@ function MessageThread() {
     <div>
       {/* Messages */}
       {messages.map((message) => (
-        <div key={message.id}>{message.content}</div>
+        <div key={message.id}>
+          {message.content.map((content, idx) =>
+            content.type === "text" ? <p key={idx}>{content.text}</p> : null,
+          )}
+        </div>
       ))}
 
       {/* Suggestions */}
@@ -252,43 +263,6 @@ accept({ suggestion });
 
 // Set text and automatically submit
 accept({ suggestion, shouldSubmit: true });
-```
-
-### Custom Suggestions
-
-Override auto-generated suggestions for specific contexts using `useTamboContextAttachment`:
-
-```tsx
-import { useTamboContextAttachment } from "@tambo-ai/react";
-
-function ComponentSelector({ component }) {
-  const { setCustomSuggestions } = useTamboContextAttachment();
-
-  const handleSelectComponent = () => {
-    setCustomSuggestions([
-      {
-        id: "1",
-        title: "Edit this component",
-        detailedSuggestion: `Modify the ${component.name} component`,
-        messageId: "",
-      },
-      {
-        id: "2",
-        title: "Add a feature",
-        detailedSuggestion: `Add a new feature to ${component.name}`,
-        messageId: "",
-      },
-    ]);
-  };
-
-  return <button onClick={handleSelectComponent}>Select</button>;
-}
-```
-
-Clear custom suggestions to return to auto-generated ones:
-
-```tsx
-setCustomSuggestions(null);
 ```
 
 ## Related Concepts

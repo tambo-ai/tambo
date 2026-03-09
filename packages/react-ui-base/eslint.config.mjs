@@ -16,10 +16,16 @@ export default defineConfig([
     // Allow config files to be linted without being in the main tsconfig
     languageOptions: {
       parserOptions: {
+        tsconfigRootDir: import.meta.dirname,
         projectService: {
           allowDefaultProject: ["*.mjs", "vite.config.ts"],
         },
       },
+    },
+  },
+  {
+    rules: {
+      "@typescript-eslint/no-namespace": ["error", { allowDeclarations: true }],
     },
   },
 ]);

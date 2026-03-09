@@ -1,0 +1,164 @@
+---
+title: ToolcallInfo
+description: Compose tool call status, parameters, and results for assistant tool execution messages.
+---
+
+import { ToolcallInfoDemoPreview } from "./_demos/toolcall-info-demo";
+
+# ToolcallInfo
+
+`ToolcallInfo` in `@tambo-ai/react-ui-base` resolves tool call state for a message and exposes composable trigger/content parts.
+
+## Demo
+
+<ToolcallInfoDemoPreview />
+
+## Anatomy
+
+```tsx
+<ToolcallInfo.Root message={message}>
+  <ToolcallInfo.Trigger>
+    <ToolcallInfo.StatusIcon />
+    <ToolcallInfo.StatusText />
+    <ToolcallInfo.ToolName />
+  </ToolcallInfo.Trigger>
+  <ToolcallInfo.Content>
+    <ToolcallInfo.Parameters />
+    <ToolcallInfo.Result />
+  </ToolcallInfo.Content>
+</ToolcallInfo.Root>
+```
+
+## Examples
+
+### Custom Trigger Text
+
+```tsx
+<ToolcallInfo.StatusText>
+  {({ toolStatusMessage }) => <span>{toolStatusMessage.toLowerCase()}</span>}
+</ToolcallInfo.StatusText>
+```
+
+### Render Parsed Result
+
+```tsx
+<ToolcallInfo.Result>
+  {({ content }) => <pre>{JSON.stringify(content, null, 2)}</pre>}
+</ToolcallInfo.Result>
+```
+
+## API reference
+
+### Root
+
+| Prop              | Type                  | Default     | Description                                                                        |
+| ----------------- | --------------------- | ----------- | ---------------------------------------------------------------------------------- |
+| `message`         | `TamboThreadMessage`  | `undefined` | Source message. Falls back to parent `Message.Root` context if omitted.            |
+| `toolUse`         | `TamboToolUseContent` | `undefined` | Specific tool_use block to display. Defaults to the first tool_use in the message. |
+| `defaultExpanded` | `boolean`             | `false`     | Initial expanded state.                                                            |
+| `isLoading`       | `boolean`             | `undefined` | Loading override. Falls back to parent `Message.Root` context if omitted.          |
+
+**Render state** (available via `render` prop):
+
+| Key                     | Type      | Description                                       |
+| ----------------------- | --------- | ------------------------------------------------- |
+| `isExpanded`            | `boolean` | Whether tool details are expanded.                |
+| `hasToolError`          | `boolean` | Whether the tool result contains an error.        |
+| `toolStatusMessage`     | `string`  | Computed status label (e.g. "Running", "Done").   |
+| `isLoading`             | `boolean` | Whether the tool call is in a loading state.      |
+| `hasAssociatedResponse` | `boolean` | Whether a matching tool result message was found. |
+
+### Trigger
+
+Toggles expanded tool information. Renders a `<button>` by default.
+
+**Render state:**
+
+| Key     | Type                 | Description                       |
+| ------- | -------------------- | --------------------------------- |
+| `state` | `"open" \| "closed"` | Current expanded/collapsed state. |
+
+### Content
+
+Collapsible content area for toolcall details.
+
+| Prop         | Type      | Default | Description                                                            |
+| ------------ | --------- | ------- | ---------------------------------------------------------------------- |
+| `forceMount` | `boolean` | `false` | Force visibility regardless of expanded state (for custom animations). |
+
+**Render state:**
+
+| Key          | Type                 | Description                           |
+| ------------ | -------------------- | ------------------------------------- |
+| `message`    | `TamboThreadMessage` | The message containing the tool call. |
+| `isExpanded` | `boolean`            | Whether the content is expanded.      |
+
+### StatusIcon
+
+Provides computed tool status for custom icon rendering. Renders a `<span>` by default.
+
+**Render state:**
+
+| Key      | Type                                | Description           |
+| -------- | ----------------------------------- | --------------------- |
+| `status` | `"error" \| "loading" \| "success"` | Computed tool status. |
+
+### StatusText
+
+Displays the tool status message text. Falls back to the computed `toolStatusMessage` when no children are provided. Renders a `<span>` by default.
+
+**Render state:**
+
+| Key                 | Type     | Description                   |
+| ------------------- | -------- | ----------------------------- |
+| `toolStatusMessage` | `string` | Computed status message text. |
+
+### ToolName
+
+Displays the tool name. Falls back to the tool call name when no children are provided. Renders a `<span>` by default.
+
+**Render state:**
+
+| Key        | Type                  | Description    |
+| ---------- | --------------------- | -------------- |
+| `toolName` | `string \| undefined` | The tool name. |
+
+### Parameters
+
+Displays the tool parameters as a JSON string. Falls back to `JSON.stringify(input, null, 2)` when no children are provided. Renders a `<span>` by default.
+
+**Render state:**
+
+| Key                | Type      | Description                  |
+| ------------------ | --------- | ---------------------------- |
+| `parameters`       | `unknown` | Raw tool input object.       |
+| `parametersString` | `string`  | JSON-stringified tool input. |
+
+### Result
+
+Displays the tool result from the associated tool response. Only renders when a result exists.
+
+**Render state:**
+
+| Key         | Type                                    | Description                    |
+| ----------- | --------------------------------------- | ------------------------------ |
+| `content`   | `TamboThreadMessage["content"] \| null` | Parsed result content blocks.  |
+| `hasResult` | `boolean`                               | Whether a result is available. |
+
+## Accessibility
+
+- Keep trigger controls as real buttons when customizing.
+- Provide text alternatives for icon-only status indicators.
+
+## Styling Hooks
+
+- `data-slot="toolcall-info"` on Root
+- `data-slot="toolcall-info-trigger"`
+- `data-slot="toolcall-info-content"`
+- `data-slot="toolcall-info-status-icon"`
+- `data-slot="toolcall-info-status-text"`
+- `data-slot="toolcall-info-tool-name"`
+- `data-slot="toolcall-info-parameters"`
+- `data-slot="toolcall-info-result"`
+- `data-status="error" | "loading" | "success"` on StatusIcon
+- `data-state="open" | "closed"` on Content

@@ -114,7 +114,7 @@ In general, try to fit changes into the following categories. If you can't find 
    - agent-configuration - AI personality and behavior
    - user-authentication - OAuth providers, session management, context keys
 
-3. **Guides** (17 pages across 7 subsections)
+3. **Guides** (26 pages across 8 subsections)
    - **setup-project/** (3 pages)
      - create-project
      - agent-behavior
@@ -134,12 +134,17 @@ In general, try to fit changes into the following categories. If you can't find 
    - **add-authentication/** (8 pages including index)
      - Auth.js, Auth0, Clerk, Supabase, Neon, WorkOS, Better Auth
    - connect-mcp-servers - Single page (not in subfolder)
+   - **self-hosting/** (9 pages including index)
+     - quickstart, environment-variables, authentication, docker-compose, kubernetes, operations, scripts, troubleshooting
 
 4. **Best Practices** (2 pages)
    - coding-agent-generative-ui-rules
    - component-data-props - Optimization guidance
 
-5. **Reference** (6 subsections)
+5. **Reference** (7 subsections)
+   - **react-ui-base-primitives/** (2 pages)
+     - message-input - Base primitive for authoring input, submit/stop visibility, and elicitation mode
+     - elicitation - Base primitive for MCP elicitation request composition
    - **react-sdk/** (6 pages including index)
      - hooks - React hooks for thread management, component state, streaming
      - types - TypeScript interfaces and types
@@ -155,10 +160,11 @@ In general, try to fit changes into the following categories. If you can't find 
    - rest-api - OpenAPI specification for Tambo Cloud REST API
    - **problems/** (1 page)
      - endpoint-deprecated - Documentation for endpoint deprecation errors (410 Gone)
-   - **cli/** (5 pages including index)
+   - **cli/** (6 pages including index)
      - global-options - Global CLI options
      - configuration - CSS and Tailwind configuration
      - workflows - Common CLI usage patterns
+     - telemetry - Anonymous usage data collection and opt-out
      - **commands/** (8 pages)
        - create-app, init, full-send, add, list, update, upgrade, migrate
    - **llm-providers/** (8 pages including index)

@@ -100,26 +100,23 @@ export const tamboRegisteredComponents = [
 This is where your backend actually hooks in. In our case, we wired in the [`generateApiKey` endpoint](https://github.com/tambo-ai/tambo/blob/main/apps/web/components/ui/tambo/chatwithtambo/tools.ts#L162). You'd do the same with your own API.
 
 ```typescript
-export const generateProjectApiKeySchema = z
-  .function()
-  .args(
-    z.string().describe("The project ID"),
-    z.string().describe("The name of the API key"),
-  )
-  .returns(
-    z.object({
-      apiKey: z.string(),
-      id: z.string(),
-      name: z.string(),
-      partiallyHiddenKey: z.string().nullable(),
-      lastUsedAt: z.date().nullable(),
-      projectId: z.string(),
-      hashedKey: z.string(),
-      createdAt: z.date(),
-      updatedAt: z.date(),
-      createdByUserId: z.string(),
-    }),
-  );
+export const generateProjectApiKeyInputSchema = z.object({
+  projectId: z.string().describe("The project ID"),
+  name: z.string().describe("The name of the API key"),
+});
+
+export const generateProjectApiKeyOutputSchema = z.object({
+  apiKey: z.string(),
+  id: z.string(),
+  name: z.string(),
+  partiallyHiddenKey: z.string().nullable(),
+  lastUsedAt: z.date().nullable(),
+  projectId: z.string(),
+  hashedKey: z.string(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+  createdByUserId: z.string(),
+});
 
 export function useTamboManagementTools() {
   const { registerTool } = useTambo();
@@ -129,10 +126,17 @@ export function useTamboManagementTools() {
     registerTool({
       name: "generateProjectApiKey",
       description: "Generate a new API key for the current project",
-      tool: async (projectId: string, name: string) => {
+      tool: async ({
+        projectId,
+        name,
+      }: {
+        projectId: string;
+        name: string;
+      }) => {
         return await apiClient.generateApiKey.mutate({ projectId, name });
       },
-      toolSchema: generateProjectApiKeySchema,
+      inputSchema: generateProjectApiKeyInputSchema,
+      outputSchema: generateProjectApiKeyOutputSchema,
     });
   }, [registerTool, apiClient]);
 }

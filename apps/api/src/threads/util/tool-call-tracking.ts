@@ -21,7 +21,7 @@ const MAX_IDENTICAL_TOOL_CALLS = 3;
  * The maximum total number of tool calls we will make. This is to prevent
  * infinite loops.
  */
-export const DEFAULT_MAX_TOTAL_TOOL_CALLS = 10;
+export const DEFAULT_MAX_TOTAL_TOOL_CALLS = 100;
 
 /**
  * Creates a unique signature for a tool call request for tracking purposes.

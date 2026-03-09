@@ -1,0 +1,39 @@
+---
+title: Forbidden
+description: Error response when the request is not allowed for the current project or configuration
+---
+
+The API returns a `403 Forbidden` status with this problem type when the request is understood, but not allowed.
+
+## Response Format
+
+```json
+{
+  "type": "https://docs.tambo.co/reference/problems/forbidden",
+  "status": 403,
+  "title": "Forbidden",
+  "detail": "Project does not allow overriding the system prompt with initial messages",
+  "instance": "/threads"
+}
+```
+
+## Fields
+
+- **`type`** - Stable URI identifying this problem type
+- **`status`** - HTTP status code (always `403`)
+- **`title`** - Short summary of the problem (always `Forbidden`)
+- **`detail`** - Human-readable description explaining why the request was rejected
+- **`instance`** - The specific request path that triggered this error
+
+## Handling
+
+When you receive this error:
+
+1. Confirm your project configuration allows the operation you're attempting
+2. Update the request to comply with the current configuration (or change the configuration)
+3. Retry the request
+
+## See Also
+
+- [REST API Reference](/reference/rest-api) - Complete API documentation
+- [RFC 9457 Problem Details](https://www.rfc-editor.org/rfc/rfc9457.html) - Standard for error responses

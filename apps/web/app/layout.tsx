@@ -79,7 +79,7 @@ export default async function RootLayout({
         <link rel="alternate" type="text/plain" href={llmsUrl} />
         <link rel="alternate" type="text/plain" href={llmsFullUrl} />
       </head>
-      <TamboProviderWrapper userId={session?.user?.id}>
+      <TamboProviderWrapper userToken={session?.user?.userToken}>
         <Suspense>
           <PostHogPageview />
         </Suspense>
@@ -89,6 +89,7 @@ export default async function RootLayout({
         <TRPCReactProvider>
           <PHProvider>
             <body
+              suppressHydrationWarning
               className={cn(
                 "min-h-screen bg-background antialiased w-full scroll-smooth font-sans",
               )}

@@ -11,12 +11,7 @@ import { AppService } from "./app.service";
 import { AudioModule } from "./audio/audio.module";
 import { AnalyticsModule } from "./common/analytics.module";
 import { LoggerModule } from "./common/logger.module";
-import {
-  DATABASE,
-  DatabaseProvider,
-  TRANSACTION,
-  TransactionProvider,
-} from "./common/middleware/db-transaction-middleware";
+import { DATABASE, DatabaseProvider } from "./common/database-provider";
 import { RequestLoggerMiddleware } from "./common/middleware/request-logger.middleware";
 import { SdkVersionMiddleware } from "./common/middleware/sdk-version.middleware";
 import { AuthService } from "./common/services/auth.service";
@@ -35,8 +30,8 @@ import { V1Module } from "./v1/v1.module";
 @Global()
 @Module({
   imports: [SentryModule.forRoot(), ConfigModule],
-  providers: [TransactionProvider, DatabaseProvider, StorageConfigService],
-  exports: [TRANSACTION, DATABASE, StorageConfigService],
+  providers: [DatabaseProvider, StorageConfigService],
+  exports: [DATABASE, StorageConfigService],
 })
 export class GlobalModule {}
 

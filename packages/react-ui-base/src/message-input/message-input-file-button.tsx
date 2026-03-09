@@ -1,6 +1,7 @@
 "use client";
 
-import { Slot } from "@radix-ui/react-slot";
+import { mergeProps } from "@base-ui/react/merge-props";
+import { useRender } from "@base-ui/react/use-render";
 import * as React from "react";
 import { MAX_IMAGES } from "./constants";
 import { useMessageInputContext } from "./message-input-context";
@@ -8,7 +9,8 @@ import { useMessageInputContext } from "./message-input-context";
 /**
  * Render props for the FileButton component.
  */
-export interface MessageInputFileButtonRenderProps {
+export interface MessageInputFileButtonState extends Record<string, unknown> {
+  slot: string;
   /** Trigger the file picker */
   openFilePicker: () => void;
   /** The hidden file input ref */
@@ -18,20 +20,18 @@ export interface MessageInputFileButtonRenderProps {
 /**
  * Props for the MessageInput.FileButton component.
  */
-export interface MessageInputFileButtonProps extends Omit<
-  React.ButtonHTMLAttributes<HTMLButtonElement>,
-  "children"
-> {
-  /** Render as a different element using Radix Slot */
-  asChild?: boolean;
+type MessageInputFileButtonComponentProps = useRender.ComponentProps<
+  "button",
+  MessageInputFileButtonState
+>;
+
+export interface MessageInputFileButtonProps extends MessageInputFileButtonComponentProps {
   /** Accept attribute for file input - defaults to image types */
   accept?: string;
   /** Allow multiple file selection */
   multiple?: boolean;
-  /** Content to display, or render function */
-  children?:
-    | React.ReactNode
-    | ((props: MessageInputFileButtonRenderProps) => React.ReactNode);
+  /** When true, removes the visually-hidden styles from the file input. Defaults to false. */
+  inputVisible?: boolean;
 }
 
 /**
@@ -43,21 +43,31 @@ export const MessageInputFileButton = React.forwardRef<
 >(
   (
     {
-      asChild,
       accept = "image/*",
       multiple = true,
-      children,
+      inputVisible = false,
       onClick,
       ...props
     },
     ref,
   ) => {
     const { addImages, images, setImageError } = useMessageInputContext();
-    const fileInputRef = React.useRef<HTMLInputElement>(null);
+    const [fileInputElement, setFileInputElement] =
+      React.useState<HTMLInputElement | null>(null);
+    const fileInputRef = React.useMemo<
+      React.RefObject<HTMLInputElement | null>
+    >(() => ({ current: fileInputElement }), [fileInputElement]);
 
     const openFilePicker = React.useCallback(() => {
-      fileInputRef.current?.click();
-    }, []);
+      fileInputElement?.click();
+    }, [fileInputElement]);
+
+    const handleFileInputRef = React.useCallback(
+      (node: HTMLInputElement | null) => {
+        setFileInputElement(node);
+      },
+      [],
+    );
 
     const handleClick = React.useCallback(
       (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -89,32 +99,52 @@ export const MessageInputFileButton = React.forwardRef<
       e.target.value = "";
     };
 
-    const renderProps: MessageInputFileButtonRenderProps = {
+    const renderProps: MessageInputFileButtonState = {
+      slot: "message-input-file-button",
       openFilePicker,
       fileInputRef,
     };
-
-    const Comp = asChild ? Slot : "button";
+    const { render, ...componentProps } = props;
 
     return (
       <>
-        <Comp
-          ref={ref}
-          type="button"
-          onClick={handleClick}
-          aria-label="Attach Images"
-          data-slot="message-input-file-button"
-          {...props}
-        >
-          {typeof children === "function" ? children(renderProps) : children}
-        </Comp>
+        {useRender({
+          defaultTagName: "button",
+          ref,
+          render,
+          state: renderProps,
+          stateAttributesMapping: {
+            openFilePicker: () => null,
+            fileInputRef: () => null,
+          },
+          props: mergeProps(componentProps, {
+            type: "button",
+            onClick: handleClick,
+            "aria-label": "Attach Images",
+          }),
+        })}
         <input
-          ref={fileInputRef}
+          ref={handleFileInputRef}
           type="file"
           accept={accept}
           multiple={multiple}
           onChange={handleFileChange}
-          className="hidden"
+          tabIndex={inputVisible ? 0 : -1}
+          style={
+            inputVisible
+              ? undefined
+              : {
+                  position: "absolute",
+                  width: 1,
+                  height: 1,
+                  padding: 0,
+                  margin: -1,
+                  overflow: "hidden",
+                  clip: "rect(0, 0, 0, 0)",
+                  whiteSpace: "nowrap",
+                  borderWidth: 0,
+                }
+          }
           aria-hidden="true"
         />
       </>

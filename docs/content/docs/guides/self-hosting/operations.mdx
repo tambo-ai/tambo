@@ -1,0 +1,42 @@
+---
+title: Operations
+description: Back up, restore, upgrade, and monitor your self-hosted Tambo deployment.
+---
+
+Procedures for day-to-day management of a self-hosted Tambo deployment. For a list of all available scripts, see the [Scripts reference](/guides/self-hosting/scripts).
+
+## Back up the database
+
+```bash
+docker compose --env-file docker.env exec postgres pg_dump -U postgres tambo > backup.sql
+```
+
+## Restore from backup
+
+```bash
+docker compose --env-file docker.env exec -T postgres psql -U postgres tambo < backup.sql
+```
+
+## Connect to PostgreSQL
+
+```bash
+./scripts/cloud/tambo-psql.sh
+
+# Or via docker compose directly
+docker compose --env-file docker.env exec postgres psql -U postgres -d tambo
+```
+
+## Check service health
+
+All services include Docker health checks. Check status:
+
+```bash
+docker compose --env-file docker.env ps
+```
+
+## Upgrade to a new version
+
+1. Pull latest changes: `git pull`
+2. Rebuild images: `./scripts/cloud/tambo-build.sh`
+3. Restart services: `./scripts/cloud/tambo-stop.sh && ./scripts/cloud/tambo-start.sh`
+4. Run migrations: `./scripts/cloud/init-database.sh`

@@ -21,6 +21,7 @@ import type { Suggestion } from "@tambo-ai/react";
 import { withTamboInteractable } from "@tambo-ai/react";
 import { motion } from "framer-motion";
 import {
+  AlertTriangle,
   Building2,
   ChevronDown,
   Database,
@@ -91,6 +92,12 @@ export const InteractableOAuthSettingsProps = z.object({
     .describe(
       "When set, updates the public key to this value. Only applicable when validation mode is ASYMMETRIC_MANUAL.",
     ),
+  setUserinfoEndpointValue: z
+    .string()
+    .optional()
+    .describe(
+      "When set, updates the userinfo endpoint URL. Used to resolve user identity from opaque access tokens (e.g., GitHub).",
+    ),
   triggerSave: z
     .boolean()
     .optional()
@@ -114,6 +121,7 @@ interface OAuthSettingsProps {
   setTokenRequired?: boolean;
   setSecretKeyValue?: string;
   setPublicKeyValue?: string;
+  setUserinfoEndpointValue?: string;
   triggerSave?: boolean;
   onEdited?: () => void;
 }
@@ -121,7 +129,12 @@ interface OAuthSettingsProps {
 // OAuth provider presets
 const OAUTH_PRESETS = [
   { name: "Google", mode: OAuthValidationMode.ASYMMETRIC_AUTO, icon: SiGoogle },
-  { name: "GitHub", mode: OAuthValidationMode.ASYMMETRIC_AUTO, icon: SiGithub },
+  {
+    name: "GitHub",
+    mode: OAuthValidationMode.NONE,
+    userinfoEndpoint: "https://api.github.com/user",
+    icon: SiGithub,
+  },
   {
     name: "Microsoft",
     mode: OAuthValidationMode.ASYMMETRIC_AUTO,
@@ -149,6 +162,8 @@ const OAUTH_PRESETS = [
   },
 ] as const;
 
+type OAuthPreset = (typeof OAUTH_PRESETS)[number];
+
 export function OAuthSettings({
   projectId,
   isTokenRequired: initialIsTokenRequired,
@@ -156,6 +171,7 @@ export function OAuthSettings({
   setTokenRequired,
   setSecretKeyValue,
   setPublicKeyValue,
+  setUserinfoEndpointValue,
   triggerSave,
   onEdited,
 }: OAuthSettingsProps) {
@@ -165,6 +181,7 @@ export function OAuthSettings({
   const modeAsymmetricAutoId = useId();
   const modeAsymmetricManualId = useId();
   const publicKeyId = useId();
+  const userinfoEndpointId = useId();
   const { toast } = useToast();
 
   // State management
@@ -173,6 +190,7 @@ export function OAuthSettings({
   );
   const [secretKey, setSecretKey] = useState("");
   const [publicKey, setPublicKey] = useState("");
+  const [userinfoEndpoint, setUserinfoEndpoint] = useState("");
   const [isTokenRequiredState, setIsTokenRequiredState] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
@@ -189,22 +207,32 @@ export function OAuthSettings({
   const { mutateAsync: updateSettings, isPending: isUpdating } =
     api.project.updateOAuthValidationSettings.useMutation();
 
-  const handleModeChange = useCallback((mode: OAuthValidationMode) => {
-    setSelectedMode(mode);
-    // Clear keys when switching modes
-    if (mode !== OAuthValidationMode.SYMMETRIC) {
-      setSecretKey("");
-    }
-    if (mode !== OAuthValidationMode.ASYMMETRIC_MANUAL) {
-      setPublicKey("");
-    }
-  }, []);
+  const handleModeChange = useCallback(
+    (mode: OAuthValidationMode, preset?: OAuthPreset) => {
+      setSelectedMode(mode);
+      // Clear keys when switching modes
+      if (mode !== OAuthValidationMode.SYMMETRIC) {
+        setSecretKey("");
+      }
+      if (mode !== OAuthValidationMode.ASYMMETRIC_MANUAL) {
+        setPublicKey("");
+      }
+      // Apply userinfoEndpoint from preset if provided
+      if (preset && "userinfoEndpoint" in preset) {
+        setUserinfoEndpoint(preset.userinfoEndpoint);
+      } else if (preset) {
+        setUserinfoEndpoint("");
+      }
+    },
+    [],
+  );
 
   // Initialize form with current settings
   useEffect(() => {
     if (oauthSettings) {
       setSelectedMode(oauthSettings.mode);
       setPublicKey(oauthSettings.publicKey || "");
+      setUserinfoEndpoint(oauthSettings.userinfoEndpoint || "");
       setSecretKey("");
       setHasUnsavedChanges(false);
     }
@@ -245,6 +273,13 @@ export function OAuthSettings({
     }
   }, [setPublicKeyValue]);
 
+  // When Tambo sends setUserinfoEndpointValue, update the userinfo endpoint
+  useEffect(() => {
+    if (setUserinfoEndpointValue) {
+      setUserinfoEndpoint(setUserinfoEndpointValue);
+    }
+  }, [setUserinfoEndpointValue]);
+
   // When Tambo sends triggerSave, save the settings
   useEffect(() => {
     if (triggerSave === true) {
@@ -261,7 +296,8 @@ export function OAuthSettings({
       selectedMode !== oauthSettings.mode ||
       (selectedMode === OAuthValidationMode.ASYMMETRIC_MANUAL &&
         publicKey !== (oauthSettings.publicKey || "")) ||
-      (selectedMode === OAuthValidationMode.SYMMETRIC && secretKey !== "");
+      (selectedMode === OAuthValidationMode.SYMMETRIC && secretKey !== "") ||
+      userinfoEndpoint !== (oauthSettings.userinfoEndpoint || "");
 
     const hasTokenRequiredChanges =
       isTokenRequiredState !== (initialIsTokenRequired ?? false);
@@ -271,6 +307,7 @@ export function OAuthSettings({
     selectedMode,
     publicKey,
     secretKey,
+    userinfoEndpoint,
     isTokenRequiredState,
     oauthSettings,
     initialIsTokenRequired,
@@ -291,6 +328,7 @@ export function OAuthSettings({
           selectedMode === OAuthValidationMode.ASYMMETRIC_MANUAL
             ? publicKey
             : undefined,
+        userinfoEndpoint: userinfoEndpoint || undefined,
         isTokenRequired: isTokenRequiredState,
       });
 
@@ -315,6 +353,7 @@ export function OAuthSettings({
     selectedMode,
     secretKey,
     publicKey,
+    userinfoEndpoint,
     isTokenRequiredState,
     updateSettings,
     toast,
@@ -377,7 +416,7 @@ export function OAuthSettings({
                 {OAUTH_PRESETS.map((preset) => (
                   <DropdownMenuItem
                     key={preset.name}
-                    onClick={() => handleModeChange(preset.mode)}
+                    onClick={() => handleModeChange(preset.mode, preset)}
                     className="cursor-pointer whitespace-nowrap"
                   >
                     <div className="flex items-center gap-2">
@@ -408,11 +447,49 @@ export function OAuthSettings({
                 className="mt-1"
               />
               <div className="flex-1">
-                <div className="font-medium text-md">None</div>
+                <div className="font-medium text-md">Manual</div>
                 <div className="text-xs text-foreground">
-                  Accept tokens as-is without validation. Useful when validation
-                  is handled externally.
+                  No cryptographic signature verification. JWT tokens are
+                  accepted directly. Opaque tokens require a User Info Endpoint
+                  to resolve user identity.
                 </div>
+                {selectedMode === OAuthValidationMode.NONE && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="mt-3 space-y-2"
+                  >
+                    <Label htmlFor={userinfoEndpointId} className="text-sm">
+                      User Info Endpoint
+                    </Label>
+                    <Input
+                      id={userinfoEndpointId}
+                      type="url"
+                      placeholder="https://api.github.com/user"
+                      value={userinfoEndpoint}
+                      onChange={(e) => setUserinfoEndpoint(e.target.value)}
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      URL to resolve user identity from opaque access tokens.
+                      Called with the token as a Bearer header to retrieve a
+                      stable user ID.
+                    </p>
+                    {!userinfoEndpoint && (
+                      <div className="flex gap-2 p-2.5 rounded-md bg-amber-50 border border-amber-200 text-amber-800">
+                        <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
+                        <p className="text-xs">
+                          Without a User Info Endpoint, Tambo cannot verify
+                          opaque access tokens (e.g., GitHub) and users will be
+                          identified by a token hash instead. This means user
+                          identity may change when tokens are refreshed.
+                          Configure an endpoint for stable, persistent identity.
+                        </p>
+                      </div>
+                    )}
+                  </motion.div>
+                )}
               </div>
             </label>
 
@@ -551,6 +628,6 @@ export function OAuthSettings({
 export const InteractableOAuthSettings = withTamboInteractable(OAuthSettings, {
   componentName: COMPONENT_NAME,
   description:
-    "Manages OAuth token validation settings for a project. Configure how OAuth bearer tokens are validated, including validation mode (None, Symmetric, Asymmetric Auto, Asymmetric Manual), token required setting, secret keys, and public keys. Users can view current settings and update them.",
+    "Manages OAuth token validation settings for a project. Configure how OAuth bearer tokens are validated, including validation mode (Manual, Symmetric, Asymmetric Auto, Asymmetric Manual), token required setting, secret keys, public keys, and userinfo endpoint. Users can view current settings and update them.",
   propsSchema: InteractableOAuthSettingsProps,
 });

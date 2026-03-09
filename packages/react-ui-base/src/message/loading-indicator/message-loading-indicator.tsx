@@ -1,30 +1,59 @@
-import { Slot } from "@radix-ui/react-slot";
+import { mergeProps } from "@base-ui/react/merge-props";
+import { useRender } from "@base-ui/react/use-render";
 import * as React from "react";
-import { BaseProps } from "../../types/component-render-or-children";
+import { checkHasContent } from "../../utils/check-has-content";
+import { useMessageRootContext } from "../root/message-root-context";
 
-export type MessageLoadingIndicatorProps = BaseProps<
-  React.HTMLAttributes<HTMLDivElement>
->;
+export interface MessageLoadingIndicatorOwnProps {
+  /**
+   * Keep the element mounted when not loading. When false (default),
+   * the component returns null unless the message is in a loading state
+   * with no content.
+   * @default false
+   */
+  keepMounted?: boolean;
+}
+
+export type MessageLoadingIndicatorProps = MessageLoadingIndicatorOwnProps &
+  useRender.ComponentProps<"div">;
 
 /**
  * MessageLoadingIndicator base component for showing loading state.
  * Renders three span elements with data-dot attributes for styling.
+ * Only visible when the parent Message.Root has isLoading=true and no content.
  */
 export const MessageLoadingIndicator = React.forwardRef<
   HTMLDivElement,
   MessageLoadingIndicatorProps
->(({ asChild, children, ...props }, ref) => {
-  const Comp = asChild ? Slot : "div";
-  return (
-    <Comp ref={ref} data-slot="loading-indicator" {...props}>
-      {children ?? (
+>(({ children, keepMounted = false, ...props }, ref) => {
+  const { message, isLoading } = useMessageRootContext();
+  const hasContent = React.useMemo(
+    () => checkHasContent(message.content),
+    [message.content],
+  );
+  const showLoading = !!isLoading && !hasContent && !message.reasoning;
+
+  const { render, ...componentProps } = props;
+
+  if (!showLoading && !keepMounted) {
+    return null;
+  }
+
+  return useRender({
+    defaultTagName: "div",
+    ref,
+    render,
+    state: { slot: "loading-indicator" },
+    props: mergeProps(componentProps, {
+      children: children ?? (
         <>
           <span data-dot="1" />
           <span data-dot="2" />
           <span data-dot="3" />
         </>
-      )}
-    </Comp>
-  );
+      ),
+      "data-hidden": !showLoading ? "true" : undefined,
+    }),
+  });
 });
 MessageLoadingIndicator.displayName = "Message.LoadingIndicator";

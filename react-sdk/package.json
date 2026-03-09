@@ -1,7 +1,7 @@
 {
   "name": "@tambo-ai/react",
-  "version": "1.0.1",
-  "description": "React client package for Tambo AI!",
+  "version": "1.2.0",
+  "description": "React client package for Tambo AI",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -14,11 +14,13 @@
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
+      "@tambo-ai/source": "./src/index.ts",
       "import": "./esm/index.js",
       "require": "./dist/index.js",
       "types": "./dist/index.d.ts"
     },
     "./mcp": {
+      "@tambo-ai/source": "./src/mcp/index.ts",
       "import": "./esm/mcp/index.js",
       "require": "./dist/mcp/index.js",
       "types": "./dist/mcp/index.d.ts"
@@ -59,11 +61,9 @@
     ]
   },
   "peerDependencies": {
-    "@modelcontextprotocol/sdk": "^1.26.0",
+    "@modelcontextprotocol/sdk": "^1.27.1",
     "@types/react": "^18.0.0 || ^19.0.0",
-    "@types/react-dom": "^18.0.0 || ^19.0.0",
     "react": "^18.0.0 || ^19.0.0",
-    "react-dom": "^18.0.0 || ^19.0.0",
     "zod": "^3.25.76 || ^4",
     "zod-to-json-schema": "^3.25.1"
   },
@@ -76,24 +76,21 @@
     }
   },
   "dependencies": {
-    "@ag-ui/core": "^0.0.43",
-    "@modelcontextprotocol/sdk": "^1.26.0",
-    "@standard-community/standard-json": "^0.3.5",
-    "@standard-schema/spec": "^1.1.0",
-    "@tambo-ai/typescript-sdk": "^0.92.0",
+    "@ag-ui/core": "^0.0.44",
+    "@tambo-ai/client": "0.1.0",
+    "@modelcontextprotocol/sdk": "^1.27.1",
+    "@tambo-ai/typescript-sdk": "^0.93.1",
     "@tanstack/react-query": "^5.90.16",
-    "fast-equals": "^5.3.3",
-    "fast-json-patch": "^3.1.1",
+    "fast-equals": "^6.0.0",
     "partial-json": "^0.1.7",
     "react-fast-compare": "^3.2.2",
     "react-media-recorder": "^1.7.2",
     "ts-node": "^10.9.2",
-    "type-fest": "^5.4.3",
     "use-debounce": "^10.0.6"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",
-    "@modelcontextprotocol/sdk": "^1.26.0",
+    "@modelcontextprotocol/sdk": "^1.27.1",
     "@tambo-ai/eslint-config": "*",
     "@tambo-ai/typescript-config": "*",
     "@testing-library/jest-dom": "^6.9.1",
@@ -104,6 +101,7 @@
     "@types/react": "^18.3.23",
     "@types/react-dom": "^18.3.7",
     "@valibot/to-json-schema": "^1.5.0",
+    "fast-json-patch": "^3.1.1",
     "concurrently": "^9.2.1",
     "eslint": "^9.39.2",
     "eslint-plugin-jsdoc": "^62.5.4",
@@ -119,6 +117,7 @@
     "ts-jest": "^29.4.6",
     "tsc-esm-fix": "^3.1.2",
     "typescript": "^5.9.3",
+    "type-fest": "^5.4.3",
     "typescript-eslint": "^8.54.0",
     "zod": "^3.25.76 || ^4",
     "zod-to-json-schema": "^3.25.1"

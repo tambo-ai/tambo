@@ -1,4 +1,3 @@
-import { NotFoundException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { Test, TestingModule } from "@nestjs/testing";
 import { createTamboBackend } from "@tambo-ai-cloud/backend";
@@ -11,6 +10,7 @@ import {
   DEFAULT_OPENAI_MODEL,
   GenerationStage,
   MessageRole,
+  NotFoundError,
   OAuthValidationMode,
 } from "@tambo-ai-cloud/core";
 import { schema, type operations as dbOperations } from "@tambo-ai-cloud/db";
@@ -19,7 +19,7 @@ import {
   createMockDBProject,
   createMockDBThread,
 } from "@tambo-ai-cloud/testing";
-import { DATABASE } from "../common/middleware/db-transaction-middleware";
+import { DATABASE } from "../common/database-provider";
 import { AnalyticsService } from "../common/services/analytics.service";
 import { AuthService } from "../common/services/auth.service";
 import { EmailService } from "../common/services/email.service";
@@ -1189,11 +1189,11 @@ describe("ThreadsService.advanceThread initialization", () => {
         });
       });
 
-      it("should throw NotFoundException when thread not found", async () => {
+      it("should throw NotFoundError when thread not found", async () => {
         operations.getThreadForProjectId.mockResolvedValue(undefined);
 
         await expect(service.findOne(threadId, projectId)).rejects.toThrow(
-          NotFoundException,
+          NotFoundError,
         );
       });
 
@@ -2029,15 +2029,15 @@ describe("ThreadsService.advanceThread initialization", () => {
       );
     });
 
-    it("should throw NotFoundException when thread not found", async () => {
+    it("should throw NotFoundError when thread not found", async () => {
       operations.getThreadForProjectId.mockResolvedValue(undefined);
 
       await expect(
         service.generateThreadName(threadId, projectId),
-      ).rejects.toThrow(NotFoundException);
+      ).rejects.toThrow(NotFoundError);
     });
 
-    it("should throw NotFoundException when no messages exist", async () => {
+    it("should throw NotFoundError when no messages exist", async () => {
       const emptyThread = createDBThreadWithMessages(
         threadId,
         projectId,
@@ -2050,7 +2050,7 @@ describe("ThreadsService.advanceThread initialization", () => {
 
       await expect(
         service.generateThreadName(threadId, projectId),
-      ).rejects.toThrow(NotFoundException);
+      ).rejects.toThrow(NotFoundError);
     });
   });
 });

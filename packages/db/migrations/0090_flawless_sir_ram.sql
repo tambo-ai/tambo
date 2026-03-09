@@ -1,0 +1,1 @@
+ALTER TABLE "projects" ADD COLUMN "oauth_userinfo_endpoint" text;

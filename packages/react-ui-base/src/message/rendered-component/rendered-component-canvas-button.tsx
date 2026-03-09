@@ -1,9 +1,23 @@
+import { mergeProps } from "@base-ui/react/merge-props";
+import { useRender } from "@base-ui/react/use-render";
 import type { TamboComponentContent } from "@tambo-ai/react";
 import * as React from "react";
 import { useMessageRootContext } from "../root/message-root-context";
 
+export interface MessageRenderedComponentCanvasButtonRenderProps extends Record<
+  string,
+  unknown
+> {
+  slot: string;
+  canvasExists: boolean;
+  hasRenderedComponent: boolean;
+}
+
 export type MessageRenderedComponentCanvasButtonProps =
-  React.ButtonHTMLAttributes<HTMLButtonElement>;
+  useRender.ComponentProps<
+    "button",
+    MessageRenderedComponentCanvasButtonRenderProps
+  >;
 
 export const MessageRenderedComponentCanvasButton = React.forwardRef<
   HTMLButtonElement,
@@ -11,17 +25,23 @@ export const MessageRenderedComponentCanvasButton = React.forwardRef<
 >(({ children, ...props }, ref) => {
   const { message } = useMessageRootContext();
   const [canvasExists, setCanvasExists] = React.useState(false);
+  const rAF = React.useRef<number | null>(null);
 
   // Check if canvas exists on mount and window resize
   React.useEffect(() => {
     const checkCanvasExists = () => {
-      const canvas = document.querySelector('[data-canvas-space="true"]');
-      setCanvasExists(!!canvas);
+      rAF.current = requestAnimationFrame(() => {
+        const canvas = document.querySelector('[data-canvas-space="true"]');
+        setCanvasExists(!!canvas);
+      });
     };
 
     checkCanvasExists();
     window.addEventListener("resize", checkCanvasExists);
-    return () => window.removeEventListener("resize", checkCanvasExists);
+    return () => {
+      if (rAF.current) cancelAnimationFrame(rAF.current);
+      window.removeEventListener("resize", checkCanvasExists);
+    };
   }, []);
 
   const firstRenderedComponent = React.useMemo(() => {
@@ -45,18 +65,26 @@ export const MessageRenderedComponentCanvasButton = React.forwardRef<
     }
   }, [message.id, firstRenderedComponent]);
 
-  if (!canvasExists) return null;
+  const { render, ...componentProps } = props;
+  const hasRenderedComponent = !!firstRenderedComponent;
+  const renderProps: MessageRenderedComponentCanvasButtonRenderProps = {
+    slot: "rendered-component-canvas-button",
+    canvasExists,
+    hasRenderedComponent,
+  };
 
-  return (
-    <button
-      ref={ref}
-      onClick={onShowInCanvas}
-      data-slot="rendered-component-canvas-button"
-      {...props}
-    >
-      {children}
-    </button>
-  );
+  return useRender({
+    defaultTagName: "button",
+    ref,
+    render,
+    state: renderProps,
+    enabled: canvasExists && hasRenderedComponent,
+    props: mergeProps(componentProps, {
+      type: "button",
+      onClick: onShowInCanvas,
+      children,
+    }),
+  });
 });
 MessageRenderedComponentCanvasButton.displayName =
   "Message.RenderedComponentCanvasButton";

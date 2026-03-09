@@ -1,0 +1,168 @@
+---
+title: McpResources
+description: Compose MCP resource picker behavior with unstyled parts for listing, searching, and selecting resources.
+---
+
+import { McpResourcesDemoPreview } from "./_demos/mcp-resources-demo";
+
+# McpResources
+
+`McpResources` in `@tambo-ai/react-ui-base` owns MCP resource discovery — listing available resources, search filtering, and selection handling — while keeping styling in `@tambo-ai/ui-registry` or your own UI layer.
+
+## Demo
+
+<McpResourcesDemoPreview />
+
+## Anatomy
+
+```tsx
+<McpResources.Root onSelectResource={handleSelect}>
+  <McpResources.Trigger />
+  <McpResources.Search />
+  <McpResources.List>
+    <McpResources.Item uri="..." />
+  </McpResources.List>
+</McpResources.Root>
+```
+
+## Examples
+
+### Resource Search and Selection
+
+The `Root` manages search state internally and passes it to `useTamboMcpResourceList`. The `Search` input updates the search state, and the `List` provides the filtered results.
+
+```tsx
+<McpResources.Root
+  onSelectResource={(uri, label) => {
+    insertResourceReference(uri, label);
+  }}
+>
+  <McpResources.Search placeholder="Filter resources..." />
+  <McpResources.List
+    render={(props, state) => (
+      <div {...props}>
+        {state.resources.map((entry) => (
+          <McpResources.Item
+            key={entry.resource.uri}
+            uri={entry.resource.uri}
+            name={entry.resource.name}
+          >
+            {entry.resource.name ?? entry.resource.uri}
+          </McpResources.Item>
+        ))}
+      </div>
+    )}
+  />
+</McpResources.Root>
+```
+
+### Accessing List State via Render Props
+
+Use the render prop on `List` to access filtered resources and count:
+
+```tsx
+<McpResources.List
+  render={(props, state) => (
+    <div {...props}>
+      <p>{state.resourceCount} resources</p>
+      {state.resources.map((entry) => (
+        <McpResources.Item
+          key={entry.resource.uri}
+          uri={entry.resource.uri}
+          name={entry.resource.name}
+          description={entry.resource.description}
+          render={(itemProps, itemState) => (
+            <button {...itemProps}>
+              <strong>{itemState.name ?? itemState.uri}</strong>
+              {itemState.description && <span>{itemState.description}</span>}
+            </button>
+          )}
+        />
+      ))}
+    </div>
+  )}
+/>
+```
+
+## API reference
+
+### Root
+
+| Prop               | Type                                   | Description                                             |
+| ------------------ | -------------------------------------- | ------------------------------------------------------- |
+| `onSelectResource` | `(uri: string, label: string) => void` | Optional. Callback invoked when a resource is selected. |
+
+Renders nothing when no MCP resources are available, not loading, and no search query is active.
+
+**Render state:**
+
+| Field           | Type      | Description                           |
+| --------------- | --------- | ------------------------------------- |
+| `resourceCount` | `number`  | Number of available resources.        |
+| `isLoading`     | `boolean` | Whether the resource list is loading. |
+| `hasSearch`     | `boolean` | Whether a search query is active.     |
+
+### Trigger
+
+No custom props. Renders as a `<button>` disabled when no resources are available.
+
+**Render state:**
+
+| Field          | Type      | Description                           |
+| -------------- | --------- | ------------------------------------- |
+| `hasResources` | `boolean` | Whether resources are available.      |
+| `isLoading`    | `boolean` | Whether the resource list is loading. |
+
+### Search
+
+No custom props. Renders as an `<input>` wired to the search state from context.
+
+**Render state:**
+
+| Field    | Type     | Description               |
+| -------- | -------- | ------------------------- |
+| `search` | `string` | The current search query. |
+
+### List
+
+No custom props. Provides the filtered resource collection through render state.
+
+**Render state:**
+
+| Field           | Type                  | Description                       |
+| --------------- | --------------------- | --------------------------------- |
+| `resources`     | `ListResourceEntry[]` | Array of filtered resources.      |
+| `resourceCount` | `number`              | Count of filtered resources.      |
+| `hasSearch`     | `boolean`             | Whether a search query is active. |
+
+### Item
+
+| Prop          | Type     | Description                             |
+| ------------- | -------- | --------------------------------------- |
+| `uri`         | `string` | The resource URI.                       |
+| `name`        | `string` | Optional display name for the resource. |
+| `description` | `string` | Optional description exposed via state. |
+
+**Render state:**
+
+| Field         | Type                  | Description                |
+| ------------- | --------------------- | -------------------------- |
+| `uri`         | `string`              | The resource URI.          |
+| `name`        | `string \| undefined` | The resource display name. |
+| `description` | `string \| undefined` | The resource description.  |
+| `select`      | `() => void`          | Selects this resource.     |
+
+## Accessibility
+
+- `Trigger` renders as `<button>` and is automatically disabled when no resources are available.
+- `Search` renders as `<input type="text">` and supports all standard input attributes.
+- `Item` renders as `<button>` for keyboard accessibility.
+- Consumers should provide appropriate `aria-label` attributes on the trigger and search input.
+
+## Styling Hooks
+
+- `data-slot="mcp-resources"`
+- `data-slot="mcp-resources-trigger"`
+- `data-slot="mcp-resources-search"`
+- `data-slot="mcp-resources-list"`
+- `data-slot="mcp-resources-item"`

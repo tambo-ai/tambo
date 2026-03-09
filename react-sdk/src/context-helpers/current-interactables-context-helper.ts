@@ -1,4 +1,19 @@
-import { ContextHelperFn } from "./types";
+import type { ContextHelperFn } from "./types";
+
+interface InteractableComponentMetadata {
+  id: string;
+  componentName: string;
+  description: string;
+  props: unknown;
+  propsSchema: string;
+  state: unknown;
+  isSelectedForInteraction: boolean;
+  stateSchema: string;
+}
+
+export interface InteractablesContext {
+  components: InteractableComponentMetadata[];
+}
 
 /**
  * Prebuilt context helper that provides information about all interactable components currently on the page.
@@ -32,7 +47,7 @@ export const currentInteractablesContextHelper: ContextHelperFn = () => {
  */
 export const createInteractablesContextHelper = (
   components: unknown[],
-): ContextHelperFn => {
+): (() => InteractablesContext | null) => {
   return () => {
     if (!Array.isArray(components) || components.length === 0) {
       return null; // No interactable components on the page

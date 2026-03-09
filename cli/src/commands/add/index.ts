@@ -19,6 +19,7 @@ import {
 // Note: getComponentDirectoryPath is used both in imports and in dry-run display
 import { installComponents } from "./component.js";
 import { setupTailwindAndGlobals } from "./tailwind-setup.js";
+import { EVENTS, trackEvent } from "../../lib/telemetry.js";
 import type { InstallComponentOptions } from "./types.js";
 import {
   getComponentNpmDependencies,
@@ -270,6 +271,10 @@ export async function handleAddComponents(
       isExplicitPrefix,
       baseInstallPath, // Pass the original base path for lib calculation
     });
+
+    for (const name of newComponents) {
+      trackEvent(EVENTS.COMPONENT_ADDED, { component_name: name });
+    }
 
     // 7. Setup Tailwind and globals.css after all components are installed
     if (!options.skipTailwindSetup) {

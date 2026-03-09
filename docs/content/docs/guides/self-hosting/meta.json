@@ -1,0 +1,14 @@
+{
+  "title": "Self-Hosting",
+  "pages": [
+    "index",
+    "quickstart",
+    "environment-variables",
+    "authentication",
+    "docker-compose",
+    "kubernetes",
+    "operations",
+    "scripts",
+    "troubleshooting"
+  ]
+}

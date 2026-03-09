@@ -609,6 +609,7 @@ export async function getOAuthValidationSettings(
       oauthValidationMode: true,
       oauthSecretKeyEncrypted: true,
       oauthPublicKey: true,
+      oauthUserinfoEndpoint: true,
     },
   });
 
@@ -620,6 +621,7 @@ export async function getOAuthValidationSettings(
     mode: project.oauthValidationMode,
     secretKeyEncrypted: project.oauthSecretKeyEncrypted,
     publicKey: project.oauthPublicKey,
+    userinfoEndpoint: project.oauthUserinfoEndpoint,
   };
 }
 
@@ -633,6 +635,7 @@ export async function updateOAuthValidationSettings(
     mode: OAuthValidationMode;
     secretKeyEncrypted?: string | null;
     publicKey?: string | null;
+    userinfoEndpoint?: string | null;
   },
 ) {
   return await db
@@ -641,6 +644,7 @@ export async function updateOAuthValidationSettings(
       oauthValidationMode: settings.mode,
       oauthSecretKeyEncrypted: settings.secretKeyEncrypted,
       oauthPublicKey: settings.publicKey,
+      oauthUserinfoEndpoint: settings.userinfoEndpoint,
       updatedAt: sql`now()`,
     })
     .where(eq(schema.projects.id, projectId))

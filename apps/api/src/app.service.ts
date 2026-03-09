@@ -1,7 +1,7 @@
 import { Inject, Injectable } from "@nestjs/common";
 import type { HydraDatabase } from "@tambo-ai-cloud/db";
 import { sql } from "drizzle-orm";
-import { DATABASE } from "./common/middleware/db-transaction-middleware";
+import { DATABASE } from "./common/database-provider";
 
 @Injectable()
 export class AppService {

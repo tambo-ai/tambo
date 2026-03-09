@@ -1,5 +1,73 @@
 # Changelog
 
+## [0.144.1](https://github.com/tambo-ai/tambo/compare/api-v0.144.0...api-v0.144.1) (2026-03-05)
+
+
+### Bug Fixes
+
+* **api:** fix Docker image build ([#2551](https://github.com/tambo-ai/tambo/issues/2551)) ([925bfe8](https://github.com/tambo-ai/tambo/commit/925bfe80c288a1d4ba18caf06e88a1129911deb5))
+* **api:** return 4xx for DomainError instead of 500 ([#2557](https://github.com/tambo-ai/tambo/issues/2557)) ([9d58c01](https://github.com/tambo-ai/tambo/commit/9d58c01e2e330a2a7bc867edd10a1c7178b7ffde))
+
+## [0.144.0](https://github.com/tambo-ai/tambo/compare/api-v0.143.3...api-v0.144.0) (2026-03-03)
+
+
+### Features
+
+* **api:** increase default tool call limit from 10 to 100 ([#2484](https://github.com/tambo-ai/tambo/issues/2484)) ([5dd1c1e](https://github.com/tambo-ai/tambo/commit/5dd1c1e7b587c2597f109d852e9b59999b3317d7))
+
+
+### Bug Fixes
+
+* **api:** return both description and detailedSuggestion in suggestion responses ([#2521](https://github.com/tambo-ai/tambo/issues/2521)) ([8271ad7](https://github.com/tambo-ai/tambo/commit/8271ad72b2c49b9bbd938b68106cdec2f82bc9b7))
+* **dev:** update custom condition usage for hmr/dev/tsconfig ([#2480](https://github.com/tambo-ai/tambo/issues/2480)) ([71a141d](https://github.com/tambo-ai/tambo/commit/71a141de9ccbd7cf82c0e5170eb3274b177b6641))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump the sentry group with 3 updates ([#2535](https://github.com/tambo-ai/tambo/issues/2535)) ([e3dc2a4](https://github.com/tambo-ai/tambo/commit/e3dc2a45834fdd962f85cf88b180f929b8de2f1d))
+* **deps:** bump the small-safe-packages group with 4 updates ([#2534](https://github.com/tambo-ai/tambo/issues/2534)) ([3694fe4](https://github.com/tambo-ai/tambo/commit/3694fe448691c1b9c4730b457d22bb971ad72d1f))
+
+## [0.143.3](https://github.com/tambo-ai/tambo/compare/api-v0.143.2...api-v0.143.3) (2026-02-24)
+
+
+### Bug Fixes
+
+* **api:** return 400 instead of 500 for input validation errors ([#2464](https://github.com/tambo-ai/tambo/issues/2464)) ([c45ddb6](https://github.com/tambo-ai/tambo/commit/c45ddb684ba15de04a6c4ab9057e8263b1799358))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump the nestjs group with 4 updates ([#2467](https://github.com/tambo-ai/tambo/issues/2467)) ([96deff0](https://github.com/tambo-ai/tambo/commit/96deff011a5857696141c4e616b3e70e03da3e5e))
+* **deps:** bump the sentry group with 3 updates ([#2471](https://github.com/tambo-ai/tambo/issues/2471)) ([242e53c](https://github.com/tambo-ai/tambo/commit/242e53cd52f2093b3aed346e3909ee3f18a7f921))
+* **deps:** bump the small-safe-packages group with 6 updates ([#2470](https://github.com/tambo-ai/tambo/issues/2470)) ([cb48c28](https://github.com/tambo-ai/tambo/commit/cb48c281b78b64e2e2352fd52007984681fb5ab6))
+
+## [0.143.2](https://github.com/tambo-ai/tambo/compare/api-v0.143.1...api-v0.143.2) (2026-02-19)
+
+
+### Bug Fixes
+
+* **api:** resolve opaque OAuth tokens via userinfo endpoint ([#2440](https://github.com/tambo-ai/tambo/issues/2440)) ([2380f0c](https://github.com/tambo-ai/tambo/commit/2380f0cd40659072ce8e0a5e7b1c7108cf1d6aeb))
+
+## [0.143.1](https://github.com/tambo-ai/tambo/compare/api-v0.143.0...api-v0.143.1) (2026-02-18)
+
+
+### Bug Fixes
+
+* **api:** persist tool call counts across V1 runs ([#2360](https://github.com/tambo-ai/tambo/issues/2360)) ([9047cba](https://github.com/tambo-ai/tambo/commit/9047cbae0c628601054c2826801816c7fb656084))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump ajv from 8.17.1 to 8.18.0 ([#2430](https://github.com/tambo-ai/tambo/issues/2430)) ([f7e3263](https://github.com/tambo-ai/tambo/commit/f7e32639444b501cca707d8c99a9486295a2fcad))
+* **deps:** bump the ag-ui group across 1 directory with 5 updates ([#2241](https://github.com/tambo-ai/tambo/issues/2241)) ([a758a87](https://github.com/tambo-ai/tambo/commit/a758a8748ef265f9b99425079f9cd6ba8b99963c))
+* **deps:** bump the small-safe-packages group across 1 directory with 4 updates ([#2423](https://github.com/tambo-ai/tambo/issues/2423)) ([48a3aed](https://github.com/tambo-ai/tambo/commit/48a3aed15bf01e61d6422c18ad0b7d6a4c399285))
+* **test:** bump coverage thresholds (2026-02-16) ([#2418](https://github.com/tambo-ai/tambo/issues/2418)) ([906927a](https://github.com/tambo-ai/tambo/commit/906927a5a1616de58e1084895a19d9f665c770fe))
+
+
+### Code Refactoring
+
+* **api:** remove dead transaction middleware and rename database provider ([#2393](https://github.com/tambo-ai/tambo/issues/2393)) ([ebf088e](https://github.com/tambo-ai/tambo/commit/ebf088e0430949244d3ad80b3f10bfb7737b9015))
+
 ## [0.143.0](https://github.com/tambo-ai/tambo/compare/api-v0.142.0...api-v0.143.0) (2026-02-10)
 
 

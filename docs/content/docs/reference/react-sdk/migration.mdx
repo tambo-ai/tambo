@@ -226,20 +226,15 @@ function Message({ message }: { message: TamboThreadMessage }) {
 ```
 
 ```tsx title="After"
-import { ComponentRenderer, type TamboMessage } from "@tambo-ai/react";
+import { ComponentRenderer, type TamboThreadMessage } from "@tambo-ai/react";
 
 function Message({
   message,
   threadId,
 }: {
-  message: TamboMessage;
+  message: TamboThreadMessage;
   threadId: string;
 }) {
-  // Show cancellation indicator if message was cancelled
-  if (message.wasCancelled) {
-    return <div className="text-muted">Message was cancelled</div>;
-  }
-
   return (
     <div>
       {message.content.map((block) => {
@@ -276,13 +271,12 @@ function Message({
 
 ### Message fields
 
-| Field          | Type      | Description                                                                                      |
-| -------------- | --------- | ------------------------------------------------------------------------------------------------ |
-| `id`           | `string`  | Unique message ID                                                                                |
-| `role`         | `string`  | `"user"` or `"assistant"`                                                                        |
-| `content`      | `array`   | Array of content blocks (see below)                                                              |
-| `wasCancelled` | `boolean` | `true` if the run that generated this message was cancelled. Useful for showing cancellation UI. |
-| `createdAt`    | `Date`    | When the message was created                                                                     |
+| Field       | Type     | Description                         |
+| ----------- | -------- | ----------------------------------- |
+| `id`        | `string` | Unique message ID                   |
+| `role`      | `string` | `"user"` or `"assistant"`           |
+| `content`   | `array`  | Array of content blocks (see below) |
+| `createdAt` | `string` | When the message was created        |
 
 ### Content block types
 
@@ -460,7 +454,7 @@ import { useTamboContextAttachment } from "@tambo-ai/react";
 | `useTamboStreamStatus()`          | `useTamboStreamStatus()`              |
 | `useTamboThreadList()`            | `useTamboThreadList()`                |
 | `useTamboSuggestions()`           | `useTamboSuggestions()`               |
-| `TamboThreadMessage`              | `TamboMessage`                        |
+| `TamboThreadMessage`              | `TamboThreadMessage`                  |
 | `GenerationStage`                 | `streamingState.status` (`RunStatus`) |
 | `withInteractable`                | `withTamboInteractable`               |
 | `useTamboInteractable`            | `useTamboInteractable`                |

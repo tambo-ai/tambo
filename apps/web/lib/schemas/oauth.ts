@@ -37,6 +37,14 @@ export const updateOAuthValidationSettingsInput = z
       .boolean()
       .optional()
       .describe("Whether authentication tokens are required for this project"),
+    userinfoEndpoint: z
+      .string()
+      .url()
+      .optional()
+      .or(z.literal(""))
+      .describe(
+        "URL to resolve user identity from opaque access tokens (e.g., https://api.github.com/user)",
+      ),
   })
   .refine(
     (data) => {
@@ -66,6 +74,10 @@ export const oauthValidationSettingsSchema = z.object({
     .boolean()
     .describe("Whether a secret key is stored for symmetric validation"),
   hasPublicKey: z.boolean().describe("Whether a public key is stored"),
+  userinfoEndpoint: z
+    .string()
+    .nullable()
+    .describe("URL to resolve user identity from opaque access tokens"),
 });
 
 export const updateOAuthValidationSettingsOutputSchema = z.object({

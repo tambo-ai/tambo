@@ -1,5 +1,6 @@
 "use client";
 
+import type { Suggestion } from "@tambo-ai/react";
 import type { messageVariants } from "@tambo-ai/ui-registry/components/message";
 import {
   MessageInput,
@@ -7,6 +8,7 @@ import {
   MessageInputFileButton,
   MessageInputMcpPromptButton,
   MessageInputMcpResourceButton,
+  MessageInputStopButton,
   MessageInputSubmitButton,
   MessageInputTextarea,
   MessageInputToolbar,
@@ -17,7 +19,6 @@ import {
   MessageSuggestionsStatus,
 } from "@tambo-ai/ui-registry/components/message-suggestions";
 import { ScrollableMessageContainer } from "@tambo-ai/ui-registry/components/scrollable-message-container";
-import { ThreadContainer, useThreadContainerContext } from "./thread-container";
 import {
   ThreadContent,
   ThreadContentMessages,
@@ -30,9 +31,9 @@ import {
   ThreadHistorySearch,
 } from "@tambo-ai/ui-registry/components/thread-history";
 import { useMergeRefs } from "@tambo-ai/ui-registry/lib/thread-hooks";
-import type { Suggestion } from "@tambo-ai/react";
 import type { VariantProps } from "class-variance-authority";
 import * as React from "react";
+import { ThreadContainer, useThreadContainerContext } from "./thread-container";
 
 /**
  * Props for the MessageThreadFull component
@@ -45,6 +46,8 @@ export interface MessageThreadFullProps extends React.HTMLAttributes<HTMLDivElem
    * @example variant="compact"
    */
   variant?: VariantProps<typeof messageVariants>["variant"];
+  /** Optional starter suggestions shown before conversation begins. When omitted, no starter suggestions are shown. */
+  initialSuggestions?: Suggestion[];
 }
 
 /**
@@ -56,6 +59,7 @@ export const MessageThreadFull = React.forwardRef<
 >(({ className, variant, ...props }, ref) => {
   const { containerRef, historyPosition } = useThreadContainerContext();
   const mergedRef = useMergeRefs<HTMLDivElement | null>(ref, containerRef);
+  const { initialSuggestions, ...restProps } = props;
 
   const threadHistorySidebar = (
     <ThreadHistory position={historyPosition}>
@@ -66,27 +70,6 @@ export const MessageThreadFull = React.forwardRef<
     </ThreadHistory>
   );
 
-  const defaultSuggestions: Suggestion[] = [
-    {
-      id: "suggestion-1",
-      title: "Get started",
-      detailedSuggestion: "What can you help me with?",
-      messageId: "welcome-query",
-    },
-    {
-      id: "suggestion-2",
-      title: "Learn more",
-      detailedSuggestion: "Tell me about your capabilities.",
-      messageId: "capabilities-query",
-    },
-    {
-      id: "suggestion-3",
-      title: "Examples",
-      detailedSuggestion: "Show me some example queries I can try.",
-      messageId: "examples-query",
-    },
-  ];
-
   return (
     <div className="flex h-full w-full">
       {/* Thread History Sidebar - rendered first if history is on the left */}
@@ -96,7 +79,7 @@ export const MessageThreadFull = React.forwardRef<
         ref={mergedRef}
         disableSidebarSpacing
         className={className}
-        {...props}
+        {...restProps}
       >
         <ScrollableMessageContainer className="p-4">
           <ThreadContent variant={variant}>
@@ -120,13 +103,14 @@ export const MessageThreadFull = React.forwardRef<
               {/* Uncomment this to enable client-side MCP config modal button */}
               {/* <MessageInputMcpConfigButton /> */}
               <MessageInputSubmitButton />
+              <MessageInputStopButton />
             </MessageInputToolbar>
             <MessageInputError />
           </MessageInput>
         </div>
 
         {/* Message suggestions */}
-        <MessageSuggestions initialSuggestions={defaultSuggestions}>
+        <MessageSuggestions initialSuggestions={initialSuggestions}>
           <MessageSuggestionsList />
         </MessageSuggestions>
       </ThreadContainer>

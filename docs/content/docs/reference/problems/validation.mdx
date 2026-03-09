@@ -1,0 +1,39 @@
+---
+title: Validation Error
+description: Error response when a request fails input validation
+---
+
+The API returns a `400 Bad Request` status with this problem type when the request payload is invalid.
+
+## Response Format
+
+```json
+{
+  "type": "https://docs.tambo.co/reference/problems/validation",
+  "status": 400,
+  "title": "Bad Request",
+  "detail": "Initial message at index 0 must have content",
+  "instance": "/threads"
+}
+```
+
+## Fields
+
+- **`type`** - Stable URI identifying this problem type
+- **`status`** - HTTP status code (always `400`)
+- **`title`** - Short summary of the problem (always `Bad Request`)
+- **`detail`** - Human-readable description of what was invalid
+- **`instance`** - The specific request path that triggered this error
+
+## Handling
+
+When you receive this error:
+
+1. Read the `detail` field to see what failed validation
+2. Update your request payload to match the expected schema
+3. Retry the request
+
+## See Also
+
+- [REST API Reference](/reference/rest-api) - Complete API documentation
+- [RFC 9457 Problem Details](https://www.rfc-editor.org/rfc/rfc9457.html) - Standard for error responses

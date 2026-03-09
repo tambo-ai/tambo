@@ -1,0 +1,179 @@
+---
+title: Message
+description: Compose message shell rendering for text, images, loading state, and rendered component content.
+---
+
+import { MessageDemoPreview } from "./_demos/message-demo";
+
+# Message
+
+`Message` in `@tambo-ai/react-ui-base` handles message-level behavior and content selection while leaving styling to your app or `@tambo-ai/ui-registry`.
+
+## Demo
+
+<MessageDemoPreview />
+
+## Anatomy
+
+```tsx
+<Message.Root message={message}>
+  <Message.Content />
+  <Message.Images />
+  <Message.LoadingIndicator />
+  <Message.RenderedComponent>
+    <Message.RenderedComponentCanvasButton />
+    <Message.RenderedComponentContent />
+  </Message.RenderedComponent>
+</Message.Root>
+```
+
+## Examples
+
+### Identifying a Message by ID
+
+Instead of passing the full message object, you can pass `id` and the component will look it up from the thread:
+
+```tsx
+<Message.Root id={messageId}>
+  <Message.Content />
+</Message.Root>
+```
+
+### Custom Image Rendering
+
+```tsx
+<Message.Images
+  renderImage={({ url, index }) => <img key={index} src={url} alt="" />}
+/>
+```
+
+### Root Render State
+
+Use the render prop on `Root` to access content flags:
+
+```tsx
+<Message.Root
+  message={message}
+  render={(props, state) => (
+    <div {...props}>
+      {state.reasoning && <p>Thinking...</p>}
+      {state.hasComponent && <p>Component generated</p>}
+    </div>
+  )}
+/>
+```
+
+## API reference
+
+### Root
+
+| Prop        | Type                      | Default   | Description                                                                |
+| ----------- | ------------------------- | --------- | -------------------------------------------------------------------------- |
+| `message`   | `ReactTamboThreadMessage` | —         | Message data for content blocks and metadata. Provide `message` or `id`.   |
+| `id`        | `string`                  | —         | Message ID to look up from the current thread. Provide `message` or `id`.  |
+| `isLoading` | `boolean`                 | `!isIdle` | Override loading state. Defaults to the thread idle state from `useTambo`. |
+
+**Render state:**
+
+| Field           | Type                      | Description                                                      |
+| --------------- | ------------------------- | ---------------------------------------------------------------- |
+| `id`            | `string`                  | The message ID.                                                  |
+| `role`          | `"user" \| "assistant"`   | Role derived from the message.                                   |
+| `isLoading`     | `boolean`                 | Whether the message is in a loading state.                       |
+| `message`       | `ReactTamboThreadMessage` | The full message object.                                         |
+| `reasoning`     | `boolean`                 | Whether the message is in a reasoning state.                     |
+| `reasoningMs`   | `number \| null`          | Time in milliseconds spent reasoning, or null if not applicable. |
+| `hasText`       | `boolean`                 | Whether the message has text/markdown content.                   |
+| `hasToolUse`    | `boolean`                 | Whether the message has a tool call.                             |
+| `hasToolResult` | `boolean`                 | Whether the message has a tool result.                           |
+| `hasComponent`  | `boolean`                 | Whether the message has a rendered component.                    |
+| `hasResource`   | `boolean`                 | Whether the message has a resource.                              |
+
+### Content
+
+| Prop               | Type                                      | Default | Description                                                       |
+| ------------------ | ----------------------------------------- | ------- | ----------------------------------------------------------------- |
+| `messageContent`   | `string \| TamboThreadMessage["content"]` | —       | Override the content to render instead of the message content.    |
+| `renderAsMarkdown` | `boolean`                                 | `true`  | Whether to convert content to a Markdown string.                  |
+| `keepMounted`      | `boolean`                                 | `false` | Keep mounted when there is no content and hide via `data-hidden`. |
+
+**Render state:**
+
+| Field                     | Type                                      | Description                                                                    |
+| ------------------------- | ----------------------------------------- | ------------------------------------------------------------------------------ |
+| `loading`                 | `boolean`                                 | Whether loading with no content and not reasoning.                             |
+| `reasoning`               | `boolean`                                 | Whether the message is in reasoning state.                                     |
+| `hasContent`              | `boolean`                                 | Whether the message has any displayable content.                               |
+| `markdown`                | `boolean`                                 | Whether content is rendered as Markdown.                                       |
+| `content`                 | `string \| TamboThreadMessage["content"]` | The resolved content to render.                                                |
+| `contentAsMarkdownString` | `string \| undefined`                     | Content as a single Markdown string. Undefined if `renderAsMarkdown` is false. |
+
+### Images
+
+| Prop          | Type                                                    | Default | Description                                                       |
+| ------------- | ------------------------------------------------------- | ------- | ----------------------------------------------------------------- |
+| `renderImage` | `(props: MessageImageRenderFnProps) => React.ReactNode` | —       | Custom renderer for each image. Receives `{ url, index, alt }`.   |
+| `keepMounted` | `boolean`                                               | `false` | Keep mounted when there are no images and hide via `data-hidden`. |
+
+**Render state:**
+
+| Field    | Type       | Description                     |
+| -------- | ---------- | ------------------------------- |
+| `images` | `string[]` | Array of image URLs to display. |
+
+### LoadingIndicator
+
+| Prop          | Type      | Default | Description                                               |
+| ------------- | --------- | ------- | --------------------------------------------------------- |
+| `keepMounted` | `boolean` | `false` | Keep mounted when not loading and hide via `data-hidden`. |
+
+Renders three `<span>` elements with `data-dot="1"`, `data-dot="2"`, `data-dot="3"` for styling animated dots. Only visible when the parent `Message.Root` is loading with no content and not reasoning.
+
+### RenderedComponent
+
+No custom props. Renders only for assistant messages that have component content blocks.
+
+**Render state:**
+
+| Field                  | Type                    | Description                          |
+| ---------------------- | ----------------------- | ------------------------------------ |
+| `hasRenderedComponent` | `boolean`               | Whether a rendered component exists. |
+| `role`                 | `"user" \| "assistant"` | The message role.                    |
+
+### RenderedComponentContent
+
+No custom props. Renders the actual React nodes from component content blocks.
+
+**Render state:**
+
+| Field                | Type                | Description                              |
+| -------------------- | ------------------- | ---------------------------------------- |
+| `renderedComponents` | `React.ReactNode[]` | Array of rendered component React nodes. |
+
+### RenderedComponentCanvasButton
+
+No custom props. Renders a `<button>` that dispatches a `tambo:showComponent` custom event to display the component in a canvas area. Only enabled when a canvas element (`[data-canvas-space="true"]`) exists and the message has a rendered component.
+
+**Render state:**
+
+| Field                  | Type      | Description                                 |
+| ---------------------- | --------- | ------------------------------------------- |
+| `canvasExists`         | `boolean` | Whether a canvas element exists in the DOM. |
+| `hasRenderedComponent` | `boolean` | Whether a rendered component exists.        |
+
+## Accessibility
+
+- Keep image `alt` text meaningful when providing custom image renderers.
+- Ensure rendered-component controls stay keyboard reachable.
+- `LoadingIndicator` renders as a `<div>` by default. Override with the `render` prop for semantic markup.
+
+## Styling Hooks
+
+- `data-slot="message-root"`
+- `data-slot="message-content"`
+- `data-slot="message-images"`
+- `data-slot="loading-indicator"`
+- `data-slot="message-rendered-component-area"`
+- `data-slot="message-rendered-component-content"`
+- `data-slot="rendered-component-canvas-button"`
+- `data-hidden` on `Content`, `Images`, `LoadingIndicator` when `keepMounted` is used

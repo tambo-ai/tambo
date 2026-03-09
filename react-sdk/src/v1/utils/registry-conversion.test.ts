@@ -8,7 +8,7 @@ import {
   toAvailableComponents,
   toAvailableTool,
   toAvailableTools,
-} from "./registry-conversion";
+} from "@tambo-ai/client";
 
 describe("registry-conversion", () => {
   describe("toAvailableComponent", () => {

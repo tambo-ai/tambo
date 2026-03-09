@@ -1,16 +1,18 @@
-import { Slot } from "@radix-ui/react-slot";
+import { useRender } from "@base-ui/react/use-render";
 import * as React from "react";
-import { BasePropsWithChildrenOrRenderFunction } from "../../types/component-render-or-children";
-import { useRender } from "../../use-render/use-render";
 import { useReasoningInfoRootContext } from "../root/reasoning-info-context";
 
-export interface ReasoningInfoStepsRenderFunctionProps {
+export interface ReasoningInfoStepsRenderFunctionProps extends Record<
+  string,
+  unknown
+> {
+  slot: string;
   steps: string[];
   showStepNumbers: boolean;
 }
 
-export type ReasoningInfoStepsProps = BasePropsWithChildrenOrRenderFunction<
-  React.HTMLAttributes<HTMLDivElement>,
+export type ReasoningInfoStepsProps = useRender.ComponentProps<
+  "div",
   ReasoningInfoStepsRenderFunctionProps
 >;
 
@@ -20,22 +22,24 @@ export type ReasoningInfoStepsProps = BasePropsWithChildrenOrRenderFunction<
 export const ReasoningInfoSteps = React.forwardRef<
   HTMLDivElement,
   ReasoningInfoStepsProps
->(({ asChild, ...props }, ref) => {
+>(({ ...props }, ref) => {
   const { reasoning } = useReasoningInfoRootContext();
-
-  const Comp = asChild ? Slot : "div";
-
-  const { content, componentProps } = useRender(props, {
+  const renderProps: ReasoningInfoStepsRenderFunctionProps = {
+    slot: "reasoning-info-steps",
     steps: reasoning,
     showStepNumbers: reasoning.length > 1,
+  };
+  const { render, ...componentProps } = props;
+
+  return useRender({
+    defaultTagName: "div",
+    ref,
+    render,
+    state: renderProps,
+    stateAttributesMapping: {
+      steps: () => null,
+    },
+    props: componentProps,
   });
-
-  if (!content) return null;
-
-  return (
-    <Comp ref={ref} data-slot="reasoning-info-steps" {...componentProps}>
-      {content}
-    </Comp>
-  );
 });
 ReasoningInfoSteps.displayName = "ReasoningInfo.Steps";

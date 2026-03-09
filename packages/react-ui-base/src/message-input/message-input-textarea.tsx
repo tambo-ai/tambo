@@ -1,6 +1,7 @@
 "use client";
 
-import { Slot } from "@radix-ui/react-slot";
+import { mergeProps } from "@base-ui/react/merge-props";
+import { useRender } from "@base-ui/react/use-render";
 import * as React from "react";
 import {
   useMessageInputContext,
@@ -21,7 +22,8 @@ import {
 /**
  * Render props for the Textarea component.
  */
-export interface MessageInputTextareaRenderProps {
+export interface MessageInputTextareaState extends Record<string, unknown> {
+  slot: string;
   /** Current input value */
   value: string;
   /** Update the input value */
@@ -55,14 +57,18 @@ export interface MessageInputTextareaRenderProps {
 /**
  * Props for the MessageInput.Textarea component.
  */
-export interface MessageInputTextareaProps extends Omit<
-  React.HTMLAttributes<HTMLDivElement>,
-  "children"
-> {
-  /** Render as a different element using Radix Slot */
-  asChild?: boolean;
+type MessageInputTextareaComponentProps = useRender.ComponentProps<
+  "textarea",
+  MessageInputTextareaState
+>;
+
+export interface MessageInputTextareaProps extends MessageInputTextareaComponentProps {
   /** Custom placeholder text */
   placeholder?: string;
+  /** Whether pressing Enter submits the message or inserts a newline. Defaults to "newline". */
+  enterKeyBehaviour?: "newline" | "submit";
+  /** Disables Cmd/Ctrl+Enter submit shortcut in "newline" mode. Defaults to false. */
+  disableModifierSubmit?: boolean;
   /** Resource provider for @ mentions (optional - MCP resources included by default) */
   resourceProvider?: ResourceProvider;
   /** Prompt provider for / commands (optional - MCP prompts included by default) */
@@ -71,10 +77,6 @@ export interface MessageInputTextareaProps extends Omit<
   resourceFormatOptions?: ResourceFormatOptions;
   /** Options for formatting MCP prompts into PromptItems */
   promptFormatOptions?: PromptFormatOptions;
-  /** Render prop for custom textarea implementation */
-  children?:
-    | React.ReactNode
-    | ((props: MessageInputTextareaRenderProps) => React.ReactNode);
 }
 
 /**
@@ -83,18 +85,18 @@ export interface MessageInputTextareaProps extends Omit<
  * Handles MCP resource/prompt integration internally.
  */
 export const MessageInputTextarea = React.forwardRef<
-  HTMLDivElement,
+  HTMLTextAreaElement,
   MessageInputTextareaProps
 >(
   (
     {
-      asChild,
       placeholder = "What do you want to do?",
+      enterKeyBehaviour = "newline",
+      disableModifierSubmit = false,
       resourceProvider,
       promptProvider,
       resourceFormatOptions,
       promptFormatOptions,
-      children,
       ...props
     },
     ref,
@@ -105,8 +107,6 @@ export const MessageInputTextarea = React.forwardRef<
       submitMessage,
       handleSubmit,
       editorRef,
-      isIdle,
-      isUpdatingToken,
       addImage,
       images,
       setImageError,
@@ -132,9 +132,12 @@ export const MessageInputTextarea = React.forwardRef<
       promptFormatOptions,
     );
 
-    const disabled = !isIdle || isUpdatingToken;
+    // Keep typing enabled while generation is active or auth token is updating.
+    // Submission state is controlled by submit/stop controls and root guards.
+    const disabled = false;
 
-    const renderProps: MessageInputTextareaRenderProps = {
+    const renderProps: MessageInputTextareaState = {
+      slot: "message-input-textarea",
       value,
       setValue,
       submitMessage,
@@ -151,18 +154,67 @@ export const MessageInputTextarea = React.forwardRef<
       setPromptSearch,
     };
 
-    const Comp = asChild ? Slot : "div";
+    const { render, ...componentProps } = props;
 
-    return (
-      <Comp
-        ref={ref}
-        data-slot="message-input-textarea"
-        data-disabled={disabled || undefined}
-        {...props}
-      >
-        {typeof children === "function" ? children(renderProps) : children}
-      </Comp>
+    const handleChange = React.useCallback(
+      (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+        setValue(e.target.value);
+      },
+      [setValue],
     );
+
+    const handleKeyDown = React.useCallback(
+      (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+        if (e.key !== "Enter") return;
+
+        const hasModifier = e.metaKey || e.ctrlKey;
+
+        if (enterKeyBehaviour === "submit") {
+          // Enter (no modifier) submits; Shift+Enter is always a newline
+          if (!e.shiftKey && !hasModifier) {
+            e.preventDefault();
+            void submitMessage();
+          }
+        } else {
+          // "newline" mode: Cmd/Ctrl+Enter submits (unless disabled)
+          if (hasModifier && !disableModifierSubmit) {
+            e.preventDefault();
+            void submitMessage();
+          }
+        }
+      },
+      [enterKeyBehaviour, disableModifierSubmit, submitMessage],
+    );
+
+    return useRender({
+      defaultTagName: "textarea",
+      ref,
+      render,
+      state: renderProps,
+      stateAttributesMapping: {
+        value: () => null,
+        setValue: () => null,
+        submitMessage: () => null,
+        handleSubmit: () => null,
+        placeholder: () => null,
+        editorRef: () => null,
+        addImage: () => null,
+        images: () => null,
+        setImageError: () => null,
+        resourceItems: () => null,
+        setResourceSearch: () => null,
+        promptItems: () => null,
+        setPromptSearch: () => null,
+      },
+      props: mergeProps(componentProps, {
+        value,
+        onChange: handleChange,
+        onKeyDown: handleKeyDown,
+        placeholder,
+        disabled,
+        "data-disabled": disabled ? "true" : undefined,
+      }),
+    });
   },
 );
 MessageInputTextarea.displayName = "MessageInput.Textarea";

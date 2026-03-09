@@ -22,7 +22,7 @@ import {
 } from "../../providers/tambo-client-provider";
 import { useTamboConfig } from "../providers/tambo-v1-provider";
 import { useTamboAuthState } from "./use-tambo-v1-auth-state";
-import type { TamboAuthState } from "../types/auth";
+import type { TamboAuthState } from "@tambo-ai/client";
 import {
   TamboRegistryContext,
   type TamboRegistryContext as TamboRegistryContextType,
@@ -36,15 +36,12 @@ import {
 } from "../providers/tambo-v1-stream-context";
 import type {
   Content,
+  ReactTamboThreadMessage,
   TamboToolDisplayProps,
-  TamboThreadMessage,
   TamboToolUseContent,
 } from "../types/message";
-import type { StreamingState } from "../types/thread";
-import {
-  isPlaceholderThreadId,
-  type ThreadState,
-} from "../utils/event-accumulator";
+import type { StreamingState } from "@tambo-ai/client";
+import { isPlaceholderThreadId, type ThreadState } from "@tambo-ai/client";
 
 /**
  * Return type for useTambo hook
@@ -61,9 +58,10 @@ export interface UseTamboReturn {
   thread: ThreadState | undefined;
 
   /**
-   * Messages in the current thread
+   * Messages in the current thread.
+   * Component content blocks include `renderedComponent` for direct rendering.
    */
-  messages: TamboThreadMessage[];
+  messages: ReactTamboThreadMessage[];
 
   /**
    * Current streaming state
@@ -269,7 +267,7 @@ export function useTambo(): UseTamboReturn {
   // Update a thread's name
   const updateThreadName = useCallback(
     async (threadId: string, name: string) => {
-      await client.threads.update(threadId, { name });
+      await client.threads.update(threadId, { name, userKey });
 
       if (threadMapRef.current[threadId]) {
         dispatch({
@@ -295,7 +293,7 @@ export function useTambo(): UseTamboReturn {
         );
       }
     },
-    [client, dispatch, queryClient],
+    [client, userKey, dispatch, queryClient],
   );
 
   // Memoize the return object to prevent unnecessary re-renders
@@ -318,7 +316,7 @@ export function useTambo(): UseTamboReturn {
     }
 
     // Transform messages to add computed properties to content blocks
-    const messages = rawMessages.map((message): TamboThreadMessage => {
+    const messages = rawMessages.map((message): ReactTamboThreadMessage => {
       const transformedContent = message.content.map((content): Content => {
         // Transform tool_use content to add computed state
         if (content.type === "tool_use") {

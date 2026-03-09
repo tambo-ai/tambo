@@ -1,0 +1,41 @@
+---
+title: Docker Compose deployment
+description: Deploy self-hosted Tambo with Docker Compose, including production considerations.
+---
+
+This guide covers taking your local Docker Compose setup to production.
+
+## Production environment
+
+Update `docker.env` for production:
+
+```bash
+NODE_ENV=production
+NEXTAUTH_URL=https://your-domain.com
+```
+
+## Reverse proxy
+
+Add a reverse proxy (nginx, Caddy, or Traefik) in front of the web and API services for HTTPS termination. Point the proxy to:
+
+- **Web**: port 8260
+- **API**: port 8261
+
+> **Note:** `NEXT_PUBLIC_TAMBO_API_URL` must be reachable from the browser and should point to the public URL exposed by your reverse proxy for the API. `http://localhost:8261` is fine for local development, but in production you should set it to your public API URL (for example `https://api.your-domain.com` or `https://your-domain.com/api`), not `localhost` or an internal Docker hostname.
+
+## Building and pushing images
+
+Build the Docker images locally:
+
+```bash
+./scripts/cloud/tambo-build.sh
+```
+
+Tag and push to your container registry:
+
+```bash
+docker tag tambo-web:latest your-registry/tambo-web:latest
+docker tag tambo-api:latest your-registry/tambo-api:latest
+docker push your-registry/tambo-web:latest
+docker push your-registry/tambo-api:latest
+```

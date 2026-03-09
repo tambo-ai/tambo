@@ -101,7 +101,9 @@ export function ProviderButton({
           ) : (
             IconComponent && <IconComponent className="h-5 w-5" />
           )}
-          <span>{isLoading ? "Signing in..." : provider.displayName}</span>
+          <span className="text-[12.9px] md:text-[16px]">
+            {isLoading ? "Signing in..." : provider.displayName}
+          </span>
           {isLastUsed && (
             <span className="px-2 py-0.5 text-[10px] font-medium tracking-wide uppercase bg-primary/20 text-primary-foreground rounded-full transition-colors duration-300 group-enabled:group-hover:bg-primary/30 group-enabled:group-hover:text-primary">
               Last used

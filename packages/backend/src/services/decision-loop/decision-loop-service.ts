@@ -28,6 +28,7 @@ import {
   standardToolParameters,
   TamboToolParameters,
 } from "../tool/tool-service";
+import type { ProviderOptions } from "@ai-sdk/provider-utils";
 
 /**
  * Compound type for decision loop output that includes both the traditional
@@ -46,6 +47,9 @@ export interface DecisionStreamItem {
    * May contain 0-N events depending on the delta type.
    */
   aguiEvents: BaseEvent[];
+
+  /** Provider options to persist on tool calls (e.g. Gemini thought signatures). */
+  toolCallProviderOptionsById?: Record<string, ProviderOptions>;
 }
 
 const TOOL_CHOICE_KEYWORDS = ["auto", "required", "none"] as const;
@@ -281,6 +285,7 @@ export async function* runDecisionLoop(
       yield {
         decision: accumulatedDecision,
         aguiEvents: streamItem.aguiEvents,
+        toolCallProviderOptionsById: streamItem.toolCallProviderOptionsById,
       };
     } catch (e) {
       console.error("Error parsing stream chunk:", e);

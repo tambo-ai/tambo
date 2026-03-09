@@ -1,90 +1,61 @@
 "use client";
 
-import { Slot } from "@radix-ui/react-slot";
+import { mergeProps } from "@base-ui/react/merge-props";
+import { useRender } from "@base-ui/react/use-render";
 import * as React from "react";
 import { useMessageInputContext } from "./message-input-context";
 
 /**
  * Render props for the SubmitButton component.
  */
-export interface MessageInputSubmitButtonRenderProps {
-  /** Whether to show cancel button instead of submit */
-  showCancelButton: boolean;
+export interface MessageInputSubmitButtonState extends Record<string, unknown> {
+  slot: string;
   /** Whether the button is disabled */
   disabled: boolean;
-  /** Handle cancel action */
-  handleCancel: (e: React.MouseEvent) => Promise<void>;
+  /** Whether the button is in a loading state */
+  loading: boolean;
 }
 
 /**
  * Props for the MessageInput.SubmitButton component.
  */
-export interface MessageInputSubmitButtonProps extends Omit<
-  React.ButtonHTMLAttributes<HTMLButtonElement>,
-  "children"
+export interface MessageInputSubmitButtonProps extends useRender.ComponentProps<
+  "button",
+  MessageInputSubmitButtonState
 > {
-  /** Render as a different element using Radix Slot */
-  asChild?: boolean;
-  /** Content to display inside the button, or render function */
-  children?:
-    | React.ReactNode
-    | ((props: MessageInputSubmitButtonRenderProps) => React.ReactNode);
+  keepMounted?: boolean;
 }
 
-/**
- * Submit button component for sending messages.
- * Automatically handles submission and cancellation states.
- */
 export const MessageInputSubmitButton = React.forwardRef<
   HTMLButtonElement,
   MessageInputSubmitButtonProps
->(({ asChild, children, ...props }, ref) => {
-  const { isPending, isIdle, cancel, isUpdatingToken } =
-    useMessageInputContext();
-
-  // Show cancel button if either:
-  // 1. A mutation is in progress (isPending), OR
-  // 2. Thread is stuck in a processing state
-  const showCancelButton = isPending || !isIdle;
-
-  const handleCancel = React.useCallback(
-    async (e: React.MouseEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
-      await cancel();
-    },
-    [cancel],
-  );
+>(({ keepMounted = false, tabIndex: propTabIndex, ...props }, ref) => {
+  const { isPending, isIdle, isUpdatingToken } = useMessageInputContext();
 
   const disabled = isUpdatingToken;
+  const hidden = isPending || (!isIdle && !isUpdatingToken);
+  const loading = isUpdatingToken && !isIdle && !isPending;
+  const effectiveTabIndex = hidden ? -1 : propTabIndex;
+  const enabled = !hidden || keepMounted;
+  const { render, ...componentProps } = props;
 
-  const renderProps = React.useMemo<MessageInputSubmitButtonRenderProps>(
-    () => ({
-      showCancelButton,
+  return useRender({
+    defaultTagName: "button",
+    ref,
+    render,
+    enabled,
+    state: {
+      slot: "message-input-submit",
       disabled,
-      handleCancel,
+      loading,
+      state: hidden ? "hidden" : "visible",
+    },
+    props: mergeProps(componentProps, {
+      disabled,
+      tabIndex: effectiveTabIndex,
+      type: "submit",
+      "aria-hidden": hidden ? "true" : undefined,
     }),
-    [showCancelButton, disabled, handleCancel],
-  );
-
-  const Comp = asChild ? Slot : "button";
-
-  return (
-    <Comp
-      ref={ref}
-      type={showCancelButton ? "button" : "submit"}
-      disabled={disabled}
-      onClick={showCancelButton ? handleCancel : undefined}
-      aria-label={showCancelButton ? "Cancel message" : "Send message"}
-      data-slot={
-        showCancelButton ? "message-input-cancel" : "message-input-submit"
-      }
-      data-state={showCancelButton ? "cancel" : "submit"}
-      data-disabled={disabled || undefined}
-      {...props}
-    >
-      {typeof children === "function" ? children(renderProps) : children}
-    </Comp>
-  );
+  });
 });
 MessageInputSubmitButton.displayName = "MessageInput.SubmitButton";

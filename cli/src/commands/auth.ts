@@ -20,6 +20,7 @@ import {
   isTokenValid,
   loadToken,
 } from "../lib/token-storage.js";
+import { EVENTS, trackEvent } from "../lib/telemetry.js";
 import { GuidanceError, isInteractive } from "../utils/interactive.js";
 
 export interface AuthStatusOptions {
@@ -188,6 +189,7 @@ export async function handleAuthLogin(
 
   try {
     await runDeviceAuthFlow({ noBrowser: options.noBrowser });
+    trackEvent(EVENTS.AUTH_LOGIN);
     console.log(chalk.green("\n✓ Successfully authenticated!\n"));
     return 0;
   } catch (error) {
@@ -237,6 +239,7 @@ export async function handleAuthLogout(
   }
 
   clearToken();
+  trackEvent(EVENTS.AUTH_LOGOUT);
   console.log(chalk.green("\n✓ Successfully logged out.\n"));
   return 0;
 }

@@ -8,6 +8,7 @@
     "give-context",
     "take-actions",
     "add-authentication",
-    "connect-mcp-servers"
+    "connect-mcp-servers",
+    "self-hosting"
   ]
 }

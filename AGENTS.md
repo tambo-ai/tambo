@@ -15,6 +15,13 @@ This is a Turborepo monorepo containing both the Tambo AI framework packages and
   - Exports: hooks, providers, types for component registration and thread management
   - Build outputs: CommonJS (`dist/`) and ESM (`esm/`) for broad compatibility
 
+- **packages/client/** - Framework-agnostic client (`@tambo-ai/client`)
+  - Streaming, tool execution, thread management without React dependencies
+  - `TamboClient` class with `getState()`/`subscribe()` for framework integration
+  - `TamboStream` async iterable for streaming AI responses
+  - Used by `@tambo-ai/react` as its core engine; also usable standalone (Node.js, Vue, Svelte, etc.)
+  - Build outputs: CommonJS (`dist/`) and ESM (`esm/`)
+
 - **cli/** - Command-line interface (`tambo`)
   - Project scaffolding, component generation, and development utilities
   - Component registry auto-syncs to `/showcase/src/components/tambo/` from `/cli/src/registry/`
@@ -310,7 +317,7 @@ npm run db:studio -w packages/db    # Open Drizzle Studio
 
 ```bash
 # Development (two different apps!)
-npm run dev:cloud        # Start Tambo Cloud (web + API) - ports 8260 + 8261
+npm run dev:cloud        # Start Tambo Cloud (web + API) - ports 8260 + 8261 - uses turbo watch
 npm run dev              # Start React SDK (showcase + docs)
 npm run dev:sdk          # Start React SDK in watch mode + showcase (for SDK development)
 npm run build:sdk        # One-time build of React SDK
@@ -324,8 +331,27 @@ npm run format           # Format code with Prettier
 
 # Individual package development (from package directory or with -w flag)
 npm run dev -w cli       # Start specific workspace
+npm run dev:showcase     # Start showcase only
 npm run build -w react-sdk  # Build specific package
 ```
+
+#### Hot Reload
+
+The monorepo uses different hot reload mechanisms based on the app type:
+
+**Next.js apps (web, showcase, docs):**
+
+- Use `transpilePackages` configuration to compile workspace TypeScript directly
+- Changes to workspace packages (core, backend, db, react) trigger HMR automatically
+- No manual rebuild step needed
+
+**NestJS API:**
+
+- Uses `turbo watch` with `interruptible: true` for automatic restart
+- Monitors workspace inputs: `packages/core/src/**`, `packages/backend/src/**`, `packages/db/src/**`
+- API server restarts automatically when workspace packages change
+
+This architecture ensures editing any file in workspace packages results in immediate updates (HMR for Next.js, restart for NestJS) without manual intervention.
 
 #### Turbo Commands (alternative)
 
@@ -476,3 +502,4 @@ Common scopes: api, web, core, db, deps, ci, config, react-sdk, cli, showcase, d
 - When adding/editing JSDoc comments, make sure to add @returns to provide a description of the function return (the type should not be specified since TS will infer the return from the code, not the comment.)
 - Never reference planning documents, proposals, or design docs in code comments (e.g., `// See plans/foo.md`). These artifacts are short-lived but comments persist indefinitely. Code comments should be self-contained.
 - Store planning documents, proposals, and design docs in the `devdocs/` folder. Solutions go in `devdocs/solutions/`, brainstorming goes in `devdocs/brainstorms/`, etc. The only exception is `plans/` which stays at the repo root for visibility.
+- For any Tambo-owned URLs you include in comments or documentation, use the `tambo.co` domain (not the legacy `.ai` domain). When you encounter existing Tambo-owned links using the legacy domain, prefer updating them to `tambo.co` as part of related changes. External (non-Tambo) links are fine.

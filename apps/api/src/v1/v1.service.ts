@@ -69,7 +69,7 @@ import {
 import type { StreamQueueItem } from "../threads/dto/stream-queue-item";
 import { buildToolCallCountsFromMessages } from "../threads/util/tool-call-tracking";
 import { ThreadsService } from "../threads/threads.service";
-import { DATABASE } from "../common/middleware/db-transaction-middleware";
+import { DATABASE } from "../common/database-provider";
 import {
   V1GetMessageResponseDto,
   V1ListMessagesQueryDto,
@@ -1489,6 +1489,7 @@ export class V1Service {
       messageId: suggestion.messageId,
       title: suggestion.title,
       description: suggestion.detailedSuggestion,
+      detailedSuggestion: suggestion.detailedSuggestion,
       createdAt: suggestion.createdAt.toISOString(),
     };
   }

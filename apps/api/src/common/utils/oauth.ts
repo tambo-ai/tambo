@@ -7,6 +7,7 @@ import {
   SessionlessMcpAccessTokenPayload,
   TAMBO_MCP_ACCESS_KEY_CLAIM,
 } from "@tambo-ai-cloud/core";
+import { createHash } from "node:crypto";
 import {
   createRemoteJWKSet,
   decodeJwt,
@@ -41,6 +42,17 @@ const _ALLOWED_ISSUER_DOMAINS = [
   "auth0.com",
   // Add your trusted OAuth providers here
 ];
+
+/**
+ * Creates a synthetic JWTPayload for opaque (non-JWT) access tokens by hashing the token
+ * to produce a deterministic subject identifier.
+ *
+ * @returns A JWTPayload with `sub` set to `opaque:<sha256-hash>` and no other claims.
+ */
+function createOpaqueTokenPayload(token: string): JWTPayload {
+  const tokenHash = createHash("sha256").update(token).digest("hex");
+  return { sub: `opaque:${tokenHash}` };
+}
 
 /**
  * Validates that a URL is safe for external requests (prevents SSRF)
@@ -101,7 +113,10 @@ function validateExternalUrl(url: string): void {
 /**
  * Makes a fetch request with timeout and security checks
  */
-async function secureFetch(url: string): Promise<Response> {
+async function secureFetch(
+  url: string,
+  extraHeaders?: Record<string, string>,
+): Promise<Response> {
   validateExternalUrl(url);
 
   const controller = new AbortController();
@@ -112,6 +127,8 @@ async function secureFetch(url: string): Promise<Response> {
       signal: controller.signal,
       headers: {
         "User-Agent": "Tambo-OAuth-Validator/1.0",
+        Accept: "application/json",
+        ...extraHeaders,
       },
     });
     clearTimeout(timeoutId);
@@ -126,6 +143,77 @@ async function secureFetch(url: string): Promise<Response> {
 }
 
 /**
+ * Resolves a stable user identity from an opaque access token by calling the
+ * provider's userinfo endpoint (e.g., `https://api.github.com/user`).
+ *
+ * @returns A JWTPayload with `sub` and `iss` on success, or `null` on transient failure (5xx/timeout).
+ */
+async function resolveUserinfoIdentity(
+  token: string,
+  userinfoEndpoint: string,
+  logger: CorrelationLoggerService,
+): Promise<JWTPayload | null> {
+  // Validate URL before attempting fetch — SSRF errors must hard-reject, not fall back
+  validateExternalUrl(userinfoEndpoint);
+
+  let response: Response;
+  try {
+    response = await secureFetch(userinfoEndpoint, {
+      Authorization: `Bearer ${token}`,
+    });
+  } catch (error) {
+    // Timeout or network error — transient failure, fall back to hash
+    logger.warn(
+      `Userinfo endpoint request failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+    );
+    return null;
+  }
+
+  // 401/403 means the token is revoked/invalid at the provider — hard reject
+  if (response.status === 401 || response.status === 403) {
+    throw new UnauthorizedException("Token rejected by identity provider");
+  }
+
+  // Other non-2xx — transient failure, fall back to hash
+  if (!response.ok) {
+    logger.warn(
+      `Userinfo endpoint returned ${response.status}: ${response.statusText}`,
+    );
+    return null;
+  }
+
+  const text = await response.text();
+  if (text.length > MAX_JSON_SIZE) {
+    logger.warn("Userinfo response too large, falling back to hash");
+    return null;
+  }
+
+  let body: Record<string, unknown>;
+  try {
+    body = JSON.parse(text) as Record<string, unknown>;
+  } catch {
+    logger.warn("Userinfo response is not valid JSON, falling back to hash");
+    return null;
+  }
+
+  // Response is typed as Record<string, unknown> because it could be an OIDC UserInfo response
+  // or a provider-specific REST response (e.g., GitHub). No shared type exists in jose or the codebase.
+  // Extract subject: prefer `sub` (OIDC UserInfo standard — https://openid.net/specs/openid-connect-core-1_0.html#UserInfo),
+  // then `id` (GitHub/REST APIs that don't follow OIDC — https://docs.github.com/en/rest/users/users#get-the-authenticated-user)
+  const rawSub = body.sub ?? body.id;
+  if (rawSub === undefined || rawSub === null) {
+    throw new UnauthorizedException(
+      "Userinfo response missing both 'sub' and 'id' fields",
+    );
+  }
+
+  const sub = String(rawSub);
+  const iss = new URL(userinfoEndpoint).origin;
+
+  return { sub, iss };
+}
+
+/**
  * Validates and verifies an OAuth subject token based on the configured validation mode
  */
 export async function validateSubjectToken(
@@ -134,6 +222,7 @@ export async function validateSubjectToken(
   oauthSettings: {
     secretKeyEncrypted?: string | null;
     publicKey?: string | null;
+    userinfoEndpoint?: string | null;
   } | null,
   logger: CorrelationLoggerService,
 ): Promise<JWTPayload> {
@@ -155,17 +244,51 @@ export async function validateSubjectToken(
 
   switch (validationMode) {
     case OAuthValidationMode.NONE: {
-      const payload = decodeJwt(subjectToken);
+      // Some OAuth providers (e.g., GitHub) issue opaque access tokens instead of JWTs.
+      // In NONE mode we accept both formats: try decoding as JWT first, and on failure
+      // treat as opaque — resolve identity via userinfo endpoint, or hash as last resort.
+      try {
+        const payload = decodeJwt(subjectToken);
 
-      // Even in NONE mode, we should check token expiry for security
-      if (payload.exp && typeof payload.exp === "number") {
-        const currentTime = Math.floor(Date.now() / 1000);
-        if (payload.exp < currentTime) {
-          throw new UnauthorizedException("Token has expired");
+        // Even in NONE mode, we should check token expiry for security
+        if (payload.exp && typeof payload.exp === "number") {
+          const currentTime = Math.floor(Date.now() / 1000);
+          if (payload.exp < currentTime) {
+            throw new UnauthorizedException("Token has expired");
+          }
         }
+
+        return payload;
+      } catch (error) {
+        // Re-throw auth errors (e.g., expired token)
+        if (error instanceof UnauthorizedException) {
+          throw error;
+        }
+
+        // decodeJwt failed — token is not a valid JWT, treat as opaque
+        logger.log(
+          "Subject token is not a valid JWT, treating as opaque access token",
+        );
       }
 
-      return payload;
+      // If a userinfo endpoint is configured, it MUST resolve — no silent fallback to hash,
+      // which would give the user a different identity and different threads.
+      if (oauthSettings?.userinfoEndpoint) {
+        const userinfoPayload = await resolveUserinfoIdentity(
+          subjectToken,
+          oauthSettings.userinfoEndpoint,
+          logger,
+        );
+        if (userinfoPayload) {
+          return userinfoPayload;
+        }
+        throw new UnauthorizedException(
+          "Failed to resolve user identity from configured userinfo endpoint",
+        );
+      }
+
+      // No userinfo endpoint configured — hash fallback is the only option
+      return createOpaqueTokenPayload(subjectToken);
     }
 
     case OAuthValidationMode.SYMMETRIC: {

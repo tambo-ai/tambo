@@ -5,7 +5,7 @@ exports[`streamReducer snapshot tests for complex state transitions matches snap
   "currentThreadId": "thread_1",
   "threadMap": {
     "thread_1": {
-      "accumulatingToolArgs": Map {},
+      "accumulatingToolArgs": {},
       "streaming": {
         "messageId": "msg_1",
         "status": "streaming",
@@ -46,7 +46,7 @@ exports[`streamReducer snapshot tests for complex state transitions matches snap
   "currentThreadId": "thread_1",
   "threadMap": {
     "thread_1": {
-      "accumulatingToolArgs": Map {},
+      "accumulatingToolArgs": {},
       "lastCompletedRunId": "run_1",
       "streaming": {
         "messageId": undefined,
@@ -84,7 +84,7 @@ exports[`streamReducer snapshot tests for complex state transitions matches snap
   "currentThreadId": "thread_1",
   "threadMap": {
     "thread_1": {
-      "accumulatingToolArgs": Map {},
+      "accumulatingToolArgs": {},
       "streaming": {
         "messageId": "msg_1",
         "status": "streaming",
@@ -134,7 +134,7 @@ exports[`streamReducer thinking events matches snapshot for full thinking flow 1
   "currentThreadId": "thread_1",
   "threadMap": {
     "thread_1": {
-      "accumulatingToolArgs": Map {},
+      "accumulatingToolArgs": {},
       "streaming": {
         "messageId": "msg_1",
         "reasoningStartTime": "[TIMESTAMP]",

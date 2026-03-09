@@ -1,0 +1,298 @@
+---
+title: MessageInput
+description: Compose message text input, staged images, submit/stop controls, and elicitation mode with unstyled parts.
+---
+
+import { MessageInputDemoPreview } from "./_demos/message-input-demo";
+
+# MessageInput
+
+`MessageInput` in `@tambo-ai/react-ui-base` owns message-authoring behavior while keeping styling in `@tambo-ai/ui-registry` or your own UI layer.
+
+## Demo
+
+<MessageInputDemoPreview />
+
+## Anatomy
+
+```tsx
+<MessageInput.Root>
+  <MessageInput.Content>
+    <MessageInput.StagedImages>
+      {({ images }) => /* render staged image previews */}
+    </MessageInput.StagedImages>
+    <MessageInput.Textarea>
+      {({ value, setValue, disabled }) => /* render text input */}
+    </MessageInput.Textarea>
+    <MessageInput.Toolbar>
+      <MessageInput.FileButton>
+        {({ openFilePicker }) => /* render attach button */}
+      </MessageInput.FileButton>
+      <MessageInput.SubmitButton>Send</MessageInput.SubmitButton>
+      <MessageInput.StopButton>Stop</MessageInput.StopButton>
+    </MessageInput.Toolbar>
+  </MessageInput.Content>
+  <MessageInput.Elicitation />
+  <MessageInput.Error />
+</MessageInput.Root>
+```
+
+`MessageInput.ValueAccess` can be placed anywhere inside `Root` to read or modify the input value without rendering a DOM element.
+
+## Examples
+
+### Submit/Stop Visibility
+
+```tsx
+<MessageInput.SubmitButton keepMounted />
+<MessageInput.StopButton keepMounted />
+```
+
+`keepMounted` (`false` by default) keeps the element in the tree and toggles visibility via the `state` render prop (`"hidden"` or `"visible"`).
+
+### Rendering Custom Elicitation UI
+
+```tsx
+<MessageInput.Elicitation>
+  {({ request, onResponse }) => (
+    <CustomElicitation request={request} onResponse={onResponse} />
+  )}
+</MessageInput.Elicitation>
+```
+
+### Inserting Text via ValueAccess
+
+```tsx
+<MessageInput.ValueAccess>
+  {({ value, setValue }) => (
+    <button onClick={() => setValue(value + " appended")}>Append</button>
+  )}
+</MessageInput.ValueAccess>
+```
+
+## API reference
+
+### Root
+
+Renders a `<form>`. Provides context for all child subcomponents.
+
+| Prop       | Type                                   | Default     | Description                      |
+| ---------- | -------------------------------------- | ----------- | -------------------------------- |
+| `inputRef` | `React.RefObject<TamboEditor \| null>` | `undefined` | Ref for editor-level operations. |
+
+**Render state**
+
+| Field          | Type      | Description                                              |
+| -------------- | --------- | -------------------------------------------------------- |
+| `isDragging`   | `boolean` | `true` while image files are being dragged over the form |
+| `isSubmitting` | `boolean` | `true` while a submission is in-flight                   |
+| `hasError`     | `boolean` | `true` if any error (submit, image, or thread) is set    |
+
+### Content
+
+Renders a `<div>`. Wraps the input area and hides automatically when an elicitation is active.
+
+| Prop          | Type      | Default | Description                                                          |
+| ------------- | --------- | ------- | -------------------------------------------------------------------- |
+| `keepMounted` | `boolean` | `false` | Keep mounted while elicitation is active and hide via `data-hidden`. |
+
+**Render state**
+
+| Field                | Type                              | Description                                    |
+| -------------------- | --------------------------------- | ---------------------------------------------- |
+| `isDragging`         | `boolean`                         | Whether files are being dragged over the input |
+| `elicitation`        | `TamboElicitationRequest \| null` | Current elicitation request, if active         |
+| `resolveElicitation` | `function \| null`                | Callback to resolve the active elicitation     |
+
+### Textarea
+
+Renders a `<textarea>`. Provides render props for building a custom text editor.
+
+| Prop                    | Type                    | Default                     | Description                                                             |
+| ----------------------- | ----------------------- | --------------------------- | ----------------------------------------------------------------------- |
+| `placeholder`           | `string`                | `"What do you want to do?"` | Placeholder text.                                                       |
+| `enterKeyBehaviour`     | `"newline" \| "submit"` | `"newline"`                 | Whether pressing Enter submits the message or inserts a newline.        |
+| `disableModifierSubmit` | `boolean`               | `false`                     | Disables Cmd/Ctrl+Enter submit shortcut in `"newline"` mode.            |
+| `resourceProvider`      | `ResourceProvider`      | `undefined`                 | Resource provider for `@` mentions (MCP resources included by default). |
+| `promptProvider`        | `PromptProvider`        | `undefined`                 | Prompt provider for `/` commands (MCP prompts included by default).     |
+| `resourceFormatOptions` | `ResourceFormatOptions` | `undefined`                 | Options for formatting MCP resources into `ResourceItem`s.              |
+| `promptFormatOptions`   | `PromptFormatOptions`   | `undefined`                 | Options for formatting MCP prompts into `PromptItem`s.                  |
+
+**Render state**
+
+| Field               | Type                                    | Description                              |
+| ------------------- | --------------------------------------- | ---------------------------------------- |
+| `value`             | `string`                                | Current input value                      |
+| `setValue`          | `(value: string) => void`               | Update the input value                   |
+| `submitMessage`     | `() => Promise<void>`                   | Submit the message programmatically      |
+| `handleSubmit`      | `(e: React.FormEvent) => Promise<void>` | Form submit handler                      |
+| `disabled`          | `boolean`                               | Whether the input is disabled            |
+| `placeholder`       | `string`                                | Resolved placeholder text                |
+| `editorRef`         | `React.RefObject<TamboEditor \| null>`  | Reference to the editor instance         |
+| `addImage`          | `(file: File) => Promise<void>`         | Stage a single image                     |
+| `images`            | `StagedImage[]`                         | Currently staged images                  |
+| `setImageError`     | `(error: string \| null) => void`       | Set an image error message               |
+| `resourceItems`     | `ResourceItem[]`                        | Combined resource items (MCP + provider) |
+| `setResourceSearch` | `(query: string) => void`               | Update the resource search query         |
+| `promptItems`       | `PromptItem[]`                          | Combined prompt items (MCP + provider)   |
+| `setPromptSearch`   | `(query: string) => void`               | Update the prompt search query           |
+
+### StagedImages
+
+Renders a `<div>`. Only mounts when images are staged (or when a `render` prop is provided).
+
+**Render state**
+
+| Field                | Type                           | Description                                   |
+| -------------------- | ------------------------------ | --------------------------------------------- |
+| `images`             | `StagedImageState[]`           | Array of staged images with per-image helpers |
+| `removeImage`        | `(id: string) => void`         | Remove an image by ID                         |
+| `expandedImageId`    | `string \| null`               | Currently expanded image ID                   |
+| `setExpandedImageId` | `(id: string \| null) => void` | Set the expanded image                        |
+
+Each item in `images` provides:
+
+| Field         | Type          | Description                    |
+| ------------- | ------------- | ------------------------------ |
+| `image`       | `StagedImage` | The staged image data          |
+| `displayName` | `string`      | Display name for the image     |
+| `index`       | `number`      | Index of the image             |
+| `isExpanded`  | `boolean`     | Whether this image is expanded |
+| `onToggle`    | `() => void`  | Toggle expanded state          |
+| `onRemove`    | `() => void`  | Remove this image              |
+
+### Toolbar
+
+Renders a `<div>`. A simple container for action controls like submit, stop, and file buttons.
+
+No additional props beyond standard HTML div attributes and the `render` prop.
+
+### FileButton
+
+Renders a `<button>` with a hidden `<input type="file">`.
+
+| Prop           | Type      | Default     | Description                                                      |
+| -------------- | --------- | ----------- | ---------------------------------------------------------------- |
+| `accept`       | `string`  | `"image/*"` | Accept attribute for the file input.                             |
+| `multiple`     | `boolean` | `true`      | Allow multiple file selection.                                   |
+| `inputVisible` | `boolean` | `false`     | When `true`, removes visually-hidden styles from the file input. |
+
+**Render state**
+
+| Field            | Type                                        | Description                    |
+| ---------------- | ------------------------------------------- | ------------------------------ |
+| `openFilePicker` | `() => void`                                | Trigger the file picker dialog |
+| `fileInputRef`   | `React.RefObject<HTMLInputElement \| null>` | Ref to the hidden file input   |
+
+### Elicitation
+
+Renders a `<div>`. Shows the default `Elicitation` form or custom children when an elicitation is active.
+
+| Prop          | Type      | Default | Description                                                             |
+| ------------- | --------- | ------- | ----------------------------------------------------------------------- |
+| `keepMounted` | `boolean` | `false` | Keep mounted while no elicitation is active and hide via `data-hidden`. |
+
+**Render state**
+
+| Field         | Type                              | Description                         |
+| ------------- | --------------------------------- | ----------------------------------- |
+| `state`       | `"hidden" \| "visible"`           | Visibility state                    |
+| `elicitation` | `TamboElicitationRequest \| null` | Current elicitation request         |
+| `onResponse`  | `function \| null`                | Callback to resolve the elicitation |
+
+### SubmitButton
+
+Renders a `<button type="submit">`. Hidden while a run is active; shows when idle.
+
+| Prop          | Type      | Default | Description                                            |
+| ------------- | --------- | ------- | ------------------------------------------------------ |
+| `keepMounted` | `boolean` | `false` | Keep mounted while hidden and toggle via render state. |
+
+**Render state**
+
+| Field      | Type                    | Description                    |
+| ---------- | ----------------------- | ------------------------------ |
+| `disabled` | `boolean`               | Whether the button is disabled |
+| `loading`  | `boolean`               | Whether in a loading state     |
+| `state`    | `"hidden" \| "visible"` | Visibility state               |
+
+### StopButton
+
+Renders a `<button>`. Hidden while idle; shows during an active run.
+
+| Prop          | Type      | Default | Description                                            |
+| ------------- | --------- | ------- | ------------------------------------------------------ |
+| `keepMounted` | `boolean` | `false` | Keep mounted while hidden and toggle via render state. |
+
+**Render state**
+
+| Field      | Type                    | Description                    |
+| ---------- | ----------------------- | ------------------------------ |
+| `disabled` | `boolean`               | Whether the button is disabled |
+| `state`    | `"hidden" \| "visible"` | Visibility state               |
+
+### Error
+
+Renders a `<p>`. Shows automatically when any error is present (submit, image, or thread error). Falls back to displaying `children` if provided.
+
+| Prop          | Type      | Default | Description                                     |
+| ------------- | --------- | ------- | ----------------------------------------------- |
+| `keepMounted` | `boolean` | `false` | Keep mounted in the DOM when there is no error. |
+
+**Render state**
+
+| Field          | Type             | Description                          |
+| -------------- | ---------------- | ------------------------------------ |
+| `errorMessage` | `string \| null` | Resolved error message to display    |
+| `error`        | `Error \| null`  | Original thread error object, if any |
+| `submitError`  | `string \| null` | Submit-specific error message        |
+| `imageError`   | `string \| null` | Image upload-specific error message  |
+
+### ValueAccess
+
+Renders no DOM element. Provides a render-prop child with access to the input value and editor ref.
+
+**Render state (child function argument)**
+
+| Field       | Type                                   | Description                      |
+| ----------- | -------------------------------------- | -------------------------------- |
+| `value`     | `string`                               | Current input value              |
+| `setValue`  | `(value: string) => void`              | Update the input value           |
+| `editorRef` | `React.RefObject<TamboEditor \| null>` | Reference to the editor instance |
+
+## Accessibility
+
+- Use semantic controls in render-prop children (`button`, `textarea`, `input`).
+- Provide clear labels for custom submit/stop controls when replacing defaults.
+- Keep keyboard submit/stop behavior consistent with your app input model.
+
+## Styling Hooks
+
+### data-slot values
+
+| Subcomponent | `data-slot` value             |
+| ------------ | ----------------------------- |
+| Root         | `message-input-root`          |
+| Content      | `message-input-content`       |
+| Textarea     | `message-input-textarea`      |
+| StagedImages | `message-input-staged-images` |
+| Toolbar      | `message-input-toolbar`       |
+| FileButton   | `message-input-file-button`   |
+| Elicitation  | `message-input-elicitation`   |
+| SubmitButton | `message-input-submit`        |
+| Error        | `message-input-error`         |
+
+StopButton does not emit a `data-slot`.
+
+### State attributes
+
+| Attribute          | Subcomponent(s)                                | Description                                                                        |
+| ------------------ | ---------------------------------------------- | ---------------------------------------------------------------------------------- |
+| `data-state`       | Root, Error                                    | Root: `"dragging"` while files drag over. Error: `"visible"` or `"hidden"`.        |
+| `data-pending`     | Root                                           | Present while a submission is in-flight.                                           |
+| `data-dragging`    | Content                                        | Present while files are being dragged over the input.                              |
+| `data-elicitation` | Content                                        | `"active"` when an elicitation request is active.                                  |
+| `data-count`       | StagedImages                                   | Number of currently staged images.                                                 |
+| `data-empty`       | StagedImages                                   | Present when no images are staged.                                                 |
+| `data-disabled`    | Textarea                                       | Present when the textarea is disabled.                                             |
+| `data-hidden`      | SubmitButton, StopButton, Content, Elicitation | Present when the element is kept mounted but logically hidden (via `keepMounted`). |

@@ -1,4 +1,4 @@
-import { Inject, Injectable, Logger, NotFoundException } from "@nestjs/common";
+import { Inject, Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import * as Sentry from "@sentry/nestjs";
 import {
@@ -21,7 +21,9 @@ import {
   DEFAULT_OPENAI_MODEL,
   GenerationStage,
   getToolName,
+  InputValidationError,
   isUiToolName,
+  NotFoundError,
   LegacyComponentDecision,
   MCPClient,
   MessageRole,
@@ -38,7 +40,7 @@ import {
 } from "@tambo-ai-cloud/db";
 import { eq } from "drizzle-orm";
 import OpenAI from "openai";
-import { DATABASE } from "../common/middleware/db-transaction-middleware";
+import { DATABASE } from "../common/database-provider";
 import { ContextInfo } from "../common/utils/extract-context-info";
 import { AuthService } from "../common/services/auth.service";
 import { EmailService } from "../common/services/email.service";
@@ -97,8 +99,6 @@ const TAMBO_ANON_CONTEXT_KEY = "tambo:anon-user";
 @Injectable()
 export class ThreadsService {
   constructor(
-    // @Inject(TRANSACTION)
-    // private readonly tx: HydraDatabase,
     @Inject(DATABASE)
     private readonly db: HydraDatabase,
     private projectsService: ProjectsService,
@@ -135,7 +135,7 @@ export class ThreadsService {
     });
 
     if (!threadData?.projectId) {
-      throw new NotFoundException(
+      throw new NotFoundError(
         `Thread with ID ${threadId} not found or has no project associated.`,
       );
     }
@@ -145,7 +145,7 @@ export class ThreadsService {
     // 1. Fetch project-specific LLM settings
     const project = await this.projectsService.findOne(projectId);
     if (!project) {
-      throw new NotFoundException(`Project with ID ${projectId} not found.`);
+      throw new NotFoundError(`Project with ID ${projectId} not found.`);
     }
 
     // Determine the provider, model, and baseURL from project settings
@@ -342,7 +342,7 @@ export class ThreadsService {
       false,
     );
     if (!thread) {
-      throw new NotFoundException("Thread not found");
+      throw new NotFoundError("Thread not found");
     }
     return {
       id: thread.id,
@@ -511,7 +511,7 @@ export class ThreadsService {
         await this.projectsService.findOneWithKeys(projectId);
       const project = await this.projectsService.findOne(projectId);
       if (!project) {
-        throw new NotFoundException("Project not found");
+        throw new NotFoundError("Project not found");
       }
       const providerKeys = projectWithKeys?.getProviderKeys() ?? [];
       // Check specifically if we have a key for the provider being used
@@ -829,14 +829,14 @@ export class ThreadsService {
       contextKey ?? operations.ANY_CONTEXT_KEY,
     );
     if (!thread) {
-      throw new NotFoundException("Thread not found");
+      throw new NotFoundError("Thread not found");
     }
 
     const messages = await this.getMessages({
       threadId,
     });
     if (messages.length === 0) {
-      throw new NotFoundException("No messages found for thread");
+      throw new NotFoundError("No messages found for thread");
     }
 
     const tamboBackend = await this.createTamboBackendForThread(
@@ -979,7 +979,7 @@ export class ThreadsService {
 
       // If advancing an existing thread, initialMessages must not be provided
       if (unresolvedThreadId && advanceRequestDto.initialMessages?.length) {
-        throw new Error(
+        throw new InputValidationError(
           "Cannot provide initialMessages when advancing an existing thread",
         );
       }
@@ -1729,6 +1729,39 @@ export class ThreadsService {
           legacyDecision,
         );
 
+        if (
+          currentThreadMessage.role === MessageRole.Assistant &&
+          streamItem.toolCallProviderOptionsById &&
+          Object.keys(streamItem.toolCallProviderOptionsById).length > 0
+        ) {
+          const existingMetadata = currentThreadMessage.metadata ?? {};
+          const existingTamboMetadata = existingMetadata["_tambo"];
+          const tamboMetadata =
+            typeof existingTamboMetadata === "object" &&
+            existingTamboMetadata !== null
+              ? (existingTamboMetadata as Record<string, unknown>)
+              : {};
+
+          const existingToolCallProviderOptionsById =
+            tamboMetadata["toolCallProviderOptionsById"];
+          const toolCallProviderOptionsById =
+            typeof existingToolCallProviderOptionsById === "object" &&
+            existingToolCallProviderOptionsById !== null
+              ? (existingToolCallProviderOptionsById as Record<string, unknown>)
+              : {};
+
+          currentThreadMessage.metadata = {
+            ...existingMetadata,
+            _tambo: {
+              ...tamboMetadata,
+              toolCallProviderOptionsById: {
+                ...toolCallProviderOptionsById,
+                ...streamItem.toolCallProviderOptionsById,
+              },
+            },
+          };
+        }
+
         // Unstrictify the tool call request immediately if present, before saving to DB
         const toolCallRequest = currentThreadMessage.toolCallRequest;
         if (toolCallRequest) {
@@ -2061,7 +2094,9 @@ export class ThreadsService {
     }
 
     if (preventCreate) {
-      throw new Error("Thread ID is required, and cannot be created");
+      throw new InputValidationError(
+        "Thread ID is required, and cannot be created",
+      );
     }
 
     // If the threadId is not provided, create a new thread
@@ -2090,7 +2125,9 @@ export class ThreadsService {
           [{ type: ContentPartType.Text, text: String(message.content) }];
 
       if (normalizedContent.length === 0) {
-        throw new Error(`Initial message at index ${index} must have content`);
+        throw new InputValidationError(
+          `Initial message at index ${index} must have content`,
+        );
       }
 
       const allowedRoles = [
@@ -2099,7 +2136,7 @@ export class ThreadsService {
         MessageRole.Assistant,
       ];
       if (!allowedRoles.includes(message.role)) {
-        throw new Error(
+        throw new InputValidationError(
           `Initial message at index ${index} has invalid role "${message.role}". Allowed roles are: ${allowedRoles.join(", ")}`,
         );
       }
@@ -2112,7 +2149,7 @@ export class ThreadsService {
             contentPart.text === null ||
             contentPart.text === "")
         ) {
-          throw new Error(
+          throw new InputValidationError(
             `Initial message at index ${index}, content part ${contentIndex} with type 'text' must have text property`,
           );
         }
@@ -2124,15 +2161,17 @@ export class ThreadsService {
       .map((m, i) => (m.role === MessageRole.System ? i : -1))
       .filter((i) => i >= 0);
     if (systemIndices.length > 1) {
-      throw new Error("Only one system message is allowed in initialMessages");
+      throw new InputValidationError(
+        "Only one system message is allowed in initialMessages",
+      );
     }
     if (systemIndices.length === 1 && systemIndices[0] !== 0) {
-      throw new Error(
+      throw new InputValidationError(
         "System message, if present, must be the first initial message",
       );
     }
     if (systemIndices.length === 1 && !allowOverride) {
-      throw new Error(
+      throw new InputValidationError(
         "Project does not allow overriding the system prompt with initial messages",
       );
     }
@@ -2146,7 +2185,7 @@ export class ThreadsService {
     const projectWithKeys =
       await this.projectsService.findOneWithKeys(projectId);
     if (!projectWithKeys) {
-      throw new NotFoundException(`Project with ID ${projectId} not found`);
+      throw new NotFoundError(`Project with ID ${projectId} not found`);
     }
 
     const providerKeys = projectWithKeys.getProviderKeys();
@@ -2155,13 +2194,13 @@ export class ThreadsService {
       if (providerName === "openai") {
         // Only allow fallback key for default model
         if (modelName !== DEFAULT_OPENAI_MODEL) {
-          throw new NotFoundException(
+          throw new NotFoundError(
             `Starter LLM calls are only available on the default model. Add your provider key to continue.`,
           );
         }
         const fallbackKey = process.env.FALLBACK_OPENAI_API_KEY;
         if (!fallbackKey) {
-          throw new NotFoundException(
+          throw new NotFoundError(
             "No provider keys found for project and no fallback key configured",
           );
         }
@@ -2170,7 +2209,7 @@ export class ThreadsService {
       this.logger.error(
         `No provider keys configured for project ${projectId}. An API key is required to proceed.`,
       );
-      throw new NotFoundException(
+      throw new NotFoundError(
         `No provider keys found for project ${projectId}. Please configure an API key.`,
       );
     }
@@ -2183,13 +2222,13 @@ export class ThreadsService {
       if (providerName === "openai") {
         // Only allow fallback key for default model
         if (modelName !== DEFAULT_OPENAI_MODEL) {
-          throw new NotFoundException(
+          throw new NotFoundError(
             `Starter LLM calls are only available on the default model. Add your provider key to continue.`,
           );
         }
         const fallbackKey = process.env.FALLBACK_OPENAI_API_KEY;
         if (!fallbackKey) {
-          throw new NotFoundException(
+          throw new NotFoundError(
             `No OpenAI key found for project ${projectId} and no fallback key configured`,
           );
         }

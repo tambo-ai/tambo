@@ -3,7 +3,7 @@
 import { useContext } from "react";
 import { TamboClientContext } from "../../providers/tambo-client-provider";
 import { TamboConfigContext } from "../providers/tambo-v1-provider";
-import type { TamboAuthState } from "../types/auth";
+import type { TamboAuthState } from "@tambo-ai/client";
 
 /**
  * Hook to compute the current authentication state for the SDK.

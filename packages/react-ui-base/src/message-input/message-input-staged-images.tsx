@@ -1,6 +1,7 @@
 "use client";
 
-import { Slot } from "@radix-ui/react-slot";
+import { mergeProps } from "@base-ui/react/merge-props";
+import { useRender } from "@base-ui/react/use-render";
 import * as React from "react";
 import { IS_PASTED_IMAGE } from "./constants";
 import {
@@ -11,7 +12,7 @@ import {
 /**
  * Render props for a single staged image.
  */
-export interface StagedImageRenderProps {
+export interface StagedImageState {
   /** The staged image data */
   image: StagedImage;
   /** Display name for the image */
@@ -29,9 +30,10 @@ export interface StagedImageRenderProps {
 /**
  * Render props for the StagedImages component.
  */
-export interface MessageInputStagedImagesRenderProps {
+export interface MessageInputStagedImagesState extends Record<string, unknown> {
+  slot: string;
   /** Array of staged images with pre-computed props for rendering */
-  images: StagedImageRenderProps[];
+  images: StagedImageState[];
   /** Remove an image by ID */
   removeImage: (id: string) => void;
   /** Currently expanded image ID */
@@ -43,17 +45,10 @@ export interface MessageInputStagedImagesRenderProps {
 /**
  * Props for the MessageInput.StagedImages component.
  */
-export interface MessageInputStagedImagesProps extends Omit<
-  React.HTMLAttributes<HTMLDivElement>,
-  "children"
-> {
-  /** Render as a different element using Radix Slot */
-  asChild?: boolean;
-  /** Content to display, or render function */
-  children?:
-    | React.ReactNode
-    | ((props: MessageInputStagedImagesRenderProps) => React.ReactNode);
-}
+export type MessageInputStagedImagesProps = useRender.ComponentProps<
+  "div",
+  MessageInputStagedImagesState
+>;
 
 /**
  * Component that displays currently staged images.
@@ -62,7 +57,7 @@ export interface MessageInputStagedImagesProps extends Omit<
 export const MessageInputStagedImages = React.forwardRef<
   HTMLDivElement,
   MessageInputStagedImagesProps
->(({ asChild, children, ...props }, ref) => {
+>(({ children, ...props }, ref) => {
   const { images: rawImages, removeImage } = useMessageInputContext();
   const [expandedImageId, setExpandedImageId] = React.useState<string | null>(
     null,
@@ -82,7 +77,7 @@ export const MessageInputStagedImages = React.forwardRef<
   );
 
   // Pre-compute image props array - only depends on rawImages and expandedImageId for isExpanded
-  const images = React.useMemo<StagedImageRenderProps[]>(
+  const images = React.useMemo<StagedImageState[]>(
     () =>
       rawImages.map((image, index) => ({
         image,
@@ -97,8 +92,9 @@ export const MessageInputStagedImages = React.forwardRef<
     [rawImages, expandedImageId, toggleImage, handleRemove],
   );
 
-  const renderProps = React.useMemo<MessageInputStagedImagesRenderProps>(
+  const State = React.useMemo<MessageInputStagedImagesState>(
     () => ({
+      slot: "message-input-staged-images",
       images,
       removeImage,
       expandedImageId,
@@ -107,23 +103,22 @@ export const MessageInputStagedImages = React.forwardRef<
     [images, removeImage, expandedImageId],
   );
 
-  // Don't render if no images and children is not a function
-  if (rawImages.length === 0 && typeof children !== "function") {
-    return null;
-  }
+  const { render, ...componentProps } = props;
 
-  const Comp = asChild ? Slot : "div";
+  // Enable when there are images or a render callback is provided.
+  const enabled = rawImages.length > 0 || !!render;
 
-  return (
-    <Comp
-      ref={ref}
-      data-slot="message-input-staged-images"
-      data-count={rawImages.length}
-      data-empty={rawImages.length === 0 || undefined}
-      {...props}
-    >
-      {typeof children === "function" ? children(renderProps) : children}
-    </Comp>
-  );
+  return useRender({
+    defaultTagName: "div",
+    ref,
+    render,
+    enabled,
+    state: State,
+    props: mergeProps(componentProps, {
+      children,
+      "data-count": rawImages.length,
+      "data-empty": rawImages.length === 0 ? "true" : undefined,
+    }),
+  });
 });
 MessageInputStagedImages.displayName = "MessageInput.StagedImages";

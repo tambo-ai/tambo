@@ -123,9 +123,9 @@ export {
 
 export { useTambo, type UseTamboReturn } from "./hooks/use-tambo-v1";
 
-export type { TamboAuthState } from "./types/auth";
+export type { TamboAuthState } from "@tambo-ai/client";
 
-export type { ToolChoice } from "./types/tool-choice";
+export type { ToolChoice } from "@tambo-ai/client";
 
 export { useTamboThreadInput } from "./hooks/use-tambo-v1-thread-input";
 
@@ -203,11 +203,8 @@ export type {
 } from "../model/component-metadata";
 
 // MCP server types
-export { MCPTransport } from "../model/mcp-server-info";
-export type {
-  McpServerInfo,
-  NormalizedMcpServerInfo,
-} from "../model/mcp-server-info";
+export { MCPTransport } from "@tambo-ai/client";
+export type { McpServerInfo, NormalizedMcpServerInfo } from "@tambo-ai/client";
 
 // Resource types
 export type {
@@ -237,8 +234,11 @@ export type {
   TamboToolDisplayProps,
 } from "./types/message";
 
-// Thread message type
-export type { TamboThreadMessage } from "./types/message";
+// Thread message types
+export type {
+  TamboThreadMessage,
+  ReactTamboThreadMessage,
+} from "./types/message";
 
 // Content types
 export type {
@@ -263,7 +263,7 @@ export type {
   ThreadCreateResponse,
   ThreadRetrieveResponse,
   ThreadListResponse,
-} from "./types/thread";
+} from "@tambo-ai/client";
 
 // Component content context
 export {

@@ -3,7 +3,7 @@ import { ConfigService } from "@nestjs/config";
 import { TAMBO_MCP_ACCESS_KEY_CLAIM } from "@tambo-ai-cloud/core";
 import { type HydraDatabase } from "@tambo-ai-cloud/db";
 import { SignJWT } from "jose";
-import { DATABASE } from "../middleware/db-transaction-middleware";
+import { DATABASE } from "../database-provider";
 
 export interface McpAccessTokenResult {
   token: string;

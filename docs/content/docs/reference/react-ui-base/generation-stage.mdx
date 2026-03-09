@@ -1,0 +1,133 @@
+---
+title: GenerationStage
+description: Display generation status indicators for waiting and streaming states with unstyled parts.
+---
+
+# GenerationStage
+
+`GenerationStage` in `@tambo-ai/react-ui-base` reads thread generation state from `useTambo()` and provides context-driven visibility for waiting and streaming indicators.
+
+## Anatomy
+
+```tsx
+<GenerationStage.Root>
+  <GenerationStage.Content>
+    <GenerationStage.Waiting />
+    <GenerationStage.Streaming />
+  </GenerationStage.Content>
+</GenerationStage.Root>
+```
+
+## Examples
+
+### Basic Status Indicator
+
+```tsx
+<GenerationStage.Root>
+  <GenerationStage.Content>
+    <GenerationStage.Waiting>Thinking...</GenerationStage.Waiting>
+    <GenerationStage.Streaming>Writing response...</GenerationStage.Streaming>
+  </GenerationStage.Content>
+</GenerationStage.Root>
+```
+
+### Keep Mounted for Animations
+
+Use `keepMounted` to keep elements in the DOM and toggle `data-hidden` instead of unmounting. This enables CSS transitions:
+
+```tsx
+<GenerationStage.Content keepMounted>
+  <GenerationStage.Waiting
+    keepMounted
+    className="transition-opacity data-hidden:opacity-0"
+  >
+    Preparing response
+  </GenerationStage.Waiting>
+  <GenerationStage.Streaming
+    keepMounted
+    className="transition-opacity data-hidden:opacity-0"
+  >
+    Generating response
+  </GenerationStage.Streaming>
+</GenerationStage.Content>
+```
+
+### Custom Render Props
+
+Access state directly via render props:
+
+```tsx
+<GenerationStage.Root
+  render={(props, state) => (
+    <div {...props} style={{ opacity: state.isIdle ? 0.5 : 1 }}>
+      {state.isWaiting && <span>Waiting...</span>}
+      {state.isStreaming && <span>Streaming...</span>}
+    </div>
+  )}
+/>
+```
+
+## API reference
+
+### Root
+
+No custom props. Derives `isStreaming`, `isWaiting`, and `isIdle` from `useTambo()` and provides them to children via context.
+
+**Render state:**
+
+| Field         | Type      | Description                                   |
+| ------------- | --------- | --------------------------------------------- |
+| `isStreaming` | `boolean` | Whether the thread is actively streaming.     |
+| `isWaiting`   | `boolean` | Whether the thread is waiting for a response. |
+| `isIdle`      | `boolean` | Whether the thread is idle (not generating).  |
+
+### Content
+
+| Prop          | Type      | Default | Description                                            |
+| ------------- | --------- | ------- | ------------------------------------------------------ |
+| `keepMounted` | `boolean` | `false` | Keep in DOM when idle, toggling `data-hidden` instead. |
+
+Visible when the thread is not idle (waiting or streaming). Returns `null` when idle unless `keepMounted` is set.
+
+**Render state:**
+
+| Field    | Type      | Description                                  |
+| -------- | --------- | -------------------------------------------- |
+| `isIdle` | `boolean` | Whether the thread is idle (not generating). |
+
+### Waiting
+
+| Prop          | Type      | Default | Description                                                   |
+| ------------- | --------- | ------- | ------------------------------------------------------------- |
+| `keepMounted` | `boolean` | `false` | Keep in DOM when not waiting, toggling `data-hidden` instead. |
+
+Visible when the thread is in the waiting state (preparing a response, before streaming begins). Renders `"Preparing response"` as default children when none are provided.
+
+**Render state:**
+
+| Field       | Type      | Description                                 |
+| ----------- | --------- | ------------------------------------------- |
+| `isWaiting` | `boolean` | Whether the thread is in the waiting state. |
+
+### Streaming
+
+| Prop          | Type      | Default | Description                                                     |
+| ------------- | --------- | ------- | --------------------------------------------------------------- |
+| `keepMounted` | `boolean` | `false` | Keep in DOM when not streaming, toggling `data-hidden` instead. |
+
+Visible when the thread is actively streaming a response. Renders `"Generating response"` as default children when none are provided.
+
+**Render state:**
+
+| Field         | Type      | Description                               |
+| ------------- | --------- | ----------------------------------------- |
+| `isStreaming` | `boolean` | Whether the thread is actively streaming. |
+
+## Styling Hooks
+
+- `data-slot="generation-stage"`
+- `data-slot="generation-stage-content"`
+- `data-slot="generation-stage-waiting"`
+- `data-slot="generation-stage-streaming"`
+- `data-hidden` on Content, Waiting, and Streaming when `keepMounted` is used and the component is in its hidden state
+- `aria-hidden` mirrors `data-hidden` for accessibility

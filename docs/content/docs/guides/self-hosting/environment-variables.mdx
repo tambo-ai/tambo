@@ -1,0 +1,76 @@
+---
+title: Environment variables
+description: Complete reference for all Tambo self-hosting environment variables.
+---
+
+All configuration is done through environment variables in the `docker.env` file. This page covers every variable grouped by category.
+
+## Core configuration
+
+| Variable              | Required | Description                                                                              |
+| --------------------- | -------- | ---------------------------------------------------------------------------------------- |
+| `POSTGRES_PASSWORD`   | Yes      | PostgreSQL password                                                                      |
+| `POSTGRES_DB`         | No       | Database name (default: `tambo`)                                                         |
+| `POSTGRES_USER`       | No       | Database user (default: `postgres`)                                                      |
+| `API_KEY_SECRET`      | Yes      | 32+ character secret for API key encryption                                              |
+| `PROVIDER_KEY_SECRET` | Yes      | 32+ character secret for provider key encryption                                         |
+| `NEXTAUTH_SECRET`     | Yes      | Secret for NextAuth.js sessions                                                          |
+| `NEXTAUTH_URL`        | Yes      | Base URL for auth callbacks (e.g., `http://localhost:8260` or `https://your-domain.com`) |
+
+## OpenAI configuration
+
+| Variable                  | Required | Description                                             |
+| ------------------------- | -------- | ------------------------------------------------------- |
+| `OPENAI_API_KEY`          | No       | Primary OpenAI key for generation                       |
+| `FALLBACK_OPENAI_API_KEY` | Yes      | Default OpenAI key when projects don't have custom keys |
+
+## Authentication (OAuth or email)
+
+To sign in to the dashboard, configure **either** at least one OAuth provider (Google or GitHub) **or** email login (Resend). If you configure neither, users cannot sign in.
+
+If any OAuth provider is configured, the deployment uses OAuth login only (even if email settings are present). Email login is only enabled when no OAuth providers are configured.
+
+For step-by-step setup, see [Authentication setup](/guides/self-hosting/authentication).
+
+### OAuth
+
+Configure at least one provider to enable OAuth login.
+
+| Variable               | Description                |
+| ---------------------- | -------------------------- |
+| `GOOGLE_CLIENT_ID`     | Google OAuth client ID     |
+| `GOOGLE_CLIENT_SECRET` | Google OAuth client secret |
+| `GITHUB_CLIENT_ID`     | GitHub OAuth client ID     |
+| `GITHUB_CLIENT_SECRET` | GitHub OAuth client secret |
+
+### Email login
+
+Email login requires at minimum `RESEND_API_KEY` and `EMAIL_FROM_DEFAULT`.
+
+| Variable                 | Description                       |
+| ------------------------ | --------------------------------- |
+| `RESEND_API_KEY`         | Resend API key for sending emails |
+| `RESEND_AUDIENCE_ID`     | Resend audience for newsletters   |
+| `EMAIL_FROM_DEFAULT`     | Default sender email address      |
+| `EMAIL_FROM_PERSONAL`    | Personal/support sender email     |
+| `EMAIL_REPLY_TO_SUPPORT` | Support reply-to address          |
+
+## Optional features
+
+| Variable                   | Description                                |
+| -------------------------- | ------------------------------------------ |
+| `ALLOWED_LOGIN_DOMAIN`     | Restrict logins to a specific email domain |
+| `DISALLOWED_EMAIL_DOMAINS` | Block signups from these domains           |
+| `LANGFUSE_PUBLIC_KEY`      | Langfuse analytics public key              |
+| `LANGFUSE_SECRET_KEY`      | Langfuse analytics secret key              |
+| `LANGFUSE_HOST`            | Langfuse host URL                          |
+| `NEXT_PUBLIC_POSTHOG_KEY`  | PostHog analytics key                      |
+| `NEXT_PUBLIC_POSTHOG_HOST` | PostHog host URL                           |
+| `SENTRY_DSN`               | Sentry error tracking DSN                  |
+
+## Whitelabeling
+
+| Variable                    | Description                       |
+| --------------------------- | --------------------------------- |
+| `TAMBO_WHITELABEL_ORG_NAME` | Organization name displayed in UI |
+| `TAMBO_WHITELABEL_ORG_LOGO` | URL to organization logo          |

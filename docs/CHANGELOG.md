@@ -1,5 +1,81 @@
 # Changelog
 
+## [1.30.1](https://github.com/tambo-ai/tambo/compare/docs-v1.30.0...docs-v1.30.1) (2026-03-07)
+
+
+### Miscellaneous Chores
+
+* **deps:** bump dompurify from 3.3.1 to 3.3.2 ([#2560](https://github.com/tambo-ai/tambo/issues/2560)) ([9f59466](https://github.com/tambo-ai/tambo/commit/9f59466fab9b3639baf3aba4e23b8fac7e9b40dd))
+
+## [1.30.0](https://github.com/tambo-ai/tambo/compare/docs-v1.29.0...docs-v1.30.0) (2026-03-05)
+
+
+### Features
+
+* **cli:** rename start-from-scratch skill to generative-ui ([#2530](https://github.com/tambo-ai/tambo/issues/2530)) ([ce789e6](https://github.com/tambo-ai/tambo/commit/ce789e652024fe06d37f8785a53877e6407a4afb))
+* **docs:** add live demo to react-ui-base overview with three styling variations ([#2529](https://github.com/tambo-ai/tambo/issues/2529)) ([9e4f826](https://github.com/tambo-ai/tambo/commit/9e4f826e893499c3e8fae1913e195e1358acd0c2))
+* **docs:** phase 6 - live demos, DemoPreview, and docs polish for react-ui-base ([#2515](https://github.com/tambo-ai/tambo/issues/2515)) ([40fc632](https://github.com/tambo-ai/tambo/commit/40fc632df2554cd610940c95a82415fe17a3f466))
+* **react-ui-base:** add McpPrompts and McpResources headless primitives ([#2512](https://github.com/tambo-ai/tambo/issues/2512)) ([459144d](https://github.com/tambo-ai/tambo/commit/459144d32acac499cd109f587fa6c5c2173f36e0))
+* **react-ui-base:** add ThreadContent headless primitives ([#2509](https://github.com/tambo-ai/tambo/issues/2509)) ([51dd31b](https://github.com/tambo-ai/tambo/commit/51dd31bc5c1dbdd865342114f268ce559c29087b))
+* **react-ui-base:** add ThreadHistory, ThreadDropdown base components ([#2504](https://github.com/tambo-ai/tambo/issues/2504)) ([52815e0](https://github.com/tambo-ai/tambo/commit/52815e07f60c64ea728d3d3363b5d4c168a69139))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump @tailwindcss/postcss from 4.2.0 to 4.2.1 in the tailwind group ([#2536](https://github.com/tambo-ai/tambo/issues/2536)) ([ab3414a](https://github.com/tambo-ai/tambo/commit/ab3414a8af68b7fbb3a286961b5a18329511f7b2))
+* **deps:** bump @tambo-ai/typescript-sdk from 0.93.0 to 0.93.1 in the tambo-ai group ([#2533](https://github.com/tambo-ai/tambo/issues/2533)) ([97158c3](https://github.com/tambo-ai/tambo/commit/97158c36ca0514d34cdae57fc0ebd3031957b55c))
+* **deps:** bump the small-safe-packages group with 4 updates ([#2534](https://github.com/tambo-ai/tambo/issues/2534)) ([3694fe4](https://github.com/tambo-ai/tambo/commit/3694fe448691c1b9c4730b457d22bb971ad72d1f))
+
+
+### Documentation
+
+* **docs:** update skills page to reflect consolidated 2-skill model ([#2558](https://github.com/tambo-ai/tambo/issues/2558)) ([50db45e](https://github.com/tambo-ai/tambo/commit/50db45e25bb09dbd0e6a2e91ce424de25feeada1))
+
+## [1.29.0](https://github.com/tambo-ai/tambo/compare/docs-v1.28.0...docs-v1.29.0) (2026-02-25)
+
+
+### Features
+
+* **cli:** add anonymous CLI telemetry via posthog-node SDK ([#2479](https://github.com/tambo-ai/tambo/issues/2479)) ([4894767](https://github.com/tambo-ai/tambo/commit/48947679dcf25826695cc3f6a2e4eecdf1d4c4a6))
+
+
+### Bug Fixes
+
+* **api:** return 400 instead of 500 for input validation errors ([#2464](https://github.com/tambo-ai/tambo/issues/2464)) ([c45ddb6](https://github.com/tambo-ai/tambo/commit/c45ddb684ba15de04a6c4ab9057e8263b1799358))
+* **docs:** add og/twitter image to docs app ([#2455](https://github.com/tambo-ai/tambo/issues/2455)) ([6513129](https://github.com/tambo-ai/tambo/commit/65131291577e43524c4092b56c3414f0da1b7c3a))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump @tailwindcss/postcss from 4.1.18 to 4.2.0 in the tailwind group ([#2473](https://github.com/tambo-ai/tambo/issues/2473)) ([7d9303b](https://github.com/tambo-ai/tambo/commit/7d9303b3977d455da7f21256061eaa3ab843883b))
+* **deps:** bump the small-safe-packages group with 6 updates ([#2470](https://github.com/tambo-ai/tambo/issues/2470)) ([cb48c28](https://github.com/tambo-ai/tambo/commit/cb48c281b78b64e2e2352fd52007984681fb5ab6))
+* enable monorepo hot reload DX ([#2427](https://github.com/tambo-ai/tambo/issues/2427)) ([c72bb66](https://github.com/tambo-ai/tambo/commit/c72bb663b86f3a751064cf5a87db84d250a7462c))
+
+## [1.28.0](https://github.com/tambo-ai/tambo/compare/docs-v1.27.1...docs-v1.28.0) (2026-02-20)
+
+
+### Features
+
+* **core:** add Claude Opus 4.6 and Sonnet 4.6 to available models ([#2439](https://github.com/tambo-ai/tambo/issues/2439)) ([b421a94](https://github.com/tambo-ai/tambo/commit/b421a9428eabd78a4aa9a0bb5bea8a83cd90a5fb))
+
+
+### Bug Fixes
+
+* **api:** resolve opaque OAuth tokens via userinfo endpoint ([#2440](https://github.com/tambo-ai/tambo/issues/2440)) ([2380f0c](https://github.com/tambo-ai/tambo/commit/2380f0cd40659072ce8e0a5e7b1c7108cf1d6aeb))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump @tambo-ai/typescript-sdk from 0.91.0 to 0.92.0 in the tambo-ai group ([#2337](https://github.com/tambo-ai/tambo/issues/2337)) ([97dcd7d](https://github.com/tambo-ai/tambo/commit/97dcd7dd70b8337da1bf957eaccff00b0b83a4ee))
+* **deps:** bump the small-safe-packages group across 1 directory with 4 updates ([#2423](https://github.com/tambo-ai/tambo/issues/2423)) ([48a3aed](https://github.com/tambo-ai/tambo/commit/48a3aed15bf01e61d6422c18ad0b7d6a4c399285))
+
+## [1.27.1](https://github.com/tambo-ai/tambo/compare/docs-v1.27.0...docs-v1.27.1) (2026-02-13)
+
+
+### Documentation
+
+* **self-hosting:** break up SELF-HOSTING.md into docs site guide section ([#2387](https://github.com/tambo-ai/tambo/issues/2387)) ([2fdb145](https://github.com/tambo-ai/tambo/commit/2fdb145cd41f95a67dc29bfd390d6a2018f6ed05))
+
 ## [1.27.0](https://github.com/tambo-ai/tambo/compare/docs-v1.26.3...docs-v1.27.0) (2026-02-11)
 
 

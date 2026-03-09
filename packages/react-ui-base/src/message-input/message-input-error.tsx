@@ -1,13 +1,15 @@
 "use client";
 
-import { Slot } from "@radix-ui/react-slot";
+import { mergeProps } from "@base-ui/react/merge-props";
+import { useRender } from "@base-ui/react/use-render";
 import * as React from "react";
 import { useMessageInputContext } from "./message-input-context";
 
 /**
  * Render props for the Error component.
  */
-export interface MessageInputErrorRenderProps {
+export interface MessageInputErrorState extends Record<string, unknown> {
+  slot: string;
   /** Error message to display */
   errorMessage: string | null;
   /** The original error object if available */
@@ -21,16 +23,12 @@ export interface MessageInputErrorRenderProps {
 /**
  * Props for the MessageInput.Error component.
  */
-export interface MessageInputErrorProps extends Omit<
-  React.HTMLAttributes<HTMLParagraphElement>,
-  "children"
+export interface MessageInputErrorProps extends useRender.ComponentProps<
+  "p",
+  MessageInputErrorState
 > {
-  /** Render as a different element using Radix Slot */
-  asChild?: boolean;
-  /** Content to display, or render function */
-  children?:
-    | React.ReactNode
-    | ((props: MessageInputErrorRenderProps) => React.ReactNode);
+  /** Keep the element mounted in the DOM when hidden. Defaults to false. */
+  keepMounted?: boolean;
 }
 
 /**
@@ -40,36 +38,35 @@ export interface MessageInputErrorProps extends Omit<
 export const MessageInputError = React.forwardRef<
   HTMLParagraphElement,
   MessageInputErrorProps
->(({ asChild, children, ...props }, ref) => {
+>(({ children, keepMounted = false, ...props }, ref) => {
   const { error, submitError, imageError } = useMessageInputContext();
 
   const errorMessage = error?.message ?? submitError ?? imageError ?? null;
+  const hasError = !!errorMessage;
+  const isVisible = hasError || children != null;
 
-  // Don't render if no errors
-  if (!errorMessage && typeof children !== "function") {
-    return null;
-  }
+  const { render, ...componentProps } = props;
+  const enabled = isVisible || keepMounted;
 
-  const renderProps: MessageInputErrorRenderProps = {
+  const renderProps: MessageInputErrorState = {
+    slot: "message-input-error",
     errorMessage,
     error,
     submitError,
     imageError,
   };
 
-  const Comp = asChild ? Slot : "p";
-
-  return (
-    <Comp
-      ref={ref}
-      data-slot="message-input-error"
-      data-state={errorMessage ? "error" : undefined}
-      {...props}
-    >
-      {typeof children === "function"
-        ? children(renderProps)
-        : (children ?? errorMessage)}
-    </Comp>
-  );
+  return useRender({
+    defaultTagName: "p",
+    ref,
+    render,
+    enabled,
+    state: renderProps,
+    props: mergeProps(componentProps, {
+      children: children ?? errorMessage,
+      "data-state": isVisible ? "visible" : "hidden",
+      "aria-hidden": !isVisible ? "true" : undefined,
+    }),
+  });
 });
 MessageInputError.displayName = "MessageInput.Error";
