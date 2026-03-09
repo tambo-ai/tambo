@@ -111,7 +111,7 @@ jobs:
             org.opencontainers.image.documentation=https://docs.tambo.co
 
       - name: Build and push web image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           builder: ${{ steps.setup-buildx.outputs.name }}
           context: .
