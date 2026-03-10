@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.132.3](https://github.com/tambo-ai/tambo/compare/web-v0.132.2...web-v0.132.3) (2026-03-10)
+
+
+### Bug Fixes
+
+* **api:** fix Docker image build ([#2551](https://github.com/tambo-ai/tambo/issues/2551)) ([925bfe8](https://github.com/tambo-ai/tambo/commit/925bfe80c288a1d4ba18caf06e88a1129911deb5))
+* **web:** add `suppressHydrationWarning` to body tag ([#2548](https://github.com/tambo-ai/tambo/issues/2548)) ([4a4eaee](https://github.com/tambo-ai/tambo/commit/4a4eaeee2cfa46cae198d8beba521575296080fb))
+* **web:** prompt reauth for legacy sessions missing userToken ([#2571](https://github.com/tambo-ai/tambo/issues/2571)) ([3a5dd56](https://github.com/tambo-ai/tambo/commit/3a5dd5651aabf8789da1e74b31b82951b624937a))
+* **web:** resolve error dropdown navigation to parent tool call message ([#2511](https://github.com/tambo-ai/tambo/issues/2511)) ([77a34d8](https://github.com/tambo-ai/tambo/commit/77a34d89b5d0641b3d454aa5fa0f0cf8f42b2581))
+* **web:** treat placeholder OAuth credentials as unset in .env.example ([#2547](https://github.com/tambo-ai/tambo/issues/2547)) ([d69b8ed](https://github.com/tambo-ai/tambo/commit/d69b8ed79884c7646abbcded731211d68a984aaa))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump dompurify from 3.3.1 to 3.3.2 ([#2560](https://github.com/tambo-ai/tambo/issues/2560)) ([9f59466](https://github.com/tambo-ai/tambo/commit/9f59466fab9b3639baf3aba4e23b8fac7e9b40dd))
+* **test:** bump coverage thresholds (2026-03-09) ([#2591](https://github.com/tambo-ai/tambo/issues/2591)) ([73b3ca1](https://github.com/tambo-ai/tambo/commit/73b3ca14aac1ae4d825421c4842e1bd9ad3b509d))
+
 ## [0.132.2](https://github.com/tambo-ai/tambo/compare/web-v0.132.1...web-v0.132.2) (2026-02-20)
 
 
