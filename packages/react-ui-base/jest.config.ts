@@ -16,6 +16,9 @@ const config: Config = {
     // Mock @tambo-ai/react
     "^@tambo-ai/react$":
       "<rootDir>/../ui-registry/__tests__/__mocks__/@tambo-ai-react.ts",
+    // Mock @tambo-ai/react/mcp
+    "^@tambo-ai/react/mcp$":
+      "<rootDir>/../ui-registry/__tests__/__mocks__/@tambo-ai-react-mcp.ts",
     // ESM import mapping
     "^(\\.{1,2}/.*)\\.js$": "$1",
   },
@@ -29,7 +32,7 @@ const config: Config = {
   },
   testPathIgnorePatterns: ["/node_modules/", "/dist/"],
   transformIgnorePatterns: ["/node_modules/"],
-  setupFilesAfterEnv: ["<rootDir>/../ui-registry/__tests__/setup.ts"],
+  setupFilesAfterEnv: ["<rootDir>/src/test-setup.ts"],
   clearMocks: true,
   resetMocks: true,
   restoreMocks: true,

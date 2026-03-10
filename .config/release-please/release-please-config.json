@@ -8,9 +8,15 @@
   "packages": {
     "packages/react-ui-base": {
       "component": "@tambo-ai/react-ui-base",
-      "versioning": "prerelease",
-      "prerelease": true,
-      "prerelease-type": "alpha"
+      "bump-minor-pre-major": true,
+      "bump-patch-for-minor-pre-major": true,
+      "force-tag-creation": true
+    },
+    "packages/client": {
+      "component": "client",
+      "include-component-in-tag": true,
+      "include-v-in-tag": true,
+      "force-tag-creation": true
     },
     "react-sdk": {
       "component": "react",
@@ -27,6 +33,7 @@
     "apps/web": {},
     "apps/api": {}
   },
+  "plugins": [{ "type": "node-workspace" }],
   "changelog-sections": [
     {
       "type": "feat",

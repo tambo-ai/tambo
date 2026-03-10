@@ -42,6 +42,7 @@ function createMockRegistry() {
 /**
  * Wrapper that provides the minimal provider tree for interactables:
  * TamboRegistryContext > TamboContextHelpersProvider > TamboInteractableProvider
+ * @returns The wrapper component.
  */
 function V1InteractableWrapper({
   children,

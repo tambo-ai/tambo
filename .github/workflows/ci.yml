@@ -93,9 +93,6 @@ jobs:
       - name: Run Lint
         run: npm run lint
 
-      - name: Build React SDK types
-        run: npm -w @tambo-ai/react run build:cjs
-
       - name: Run Type Check
         run: npm run check-types
 

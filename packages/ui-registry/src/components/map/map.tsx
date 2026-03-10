@@ -1,6 +1,5 @@
 "use client";
 
-import { cn } from "@tambo-ai/ui-registry/utils";
 import {
   createElementObject,
   createLayerComponent,
@@ -8,7 +7,7 @@ import {
   type LayerProps,
   type LeafletContextInterface,
 } from "@react-leaflet/core";
-import { useTambo, useTamboCurrentMessage } from "@tambo-ai/react";
+import { cn } from "@tambo-ai/ui-registry/utils";
 import { cva, type VariantProps } from "class-variance-authority";
 import L, {
   type HeatLatLngTuple,
@@ -175,7 +174,7 @@ export const mapVariants = cva(
         sm: "h-[200px]",
         md: "h-[300px]",
         lg: "h-[500px]",
-        full: "h-full w-full",
+        full: "h-full w-full min-h-[500px]",
       },
       rounded: {
         none: "rounded-none",
@@ -309,26 +308,6 @@ function useValidHeatData(heatData?: HeatData[] | null) {
 }
 
 /**
- * Loading spinner component displayed while map is generating or loading
- * Shows animated dots with "Loading map..." text
- * @returns {JSX.Element} - Loading spinner component
- */
-function LoadingSpinner() {
-  return (
-    <div className="h-full w-full flex items-center justify-center">
-      <div className="flex flex-col items-center gap-2 text-muted-foreground">
-        <div className="flex items-center gap-1 h-4">
-          <span className="w-2 h-2 bg-current rounded-full animate-bounce [animation-delay:-0.3s]"></span>
-          <span className="w-2 h-2 bg-current rounded-full animate-bounce [animation-delay:-0.2s]"></span>
-          <span className="w-2 h-2 bg-current rounded-full animate-bounce [animation-delay:-0.1s]"></span>
-        </div>
-        <span className="text-sm">Loading map...</span>
-      </div>
-    </div>
-  );
-}
-
-/**
  * Map click handler component that centers the map on clicked location
  * Uses useMapEvents hook to listen for click events on the map
  * @returns {null} - This component doesn't render anything
@@ -390,46 +369,30 @@ export const Map = React.forwardRef<HTMLDivElement, MapProps>(
   ) => {
     // Support deprecated theme prop, prefer tileTheme
     const effectiveTileTheme = tileTheme ?? theme ?? "default";
-    const { messages, isStreaming, isWaiting } = useTambo();
-    const currentMessage = useTamboCurrentMessage();
-
-    const message =
-      messages.length > 0 ? messages[messages.length - 1] : undefined;
-
-    const isLatestMessage = message?.id && message.id === currentMessage?.id;
-
-    const isGenerating = isStreaming || isWaiting;
 
     const validMarkers = useValidMarkers(markers);
     const validHeatData = useValidHeatData(heatData);
 
-    // Show loading state during generation
-    if (isLatestMessage && isGenerating) {
+    // Wait for center with valid coordinates to be streamed in before rendering
+    if (
+      !center ||
+      !Number.isFinite(center.lat) ||
+      !Number.isFinite(center.lng)
+    ) {
       return (
         <div
           ref={ref}
           className={cn(mapVariants({ size, rounded }), className)}
           {...props}
         >
-          <LoadingSpinner />
-        </div>
-      );
-    }
-
-    // Show error state if center coordinates are missing
-    if (!center) {
-      return (
-        <div
-          ref={ref}
-          className={cn(mapVariants({ size, rounded }), className)}
-          {...props}
-        >
-          <div className="h-full flex items-center justify-center">
-            <div className="text-destructive text-center">
-              <p className="font-medium">Invalid Map Data</p>
-              <p className="text-sm mt-1">
-                Center coordinates are required to display the map.
-              </p>
+          <div className="h-full w-full flex items-center justify-center">
+            <div className="flex flex-col items-center gap-2 text-muted-foreground">
+              <div className="flex items-center gap-1 h-4">
+                <span className="w-2 h-2 bg-current rounded-full animate-bounce [animation-delay:-0.3s]"></span>
+                <span className="w-2 h-2 bg-current rounded-full animate-bounce [animation-delay:-0.2s]"></span>
+                <span className="w-2 h-2 bg-current rounded-full animate-bounce [animation-delay:-0.1s]"></span>
+              </div>
+              <span className="text-sm">Loading map...</span>
             </div>
           </div>
         </div>

@@ -1,4 +1,4 @@
-import { Slot } from "@radix-ui/react-slot";
+import { useRender } from "@base-ui/react/use-render";
 import { TamboThreadMessage } from "@tambo-ai/react";
 import * as React from "react";
 import { useOptionalMessageRootContext } from "../../message/root/message-root-context";
@@ -38,9 +38,23 @@ function getStatusText(
   return "Done Thinking";
 }
 
-export interface ReasoningInfoRootProps extends React.HTMLAttributes<HTMLDivElement> {
-  /** When true, renders as a Slot, merging props into the child element. */
-  asChild?: boolean;
+export interface ReasoningInfoRootRenderProps extends Record<string, unknown> {
+  slot: string;
+  isExpanded: boolean;
+  isLoading: boolean;
+  statusText: string;
+  reasoningCount: number;
+}
+
+type ReasoningInfoRootComponentProps = useRender.ComponentProps<
+  "div",
+  ReasoningInfoRootRenderProps
+>;
+
+export interface ReasoningInfoRootProps extends Omit<
+  ReasoningInfoRootComponentProps,
+  "isLoading"
+> {
   /** Default expanded state. Defaults to true. */
   defaultExpanded?: boolean;
   /** Whether to auto-collapse when content arrives. Defaults to true. */
@@ -64,12 +78,10 @@ export const ReasoningInfoRoot = React.forwardRef<
 >(
   (
     {
-      asChild,
       message: messageProp,
       isLoading: isLoadingProp,
       defaultExpanded = true,
       autoCollapse = true,
-      children,
       ...props
     },
     ref,
@@ -85,7 +97,8 @@ export const ReasoningInfoRoot = React.forwardRef<
     }
     const [isExpanded, setIsExpanded] = React.useState(defaultExpanded);
     const detailsId = React.useId();
-    const scrollContainerRef = React.useRef<HTMLDivElement>(null);
+    const [scrollContainerNode, setScrollContainerNode] =
+      React.useState<HTMLDivElement | null>(null);
 
     const hasReasoning = !!message.reasoning?.length;
     const statusText = getStatusText(isLoading, message.reasoningDurationMS);
@@ -100,9 +113,16 @@ export const ReasoningInfoRoot = React.forwardRef<
         reasoning: message.reasoning ?? [],
         reasoningDurationMS: message.reasoningDurationMS,
         statusText,
-        scrollContainerRef,
+        setScrollContainerNode,
       }),
-      [isExpanded, detailsId, isLoading, message, statusText],
+      [
+        isExpanded,
+        detailsId,
+        isLoading,
+        message,
+        setScrollContainerNode,
+        statusText,
+      ],
     );
 
     // Auto-collapse when content arrives and reasoning is not loading
@@ -114,11 +134,11 @@ export const ReasoningInfoRoot = React.forwardRef<
 
     // Auto-scroll to bottom when reasoning content changes
     React.useEffect(() => {
-      if (scrollContainerRef.current && isExpanded && message.reasoning) {
+      if (scrollContainerNode && isExpanded && message.reasoning) {
         const scroll = () => {
-          if (scrollContainerRef.current) {
-            scrollContainerRef.current.scrollTo({
-              top: scrollContainerRef.current.scrollHeight,
+          if (scrollContainerNode) {
+            scrollContainerNode.scrollTo({
+              top: scrollContainerNode.scrollHeight,
               behavior: "smooth",
             });
           }
@@ -131,20 +151,31 @@ export const ReasoningInfoRoot = React.forwardRef<
           return () => clearTimeout(timeoutId);
         }
       }
-    }, [message.reasoning, isExpanded, isLoading]);
+    }, [message.reasoning, isExpanded, isLoading, scrollContainerNode]);
+
+    const { render, ...componentProps } = props;
+    const renderProps: ReasoningInfoRootRenderProps = {
+      slot: "reasoning-info",
+      isExpanded,
+      isLoading: !!isLoading,
+      statusText,
+      reasoningCount: message.reasoning?.length ?? 0,
+    };
+    const content = useRender({
+      defaultTagName: "div",
+      ref,
+      render,
+      enabled: hasReasoning,
+      state: renderProps,
+      props: componentProps,
+    });
 
     // Only show if there's reasoning data
-    if (!hasReasoning) {
-      return null;
-    }
-
-    const Comp = asChild ? Slot : "div";
+    if (!hasReasoning) return null;
 
     return (
       <ReasoningInfoRootContext.Provider value={contextValue}>
-        <Comp ref={ref} data-slot="reasoning-info" {...props}>
-          {children}
-        </Comp>
+        {content}
       </ReasoningInfoRootContext.Provider>
     );
   },

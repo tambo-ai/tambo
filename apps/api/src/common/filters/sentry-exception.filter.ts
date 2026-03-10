@@ -17,10 +17,15 @@ export class SentryExceptionFilter extends BaseExceptionFilter {
     const ctx = host.switchToHttp();
     const request = ctx.getRequest<Request>();
     // Determine the status code
-    const status =
-      exception instanceof HttpException
-        ? exception.getStatus()
-        : HttpStatus.INTERNAL_SERVER_ERROR;
+    let status = HttpStatus.INTERNAL_SERVER_ERROR;
+    if (exception instanceof HttpException) {
+      status = exception.getStatus();
+    } else if (
+      typeof exception?.statusCode === "number" &&
+      typeof exception?.message === "string"
+    ) {
+      status = exception.statusCode;
+    }
 
     // Extract error details
     const errorResponse =
@@ -36,8 +41,8 @@ export class SentryExceptionFilter extends BaseExceptionFilter {
           "Unknown error";
 
     // Capture exception in Sentry with additional context
-    if (status >= 500 || !exception.statusCode) {
-      // Only send server errors and unhandled exceptions to Sentry
+    if (status >= 500) {
+      // Only send server errors to Sentry
       Sentry.withScope((scope) => {
         // Add request context
         scope.setContext("request", {
@@ -81,11 +86,16 @@ export class SentryExceptionFilter extends BaseExceptionFilter {
       });
     }
 
+    const logMessage = `[${request.method}] ${request.url} - Status: ${status} - ${errorMessage}`;
+
     // Log locally as well
-    this.logger.error(
-      `[${request.method}] ${request.url} - Status: ${status} - ${errorMessage}`,
-      exception.stack,
-    );
+    if (status >= 500) {
+      this.logger.error(logMessage, exception.stack);
+    } else if (status >= 400) {
+      this.logger.warn(logMessage);
+    } else {
+      this.logger.debug(logMessage);
+    }
 
     // let the default exception filter handle the response
     super.catch(exception, host);

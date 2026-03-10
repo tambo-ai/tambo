@@ -1,0 +1,54 @@
+---
+title: CLI Telemetry
+description: How the Tambo CLI collects usage data, what is collected, and how to opt out.
+---
+
+The Tambo CLI collects usage data to help improve the developer experience. Telemetry is completely optional and can be disabled at any time.
+
+## What is collected
+
+The CLI tracks command-level usage events. No API keys, file contents, or project names are ever sent.
+
+| Event                   | When                             | Properties                                                           |
+| ----------------------- | -------------------------------- | -------------------------------------------------------------------- |
+| `cli.command.completed` | A command finishes successfully  | Command name, duration, active flag names                            |
+| `cli.command.error`     | A command fails                  | Command name, error type, truncated error message, active flag names |
+| `cli.component.added`   | `tambo add <component>` succeeds | Component name                                                       |
+| `cli.init.completed`    | `tambo init` succeeds            | Init method, is_full_send                                            |
+| `cli.auth.login`        | `tambo auth login` succeeds      | —                                                                    |
+| `cli.auth.logout`       | `tambo auth logout` succeeds     | —                                                                    |
+
+Every event also includes system metadata: CLI version, Node.js version, OS, architecture, and whether the command ran in CI.
+
+Flag tracking records only the **names** of active flags, never their values. For example, `tambo init --api-key=sk_xxx --yes` tracks `flags: "apiKey,yes"` — the API key value is never sent.
+
+## How it works
+
+1. Commands call `trackEvent()` which sends each event to PostHog via the `posthog-node` SDK
+2. When the CLI exits, `shutdown()` is called to ensure any pending events are delivered
+3. Events are sent directly to PostHog (`us.i.posthog.com`) — no data is stored on Tambo servers
+
+## Identity
+
+A random UUID is generated on first run and persisted in `~/.local/share/tambo/telemetry.json`. If you are logged in via `tambo auth login`, your Tambo user ID is used as the distinct ID so we can correlate CLI usage with your account.
+
+## How to opt out
+
+Set this environment variable to disable telemetry:
+
+```bash
+export TAMBO_TELEMETRY_DISABLED=1
+```
+
+When disabled, no events are sent and no network requests are made.
+
+## First-run notice
+
+On the first invocation, the CLI prints a one-time notice to stderr:
+
+```
+Tambo collects CLI usage data to improve the developer experience.
+To opt out, set TAMBO_TELEMETRY_DISABLED=1. Learn more: https://docs.tambo.co/reference/cli/telemetry
+```
+
+This notice is not shown again after the first run.

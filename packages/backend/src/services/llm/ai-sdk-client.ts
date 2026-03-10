@@ -38,6 +38,7 @@ import {
   type GenerateTextResult,
   type ToolSet,
 } from "ai";
+import type { ProviderOptions } from "@ai-sdk/provider-utils";
 import type OpenAI from "openai";
 import { z } from "zod/v3";
 import { createLangfuseTelemetryConfig } from "../../config/langfuse.config";
@@ -441,6 +442,9 @@ export class AISdkClient implements LLMClient {
     let accumulatedReasoning: string[] = [];
     let reasoningStartTimestamp: number | undefined;
     let reasoningEndTimestamp: number | undefined;
+    let toolCallProviderOptionsById:
+      | Record<string, ProviderOptions>
+      | undefined;
     const accumulatedToolCall: {
       name?: string;
       arguments: string;
@@ -543,6 +547,17 @@ export class AISdkClient implements LLMClient {
         case "tool-input-end":
           break;
         case "tool-call":
+          if (delta.providerMetadata?.google?.thoughtSignature) {
+            toolCallProviderOptionsById = {
+              ...(toolCallProviderOptionsById ?? {}),
+              [delta.toolCallId]: {
+                google: {
+                  thoughtSignature:
+                    delta.providerMetadata.google.thoughtSignature,
+                },
+              },
+            };
+          }
           accumulatedToolCall.id = delta.toolCallId;
           if (componentTracker) {
             // Finalize component tracker and emit end event
@@ -640,6 +655,7 @@ export class AISdkClient implements LLMClient {
           logprobs: null,
         },
         aguiEvents,
+        toolCallProviderOptionsById,
       };
     }
 

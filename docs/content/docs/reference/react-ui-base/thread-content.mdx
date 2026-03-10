@@ -1,0 +1,140 @@
+---
+title: ThreadContent
+description: Compose thread timeline behavior with unstyled parts for empty, loading, and populated states.
+---
+
+import { ThreadContentDemoPreview } from "./_demos/thread-content-demo";
+
+# ThreadContent
+
+`ThreadContent` in `@tambo-ai/react-ui-base` owns thread timeline state derivation — messages, generation status, empty/loading detection — while keeping styling in `@tambo-ai/ui-registry` or your own UI layer.
+
+## Demo
+
+<ThreadContentDemoPreview />
+
+## Anatomy
+
+```tsx
+<ThreadContent.Root>
+  <ThreadContent.Loading />
+  <ThreadContent.Empty />
+  <ThreadContent.Messages />
+</ThreadContent.Root>
+```
+
+## Examples
+
+### Conditional Slot Visibility
+
+`Empty` and `Loading` unmount when their condition is false. Use `keepMounted` to keep them in the DOM and toggle `data-hidden` instead:
+
+```tsx
+<ThreadContent.Empty keepMounted className="data-hidden:hidden p-4">
+  Start a conversation!
+</ThreadContent.Empty>
+```
+
+### Accessing Messages via Render Props
+
+Use the render prop on `Messages` to access filtered messages, loading, and empty state:
+
+```tsx
+<ThreadContent.Messages
+  render={(props, state) => (
+    <div {...props}>
+      {state.isEmpty && <p>No messages</p>}
+      {state.filteredMessages.map((message) => (
+        <div key={message.id}>{/* render message */}</div>
+      ))}
+      {state.isGenerating && <p>Generating...</p>}
+    </div>
+  )}
+/>
+```
+
+### Root Render State
+
+Use the render prop on `Root` to access timeline state for custom layouts:
+
+```tsx
+<ThreadContent.Root
+  render={(props, state) => (
+    <div {...props}>
+      {state.isEmpty && <p>Empty thread</p>}
+      {state.isGenerating && <p>Thinking...</p>}
+      <p>{state.messageCount} messages</p>
+    </div>
+  )}
+/>
+```
+
+## API reference
+
+### Root
+
+No custom props. Derives timeline state from Tambo hooks and provides it to children via context. Accepts `render` and `ref` via base-ui.
+
+**Render state:**
+
+| Field          | Type      | Description                              |
+| -------------- | --------- | ---------------------------------------- |
+| `messageCount` | `number`  | Total number of messages in the thread.  |
+| `isEmpty`      | `boolean` | Whether the thread has no messages.      |
+| `isGenerating` | `boolean` | Whether a response is being generated.   |
+| `isLoading`    | `boolean` | Whether generating with no messages yet. |
+
+### Messages
+
+No custom props. Provides filtered messages through render state. Accepts `render` and `ref` via base-ui. System messages, empty-content messages, and standalone tool_result-only messages are automatically filtered out.
+
+**Render state:**
+
+| Field              | Type                   | Description                              |
+| ------------------ | ---------------------- | ---------------------------------------- |
+| `messageCount`     | `number`               | Count of filtered messages.              |
+| `isEmpty`          | `boolean`              | Whether filtered messages list is empty. |
+| `isGenerating`     | `boolean`              | Whether a response is being generated.   |
+| `filteredMessages` | `TamboThreadMessage[]` | Array of filtered messages for display.  |
+
+### Empty
+
+| Prop          | Type      | Default | Description                                       |
+| ------------- | --------- | ------- | ------------------------------------------------- |
+| `keepMounted` | `boolean` | `false` | Keeps the node mounted and toggles `data-hidden`. |
+
+Renders its children only when the thread has no messages.
+
+**Render state:**
+
+| Field     | Type      | Description                         |
+| --------- | --------- | ----------------------------------- |
+| `isEmpty` | `boolean` | Whether the thread has no messages. |
+
+### Loading
+
+| Prop          | Type      | Default | Description                                       |
+| ------------- | --------- | ------- | ------------------------------------------------- |
+| `keepMounted` | `boolean` | `false` | Keeps the node mounted and toggles `data-hidden`. |
+
+Renders its children only when the thread is generating and has no messages yet.
+
+**Render state:**
+
+| Field       | Type      | Description                              |
+| ----------- | --------- | ---------------------------------------- |
+| `isLoading` | `boolean` | Whether generating with no messages yet. |
+
+## Accessibility
+
+- All parts render as `<div>` by default. Override with the `render` prop for semantic markup.
+- `Empty` and `Loading` support `keepMounted` with `data-hidden` for screen-reader-friendly conditional rendering.
+- Consumers should provide appropriate `aria-live` attributes on regions that update dynamically.
+
+## Styling Hooks
+
+- `data-slot="thread-content"`
+- `data-slot="thread-content-messages"`
+- `data-slot="thread-content-empty"`
+- `data-slot="thread-content-loading"`
+- `data-hidden` on `Empty` and `Loading` when `keepMounted` is used

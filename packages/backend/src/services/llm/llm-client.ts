@@ -1,5 +1,6 @@
 import type { BaseEvent } from "@ag-ui/core";
 import { ThreadMessage } from "@tambo-ai-cloud/core";
+import type { ProviderOptions } from "@ai-sdk/provider-utils";
 import OpenAI from "openai";
 import { JSONSchema } from "openai/lib/jsonschema";
 import { ZodObject, ZodRawShape } from "zod/v3";
@@ -105,6 +106,15 @@ export interface LLMStreamItem {
    * - ThinkingTextMessageStartEvent, ThinkingTextMessageContentEvent, etc.
    */
   aguiEvents: BaseEvent[];
+
+  /**
+   * Provider options that must be replayed with tool-call prompt parts.
+   *
+   * Some providers (e.g. Gemini 3) return provider-specific metadata that must be
+   * attached back onto the corresponding tool call when sending the tool result
+   * in a follow-up request.
+   */
+  toolCallProviderOptionsById?: Record<string, ProviderOptions>;
 }
 
 /** Get the string response from the LLM response */

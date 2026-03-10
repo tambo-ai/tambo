@@ -9,7 +9,7 @@ import {
 /**
  * Render props for the ValueAccess component.
  */
-export interface MessageInputValueAccessRenderProps {
+export interface MessageInputValueAccessState {
   /** Current input value */
   value: string;
   /** Update the input value */
@@ -23,7 +23,7 @@ export interface MessageInputValueAccessRenderProps {
  */
 export interface MessageInputValueAccessProps {
   /** Render function receiving value access props */
-  children: (props: MessageInputValueAccessRenderProps) => React.ReactNode;
+  children: (props: MessageInputValueAccessState) => React.ReactNode;
 }
 
 /**

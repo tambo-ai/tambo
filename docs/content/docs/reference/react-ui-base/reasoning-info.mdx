@@ -1,0 +1,117 @@
+---
+title: ReasoningInfo
+description: Compose reasoning status and expandable reasoning steps for assistant messages.
+---
+
+import { ReasoningInfoDemoPreview } from "./_demos/reasoning-info-demo";
+
+# ReasoningInfo
+
+`ReasoningInfo` in `@tambo-ai/react-ui-base` exposes reasoning-state behavior with unstyled trigger/content parts.
+
+## Demo
+
+<ReasoningInfoDemoPreview />
+
+## Anatomy
+
+```tsx
+<ReasoningInfo.Root message={message}>
+  <ReasoningInfo.StatusText />
+  <ReasoningInfo.Trigger />
+  <ReasoningInfo.Content>
+    <ReasoningInfo.Steps />
+  </ReasoningInfo.Content>
+</ReasoningInfo.Root>
+```
+
+## Examples
+
+### Custom Step Renderer
+
+```tsx
+<ReasoningInfo.Steps>
+  {({ steps, showStepNumbers }) =>
+    steps.map((step, i) => (
+      <li key={i}>
+        {showStepNumbers && <span>{i + 1}.</span>} {step}
+      </li>
+    ))
+  }
+</ReasoningInfo.Steps>
+```
+
+### Custom Status Text
+
+```tsx
+<ReasoningInfo.StatusText>
+  {({ text, isLoading, stepCount }) => (
+    <span>
+      {isLoading ? "Thinking..." : text}
+      {stepCount > 1 && ` (${stepCount} steps)`}
+    </span>
+  )}
+</ReasoningInfo.StatusText>
+```
+
+## API reference
+
+### Root
+
+| Prop              | Type                 | Default     | Description                                                                        |
+| ----------------- | -------------------- | ----------- | ---------------------------------------------------------------------------------- |
+| `message`         | `TamboThreadMessage` | `undefined` | Source message. If omitted, read from a parent `Message.Root` context.             |
+| `defaultExpanded` | `boolean`            | `true`      | Initial expanded state.                                                            |
+| `autoCollapse`    | `boolean`            | `true`      | Collapse automatically when the message content arrives and reasoning is complete. |
+| `isLoading`       | `boolean`            | `undefined` | Loading flag. If omitted, read from a parent `Message.Root` context.               |
+
+**Render state:** `isExpanded`, `isLoading`, `statusText`, `reasoningCount`.
+
+Returns `null` when the message has no reasoning data.
+
+### StatusText
+
+Displays a computed status label (e.g. "Thinking", "Thought for 5 seconds").
+
+**Render state:** `text`, `isLoading`, `stepCount`.
+
+Default children render `text` plus a step count suffix when there are multiple steps.
+
+### Trigger
+
+Toggles reasoning visibility.
+
+**Render state:** `isExpanded`.
+
+### Content
+
+Collapsible container for reasoning details. Includes auto-scroll behavior.
+
+| Prop         | Type      | Default | Description                                                 |
+| ------------ | --------- | ------- | ----------------------------------------------------------- |
+| `forceMount` | `boolean` | `false` | Keep mounted regardless of expanded state (for animations). |
+
+**Render state:** `isExpanded`.
+
+### Steps
+
+Provides reasoning step data for rendering.
+
+**Render state:** `steps` (`string[]`), `showStepNumbers` (`true` when `steps.length > 1`).
+
+`showStepNumbers` is computed, not a prop.
+
+## Accessibility
+
+- Use semantic list markup for custom step renderers.
+- Ensure trigger text reflects expand/collapse state.
+
+## Styling Hooks
+
+- `data-slot="reasoning-info"` (Root)
+- `data-slot="reasoning-info-status-text"`
+- `data-slot="reasoning-info-trigger"`
+- `data-slot="reasoning-info-content"`
+- `data-slot="reasoning-info-steps"`
+- `data-state="open" | "closed"` on Trigger and Content
+- `data-loading` on StatusText (present when loading)

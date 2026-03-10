@@ -1,4 +1,5 @@
-import { Slot } from "@radix-ui/react-slot";
+import { mergeProps } from "@base-ui/react/merge-props";
+import { useRender } from "@base-ui/react/use-render";
 import * as React from "react";
 import { getMessageImages } from "../../utils/message-content";
 import { useMessageRootContext } from "../root/message-root-context";
@@ -15,15 +16,32 @@ export interface MessageImageRenderFnProps {
   alt?: string;
 }
 
-export interface MessageImagesProps extends React.HTMLAttributes<HTMLDivElement> {
-  /** When true, renders as a Slot, merging props into the child element. */
-  asChild?: boolean;
+export interface MessageImagesRenderProps extends Record<string, unknown> {
+  slot: string;
+  images: string[];
+}
+
+type MessageImagesComponentProps = useRender.ComponentProps<
+  "div",
+  MessageImagesRenderProps
+>;
+
+export interface MessageImagesProps extends Omit<
+  MessageImagesComponentProps,
+  "children"
+> {
   /**
    * Render prop for each image. If not provided, renders basic img elements.
    */
   renderImage?: (props: MessageImageRenderFnProps) => React.ReactNode;
   /** Children to render instead of the default image list. */
   children?: React.ReactNode;
+  /**
+   * Keep the element mounted when there are no images. When false (default),
+   * the component returns null if the message has no image content.
+   * @default false
+   */
+  keepMounted?: boolean;
 }
 
 /**
@@ -33,29 +51,46 @@ export interface MessageImagesProps extends React.HTMLAttributes<HTMLDivElement>
 export const MessageImages = React.forwardRef<
   HTMLDivElement,
   MessageImagesProps
->(({ asChild, renderImage, children, ...props }, ref) => {
+>(({ renderImage, children, keepMounted = false, ...props }, ref) => {
   const { message } = useMessageRootContext();
   const images = getMessageImages(message.content);
 
-  if (images.length === 0) {
+  const hasImages = images.length > 0;
+  const { render, ...componentProps } = props;
+  const renderProps: MessageImagesRenderProps = {
+    slot: "message-images",
+    images,
+  };
+  const renderedImages = React.useMemo(
+    () =>
+      images.map((url: string, index: number) =>
+        renderImage ? (
+          <React.Fragment key={index}>
+            {renderImage({ url, index })}
+          </React.Fragment>
+        ) : (
+          <img key={index} src={url} alt={`Image ${index + 1}`} />
+        ),
+      ),
+    [images, renderImage],
+  );
+
+  if (!hasImages && !keepMounted) {
     return null;
   }
 
-  const Comp = asChild ? Slot : "div";
-
-  return (
-    <Comp ref={ref} data-slot="message-images" {...props}>
-      {children ??
-        images.map((url: string, index: number) =>
-          renderImage ? (
-            <React.Fragment key={index}>
-              {renderImage({ url, index })}
-            </React.Fragment>
-          ) : (
-            <img key={index} src={url} alt={`Image ${index + 1}`} />
-          ),
-        )}
-    </Comp>
-  );
+  return useRender({
+    defaultTagName: "div",
+    ref,
+    render,
+    state: renderProps,
+    stateAttributesMapping: {
+      images: () => null,
+    },
+    props: mergeProps(componentProps, {
+      children: children ?? renderedImages,
+      "data-hidden": !hasImages ? "true" : undefined,
+    }),
+  });
 });
 MessageImages.displayName = "Message.Images";

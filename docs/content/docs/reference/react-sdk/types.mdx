@@ -14,8 +14,8 @@ Represents a conversation thread with messages and metadata.
 ```typescript
 interface TamboThread {
   id: string;
-  title?: string;
-  messages: TamboMessage[];
+  name?: string;
+  messages: TamboThreadMessage[];
   status: RunStatus;
   metadata?: Record<string, unknown>;
   createdAt: string;
@@ -29,7 +29,7 @@ interface TamboThread {
 The status of the current run in a thread.
 
 ```typescript
-type RunStatus = "idle" | "waiting" | "streaming" | "complete" | "error";
+type RunStatus = "idle" | "waiting" | "streaming";
 ```
 
 | Status      | Description                          |
@@ -37,8 +37,8 @@ type RunStatus = "idle" | "waiting" | "streaming" | "complete" | "error";
 | `idle`      | No generation in progress            |
 | `waiting`   | Waiting for server response          |
 | `streaming` | Actively receiving streamed response |
-| `complete`  | Generation finished successfully     |
-| `error`     | An error occurred                    |
+
+Error information is tracked separately in `StreamingState.error`, not as a run status.
 
 ### StreamingState
 
@@ -50,6 +50,7 @@ interface StreamingState {
   runId?: string;
   messageId?: string;
   startTime?: number;
+  reasoningStartTime?: number;
   error?: {
     message: string;
     code?: string;
@@ -57,19 +58,137 @@ interface StreamingState {
 }
 ```
 
+## Authentication Types
+
+### TamboAuthState
+
+Discriminated union tracking the SDK's authentication lifecycle. Returned by [`useTambo()`](/reference/react-sdk/hooks#usetambo) as `authState`.
+
+```typescript
+type TamboAuthState =
+  | { status: "identified"; source: "userKey" | "tokenExchange" }
+  | { status: "exchanging" }
+  | { status: "error"; error: Error }
+  | { status: "invalid" }
+  | { status: "unauthenticated" };
+```
+
+| Status            | Additional Properties                  | Description                                                           |
+| ----------------- | -------------------------------------- | --------------------------------------------------------------------- |
+| `identified`      | `source: "userKey" \| "tokenExchange"` | Ready to make API calls. `source` indicates how auth was established. |
+| `exchanging`      | —                                      | A `userToken` was provided and token exchange is in progress          |
+| `error`           | `error: Error`                         | Token exchange failed                                                 |
+| `invalid`         | —                                      | Both `userKey` and `userToken` were provided (must use one, not both) |
+| `unauthenticated` | —                                      | Neither `userKey` nor `userToken` was provided                        |
+
+#### Example: Auth-Aware UI
+
+```tsx
+import { useTambo } from "@tambo-ai/react";
+
+function AuthAwareChat() {
+  const { authState, isIdentified } = useTambo();
+
+  if (authState.status === "exchanging") {
+    return <div>Authenticating...</div>;
+  }
+
+  if (authState.status === "error") {
+    return <div>Auth failed: {authState.error.message}</div>;
+  }
+
+  if (!isIdentified) {
+    return <div>Please sign in to continue.</div>;
+  }
+
+  return <ChatInterface />;
+}
+```
+
+## Configuration Types
+
+### TamboConfig
+
+Configuration interface for the Tambo provider. Passed to [`TamboProvider`](/reference/react-sdk/providers#tamboprovider) or accessed via `useTamboConfig()`.
+
+```typescript
+interface TamboConfig {
+  userKey?: string;
+  autoGenerateThreadName?: boolean;
+  autoGenerateNameThreshold?: number;
+  initialMessages?: InitialInputMessage[];
+}
+```
+
+| Property                    | Type                    | Default | Description                                                                                   |
+| --------------------------- | ----------------------- | ------- | --------------------------------------------------------------------------------------------- |
+| `userKey`                   | `string`                | —       | User key for thread ownership and scoping                                                     |
+| `autoGenerateThreadName`    | `boolean`               | `true`  | Automatically generate thread names after a threshold of messages                             |
+| `autoGenerateNameThreshold` | `number`                | `3`     | Message count at which thread name auto-generation triggers                                   |
+| `initialMessages`           | `InitialInputMessage[]` | —       | Initial messages to seed new threads with (displayed immediately, sent on first user message) |
+
+### InitialInputMessage
+
+Message type for seeding new threads with initial messages. Re-exported from `@tambo-ai/typescript-sdk`.
+
+```typescript
+interface InitialInputMessage {
+  content: Array<TextContent | ResourceContent>;
+  role: "user" | "system" | "assistant";
+  metadata?: unknown;
+}
+```
+
+| Property   | Type                                    | Required | Description                                  |
+| ---------- | --------------------------------------- | -------- | -------------------------------------------- |
+| `content`  | `Array<TextContent \| ResourceContent>` | Yes      | Content blocks (text or resource)            |
+| `role`     | `"user" \| "system" \| "assistant"`     | Yes      | Message role                                 |
+| `metadata` | `unknown`                               | No       | Additional metadata to attach to the message |
+
+#### Example: Seeding a Thread
+
+```tsx
+import { TamboProvider } from "@tambo-ai/react";
+
+function App() {
+  return (
+    <TamboProvider
+      apiKey="your-api-key"
+      initialMessages={[
+        {
+          role: "system",
+          content: [
+            { type: "text", text: "You are a helpful cooking assistant." },
+          ],
+        },
+        {
+          role: "assistant",
+          content: [
+            { type: "text", text: "What would you like to cook today?" },
+          ],
+        },
+      ]}
+    >
+      <Chat />
+    </TamboProvider>
+  );
+}
+```
+
 ## Message Types
 
-### TamboMessage
+### TamboThreadMessage
 
 A message in a thread, containing an array of content blocks.
 
 ```typescript
-interface TamboMessage {
+interface TamboThreadMessage {
   id: string;
   role: MessageRole;
   content: Content[];
   createdAt?: string;
   metadata?: Record<string, unknown>;
+  parentMessageId?: string;
   reasoning?: string[];
   reasoningDurationMS?: number;
 }
@@ -77,6 +196,7 @@ interface TamboMessage {
 
 | Property              | Type       | Description                                                                                           |
 | --------------------- | ---------- | ----------------------------------------------------------------------------------------------------- |
+| `parentMessageId`     | `string`   | ID of the parent message, if created during generation of another message (e.g., MCP sampling).       |
 | `reasoning`           | `string[]` | Reasoning chunks from the model. Transient — only present during streaming, not persisted to the API. |
 | `reasoningDurationMS` | `number`   | Duration of the reasoning phase in milliseconds, for display purposes.                                |
 
@@ -95,8 +215,8 @@ Messages contain an array of typed content blocks:
 ```typescript
 type Content =
   | TextContent
-  | ComponentContent
-  | ToolUseContent
+  | TamboComponentContent
+  | TamboToolUseContent
   | ToolResultContent
   | ResourceContent;
 ```
@@ -112,12 +232,12 @@ interface TextContent {
 }
 ```
 
-#### ComponentContent
+#### TamboComponentContent
 
-A rendered component with streaming state.
+A rendered component with streaming state. Extends the base `ComponentContent` from the SDK with computed properties.
 
 ```typescript
-interface ComponentContent {
+interface TamboComponentContent {
   type: "component";
   id: string;
   name: string;
@@ -129,12 +249,12 @@ interface ComponentContent {
 
 The `renderedComponent` property contains the pre-rendered React element for the component, looked up from the registry.
 
-#### ToolUseContent
+#### TamboToolUseContent
 
-A tool invocation with display metadata.
+A tool invocation with display metadata. Extends the base `ToolUseContent` from the SDK with computed properties populated by `useTambo()`.
 
 ```typescript
-interface ToolUseContent {
+interface TamboToolUseContent {
   type: "tool_use";
   id: string;
   name: string;
@@ -156,7 +276,6 @@ Display properties extracted from tool inputs.
 
 ```typescript
 interface TamboToolDisplayProps {
-  _tambo_displayMessage?: string;
   _tambo_statusMessage?: string;
   _tambo_completionStatusMessage?: string;
 }
@@ -169,8 +288,9 @@ The result of a tool execution.
 ```typescript
 interface ToolResultContent {
   type: "tool_result";
-  tool_use_id: string;
-  content: string | ContentPart[];
+  toolUseId: string;
+  content: Array<TextContent | ResourceContent>;
+  isError?: boolean;
 }
 ```
 
@@ -199,28 +319,29 @@ interface TamboComponent {
   name: string;
   description: string;
   component: ComponentType<any>;
-  propsSchema: Record<string, unknown>;
-  stateSchema?: Record<string, unknown>;
-  initialState?: () => Record<string, unknown>;
+  propsSchema?: SupportedSchema;
+  loadingComponent?: ComponentType<any>;
+  associatedTools?: TamboTool[];
+  annotations?: ToolAnnotations;
 }
 ```
 
 ### Properties
 
-| Property       | Type            | Required | Description                         |
-| -------------- | --------------- | -------- | ----------------------------------- |
-| `name`         | `string`        | Yes      | Unique identifier for the component |
-| `description`  | `string`        | Yes      | Description for AI understanding    |
-| `component`    | `ComponentType` | Yes      | The React component to render       |
-| `propsSchema`  | `object`        | Yes      | JSON Schema for component props     |
-| `stateSchema`  | `object`        | No       | JSON Schema for component state     |
-| `initialState` | `() => object`  | No       | Factory function for initial state  |
+| Property           | Type              | Required | Description                                                        |
+| ------------------ | ----------------- | -------- | ------------------------------------------------------------------ |
+| `name`             | `string`          | Yes      | Unique identifier for the component                                |
+| `description`      | `string`          | Yes      | Description for AI understanding                                   |
+| `component`        | `ComponentType`   | Yes      | The React component to render                                      |
+| `propsSchema`      | `SupportedSchema` | No       | Schema for component props (Zod, Valibot, ArkType, or JSON Schema) |
+| `loadingComponent` | `ComponentType`   | No       | Component to render while the component is loading                 |
+| `associatedTools`  | `TamboTool[]`     | No       | Tools associated with this component                               |
+| `annotations`      | `ToolAnnotations` | No       | Behavior annotations (see [ToolAnnotations](#toolannotations))     |
 
 ### Example Registration
 
 ```typescript
 import { z } from "zod";
-import { zodToJsonSchema } from "zod-to-json-schema";
 
 const WeatherCardSchema = z.object({
   city: z.string().describe("The city name"),
@@ -233,23 +354,65 @@ const components: TamboComponent[] = [
     name: "WeatherCard",
     description: "Displays current weather for a city",
     component: WeatherCard,
-    propsSchema: zodToJsonSchema(WeatherCardSchema),
+    propsSchema: WeatherCardSchema,
   },
 ];
 ```
 
-### TamboComponentProps
+### ComponentRendererProps
 
-Props interface for components receiving Tambo data.
+Props for the [`ComponentRenderer`](/reference/react-sdk/providers#componentrenderer) component.
 
 ```typescript
-interface TamboComponentProps<TProps, TState> {
-  props: TProps;
-  state?: TState;
-  componentId: string;
-  isStreaming?: boolean;
+interface ComponentRendererProps {
+  content: TamboComponentContent;
+  threadId: string;
+  messageId: string;
+  fallback?: React.ReactNode;
 }
 ```
+
+### TamboCurrentComponent
+
+Component metadata returned by [`useTamboCurrentComponent`](/reference/react-sdk/hooks#usetambocurrentcomponent). Works for both AI-generated and interactable components.
+
+```typescript
+interface TamboCurrentComponent {
+  componentName?: string;
+  props?: Record<string, unknown>;
+  interactableId?: string;
+  description?: string;
+  threadId?: string;
+}
+```
+
+| Property         | Type                      | Description                                                        |
+| ---------------- | ------------------------- | ------------------------------------------------------------------ |
+| `componentName`  | `string \| undefined`     | Component name from the message or interactable metadata           |
+| `props`          | `Record<string, unknown>` | Component props from the message content block                     |
+| `interactableId` | `string \| undefined`     | Interactable ID (only for `withTamboInteractable` components)      |
+| `description`    | `string \| undefined`     | Description (only for `withTamboInteractable` components)          |
+| `threadId`       | `string \| undefined`     | Thread ID (not available on messages directly, always `undefined`) |
+
+### ComponentContentContext
+
+Context provided by [`ComponentContentProvider`](/reference/react-sdk/providers#componentcontentprovider) and accessed via [`useComponentContent`](/reference/react-sdk/hooks#usecomponentcontent).
+
+```typescript
+interface ComponentContentContext {
+  componentId: string;
+  threadId: string;
+  messageId: string;
+  componentName: string;
+}
+```
+
+| Property        | Type     | Description                          |
+| --------------- | -------- | ------------------------------------ |
+| `componentId`   | `string` | Unique instance ID for the component |
+| `threadId`      | `string` | Thread the component belongs to      |
+| `messageId`     | `string` | Message the component belongs to     |
+| `componentName` | `string` | Registered component name            |
 
 ## Tool Types
 
@@ -261,6 +424,7 @@ The same `TamboTool` interface from the base SDK is used.
 interface TamboTool {
   name: string;
   description: string;
+  title?: string;
   tool: (params: Record<string, unknown>) => unknown;
   inputSchema: SupportedSchema;
   outputSchema: SupportedSchema;
@@ -274,9 +438,10 @@ interface TamboTool {
 | -------------------- | ----------------- | -------- | -------------------------------------------------------------------------------------------------------- |
 | `name`               | `string`          | Yes      | Unique identifier for the tool                                                                           |
 | `description`        | `string`          | Yes      | Description for AI understanding                                                                         |
+| `title`              | `string`          | No       | Optional human-readable name for display purposes                                                        |
 | `tool`               | `function`        | Yes      | The tool implementation function                                                                         |
 | `inputSchema`        | `SupportedSchema` | Yes      | Schema for tool input parameters                                                                         |
-| `outputSchema`       | `SupportedSchema` | Yes      | Schema for tool output                                                                                   |
+| `outputSchema`       | `SupportedSchema` | Yes      | Schema for tool output (informational, not validated at runtime)                                         |
 | `maxCalls`           | `number`          | No       | Maximum times this tool can be called in a single response. Overrides the project-level tool call limit. |
 | `annotations`        | `ToolAnnotations` | No       | Behavior annotations (see [ToolAnnotations](#toolannotations))                                           |
 | `transformToContent` | `function`        | No       | Transform tool result into content parts for richer display                                              |
@@ -285,7 +450,7 @@ interface TamboTool {
 
 ### TamboCustomEvent
 
-Custom events emitted during streaming.
+Custom events emitted during streaming. Each event uses an envelope pattern with a `name` string and a `value` object containing the payload.
 
 ```typescript
 type TamboCustomEvent =
@@ -293,7 +458,8 @@ type TamboCustomEvent =
   | ComponentPropsDeltaEvent
   | ComponentStateDeltaEvent
   | ComponentEndEvent
-  | RunAwaitingInputEvent;
+  | RunAwaitingInputEvent
+  | MessageParentEvent;
 ```
 
 #### ComponentStartEvent
@@ -301,11 +467,14 @@ type TamboCustomEvent =
 Emitted when component rendering begins.
 
 ```typescript
-interface ComponentStartEvent {
+type ComponentStartEvent = {
   name: "tambo.component.start";
-  componentId: string;
-  componentName: string;
-}
+  value: {
+    messageId: string;
+    componentId: string;
+    componentName: string;
+  };
+};
 ```
 
 #### ComponentPropsDeltaEvent
@@ -313,11 +482,13 @@ interface ComponentStartEvent {
 Emitted when component props are updated (JSON Patch format).
 
 ```typescript
-interface ComponentPropsDeltaEvent {
+type ComponentPropsDeltaEvent = {
   name: "tambo.component.props_delta";
-  componentId: string;
-  delta: JsonPatchOperation[];
-}
+  value: {
+    componentId: string;
+    operations: Operation[];
+  };
+};
 ```
 
 #### ComponentStateDeltaEvent
@@ -325,11 +496,13 @@ interface ComponentPropsDeltaEvent {
 Emitted when component state is updated (JSON Patch format).
 
 ```typescript
-interface ComponentStateDeltaEvent {
+type ComponentStateDeltaEvent = {
   name: "tambo.component.state_delta";
-  componentId: string;
-  delta: JsonPatchOperation[];
-}
+  value: {
+    componentId: string;
+    operations: Operation[];
+  };
+};
 ```
 
 #### ComponentEndEvent
@@ -337,21 +510,51 @@ interface ComponentStateDeltaEvent {
 Emitted when component rendering completes.
 
 ```typescript
-interface ComponentEndEvent {
+type ComponentEndEvent = {
   name: "tambo.component.end";
-  componentId: string;
-}
+  value: {
+    componentId: string;
+  };
+};
 ```
 
 #### RunAwaitingInputEvent
 
-Emitted when the run is waiting for tool execution.
+Emitted when the run is waiting for client-side tool execution.
 
 ```typescript
-interface RunAwaitingInputEvent {
+type RunAwaitingInputEvent = {
   name: "tambo.run.awaiting_input";
-  toolCalls: ToolCall[];
+  value: {
+    pendingToolCalls: PendingToolCall[];
+  };
+};
+```
+
+#### PendingToolCall
+
+Information about a tool call awaiting execution.
+
+```typescript
+interface PendingToolCall {
+  toolCallId: string;
+  toolName: string;
+  arguments: string;
 }
+```
+
+#### MessageParentEvent
+
+Emitted when a message was created during the generation of another message (e.g., MCP sampling or elicitation).
+
+```typescript
+type MessageParentEvent = {
+  name: "tambo.message.parent";
+  value: {
+    messageId: string;
+    parentMessageId: string;
+  };
+};
 ```
 
 ### Type Guards
@@ -460,9 +663,137 @@ type ToolAnnotations = MCPToolAnnotations & {
 
 `ToolAnnotations` can be set on both `TamboTool` and `TamboComponent` via the `annotations` property.
 
+## Interactable Types
+
+### InteractableComponent
+
+Represents a registered interactable component instance. Extends [`TamboComponent`](#tambocomponent) with instance-specific state. The internal type name is `TamboInteractableComponent`.
+
+```typescript
+interface TamboInteractableComponent<
+  Props = Record<string, unknown>,
+  State = Record<string, unknown>,
+> extends TamboComponent {
+  id: string;
+  props: Props;
+  isSelected?: boolean;
+  state?: State;
+  stateSchema?: SupportedSchema<State>;
+}
+```
+
+| Property      | Type                     | Required | Description                                                          |
+| ------------- | ------------------------ | -------- | -------------------------------------------------------------------- |
+| `id`          | `string`                 | Yes      | Unique identifier for this component instance                        |
+| `props`       | `Props`                  | Yes      | Current props for the component                                      |
+| `isSelected`  | `boolean`                | No       | Whether the component is selected for AI interaction on next message |
+| `state`       | `State`                  | No       | Current state for the component                                      |
+| `stateSchema` | `SupportedSchema<State>` | No       | Schema for validating state updates                                  |
+
+### InteractableConfig
+
+Configuration passed to `withTamboInteractable()` to make a component interactable.
+
+```typescript
+interface InteractableConfig<
+  Props = Record<string, unknown>,
+  State = Record<string, unknown>,
+> {
+  componentName: string;
+  description: string;
+  propsSchema?: SupportedSchema<Props>;
+  stateSchema?: SupportedSchema<State>;
+  annotations?: ToolAnnotations;
+}
+```
+
+| Property        | Type                     | Required | Description                                      |
+| --------------- | ------------------------ | -------- | ------------------------------------------------ |
+| `componentName` | `string`                 | Yes      | Name used for identification in Tambo            |
+| `description`   | `string`                 | Yes      | Description of the component for the AI          |
+| `propsSchema`   | `SupportedSchema<Props>` | No       | Schema for validating prop updates               |
+| `stateSchema`   | `SupportedSchema<State>` | No       | Schema for validating state updates              |
+| `annotations`   | `ToolAnnotations`        | No       | Annotations for the auto-registered update tools |
+
+### WithTamboInteractableProps
+
+Props injected by `withTamboInteractable()` that can be passed to the wrapped component.
+
+```typescript
+interface WithTamboInteractableProps {
+  interactableId?: string;
+  onInteractableReady?: (id: string) => void;
+  onPropsUpdate?: (newProps: Record<string, unknown>) => void;
+}
+```
+
+| Property              | Type                                          | Description                                         |
+| --------------------- | --------------------------------------------- | --------------------------------------------------- |
+| `interactableId`      | `string`                                      | Optional custom ID (auto-generated if not provided) |
+| `onInteractableReady` | `(id: string) => void`                        | Called when the component is registered             |
+| `onPropsUpdate`       | `(newProps: Record<string, unknown>) => void` | Called when Tambo updates the component's props     |
+
+## Image Types
+
+### StagedImage
+
+Represents an image staged for upload in message input.
+
+```typescript
+interface StagedImage {
+  id: string;
+  name: string;
+  dataUrl: string;
+  file: File;
+  size: number;
+  type: string;
+}
+```
+
+| Property  | Type     | Description                     |
+| --------- | -------- | ------------------------------- |
+| `id`      | `string` | Unique identifier               |
+| `name`    | `string` | File name                       |
+| `dataUrl` | `string` | Base64 data URL for preview     |
+| `file`    | `File`   | Original File object            |
+| `size`    | `number` | File size in bytes              |
+| `type`    | `string` | MIME type (e.g., `"image/png"`) |
+
+## Resource Types
+
+### ResourceSource
+
+Configuration for dynamic resource sources. Implement this interface to provide custom resources that can be listed and fetched by the SDK.
+
+```typescript
+interface ResourceSource {
+  listResources: (search?: string) => Promise<ListResourceItem[]>;
+  getResource: (
+    uri: string,
+    args?: Record<string, unknown>,
+  ) => Promise<ReadResourceResult>;
+}
+```
+
+| Property        | Type       | Description                                                       |
+| --------------- | ---------- | ----------------------------------------------------------------- |
+| `listResources` | `function` | Lists available resources, optionally filtered by a search string |
+| `getResource`   | `function` | Fetches the content of a specific resource by URI                 |
+
+<Callout type="info">
+  `getResource` may be called with URIs not previously returned by
+  `listResources`. Implementations should handle unknown URIs gracefully.
+</Callout>
+
 ## Re-exported Types
 
 The following types are re-exported from the base SDK for convenience:
+
+### Hook & Provider Types
+
+- `UseTamboReturn` - Return type of [`useTambo()`](/reference/react-sdk/hooks#usetambo)
+- `TamboConfig` - Provider configuration interface
+- `TamboThreadInputContextProps` - Context interface for [`useTamboThreadInput()`](/reference/react-sdk/hooks#usetambothreadinput)
 
 ### Component & Tool Types
 
@@ -470,6 +801,8 @@ The following types are re-exported from the base SDK for convenience:
 - `TamboTool` - Tool definition interface
 - `ComponentRegistry` - Map of registered components
 - `ParameterSpec` - Parameter specification
+- `InteractableComponent` - Alias for `TamboInteractableComponent`
+- `TamboInteractableContext` - Full interactable registry context (see [`useTamboInteractable()`](/reference/react-sdk/hooks#usetambointeractable))
 
 ### Context Types
 
@@ -484,13 +817,14 @@ The following types are re-exported from the base SDK for convenience:
 - `NormalizedMcpServerInfo` - Processed server info
 - `ReadResourceResult` - Resource read result
 - `ListResourceItem` - Resource list item
-- `ResourceSource` - Resource source interface
 
 ### SDK Types
 
 - `Suggestion` - AI-generated suggestion
 - `SuggestionGenerateParams` - Suggestion generation parameters
 - `SuggestionGenerateResponse` - Suggestion generation response
+- `SuggestionListResponse` - Suggestion list response
+- `InitialInputMessage` - Initial message for seeding threads
 
 ### Error Types
 

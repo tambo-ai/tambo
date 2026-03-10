@@ -102,6 +102,9 @@
       "outputs": [".next/**", "!.next/cache/**"]
     },
     "lint": { "dependsOn": ["^lint"] },
+    "@tambo-ai/react#lint": {
+      "dependsOn": ["^build", "^lint"]
+    },
     "@tambo-ai/ui-registry#lint": {
       "dependsOn": ["@tambo-ai/ui-registry#verify-exports"]
     },
@@ -123,6 +126,18 @@
       "dependsOn": ["^build"],
       "cache": false,
       "persistent": true
+    },
+    "@tambo-ai-cloud/api#dev": {
+      "dependsOn": ["^build"],
+      "cache": false,
+      "persistent": true,
+      "interruptible": true,
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "../../packages/core/src/**",
+        "../../packages/backend/src/**",
+        "../../packages/db/src/**"
+      ]
     },
     "clean": { "cache": false },
     "start": { "dependsOn": ["^build"] },

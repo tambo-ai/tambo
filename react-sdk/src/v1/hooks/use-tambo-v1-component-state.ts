@@ -22,7 +22,7 @@ import { useTamboInteractable } from "../../providers/tambo-interactable-provide
 import { useComponentContentOptional } from "../utils/component-renderer";
 import { useTamboConfig } from "../providers/tambo-v1-provider";
 import { useStreamState } from "../providers/tambo-v1-stream-context";
-import { findComponentContent } from "../utils/thread-utils";
+import { findComponentContent } from "@tambo-ai/client";
 
 /**
  * Return type for useTamboComponentState hook.

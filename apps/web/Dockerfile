@@ -16,9 +16,14 @@ FROM base AS installer
 WORKDIR /workspace
 
 COPY turbo.json package.json package-lock.json ./
+
+# install repo root dependencies for consistent tooling
+RUN npm ci --workspaces=false
+
 COPY react-sdk ./react-sdk
 COPY packages ./packages
 COPY apps/web ./apps/web
+COPY scripts ./scripts
 
 RUN npx turbo prune @tambo-ai-cloud/web --docker
 
@@ -36,6 +41,11 @@ RUN npm ci
 
 # copy source from pruned output and then build
 COPY --from=installer /workspace/out/full/ .
+
+# Required for loading Next config in a pruned workspace (`next.config.mjs` imports from `scripts/`)
+# Build-time only; the final image uses the Next standalone output.
+# If `next.config.mjs` starts importing other repo-root files, they must be copied into this stage too.
+COPY --from=installer /workspace/scripts ./scripts
 
 # Set production environment and build variables
 ENV NODE_ENV=production

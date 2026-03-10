@@ -23,7 +23,7 @@ import { useTamboRegistry } from "../../providers/tambo-registry-provider";
 import { useTamboConfig } from "../providers/tambo-v1-provider";
 import { useTambo } from "./use-tambo-v1";
 import { useTamboThreadInput } from "./use-tambo-v1-thread-input";
-import { toAvailableComponents } from "../utils/registry-conversion";
+import { toAvailableComponents } from "@tambo-ai/client";
 
 /**
  * Response type for suggestions queries (union of list and create responses)

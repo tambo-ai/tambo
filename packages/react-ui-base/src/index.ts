@@ -6,11 +6,39 @@
  * allowing consumers to apply their own design system.
  */
 
+// GenerationStage components
+export { GenerationStage } from "./generation-stage";
+export type {
+  GenerationStageContentProps,
+  GenerationStageContentState,
+  GenerationStageContextValue,
+  GenerationStageRootProps,
+  GenerationStageRootState,
+  GenerationStageStreamingProps,
+  GenerationStageStreamingState,
+  GenerationStageWaitingProps,
+  GenerationStageWaitingState,
+} from "./generation-stage";
+
+// Elicitation components
+export { Elicitation } from "./elicitation";
+export type {
+  ElicitationActionsProps,
+  ElicitationActionsState,
+  ElicitationContextValue,
+  ElicitationField,
+  ElicitationFieldsProps,
+  ElicitationFieldsState,
+  ElicitationMessageProps,
+  ElicitationProviderProps,
+  ElicitationRootProps,
+} from "./elicitation";
+
 // Message components
 export { Message } from "./message";
 export type {
   MessageContentProps,
-  MessageContentRenderProps,
+  MessageContentState,
   MessageImageRenderFnProps,
   MessageImagesProps,
   MessageLoadingIndicatorProps,
@@ -19,25 +47,29 @@ export type {
 } from "./message";
 
 // MessageInput components
-export { MessageInput } from "./message-input";
+export { IS_PASTED_IMAGE, MAX_IMAGES, MessageInput } from "./message-input";
 export type {
   MessageInputContentProps,
-  MessageInputContentRenderProps,
+  MessageInputContentState,
   MessageInputContextValue,
+  MessageInputElicitationProps,
+  MessageInputElicitationState,
   MessageInputErrorProps,
-  MessageInputErrorRenderProps,
+  MessageInputErrorState,
   MessageInputFileButtonProps,
-  MessageInputFileButtonRenderProps,
+  MessageInputFileButtonState,
   MessageInputRootProps,
   MessageInputStagedImagesProps,
-  MessageInputStagedImagesRenderProps,
+  MessageInputStagedImagesState,
+  MessageInputStopButtonProps,
+  MessageInputStopButtonState,
   MessageInputSubmitButtonProps,
-  MessageInputSubmitButtonRenderProps,
+  MessageInputSubmitButtonState,
   MessageInputTextareaProps,
-  MessageInputTextareaRenderProps,
+  MessageInputTextareaState,
   MessageInputToolbarProps,
   MessageInputValueAccessProps,
-  MessageInputValueAccessRenderProps,
+  MessageInputValueAccessState,
   PromptFormatOptions,
   PromptItem,
   PromptProvider,
@@ -45,10 +77,56 @@ export type {
   ResourceItem,
   ResourceProvider,
   StagedImage,
-  StagedImageRenderProps,
+  StagedImageState,
   TamboEditor,
 } from "./message-input";
-export { IS_PASTED_IMAGE, MAX_IMAGES } from "./message-input";
+
+// ThreadDropdown components
+export { ThreadDropdown } from "./thread-dropdown";
+export type {
+  ThreadDropdownContentProps,
+  ThreadDropdownContentState,
+  ThreadDropdownContextValue,
+  ThreadDropdownNewThreadProps,
+  ThreadDropdownNewThreadState,
+  ThreadDropdownRootProps,
+  ThreadDropdownRootState,
+  ThreadDropdownThreadItemProps,
+  ThreadDropdownThreadItemState,
+  ThreadDropdownTriggerProps,
+  ThreadDropdownTriggerState,
+} from "./thread-dropdown";
+
+// ThreadHistory components
+export { ThreadHistory } from "./thread-history";
+export type {
+  ThreadHistoryContextValue,
+  ThreadHistoryItemProps,
+  ThreadHistoryItemState,
+  ThreadHistoryListProps,
+  ThreadHistoryListState,
+  ThreadHistoryNewThreadButtonProps,
+  ThreadHistoryNewThreadButtonState,
+  ThreadHistoryRootProps,
+  ThreadHistoryRootState,
+  ThreadHistorySearchProps,
+  ThreadHistorySearchState,
+  ThreadListItem,
+} from "./thread-history";
+
+// ThreadContent components
+export { ThreadContent, useThreadContentContext } from "./thread-content";
+export type {
+  ThreadContentContextValue,
+  ThreadContentEmptyProps,
+  ThreadContentEmptyState,
+  ThreadContentLoadingProps,
+  ThreadContentLoadingState,
+  ThreadContentMessagesProps,
+  ThreadContentMessagesState,
+  ThreadContentRootProps,
+  ThreadContentRootState,
+} from "./thread-content";
 
 // ReasoningInfo components
 export { ReasoningInfo } from "./reasoning-info";
@@ -67,7 +145,6 @@ export type {
   ToolcallInfoContentProps,
   ToolcallInfoContentRenderProps,
   ToolcallInfoParametersProps,
-  ToolcallInfoParametersRenderProps,
   ToolcallInfoResultProps,
   ToolcallInfoResultRenderProps,
   ToolcallInfoRootProps,
@@ -80,12 +157,35 @@ export type {
   ToolcallInfoTriggerProps,
 } from "./toolcall-info";
 
-// Types
+// McpPrompts components
+export { McpPrompts } from "./mcp-prompts";
 export type {
-  BaseProps,
-  BasePropsWithChildrenOrRenderFunction,
-  PropsWithChildrenOrRenderFunction,
-} from "./types/component-render-or-children";
+  McpPromptsContextValue,
+  McpPromptsErrorProps,
+  McpPromptsErrorState,
+  McpPromptsItemProps,
+  McpPromptsItemState,
+  McpPromptsListProps,
+  McpPromptsListState,
+  McpPromptsRootProps,
+  McpPromptsRootState,
+  McpPromptsStatus,
+  McpPromptsTriggerProps,
+  McpPromptsTriggerState,
+} from "./mcp-prompts";
 
-// Hooks
-export { useRender } from "./use-render/use-render";
+// McpResources components
+export { McpResources } from "./mcp-resources";
+export type {
+  McpResourcesContextValue,
+  McpResourcesItemProps,
+  McpResourcesItemState,
+  McpResourcesListProps,
+  McpResourcesListState,
+  McpResourcesRootProps,
+  McpResourcesRootState,
+  McpResourcesSearchProps,
+  McpResourcesSearchState,
+  McpResourcesTriggerProps,
+  McpResourcesTriggerState,
+} from "./mcp-resources";

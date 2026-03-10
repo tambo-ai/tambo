@@ -9,6 +9,7 @@ export {
   MessageInputMcpResourceButton,
   MessageInputPlainTextarea,
   MessageInputStagedImages,
+  MessageInputStopButton,
   MessageInputSubmitButton,
   MessageInputTextarea,
   MessageInputToolbar,

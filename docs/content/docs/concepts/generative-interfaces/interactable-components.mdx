@@ -14,14 +14,14 @@ This creates a conversational interface where traditional UI manipulation and na
 
 ## How Interactables Work
 
-Interactables are normal React components that you build and then wrap with Tambo's `withInteractable` to give Tambo access to them.
+Interactables are normal React components that you build and then wrap with Tambo's `withTamboInteractable` to give Tambo access to them.
 
 ```tsx
-import { withInteractable } from "@tambo-ai/react";
+import { withTamboInteractable } from "@tambo-ai/react";
 import { Note } from "./note";
 import { NotePropsSchema } from "./note-schema";
 
-export const InteractableNote = withInteractable(Note, {
+export const InteractableNote = withTamboInteractable(Note, {
   componentName: "Note",
   description:
     "A simple note component for recording ideas that can change title, content, and background color",
@@ -29,7 +29,7 @@ export const InteractableNote = withInteractable(Note, {
 });
 ```
 
-When you wrap a component with `withInteractable`, Tambo creates an automatic bidirectional connection:
+When you wrap a component with `withTamboInteractable`, Tambo creates an automatic bidirectional connection:
 
 **Automatic Context Sending**: The current props of the component are visible to Tambo automatically.
 

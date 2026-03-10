@@ -12,25 +12,21 @@ Build agents that speak your UI.
 
 ## Available Skills
 
-| Skill                       | Description                                    | Triggers                                                       |
-| --------------------------- | ---------------------------------------------- | -------------------------------------------------------------- |
-| `tambo:components`          | Create generative and interactable components  | "TamboComponent", "withInteractable", "propsSchema"            |
-| `tambo:component-rendering` | Handle streaming props and persistent state    | "useTamboStreamStatus", "useTamboComponentState", "propStatus" |
-| `tambo:threads`             | Manage threads, suggestions, voice, and images | "useTamboThread", "useTamboSuggestions", "useTamboVoice"       |
-| `tambo:tools-and-context`   | Register tools, MCP servers, and context       | "defineTool", "MCP", "contextHelpers", "resources"             |
-| `tambo:cli`                 | Project setup and component management         | "tambo init", "tambo add", "non-interactive"                   |
+| Skill                       | Description                             | Triggers                                     |
+| --------------------------- | --------------------------------------- | -------------------------------------------- |
+| `tambo:generative-ui`       | Build generative UI apps from scratch   | "new project", "generative UI", "create app" |
+| `tambo:building-with-tambo` | Build with Tambo in existing React apps | "add Tambo", "existing project", "integrate" |
 
 ## Usage
 
 Skills are automatically selected based on your question, or invoke directly:
 
 ```
-/tambo:components           # Generative and interactable components
-/tambo:component-rendering  # Streaming and state management
-/tambo:threads              # Thread management, suggestions, voice
-/tambo:tools-and-context    # Tools, MCP, context helpers
-/tambo:cli                  # CLI commands
+/tambo:generative-ui              # Build new generative UI apps
+/tambo:building-with-tambo           # Build with Tambo in existing projects
 ```
+
+Deeper implementation guides are linked from `building-with-tambo` and live in `plugins/tambo/skills/building-with-tambo/references/` (components, rendering, threads, tools/context, CLI, and registry workflows).
 
 ## Managing the Plugin
 

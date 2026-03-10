@@ -39,11 +39,8 @@ Choose **one** of these options:
 Supabase provides PostgreSQL with additional features. The `.env.example` files are pre-configured for this option.
 
 ```bash
-# Install Supabase CLI if you haven't
-npm install -g supabase
-
 # Start Supabase (includes PostgreSQL on port 54322)
-supabase start
+npx supabase start
 ```
 
 The default `DATABASE_URL` in `.env.example` files already points to Supabase:
@@ -104,6 +101,28 @@ npm run dev:sdk
 ```
 
 This runs the React SDK in watch mode (automatically rebuilds on changes) alongside the showcase app, making it easy to develop and test SDK changes.
+
+### Hot Reload Development
+
+Tambo uses modern hot reload patterns across different parts of the monorepo:
+
+#### Cloud Development
+
+`npm run dev:cloud` starts the web dashboard and API server with automatic restart when workspace packages change. When you edit files in `packages/core`, `packages/backend`, or `packages/db`, Turborepo detects the changes and automatically restarts the API server. The Next.js web app uses `transpilePackages` to compile workspace TypeScript directly, so changes to workspace packages are reflected immediately via Next.js HMR.
+
+#### SDK Development
+
+`npm run dev:sdk` runs the React SDK in watch mode alongside the showcase app. Edit react-sdk source and see changes reflected in the showcase via HMR. The showcase app also uses `transpilePackages`, so there's no manual rebuild step needed.
+
+#### Full Stack Development
+
+`npm run dev:cloud:full` runs everything (web, API, showcase, docs) with hot reload enabled across all apps.
+
+**Technical details:**
+
+- Next.js apps (web, showcase, docs) use `transpilePackages` to compile workspace TypeScript directly
+- NestJS API uses `turbo watch` with `interruptible: true` for automatic restart on dependency changes
+- No manual rebuild of workspace packages is needed for any app
 
 ### 6. Get a Local API Key
 
@@ -179,9 +198,9 @@ npm run dev:sdk          # SDK watch mode + showcase (for SDK development)
 
 **For Supabase:**
 
-1. Verify Supabase is running: `supabase status`
+1. Verify Supabase is running: `npx supabase status`
 2. Check `DATABASE_URL` uses port `54322`
-3. Restart if needed: `supabase stop && supabase start`
+3. Restart if needed: `npx supabase stop && npx supabase start`
 
 **For Docker PostgreSQL:**
 

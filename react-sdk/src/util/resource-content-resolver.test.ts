@@ -1,8 +1,8 @@
 import type { ReadResourceResult } from "@modelcontextprotocol/sdk/types.js";
-import { ServerType } from "../mcp/mcp-constants";
+import { ServerType } from "@tambo-ai/client";
 import type { McpServer } from "../mcp/tambo-mcp-provider";
 import type { ResourceSource } from "../model/resource-info";
-import { MCPTransport } from "../mcp/mcp-client";
+import { MCPTransport } from "@tambo-ai/client";
 
 import {
   resolveResourceContents,

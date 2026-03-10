@@ -1,20 +1,22 @@
-import { Slot } from "@radix-ui/react-slot";
+import { mergeProps } from "@base-ui/react/merge-props";
+import { useRender } from "@base-ui/react/use-render";
 import * as React from "react";
-import { BasePropsWithChildrenOrRenderFunction } from "../../types/component-render-or-children";
-import { useRender } from "../../use-render/use-render";
 import { useReasoningInfoRootContext } from "../root/reasoning-info-context";
 
-export interface ReasoningInfoStatusTextRenderProps {
+export interface ReasoningInfoStatusTextRenderProps extends Record<
+  string,
+  unknown
+> {
+  slot: string;
   text: string;
   isLoading: boolean | undefined;
   stepCount: number;
 }
 
-export type ReasoningInfoStatusTextProps =
-  BasePropsWithChildrenOrRenderFunction<
-    React.HTMLAttributes<HTMLSpanElement>,
-    ReasoningInfoStatusTextRenderProps
-  >;
+export type ReasoningInfoStatusTextProps = useRender.ComponentProps<
+  "span",
+  ReasoningInfoStatusTextRenderProps
+>;
 
 /**
  * Displays the reasoning status text.
@@ -22,29 +24,32 @@ export type ReasoningInfoStatusTextProps =
 export const ReasoningInfoStatusText = React.forwardRef<
   HTMLSpanElement,
   ReasoningInfoStatusTextProps
->(({ asChild, ...props }, ref) => {
+>(({ ...props }, ref) => {
   const { statusText, isLoading, reasoning } = useReasoningInfoRootContext();
 
-  const Comp = asChild ? Slot : "span";
-
   const renderProps: ReasoningInfoStatusTextRenderProps = {
+    slot: "reasoning-info-status-text",
     text: statusText,
     isLoading,
     stepCount: reasoning.length,
   };
+  const { render, ...componentProps } = props;
 
-  const { content, componentProps } = useRender(props, renderProps);
   const fallback = `${statusText} ${reasoning.length > 1 ? `(${reasoning.length} steps)` : ""}`;
-
-  return (
-    <Comp
-      ref={ref}
-      data-slot="reasoning-info-status-text"
-      data-loading={isLoading || undefined}
-      {...componentProps}
-    >
-      {content ?? fallback}
-    </Comp>
-  );
+  return useRender({
+    defaultTagName: "span",
+    ref,
+    render,
+    state: renderProps,
+    props: mergeProps(
+      {
+        children: fallback,
+      },
+      componentProps,
+      {
+        "data-loading": isLoading ? "true" : undefined,
+      },
+    ),
+  });
 });
 ReasoningInfoStatusText.displayName = "ReasoningInfo.StatusText";

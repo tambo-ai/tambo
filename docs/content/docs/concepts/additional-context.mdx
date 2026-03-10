@@ -13,12 +13,9 @@ Context Helpers are useful for giving Tambo information that might change betwee
 
 ```tsx
 <TamboProvider
-  contextHelpers={[
-    {
-      name: "current_time",
-      fn: () => ({ time: new Date().toISOString() }),
-    },
-  ]}
+  contextHelpers={{
+    current_time: () => ({ time: new Date().toISOString() }),
+  }}
 >
   {/* Your app */}
 </TamboProvider>

@@ -80,7 +80,7 @@ Persist on the page and update by ID across conversations. Use these for shoppin
 />
 
 ```tsx
-const InteractableNote = withInteractable(Note, {
+const InteractableNote = withTamboInteractable(Note, {
   componentName: "Note",
   description: "A note supporting title, content, and color modifications",
   propsSchema: z.object({

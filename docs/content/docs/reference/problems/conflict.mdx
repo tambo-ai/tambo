@@ -1,0 +1,39 @@
+---
+title: Conflict
+description: Error response when the request cannot be completed due to the current state of the resource
+---
+
+The API returns a `409 Conflict` status with this problem type when the request is valid, but cannot be completed because it conflicts with the current state of the resource.
+
+## Response Format
+
+```json
+{
+  "type": "https://docs.tambo.co/reference/problems/conflict",
+  "status": 409,
+  "title": "Conflict",
+  "detail": "A thread with this context key already exists",
+  "instance": "/threads"
+}
+```
+
+## Fields
+
+- **`type`** - Stable URI identifying this problem type
+- **`status`** - HTTP status code (always `409`)
+- **`title`** - Short summary of the problem (always `Conflict`)
+- **`detail`** - Human-readable description explaining what conflicted
+- **`instance`** - The specific request path that triggered this error
+
+## Handling
+
+When you receive this error:
+
+1. Read the `detail` field to understand the conflict
+2. Update your request to resolve the conflict (e.g., use a different identifier)
+3. Retry the request
+
+## See Also
+
+- [REST API Reference](/reference/rest-api) - Complete API documentation
+- [RFC 9457 Problem Details](https://www.rfc-editor.org/rfc/rfc9457.html) - Standard for error responses

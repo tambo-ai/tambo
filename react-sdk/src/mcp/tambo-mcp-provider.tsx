@@ -7,11 +7,11 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { ServerType } from "./mcp-constants";
 import {
+  ServerType,
   getMcpServerUniqueKey,
   type NormalizedMcpServerInfo,
-} from "../model/mcp-server-info";
+} from "@tambo-ai/client";
 import { useTamboMcpToken } from "../providers/tambo-mcp-token-provider";
 import {
   useTamboMcpServerInfos,
@@ -25,7 +25,7 @@ import {
   MCPHandlers,
   MCPSamplingHandler,
   MCPTransport,
-} from "./mcp-client";
+} from "@tambo-ai/client";
 
 /**
  * Extracts error message from MCP tool result content.
@@ -59,20 +59,18 @@ export function extractErrorMessage(content: unknown): string {
  * Normalized MCP server information as consumed by the provider.
  *
  * Extends `NormalizedMcpServerInfo` from the core model by:
- * - narrowing `handlers` to `Partial<MCPHandlers>`
  * - adding a stable `key` derived from URL/transport/headers
  * - adding `serverType` to distinguish internal vs browser-side servers
+ *
+ * The `handlers` field is inherited from `McpServerInfo` (via
+ * `NormalizedMcpServerInfo`) as `Partial<MCPHandlers>` — no redeclaration
+ * needed here.
  *
  * The registry is responsible for producing `NormalizedMcpServerInfo`
  * instances; this type adds the MCP-specific wiring needed to connect and
  * track clients.
  */
 interface McpServerConfig extends NormalizedMcpServerInfo {
-  /**
-   * Optional handlers for elicitation and sampling requests from the server.
-   * Interpreted as a partial set of MCP handlers.
-   */
-  handlers?: Partial<MCPHandlers>;
   /**
    * Stable identity for this server derived from its URL/transport/headers.
    * Present for all server states (connected or failed).
@@ -702,8 +700,8 @@ export const useTamboElicitationContext = useTamboMcpElicitation;
  * Normalizes registry server metadata into a `McpServerConfig`.
  *
  * Accepts a `NormalizedMcpServerInfo`, which already guarantees a concrete
- * `transport` and a `serverKey` derived by the registry, and narrows the
- * opaque `handlers` field to `Partial<MCPHandlers>`.
+ * `transport`, a `serverKey` derived by the registry, and a typed
+ * `handlers` field (`Partial<MCPHandlers>`).
  * @param server - The normalized MCP server info from the registry
  * @param serverType - The type of server (internal vs browser-side)
  * @returns The server config with typed handlers, unique key, and server type
@@ -717,11 +715,8 @@ function normalizeServerInfo(
   // The serverKey is kept for namespacing purposes (readable short name),
   // but the connection identity key must include all connection properties.
   const key = getMcpServerUniqueKey(server);
-  // Cast handlers to proper type if present
-  const handlers = server.handlers as Partial<MCPHandlers> | undefined;
   return {
     ...server,
-    handlers,
     key,
     serverType,
   };

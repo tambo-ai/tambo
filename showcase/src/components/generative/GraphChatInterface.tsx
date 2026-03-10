@@ -1,7 +1,31 @@
 import { Graph, graphSchema } from "@tambo-ai/ui-registry/components/graph";
 import { MessageThreadFull } from "@tambo-ai/ui-registry/components/message-thread-full";
+import type { Suggestion } from "@tambo-ai/react";
 import { useTambo } from "@tambo-ai/react";
 import { useEffect } from "react";
+
+const graphThreadSuggestions = [
+  {
+    id: "graph-suggestion-1",
+    title: "Create bar chart",
+    detailedSuggestion: "Create a bar chart of monthly revenue for Q1.",
+    messageId: "graph-bar-chart",
+  },
+  {
+    id: "graph-suggestion-2",
+    title: "Switch to line",
+    detailedSuggestion:
+      "Switch that data to a line chart to highlight trend changes.",
+    messageId: "graph-line-chart",
+  },
+  {
+    id: "graph-suggestion-3",
+    title: "Show channel split",
+    detailedSuggestion:
+      "Create a pie chart for traffic channels: organic, paid, and referral.",
+    messageId: "graph-pie-chart",
+  },
+] satisfies Suggestion[];
 
 export const GraphChatInterface = () => {
   const { registerComponent, currentThreadId } = useTambo();
@@ -45,7 +69,10 @@ export const GraphChatInterface = () => {
 
   return (
     <div className="flex flex-col" style={{ height: "700px" }}>
-      <MessageThreadFull className="rounded-lg" />
+      <MessageThreadFull
+        className="rounded-lg"
+        initialSuggestions={graphThreadSuggestions}
+      />
     </div>
   );
 };

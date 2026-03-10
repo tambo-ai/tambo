@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.54.1](https://github.com/tambo-ai/tambo/compare/tambo-v0.54.0...tambo-v0.54.1) (2026-03-09)
+
+
+### Miscellaneous Chores
+
+* **test:** bump coverage thresholds (2026-03-02) ([#2524](https://github.com/tambo-ai/tambo/issues/2524)) ([373de1a](https://github.com/tambo-ai/tambo/commit/373de1ac056130cc0425ae5a271354a33796a246))
+
+## [0.54.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.53.1...tambo-v0.54.0) (2026-02-25)
+
+
+### Features
+
+* **cli:** add anonymous CLI telemetry via posthog-node SDK ([#2479](https://github.com/tambo-ai/tambo/issues/2479)) ([4894767](https://github.com/tambo-ai/tambo/commit/48947679dcf25826695cc3f6a2e4eecdf1d4c4a6))
+
+
+### Miscellaneous Chores
+
+* **test:** bump coverage thresholds (2026-02-23) ([#2457](https://github.com/tambo-ai/tambo/issues/2457)) ([b26109c](https://github.com/tambo-ai/tambo/commit/b26109cdb4d023972ca7642cb465c0e720edc6ce))
+
 ## [0.53.1](https://github.com/tambo-ai/tambo/compare/tambo-v0.53.0...tambo-v0.53.1) (2026-02-18)
 
 

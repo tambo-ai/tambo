@@ -275,4 +275,74 @@ describe("TamboStreamProvider", () => {
       expect(result.current.state.threadMap.placeholder).toBeDefined();
     });
   });
+
+  describe("validation", () => {
+    it("throws when state is provided without dispatch", () => {
+      const consoleSpy = jest
+        .spyOn(console, "error")
+        .mockImplementation(() => {});
+
+      const Wrapper = ({ children }: { children: React.ReactNode }) => (
+        <QueryClientProvider client={queryClient}>
+          <TamboStreamProvider state={{} as never}>
+            {children}
+          </TamboStreamProvider>
+        </QueryClientProvider>
+      );
+
+      expect(() => {
+        renderHook(() => useStreamState(), { wrapper: Wrapper });
+      }).toThrow(
+        "TamboStreamProvider requires both state and dispatch when overriding",
+      );
+
+      consoleSpy.mockRestore();
+    });
+
+    it("throws when dispatch is provided without state", () => {
+      const consoleSpy = jest
+        .spyOn(console, "error")
+        .mockImplementation(() => {});
+
+      const Wrapper = ({ children }: { children: React.ReactNode }) => (
+        <QueryClientProvider client={queryClient}>
+          <TamboStreamProvider dispatch={jest.fn()}>
+            {children}
+          </TamboStreamProvider>
+        </QueryClientProvider>
+      );
+
+      expect(() => {
+        renderHook(() => useStreamState(), { wrapper: Wrapper });
+      }).toThrow(
+        "TamboStreamProvider requires both state and dispatch when overriding",
+      );
+
+      consoleSpy.mockRestore();
+    });
+
+    it("throws when threadManagement is missing required methods", () => {
+      const consoleSpy = jest
+        .spyOn(console, "error")
+        .mockImplementation(() => {});
+
+      const Wrapper = ({ children }: { children: React.ReactNode }) => (
+        <QueryClientProvider client={queryClient}>
+          <TamboStreamProvider
+            threadManagement={{ initThread: "not-a-function" } as never}
+          >
+            {children}
+          </TamboStreamProvider>
+        </QueryClientProvider>
+      );
+
+      expect(() => {
+        renderHook(() => useStreamState(), { wrapper: Wrapper });
+      }).toThrow(
+        "TamboStreamProvider: threadManagement override is missing required methods",
+      );
+
+      consoleSpy.mockRestore();
+    });
+  });
 });

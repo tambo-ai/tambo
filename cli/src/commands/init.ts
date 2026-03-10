@@ -29,6 +29,7 @@ import {
   detectFramework,
   getTamboApiKeyEnvVar,
 } from "../utils/framework-detection.js";
+import { EVENTS, trackEvent } from "../lib/telemetry.js";
 import { handleAddComponent } from "./add/index.js";
 import { setupTailwindAndGlobals } from "./add/tailwind-setup.js";
 import { handleAgentDocsUpdate } from "./shared/agent-docs.js";
@@ -844,6 +845,8 @@ async function handleFullSendInit(options: InitOptions): Promise<void> {
   // Setup tailwind after all components installed (outside spinner to allow prompts)
   await setupTailwindAndGlobals(process.cwd());
 
+  trackEvent(EVENTS.INIT_COMPLETED, { method: "cloud", is_full_send: true });
+
   displayFullSendInstructions(selectedComponents);
 }
 
@@ -1018,6 +1021,10 @@ export async function handleInit({
       console.log(chalk.green("\n✔ API key configured"));
 
       await handleAgentDocsUpdate({ yes: true, skipAgentDocs });
+      trackEvent(EVENTS.INIT_COMPLETED, {
+        method: "api-key",
+        is_full_send: false,
+      });
       console.log(
         chalk.green("\n✔ API key setup complete.") +
           chalk.gray(" Run 'tambo init' interactively for full project setup."),
@@ -1045,6 +1052,10 @@ export async function handleInit({
         }
 
         await handleAgentDocsUpdate({ yes: true, skipAgentDocs });
+        trackEvent(EVENTS.INIT_COMPLETED, {
+          method: "project-name",
+          is_full_send: false,
+        });
         console.log(chalk.green("\n✨ Initialization complete!"));
         return;
       } catch (error) {
@@ -1079,6 +1090,10 @@ export async function handleInit({
         }
 
         await handleAgentDocsUpdate({ yes: true, skipAgentDocs });
+        trackEvent(EVENTS.INIT_COMPLETED, {
+          method: "project-id",
+          is_full_send: false,
+        });
         console.log(chalk.green("\n✨ Initialization complete!"));
         return;
       } catch (error) {
@@ -1122,6 +1137,11 @@ export async function handleInit({
     if (!authSuccess) return;
 
     await handleAgentDocsUpdate({ yes, skipAgentDocs });
+
+    trackEvent(EVENTS.INIT_COMPLETED, {
+      method: "interactive",
+      is_full_send: false,
+    });
 
     console.log(chalk.green("\n✨ Basic initialization complete!"));
 

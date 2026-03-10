@@ -169,68 +169,46 @@ export function App() {
 
 > Note: `listResources` and `getResource` must be provided together. If you provide one, you must provide the other. This validation ensures resources can be both discovered and retrieved.
 
-## Programmatic Registration
+## Dynamic Registration
 
-You can also register resources programmatically using the registry context. This is useful for adding resources based on user actions or application state:
+You can register resources dynamically by passing them via the `resources` prop on `TamboProvider`. Manage the list with React state to add resources based on user actions or application state:
 
 ```tsx
-import { useTamboRegistry } from "@tambo-ai/react";
+import { useState } from "react";
+import { TamboProvider } from "@tambo-ai/react";
+import type { ListResourceItem } from "@tambo-ai/react";
 
-function DocumentUploader() {
-  const { registerResource } = useTamboRegistry();
+function App() {
+  const [resources, setResources] = useState<ListResourceItem[]>([]);
 
   const handleUpload = async (file: File) => {
-    const content = await file.text();
-
-    // Register the uploaded document as a resource
-    registerResource({
-      uri: `user-docs://${file.name}`,
-      name: file.name,
-      description: `User uploaded: ${file.name}`,
-      mimeType: file.type,
-    });
+    setResources((prev) => [
+      ...prev,
+      {
+        uri: `user-docs://${file.name}`,
+        name: file.name,
+        description: `User uploaded: ${file.name}`,
+        mimeType: file.type,
+      },
+    ]);
   };
 
   return (
-    <input
-      type="file"
-      onChange={(e) => {
-        if (e.target.files?.[0]) {
-          handleUpload(e.target.files[0]);
-        }
-      }}
-    />
+    <TamboProvider
+      apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY!}
+      resources={resources}
+    >
+      <input
+        type="file"
+        onChange={(e) => {
+          if (e.target.files?.[0]) {
+            handleUpload(e.target.files[0]);
+          }
+        }}
+      />
+      <Chat />
+    </TamboProvider>
   );
-}
-```
-
-For batch registration, use `registerResources`:
-
-```tsx
-import { useTamboRegistry } from "@tambo-ai/react";
-
-function DocumentLibrary() {
-  const { registerResources } = useTamboRegistry();
-
-  const loadLibrary = async () => {
-    const docs = await fetchAllDocuments();
-
-    registerResources(
-      docs.map((doc) => ({
-        uri: `library://${doc.id}`,
-        name: doc.title,
-        description: doc.summary,
-        mimeType: "text/plain",
-      })),
-    );
-  };
-
-  // Load on mount
-  useEffect(() => {
-    loadLibrary();
-  }, []);
-
-  return <div>Library loaded</div>;
 }
 ```
 

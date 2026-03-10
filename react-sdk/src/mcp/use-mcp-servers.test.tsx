@@ -17,7 +17,8 @@ import {
 
 // Mock the MCP client; use a mutable implementation to avoid TDZ issues
 let createImpl: jest.Mock = jest.fn();
-jest.mock("./mcp-client", () => ({
+jest.mock("@tambo-ai/client", () => ({
+  ...jest.requireActual("@tambo-ai/client"),
   MCPClient: { create: (...args: any[]) => createImpl(...args) },
   MCPTransport: { SSE: "sse", HTTP: "http" },
 }));

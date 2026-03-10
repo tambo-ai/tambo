@@ -23,7 +23,7 @@ const Message = {
 
 export type {
   MessageContentProps,
-  MessageContentRenderProps,
+  MessageContentState,
 } from "./content/message-content";
 export type {
   MessageImageRenderFnProps,
@@ -31,6 +31,12 @@ export type {
 } from "./images/message-images";
 export type { MessageLoadingIndicatorProps } from "./loading-indicator/message-loading-indicator";
 export type { MessageRenderedComponentProps } from "./rendered-component/rendered-component";
-export type { MessageRootProps } from "./root/message-root";
+export type {
+  MessageRootComponentProps,
+  MessageRootProps,
+  MessageRootState,
+} from "./root/message-root";
+
+export type { useRender } from "@base-ui/react/use-render";
 
 export { Message };

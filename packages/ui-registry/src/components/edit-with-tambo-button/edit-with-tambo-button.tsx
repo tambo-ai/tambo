@@ -100,9 +100,12 @@ export function EditWithTamboButton({
   // Close popover when generation completes
   useEffect(() => {
     if (shouldCloseOnComplete && !isGenerating) {
-      setShouldCloseOnComplete(false);
-      setIsOpen(false);
-      setPrompt("");
+      const timeoutId = window.setTimeout(() => {
+        setShouldCloseOnComplete(false);
+        setIsOpen(false);
+        setPrompt("");
+      }, 0);
+      return () => window.clearTimeout(timeoutId);
     }
   }, [shouldCloseOnComplete, isGenerating]);
 

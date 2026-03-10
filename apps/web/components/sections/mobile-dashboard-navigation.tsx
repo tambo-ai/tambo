@@ -18,21 +18,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useSignOut } from "@/hooks/nextauth";
 import { useToast } from "@/hooks/use-toast";
 import { siteConfig } from "@/lib/config";
 import { useMessageThreadPanel } from "@/providers/message-thread-panel-provider";
 import { api } from "@/trpc/react";
+import { DiscordLogoIcon } from "@radix-ui/react-icons";
 import { track } from "@vercel/analytics";
-import {
-  BookOpen,
-  Bug,
-  Calendar,
-  LogOut,
-  Menu,
-  MessageSquare,
-} from "lucide-react";
+import { BookOpen, Bug, Calendar, LogOut, Menu } from "lucide-react";
 import { useSession } from "next-auth/react";
-import { useSignOut } from "@/hooks/nextauth";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 
@@ -99,7 +93,7 @@ export function MobileDashboardNavigation() {
             <div className="flex flex-col text-left">
               <span className="text-sm font-medium">Hi, {displayName}</span>
               <span className="text-xs text-muted-foreground">
-                {session?.user?.email}
+                {session?.user?.email || "demo@tambo.co"}
               </span>
             </div>
           </DrawerTitle>
@@ -125,24 +119,14 @@ export function MobileDashboardNavigation() {
           )}
         </DrawerHeader>
 
-        <div className="px-6 flex flex-col gap-2">
-          <a
-            href={siteConfig.links.docs}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-3 px-4 py-3 rounded-md hover:bg-accent transition-colors cursor-pointer"
-          >
-            <BookOpen className="h-4 w-4" />
-            Docs
-          </a>
-
+        <div className="px-4 flex flex-col gap-2">
           <a
             href={siteConfig.links.discord}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-3 px-4 py-3 rounded-md hover:bg-accent transition-colors cursor-pointer"
+            className="flex items-center gap-3 px-4 py-2 rounded-md hover:bg-accent transition-colors cursor-pointer"
           >
-            <MessageSquare className="h-4 w-4" />
+            <DiscordLogoIcon className="h-4 w-4" />
             Discord
           </a>
 
@@ -150,7 +134,7 @@ export function MobileDashboardNavigation() {
             href={`${siteConfig.links.github}/issues/new`}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-3 px-4 py-3 rounded-md hover:bg-accent transition-colors cursor-pointer"
+            className="flex items-center gap-3 px-4 py-2 rounded-md hover:bg-accent transition-colors cursor-pointer"
           >
             <Bug className="h-4 w-4" />
             Create Issue
@@ -158,7 +142,7 @@ export function MobileDashboardNavigation() {
 
           <a
             href={`mailto:${siteConfig.links.email}?subject=Meeting Request`}
-            className="flex items-center gap-3 px-4 py-3 rounded-md hover:bg-accent transition-colors cursor-pointer"
+            className="flex items-center gap-3 px-4 py-2 rounded-md hover:bg-accent transition-colors cursor-pointer"
           >
             <Calendar className="h-4 w-4" />
             Meet with Founder
@@ -166,7 +150,7 @@ export function MobileDashboardNavigation() {
           <DrawerClose asChild>
             <button
               onClick={togglePanel}
-              className="flex items-center gap-3 px-4 py-3 rounded-md hover:bg-accent transition-colors cursor-pointer text-left"
+              className="flex items-center gap-3 px-4 py-2 rounded-md hover:bg-accent transition-colors cursor-pointer text-left"
             >
               <Image
                 src="/logo/icon/Octo-Icon.svg"
@@ -181,6 +165,18 @@ export function MobileDashboardNavigation() {
         </div>
 
         <DrawerFooter>
+          <Button className="w-full" variant="outline">
+            <a
+              href={siteConfig.links.docs}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-3 px-4 py-3 rounded-md hover:bg-accent transition-colors cursor-pointer"
+            >
+              <BookOpen className="h-4 w-4" />
+              Docs
+            </a>
+          </Button>
+
           <Button
             onClick={handleLogout}
             variant="destructive"

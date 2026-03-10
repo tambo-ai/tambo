@@ -3,7 +3,7 @@
 import { useTambo } from "@tambo-ai/react";
 import { cn } from "@tambo-ai/ui-registry/utils";
 import * as React from "react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 /**
  * Props for the CanvasSpace component
@@ -26,32 +26,38 @@ export function CanvasSpace({ className }: CanvasSpaceProps) {
   // Access the current Tambo thread context
   const { messages, currentThreadId } = useTambo();
 
-  // State for managing the currently rendered component
-  const [renderedComponent, setRenderedComponent] =
-    useState<React.ReactNode | null>(null);
+  const [eventComponent, setEventComponent] = useState<{
+    threadId: string | null;
+    component: React.ReactNode | null;
+  }>({
+    threadId: currentThreadId,
+    component: null,
+  });
 
   // Ref for the scrollable container to enable auto-scrolling
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  // Track previous thread ID to handle thread changes
-  const previousThreadId = useRef<string | null>(null);
-
-  /**
-   * Effect to clear the canvas when switching between threads
-   * Prevents components from previous threads being displayed in new threads
-   */
-  useEffect(() => {
-    // If the thread ID changed, clear the canvas
-    if (
-      previousThreadId.current &&
-      previousThreadId.current !== currentThreadId
-    ) {
-      setRenderedComponent(null);
+  const latestMessageComponent = useMemo(() => {
+    if (!messages.length) {
+      return null;
     }
 
-    // Update the previous thread ID reference
-    previousThreadId.current = currentThreadId;
-  }, [currentThreadId]);
+    // In V1, renderedComponent is on component content blocks, not on the message itself
+    let latestComponent: React.ReactNode | null = null;
+    for (const msg of messages) {
+      for (const content of msg.content) {
+        if (content.type === "component" && content.renderedComponent) {
+          latestComponent = content.renderedComponent;
+        }
+      }
+    }
+    return latestComponent;
+  }, [messages]);
+
+  const renderedComponent =
+    eventComponent.threadId === currentThreadId && eventComponent.component
+      ? eventComponent.component
+      : latestMessageComponent;
 
   /**
    * Effect to handle custom 'tambo:showComponent' events
@@ -62,10 +68,16 @@ export function CanvasSpace({ className }: CanvasSpaceProps) {
       event: CustomEvent<{ messageId: string; component: React.ReactNode }>,
     ) => {
       try {
-        setRenderedComponent(event.detail.component);
+        setEventComponent({
+          threadId: currentThreadId,
+          component: event.detail.component,
+        });
       } catch (error) {
         console.error("Failed to render component:", error);
-        setRenderedComponent(null);
+        setEventComponent({
+          threadId: currentThreadId,
+          component: null,
+        });
       }
     };
 
@@ -80,32 +92,7 @@ export function CanvasSpace({ className }: CanvasSpaceProps) {
         handleShowComponent as EventListener,
       );
     };
-  }, []);
-
-  /**
-   * Effect to automatically display the latest component from thread messages
-   * Updates when thread messages change or new components are added
-   */
-  useEffect(() => {
-    if (!messages.length) {
-      setRenderedComponent(null);
-      return;
-    }
-
-    // In V1, renderedComponent is on component content blocks, not on the message itself
-    let latestComponent: React.ReactNode | null = null;
-    for (const msg of messages) {
-      for (const content of msg.content) {
-        if (content.type === "component" && content.renderedComponent) {
-          latestComponent = content.renderedComponent;
-        }
-      }
-    }
-
-    if (latestComponent) {
-      setRenderedComponent(latestComponent);
-    }
-  }, [messages]);
+  }, [currentThreadId]);
 
   /**
    * Effect to auto-scroll to bottom when new components are rendered

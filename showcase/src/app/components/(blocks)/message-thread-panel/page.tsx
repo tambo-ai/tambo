@@ -5,6 +5,28 @@ import { InstallationSection } from "@/components/installation-section";
 import { MessageThreadPanel } from "@tambo-ai/ui-registry/components/message-thread-panel";
 
 export default function MessageThreadPanelPage() {
+  const exampleSuggestions = [
+    {
+      id: "panel-suggestion-1",
+      title: "Summarize KPIs",
+      detailedSuggestion: "Summarize today’s KPI movement from this dashboard.",
+      messageId: "panel-summarize-kpis",
+    },
+    {
+      id: "panel-suggestion-2",
+      title: "Find risks",
+      detailedSuggestion: "Which metrics need attention right now, and why?",
+      messageId: "panel-find-risks",
+    },
+    {
+      id: "panel-suggestion-3",
+      title: "Recommend actions",
+      detailedSuggestion:
+        "Suggest next actions for the team based on this data.",
+      messageId: "panel-recommend-actions",
+    },
+  ];
+
   return (
     <div className="prose max-w-8xl space-y-12">
       {/* Title & Description */}
@@ -38,12 +60,24 @@ export default function MessageThreadPanelPage() {
                     <div className="h-32 bg-muted/80 rounded-lg" />
                   </div>
                 </div>
-                <MessageThreadPanel className="right" />
+                <MessageThreadPanel
+                  className="right"
+                  initialSuggestions={exampleSuggestions}
+                />
               </div>
             }
             code={`import { MessageThreadPanel } from "@/components/tambo/message-thread-panel";
 
 export function DashboardWithChat() {
+  const exampleSuggestions = [
+    {
+      id: "suggestion-1",
+      title: "Summarize KPIs",
+      detailedSuggestion: "Summarize the key trends on this dashboard.",
+      messageId: "summary-query",
+    },
+  ];
+
   return (
     <div className="flex h-screen">
       {/* Main content area */}
@@ -53,7 +87,10 @@ export function DashboardWithChat() {
       </div>
 
       {/* Chat panel on the right*/}
-      <MessageThreadPanel className="right" />
+      <MessageThreadPanel
+        className="right"
+        initialSuggestions={exampleSuggestions}
+      />
     </div>
   );
 }`}
@@ -109,6 +146,15 @@ export function DashboardWithChat() {
                 <td>CSSProperties</td>
                 <td>-</td>
                 <td>Inline styles for customizing width, height, etc.</td>
+              </tr>
+              <tr>
+                <td>initialSuggestions</td>
+                <td>Suggestion[]</td>
+                <td>-</td>
+                <td>
+                  Optional caller-provided starter suggestions shown before a
+                  conversation begins
+                </td>
               </tr>
             </tbody>
           </table>
