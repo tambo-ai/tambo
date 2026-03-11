@@ -320,6 +320,7 @@ export function TamboStubProvider({
       registerComponent: () => {},
       registerTool: () => {},
       registerTools: () => {},
+      unregisterTools: () => {},
       addToolAssociation: () => {},
       registerMcpServer: () => {},
       registerMcpServers: () => {},

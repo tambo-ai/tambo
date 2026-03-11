@@ -66,6 +66,7 @@ describe("useTambo", () => {
     registerComponent: jest.fn(),
     registerTool: jest.fn(),
     registerTools: jest.fn(),
+    unregisterTools: jest.fn(),
     addToolAssociation: jest.fn(),
     registerMcpServer: jest.fn(),
     registerMcpServers: jest.fn(),
