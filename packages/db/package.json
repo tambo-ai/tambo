@@ -28,7 +28,7 @@
     "@tambo-ai/eslint-config": "*",
     "@tambo-ai/typescript-config": "*",
     "@types/jsonwebtoken": "^9.0.10",
-    "@types/pg": "^8.16.0",
+    "@types/pg": "^8.18.0",
     "drizzle-kit": "^0.31.9"
   },
   "dependencies": {
@@ -36,7 +36,7 @@
     "drizzle-orm": "^0.45.1",
     "jsonwebtoken": "^9.0.2",
     "openai": "^6.16.0",
-    "pg": "^8.17.2",
+    "pg": "^8.20.0",
     "superjson": "^2.2.6"
   }
 }

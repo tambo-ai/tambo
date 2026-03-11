@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.132.4](https://github.com/tambo-ai/tambo/compare/web-v0.132.3...web-v0.132.4) (2026-03-11)
+
+
+### Bug Fixes
+
+* **react-sdk:** clean up interactable tools on component unmount ([#2610](https://github.com/tambo-ai/tambo/issues/2610)) ([4aa1eed](https://github.com/tambo-ai/tambo/commit/4aa1eed9a8177e4f43c4505c1e156f3d0e6a8c16))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump the tiptap group with 9 updates ([#2603](https://github.com/tambo-ai/tambo/issues/2603)) ([fd6104b](https://github.com/tambo-ai/tambo/commit/fd6104b7ad20444ee5d13745a84443d62a93b250))
+
 ## [0.132.3](https://github.com/tambo-ai/tambo/compare/web-v0.132.2...web-v0.132.3) (2026-03-10)
 
 
