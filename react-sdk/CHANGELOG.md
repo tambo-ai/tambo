@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.1](https://github.com/tambo-ai/tambo/compare/react-v1.2.0...react-v1.2.1) (2026-03-11)
+
+
+### Bug Fixes
+
+* **react-sdk:** clean up interactable tools on component unmount ([#2610](https://github.com/tambo-ai/tambo/issues/2610)) ([4aa1eed](https://github.com/tambo-ai/tambo/commit/4aa1eed9a8177e4f43c4505c1e156f3d0e6a8c16))
+
 ## [1.2.0](https://github.com/tambo-ai/tambo/compare/react-v1.1.0...react-v1.2.0) (2026-03-05)
 
 
