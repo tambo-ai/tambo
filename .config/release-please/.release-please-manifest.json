@@ -6,6 +6,6 @@
   "docs": "1.30.2",
   "packages/client": "1.0.1",
   "packages/react-ui-base": "0.1.4",
-  "react-sdk": "1.2.0",
+  "react-sdk": "1.2.1",
   "showcase": "0.37.3"
 }
