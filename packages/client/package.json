@@ -72,7 +72,7 @@
     "@tambo-ai/typescript-config": "*",
     "@types/jest": "^30.0.0",
     "@types/json-schema": "^7.0.15",
-    "@types/node": "^22.19.8",
+    "@types/node": "^22.19.15",
     "concurrently": "^9.2.1",
     "eslint": "^9.39.4",
     "eslint-plugin-jsdoc": "^62.7.1",
