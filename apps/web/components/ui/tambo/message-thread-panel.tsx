@@ -1,14 +1,13 @@
 "use client";
 
 import { MessageInputTextareaWithInteractables } from "@/components/ui/tambo/message-input-with-interactables";
-import { createProjectContextHelper } from "@/lib/tambo/context-helpers/project-context-helper";
+import { useProjectContextHelper } from "@/lib/tambo/context-helpers/project-context-helper";
 import { registerAllTools } from "@/lib/tambo/tools/tool-registry";
 import { cn } from "@/lib/utils";
 import { useMessageThreadPanel } from "@/providers/message-thread-panel-provider";
 import { api, useTRPCClient } from "@/trpc/react";
 import {
   useTambo,
-  useTamboContextHelpers,
   type Suggestion,
   type TamboThreadMessage,
 } from "@tambo-ai/react";
@@ -174,8 +173,6 @@ export const MessageThreadPanel = forwardRef<
   const { registerTool } = useTambo();
   const trpcClient = useTRPCClient();
   const utils = api.useUtils();
-  const { addContextHelper } = useTamboContextHelpers();
-
   /**
    * Registers all tambo tools with the thread.
    * This effect runs once when the component mounts and registers tools for tambo
@@ -185,13 +182,7 @@ export const MessageThreadPanel = forwardRef<
     registerAllTools(registerTool, { trpcClient, utils });
   }, [registerTool, trpcClient, utils]);
 
-  /**
-   * Registers a context helper that provides the user's projects
-   * and identifies which project they're currently viewing.
-   */
-  useEffect(() => {
-    addContextHelper("userProjects", createProjectContextHelper(trpcClient));
-  }, [addContextHelper, trpcClient]);
+  useProjectContextHelper();
 
   const { data: session } = useSession();
   const isUserLoggedIn = !!session;

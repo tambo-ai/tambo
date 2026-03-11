@@ -1,4 +1,8 @@
-import type { useTRPCClient } from "@/trpc/react";
+"use client";
+
+import { api } from "@/trpc/react";
+import { useTamboContextHelpers } from "@tambo-ai/react";
+import { useCallback, useEffect } from "react";
 
 /**
  * Extracts the project ID from the current URL pathname.
@@ -33,32 +37,36 @@ interface ProjectContextData {
 }
 
 /**
- * Creates a context helper that provides the user's projects and
- * identifies which project they're currently viewing based on the URL.
- *
- * @param trpcClient - The tRPC client for fetching project data
- * @returns An async context helper function
+ * Hook that registers a context helper providing the user's projects
+ * and which project they're currently viewing based on the URL.
+ * Uses React Query for data fetching so it stays within React lifecycles.
  */
-export function createProjectContextHelper(
-  trpcClient: ReturnType<typeof useTRPCClient>,
-) {
-  return async (): Promise<ProjectContextData | null> => {
-    try {
-      const projects = await trpcClient.project.getUserProjects.query();
+export function useProjectContextHelper() {
+  const { data: projects } = api.project.getUserProjects.useQuery(undefined, {
+    staleTime: 30_000,
+  });
+  const { addContextHelper } = useTamboContextHelpers();
 
-      const currentProjectId = extractProjectIdFromUrl();
-      const currentProject = currentProjectId
-        ? projects.find((p) => p.id === currentProjectId)
-        : null;
-
-      return {
-        currentProjectId,
-        currentProjectName: currentProject?.name ?? null,
-        projects: projects.map((p) => ({ id: p.id, name: p.name })),
-      };
-    } catch {
-      // User might not be logged in — that's fine, skip the context
+  const projectContextHelper = useCallback((): ProjectContextData | null => {
+    if (!projects) {
       return null;
     }
-  };
+
+    const currentProjectId = extractProjectIdFromUrl();
+    const currentProject = currentProjectId
+      ? projects.find((p) => p.id === currentProjectId)
+      : null;
+
+    return {
+      currentProjectId,
+      currentProjectName: currentProject?.name ?? null,
+      projects: projects.map(
+        (p): ProjectSummary => ({ id: p.id, name: p.name }),
+      ),
+    };
+  }, [projects]);
+
+  useEffect(() => {
+    addContextHelper("userProjects", projectContextHelper);
+  }, [addContextHelper, projectContextHelper]);
 }
