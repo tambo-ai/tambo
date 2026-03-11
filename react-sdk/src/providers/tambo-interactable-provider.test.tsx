@@ -24,13 +24,13 @@ jest.mock("./tambo-context-helpers-provider", () => ({
 }));
 
 // Mock the registry provider
-const mockRegisterTool = jest.fn();
-const mockUnregisterTools = jest.fn();
+const mockRegisterToolForComponent = jest.fn();
+const mockUnregisterToolsForComponent = jest.fn();
 
 jest.mock("./tambo-registry-provider", () => ({
   useTamboRegistry: () => ({
-    registerTool: mockRegisterTool,
-    unregisterTools: mockUnregisterTools,
+    registerToolForComponent: mockRegisterToolForComponent,
+    unregisterToolsForComponent: mockUnregisterToolsForComponent,
   }),
 }));
 
@@ -105,9 +105,9 @@ describe("TamboInteractableProvider - State Update Tool Registration", () => {
       componentId = result.current.addInteractableComponent(component);
     });
 
-    // Should register both update_component_ and update_component_state_ tools
-    const registeredToolNames = mockRegisterTool.mock.calls.map(
-      (call) => call[0].name,
+    // Should register both update_component_ and update_component_state_ tools via registerToolForComponent
+    const registeredToolNames = mockRegisterToolForComponent.mock.calls.map(
+      (call) => call[1].name,
     );
     expect(registeredToolNames).toContain(
       `update_component_props_${componentId}`,
@@ -132,13 +132,13 @@ describe("TamboInteractableProvider - State Update Tool Registration", () => {
       componentId = result.current.addInteractableComponent(component);
     });
 
-    const stateToolCall = mockRegisterTool.mock.calls.find((call) =>
-      call[0].name.startsWith("update_component_state_"),
+    const stateToolCall = mockRegisterToolForComponent.mock.calls.find((call) =>
+      call[1].name.startsWith("update_component_state_"),
     );
 
     expect(stateToolCall).toBeDefined();
-    expect(stateToolCall[0].description).toContain(componentId);
-    expect(stateToolCall[0].description).toContain("MyComponent");
+    expect(stateToolCall[1].description).toContain(componentId);
+    expect(stateToolCall[1].description).toContain("MyComponent");
   });
 
   it("should allow state update tool to update multiple state values", () => {
@@ -157,11 +157,11 @@ describe("TamboInteractableProvider - State Update Tool Registration", () => {
     });
 
     // Find the state update tool and call it
-    const stateToolCall = mockRegisterTool.mock.calls.find((call) =>
-      call[0].name.startsWith("update_component_state_"),
+    const stateToolCall = mockRegisterToolForComponent.mock.calls.find((call) =>
+      call[1].name.startsWith("update_component_state_"),
     );
 
-    const toolFn = stateToolCall[0].tool;
+    const toolFn = stateToolCall[1].tool;
 
     act(() => {
       toolFn({ componentId, newState: { count: 5, name: "test" } });
@@ -192,11 +192,11 @@ describe("TamboInteractableProvider - State Update Tool Registration", () => {
     });
 
     // Find the state update tool and call it with a new key
-    const stateToolCall = mockRegisterTool.mock.calls.find((call) =>
-      call[0].name.startsWith("update_component_state_"),
+    const stateToolCall = mockRegisterToolForComponent.mock.calls.find((call) =>
+      call[1].name.startsWith("update_component_state_"),
     );
 
-    const toolFn = stateToolCall[0].tool;
+    const toolFn = stateToolCall[1].tool;
 
     act(() => {
       toolFn({ componentId, newState: { newKey: "value2" } });
@@ -227,13 +227,13 @@ describe("TamboInteractableProvider - State Update Tool Registration", () => {
     });
 
     // Find the state update tool
-    const stateToolCall = mockRegisterTool.mock.calls.find((call) =>
-      call[0].name.startsWith("update_component_state_"),
+    const stateToolCall = mockRegisterToolForComponent.mock.calls.find((call) =>
+      call[1].name.startsWith("update_component_state_"),
     );
 
     expect(stateToolCall).toBeDefined();
     // The inputSchema should contain the partial stateSchema
-    expect(stateToolCall[0].inputSchema).toBeDefined();
+    expect(stateToolCall[1].inputSchema).toBeDefined();
   });
 
   it("should return warning when updating state with empty object", () => {
@@ -252,11 +252,11 @@ describe("TamboInteractableProvider - State Update Tool Registration", () => {
     });
 
     // Find the state update tool and call it with empty state
-    const stateToolCall = mockRegisterTool.mock.calls.find((call) =>
-      call[0].name.startsWith("update_component_state_"),
+    const stateToolCall = mockRegisterToolForComponent.mock.calls.find((call) =>
+      call[1].name.startsWith("update_component_state_"),
     );
 
-    const toolFn = stateToolCall[0].tool;
+    const toolFn = stateToolCall[1].tool;
 
     let updateResult = "";
     act(() => {
@@ -312,12 +312,12 @@ describe("TamboInteractableProvider - State Update Tool Registration", () => {
     });
 
     // Find the state update tool
-    const stateToolCall = mockRegisterTool.mock.calls.find((call) =>
-      call[0].name.startsWith("update_component_state_"),
+    const stateToolCall = mockRegisterToolForComponent.mock.calls.find((call) =>
+      call[1].name.startsWith("update_component_state_"),
     );
 
     expect(stateToolCall).toBeDefined();
-    const inputSchema = stateToolCall[0].inputSchema;
+    const inputSchema = stateToolCall[1].inputSchema;
 
     // The newState property should not have required fields (partial schema)
     expect(inputSchema.properties.newState).toBeDefined();
@@ -342,12 +342,12 @@ describe("TamboInteractableProvider - State Update Tool Registration", () => {
     });
 
     // Find the state update tool
-    const stateToolCall = mockRegisterTool.mock.calls.find((call) =>
-      call[0].name.startsWith("update_component_state_"),
+    const stateToolCall = mockRegisterToolForComponent.mock.calls.find((call) =>
+      call[1].name.startsWith("update_component_state_"),
     );
 
     expect(stateToolCall).toBeDefined();
-    const inputSchema = stateToolCall[0].inputSchema;
+    const inputSchema = stateToolCall[1].inputSchema;
 
     // The newState property should allow additional properties
     expect(inputSchema.properties.newState.additionalProperties).toBe(true);
@@ -374,14 +374,14 @@ describe("TamboInteractableProvider - State Update Tool Registration", () => {
     });
 
     // Find the props update tool (not the state one)
-    const propsToolCall = mockRegisterTool.mock.calls.find(
+    const propsToolCall = mockRegisterToolForComponent.mock.calls.find(
       (call) =>
-        call[0].name.startsWith("update_component_") &&
-        !call[0].name.includes("state"),
+        call[1].name.startsWith("update_component_") &&
+        !call[1].name.includes("state"),
     );
 
     expect(propsToolCall).toBeDefined();
-    const inputSchema = propsToolCall[0].inputSchema;
+    const inputSchema = propsToolCall[1].inputSchema;
 
     // The newProps property should not have required fields (partial schema)
     expect(inputSchema.properties.newProps).toBeDefined();
@@ -404,12 +404,12 @@ describe("TamboInteractableProvider - State Update Tool Registration", () => {
       result.current.addInteractableComponent(component);
     });
 
-    const propsToolCall = mockRegisterTool.mock.calls.find((call) =>
-      call[0].name.startsWith("update_component_props_"),
+    const propsToolCall = mockRegisterToolForComponent.mock.calls.find((call) =>
+      call[1].name.startsWith("update_component_props_"),
     );
 
     expect(propsToolCall).toBeDefined();
-    expect(propsToolCall[0].annotations).toEqual(
+    expect(propsToolCall[1].annotations).toEqual(
       expect.objectContaining({ tamboStreamableHint: true }),
     );
   });
@@ -428,12 +428,12 @@ describe("TamboInteractableProvider - State Update Tool Registration", () => {
       result.current.addInteractableComponent(component);
     });
 
-    const stateToolCall = mockRegisterTool.mock.calls.find((call) =>
-      call[0].name.startsWith("update_component_state_"),
+    const stateToolCall = mockRegisterToolForComponent.mock.calls.find((call) =>
+      call[1].name.startsWith("update_component_state_"),
     );
 
     expect(stateToolCall).toBeDefined();
-    expect(stateToolCall[0].annotations).toEqual(
+    expect(stateToolCall[1].annotations).toEqual(
       expect.objectContaining({ tamboStreamableHint: true }),
     );
   });
@@ -453,17 +453,17 @@ describe("TamboInteractableProvider - State Update Tool Registration", () => {
       result.current.addInteractableComponent(component);
     });
 
-    const propsToolCall = mockRegisterTool.mock.calls.find((call) =>
-      call[0].name.startsWith("update_component_props_"),
+    const propsToolCall = mockRegisterToolForComponent.mock.calls.find((call) =>
+      call[1].name.startsWith("update_component_props_"),
     );
-    const stateToolCall = mockRegisterTool.mock.calls.find((call) =>
-      call[0].name.startsWith("update_component_state_"),
+    const stateToolCall = mockRegisterToolForComponent.mock.calls.find((call) =>
+      call[1].name.startsWith("update_component_state_"),
     );
 
-    expect(propsToolCall[0].annotations).toEqual(
+    expect(propsToolCall[1].annotations).toEqual(
       expect.objectContaining({ tamboStreamableHint: false }),
     );
-    expect(stateToolCall[0].annotations).toEqual(
+    expect(stateToolCall[1].annotations).toEqual(
       expect.objectContaining({ tamboStreamableHint: false }),
     );
   });
@@ -484,14 +484,14 @@ describe("TamboInteractableProvider - State Update Tool Registration", () => {
     });
 
     // Find the props update tool
-    const propsToolCall = mockRegisterTool.mock.calls.find(
+    const propsToolCall = mockRegisterToolForComponent.mock.calls.find(
       (call) =>
-        call[0].name.startsWith("update_component_") &&
-        !call[0].name.includes("state"),
+        call[1].name.startsWith("update_component_") &&
+        !call[1].name.includes("state"),
     );
 
     expect(propsToolCall).toBeDefined();
-    const inputSchema = propsToolCall[0].inputSchema;
+    const inputSchema = propsToolCall[1].inputSchema;
 
     // The newProps property should allow additional properties
     expect(inputSchema.properties.newProps.additionalProperties).toBe(true);
@@ -516,16 +516,13 @@ describe("TamboInteractableProvider - State Update Tool Registration", () => {
       componentId = result.current.addInteractableComponent(component);
     });
 
-    mockUnregisterTools.mockClear();
+    mockUnregisterToolsForComponent.mockClear();
 
     act(() => {
       result.current.removeInteractableComponent(componentId!);
     });
 
-    expect(mockUnregisterTools).toHaveBeenCalledWith([
-      `update_component_props_${componentId!}`,
-      `update_component_state_${componentId!}`,
-    ]);
+    expect(mockUnregisterToolsForComponent).toHaveBeenCalledWith(componentId!);
   });
 
   it("should unregister global tools when all components are removed", () => {
@@ -547,18 +544,16 @@ describe("TamboInteractableProvider - State Update Tool Registration", () => {
       componentId = result.current.addInteractableComponent(component);
     });
 
-    mockUnregisterTools.mockClear();
+    mockUnregisterToolsForComponent.mockClear();
 
     act(() => {
       result.current.removeInteractableComponent(componentId!);
     });
 
     // Should also unregister global interactable tools once list is empty
-    expect(mockUnregisterTools).toHaveBeenCalledWith([
-      "get_all_interactable_components",
-      "get_interactable_component_by_id",
-      "remove_interactable_component",
-    ]);
+    expect(mockUnregisterToolsForComponent).toHaveBeenCalledWith(
+      "__interactable_global__",
+    );
   });
 
   it("should unregister all per-component tools when clearing all components", () => {
@@ -585,19 +580,13 @@ describe("TamboInteractableProvider - State Update Tool Registration", () => {
       });
     });
 
-    mockUnregisterTools.mockClear();
+    mockUnregisterToolsForComponent.mockClear();
 
     act(() => {
       result.current.clearAllInteractableComponents();
     });
 
-    expect(mockUnregisterTools).toHaveBeenCalledWith(
-      expect.arrayContaining([
-        `update_component_props_${id1!}`,
-        `update_component_state_${id1!}`,
-        `update_component_props_${id2!}`,
-        `update_component_state_${id2!}`,
-      ]),
-    );
+    expect(mockUnregisterToolsForComponent).toHaveBeenCalledWith(id1!);
+    expect(mockUnregisterToolsForComponent).toHaveBeenCalledWith(id2!);
   });
 });
