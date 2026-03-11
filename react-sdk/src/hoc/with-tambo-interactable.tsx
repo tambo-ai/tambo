@@ -152,17 +152,20 @@ export function withTamboInteractable<ComponentProps extends object>(
       }
     }, [addInteractableComponent, componentProps, onInteractableReady]);
 
-    // Register the component as interactable on mount, remove on unmount
+    // Register the component as interactable on mount
     useEffect(() => {
       registerComponent();
+    }, [registerComponent]);
 
+    // Clean up on unmount only, keyed on stable values
+    useEffect(() => {
       return () => {
         if (isInitialized.current && interactableId) {
           removeInteractableComponent(interactableId);
           isInitialized.current = false;
         }
       };
-    }, [registerComponent, interactableId, removeInteractableComponent]);
+    }, [interactableId, removeInteractableComponent]);
 
     // Update the interactable component when props change from parent
     useEffect(() => {

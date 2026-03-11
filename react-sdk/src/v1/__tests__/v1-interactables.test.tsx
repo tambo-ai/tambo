@@ -28,6 +28,11 @@ function createMockRegistry() {
         toolRegistry[tool.name] = tool;
       }),
       registerTools: jest.fn(),
+      unregisterTools: jest.fn((names: string[]) => {
+        for (const name of names) {
+          delete toolRegistry[name];
+        }
+      }),
       addToolAssociation: jest.fn(),
       registerMcpServer: jest.fn(),
       registerMcpServers: jest.fn(),

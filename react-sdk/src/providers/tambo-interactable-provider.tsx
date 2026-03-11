@@ -435,15 +435,13 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
   );
 
   const clearAllInteractableComponents = useCallback(() => {
-    setInteractableComponents((prev) => {
-      const toolNames = prev.flatMap((c) => [
-        `update_component_props_${c.id}`,
-        `update_component_state_${c.id}`,
-      ]);
-      unregisterTools(toolNames);
-      return [];
-    });
-  }, [unregisterTools]);
+    const toolNames = interactableComponents.flatMap((c) => [
+      `update_component_props_${c.id}`,
+      `update_component_state_${c.id}`,
+    ]);
+    unregisterTools(toolNames);
+    setInteractableComponents([]);
+  }, [interactableComponents, unregisterTools]);
 
   const setInteractableStateValue = useCallback(
     (componentId: string, key: string, value: unknown) => {
