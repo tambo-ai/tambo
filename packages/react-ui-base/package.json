@@ -1,7 +1,7 @@
 {
   "name": "@tambo-ai/react-ui-base",
-  "version": "0.1.0-alpha.8",
-  "description": "Headless base components for Tambo AI",
+  "version": "0.1.4",
+  "description": "Headless base components/Primitives for Tambo AI",
   "author": {
     "name": "Tambo",
     "url": "https://tambo.co"
@@ -137,6 +137,17 @@
       "require": {
         "types": "./dist/cjs/mcp-resources/index.d.ts",
         "default": "./dist/cjs/mcp-resources/index.cjs"
+      }
+    },
+    "./generation-stage": {
+      "@tambo-ai/source": "./src/generation-stage/index.tsx",
+      "import": {
+        "types": "./dist/esm/generation-stage/index.d.ts",
+        "default": "./dist/esm/generation-stage/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/generation-stage/index.d.ts",
+        "default": "./dist/cjs/generation-stage/index.cjs"
       }
     },
     "./types": {

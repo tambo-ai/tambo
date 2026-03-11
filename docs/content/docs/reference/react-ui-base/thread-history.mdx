@@ -118,7 +118,7 @@ No custom props. Provides thread data and status through render state.
 | -------- | ---------------- | -------- | --------------------------------- |
 | `thread` | `ThreadListItem` | Required | The thread to display and select. |
 
-Renders as `<button>`. Sets `data-active` when the thread is the current active thread.
+Renders as `<button>`. Sets `data-active` and `aria-current="true"` when the thread is the current active thread. When no children are provided, renders `thread.name` as the button label, falling back to `thread.id` if the name is empty or undefined.
 
 **Render state:**
 
@@ -129,14 +129,19 @@ Renders as `<button>`. Sets `data-active` when the thread is the current active 
 
 ### NewThreadButton
 
-No custom props. Renders as `<button>`. Calls `startNewThread()` and `refetch()` on click.
+No custom props. Renders as `<button>`. Calls `startNewThread()`, `refetch()`, and `onThreadChange()` on click.
+
+**Render state:**
+
+| Field  | Type     | Description              |
+| ------ | -------- | ------------------------ |
+| `slot` | `string` | The component slot name. |
 
 ## Accessibility
 
-- `Item` renders as a `<button>` for keyboard and screen-reader accessibility.
-- `Search` renders as an `<input>` with appropriate type.
+- `Item` renders as a `<button>` with `aria-current="true"` on the active thread for screen-reader accessibility.
+- `Search` renders as an `<input>` with `aria-label="Search threads"` built in.
 - `NewThreadButton` renders as a `<button>`.
-- Consumers should provide visible labels or `aria-label` for screen readers.
 
 ## Styling Hooks
 
@@ -146,3 +151,4 @@ No custom props. Renders as `<button>`. Calls `startNewThread()` and `refetch()`
 - `data-slot="thread-history-item"`
 - `data-slot="thread-history-new-thread-button"`
 - `data-active` on `Item` when thread is active
+- `aria-current="true"` on `Item` when thread is active

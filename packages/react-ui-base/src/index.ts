@@ -6,6 +6,20 @@
  * allowing consumers to apply their own design system.
  */
 
+// GenerationStage components
+export { GenerationStage } from "./generation-stage";
+export type {
+  GenerationStageContentProps,
+  GenerationStageContentState,
+  GenerationStageContextValue,
+  GenerationStageRootProps,
+  GenerationStageRootState,
+  GenerationStageStreamingProps,
+  GenerationStageStreamingState,
+  GenerationStageWaitingProps,
+  GenerationStageWaitingState,
+} from "./generation-stage";
+
 // Elicitation components
 export { Elicitation } from "./elicitation";
 export type {

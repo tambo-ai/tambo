@@ -1,5 +1,43 @@
 # Changelog
 
+## [1.30.2](https://github.com/tambo-ai/tambo/compare/docs-v1.30.1...docs-v1.30.2) (2026-03-09)
+
+
+### Documentation
+
+* **react-ui-base:** audit and fix all component reference pages ([#2584](https://github.com/tambo-ai/tambo/issues/2584)) ([d42c5b9](https://github.com/tambo-ai/tambo/commit/d42c5b9bf9fb3123670183699cd41c8961caa8d2))
+
+## [1.30.1](https://github.com/tambo-ai/tambo/compare/docs-v1.30.0...docs-v1.30.1) (2026-03-07)
+
+
+### Miscellaneous Chores
+
+* **deps:** bump dompurify from 3.3.1 to 3.3.2 ([#2560](https://github.com/tambo-ai/tambo/issues/2560)) ([9f59466](https://github.com/tambo-ai/tambo/commit/9f59466fab9b3639baf3aba4e23b8fac7e9b40dd))
+
+## [1.30.0](https://github.com/tambo-ai/tambo/compare/docs-v1.29.0...docs-v1.30.0) (2026-03-05)
+
+
+### Features
+
+* **cli:** rename start-from-scratch skill to generative-ui ([#2530](https://github.com/tambo-ai/tambo/issues/2530)) ([ce789e6](https://github.com/tambo-ai/tambo/commit/ce789e652024fe06d37f8785a53877e6407a4afb))
+* **docs:** add live demo to react-ui-base overview with three styling variations ([#2529](https://github.com/tambo-ai/tambo/issues/2529)) ([9e4f826](https://github.com/tambo-ai/tambo/commit/9e4f826e893499c3e8fae1913e195e1358acd0c2))
+* **docs:** phase 6 - live demos, DemoPreview, and docs polish for react-ui-base ([#2515](https://github.com/tambo-ai/tambo/issues/2515)) ([40fc632](https://github.com/tambo-ai/tambo/commit/40fc632df2554cd610940c95a82415fe17a3f466))
+* **react-ui-base:** add McpPrompts and McpResources headless primitives ([#2512](https://github.com/tambo-ai/tambo/issues/2512)) ([459144d](https://github.com/tambo-ai/tambo/commit/459144d32acac499cd109f587fa6c5c2173f36e0))
+* **react-ui-base:** add ThreadContent headless primitives ([#2509](https://github.com/tambo-ai/tambo/issues/2509)) ([51dd31b](https://github.com/tambo-ai/tambo/commit/51dd31bc5c1dbdd865342114f268ce559c29087b))
+* **react-ui-base:** add ThreadHistory, ThreadDropdown base components ([#2504](https://github.com/tambo-ai/tambo/issues/2504)) ([52815e0](https://github.com/tambo-ai/tambo/commit/52815e07f60c64ea728d3d3363b5d4c168a69139))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump @tailwindcss/postcss from 4.2.0 to 4.2.1 in the tailwind group ([#2536](https://github.com/tambo-ai/tambo/issues/2536)) ([ab3414a](https://github.com/tambo-ai/tambo/commit/ab3414a8af68b7fbb3a286961b5a18329511f7b2))
+* **deps:** bump @tambo-ai/typescript-sdk from 0.93.0 to 0.93.1 in the tambo-ai group ([#2533](https://github.com/tambo-ai/tambo/issues/2533)) ([97158c3](https://github.com/tambo-ai/tambo/commit/97158c36ca0514d34cdae57fc0ebd3031957b55c))
+* **deps:** bump the small-safe-packages group with 4 updates ([#2534](https://github.com/tambo-ai/tambo/issues/2534)) ([3694fe4](https://github.com/tambo-ai/tambo/commit/3694fe448691c1b9c4730b457d22bb971ad72d1f))
+
+
+### Documentation
+
+* **docs:** update skills page to reflect consolidated 2-skill model ([#2558](https://github.com/tambo-ai/tambo/issues/2558)) ([50db45e](https://github.com/tambo-ai/tambo/commit/50db45e25bb09dbd0e6a2e91ce424de25feeada1))
+
 ## [1.29.0](https://github.com/tambo-ai/tambo/compare/docs-v1.28.0...docs-v1.29.0) (2026-02-25)
 
 

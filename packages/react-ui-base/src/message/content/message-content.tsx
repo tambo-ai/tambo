@@ -91,17 +91,24 @@ export const MessageContent = React.forwardRef<
     // Default to rendering the markdown string when no children or render prop
     const defaultChildren = children ?? (contentAsMarkdownString || null);
 
+    if (!hasContent && !keepMounted) {
+      return null;
+    }
+
     return useRender({
       defaultTagName: "div",
       ref,
       render,
-      enabled: keepMounted || hasContent,
       state,
       stateAttributesMapping: {
         content: () => null,
         contentAsMarkdownString: () => null,
       },
-      props: { ...componentProps, children: defaultChildren },
+      props: {
+        ...componentProps,
+        children: defaultChildren,
+        "data-hidden": !hasContent ? "true" : undefined,
+      },
     });
   },
 );

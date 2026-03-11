@@ -269,8 +269,8 @@ export const MessageThreadCollapsible = React.forwardRef<
                   <MessageInputMcpResourceButton />
                   {/* Uncomment this to enable client-side MCP config modal button */}
                   {/* <MessageInputMcpConfigButton /> */}
-                  <MessageInputSubmitButton keepMounted />
-                  <MessageInputStopButton keepMounted />
+                  <MessageInputSubmitButton />
+                  <MessageInputStopButton />
                 </MessageInputToolbar>
                 <MessageInputError />
               </MessageInput>

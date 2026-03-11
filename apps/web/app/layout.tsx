@@ -89,6 +89,7 @@ export default async function RootLayout({
         <TRPCReactProvider>
           <PHProvider>
             <body
+              suppressHydrationWarning
               className={cn(
                 "min-h-screen bg-background antialiased w-full scroll-smooth font-sans",
               )}

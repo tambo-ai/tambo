@@ -87,7 +87,7 @@ The `Error` part only renders when the selection lifecycle enters the `error` st
 | -------------- | ------------------------ | ----------------------------------------------------- |
 | `onInsertText` | `(text: string) => void` | Optional. Callback invoked when prompt text is ready. |
 
-Renders nothing when no MCP prompts are available.
+Renders nothing when no MCP prompts are available and not loading.
 
 **Render state:**
 
@@ -133,6 +133,7 @@ No custom props. Provides the prompt collection through render state.
 | `name`        | `string`              | The prompt name.                           |
 | `description` | `string \| undefined` | The prompt description.                    |
 | `isSelected`  | `boolean`             | Whether this prompt is currently selected. |
+| `select`      | `() => void`          | Selects this prompt.                       |
 
 ### Error
 

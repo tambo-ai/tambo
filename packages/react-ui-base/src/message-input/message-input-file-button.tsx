@@ -30,6 +30,8 @@ export interface MessageInputFileButtonProps extends MessageInputFileButtonCompo
   accept?: string;
   /** Allow multiple file selection */
   multiple?: boolean;
+  /** When true, removes the visually-hidden styles from the file input. Defaults to false. */
+  inputVisible?: boolean;
 }
 
 /**
@@ -38,90 +40,115 @@ export interface MessageInputFileButtonProps extends MessageInputFileButtonCompo
 export const MessageInputFileButton = React.forwardRef<
   HTMLButtonElement,
   MessageInputFileButtonProps
->(({ accept = "image/*", multiple = true, onClick, ...props }, ref) => {
-  const { addImages, images, setImageError } = useMessageInputContext();
-  const [fileInputElement, setFileInputElement] =
-    React.useState<HTMLInputElement | null>(null);
-  const fileInputRef = React.useMemo<React.RefObject<HTMLInputElement | null>>(
-    () => ({ current: fileInputElement }),
-    [fileInputElement],
-  );
-
-  const openFilePicker = React.useCallback(() => {
-    fileInputElement?.click();
-  }, [fileInputElement]);
-
-  const handleFileInputRef = React.useCallback(
-    (node: HTMLInputElement | null) => {
-      setFileInputElement(node);
+>(
+  (
+    {
+      accept = "image/*",
+      multiple = true,
+      inputVisible = false,
+      onClick,
+      ...props
     },
-    [],
-  );
+    ref,
+  ) => {
+    const { addImages, images, setImageError } = useMessageInputContext();
+    const [fileInputElement, setFileInputElement] =
+      React.useState<HTMLInputElement | null>(null);
+    const fileInputRef = React.useMemo<
+      React.RefObject<HTMLInputElement | null>
+    >(() => ({ current: fileInputElement }), [fileInputElement]);
 
-  const handleClick = React.useCallback(
-    (event: React.MouseEvent<HTMLButtonElement>) => {
-      onClick?.(event);
-      if (event.defaultPrevented) return;
-      openFilePicker();
-    },
-    [onClick, openFilePicker],
-  );
+    const openFilePicker = React.useCallback(() => {
+      fileInputElement?.click();
+    }, [fileInputElement]);
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files ?? []);
+    const handleFileInputRef = React.useCallback(
+      (node: HTMLInputElement | null) => {
+        setFileInputElement(node);
+      },
+      [],
+    );
 
-    try {
-      const totalImages = images.length + files.length;
+    const handleClick = React.useCallback(
+      (event: React.MouseEvent<HTMLButtonElement>) => {
+        onClick?.(event);
+        if (event.defaultPrevented) return;
+        openFilePicker();
+      },
+      [onClick, openFilePicker],
+    );
 
-      if (totalImages > MAX_IMAGES) {
-        setImageError(`Max ${MAX_IMAGES} uploads at a time`);
-        e.target.value = "";
-        return;
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const files = Array.from(e.target.files ?? []);
+
+      try {
+        const totalImages = images.length + files.length;
+
+        if (totalImages > MAX_IMAGES) {
+          setImageError(`Max ${MAX_IMAGES} uploads at a time`);
+          e.target.value = "";
+          return;
+        }
+
+        setImageError(null);
+        await addImages(files);
+      } catch (error) {
+        console.error("Failed to add selected files:", error);
       }
+      // Reset the input so the same file can be selected again
+      e.target.value = "";
+    };
 
-      setImageError(null);
-      await addImages(files);
-    } catch (error) {
-      console.error("Failed to add selected files:", error);
-    }
-    // Reset the input so the same file can be selected again
-    e.target.value = "";
-  };
+    const renderProps: MessageInputFileButtonState = {
+      slot: "message-input-file-button",
+      openFilePicker,
+      fileInputRef,
+    };
+    const { render, ...componentProps } = props;
 
-  const renderProps: MessageInputFileButtonState = {
-    slot: "message-input-file-button",
-    openFilePicker,
-    fileInputRef,
-  };
-  const { render, ...componentProps } = props;
-
-  return (
-    <>
-      {useRender({
-        defaultTagName: "button",
-        ref,
-        render,
-        state: renderProps,
-        stateAttributesMapping: {
-          openFilePicker: () => null,
-          fileInputRef: () => null,
-        },
-        props: mergeProps(componentProps, {
-          type: "button",
-          onClick: handleClick,
-          "aria-label": "Attach Images",
-        }),
-      })}
-      <input
-        ref={handleFileInputRef}
-        type="file"
-        accept={accept}
-        multiple={multiple}
-        onChange={handleFileChange}
-        className="hidden"
-        aria-hidden="true"
-      />
-    </>
-  );
-});
+    return (
+      <>
+        {useRender({
+          defaultTagName: "button",
+          ref,
+          render,
+          state: renderProps,
+          stateAttributesMapping: {
+            openFilePicker: () => null,
+            fileInputRef: () => null,
+          },
+          props: mergeProps(componentProps, {
+            type: "button",
+            onClick: handleClick,
+            "aria-label": "Attach Images",
+          }),
+        })}
+        <input
+          ref={handleFileInputRef}
+          type="file"
+          accept={accept}
+          multiple={multiple}
+          onChange={handleFileChange}
+          tabIndex={inputVisible ? 0 : -1}
+          style={
+            inputVisible
+              ? undefined
+              : {
+                  position: "absolute",
+                  width: 1,
+                  height: 1,
+                  padding: 0,
+                  margin: -1,
+                  overflow: "hidden",
+                  clip: "rect(0, 0, 0, 0)",
+                  whiteSpace: "nowrap",
+                  borderWidth: 0,
+                }
+          }
+          aria-hidden="true"
+        />
+      </>
+    );
+  },
+);
 MessageInputFileButton.displayName = "MessageInput.FileButton";

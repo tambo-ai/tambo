@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.54.1](https://github.com/tambo-ai/tambo/compare/tambo-v0.54.0...tambo-v0.54.1) (2026-03-09)
+
+
+### Miscellaneous Chores
+
+* **test:** bump coverage thresholds (2026-03-02) ([#2524](https://github.com/tambo-ai/tambo/issues/2524)) ([373de1a](https://github.com/tambo-ai/tambo/commit/373de1ac056130cc0425ae5a271354a33796a246))
+
 ## [0.54.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.53.1...tambo-v0.54.0) (2026-02-25)
 
 

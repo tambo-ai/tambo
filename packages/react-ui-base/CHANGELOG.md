@@ -1,5 +1,99 @@
 # Changelog
 
+## [0.1.4](https://github.com/tambo-ai/tambo/compare/@tambo-ai/react-ui-base-v0.1.3...@tambo-ai/react-ui-base-v0.1.4) (2026-03-09)
+
+
+### Features
+
+* **react-ui-base:** export GenerationStage from package barrel ([#2588](https://github.com/tambo-ai/tambo/issues/2588)) ([facec3b](https://github.com/tambo-ai/tambo/commit/facec3bdf6338be4b0298bc8406ace1c55d4d988))
+
+## [0.1.3](https://github.com/tambo-ai/tambo/compare/@tambo-ai/react-ui-base-v0.1.2...@tambo-ai/react-ui-base-v0.1.3) (2026-03-07)
+
+
+### Features
+
+* **react-ui-base:** add GenerationStage headless primitive ([#2585](https://github.com/tambo-ai/tambo/issues/2585)) ([40a1c1f](https://github.com/tambo-ai/tambo/commit/40a1c1ff4323abb9393cc2916c05f1ecac885b67))
+
+
+### Documentation
+
+* **react-ui-base:** audit and fix all component reference pages ([#2584](https://github.com/tambo-ai/tambo/issues/2584)) ([d42c5b9](https://github.com/tambo-ai/tambo/commit/d42c5b9bf9fb3123670183699cd41c8961caa8d2))
+
+## [0.1.2](https://github.com/tambo-ai/tambo/compare/@tambo-ai/react-ui-base-v0.1.1...@tambo-ai/react-ui-base-v0.1.2) (2026-03-06)
+
+
+### Features
+
+* **react-ui-base:** add aria-current and default children to ThreadHistory.Item ([#2577](https://github.com/tambo-ai/tambo/issues/2577)) ([75efa40](https://github.com/tambo-ai/tambo/commit/75efa40c34e4db84eed111209166131c184165c1))
+
+
+### Bug Fixes
+
+* **react-ui-base:** align MessageInput.StopButton with useRender state/props pattern ([#2582](https://github.com/tambo-ai/tambo/issues/2582)) ([ae6bd85](https://github.com/tambo-ai/tambo/commit/ae6bd851f8182576f279499cc0d48107d84c7a62))
+* **react-ui-base:** suppress non-HTML state attributes on MessageInput.Textarea ([#2578](https://github.com/tambo-ai/tambo/issues/2578)) ([6449bd1](https://github.com/tambo-ai/tambo/commit/6449bd1b35b29ee9f7b912e8eae2c8d253f222d3))
+* **react-ui-base:** use explicit "true" for boolean data attributes ([#2580](https://github.com/tambo-ai/tambo/issues/2580)) ([bb4c281](https://github.com/tambo-ai/tambo/commit/bb4c281ea32726f7fcc03803558a84b1ad85c9f2))
+
+## [0.1.1](https://github.com/tambo-ai/tambo/compare/@tambo-ai/react-ui-base-v0.1.0...@tambo-ai/react-ui-base-v0.1.1) (2026-03-06)
+
+
+### Bug Fixes
+
+* **react-ui-base:** fix MessageInput.SubmitButton event callback ([#2567](https://github.com/tambo-ai/tambo/issues/2567)) ([286df2a](https://github.com/tambo-ai/tambo/commit/286df2a16b87eedc31dfa1371b8b159b8b082a64))
+
+## [0.1.0](https://github.com/tambo-ai/tambo/compare/@tambo-ai/react-ui-base-v0.1.0...@tambo-ai/react-ui-base-v0.1.0) (2026-03-05)
+
+
+### Features
+
+* **client:** extract @tambo-ai/client package from react-sdk ([#2442](https://github.com/tambo-ai/tambo/issues/2442)) ([8a245ba](https://github.com/tambo-ai/tambo/commit/8a245ba64972ba665da7b324b70c1d3cd1ec71b1))
+* **docs:** phase 6 - live demos, DemoPreview, and docs polish for react-ui-base ([#2515](https://github.com/tambo-ai/tambo/issues/2515)) ([40fc632](https://github.com/tambo-ai/tambo/commit/40fc632df2554cd610940c95a82415fe17a3f466))
+* **docs:** phase 7 - web consumer adoption docs, demos, and smoketest improvements ([#2540](https://github.com/tambo-ai/tambo/issues/2540)) ([be436ea](https://github.com/tambo-ai/tambo/commit/be436eaf5e5c498ebcbed67374419fcd0517dbf4))
+* **react-ui-base:** add McpPrompts and McpResources headless primitives ([#2512](https://github.com/tambo-ai/tambo/issues/2512)) ([459144d](https://github.com/tambo-ai/tambo/commit/459144d32acac499cd109f587fa6c5c2173f36e0))
+* **react-ui-base:** add ThreadContent headless primitives ([#2509](https://github.com/tambo-ai/tambo/issues/2509)) ([51dd31b](https://github.com/tambo-ai/tambo/commit/51dd31bc5c1dbdd865342114f268ce559c29087b))
+* **react-ui-base:** add ThreadHistory, ThreadDropdown base components ([#2504](https://github.com/tambo-ai/tambo/issues/2504)) ([52815e0](https://github.com/tambo-ai/tambo/commit/52815e07f60c64ea728d3d3363b5d4c168a69139))
+
+
+### Bug Fixes
+
+* **react-ui-base:** FileButton and Error component bugfixes ([#2559](https://github.com/tambo-ai/tambo/issues/2559)) ([ba79506](https://github.com/tambo-ai/tambo/commit/ba795063df2497a5449fcaace90f422378e1ebe1))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump @tambo-ai/typescript-sdk from 0.93.0 to 0.93.1 in the tambo-ai group ([#2533](https://github.com/tambo-ai/tambo/issues/2533)) ([97158c3](https://github.com/tambo-ai/tambo/commit/97158c36ca0514d34cdae57fc0ebd3031957b55c))
+* **main:** release @tambo-ai/react-ui-base 0.1.0 ([#2519](https://github.com/tambo-ai/tambo/issues/2519)) ([5d28473](https://github.com/tambo-ai/tambo/commit/5d28473e6ac59f7efbf259814626b747dc4a7ee3))
+* **main:** release @tambo-ai/react-ui-base 0.1.0-alpha.8 ([#2458](https://github.com/tambo-ai/tambo/issues/2458)) ([98cc02b](https://github.com/tambo-ai/tambo/commit/98cc02bb60a793243e68ec6a849e23cfe0d88828))
+* **react-ui-base:** adjust description ([#2565](https://github.com/tambo-ai/tambo/issues/2565)) ([622619d](https://github.com/tambo-ai/tambo/commit/622619d62be20465eddd1d1c232267e8db94fa26))
+
+
+### Code Refactoring
+
+* **react-ui-base:** harden useRender state/props split across primitives ([#2499](https://github.com/tambo-ai/tambo/issues/2499)) ([75c0d15](https://github.com/tambo-ai/tambo/commit/75c0d159daf62a9f82afefecafd1cbb8f8984a92))
+
+## [0.1.0](https://github.com/tambo-ai/tambo/compare/@tambo-ai/react-ui-base-v0.0.1...@tambo-ai/react-ui-base-v0.1.0) (2026-03-05)
+
+### Features
+
+- **client:** extract @tambo-ai/client package from react-sdk ([#2442](https://github.com/tambo-ai/tambo/issues/2442)) ([8a245ba](https://github.com/tambo-ai/tambo/commit/8a245ba64972ba665da7b324b70c1d3cd1ec71b1))
+- **docs:** phase 6 - live demos, DemoPreview, and docs polish for react-ui-base ([#2515](https://github.com/tambo-ai/tambo/issues/2515)) ([40fc632](https://github.com/tambo-ai/tambo/commit/40fc632df2554cd610940c95a82415fe17a3f466))
+- **docs:** phase 7 - web consumer adoption docs, demos, and smoketest improvements ([#2540](https://github.com/tambo-ai/tambo/issues/2540)) ([be436ea](https://github.com/tambo-ai/tambo/commit/be436eaf5e5c498ebcbed67374419fcd0517dbf4))
+- **react-ui-base:** add McpPrompts and McpResources headless primitives ([#2512](https://github.com/tambo-ai/tambo/issues/2512)) ([459144d](https://github.com/tambo-ai/tambo/commit/459144d32acac499cd109f587fa6c5c2173f36e0))
+- **react-ui-base:** add ThreadContent headless primitives ([#2509](https://github.com/tambo-ai/tambo/issues/2509)) ([51dd31b](https://github.com/tambo-ai/tambo/commit/51dd31bc5c1dbdd865342114f268ce559c29087b))
+- **react-ui-base:** add ThreadHistory, ThreadDropdown base components ([#2504](https://github.com/tambo-ai/tambo/issues/2504)) ([52815e0](https://github.com/tambo-ai/tambo/commit/52815e07f60c64ea728d3d3363b5d4c168a69139))
+
+### Bug Fixes
+
+- **react-ui-base:** FileButton and Error component bugfixes ([#2559](https://github.com/tambo-ai/tambo/issues/2559)) ([ba79506](https://github.com/tambo-ai/tambo/commit/ba795063df2497a5449fcaace90f422378e1ebe1))
+
+### Miscellaneous Chores
+
+- **deps:** bump @tambo-ai/typescript-sdk from 0.93.0 to 0.93.1 in the tambo-ai group ([#2533](https://github.com/tambo-ai/tambo/issues/2533)) ([97158c3](https://github.com/tambo-ai/tambo/commit/97158c36ca0514d34cdae57fc0ebd3031957b55c))
+- **main:** release @tambo-ai/react-ui-base 0.1.0-alpha.8 ([#2458](https://github.com/tambo-ai/tambo/issues/2458)) ([98cc02b](https://github.com/tambo-ai/tambo/commit/98cc02bb60a793243e68ec6a849e23cfe0d88828))
+
+### Code Refactoring
+
+- **react-ui-base:** harden useRender state/props split across primitives ([#2499](https://github.com/tambo-ai/tambo/issues/2499)) ([75c0d15](https://github.com/tambo-ai/tambo/commit/75c0d159daf62a9f82afefecafd1cbb8f8984a92))
+
 ## [0.1.0-alpha.8](https://github.com/tambo-ai/tambo/compare/@tambo-ai/react-ui-base-v0.1.0-alpha.7...@tambo-ai/react-ui-base-v0.1.0-alpha.8) (2026-02-27)
 
 ### Features
