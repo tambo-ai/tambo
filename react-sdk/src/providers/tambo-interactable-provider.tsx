@@ -159,6 +159,10 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
             } as const;
           }
 
+          unregisterTools([
+            `update_component_props_${componentId}`,
+            `update_component_state_${componentId}`,
+          ]);
           setInteractableComponents((prev) =>
             prev.filter((c) => c.id !== componentId),
           );
