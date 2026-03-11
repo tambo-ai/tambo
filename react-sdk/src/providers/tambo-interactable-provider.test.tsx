@@ -25,10 +25,12 @@ jest.mock("./tambo-context-helpers-provider", () => ({
 
 // Mock the registry provider
 const mockRegisterTool = jest.fn();
+const mockUnregisterTools = jest.fn();
 
 jest.mock("./tambo-registry-provider", () => ({
   useTamboRegistry: () => ({
     registerTool: mockRegisterTool,
+    unregisterTools: mockUnregisterTools,
   }),
 }));
 
@@ -493,5 +495,109 @@ describe("TamboInteractableProvider - State Update Tool Registration", () => {
 
     // The newProps property should allow additional properties
     expect(inputSchema.properties.newProps.additionalProperties).toBe(true);
+  });
+
+  it("should unregister per-component tools when removing a component", () => {
+    const wrapper = ({ children }: { children: React.ReactNode }) => (
+      <TamboInteractableProvider>{children}</TamboInteractableProvider>
+    );
+
+    const { result } = renderHook(() => useTamboInteractable(), { wrapper });
+
+    const component = {
+      name: "Cleanup",
+      description: "test",
+      component: () => null,
+      props: { x: 1 },
+    };
+
+    let componentId: string;
+    act(() => {
+      componentId = result.current.addInteractableComponent(component);
+    });
+
+    mockUnregisterTools.mockClear();
+
+    act(() => {
+      result.current.removeInteractableComponent(componentId!);
+    });
+
+    expect(mockUnregisterTools).toHaveBeenCalledWith([
+      `update_component_props_${componentId!}`,
+      `update_component_state_${componentId!}`,
+    ]);
+  });
+
+  it("should unregister global tools when all components are removed", () => {
+    const wrapper = ({ children }: { children: React.ReactNode }) => (
+      <TamboInteractableProvider>{children}</TamboInteractableProvider>
+    );
+
+    const { result } = renderHook(() => useTamboInteractable(), { wrapper });
+
+    const component = {
+      name: "Global",
+      description: "test",
+      component: () => null,
+      props: {},
+    };
+
+    let componentId: string;
+    act(() => {
+      componentId = result.current.addInteractableComponent(component);
+    });
+
+    mockUnregisterTools.mockClear();
+
+    act(() => {
+      result.current.removeInteractableComponent(componentId!);
+    });
+
+    // Should also unregister global interactable tools once list is empty
+    expect(mockUnregisterTools).toHaveBeenCalledWith([
+      "get_all_interactable_components",
+      "get_interactable_component_by_id",
+      "remove_interactable_component",
+    ]);
+  });
+
+  it("should unregister all per-component tools when clearing all components", () => {
+    const wrapper = ({ children }: { children: React.ReactNode }) => (
+      <TamboInteractableProvider>{children}</TamboInteractableProvider>
+    );
+
+    const { result } = renderHook(() => useTamboInteractable(), { wrapper });
+
+    let id1: string;
+    let id2: string;
+    act(() => {
+      id1 = result.current.addInteractableComponent({
+        name: "A",
+        description: "test",
+        component: () => null,
+        props: {},
+      });
+      id2 = result.current.addInteractableComponent({
+        name: "B",
+        description: "test",
+        component: () => null,
+        props: {},
+      });
+    });
+
+    mockUnregisterTools.mockClear();
+
+    act(() => {
+      result.current.clearAllInteractableComponents();
+    });
+
+    expect(mockUnregisterTools).toHaveBeenCalledWith(
+      expect.arrayContaining([
+        `update_component_props_${id1!}`,
+        `update_component_state_${id1!}`,
+        `update_component_props_${id2!}`,
+        `update_component_state_${id2!}`,
+      ]),
+    );
   });
 });

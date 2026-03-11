@@ -56,6 +56,9 @@ yarn-error.log*
 
 # typescript
 *.tsbuildinfo
+
+# vite temp files
+vite.config.ts.timestamp-*
 next-env.d.ts
 react-sdk/dist/**
 
