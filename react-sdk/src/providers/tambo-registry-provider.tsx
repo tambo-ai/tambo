@@ -49,7 +49,7 @@ export interface TamboRegistryContext {
   unregisterTools: (names: string[]) => void;
   registerToolForComponent: (
     componentId: string,
-    tool: unknown,
+    tool: TamboTool,
     warnOnOverwrite?: boolean,
   ) => void;
   getToolsForComponent: (componentId: string) => string[];
@@ -258,42 +258,39 @@ export const TamboRegistryProvider: React.FC<
   }, []);
 
   const registerToolForComponent = useCallback(
-    (componentId: string, tool: unknown, warnOnOverwrite = true) => {
+    (componentId: string, tool: TamboTool, warnOnOverwrite = true) => {
       validateTool(tool);
       setToolRegistry((registry) =>
         registryWithTool(warnOnOverwrite)(registry, tool),
       );
-      setToolComponentOwnership((prev) => ({
-        ...prev,
-        [componentId]: [
-          ...(prev[componentId] ?? []),
-          (tool as { name: string }).name,
-        ],
-      }));
+      setToolComponentOwnership((prev) => {
+        const existing = prev[componentId] ?? [];
+        if (existing.includes(tool.name)) return prev;
+        return { ...prev, [componentId]: [...existing, tool.name] };
+      });
     },
     [registryWithTool],
   );
 
-  const getToolsForComponent = useCallback(
-    (componentId: string): string[] => {
-      return toolComponentOwnership[componentId] ?? [];
-    },
-    [toolComponentOwnership],
-  );
+  const toolComponentOwnershipRef = React.useRef(toolComponentOwnership);
+  toolComponentOwnershipRef.current = toolComponentOwnership;
+
+  const getToolsForComponent = useCallback((componentId: string): string[] => {
+    return toolComponentOwnershipRef.current[componentId] ?? [];
+  }, []);
 
   const unregisterToolsForComponent = useCallback(
     (componentId: string) => {
-      const toolNames = toolComponentOwnership[componentId];
-      if (!toolNames || toolNames.length === 0) return;
-
-      unregisterTools(toolNames);
       setToolComponentOwnership((prev) => {
+        const toolNames = prev[componentId];
+        if (!toolNames || toolNames.length === 0) return prev;
+        unregisterTools(toolNames);
         const next = { ...prev };
         delete next[componentId];
         return next;
       });
     },
-    [toolComponentOwnership, unregisterTools],
+    [unregisterTools],
   );
 
   const registerMcpServer = useCallback((info: McpServerInfo | string) => {
