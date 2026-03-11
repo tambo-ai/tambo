@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.0.2](https://github.com/tambo-ai/tambo/compare/client-v1.0.1...client-v1.0.2) (2026-03-11)
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump @types/node from 22.19.8 to 22.19.15 ([#2606](https://github.com/tambo-ai/tambo/issues/2606)) ([1159b8c](https://github.com/tambo-ai/tambo/commit/1159b8cc0be23165d2d6ae5e409f5eb1867c62af))
+* **deps-dev:** bump the eslint group with 6 updates ([#2600](https://github.com/tambo-ai/tambo/issues/2600)) ([1db441c](https://github.com/tambo-ai/tambo/commit/1db441c8c4467aac9ecf80b5bfaef70c72e20eb4))
+
 ## [1.0.1](https://github.com/tambo-ai/tambo/compare/client-v1.0.0...client-v1.0.1) (2026-03-04)
 
 
