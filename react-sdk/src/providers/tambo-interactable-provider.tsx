@@ -44,13 +44,22 @@ const TamboInteractableContext = createContext<TamboInteractableContext>({
  * @param props.children - The children to wrap
  * @returns The TamboInteractableProvider component
  */
+const GLOBAL_INTERACTABLE_TOOL_NAMES = [
+  "get_all_interactable_components",
+  "get_interactable_component_by_id",
+  "remove_interactable_component",
+];
+
+/**
+ *
+ */
 export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
   children,
 }) => {
   const [interactableComponents, setInteractableComponents] = useState<
     TamboInteractableComponent[]
   >([]);
-  const { registerTool } = useTamboRegistry();
+  const { registerTool, unregisterTools } = useTamboRegistry();
   const { addContextHelper, removeContextHelper } = useTamboContextHelpers();
 
   // Create a stable context helper function for interactable components
@@ -185,8 +194,11 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
           }),
         ]),
       });
+    } else {
+      // No interactable components — remove the global tools
+      unregisterTools(GLOBAL_INTERACTABLE_TOOL_NAMES);
     }
-  }, [interactableComponents, registerTool]);
+  }, [interactableComponents, registerTool, unregisterTools]);
 
   const updateInteractableComponentProps = useCallback(
     (id: string, newProps: Record<string, any>): string => {
@@ -397,9 +409,16 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
     ],
   );
 
-  const removeInteractableComponent = useCallback((id: string) => {
-    setInteractableComponents((prev) => prev.filter((c) => c.id !== id));
-  }, []);
+  const removeInteractableComponent = useCallback(
+    (id: string) => {
+      unregisterTools([
+        `update_component_props_${id}`,
+        `update_component_state_${id}`,
+      ]);
+      setInteractableComponents((prev) => prev.filter((c) => c.id !== id));
+    },
+    [unregisterTools],
+  );
 
   const getInteractableComponent = useCallback(
     <P, S>(id: string): TamboInteractableComponent<P, S> | undefined => {
@@ -418,8 +437,15 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
   );
 
   const clearAllInteractableComponents = useCallback(() => {
-    setInteractableComponents([]);
-  }, []);
+    setInteractableComponents((prev) => {
+      const toolNames = prev.flatMap((c) => [
+        `update_component_props_${c.id}`,
+        `update_component_state_${c.id}`,
+      ]);
+      unregisterTools(toolNames);
+      return [];
+    });
+  }, [unregisterTools]);
 
   const setInteractableStateValue = useCallback(
     (componentId: string, key: string, value: unknown) => {
