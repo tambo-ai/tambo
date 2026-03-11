@@ -27,7 +27,7 @@ export const openaiModels: Partial<LlmModelConfig<OpenAIModelId>> = {
   "gpt-5.4": {
     apiName: "gpt-5.4",
     displayName: "gpt-5.4",
-    status: "untested",
+    status: "tested",
     notes:
       "Current flagship model with 1M+ context, native computer-use capabilities, and 33% fewer hallucinations vs GPT-5.2",
     docLink: "https://platform.openai.com/docs/models/gpt-5.4",
@@ -42,7 +42,7 @@ export const openaiModels: Partial<LlmModelConfig<OpenAIModelId>> = {
   "gpt-5.4-pro": {
     apiName: "gpt-5.4-pro",
     displayName: "gpt-5.4-pro",
-    status: "untested",
+    status: "tested",
     notes:
       "Maximum capability variant of GPT-5.4. Uses more compute for harder problems. Requests may take several minutes.",
     docLink: "https://platform.openai.com/docs/models/gpt-5.4-pro",
@@ -57,7 +57,7 @@ export const openaiModels: Partial<LlmModelConfig<OpenAIModelId>> = {
   "gpt-5.3-chat-latest": {
     apiName: "gpt-5.3-chat-latest",
     displayName: "gpt-5.3-chat-latest",
-    status: "untested",
+    status: "tested",
     notes:
       "Conversational model optimized for everyday use. No reasoning parameter support.",
     docLink: "https://platform.openai.com/docs/models/gpt-5.3-chat-latest",
@@ -81,7 +81,7 @@ export const openaiModels: Partial<LlmModelConfig<OpenAIModelId>> = {
   "gpt-5.2-pro": {
     apiName: "gpt-5.2-pro",
     displayName: "gpt-5.2-pro",
-    status: "untested",
+    status: "tested",
     notes:
       "Highest-compute GPT-5.2 variant, optimized for complex reasoning and professional knowledge work",
     docLink: "https://platform.openai.com/docs/models/gpt-5.2-pro",
