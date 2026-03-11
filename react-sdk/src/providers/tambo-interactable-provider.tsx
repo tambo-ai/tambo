@@ -36,14 +36,7 @@ const TamboInteractableContext = createContext<TamboInteractableContext>({
   clearInteractableSelections: () => {},
 });
 
-/**
- * The TamboInteractableProvider manages a list of components that are currently
- * interactable, allowing tambo to interact with them by updating their props. It also registers tools
- * for Tambo to perform CRUD operations on the components list.
- * @param props - The props for the TamboInteractableProvider
- * @param props.children - The children to wrap
- * @returns The TamboInteractableProvider component
- */
+/** Tool names registered globally when at least one interactable component exists. */
 const GLOBAL_INTERACTABLE_TOOL_NAMES = [
   "get_all_interactable_components",
   "get_interactable_component_by_id",
@@ -51,7 +44,12 @@ const GLOBAL_INTERACTABLE_TOOL_NAMES = [
 ];
 
 /**
- *
+ * The TamboInteractableProvider manages a list of components that are currently
+ * interactable, allowing tambo to interact with them by updating their props. It also registers tools
+ * for Tambo to perform CRUD operations on the components list.
+ * @param props - The props for the TamboInteractableProvider
+ * @param props.children - The children to wrap
+ * @returns The TamboInteractableProvider component
  */
 export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
   children,
