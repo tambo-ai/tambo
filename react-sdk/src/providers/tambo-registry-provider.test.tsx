@@ -331,6 +331,23 @@ describe("TamboRegistryProvider", () => {
       ]);
     });
 
+    it("should deduplicate when registering the same tool for a component twice", () => {
+      const wrapper = ({ children }: { children: React.ReactNode }) => (
+        <TamboRegistryProvider>{children}</TamboRegistryProvider>
+      );
+
+      const { result } = renderHook(() => useTamboRegistry(), { wrapper });
+
+      act(() => {
+        result.current.registerToolForComponent("comp-1", mockTools[0]);
+        result.current.registerToolForComponent("comp-1", mockTools[0]);
+      });
+
+      expect(result.current.getToolsForComponent("comp-1")).toEqual([
+        "test-tool-1",
+      ]);
+    });
+
     it("should be a no-op when unregistering tools for unknown component", () => {
       const wrapper = ({ children }: { children: React.ReactNode }) => (
         <TamboRegistryProvider>{children}</TamboRegistryProvider>
