@@ -36,6 +36,15 @@ const TamboInteractableContext = createContext<TamboInteractableContext>({
   clearInteractableSelections: () => {},
 });
 
+/**
+ * Returns the per-component tool names that get registered for a given interactable ID.
+ * @param id - The interactable component ID
+ * @returns The tool names for props and state updates
+ */
+function perComponentToolNames(id: string): [string, string] {
+  return [`update_component_props_${id}`, `update_component_state_${id}`];
+}
+
 /** Tool names registered globally when at least one interactable component exists. */
 const GLOBAL_INTERACTABLE_TOOL_NAMES = [
   "get_all_interactable_components",
@@ -159,10 +168,7 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
             } as const;
           }
 
-          unregisterTools([
-            `update_component_props_${componentId}`,
-            `update_component_state_${componentId}`,
-          ]);
+          unregisterTools(perComponentToolNames(componentId));
           setInteractableComponents((prev) =>
             prev.filter((c) => c.id !== componentId),
           );
@@ -413,10 +419,7 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
 
   const removeInteractableComponent = useCallback(
     (id: string) => {
-      unregisterTools([
-        `update_component_props_${id}`,
-        `update_component_state_${id}`,
-      ]);
+      unregisterTools(perComponentToolNames(id));
       setInteractableComponents((prev) => prev.filter((c) => c.id !== id));
     },
     [unregisterTools],
@@ -439,10 +442,9 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
   );
 
   const clearAllInteractableComponents = useCallback(() => {
-    const toolNames = interactableComponents.flatMap((c) => [
-      `update_component_props_${c.id}`,
-      `update_component_state_${c.id}`,
-    ]);
+    const toolNames = interactableComponents.flatMap((c) =>
+      perComponentToolNames(c.id),
+    );
     unregisterTools(toolNames);
     setInteractableComponents([]);
   }, [interactableComponents, unregisterTools]);
