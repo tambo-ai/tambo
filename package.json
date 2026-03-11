@@ -32,7 +32,7 @@
   "author": "",
   "license": "MIT",
   "devDependencies": {
-    "@types/node": "^22.19.8",
+    "@types/node": "^22.19.15",
     "chokidar": "^5.0.0",
     "husky": "^9.1.7",
     "lint-staged": "^16.3.2",
