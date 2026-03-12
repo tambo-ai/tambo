@@ -61,7 +61,6 @@ Compare against current model configurations in:
 
 - `packages/core/src/llms/models/openai.ts`
 - `packages/core/src/llms/models/gemini.ts`
-- `packages/core/src/llms/models/groq.ts`
 - `packages/core/src/llms/models/anthropic.ts`
 - `packages/core/src/llms/models/mistral.ts`
 
