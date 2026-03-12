@@ -47,13 +47,6 @@ export interface TamboRegistryContext {
   registerTool: RegisterToolFn;
   registerTools: RegisterToolsFn;
   unregisterTools: (names: string[]) => void;
-  registerToolForComponent: (
-    componentId: string,
-    tool: TamboTool,
-    warnOnOverwrite?: boolean,
-  ) => void;
-  getToolsForComponent: (componentId: string) => string[];
-  unregisterToolsForComponent: (componentId: string) => void;
   addToolAssociation: (componentName: string, tool: TamboTool) => void;
   registerMcpServer: (info: McpServerInfo) => void;
   registerMcpServers: (infos: McpServerInfo[]) => void;
@@ -89,18 +82,6 @@ export const TamboRegistryContext = createContext<TamboRegistryContext>({
    *
    */
   unregisterTools: () => {},
-  /**
-   *
-   */
-  registerToolForComponent: () => {},
-  /**
-   *
-   */
-  getToolsForComponent: () => [],
-  /**
-   *
-   */
-  unregisterToolsForComponent: () => {},
   /**
    *
    */
@@ -194,9 +175,6 @@ export const TamboRegistryProvider: React.FC<
   const [componentToolAssociations, setComponentToolAssociations] = useState<
     Record<string, string[]>
   >({});
-  const [toolComponentOwnership, setToolComponentOwnership] = useState<
-    Record<string, string[]>
-  >({});
   const [staticMcpServerInfos, setStaticMcpServerInfos] = useState<
     NormalizedMcpServerInfo[]
   >([]);
@@ -256,42 +234,6 @@ export const TamboRegistryProvider: React.FC<
       return next;
     });
   }, []);
-
-  const registerToolForComponent = useCallback(
-    (componentId: string, tool: TamboTool, warnOnOverwrite = true) => {
-      validateTool(tool);
-      setToolRegistry((registry) =>
-        registryWithTool(warnOnOverwrite)(registry, tool),
-      );
-      setToolComponentOwnership((prev) => {
-        const existing = prev[componentId] ?? [];
-        if (existing.includes(tool.name)) return prev;
-        return { ...prev, [componentId]: [...existing, tool.name] };
-      });
-    },
-    [registryWithTool],
-  );
-
-  const toolComponentOwnershipRef = React.useRef(toolComponentOwnership);
-  toolComponentOwnershipRef.current = toolComponentOwnership;
-
-  const getToolsForComponent = useCallback((componentId: string): string[] => {
-    return toolComponentOwnershipRef.current[componentId] ?? [];
-  }, []);
-
-  const unregisterToolsForComponent = useCallback(
-    (componentId: string) => {
-      setToolComponentOwnership((prev) => {
-        const toolNames = prev[componentId];
-        if (!toolNames || toolNames.length === 0) return prev;
-        unregisterTools(toolNames);
-        const next = { ...prev };
-        delete next[componentId];
-        return next;
-      });
-    },
-    [unregisterTools],
-  );
 
   const registerMcpServer = useCallback((info: McpServerInfo | string) => {
     const normalized = normalizeServerInfo(info);
@@ -440,9 +382,6 @@ export const TamboRegistryProvider: React.FC<
     registerTool,
     registerTools,
     unregisterTools,
-    registerToolForComponent,
-    getToolsForComponent,
-    unregisterToolsForComponent,
     addToolAssociation,
     registerMcpServer,
     registerMcpServers,

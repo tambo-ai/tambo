@@ -13,6 +13,7 @@ import React, {
 } from "react";
 import { z } from "zod/v3";
 import { createInteractablesContextHelper } from "../context-helpers/current-interactables-context-helper";
+import type { TamboTool } from "../model/component-metadata";
 import {
   TamboInteractableComponent,
   type TamboInteractableContext,
@@ -53,9 +54,35 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
   const [interactableComponents, setInteractableComponents] = useState<
     TamboInteractableComponent[]
   >([]);
-  const { registerToolForComponent, unregisterToolsForComponent } =
-    useTamboRegistry();
+  const [, setToolComponentOwnership] = useState<Record<string, string[]>>({});
+  const { registerTool, unregisterTools } = useTamboRegistry();
   const { addContextHelper, removeContextHelper } = useTamboContextHelpers();
+
+  const registerToolForComponent = useCallback(
+    (componentId: string, tool: TamboTool) => {
+      registerTool(tool);
+      setToolComponentOwnership((prev) => {
+        const existing = prev[componentId] ?? [];
+        if (existing.includes(tool.name)) return prev;
+        return { ...prev, [componentId]: [...existing, tool.name] };
+      });
+    },
+    [registerTool],
+  );
+
+  const unregisterToolsForComponent = useCallback(
+    (componentId: string) => {
+      setToolComponentOwnership((prev) => {
+        const toolNames = prev[componentId];
+        if (!toolNames || toolNames.length === 0) return prev;
+        unregisterTools(toolNames);
+        const next = { ...prev };
+        delete next[componentId];
+        return next;
+      });
+    },
+    [unregisterTools],
+  );
 
   // Create a stable context helper function for interactable components
   const interactablesContextHelper = useMemo(

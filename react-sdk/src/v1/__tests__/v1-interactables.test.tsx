@@ -33,19 +33,6 @@ function createMockRegistry() {
           delete toolRegistry[name];
         }
       }),
-      registerToolForComponent: jest.fn(
-        (_componentId: string, tool: { name: string }) => {
-          toolRegistry[tool.name] = tool;
-        },
-      ),
-      getToolsForComponent: jest.fn(() => []),
-      unregisterToolsForComponent: jest.fn((componentId: string) => {
-        for (const name of Object.keys(toolRegistry)) {
-          if (name.includes(componentId)) {
-            delete toolRegistry[name];
-          }
-        }
-      }),
       addToolAssociation: jest.fn(),
       registerMcpServer: jest.fn(),
       registerMcpServers: jest.fn(),

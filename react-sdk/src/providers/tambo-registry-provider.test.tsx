@@ -240,7 +240,7 @@ describe("TamboRegistryProvider", () => {
       expect(Object.keys(result.current.toolRegistry)).toHaveLength(2);
     });
 
-    it("should register a tool for a component and track ownership", () => {
+    it("should be a no-op when unregistering empty tool list", () => {
       const wrapper = ({ children }: { children: React.ReactNode }) => (
         <TamboRegistryProvider>{children}</TamboRegistryProvider>
       );
@@ -248,122 +248,14 @@ describe("TamboRegistryProvider", () => {
       const { result } = renderHook(() => useTamboRegistry(), { wrapper });
 
       act(() => {
-        result.current.registerToolForComponent("comp-1", mockTools[0]);
+        result.current.registerTools(mockTools);
       });
 
-      expect(result.current.toolRegistry).toHaveProperty("test-tool-1");
-      expect(result.current.getToolsForComponent("comp-1")).toEqual([
-        "test-tool-1",
-      ]);
-    });
-
-    it("should track multiple tools for the same component", () => {
-      const wrapper = ({ children }: { children: React.ReactNode }) => (
-        <TamboRegistryProvider>{children}</TamboRegistryProvider>
-      );
-
-      const { result } = renderHook(() => useTamboRegistry(), { wrapper });
-
       act(() => {
-        result.current.registerToolForComponent("comp-1", mockTools[0]);
-        result.current.registerToolForComponent("comp-1", mockTools[1]);
-      });
-
-      expect(result.current.getToolsForComponent("comp-1")).toEqual([
-        "test-tool-1",
-        "test-tool-2",
-      ]);
-    });
-
-    it("should return empty array for unknown component ID", () => {
-      const wrapper = ({ children }: { children: React.ReactNode }) => (
-        <TamboRegistryProvider>{children}</TamboRegistryProvider>
-      );
-
-      const { result } = renderHook(() => useTamboRegistry(), { wrapper });
-
-      expect(result.current.getToolsForComponent("nonexistent")).toEqual([]);
-    });
-
-    it("should unregister all tools for a component", () => {
-      const wrapper = ({ children }: { children: React.ReactNode }) => (
-        <TamboRegistryProvider>{children}</TamboRegistryProvider>
-      );
-
-      const { result } = renderHook(() => useTamboRegistry(), { wrapper });
-
-      act(() => {
-        result.current.registerToolForComponent("comp-1", mockTools[0]);
-        result.current.registerToolForComponent("comp-1", mockTools[1]);
+        result.current.unregisterTools([]);
       });
 
       expect(Object.keys(result.current.toolRegistry)).toHaveLength(2);
-
-      act(() => {
-        result.current.unregisterToolsForComponent("comp-1");
-      });
-
-      expect(Object.keys(result.current.toolRegistry)).toHaveLength(0);
-      expect(result.current.getToolsForComponent("comp-1")).toEqual([]);
-    });
-
-    it("should only unregister tools belonging to the specified component", () => {
-      const wrapper = ({ children }: { children: React.ReactNode }) => (
-        <TamboRegistryProvider>{children}</TamboRegistryProvider>
-      );
-
-      const { result } = renderHook(() => useTamboRegistry(), { wrapper });
-
-      act(() => {
-        result.current.registerToolForComponent("comp-1", mockTools[0]);
-        result.current.registerToolForComponent("comp-2", mockTools[1]);
-      });
-
-      act(() => {
-        result.current.unregisterToolsForComponent("comp-1");
-      });
-
-      expect(result.current.toolRegistry).not.toHaveProperty("test-tool-1");
-      expect(result.current.toolRegistry).toHaveProperty("test-tool-2");
-      expect(result.current.getToolsForComponent("comp-1")).toEqual([]);
-      expect(result.current.getToolsForComponent("comp-2")).toEqual([
-        "test-tool-2",
-      ]);
-    });
-
-    it("should deduplicate when registering the same tool for a component twice", () => {
-      const wrapper = ({ children }: { children: React.ReactNode }) => (
-        <TamboRegistryProvider>{children}</TamboRegistryProvider>
-      );
-
-      const { result } = renderHook(() => useTamboRegistry(), { wrapper });
-
-      act(() => {
-        result.current.registerToolForComponent("comp-1", mockTools[0]);
-        result.current.registerToolForComponent("comp-1", mockTools[0]);
-      });
-
-      expect(result.current.getToolsForComponent("comp-1")).toEqual([
-        "test-tool-1",
-      ]);
-    });
-
-    it("should be a no-op when unregistering tools for unknown component", () => {
-      const wrapper = ({ children }: { children: React.ReactNode }) => (
-        <TamboRegistryProvider>{children}</TamboRegistryProvider>
-      );
-
-      const { result } = renderHook(() => useTamboRegistry(), { wrapper });
-
-      act(() => {
-        result.current.registerToolForComponent("comp-1", mockTools[0]);
-      });
-
-      act(() => {
-        result.current.unregisterToolsForComponent("nonexistent");
-      });
-
-      expect(Object.keys(result.current.toolRegistry)).toHaveLength(1);
     });
 
     it("should not warn when overwriting a tool if warnOnOverwrite is false", () => {
