@@ -141,6 +141,42 @@ describe("TamboInteractableProvider - State Update Tool Registration", () => {
     expect(stateToolCall[0].description).toContain("MyComponent");
   });
 
+  it("should allow props update tool to update component props", () => {
+    const { result } = renderHook(() => useTamboInteractable(), { wrapper });
+
+    const component: Omit<TamboInteractableComponent, "id" | "createdAt"> = {
+      name: "TestComponent",
+      description: "A test component",
+      component: () => <div>Test</div>,
+      props: { title: "original" },
+      propsSchema: z.object({ title: z.string() }),
+    };
+
+    let componentId = "";
+    act(() => {
+      componentId = result.current.addInteractableComponent(component);
+    });
+
+    // Find the props update tool and call it
+    const propsToolCall = mockRegisterTool.mock.calls.find((call) =>
+      call[0].name.startsWith("update_component_props_"),
+    );
+
+    const toolFn = propsToolCall[0].tool;
+
+    let updateResult = "";
+    act(() => {
+      updateResult = toolFn({
+        componentId,
+        newProps: { title: "updated" },
+      });
+    });
+
+    expect(updateResult).toBe("Updated successfully");
+    const comp = result.current.getInteractableComponent(componentId);
+    expect(comp?.props.title).toBe("updated");
+  });
+
   it("should allow state update tool to update multiple state values", () => {
     const { result } = renderHook(() => useTamboInteractable(), { wrapper });
 
