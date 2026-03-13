@@ -42,6 +42,9 @@ coverage
 # git worktrees
 .worktrees/
 
+# team notes (tracked in separate private repo)
+team-notes/
+
 # misc
 .DS_Store
 *.pem
