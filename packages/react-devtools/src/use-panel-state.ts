@@ -2,7 +2,7 @@ import { useEffect, useMemo, useSyncExternalStore } from "react";
 
 const STORAGE_KEY = "tambo-devtools-state";
 
-type Tab = "components" | "tools";
+export type Tab = "components" | "tools" | "timeline";
 
 interface PanelState {
   isOpen: boolean;

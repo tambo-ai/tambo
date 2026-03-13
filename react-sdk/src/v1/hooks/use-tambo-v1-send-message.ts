@@ -41,7 +41,7 @@ import {
 } from "@tambo-ai/client";
 import type { ToolResultContent } from "@tambo-ai/typescript-sdk/resources/threads/threads";
 import type { RunCreateParams } from "@tambo-ai/typescript-sdk/resources/threads/runs";
-import { ToolCallTracker } from "@tambo-ai/client";
+import { ToolCallTracker, devtoolsEventBus } from "@tambo-ai/client";
 
 /**
  * Dispatches synthetic AG-UI events to show a user message in the thread.
@@ -543,6 +543,10 @@ export function useTamboSendMessage(threadId?: string) {
       // Use threadId (which could be temp_xxx for new threads) for display
       if (threadId && userMessageText && userMessageId) {
         dispatchUserMessage(dispatch, threadId, userMessageId, userMessageText);
+        devtoolsEventBus.emit("user_message", threadId, {
+          messageId: userMessageId,
+          text: userMessageText,
+        });
       }
 
       // Gather additional context from all registered context helpers.
@@ -600,6 +604,15 @@ export function useTamboSendMessage(threadId?: string) {
                   userMessageId,
                   userMessageText,
                 );
+                devtoolsEventBus.emit(
+                  "user_message",
+                  actualThreadId,
+                  {
+                    messageId: userMessageId,
+                    text: userMessageText,
+                  },
+                  runId,
+                );
               }
             } else if (!actualThreadId) {
               throw new Error(
@@ -622,6 +635,9 @@ export function useTamboSendMessage(threadId?: string) {
               parsedToolArgs,
               toolSchemas: toolTracker.toolSchemas,
             });
+
+            // Emit to devtools event bus for timeline visualization
+            devtoolsEventBus.emitFromAgEvent(event, actualThreadId, runId);
 
             // Schedule debounced streamable tool execution with the same pre-parsed args
             if (parsedToolArgs && event.type === EventType.TOOL_CALL_ARGS) {
@@ -669,6 +685,16 @@ export function useTamboSendMessage(threadId?: string) {
             });
 
           dispatchToolResults(dispatch, actualThreadId, toolResults);
+          for (const result of toolResults) {
+            devtoolsEventBus.emit(
+              "tool_result",
+              actualThreadId,
+              {
+                toolCallId: result.toolUseId,
+              },
+              runId,
+            );
+          }
 
           currentStream = continuationStream;
         }

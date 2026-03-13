@@ -154,6 +154,10 @@ export {
 // Re-export client hook
 export { useTamboClient } from "../providers/tambo-client-provider";
 
+// Devtools event hook
+export { useTamboDevtoolsEvents } from "../hooks/use-tambo-devtools-events";
+export type { DevtoolsEvent, DevtoolsEventListener } from "@tambo-ai/client";
+
 // Re-export image handling hook (pure React, API-agnostic)
 export {
   useMessageImages,

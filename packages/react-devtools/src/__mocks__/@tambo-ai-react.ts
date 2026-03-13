@@ -1,5 +1,10 @@
 import { vi } from "vitest";
 
+export const useTamboDevtoolsEvents = vi.fn().mockReturnValue({
+  events: [],
+  clearEvents: vi.fn(),
+});
+
 export const useTamboRegistry = vi.fn().mockReturnValue({
   __initialized: true,
   componentList: {},

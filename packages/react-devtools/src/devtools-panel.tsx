@@ -1,4 +1,5 @@
 "use client";
+import type { DevtoolsEvent } from "@tambo-ai/client";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { DetailView } from "./detail-view";
@@ -6,10 +7,9 @@ import { RegistryList } from "./registry-list";
 import type { RegistryListHandle } from "./registry-list";
 import { SearchFilter } from "./search-filter";
 import { getStyles } from "./styles";
-import type { UsePanelStateReturn } from "./use-panel-state";
+import { TimelineView } from "./timeline-view";
+import type { Tab, UsePanelStateReturn } from "./use-panel-state";
 import { useResize } from "./use-resize";
-
-type Tab = "components" | "tools";
 
 interface RegistryItem {
   name: string;
@@ -26,16 +26,23 @@ interface DevtoolsPanelProps {
   componentItems: RegistryItem[];
   toolItems: RegistryItem[];
   themeClass: string;
+  timelineEvents: readonly DevtoolsEvent[];
+  onClearTimeline: () => void;
 }
 
-const DOCS_URLS: Record<Tab, string> = {
+type RegistryTab = "components" | "tools";
+
+const DOCS_URLS: Record<RegistryTab, string> = {
   components:
     "https://docs.tambo.co/docs/guides/enable-generative-ui/register-components",
   tools:
     "https://docs.tambo.co/docs/guides/enable-generative-ui/register-interactables",
 };
 
-const EMPTY_MESSAGES: Record<Tab, { heading: string; guidance: string }> = {
+const EMPTY_MESSAGES: Record<
+  RegistryTab,
+  { heading: string; guidance: string }
+> = {
   components: {
     heading: "No components registered",
     guidance: "Register components to let the AI render custom UI.",
@@ -47,7 +54,7 @@ const EMPTY_MESSAGES: Record<Tab, { heading: string; guidance: string }> = {
 };
 
 const EmptyRegistryState: React.FC<{
-  tab: Tab;
+  tab: RegistryTab;
 }> = ({ tab }) => {
   const styles = getStyles();
   const { heading, guidance } = EMPTY_MESSAGES[tab];
@@ -99,6 +106,8 @@ export const DevtoolsPanel: React.FC<DevtoolsPanelProps> = ({
   componentItems,
   toolItems,
   themeClass,
+  timelineEvents,
+  onClearTimeline,
 }) => {
   const {
     isOpen,
@@ -165,6 +174,7 @@ export const DevtoolsPanel: React.FC<DevtoolsPanelProps> = ({
     }
   }, [isOpen]);
 
+  const isRegistryTab = activeTab === "components" || activeTab === "tools";
   const activeItems = activeTab === "components" ? componentItems : toolItems;
   const filteredItems = useMemo(
     () => filterItems(activeItems, searchQuery),
@@ -184,9 +194,10 @@ export const DevtoolsPanel: React.FC<DevtoolsPanelProps> = ({
   const tabs: { id: Tab; label: string; count: number }[] = [
     { id: "components", label: "Components", count: componentItems.length },
     { id: "tools", label: "Tools", count: toolItems.length },
+    { id: "timeline", label: "Timeline", count: timelineEvents.length },
   ];
 
-  const hasNoItems = activeItems.length === 0;
+  const hasNoRegistryItems = isRegistryTab && activeItems.length === 0;
 
   return createPortal(
     <div
@@ -235,12 +246,14 @@ export const DevtoolsPanel: React.FC<DevtoolsPanelProps> = ({
             justifyContent: "flex-end",
           }}
         >
-          <SearchFilter
-            value={searchQuery}
-            onChange={setSearchQuery}
-            onSubmit={() => listRef.current?.focus()}
-            style={{ ...styles.searchInput, maxWidth: 200 }}
-          />
+          {isRegistryTab && (
+            <SearchFilter
+              value={searchQuery}
+              onChange={setSearchQuery}
+              onSubmit={() => listRef.current?.focus()}
+              style={{ ...styles.searchInput, maxWidth: 200 }}
+            />
+          )}
           <button
             style={styles.closeButton}
             onClick={close}
@@ -258,9 +271,13 @@ export const DevtoolsPanel: React.FC<DevtoolsPanelProps> = ({
         id={`tambo-devtools-tabpanel-${activeTab}`}
         aria-labelledby={`tambo-devtools-tab-${activeTab}`}
       >
-        {hasNoItems ? (
+        {activeTab === "timeline" && (
+          <TimelineView events={timelineEvents} onClear={onClearTimeline} />
+        )}
+        {isRegistryTab && hasNoRegistryItems && (
           <EmptyRegistryState tab={activeTab} />
-        ) : (
+        )}
+        {isRegistryTab && !hasNoRegistryItems && (
           <div style={styles.splitContainer}>
             <div style={styles.sidebar}>
               <RegistryList

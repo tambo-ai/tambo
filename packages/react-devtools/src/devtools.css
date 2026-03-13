@@ -12,6 +12,15 @@
   --tdt-glow: oklch(0.9 0.15 164 / 0.6);
   --tdt-glow-hover: oklch(0.9 0.15 164 / 0.8);
   --tdt-shadow: oklch(0.9 0.15 164 / 0.1);
+
+  /* Timeline event type colors */
+  --tdt-ev-run: oklch(0.6 0.18 250);
+  --tdt-ev-message: oklch(0.55 0.18 155);
+  --tdt-ev-tool: oklch(0.65 0.18 65);
+  --tdt-ev-component: oklch(0.6 0.18 300);
+  --tdt-ev-stream: oklch(0.65 0.17 180);
+  --tdt-ev-error: oklch(0.6 0.22 25);
+  --tdt-ev-system: oklch(0.6 0.12 260);
 }
 
 .tdt-dark {
@@ -28,6 +37,15 @@
   --tdt-glow: oklch(0.9 0.15 164 / 0.6);
   --tdt-glow-hover: oklch(0.9 0.15 164 / 0.8);
   --tdt-shadow: oklch(0.9 0.15 164 / 0.08);
+
+  /* Timeline event type colors */
+  --tdt-ev-run: oklch(0.7 0.14 250);
+  --tdt-ev-message: oklch(0.7 0.14 155);
+  --tdt-ev-tool: oklch(0.75 0.14 65);
+  --tdt-ev-component: oklch(0.7 0.14 300);
+  --tdt-ev-stream: oklch(0.75 0.14 180);
+  --tdt-ev-error: oklch(0.7 0.18 25);
+  --tdt-ev-system: oklch(0.7 0.1 260);
 }
 
 /* Shiki dual-theme support: map shiki CSS variables to active theme */

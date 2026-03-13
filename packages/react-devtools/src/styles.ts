@@ -32,6 +32,24 @@ interface Styles {
   emptyStateLink: CSSProperties;
   closeButton: CSSProperties;
   badge: CSSProperties;
+  timelineContainer: CSSProperties;
+  timelineTable: CSSProperties;
+  timelineHeaderRow: CSSProperties;
+  timelineHeaderCell: CSSProperties;
+  timelineRow: CSSProperties;
+  timelineRowSelected: CSSProperties;
+  timelineCell: CSSProperties;
+  timelineCellName: CSSProperties;
+  timelineStatusBadge: CSSProperties;
+  timelineWaterfallCell: CSSProperties;
+  timelineWaterfallBar: CSSProperties;
+  timelineWaterfallRuler: CSSProperties;
+  timelineWaterfallTick: CSSProperties;
+  timelineToolbar: CSSProperties;
+  timelineClearButton: CSSProperties;
+  timelineDetailPanel: CSSProperties;
+  timelineDetailJson: CSSProperties;
+  timelineIcon: CSSProperties;
 }
 
 const baseStyles: Styles = {
@@ -267,6 +285,144 @@ const baseStyles: Styles = {
     fontWeight: 500,
     backgroundColor: "var(--tdt-active-bg)",
     color: "var(--tdt-accent)",
+  },
+  timelineContainer: {
+    display: "flex",
+    flexDirection: "column",
+    flex: 1,
+    overflow: "hidden",
+  },
+  timelineTable: {
+    width: "100%",
+    borderCollapse: "collapse",
+    fontSize: 12,
+    tableLayout: "fixed",
+  },
+  timelineHeaderRow: {
+    borderBottom: "1px solid var(--tdt-border)",
+    position: "sticky",
+    top: 0,
+    backgroundColor: "var(--tdt-bg)",
+    zIndex: 1,
+  },
+  timelineHeaderCell: {
+    padding: "4px 8px",
+    textAlign: "left",
+    fontWeight: 600,
+    fontSize: 11,
+    color: "var(--tdt-text-muted)",
+    textTransform: "uppercase",
+    letterSpacing: "0.03em",
+    whiteSpace: "nowrap",
+    userSelect: "none",
+  },
+  timelineRow: {
+    borderBottom: "1px solid var(--tdt-border-subtle)",
+    cursor: "pointer",
+    transition: "background-color 80ms ease",
+  },
+  timelineRowSelected: {
+    backgroundColor: "var(--tdt-active-bg)",
+  },
+  timelineCell: {
+    padding: "3px 8px",
+    whiteSpace: "nowrap",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    verticalAlign: "middle",
+    fontSize: 12,
+    color: "var(--tdt-text)",
+  },
+  timelineCellName: {
+    fontWeight: 500,
+    display: "flex",
+    alignItems: "center",
+    gap: 6,
+  },
+  timelineStatusBadge: {
+    display: "inline-block",
+    padding: "1px 5px",
+    borderRadius: 3,
+    fontSize: 10,
+    fontWeight: 500,
+    lineHeight: "16px",
+  },
+  timelineWaterfallCell: {
+    position: "relative",
+    padding: "3px 8px",
+    verticalAlign: "middle",
+  },
+  timelineWaterfallBar: {
+    position: "absolute",
+    top: "50%",
+    transform: "translateY(-50%)",
+    height: 8,
+    borderRadius: 2,
+    minWidth: 3,
+  },
+  timelineWaterfallRuler: {
+    position: "relative",
+    height: 20,
+    borderBottom: "1px solid var(--tdt-border-subtle)",
+    fontSize: 9,
+    color: "var(--tdt-text-faint)",
+    userSelect: "none",
+  },
+  timelineWaterfallTick: {
+    position: "absolute",
+    top: 0,
+    borderLeft: "1px solid var(--tdt-border-subtle)",
+    height: "100%",
+    paddingLeft: 3,
+    lineHeight: "20px",
+  },
+  timelineToolbar: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: "4px 8px",
+    borderBottom: "1px solid var(--tdt-border-subtle)",
+    flexShrink: 0,
+  },
+  timelineClearButton: {
+    background: "none",
+    border: "1px solid var(--tdt-border)",
+    borderRadius: 4,
+    padding: "2px 8px",
+    fontSize: 11,
+    color: "var(--tdt-text-muted)",
+    cursor: "pointer",
+  },
+  timelineDetailPanel: {
+    borderTop: "1px solid var(--tdt-border-subtle)",
+    padding: 12,
+    overflowY: "auto",
+    maxHeight: 200,
+    flexShrink: 0,
+  },
+  timelineDetailJson: {
+    backgroundColor: "var(--tdt-code-bg)",
+    border: "1px solid var(--tdt-border-subtle)",
+    borderRadius: 6,
+    padding: 8,
+    fontSize: 11,
+    lineHeight: 1.5,
+    fontFamily: 'ui-monospace, "Cascadia Code", "Fira Code", monospace',
+    color: "var(--tdt-text-code)",
+    whiteSpace: "pre-wrap",
+    wordBreak: "break-word",
+    overflow: "auto",
+    maxHeight: 150,
+  },
+  timelineIcon: {
+    width: 14,
+    height: 14,
+    borderRadius: "50%",
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: 8,
+    flexShrink: 0,
   },
 };
 

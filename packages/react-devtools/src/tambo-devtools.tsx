@@ -1,7 +1,7 @@
 "use client";
 import { safeSchemaToJsonSchema } from "@tambo-ai/client";
 import type { SupportedSchema } from "@tambo-ai/client";
-import { useTamboRegistry } from "@tambo-ai/react";
+import { useTamboDevtoolsEvents, useTamboRegistry } from "@tambo-ai/react";
 import React, {
   useCallback,
   useMemo,
@@ -115,6 +115,7 @@ export const TamboDevtools: React.FC<TamboDevtoolsProps> = ({
   }
 
   const { componentList, toolRegistry, componentToolAssociations } = registry;
+  const { events: timelineEvents, clearEvents } = useTamboDevtoolsEvents();
 
   const panelState = usePanelState({ initialOpen });
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -188,6 +189,8 @@ export const TamboDevtools: React.FC<TamboDevtoolsProps> = ({
         componentItems={componentItems}
         toolItems={toolItems}
         themeClass={themeClass}
+        timelineEvents={timelineEvents}
+        onClearTimeline={clearEvents}
       />
     </>
   );

@@ -139,6 +139,13 @@ export type {
   PrimitiveSchemaDefinition,
 } from "./mcp/index";
 
+// -- Devtools --
+export { devtoolsEventBus } from "./devtools-event-bus";
+export type {
+  DevtoolsEvent,
+  DevtoolsEventListener,
+} from "./devtools-event-bus";
+
 // -- Utils --
 export {
   streamReducer,

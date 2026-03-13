@@ -11,6 +11,7 @@
 
 import { EventType, type BaseEvent, type RunErrorEvent } from "@ag-ui/core";
 import type TamboAI from "@tambo-ai/typescript-sdk";
+import { devtoolsEventBus } from "./devtools-event-bus";
 
 import type { TamboThread } from "./types/thread";
 import { asTamboCustomEvent, type RunAwaitingInputEvent } from "./types/event";
@@ -272,6 +273,10 @@ export class TamboStream implements AsyncIterable<StreamEvent> {
         userMessageId,
         userMessageText,
       );
+      devtoolsEventBus.emit("user_message", initialThreadId, {
+        messageId: userMessageId,
+        text: userMessageText,
+      });
     }
 
     // Create the initial run stream
@@ -329,6 +334,15 @@ export class TamboStream implements AsyncIterable<StreamEvent> {
                 userMessageId,
                 userMessageText,
               );
+              devtoolsEventBus.emit(
+                "user_message",
+                actualThreadId,
+                {
+                  messageId: userMessageId,
+                  text: userMessageText,
+                },
+                runId,
+              );
             }
           } else if (!actualThreadId) {
             throw new Error(
@@ -351,6 +365,9 @@ export class TamboStream implements AsyncIterable<StreamEvent> {
             parsedToolArgs,
             toolSchemas: toolTracker.toolSchemas,
           });
+
+          // Emit to devtools event bus for timeline visualization
+          devtoolsEventBus.emitFromAgEvent(event, actualThreadId, runId);
 
           // Schedule debounced streamable tool execution
           if (parsedToolArgs && event.type === EventType.TOOL_CALL_ARGS) {
@@ -416,6 +433,16 @@ export class TamboStream implements AsyncIterable<StreamEvent> {
           });
 
         dispatchToolResults(dispatch, actualThreadId, toolResults);
+        for (const result of toolResults) {
+          devtoolsEventBus.emit(
+            "tool_result",
+            actualThreadId,
+            {
+              toolCallId: result.toolUseId,
+            },
+            runId,
+          );
+        }
         currentStream = continuationStream;
       }
 
