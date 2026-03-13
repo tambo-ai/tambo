@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.144.3](https://github.com/tambo-ai/tambo/compare/api-v0.144.2...api-v0.144.3) (2026-03-11)
+
+
+### Bug Fixes
+
+* **api:** add retry with backoff for message retrieval to handle fast LLM providers ([#2576](https://github.com/tambo-ai/tambo/issues/2576)) ([79dc05b](https://github.com/tambo-ai/tambo/commit/79dc05b537e46d4f1e24a8c930f46862f0615355))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump @types/node from 22.19.8 to 22.19.15 ([#2606](https://github.com/tambo-ai/tambo/issues/2606)) ([1159b8c](https://github.com/tambo-ai/tambo/commit/1159b8cc0be23165d2d6ae5e409f5eb1867c62af))
+* **deps:** bump @react-email/components from 1.0.7 to 1.0.8 ([#2604](https://github.com/tambo-ai/tambo/issues/2604)) ([e4e1322](https://github.com/tambo-ai/tambo/commit/e4e1322686612e499d25f7793c16ef4beb4a3d25))
+* **deps:** bump the nestjs group with 3 updates ([#2599](https://github.com/tambo-ai/tambo/issues/2599)) ([1f66e2f](https://github.com/tambo-ai/tambo/commit/1f66e2ff8636e5d7ad424aac786d9185aa3641d2))
+* **deps:** bump the small-safe-packages group with 10 updates ([#2602](https://github.com/tambo-ai/tambo/issues/2602)) ([4a6b8d8](https://github.com/tambo-ai/tambo/commit/4a6b8d8f5f71affe710e709d34f312a48aa024a8))
+
+## [0.144.2](https://github.com/tambo-ai/tambo/compare/api-v0.144.1...api-v0.144.2) (2026-03-10)
+
+
+### Bug Fixes
+
+* **api:** support Gemini 3 tool calls ([#2501](https://github.com/tambo-ai/tambo/issues/2501)) ([9937634](https://github.com/tambo-ai/tambo/commit/9937634f8a11d7499fa58a7d82dcb239e8c5a73f))
+
 ## [0.144.1](https://github.com/tambo-ai/tambo/compare/api-v0.144.0...api-v0.144.1) (2026-03-05)
 
 

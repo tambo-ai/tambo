@@ -1,6 +1,7 @@
 "use client";
 
 import { MessageInputTextareaWithInteractables } from "@/components/ui/tambo/message-input-with-interactables";
+import { useProjectContextHelper } from "@/lib/tambo/context-helpers/project-context-helper";
 import { registerAllTools } from "@/lib/tambo/tools/tool-registry";
 import { cn } from "@/lib/utils";
 import { useMessageThreadPanel } from "@/providers/message-thread-panel-provider";
@@ -172,7 +173,6 @@ export const MessageThreadPanel = forwardRef<
   const { registerTool } = useTambo();
   const trpcClient = useTRPCClient();
   const utils = api.useUtils();
-
   /**
    * Registers all tambo tools with the thread.
    * This effect runs once when the component mounts and registers tools for tambo
@@ -181,6 +181,8 @@ export const MessageThreadPanel = forwardRef<
   useEffect(() => {
     registerAllTools(registerTool, { trpcClient, utils });
   }, [registerTool, trpcClient, utils]);
+
+  useProjectContextHelper();
 
   const { data: session } = useSession();
   const isUserLoggedIn = !!session;

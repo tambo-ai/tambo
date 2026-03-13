@@ -182,6 +182,82 @@ describe("TamboRegistryProvider", () => {
       consoleWarnSpy.mockRestore();
     });
 
+    it("should unregister tools by name", () => {
+      const wrapper = ({ children }: { children: React.ReactNode }) => (
+        <TamboRegistryProvider>{children}</TamboRegistryProvider>
+      );
+
+      const { result } = renderHook(() => useTamboRegistry(), { wrapper });
+
+      act(() => {
+        result.current.registerTools(mockTools);
+      });
+
+      expect(Object.keys(result.current.toolRegistry)).toHaveLength(2);
+
+      act(() => {
+        result.current.unregisterTools(["test-tool-1"]);
+      });
+
+      expect(result.current.toolRegistry).not.toHaveProperty("test-tool-1");
+      expect(result.current.toolRegistry).toHaveProperty("test-tool-2");
+      expect(Object.keys(result.current.toolRegistry)).toHaveLength(1);
+    });
+
+    it("should handle unregistering multiple tools at once", () => {
+      const wrapper = ({ children }: { children: React.ReactNode }) => (
+        <TamboRegistryProvider>{children}</TamboRegistryProvider>
+      );
+
+      const { result } = renderHook(() => useTamboRegistry(), { wrapper });
+
+      act(() => {
+        result.current.registerTools(mockTools);
+      });
+
+      act(() => {
+        result.current.unregisterTools(["test-tool-1", "test-tool-2"]);
+      });
+
+      expect(Object.keys(result.current.toolRegistry)).toHaveLength(0);
+    });
+
+    it("should be a no-op when unregistering non-existent tools", () => {
+      const wrapper = ({ children }: { children: React.ReactNode }) => (
+        <TamboRegistryProvider>{children}</TamboRegistryProvider>
+      );
+
+      const { result } = renderHook(() => useTamboRegistry(), { wrapper });
+
+      act(() => {
+        result.current.registerTools(mockTools);
+      });
+
+      act(() => {
+        result.current.unregisterTools(["non-existent-tool"]);
+      });
+
+      expect(Object.keys(result.current.toolRegistry)).toHaveLength(2);
+    });
+
+    it("should be a no-op when unregistering empty tool list", () => {
+      const wrapper = ({ children }: { children: React.ReactNode }) => (
+        <TamboRegistryProvider>{children}</TamboRegistryProvider>
+      );
+
+      const { result } = renderHook(() => useTamboRegistry(), { wrapper });
+
+      act(() => {
+        result.current.registerTools(mockTools);
+      });
+
+      act(() => {
+        result.current.unregisterTools([]);
+      });
+
+      expect(Object.keys(result.current.toolRegistry)).toHaveLength(2);
+    });
+
     it("should not warn when overwriting a tool if warnOnOverwrite is false", () => {
       const wrapper = ({ children }: { children: React.ReactNode }) => (
         <TamboRegistryProvider>{children}</TamboRegistryProvider>

@@ -1,5 +1,25 @@
 # Changelog
 
+## [1.31.0](https://github.com/tambo-ai/tambo/compare/docs-v1.30.2...docs-v1.31.0) (2026-03-13)
+
+
+### Features
+
+* **models:** add gpt-5.4, gpt-5.4-pro, gpt-5.3-chat-latest, gpt-5.2-pro ([#2619](https://github.com/tambo-ai/tambo/issues/2619)) ([950c180](https://github.com/tambo-ai/tambo/commit/950c180ea390fea4320062166e72dfa651b9cfb9))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump @types/node from 22.19.8 to 22.19.15 ([#2606](https://github.com/tambo-ai/tambo/issues/2606)) ([1159b8c](https://github.com/tambo-ai/tambo/commit/1159b8cc0be23165d2d6ae5e409f5eb1867c62af))
+* **deps:** bump the small-safe-packages group with 10 updates ([#2602](https://github.com/tambo-ai/tambo/issues/2602)) ([4a6b8d8](https://github.com/tambo-ai/tambo/commit/4a6b8d8f5f71affe710e709d34f312a48aa024a8))
+
+## [1.30.2](https://github.com/tambo-ai/tambo/compare/docs-v1.30.1...docs-v1.30.2) (2026-03-09)
+
+
+### Documentation
+
+* **react-ui-base:** audit and fix all component reference pages ([#2584](https://github.com/tambo-ai/tambo/issues/2584)) ([d42c5b9](https://github.com/tambo-ai/tambo/commit/d42c5b9bf9fb3123670183699cd41c8961caa8d2))
+
 ## [1.30.1](https://github.com/tambo-ai/tambo/compare/docs-v1.30.0...docs-v1.30.1) (2026-03-07)
 
 

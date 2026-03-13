@@ -46,6 +46,7 @@ export interface TamboRegistryContext {
   ) => void;
   registerTool: RegisterToolFn;
   registerTools: RegisterToolsFn;
+  unregisterTools: (names: string[]) => void;
   addToolAssociation: (componentName: string, tool: TamboTool) => void;
   registerMcpServer: (info: McpServerInfo) => void;
   registerMcpServers: (infos: McpServerInfo[]) => void;
@@ -77,6 +78,10 @@ export const TamboRegistryContext = createContext<TamboRegistryContext>({
    *
    */
   registerTools: () => {},
+  /**
+   *
+   */
+  unregisterTools: () => {},
   /**
    *
    */
@@ -215,6 +220,20 @@ export const TamboRegistryProvider: React.FC<
     },
     [registryWithTool],
   );
+
+  const unregisterTools = useCallback((names: string[]) => {
+    if (names.length === 0) return;
+    const nameSet = new Set(names);
+    setToolRegistry((registry) => {
+      const next: TamboToolRegistry = {};
+      for (const [name, tool] of Object.entries(registry)) {
+        if (!nameSet.has(name)) {
+          next[name] = tool;
+        }
+      }
+      return next;
+    });
+  }, []);
 
   const registerMcpServer = useCallback((info: McpServerInfo | string) => {
     const normalized = normalizeServerInfo(info);
@@ -362,6 +381,7 @@ export const TamboRegistryProvider: React.FC<
     registerComponent,
     registerTool,
     registerTools,
+    unregisterTools,
     addToolAssociation,
     registerMcpServer,
     registerMcpServers,

@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.37.4](https://github.com/tambo-ai/tambo/compare/showcase-v0.37.3...showcase-v0.37.4) (2026-03-13)
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump @types/node from 22.19.8 to 22.19.15 ([#2606](https://github.com/tambo-ai/tambo/issues/2606)) ([1159b8c](https://github.com/tambo-ai/tambo/commit/1159b8cc0be23165d2d6ae5e409f5eb1867c62af))
+* **deps:** bump the small-safe-packages group with 10 updates ([#2602](https://github.com/tambo-ai/tambo/issues/2602)) ([4a6b8d8](https://github.com/tambo-ai/tambo/commit/4a6b8d8f5f71affe710e709d34f312a48aa024a8))
+* **deps:** bump the tiptap group with 9 updates ([#2603](https://github.com/tambo-ai/tambo/issues/2603)) ([fd6104b](https://github.com/tambo-ai/tambo/commit/fd6104b7ad20444ee5d13745a84443d62a93b250))
+
 ## [0.37.3](https://github.com/tambo-ai/tambo/compare/showcase-v0.37.2...showcase-v0.37.3) (2026-03-09)
 
 

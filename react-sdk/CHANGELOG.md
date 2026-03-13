@@ -1,5 +1,26 @@
 # Changelog
 
+## [1.2.2](https://github.com/tambo-ai/tambo/compare/react-v1.2.1...react-v1.2.2) (2026-03-12)
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump @types/node from 22.19.8 to 22.19.15 ([#2606](https://github.com/tambo-ai/tambo/issues/2606)) ([1159b8c](https://github.com/tambo-ai/tambo/commit/1159b8cc0be23165d2d6ae5e409f5eb1867c62af))
+* **deps-dev:** bump the eslint group with 6 updates ([#2600](https://github.com/tambo-ai/tambo/issues/2600)) ([1db441c](https://github.com/tambo-ai/tambo/commit/1db441c8c4467aac9ecf80b5bfaef70c72e20eb4))
+* **deps:** bump the small-safe-packages group with 10 updates ([#2602](https://github.com/tambo-ai/tambo/issues/2602)) ([4a6b8d8](https://github.com/tambo-ai/tambo/commit/4a6b8d8f5f71affe710e709d34f312a48aa024a8))
+
+
+### Code Refactoring
+
+* **react-sdk:** add registry-level tool ownership for interactable components ([#2620](https://github.com/tambo-ai/tambo/issues/2620)) ([5314485](https://github.com/tambo-ai/tambo/commit/5314485c7a9a124a7c5e2e541170d5eb26adde49))
+
+## [1.2.1](https://github.com/tambo-ai/tambo/compare/react-v1.2.0...react-v1.2.1) (2026-03-11)
+
+
+### Bug Fixes
+
+* **react-sdk:** clean up interactable tools on component unmount ([#2610](https://github.com/tambo-ai/tambo/issues/2610)) ([4aa1eed](https://github.com/tambo-ai/tambo/commit/4aa1eed9a8177e4f43c4505c1e156f3d0e6a8c16))
+
 ## [1.2.0](https://github.com/tambo-ai/tambo/compare/react-v1.1.0...react-v1.2.0) (2026-03-05)
 
 
