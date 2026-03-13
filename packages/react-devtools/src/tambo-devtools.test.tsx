@@ -1,13 +1,21 @@
-import { useTamboRegistry } from "@tambo-ai/react";
+import type { DevtoolsEvent } from "@tambo-ai/client";
+import { useTamboDevtoolsEvents, useTamboRegistry } from "@tambo-ai/react";
 import { fireEvent, render, screen } from "@testing-library/react";
 import type { Mock } from "vitest";
 import { TamboDevtools } from "./tambo-devtools";
 
+const mockClearEvents = vi.fn();
+
 vi.mock("@tambo-ai/react", () => ({
   useTamboRegistry: vi.fn(),
+  useTamboDevtoolsEvents: vi.fn().mockReturnValue({
+    events: [],
+    clearEvents: vi.fn(),
+  }),
 }));
 
 const mockUseTamboRegistry = useTamboRegistry as unknown as Mock;
+const mockUseTamboDevtoolsEvents = useTamboDevtoolsEvents as unknown as Mock;
 
 const defaultRegistry = {
   __initialized: true,
@@ -69,6 +77,11 @@ beforeEach(() => {
     .querySelectorAll("[data-tambo-devtools-portal]")
     .forEach((el) => el.remove());
   mockUseTamboRegistry.mockReturnValue({ ...defaultRegistry });
+  mockClearEvents.mockClear();
+  mockUseTamboDevtoolsEvents.mockReturnValue({
+    events: [],
+    clearEvents: mockClearEvents,
+  });
   // Reset any color-scheme set by tests
   document.documentElement.style.colorScheme = "";
 });
@@ -636,5 +649,136 @@ describe("TamboDevtools", () => {
     fireEvent.keyDown(secondOption, { key: "Enter" });
 
     expect(screen.getByText("Shows weather data")).toBeInTheDocument();
+  });
+
+  describe("Timeline tab", () => {
+    const makeEvent = (
+      overrides: Partial<DevtoolsEvent> & { type: string },
+    ): DevtoolsEvent => ({
+      id: `tdt_${Math.random().toString(36).slice(2, 8)}`,
+      timestamp: 100,
+      threadId: "thread_1",
+      detail: {},
+      ...overrides,
+    });
+
+    it("shows Timeline tab in tab bar", () => {
+      render(<TamboDevtools />);
+
+      fireEvent.click(
+        screen.getByRole("button", { name: "Toggle Tambo DevTools" }),
+      );
+
+      expect(screen.getByRole("tab", { name: /Timeline/ })).toBeInTheDocument();
+    });
+
+    it("shows timeline event count in tab", () => {
+      const events = [
+        makeEvent({ id: "e1", type: "RUN_STARTED" }),
+        makeEvent({ id: "e2", type: "RUN_FINISHED" }),
+      ];
+      mockUseTamboDevtoolsEvents.mockReturnValue({
+        events,
+        clearEvents: mockClearEvents,
+      });
+
+      render(<TamboDevtools />);
+
+      fireEvent.click(
+        screen.getByRole("button", { name: "Toggle Tambo DevTools" }),
+      );
+
+      const timelineTab = screen.getByRole("tab", { name: /Timeline/ });
+      expect(timelineTab).toHaveTextContent("(2)");
+    });
+
+    it("switches to Timeline tab and displays events", () => {
+      const events = [
+        makeEvent({ id: "e1", type: "RUN_STARTED", timestamp: 100 }),
+        makeEvent({ id: "e2", type: "user_message", timestamp: 150 }),
+      ];
+      mockUseTamboDevtoolsEvents.mockReturnValue({
+        events,
+        clearEvents: mockClearEvents,
+      });
+
+      render(<TamboDevtools />);
+
+      fireEvent.click(
+        screen.getByRole("button", { name: "Toggle Tambo DevTools" }),
+      );
+      fireEvent.click(screen.getByRole("tab", { name: /Timeline/ }));
+
+      expect(screen.getByText("2 events")).toBeInTheDocument();
+      expect(screen.getByText("run")).toBeInTheDocument();
+      expect(screen.getByText("user_message")).toBeInTheDocument();
+    });
+
+    it("shows empty timeline state when no events", () => {
+      render(<TamboDevtools />);
+
+      fireEvent.click(
+        screen.getByRole("button", { name: "Toggle Tambo DevTools" }),
+      );
+      fireEvent.click(screen.getByRole("tab", { name: /Timeline/ }));
+
+      expect(screen.getByText("No events captured")).toBeInTheDocument();
+    });
+
+    it("calls clearEvents when Clear button is clicked in timeline", () => {
+      const events = [makeEvent({ id: "e1", type: "RUN_STARTED" })];
+      mockUseTamboDevtoolsEvents.mockReturnValue({
+        events,
+        clearEvents: mockClearEvents,
+      });
+
+      render(<TamboDevtools />);
+
+      fireEvent.click(
+        screen.getByRole("button", { name: "Toggle Tambo DevTools" }),
+      );
+      fireEvent.click(screen.getByRole("tab", { name: /Timeline/ }));
+      fireEvent.click(screen.getByRole("button", { name: "Clear timeline" }));
+
+      expect(mockClearEvents).toHaveBeenCalledOnce();
+    });
+
+    it("hides search input on timeline tab", () => {
+      render(<TamboDevtools />);
+
+      fireEvent.click(
+        screen.getByRole("button", { name: "Toggle Tambo DevTools" }),
+      );
+
+      // Search is visible on components tab
+      expect(screen.queryByLabelText("Search registry")).toBeInTheDocument();
+
+      // Switch to timeline
+      fireEvent.click(screen.getByRole("tab", { name: /Timeline/ }));
+
+      // Search should be hidden
+      expect(
+        screen.queryByLabelText("Search registry"),
+      ).not.toBeInTheDocument();
+    });
+
+    it("Timeline tab has correct ARIA selected state", () => {
+      render(<TamboDevtools />);
+
+      fireEvent.click(
+        screen.getByRole("button", { name: "Toggle Tambo DevTools" }),
+      );
+
+      const timelineTab = screen.getByRole("tab", { name: /Timeline/ });
+      expect(timelineTab).toHaveAttribute("aria-selected", "false");
+
+      fireEvent.click(timelineTab);
+
+      expect(timelineTab).toHaveAttribute("aria-selected", "true");
+      expect(screen.getByRole("tab", { name: /Components/ })).toHaveAttribute(
+        "aria-selected",
+        "false",
+      );
+    });
   });
 });

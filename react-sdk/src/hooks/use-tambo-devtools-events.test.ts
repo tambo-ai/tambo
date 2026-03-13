@@ -66,4 +66,43 @@ describe("useTamboDevtoolsEvents", () => {
     // After unmount, the bus should have no listeners from this hook
     devtoolsEventBus.emit("RUN_FINISHED", "thread_1", {});
   });
+
+  it("caps events at MAX_EVENTS (500) dropping oldest", () => {
+    const { result } = renderHook(() => useTamboDevtoolsEvents());
+
+    act(() => {
+      for (let i = 0; i < 510; i++) {
+        devtoolsEventBus.emit(`EVENT_${i}`, "thread_1", { index: i });
+      }
+    });
+
+    // Should be capped at 500
+    expect(result.current.events).toHaveLength(500);
+    // Oldest 10 events (0-9) should have been dropped
+    expect(result.current.events[0].type).toBe("EVENT_10");
+    expect(result.current.events[499].type).toBe("EVENT_509");
+  });
+
+  it("continues accumulating after clearEvents", () => {
+    const { result } = renderHook(() => useTamboDevtoolsEvents());
+
+    act(() => {
+      devtoolsEventBus.emit("RUN_STARTED", "thread_1", {});
+    });
+
+    expect(result.current.events).toHaveLength(1);
+
+    act(() => {
+      result.current.clearEvents();
+    });
+
+    expect(result.current.events).toHaveLength(0);
+
+    act(() => {
+      devtoolsEventBus.emit("RUN_FINISHED", "thread_1", {});
+    });
+
+    expect(result.current.events).toHaveLength(1);
+    expect(result.current.events[0].type).toBe("RUN_FINISHED");
+  });
 });

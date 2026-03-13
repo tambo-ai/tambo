@@ -178,4 +178,40 @@ describe("usePanelState", () => {
     expect(hook1.current.isOpen).toBe(true);
     expect(hook2.current.isOpen).toBe(true);
   });
+
+  it("supports timeline as active tab", () => {
+    const { result } = renderHook(() => usePanelState());
+
+    act(() => {
+      result.current.setActiveTab("timeline");
+    });
+
+    expect(result.current.activeTab).toBe("timeline");
+  });
+
+  it("persists timeline tab to localStorage", () => {
+    const { result } = renderHook(() => usePanelState());
+
+    act(() => {
+      result.current.setActiveTab("timeline");
+    });
+
+    const stored = JSON.parse(localStorage.getItem(STORAGE_KEY)!);
+    expect(stored.activeTab).toBe("timeline");
+  });
+
+  it("restores timeline tab from localStorage", () => {
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        isOpen: true,
+        activeTab: "timeline",
+        panelHeight: 350,
+      }),
+    );
+
+    const { result } = renderHook(() => usePanelState());
+
+    expect(result.current.activeTab).toBe("timeline");
+  });
 });
