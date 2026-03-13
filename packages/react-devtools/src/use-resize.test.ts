@@ -79,7 +79,7 @@ describe("useResize", () => {
 
     // Extract the pointermove handler
     const moveHandler = mockTarget.addEventListener.mock.calls.find(
-      ([event]: [string]) => event === "pointermove",
+      ([event]) => event === "pointermove",
     )?.[1] as (e: PointerEvent) => void;
 
     // Simulate dragging up (decreasing clientY = increasing height)
@@ -104,7 +104,7 @@ describe("useResize", () => {
     result.current.handlePointerDown(pointerDown(mockTarget, 500));
 
     const moveHandler = mockTarget.addEventListener.mock.calls.find(
-      ([event]: [string]) => event === "pointermove",
+      ([event]) => event === "pointermove",
     )?.[1] as (e: PointerEvent) => void;
 
     // Drag down a lot (increasing clientY = decreasing height)
@@ -128,7 +128,7 @@ describe("useResize", () => {
     result.current.handlePointerDown(pointerDown(mockTarget, 500));
 
     const moveHandler = mockTarget.addEventListener.mock.calls.find(
-      ([event]: [string]) => event === "pointermove",
+      ([event]) => event === "pointermove",
     )?.[1] as (e: PointerEvent) => void;
 
     // Drag up a lot
@@ -152,7 +152,7 @@ describe("useResize", () => {
     result.current.handlePointerDown(pointerDown(mockTarget, 500));
 
     const moveHandler = mockTarget.addEventListener.mock.calls.find(
-      ([event]: [string]) => event === "pointermove",
+      ([event]) => event === "pointermove",
     )?.[1] as (e: PointerEvent) => void;
 
     // Two moves before any rAF flush
@@ -172,10 +172,10 @@ describe("useResize", () => {
     result.current.handlePointerDown(pointerDown(mockTarget, 500));
 
     const moveHandler = mockTarget.addEventListener.mock.calls.find(
-      ([event]: [string]) => event === "pointermove",
+      ([event]) => event === "pointermove",
     )?.[1] as (e: PointerEvent) => void;
     const upHandler = mockTarget.addEventListener.mock.calls.find(
-      ([event]: [string]) => event === "pointerup",
+      ([event]) => event === "pointerup",
     )?.[1] as () => void;
 
     // Move to schedule a rAF
@@ -204,10 +204,10 @@ describe("useResize", () => {
     result.current.handlePointerDown(pointerDown(mockTarget, 500));
 
     const moveHandler = mockTarget.addEventListener.mock.calls.find(
-      ([event]: [string]) => event === "pointermove",
+      ([event]) => event === "pointermove",
     )?.[1] as (e: PointerEvent) => void;
     const upHandler = mockTarget.addEventListener.mock.calls.find(
-      ([event]: [string]) => event === "pointerup",
+      ([event]) => event === "pointerup",
     )?.[1] as () => void;
 
     upHandler();
