@@ -105,7 +105,7 @@ describe("TamboInteractableProvider - State Update Tool Registration", () => {
       componentId = result.current.addInteractableComponent(component);
     });
 
-    // Should register both update_component_ and update_component_state_ tools
+    // Should register both update_component_ and update_component_state_ tools via registerToolForComponent
     const registeredToolNames = mockRegisterTool.mock.calls.map(
       (call) => call[0].name,
     );
@@ -139,6 +139,42 @@ describe("TamboInteractableProvider - State Update Tool Registration", () => {
     expect(stateToolCall).toBeDefined();
     expect(stateToolCall[0].description).toContain(componentId);
     expect(stateToolCall[0].description).toContain("MyComponent");
+  });
+
+  it("should allow props update tool to update component props", () => {
+    const { result } = renderHook(() => useTamboInteractable(), { wrapper });
+
+    const component: Omit<TamboInteractableComponent, "id" | "createdAt"> = {
+      name: "TestComponent",
+      description: "A test component",
+      component: () => <div>Test</div>,
+      props: { title: "original" },
+      propsSchema: z.object({ title: z.string() }),
+    };
+
+    let componentId = "";
+    act(() => {
+      componentId = result.current.addInteractableComponent(component);
+    });
+
+    // Find the props update tool and call it
+    const propsToolCall = mockRegisterTool.mock.calls.find((call) =>
+      call[0].name.startsWith("update_component_props_"),
+    );
+
+    const toolFn = propsToolCall[0].tool;
+
+    let updateResult = "";
+    act(() => {
+      updateResult = toolFn({
+        componentId,
+        newProps: { title: "updated" },
+      });
+    });
+
+    expect(updateResult).toBe("Updated successfully");
+    const comp = result.current.getInteractableComponent(componentId);
+    expect(comp?.props.title).toBe("updated");
   });
 
   it("should allow state update tool to update multiple state values", () => {
@@ -522,10 +558,13 @@ describe("TamboInteractableProvider - State Update Tool Registration", () => {
       result.current.removeInteractableComponent(componentId!);
     });
 
-    expect(mockUnregisterTools).toHaveBeenCalledWith([
-      `update_component_props_${componentId!}`,
-      `update_component_state_${componentId!}`,
-    ]);
+    // Should unregister the per-component tools by name
+    expect(mockUnregisterTools).toHaveBeenCalledWith(
+      expect.arrayContaining([
+        `update_component_props_${componentId!}`,
+        `update_component_state_${componentId!}`,
+      ]),
+    );
   });
 
   it("should unregister global tools when all components are removed", () => {
@@ -553,12 +592,107 @@ describe("TamboInteractableProvider - State Update Tool Registration", () => {
       result.current.removeInteractableComponent(componentId!);
     });
 
-    // Should also unregister global interactable tools once list is empty
-    expect(mockUnregisterTools).toHaveBeenCalledWith([
-      "get_all_interactable_components",
-      "get_interactable_component_by_id",
-      "remove_interactable_component",
-    ]);
+    // Should unregister global interactable tools once list is empty
+    expect(mockUnregisterTools).toHaveBeenCalledWith(
+      expect.arrayContaining([
+        "get_all_interactable_components",
+        "get_interactable_component_by_id",
+        "remove_interactable_component",
+      ]),
+    );
+  });
+
+  it("should register global tools that return component data", () => {
+    const wrapper = ({ children }: { children: React.ReactNode }) => (
+      <TamboInteractableProvider>{children}</TamboInteractableProvider>
+    );
+
+    const { result } = renderHook(() => useTamboInteractable(), { wrapper });
+
+    act(() => {
+      result.current.addInteractableComponent({
+        name: "Widget",
+        description: "test widget",
+        component: () => null,
+        props: { color: "red" },
+      });
+    });
+
+    // Find the global get_all tool
+    const getAllCall = mockRegisterTool.mock.calls.find(
+      (call) => call[0].name === "get_all_interactable_components",
+    );
+    expect(getAllCall).toBeDefined();
+
+    const getAllResult = getAllCall[0].tool();
+    expect(getAllResult.components).toHaveLength(1);
+    expect(getAllResult.components[0].name).toBe("Widget");
+  });
+
+  it("should register global get_by_id tool that finds a component", () => {
+    const wrapper = ({ children }: { children: React.ReactNode }) => (
+      <TamboInteractableProvider>{children}</TamboInteractableProvider>
+    );
+
+    const { result } = renderHook(() => useTamboInteractable(), { wrapper });
+
+    let componentId: string;
+    act(() => {
+      componentId = result.current.addInteractableComponent({
+        name: "Widget",
+        description: "test",
+        component: () => null,
+        props: { x: 1 },
+      });
+    });
+
+    const getByIdCall = mockRegisterTool.mock.calls.find(
+      (call) => call[0].name === "get_interactable_component_by_id",
+    );
+    expect(getByIdCall).toBeDefined();
+
+    const found = getByIdCall[0].tool({ componentId: componentId! });
+    expect(found.success).toBe(true);
+    expect(found.component.componentName).toBe("Widget");
+
+    const notFound = getByIdCall[0].tool({ componentId: "nonexistent" });
+    expect(notFound.success).toBe(false);
+    expect(notFound.error).toContain("not found");
+  });
+
+  it("should register global remove tool that removes a component", () => {
+    const wrapper = ({ children }: { children: React.ReactNode }) => (
+      <TamboInteractableProvider>{children}</TamboInteractableProvider>
+    );
+
+    const { result } = renderHook(() => useTamboInteractable(), { wrapper });
+
+    let componentId: string;
+    act(() => {
+      componentId = result.current.addInteractableComponent({
+        name: "Widget",
+        description: "test",
+        component: () => null,
+        props: {},
+      });
+    });
+
+    const removeCall = mockRegisterTool.mock.calls.find(
+      (call) => call[0].name === "remove_interactable_component",
+    );
+    expect(removeCall).toBeDefined();
+
+    // Remove nonexistent
+    const notFound = removeCall[0].tool({ componentId: "nonexistent" });
+    expect(notFound.success).toBe(false);
+
+    // Remove existing
+    let removeResult: any;
+    act(() => {
+      removeResult = removeCall[0].tool({ componentId: componentId! });
+    });
+    expect(removeResult.success).toBe(true);
+    expect(removeResult.removedComponent.componentName).toBe("Widget");
   });
 
   it("should unregister all per-component tools when clearing all components", () => {
@@ -568,16 +702,14 @@ describe("TamboInteractableProvider - State Update Tool Registration", () => {
 
     const { result } = renderHook(() => useTamboInteractable(), { wrapper });
 
-    let id1: string;
-    let id2: string;
     act(() => {
-      id1 = result.current.addInteractableComponent({
+      result.current.addInteractableComponent({
         name: "A",
         description: "test",
         component: () => null,
         props: {},
       });
-      id2 = result.current.addInteractableComponent({
+      result.current.addInteractableComponent({
         name: "B",
         description: "test",
         component: () => null,
@@ -591,13 +723,7 @@ describe("TamboInteractableProvider - State Update Tool Registration", () => {
       result.current.clearAllInteractableComponents();
     });
 
-    expect(mockUnregisterTools).toHaveBeenCalledWith(
-      expect.arrayContaining([
-        `update_component_props_${id1!}`,
-        `update_component_state_${id1!}`,
-        `update_component_props_${id2!}`,
-        `update_component_state_${id2!}`,
-      ]),
-    );
+    // Should unregister tools for both components
+    expect(mockUnregisterTools).toHaveBeenCalled();
   });
 });

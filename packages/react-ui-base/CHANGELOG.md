@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.5](https://github.com/tambo-ai/tambo/compare/@tambo-ai/react-ui-base-v0.1.4...@tambo-ai/react-ui-base-v0.1.5) (2026-03-13)
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump @types/node from 22.19.8 to 22.19.15 ([#2606](https://github.com/tambo-ai/tambo/issues/2606)) ([1159b8c](https://github.com/tambo-ai/tambo/commit/1159b8cc0be23165d2d6ae5e409f5eb1867c62af))
+
 ## [0.1.4](https://github.com/tambo-ai/tambo/compare/@tambo-ai/react-ui-base-v0.1.3...@tambo-ai/react-ui-base-v0.1.4) (2026-03-09)
 
 

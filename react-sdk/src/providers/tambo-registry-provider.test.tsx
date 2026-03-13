@@ -240,6 +240,24 @@ describe("TamboRegistryProvider", () => {
       expect(Object.keys(result.current.toolRegistry)).toHaveLength(2);
     });
 
+    it("should be a no-op when unregistering empty tool list", () => {
+      const wrapper = ({ children }: { children: React.ReactNode }) => (
+        <TamboRegistryProvider>{children}</TamboRegistryProvider>
+      );
+
+      const { result } = renderHook(() => useTamboRegistry(), { wrapper });
+
+      act(() => {
+        result.current.registerTools(mockTools);
+      });
+
+      act(() => {
+        result.current.unregisterTools([]);
+      });
+
+      expect(Object.keys(result.current.toolRegistry)).toHaveLength(2);
+    });
+
     it("should not warn when overwriting a tool if warnOnOverwrite is false", () => {
       const wrapper = ({ children }: { children: React.ReactNode }) => (
         <TamboRegistryProvider>{children}</TamboRegistryProvider>

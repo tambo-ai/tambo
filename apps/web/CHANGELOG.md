@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.132.5](https://github.com/tambo-ai/tambo/compare/web-v0.132.4...web-v0.132.5) (2026-03-13)
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump @types/node from 22.19.8 to 22.19.15 ([#2606](https://github.com/tambo-ai/tambo/issues/2606)) ([1159b8c](https://github.com/tambo-ai/tambo/commit/1159b8cc0be23165d2d6ae5e409f5eb1867c62af))
+* **deps:** bump the small-safe-packages group with 10 updates ([#2602](https://github.com/tambo-ai/tambo/issues/2602)) ([4a6b8d8](https://github.com/tambo-ai/tambo/commit/4a6b8d8f5f71affe710e709d34f312a48aa024a8))
+* **deps:** bump the trpc group with 3 updates ([#2598](https://github.com/tambo-ai/tambo/issues/2598)) ([7905418](https://github.com/tambo-ai/tambo/commit/79054186be0128c535f835a2f7ff6219067f18fa))
+
 ## [0.132.4](https://github.com/tambo-ai/tambo/compare/web-v0.132.3...web-v0.132.4) (2026-03-11)
 
 
