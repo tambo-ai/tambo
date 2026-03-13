@@ -348,4 +348,26 @@ describe("withTamboInteractable", () => {
     expect(screen.getByTestId("optional")).toHaveTextContent("undefined");
     expect(screen.getByTestId("nullable")).toHaveTextContent("null");
   });
+
+  it("should call removeInteractableComponent on unmount", async () => {
+    const InteractableComponent = withTamboInteractable(TestComponent, {
+      componentName: "TestComponent",
+      description: "A test component",
+      propsSchema: testSchema,
+    });
+
+    const { unmount } = render(
+      <TamboInteractableProvider>
+        <InteractableComponent title="Unmount Test" />
+      </TamboInteractableProvider>,
+    );
+
+    await waitFor(() => {
+      expect(mockAddInteractableComponent).toHaveBeenCalled();
+    });
+
+    unmount();
+
+    expect(mockRemoveInteractableComponent).toHaveBeenCalledWith("mock-id-123");
+  });
 });

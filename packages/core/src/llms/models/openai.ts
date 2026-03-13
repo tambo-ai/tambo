@@ -7,6 +7,7 @@ import { type NarrowStrings } from "../../typeutils";
 
 type RawModelIds = Parameters<OpenAIProvider["languageModel"]>[0];
 type OpenAIModelId = NarrowStrings<RawModelIds>;
+
 const reasoningParameters: LlmParameterMetadata = {
   reasoningEffort: {
     description:
@@ -23,6 +24,46 @@ const reasoningParameters: LlmParameterMetadata = {
 // Models are sorted by version (newest first). Minor versions (e.g., 5.1) are
 // considered newer than their base versions (e.g., 5), so 5.1 comes before 5.
 export const openaiModels: Partial<LlmModelConfig<OpenAIModelId>> = {
+  "gpt-5.4": {
+    apiName: "gpt-5.4",
+    displayName: "gpt-5.4",
+    status: "tested",
+    notes:
+      "Current flagship model with 1M+ context, native computer-use capabilities, and 33% fewer hallucinations vs GPT-5.2",
+    docLink: "https://platform.openai.com/docs/models/gpt-5.4",
+    tamboDocLink: "https://docs.tambo.co",
+    inputTokenLimit: 1050000,
+    modelSpecificParams: reasoningParameters,
+    modelParamsDefaults: {
+      reasoningEffort: "low",
+      reasoningSummary: "auto",
+    },
+  },
+  "gpt-5.4-pro": {
+    apiName: "gpt-5.4-pro",
+    displayName: "gpt-5.4-pro",
+    status: "tested",
+    notes:
+      "Maximum capability variant of GPT-5.4. Uses more compute for harder problems. Requests may take several minutes.",
+    docLink: "https://platform.openai.com/docs/models/gpt-5.4-pro",
+    tamboDocLink: "https://docs.tambo.co",
+    inputTokenLimit: 1050000,
+    modelSpecificParams: reasoningParameters,
+    modelParamsDefaults: {
+      reasoningEffort: "medium",
+      reasoningSummary: "auto",
+    },
+  },
+  "gpt-5.3-chat-latest": {
+    apiName: "gpt-5.3-chat-latest",
+    displayName: "gpt-5.3-chat-latest",
+    status: "tested",
+    notes:
+      "Conversational model optimized for everyday use. No reasoning parameter support.",
+    docLink: "https://platform.openai.com/docs/models/gpt-5.3-chat-latest",
+    tamboDocLink: "https://docs.tambo.co",
+    inputTokenLimit: 128000,
+  },
   "gpt-5.2": {
     apiName: "gpt-5.2",
     displayName: "gpt-5.2",
@@ -34,6 +75,21 @@ export const openaiModels: Partial<LlmModelConfig<OpenAIModelId>> = {
     modelSpecificParams: reasoningParameters,
     modelParamsDefaults: {
       reasoningEffort: "low",
+      reasoningSummary: "auto",
+    },
+  },
+  "gpt-5.2-pro": {
+    apiName: "gpt-5.2-pro",
+    displayName: "gpt-5.2-pro",
+    status: "tested",
+    notes:
+      "Highest-compute GPT-5.2 variant, optimized for complex reasoning and professional knowledge work",
+    docLink: "https://platform.openai.com/docs/models/gpt-5.2-pro",
+    tamboDocLink: "https://docs.tambo.co",
+    inputTokenLimit: 400000,
+    modelSpecificParams: reasoningParameters,
+    modelParamsDefaults: {
+      reasoningEffort: "medium",
       reasoningSummary: "auto",
     },
   },
