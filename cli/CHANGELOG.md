@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.54.2](https://github.com/tambo-ai/tambo/compare/tambo-v0.54.1...tambo-v0.54.2) (2026-03-13)
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump @types/node from 22.19.8 to 22.19.15 ([#2606](https://github.com/tambo-ai/tambo/issues/2606)) ([1159b8c](https://github.com/tambo-ai/tambo/commit/1159b8cc0be23165d2d6ae5e409f5eb1867c62af))
+* **deps:** bump the trpc group with 3 updates ([#2598](https://github.com/tambo-ai/tambo/issues/2598)) ([7905418](https://github.com/tambo-ai/tambo/commit/79054186be0128c535f835a2f7ff6219067f18fa))
+
 ## [0.54.1](https://github.com/tambo-ai/tambo/compare/tambo-v0.54.0...tambo-v0.54.1) (2026-03-09)
 
 
