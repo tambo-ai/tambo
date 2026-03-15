@@ -4,12 +4,16 @@ const BASE_URL = "http://localhost:8263";
 const SCREENSHOTS_DIR = "e2e/screenshots";
 
 /**
- * Click a locator via DOM click() to work around Playwright's native click
- * not firing React synthetic events on portal-based devtools elements
- * in headless Chromium.
+ * Click a locator via dispatching a bubbling MouseEvent to work around
+ * Playwright's native click not firing React synthetic events on
+ * portal-based devtools elements in headless Chromium.
  */
 async function jsClick(locator: Locator) {
-  await locator.evaluate((el: HTMLElement) => el.click());
+  await locator.evaluate((el: HTMLElement) => {
+    el.dispatchEvent(
+      new MouseEvent("click", { bubbles: true, cancelable: true }),
+    );
+  });
 }
 
 /**
@@ -21,10 +25,17 @@ async function openDevtools(page: Page) {
     'button[aria-label="Toggle Tambo DevTools"]',
   );
   await expect(devtoolsButton).toBeVisible({ timeout: 30000 });
-  await jsClick(devtoolsButton);
+
+  // The button is SSR-rendered and appears before React hydrates event
+  // handlers.  Wait for all page resources to load, then use a generous
+  // delay to ensure React has attached handlers.  The button is a toggle
+  // so we must only click once — any retry risks toggling it closed.
+  await page.waitForLoadState("domcontentloaded");
+  await page.waitForTimeout(5000);
 
   const panel = page.locator('[role="dialog"][aria-label="Tambo DevTools"]');
-  await expect(panel).toBeVisible({ timeout: 10000 });
+  await jsClick(devtoolsButton);
+  await expect(panel).toBeVisible({ timeout: 15000 });
   return panel;
 }
 
@@ -147,7 +158,9 @@ test.describe("Devtools visibility and interaction", () => {
       timeout: 5000,
     });
     await expect(
-      timelinePanel.getByText("Send a message to see timeline events appear here."),
+      timelinePanel.getByText(
+        "Send a message to see timeline events appear here.",
+      ),
     ).toBeVisible();
 
     await page.screenshot({
@@ -457,7 +470,9 @@ test.describe("Timeline event bus integration", () => {
     const devtoolsPanel = page.locator(
       '[role="dialog"][aria-label="Tambo DevTools"]',
     );
-    if (!(await devtoolsPanel.isVisible({ timeout: 2000 }).catch(() => false))) {
+    if (
+      !(await devtoolsPanel.isVisible({ timeout: 2000 }).catch(() => false))
+    ) {
       const reopenButton = page.locator(
         'button[aria-label="Toggle Tambo DevTools"]',
       );
@@ -551,7 +566,9 @@ test.describe("Timeline event bus integration", () => {
     const devtoolsPanel = page.locator(
       '[role="dialog"][aria-label="Tambo DevTools"]',
     );
-    if (!(await devtoolsPanel.isVisible({ timeout: 2000 }).catch(() => false))) {
+    if (
+      !(await devtoolsPanel.isVisible({ timeout: 2000 }).catch(() => false))
+    ) {
       const reopenButton = page.locator(
         'button[aria-label="Toggle Tambo DevTools"]',
       );
@@ -631,7 +648,9 @@ test.describe("Timeline event bus integration", () => {
     const devtoolsPanel = page.locator(
       '[role="dialog"][aria-label="Tambo DevTools"]',
     );
-    if (!(await devtoolsPanel.isVisible({ timeout: 2000 }).catch(() => false))) {
+    if (
+      !(await devtoolsPanel.isVisible({ timeout: 2000 }).catch(() => false))
+    ) {
       const reopenButton = page.locator(
         'button[aria-label="Toggle Tambo DevTools"]',
       );
@@ -697,7 +716,9 @@ test.describe("Timeline event bus integration", () => {
     const devtoolsPanel = page.locator(
       '[role="dialog"][aria-label="Tambo DevTools"]',
     );
-    if (!(await devtoolsPanel.isVisible({ timeout: 2000 }).catch(() => false))) {
+    if (
+      !(await devtoolsPanel.isVisible({ timeout: 2000 }).catch(() => false))
+    ) {
       const reopenButton = page.locator(
         'button[aria-label="Toggle Tambo DevTools"]',
       );
@@ -770,7 +791,9 @@ test.describe("Timeline event bus integration", () => {
     const devtoolsPanel = page.locator(
       '[role="dialog"][aria-label="Tambo DevTools"]',
     );
-    if (!(await devtoolsPanel.isVisible({ timeout: 2000 }).catch(() => false))) {
+    if (
+      !(await devtoolsPanel.isVisible({ timeout: 2000 }).catch(() => false))
+    ) {
       const reopenButton = page.locator(
         'button[aria-label="Toggle Tambo DevTools"]',
       );
