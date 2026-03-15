@@ -18,6 +18,15 @@ async function jsClick(locator: Locator) {
 
 /**
  * Open devtools: wait for trigger, click it, wait for panel.
+ *
+ * The button is SSR-rendered before React hydrates event handlers.
+ * We use a generous delay to let React attach handlers, then fire a
+ * single click via dispatchEvent (Playwright's native click doesn't
+ * reliably trigger React synthetic events on this component).  The
+ * button is a toggle that unmounts when the panel opens, so clicking
+ * only once avoids toggling it closed.  Tests that fail due to cold
+ * page hydration timing will pass on retry (retries: 1 in config).
+ *
  * @returns Locator for the devtools panel dialog.
  */
 async function openDevtools(page: Page) {
@@ -25,11 +34,6 @@ async function openDevtools(page: Page) {
     'button[aria-label="Toggle Tambo DevTools"]',
   );
   await expect(devtoolsButton).toBeVisible({ timeout: 30000 });
-
-  // The button is SSR-rendered and appears before React hydrates event
-  // handlers.  Wait for all page resources to load, then use a generous
-  // delay to ensure React has attached handlers.  The button is a toggle
-  // so we must only click once — any retry risks toggling it closed.
   await page.waitForLoadState("domcontentloaded");
   await page.waitForTimeout(5000);
 
