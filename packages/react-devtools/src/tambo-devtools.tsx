@@ -1,5 +1,5 @@
 "use client";
-import { safeSchemaToJsonSchema } from "@tambo-ai/client";
+import { devtoolsEventBus, safeSchemaToJsonSchema } from "@tambo-ai/client";
 import type { SupportedSchema } from "@tambo-ai/client";
 import { useTamboDevtoolsEvents, useTamboRegistry } from "@tambo-ai/react";
 import React, {
@@ -14,6 +14,16 @@ import "./devtools.css";
 import { getStyles } from "./styles";
 import { TamboIcon } from "./tambo-icon";
 import { usePanelState } from "./use-panel-state";
+
+// Expose the devtools event bus on window in development for e2e testing
+if (
+  typeof window !== "undefined" &&
+  process.env.NODE_ENV === "development" &&
+  !("__tamboDevtoolsEventBus" in window)
+) {
+  (window as unknown as Record<string, unknown>).__tamboDevtoolsEventBus =
+    devtoolsEventBus;
+}
 
 /**
  * Converts a schema to JSON Schema, returning undefined for void/empty schemas.

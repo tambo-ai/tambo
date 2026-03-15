@@ -2,7 +2,10 @@ import { defineConfig } from "@playwright/test";
 
 export default defineConfig({
   testDir: "./e2e",
-  timeout: 90000,
+  // Cold Next.js dev compilation can take 60s+ on first page load, so
+  // allow enough headroom for the open-devtools click-retry loop (60s)
+  // plus test assertions.
+  timeout: 120000,
   retries: 1,
   outputDir: "./test-results",
   use: {
