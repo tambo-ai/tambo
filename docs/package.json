@@ -11,7 +11,8 @@
     "start": "next start",
     "postinstall": "fumadocs-mdx",
     "postbuild": "next-sitemap",
-    "clean": "rimraf .next"
+    "clean": "rimraf .next",
+    "test:e2e": "npx playwright test"
   },
   "dependencies": {
     "@tambo-ai/react": "*",
