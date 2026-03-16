@@ -887,60 +887,23 @@ function displayFullSendInstructions(selectedComponents: string[] = []): void {
   const framework = detectFramework();
   const isVite = framework?.name === "vite";
   const isExpo = framework?.name === "expo";
-
-  if (isExpo) {
-    console.log(chalk.bold("\n1. Add the TamboProvider to your app"));
-  } else if (isVite) {
-    console.log(chalk.bold("\n1. Add the TamboProvider to your app"));
-  } else {
-    console.log(chalk.bold("\n1. Add the TamboProvider to your layout file"));
-  }
-
-  // Determine the likely entry file paths
-  function getEntryFilePaths(): {
-    possiblePaths: string[];
-    defaultPath: string;
-  } {
-    if (isVite) {
-      return {
-        possiblePaths: [
-          "src/App.tsx",
-          "src/App.jsx",
-          "src/main.tsx",
-          "src/main.jsx",
-        ],
-        defaultPath: "src/App.tsx",
-      };
-    }
-    return {
-      possiblePaths: [
-        "app/layout.tsx",
-        "app/layout.jsx",
-        "src/app/layout.tsx",
-        "src/app/layout.jsx",
-      ],
-      defaultPath: "app/layout.tsx",
-    };
-  }
-
-  const { possiblePaths, defaultPath: defaultEntryFile } = getEntryFilePaths();
-  const layoutPath =
-    possiblePaths.find((p) => fs.existsSync(p)) ?? defaultEntryFile;
-  console.log(chalk.gray(`\n   📁 File location: ${layoutPath}`));
-  console.log(chalk.gray(`\n   Add the following code:`));
-
-  // Map component names to their capitalized versions
-  const componentNameMap: Record<string, string> = {
-    "message-thread-full": "MessageThreadFull",
-    "message-thread-panel": "MessageThreadPanel",
-    "message-thread-collapsible": "MessageThreadCollapsible",
-    "control-bar": "ControlBar",
-  };
-
   const envVarName = getTamboApiKeyEnvVar();
 
   // Expo projects don't use web components — show a simpler provider-only snippet
   if (isExpo) {
+    console.log(chalk.bold("\n1. Add the TamboProvider to your app"));
+
+    const possibleExpoPaths = [
+      "App.tsx",
+      "App.jsx",
+      "app/_layout.tsx",
+      "src/App.tsx",
+    ];
+    const expoEntryFile =
+      possibleExpoPaths.find((p) => fs.existsSync(p)) ?? "App.tsx";
+    console.log(chalk.gray(`\n   📁 File location: ${expoEntryFile}`));
+    console.log(chalk.gray(`\n   Add the following code:`));
+
     const providerSnippet = `import { TamboProvider } from "@tambo-ai/react";
 import { components } from "./lib/tambo";
 
@@ -989,6 +952,35 @@ export default function App() {
     console.log(chalk.gray("   Run 'npx expo start' to launch your app"));
     return;
   }
+
+  // Web frameworks (Next.js, Vite, etc.)
+  if (isVite) {
+    console.log(chalk.bold("\n1. Add the TamboProvider to your app"));
+  } else {
+    console.log(chalk.bold("\n1. Add the TamboProvider to your layout file"));
+  }
+
+  const possiblePaths = isVite
+    ? ["src/App.tsx", "src/App.jsx", "src/main.tsx", "src/main.jsx"]
+    : [
+        "app/layout.tsx",
+        "app/layout.jsx",
+        "src/app/layout.tsx",
+        "src/app/layout.jsx",
+      ];
+  const defaultEntryFile = isVite ? "src/App.tsx" : "app/layout.tsx";
+  const layoutPath =
+    possiblePaths.find((p) => fs.existsSync(p)) ?? defaultEntryFile;
+  console.log(chalk.gray(`\n   📁 File location: ${layoutPath}`));
+  console.log(chalk.gray(`\n   Add the following code:`));
+
+  // Map component names to their capitalized versions
+  const componentNameMap: Record<string, string> = {
+    "message-thread-full": "MessageThreadFull",
+    "message-thread-panel": "MessageThreadPanel",
+    "message-thread-collapsible": "MessageThreadCollapsible",
+    "control-bar": "ControlBar",
+  };
 
   // If no components were selected, use a default
   if (selectedComponents.length === 0) {

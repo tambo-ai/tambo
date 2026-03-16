@@ -172,7 +172,9 @@ export function getDefaultCssPath(
   }
 
   if (framework?.name === "expo") {
-    // Expo/React Native projects don't use CSS files
+    // Expo/React Native projects don't use CSS files, but callers expect a
+    // non-null return. This path is only reached if the user forces component
+    // installation via the `tambo add --yes` escape hatch.
     return hasSrcDir ? "src/global.css" : "global.css";
   }
 
