@@ -6,20 +6,7 @@ import type {
 import { type NarrowStrings } from "../../typeutils";
 
 type RawModelIds = Parameters<OpenAIProvider["languageModel"]>[0];
-type AdditionalOpenAIModelId =
-  | "gpt-5.4"
-  | "gpt-5.4-pro"
-  | "gpt-5.3-chat-latest"
-  | "gpt-5.2"
-  | "gpt-5.2-pro"
-  | "gpt-5.1"
-  | "gpt-5.1-chat-latest"
-  | "gpt-5-2025-08-07"
-  | "gpt-5-mini"
-  | "gpt-5-mini-2025-08-07"
-  | "gpt-5-nano"
-  | "gpt-5-nano-2025-08-07";
-type OpenAIModelId = NarrowStrings<RawModelIds> | AdditionalOpenAIModelId;
+type OpenAIModelId = NarrowStrings<RawModelIds>;
 
 const reasoningParameters: LlmParameterMetadata = {
   reasoningEffort: {
