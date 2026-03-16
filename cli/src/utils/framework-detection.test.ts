@@ -238,25 +238,21 @@ describe("framework-detection", () => {
       expect(result).toBeNull();
     });
 
-    it.each([
-      "app.config.ts",
-      "app.config.mts",
-      "app.config.cts",
-      "app.config.js",
-      "app.config.mjs",
-      "app.config.cjs",
-    ])("detects Expo via %s file", (configFile) => {
-      vol.fromJSON({
-        "/mock-project/package.json": JSON.stringify({
-          name: "test-project",
-          dependencies: { react: "^18.0.0" },
-        }),
-        [`/mock-project/${configFile}`]: "export default { expo: {} };",
-      });
+    it.each(["app.config.ts", "app.config.js"])(
+      "detects Expo via %s file",
+      (configFile) => {
+        vol.fromJSON({
+          "/mock-project/package.json": JSON.stringify({
+            name: "test-project",
+            dependencies: { react: "^18.0.0" },
+          }),
+          [`/mock-project/${configFile}`]: "export default { expo: {} };",
+        });
 
-      const result = detectFramework();
-      expect(result?.name).toBe("expo");
-    });
+        const result = detectFramework();
+        expect(result?.name).toBe("expo");
+      },
+    );
 
     it("Next.js takes priority over Expo when both are present", () => {
       vol.fromJSON({

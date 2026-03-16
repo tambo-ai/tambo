@@ -71,17 +71,10 @@ function hasExpoAppJson(root: string): boolean {
 
 /**
  * Expo dynamic config filenames (these are Expo-specific, unlike app.json
- * which can exist in non-Expo projects). Matches the resolution order from
- * @expo/config: dynamic configs checked before static app.json.
+ * which can exist in non-Expo projects). Only includes the two documented
+ * Expo config formats to avoid false positives with generic filenames.
  */
-const EXPO_DYNAMIC_CONFIG_FILES = [
-  "app.config.ts",
-  "app.config.mts",
-  "app.config.cts",
-  "app.config.mjs",
-  "app.config.cjs",
-  "app.config.js",
-] as const;
+const EXPO_DYNAMIC_CONFIG_FILES = ["app.config.ts", "app.config.js"] as const;
 
 /**
  * Supported frameworks with their detection logic and env var prefixes
