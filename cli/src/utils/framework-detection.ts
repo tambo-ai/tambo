@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 
 /** Known framework identifiers */
-export type FrameworkName = "next" | "vite";
+export type FrameworkName = "next" | "expo" | "vite";
 
 /** Vite config filenames, checked during both detection and toolchain setup */
 export const VITE_CONFIG_FILES = [
@@ -55,6 +55,35 @@ function hasAnyFile(filenames: string[], root: string): boolean {
 }
 
 /**
+ * Checks if app.json contains an "expo" key, confirming it's an Expo project
+ * rather than a generic app.json file
+ */
+function hasExpoAppJson(root: string): boolean {
+  try {
+    const appJsonPath = path.join(root, "app.json");
+    if (!fs.existsSync(appJsonPath)) return false;
+    const appJson = JSON.parse(fs.readFileSync(appJsonPath, "utf8"));
+    return "expo" in appJson;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Expo dynamic config filenames (these are Expo-specific, unlike app.json
+ * which can exist in non-Expo projects). Matches the resolution order from
+ * @expo/config: dynamic configs checked before static app.json.
+ */
+const EXPO_DYNAMIC_CONFIG_FILES = [
+  "app.config.ts",
+  "app.config.mts",
+  "app.config.cts",
+  "app.config.mjs",
+  "app.config.cjs",
+  "app.config.js",
+] as const;
+
+/**
  * Supported frameworks with their detection logic and env var prefixes
  * Order matters - first match wins
  */
@@ -66,6 +95,15 @@ const FRAMEWORKS: FrameworkDefinition[] = [
     detect: (root) =>
       hasPackage("next", root) ||
       hasAnyFile(["next.config.js", "next.config.ts", "next.config.mjs"], root),
+  },
+  {
+    name: "expo",
+    displayName: "Expo",
+    envPrefix: "EXPO_PUBLIC_",
+    detect: (root) =>
+      hasPackage("expo", root) ||
+      hasExpoAppJson(root) ||
+      hasAnyFile([...EXPO_DYNAMIC_CONFIG_FILES], root),
   },
   {
     name: "vite",
@@ -133,7 +171,21 @@ export function getDefaultCssPath(
     return hasSrcDir ? "src/index.css" : "index.css";
   }
 
+  if (framework?.name === "expo") {
+    // Expo/React Native projects don't use CSS files
+    return hasSrcDir ? "src/global.css" : "global.css";
+  }
+
   // Next.js or default
   const appPath = hasSrcDir ? "src/app" : "app";
   return path.join(appPath, "globals.css");
+}
+
+/**
+ * Checks if the detected framework is a native (non-web) framework
+ * @param framework The detected framework config
+ * @returns Whether the framework targets native platforms instead of web
+ */
+export function isNativeFramework(framework: FrameworkConfig | null): boolean {
+  return framework?.name === "expo";
 }

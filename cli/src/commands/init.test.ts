@@ -43,6 +43,8 @@ jest.unstable_mockModule("../utils/framework-detection.js", () => ({
     mockDetectedFramework?.envPrefix
       ? `${mockDetectedFramework.envPrefix}${baseName}`
       : baseName,
+  isNativeFramework: (framework: FrameworkConfig | null) =>
+    framework?.name === "expo",
 }));
 
 // Mock child_process for npm install
