@@ -17,6 +17,7 @@ jest.unstable_mockModule("fs", () => ({
 // Import after mocking
 const {
   detectFramework,
+  getDefaultCssPath,
   getEnvVarName,
   getTamboApiKeyEnvVar,
   isNativeFramework,
@@ -218,6 +219,19 @@ describe("framework-detection", () => {
           dependencies: { react: "^18.0.0" },
         }),
         "/mock-project/app.json": JSON.stringify({ name: "some-app" }),
+      });
+
+      const result = detectFramework();
+      expect(result).toBeNull();
+    });
+
+    it("does not detect Expo from app.json with invalid JSON", () => {
+      vol.fromJSON({
+        "/mock-project/package.json": JSON.stringify({
+          name: "test-project",
+          dependencies: { react: "^18.0.0" },
+        }),
+        "/mock-project/app.json": "{ invalid json }",
       });
 
       const result = detectFramework();
@@ -426,6 +440,35 @@ describe("framework-detection", () => {
 
       const result = getTamboApiKeyEnvVar();
       expect(result).toBe("TAMBO_API_KEY");
+    });
+  });
+
+  describe("getDefaultCssPath", () => {
+    it("returns global.css for Expo projects", () => {
+      vol.fromJSON({
+        "/mock-project/package.json": JSON.stringify({
+          name: "test-project",
+          dependencies: { expo: "~51.0.0" },
+        }),
+      });
+
+      const framework = detectFramework();
+      const result = getDefaultCssPath("/mock-project", framework);
+      expect(result).toBe("global.css");
+    });
+
+    it("returns src/global.css for Expo projects with src dir", () => {
+      vol.fromJSON({
+        "/mock-project/package.json": JSON.stringify({
+          name: "test-project",
+          dependencies: { expo: "~51.0.0" },
+        }),
+        "/mock-project/src/index.ts": "",
+      });
+
+      const framework = detectFramework();
+      const result = getDefaultCssPath("/mock-project", framework);
+      expect(result).toBe("src/global.css");
     });
   });
 
