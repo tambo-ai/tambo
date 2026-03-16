@@ -61,13 +61,12 @@ jobs:
     permissions:
       contents: read
       actions: read
-      checks: write
-      packages: write
     env:
       DOCKER_BUILDKIT: 1
       COMPOSE_DOCKER_CLI_BUILD: 1
     strategy:
       matrix:
+        # Keep in sync with push job matrix
         images:
           - name: web
             context: .
@@ -216,6 +215,7 @@ jobs:
       packages: write
     strategy:
       matrix:
+        # Keep in sync with build job matrix
         images:
           - name: web
             path: apps/web
@@ -295,6 +295,8 @@ jobs:
           cache-from: |
             type=gha,scope=buildx-${{ matrix.images.name }}-${{ github.ref_name }}
             type=gha,scope=buildx-${{ matrix.images.name }}-main
+          cache-to: |
+            type=gha,scope=buildx-${{ matrix.images.name }}-${{ github.ref_name }},mode=max
           build-args: |
             NODE_ENV=production
             TURBO_TEAM=${{ vars.TURBO_TEAM }}
