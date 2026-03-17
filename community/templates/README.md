@@ -4,12 +4,13 @@ Starter templates for building AI-powered apps with Tambo.
 
 ## Official Templates
 
-| Template                                                                         | Description         | Stack            |
-| -------------------------------------------------------------------------------- | ------------------- | ---------------- |
-| [tambo-template](https://github.com/tambo-ai/tambo-template)                     | Default starter     | Next.js + Tambo  |
-| [tambo-template-tanstack](https://github.com/tambo-ai/tambo-template-tanstack)   | TanStack Router     | Vite + TanStack  |
-| [analytics-template](https://github.com/tambo-ai/analytics-template)             | Analytics dashboard | Next.js + Charts |
-| [betterauth-tambo-example](https://github.com/tambo-ai/betterauth-tambo-example) | Auth integration    | BetterAuth       |
+| Template                                                                         | Description         | Stack               |
+| -------------------------------------------------------------------------------- | ------------------- | ------------------- |
+| [tambo-template](https://github.com/tambo-ai/tambo-template)                     | Default starter     | Next.js + Tambo     |
+| [tambo-template-tanstack](https://github.com/tambo-ai/tambo-template-tanstack)   | TanStack Router     | Vite + TanStack     |
+| [analytics-template](https://github.com/tambo-ai/analytics-template)             | Analytics dashboard | Next.js + Charts    |
+| [demo-mobile-log](https://github.com/tambo-ai/demo-mobile-log)                   | Mobile app          | Expo + React Native |
+| [betterauth-tambo-example](https://github.com/tambo-ai/betterauth-tambo-example) | Auth integration    | BetterAuth          |
 
 ## Contributing a Template
 
