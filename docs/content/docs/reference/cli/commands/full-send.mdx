@@ -80,7 +80,7 @@ After running `full-send`, add the TamboProvider to your app. The CLI detects yo
 
 import { Tab, Tabs } from "fumadocs-ui/components/tabs";
 
-<Tabs items={["Next.js", "Vite"]}>
+<Tabs items={["Next.js", "Vite", "Expo"]}>
 <Tab value="Next.js">
 ```tsx title="app/layout.tsx"
 "use client";
@@ -122,6 +122,29 @@ export default function App() {
   );
 }
 ```
+</Tab>
+<Tab value="Expo">
+
+For Expo projects, `full-send` skips web component installation since the registry components use DOM and Tailwind CSS. Use `@tambo-ai/react` hooks directly to build your native UI.
+
+```tsx title="App.tsx"
+import { TamboProvider } from "@tambo-ai/react";
+import { components } from "./lib/tambo";
+
+export default function App() {
+  return (
+    <TamboProvider
+      apiKey={process.env.EXPO_PUBLIC_TAMBO_API_KEY ?? ""}
+      components={components}
+    >
+      {/* Your React Native content */}
+    </TamboProvider>
+  );
+}
+```
+
+See the [Expo template](https://github.com/tambo-ai/demo-mobile-log) for a complete example.
+
 </Tab>
 </Tabs>
 
