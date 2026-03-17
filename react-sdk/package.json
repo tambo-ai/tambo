@@ -104,7 +104,7 @@
     "fast-json-patch": "^3.1.1",
     "concurrently": "^9.2.1",
     "eslint": "^9.39.4",
-    "eslint-plugin-jsdoc": "^62.7.1",
+    "eslint-plugin-jsdoc": "^62.8.0",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^6.1.1",
     "jest": "^30.3.0",
@@ -118,7 +118,7 @@
     "tsc-esm-fix": "^3.1.2",
     "typescript": "^5.9.3",
     "type-fest": "^5.4.3",
-    "typescript-eslint": "^8.56.1",
+    "typescript-eslint": "^8.57.0",
     "zod": "^3.25.76 || ^4",
     "zod-to-json-schema": "^3.25.1"
   }
