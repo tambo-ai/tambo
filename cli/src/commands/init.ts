@@ -904,8 +904,17 @@ function displayFullSendInstructions(selectedComponents: string[] = []): void {
     console.log(chalk.gray(`\n   📁 File location: ${expoEntryFile}`));
     console.log(chalk.gray(`\n   Add the following code:`));
 
+    // Compute relative import path from entry file to lib/tambo.ts
+    const entryDir = path.dirname(expoEntryFile);
+    const hasSrcDir = fs.existsSync("src");
+    const tamboLibPath = hasSrcDir ? "src/lib/tambo" : "lib/tambo";
+    let tamboImportPath = path.relative(entryDir, tamboLibPath);
+    if (!tamboImportPath.startsWith(".")) {
+      tamboImportPath = `./${tamboImportPath}`;
+    }
+
     const providerSnippet = `import { TamboProvider } from "@tambo-ai/react";
-import { components } from "./lib/tambo";
+import { components } from "${tamboImportPath}";
 
 export default function App() {
   return (
