@@ -41,7 +41,7 @@
     "@mastra/client-js": "^1.1.0",
     "@mastra/core": "^1.1.0",
     "@tambo-ai-cloud/core": "*",
-    "ai": "^5.0.153",
+    "ai": "^5.0.155",
     "ajv": "^8.18.0",
     "fast-json-patch": "^3.1.1",
     "gpt-tokenizer": "^3.2.0",
