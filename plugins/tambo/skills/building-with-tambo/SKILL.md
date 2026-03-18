@@ -264,7 +264,7 @@ This installs a collapsible chat panel with message display, input, suggestions,
    });
    ```
 
-   And in `tsconfig.json`:
+   And in the app tsconfig (`tsconfig.app.json` when present, otherwise `tsconfig.json`):
 
    ```json
    {
