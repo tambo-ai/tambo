@@ -1,6 +1,6 @@
 ---
 name: generative-ui
-description: Creates a new Tambo generative UI React app from scratch with AI-powered components, chat interface, and Zod schemas. Scaffolds with tambo create-app, wires TamboProvider, and registers starter components. Use for brand-new projects where users describe UI in natural language. Triggers on "new Tambo app", "create a generative UI app", "build an AI app from scratch", "start a new project with Tambo", or when the user wants to create something new (not integrate into existing code). For adding Tambo to existing apps, use building-with-tambo instead.
+description: Creates a new Tambo generative UI app from scratch. Scaffolds with tambo create-app, wires TamboProvider, registers starter components. Triggers on "new Tambo app", "create a generative UI app", "build an AI app from scratch", "start a new project with Tambo". For existing apps, use building-with-tambo.
 ---
 
 # Generative UI
