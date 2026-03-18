@@ -1,6 +1,6 @@
 ---
 name: building-with-tambo
-description: Integrates Tambo into existing React apps — detects tech stack, installs @tambo-ai/react, wires TamboProvider, registers components with Zod schemas, and sets up tools/context. Use when adding AI-powered generative UI to an existing codebase. Triggers on "add Tambo", "integrate Tambo", "add AI chat to my app", "add generative UI", or when the user has an existing React/Next.js/Vite project and wants to add AI-powered components. Also use when adding Tambo to monorepos, Yarn/pnpm projects, or apps without Tailwind. For brand-new projects, use generative-ui instead.
+description: Integrates Tambo into existing React apps — detects tech stack, installs @tambo-ai/react, wires TamboProvider, registers components with Zod schemas, and sets up tools/context. Use when adding AI-powered generative UI to an existing codebase. Triggers on "add Tambo", "integrate Tambo", "add AI chat to my app", "add generative UI", or when the user has an existing React/Next.js/Vite project and wants to add AI-powered components. For brand-new projects, use generative-ui instead.
 ---
 
 # Building with Tambo
@@ -234,6 +234,9 @@ Use Tambo's pre-built components for the chat interface:
 
 ```bash
 npx tambo add message-thread-collapsible --yes
+# Or with other package managers:
+# yarn dlx tambo add message-thread-collapsible --yes
+# pnpm dlx tambo add message-thread-collapsible --yes
 ```
 
 This installs a collapsible chat panel with message display, input, suggestions, and streaming support. The component renders as a fixed-position panel in the bottom-right corner.
@@ -244,8 +247,8 @@ This installs a collapsible chat panel with message display, input, suggestions,
 
    ```tsx
    // Next.js: already handled in layout
-   // Vite: add to your main entry file
-   import "./src/app/globals.css";
+   // Vite: import relative to the entry file (e.g., from src/main.tsx)
+   import "./app/globals.css";
    ```
 
 2. **Path alias** — Tambo components use `@/` imports. For Vite projects, add the alias:
@@ -294,13 +297,19 @@ Wrap the Tambo chat UI in a div that stops keyboard event propagation:
 
 ### Z-Index for Full-Screen Apps
 
-Apps with full-screen canvases or overlays may render on top of the Tambo chat. Ensure the chat has a high z-index:
+Apps with full-screen canvases or overlays may render on top of the Tambo chat. The `MessageThreadCollapsible` component uses `position: fixed`, but the host app's canvas may have a higher stacking context. Wrap with a fixed container that sits above everything:
 
 ```tsx
-<div style={{ position: "relative", zIndex: 9999 }}>
-  <MessageThreadCollapsible />
+<div
+  style={{ position: "fixed", inset: 0, zIndex: 9999, pointerEvents: "none" }}
+>
+  <div style={{ pointerEvents: "auto" }}>
+    <MessageThreadCollapsible />
+  </div>
 </div>
 ```
+
+The outer div creates a stacking context above the canvas, while `pointerEvents: none/auto` ensures only the chat panel is clickable — the rest of the screen passes clicks through to the canvas.
 
 You can combine keyboard isolation and z-index in one wrapper.
 
