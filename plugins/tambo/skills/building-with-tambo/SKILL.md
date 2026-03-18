@@ -1,6 +1,6 @@
 ---
 name: building-with-tambo
-description: Integrates Tambo into existing React apps — detects tech stack, installs @tambo-ai/react, wires TamboProvider, registers components with Zod schemas, and sets up tools/context. Use when adding AI-powered generative UI to an existing codebase. For brand-new projects, use generative-ui.
+description: Integrates Tambo into existing React apps — detects tech stack, installs @tambo-ai/react, wires TamboProvider, registers components with Zod schemas, and sets up tools/context. Use when adding AI-powered generative UI to an existing codebase. Triggers on "add Tambo", "integrate Tambo", "add AI chat to my app", "add generative UI", or when the user has an existing React/Next.js/Vite project and wants to add AI-powered components. Also use when adding Tambo to monorepos, Yarn/pnpm projects, or apps without Tailwind. For brand-new projects, use generative-ui instead.
 ---
 
 # Building with Tambo
@@ -9,24 +9,25 @@ Detect tech stack and integrate Tambo while preserving existing patterns.
 
 ## Reference Guides
 
-Use these guides when you need deeper implementation details for a specific area:
+Load these when you reach the relevant step or need deeper implementation details:
 
-- [Components](references/components.md) - Create and register Tambo components (generative and interactable).
-- [Component Rendering](references/component-rendering.md) - Handle streaming props, loading states, and persistent component state.
-- [Threads and Input](references/threads.md) - Manage conversations, suggestions, voice input, image attachments, and thread switching.
-- [Tools and Context](references/tools-and-context.md) - Add custom tools, MCP servers, context helpers, and resources.
-- [CLI Reference](references/cli.md) - Use `tambo init`, `tambo add`, and `create-app` with non-interactive flags and exit codes.
-- [Add Components to Registry](references/add-components-to-registry.md) - Convert existing React components into Tambo-ready registrations with schemas and descriptions.
+- [Components](references/components.md) - **Load at Step 5.** Generative vs interactable components, propsSchema, ComponentRenderer.
+- [Component Rendering](references/component-rendering.md) - Streaming props, loading states, persistent state. Load when building custom message rendering.
+- [Threads and Input](references/threads.md) - **Load when building custom chat UI.** useTambo(), useTamboThreadInput(), userKey/userToken auth, suggestions, voice.
+- [Tools and Context](references/tools-and-context.md) - **Load when wiring host app APIs.** defineTool(), MCP servers, contextHelpers.
+- [CLI Reference](references/cli.md) - **Load at Step 6.** `tambo add` component library, `tambo init` flags, non-interactive mode.
+- [Add Components to Registry](references/add-components-to-registry.md) - **Load when registering existing app components.** Analyzes props, generates Zod schemas, writes descriptions.
 
 Shared references (components, rendering, threads, tools/context, CLI) are duplicated into generative-ui so each skill works independently. `add-components-to-registry` is unique to this skill.
 
 ## Workflow
 
-1. **Detect tech stack** - Analyze package.json and project structure
+1. **Detect tech stack** - Analyze package.json, lock files, project structure, monorepo layout
 2. **Confirm with user** - Present findings, ask about preferences
-3. **Install dependencies** - Add @tambo-ai/react and peer deps
-4. **Create provider setup** - Adapt to existing patterns
-5. **Register first component** - Demonstrate with existing component
+3. **Install dependencies** - Add @tambo-ai/react and zod using the project's package manager
+4. **Create provider setup** - Wire TamboProvider with apiKey, userKey, components
+5. **Create component registry** - Set up lib/tambo.ts
+6. **Add chat UI** - Install pre-built Tambo components via CLI, set up path aliases and globals.css
 
 ## Step 1: Detect Tech Stack
 
@@ -34,13 +35,14 @@ Check these files to understand the project:
 
 ```bash
 # Key files to read
-package.json           # Dependencies and scripts
-tsconfig.json          # TypeScript config
+package.json           # Dependencies, scripts, AND package manager
+tsconfig.json          # TypeScript config, path aliases
 next.config.*          # Next.js
 vite.config.*          # Vite
 tailwind.config.*      # Tailwind CSS
 postcss.config.*       # PostCSS
 src/index.* or app/    # Entry points
+yarn.lock / pnpm-lock.yaml / package-lock.json  # Which package manager
 ```
 
 ### Detection Checklist
@@ -56,16 +58,56 @@ src/index.* or app/    # Entry points
 | Zod              | `zod` in dependencies                             |
 | Other validation | `yup`, `joi`, `superstruct` in deps               |
 
+### Package Manager Detection
+
+**Always detect and use the project's package manager.** Do not assume npm.
+
+| Lock file           | Manager | Install command               |
+| ------------------- | ------- | ----------------------------- |
+| `package-lock.json` | npm     | `npm install @tambo-ai/react` |
+| `yarn.lock`         | Yarn    | `yarn add @tambo-ai/react`    |
+| `pnpm-lock.yaml`    | pnpm    | `pnpm add @tambo-ai/react`    |
+
+For **monorepos**, install in the correct workspace:
+
+- Yarn: `yarn workspace <app-name> add @tambo-ai/react`
+- pnpm: `pnpm --filter <app-name> add @tambo-ai/react`
+- npm: `npm install @tambo-ai/react -w <app-name>`
+
+### Monorepo Detection
+
+Check for monorepo indicators:
+
+- `workspaces` field in root `package.json`
+- `pnpm-workspace.yaml`
+- `turbo.json` or `nx.json`
+- Multiple `package.json` files in `apps/` or `packages/`
+
+If monorepo detected, identify which package is the web app that will use Tambo (usually in `apps/web`, `apps/frontend`, or similar).
+
+### Global Keyboard Shortcuts Detection
+
+Check if the app captures keyboard events globally (common in drawing tools, editors, IDEs). Look for:
+
+- `document.addEventListener("keydown", ...)` in the codebase
+- Canvas-based apps (Excalidraw, Figma-like, code editors)
+- Keyboard shortcut libraries (hotkeys-js, mousetrap, etc.)
+
+If found, the Tambo chat UI wrapper must stop event propagation (see Step 6).
+
 ## Step 2: Confirm with User
 
-Present findings and ask:
+Present findings including the package manager and any special concerns:
 
 ```
 I detected your project uses:
 - Framework: Next.js 14 (App Router)
+- Package manager: Yarn
 - Styling: Tailwind CSS
 - Validation: No Zod (will need to add)
 - TypeScript: Yes
+- Monorepo: No
+- Global keyboard shortcuts: No
 
 Should I:
 1. Install Tambo with these settings?
@@ -75,12 +117,25 @@ Should I:
 
 ## Step 3: Install Dependencies
 
-```bash
-# Core (always required)
-npm install @tambo-ai/react
+Use the project's package manager (detected in Step 1):
 
-# If no Zod installed
-npm install zod
+```bash
+# npm
+npm install @tambo-ai/react
+npm install zod  # if no Zod installed
+
+# yarn
+yarn add @tambo-ai/react
+yarn add zod
+
+# pnpm
+pnpm add @tambo-ai/react
+pnpm add zod
+
+# Monorepo (install in the correct workspace)
+yarn workspace <app-name> add @tambo-ai/react zod
+pnpm --filter <app-name> add @tambo-ai/react zod
+npm install @tambo-ai/react zod -w <app-name>
 ```
 
 ## Step 4: Create Provider Setup
@@ -97,6 +152,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <TamboProvider
       apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY}
+      userKey="default-user"
       components={components}
     >
       {children}
@@ -104,6 +160,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
   );
 }
 ```
+
+**IMPORTANT:** `userKey` is required for authentication. Without it, message submission fails with "authentication is not ready." In production, use a real user identifier (e.g., session ID, user ID from your auth system). For development/demo, a static string works.
 
 ```tsx
 // app/layout.tsx
@@ -131,6 +189,7 @@ export default function App({ Component, pageProps }) {
   return (
     <TamboProvider
       apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY}
+      userKey="default-user"
       components={components}
     >
       <Component {...pageProps} />
@@ -150,6 +209,7 @@ import App from "./App";
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <TamboProvider
     apiKey={import.meta.env.VITE_TAMBO_API_KEY}
+    userKey="default-user"
     components={components}
   >
     <App />
@@ -168,14 +228,92 @@ export const components: TamboComponent[] = [
 ];
 ```
 
+## Step 6: Add Chat UI
+
+Use Tambo's pre-built components for the chat interface:
+
+```bash
+npx tambo add message-thread-collapsible --yes
+```
+
+This installs a collapsible chat panel with message display, input, suggestions, and streaming support. The component renders as a fixed-position panel in the bottom-right corner.
+
+### After `tambo add`, complete the setup:
+
+1. **Import globals.css** — `tambo add` creates a `globals.css` with Tailwind and theme variables. Import it in your app's entry point:
+
+   ```tsx
+   // Next.js: already handled in layout
+   // Vite: add to your main entry file
+   import "./src/app/globals.css";
+   ```
+
+2. **Path alias** — Tambo components use `@/` imports. For Vite projects, add the alias:
+
+   ```ts
+   // vite.config.ts
+   import path from "path";
+
+   export default defineConfig({
+     resolve: {
+       alias: {
+         "@": path.resolve(__dirname, "src"),
+       },
+     },
+   });
+   ```
+
+   And in `tsconfig.json`:
+
+   ```json
+   {
+     "compilerOptions": {
+       "paths": {
+         "@/*": ["./src/*"]
+       }
+     }
+   }
+   ```
+
+   Next.js projects already have `@/` configured by default.
+
+### Keyboard Event Isolation
+
+**Critical for apps with global keyboard shortcuts** (drawing tools, editors, terminal-like apps). Without this, typing in the Tambo chat input triggers the host app's shortcuts.
+
+Wrap the Tambo chat UI in a div that stops keyboard event propagation:
+
+```tsx
+<div
+  onKeyDown={(e) => e.stopPropagation()}
+  onKeyUp={(e) => e.stopPropagation()}
+>
+  <MessageThreadCollapsible />
+</div>
+```
+
+### Z-Index for Full-Screen Apps
+
+Apps with full-screen canvases or overlays may render on top of the Tambo chat. Ensure the chat has a high z-index:
+
+```tsx
+<div style={{ position: "relative", zIndex: 9999 }}>
+  <MessageThreadCollapsible />
+</div>
+```
+
+You can combine keyboard isolation and z-index in one wrapper.
+
 ## Adapting to Existing Patterns
 
 ### No Tailwind? Use Plain CSS
 
-If project uses plain CSS or CSS modules, Tambo components can be styled differently:
+If the project doesn't use Tailwind, `tambo add` will install Tailwind v4 via PostCSS alongside the existing styling. This is additive — it won't break existing CSS/SCSS. The Tambo components use Tailwind, but the rest of your app keeps its styling.
 
-```tsx
-// Skip --yes flag to customize styling during add
+If you'd prefer to avoid Tailwind entirely:
+
+```bash
+# Skip --yes flag to customize styling during add
 npx tambo add message-thread-full
 # Select "CSS Modules" or "Plain CSS" when prompted
 ```
@@ -189,12 +327,18 @@ If using Yup/Joi instead of Zod, user can either:
 
 ### Monorepo?
 
-Run commands from the package that will use Tambo:
+Run commands from the web app package, not the monorepo root:
 
 ```bash
-cd packages/web
+cd apps/web  # or wherever the web app lives
 npx tambo init --api-key=sk_...
 ```
+
+**Monorepo gotchas:**
+
+- **Env vars**: `tambo init` creates `.env.local` in the current directory. Vite loads env from `envDir` (check `vite.config.*`). Ensure the env file is where Vite looks for it.
+- **Dependency hoisting**: Some package managers hoist deps to the monorepo root. If Vite can't resolve a Tambo dependency, install it at the root level too (e.g., `yarn add -W @tambo-ai/react`).
+- **Path aliases**: Vite resolves from the `vite.config.*` directory. The `@/` alias must resolve to the correct `src/` directory within the workspace, not the monorepo root.
 
 ## Environment Variables
 

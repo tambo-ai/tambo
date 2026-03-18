@@ -1,6 +1,6 @@
 ---
 name: generative-ui
-description: Creates a new Tambo generative UI React app from scratch with AI-powered components, chat interface, and Zod schemas. Scaffolds with tambo create-app, wires TamboProvider, and registers starter components. Use for brand-new projects where users describe UI in natural language. For existing apps, use building-with-tambo.
+description: Creates a new Tambo generative UI React app from scratch with AI-powered components, chat interface, and Zod schemas. Scaffolds with tambo create-app, wires TamboProvider, and registers starter components. Use for brand-new projects where users describe UI in natural language. Triggers on "new Tambo app", "create a generative UI app", "build an AI app from scratch", "start a new project with Tambo", or when the user wants to create something new (not integrate into existing code). For adding Tambo to existing apps, use building-with-tambo instead.
 ---
 
 # Generative UI
@@ -9,13 +9,13 @@ Build generative UI apps with Tambo — create rich, interactive React component
 
 ## Reference Guides
 
-For deeper implementation details beyond bootstrap flow, load:
+Load these when you need deeper implementation details beyond the bootstrap flow:
 
-- [Components](references/components.md) - Create and register Tambo components (generative and interactable).
-- [Component Rendering](references/component-rendering.md) - Handle streaming props, loading states, and persistent component state.
-- [Threads and Input](references/threads.md) - Manage conversations, suggestions, voice input, image attachments, and thread switching.
-- [Tools and Context](references/tools-and-context.md) - Add custom tools, MCP servers, context helpers, and resources.
-- [CLI Reference](references/cli.md) - Use `tambo init`, `tambo add`, and `create-app` with non-interactive flags and exit codes.
+- [Components](references/components.md) - **Load when creating custom components.** Generative vs interactable, propsSchema, ComponentRenderer.
+- [Component Rendering](references/component-rendering.md) - Streaming props, loading states, persistent state. Load when customizing rendering.
+- [Threads and Input](references/threads.md) - **Load when building custom chat UI.** useTambo(), useTamboThreadInput(), userKey/userToken auth, suggestions, voice.
+- [Tools and Context](references/tools-and-context.md) - **Load when adding tools or MCP.** defineTool(), MCP servers, contextHelpers.
+- [CLI Reference](references/cli.md) - **Load for `tambo add` components.** Component library, non-interactive flags, exit codes.
 
 These shared references are duplicated from building-with-tambo so each skill works independently.
 
