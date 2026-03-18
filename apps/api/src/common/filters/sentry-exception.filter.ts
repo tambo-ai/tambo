@@ -98,6 +98,13 @@ export class SentryExceptionFilter extends BaseExceptionFilter {
     }
 
     // let the default exception filter handle the response
+    const response = ctx.getResponse();
+    if (response.headersSent) {
+      this.logger.warn(
+        `Cannot send error response: headers already sent for ${request.url}`,
+      );
+      return;
+    }
     super.catch(exception, host);
   }
 }

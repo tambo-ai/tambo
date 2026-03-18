@@ -460,9 +460,14 @@ export class ThreadsController {
         normalizedError.stack,
       );
       Sentry.captureException(normalizedError);
-      throw new InternalServerErrorException("Error in streaming response", {
-        cause: normalizedError,
-      });
+      if (!response.headersSent) {
+        throw new InternalServerErrorException("Error in streaming response", {
+          cause: normalizedError,
+        });
+      }
+      // Headers already sent (response ended by handleAdvanceStream) —
+      // re-throwing would cause "Cannot set headers after they are sent".
+      // Error is already logged and captured in Sentry above.
     }
   }
 
@@ -532,9 +537,14 @@ export class ThreadsController {
         normalizedError.stack,
       );
       Sentry.captureException(normalizedError);
-      throw new InternalServerErrorException("Error in streaming response", {
-        cause: normalizedError,
-      });
+      if (!response.headersSent) {
+        throw new InternalServerErrorException("Error in streaming response", {
+          cause: normalizedError,
+        });
+      }
+      // Headers already sent (response ended by handleAdvanceStream) —
+      // re-throwing would cause "Cannot set headers after they are sent".
+      // Error is already logged and captured in Sentry above.
     }
   }
 
