@@ -243,13 +243,11 @@ This installs a collapsible chat panel with message display, input, suggestions,
 
 ### After `tambo add`, complete the setup:
 
-1. **Import globals.css** — `tambo add` creates a `globals.css` with Tailwind and theme variables. Import it in your app's entry point:
+1. **CSS setup** — `tambo add` adds Tailwind directives and CSS variables to your project's CSS entry file. The file it modifies depends on the framework:
+   - **Next.js**: `app/globals.css` (or `src/app/globals.css`) — already imported in layout by default.
+   - **Vite**: `src/index.css` (or `index.css`) — already imported in `main.tsx` by default.
 
-   ```tsx
-   // Next.js: already handled in layout
-   // Vite: import relative to the entry file (e.g., from src/main.tsx)
-   import "./app/globals.css";
-   ```
+   If your entry file already imports a CSS file, `tambo add` modifies that file in place. No new import is needed.
 
 2. **Path alias** — Tambo components use `@/` imports. For Vite projects, add the alias:
 
