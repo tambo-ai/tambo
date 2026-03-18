@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.55.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.54.2...tambo-v0.55.0) (2026-03-18)
+
+
+### Features
+
+* **cli:** add Expo framework detection and support ([#2638](https://github.com/tambo-ai/tambo/issues/2638)) ([5f50040](https://github.com/tambo-ai/tambo/commit/5f500401b3fcf7d45bebaebecb94d0eed1ce6950))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump the testing group with 3 updates ([#2630](https://github.com/tambo-ai/tambo/issues/2630)) ([7a0aca6](https://github.com/tambo-ai/tambo/commit/7a0aca603d843ec4f7962e4a9ccb31a1d56e8189))
+* **deps:** bump inquirer from 13.2.4 to 13.3.0 ([#2637](https://github.com/tambo-ai/tambo/issues/2637)) ([ef5bd0b](https://github.com/tambo-ai/tambo/commit/ef5bd0b410a7652770a8736edf9882687cdf375f))
+
 ## [0.54.2](https://github.com/tambo-ai/tambo/compare/tambo-v0.54.1...tambo-v0.54.2) (2026-03-13)
 
 
