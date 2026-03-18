@@ -161,7 +161,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
 }
 ```
 
-**IMPORTANT:** `userKey` is required for authentication. Without it, message submission fails with "authentication is not ready." In production, use a real user identifier (e.g., session ID, user ID from your auth system). For development/demo, a static string works.
+**IMPORTANT:** `userKey` is required for authentication. Without it, message submission fails at runtime with "authentication is not ready." Note: `userKey` is typed as optional in TypeScript (`userKey?: string`), so the compiler won't catch this — the failure is purely at runtime. In production, use a real user identifier (e.g., session ID, user ID from your auth system). For development/demo, a static string works.
 
 ```tsx
 // app/layout.tsx
