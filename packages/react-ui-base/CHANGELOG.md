@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.6](https://github.com/tambo-ai/tambo/compare/@tambo-ai/react-ui-base-v0.1.5...@tambo-ai/react-ui-base-v0.1.6) (2026-03-18)
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump the testing group with 3 updates ([#2630](https://github.com/tambo-ai/tambo/issues/2630)) ([7a0aca6](https://github.com/tambo-ai/tambo/commit/7a0aca603d843ec4f7962e4a9ccb31a1d56e8189))
+
 ## [0.1.5](https://github.com/tambo-ai/tambo/compare/@tambo-ai/react-ui-base-v0.1.4...@tambo-ai/react-ui-base-v0.1.5) (2026-03-13)
 
 
