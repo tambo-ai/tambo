@@ -185,6 +185,13 @@ const templates = [
     command: "npx create-tambo-app@latest my-app --template=analytics",
     recommended: false,
   },
+  {
+    id: "expo",
+    name: "Expo",
+    description: "Tambo + Expo + React Native mobile app template",
+    command: "npx create-tambo-app@latest my-app --template=expo",
+    recommended: false,
+  },
 ];
 
 export function OnboardingWizard({

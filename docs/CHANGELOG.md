@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.32.0](https://github.com/tambo-ai/tambo/compare/docs-v1.31.0...docs-v1.32.0) (2026-03-18)
+
+
+### Features
+
+* **cli:** add Expo framework detection and support ([#2638](https://github.com/tambo-ai/tambo/issues/2638)) ([5f50040](https://github.com/tambo-ai/tambo/commit/5f500401b3fcf7d45bebaebecb94d0eed1ce6950))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump mermaid from 11.12.3 to 11.13.0 ([#2636](https://github.com/tambo-ai/tambo/issues/2636)) ([b55e37b](https://github.com/tambo-ai/tambo/commit/b55e37b3c07bc42d5a50c1a546c3c42ad1f3f96e))
+* **deps:** bump the small-safe-packages group with 3 updates ([#2633](https://github.com/tambo-ai/tambo/issues/2633)) ([5bcbfdc](https://github.com/tambo-ai/tambo/commit/5bcbfdc55edbcc13f2ad306e439860e82da24b33))
+
 ## [1.31.0](https://github.com/tambo-ai/tambo/compare/docs-v1.30.2...docs-v1.31.0) (2026-03-13)
 
 

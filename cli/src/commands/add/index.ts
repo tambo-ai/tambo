@@ -7,6 +7,10 @@ import {
 } from "../../constants/paths.js";
 import { resolveComponentDependencies } from "../../utils/dependency-resolution.js";
 import {
+  detectFramework,
+  isNativeFramework,
+} from "../../utils/framework-detection.js";
+import {
   interactivePrompt,
   NonInteractiveError,
 } from "../../utils/interactive.js";
@@ -49,7 +53,44 @@ export async function handleAddComponents(
       );
     }
 
-    // 2. Get installation path if not provided
+    // 2. Warn if this is a native (Expo) project
+    const framework = detectFramework(projectRoot);
+    if (isNativeFramework(framework) && !options.silent) {
+      console.log(
+        chalk.yellow(
+          "\n⚠️  Expo project detected. The component registry contains web-only\n" +
+            "   components (DOM + Tailwind CSS) that won't work in React Native.",
+        ),
+      );
+      console.log(
+        chalk.gray(
+          "   Use @tambo-ai/react hooks directly to build your native UI.\n",
+        ),
+      );
+
+      if (!options.yes) {
+        const { continueAnyway } = await interactivePrompt<{
+          continueAnyway: boolean;
+        }>(
+          {
+            type: "confirm",
+            name: "continueAnyway",
+            message: "Continue installing web components anyway?",
+            default: false,
+          },
+          chalk.yellow(
+            "Use --yes flag to skip this warning in non-interactive mode.",
+          ),
+        );
+
+        if (!continueAnyway) {
+          console.log(chalk.gray("Installation cancelled."));
+          return;
+        }
+      }
+    }
+
+    // 3. Get installation path if not provided
     let installPath =
       options.installPath ??
       (await getInstallationPath(
@@ -152,7 +193,7 @@ export async function handleAddComponents(
       }
     }
 
-    // 3. Resolve all dependencies first
+    // 4. Resolve all dependencies first
     if (!options.silent) {
       console.log(`${chalk.blue("ℹ")} Resolving dependencies...`);
     }
@@ -166,7 +207,7 @@ export async function handleAddComponents(
 
     const components = Array.from(allComponents);
 
-    // 4. Check which components need to be installed
+    // 5. Check which components need to be installed
     let existingComponents: string[] = [];
     let newComponents: string[] = [];
 
@@ -201,7 +242,7 @@ export async function handleAddComponents(
       }
     }
 
-    // 5. Show installation plan
+    // 6. Show installation plan
     if (!options.silent) {
       console.log(`${chalk.blue("ℹ")} Components to be installed:`);
       newComponents.forEach((comp) => console.log(`  - ${comp}`));
@@ -264,7 +305,7 @@ export async function handleAddComponents(
       }
     }
 
-    // 6. Install components in order (dependencies first)
+    // 7. Install components in order (dependencies first)
     await installComponents(newComponents, {
       ...options,
       installPath,
@@ -276,7 +317,7 @@ export async function handleAddComponents(
       trackEvent(EVENTS.COMPONENT_ADDED, { component_name: name });
     }
 
-    // 7. Setup Tailwind and globals.css after all components are installed
+    // 8. Setup Tailwind and globals.css after all components are installed
     if (!options.skipTailwindSetup) {
       await setupTailwindAndGlobals(process.cwd());
     }

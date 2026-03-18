@@ -74,7 +74,7 @@ const OPTION_DOCS: Record<string, string> = {
   yes: `${chalk.yellow("--yes, -y")}            Auto-answer yes to all prompts`,
   "skip-agent-docs": `${chalk.yellow("--skip-agent-docs")}     Skip creating/updating agent docs`,
   "legacy-peer-deps": `${chalk.yellow("--legacy-peer-deps")}   Use --legacy-peer-deps flag for npm install`,
-  template: `${chalk.yellow("--template, -t <name>")}  Template to use: standard, vite, analytics`,
+  template: `${chalk.yellow("--template, -t <name>")}  Template to use: standard, vite, analytics, expo`,
   "skip-git-init": `${chalk.yellow("--skip-git-init")}      Skip git initialization`,
   "skip-tambo-init": `${chalk.yellow("--skip-tambo-init")}    Skip running 'npx tambo init'`,
   "dry-run": `${chalk.yellow("--dry-run")}            Preview changes without applying them`,
@@ -403,7 +403,7 @@ const cli = meow(generateGlobalHelp(), {
     },
     template: {
       type: "string",
-      description: "Specify template to use (standard, vite, analytics)",
+      description: "Specify template to use (standard, vite, analytics, expo)",
       shortFlag: "t",
     },
     prefix: {

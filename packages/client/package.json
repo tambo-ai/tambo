@@ -1,6 +1,6 @@
 {
   "name": "@tambo-ai/client",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Framework-agnostic client for Tambo AI",
   "license": "MIT",
   "repository": {
@@ -75,15 +75,15 @@
     "@types/node": "^22.19.15",
     "concurrently": "^9.2.1",
     "eslint": "^9.39.4",
-    "eslint-plugin-jsdoc": "^62.7.1",
-    "jest": "^30.2.0",
+    "eslint-plugin-jsdoc": "^62.8.0",
+    "jest": "^30.3.0",
     "jest-environment-node": "^30.2.0",
     "prettier": "^3.8.1",
     "prettier-2": "npm:prettier@^2",
     "ts-jest": "^29.4.6",
     "tsc-esm-fix": "^3.1.2",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.56.1",
+    "typescript-eslint": "^8.57.0",
     "zod": "^3.25.76 || ^4",
     "zod-to-json-schema": "^3.25.1"
   }
