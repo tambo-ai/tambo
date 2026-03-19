@@ -1,7 +1,7 @@
 import { renderHook, act, waitFor } from "@testing-library/react";
 import React from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import type { Suggestion } from "@tambo-ai/typescript-sdk/resources/beta/threads/suggestions";
+import type TamboAI from "@tambo-ai/typescript-sdk";
 import { useTamboSuggestions } from "./use-tambo-v1-suggestions";
 import { useTamboThreadInput } from "./use-tambo-v1-thread-input";
 import { useTambo } from "./use-tambo-v1";
@@ -41,7 +41,7 @@ describe("useTamboSuggestions", () => {
   const mockListSuggestions = jest.fn();
   const mockCreateSuggestions = jest.fn();
 
-  const mockSuggestions: Suggestion[] = [
+  const mockSuggestions: TamboAI.Beta.Threads.Suggestion[] = [
     {
       id: "suggestion_1",
       messageId: "msg_1",

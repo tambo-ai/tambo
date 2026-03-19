@@ -66,6 +66,8 @@
  * AG-UI events: `import { EventType, type BaseEvent } from '@ag-ui/core'`
  */
 
+import type TamboAI from "@tambo-ai/typescript-sdk";
+
 // =============================================================================
 // Providers
 // =============================================================================
@@ -221,8 +223,8 @@ export type {
 } from "@tambo-ai/typescript-sdk";
 
 // Suggestion types from Tambo TypeScript SDK
+export type Suggestion = TamboAI.Beta.Threads.Suggestion;
 export type {
-  Suggestion,
   SuggestionGenerateParams,
   SuggestionGenerateResponse,
   SuggestionListResponse,
