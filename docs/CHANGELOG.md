@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.32.1](https://github.com/tambo-ai/tambo/compare/docs-v1.32.0...docs-v1.32.1) (2026-03-19)
+
+
+### Documentation
+
+* add Expo support mentions across docs, CLI, and onboarding ([#2651](https://github.com/tambo-ai/tambo/issues/2651)) ([94a6679](https://github.com/tambo-ai/tambo/commit/94a66798327cc989d6e7d9c1f6e0a74f53a613a9))
+
 ## [1.32.0](https://github.com/tambo-ai/tambo/compare/docs-v1.31.0...docs-v1.32.0) (2026-03-18)
 
 
