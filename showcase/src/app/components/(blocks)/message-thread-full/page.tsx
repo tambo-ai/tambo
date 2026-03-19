@@ -9,6 +9,7 @@ export default function MessageThreadFullPage() {
     {
       id: "full-suggestion-1",
       title: "Summarize notes",
+      description: "Summarize notes",
       detailedSuggestion:
         "Summarize my release notes into concise bullet points.",
       messageId: "full-summarize-notes",
@@ -16,12 +17,14 @@ export default function MessageThreadFullPage() {
     {
       id: "full-suggestion-2",
       title: "Draft email",
+      description: "Draft email",
       detailedSuggestion: "Draft a follow-up email based on this conversation.",
       messageId: "full-draft-email",
     },
     {
       id: "full-suggestion-3",
       title: "Create tasks",
+      description: "Create tasks",
       detailedSuggestion: "Turn the discussion into a prioritized task list.",
       messageId: "full-create-tasks",
     },
@@ -62,6 +65,7 @@ export function ChatPage() {
     {
       id: "suggestion-1",
       title: "Summarize notes",
+      description: "Summarize notes",
       detailedSuggestion: "Summarize this chat into key decisions.",
       messageId: "summary-query",
     },

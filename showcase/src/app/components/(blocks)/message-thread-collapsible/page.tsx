@@ -9,18 +9,21 @@ const messageThreadCollapsibleSuggestions = [
   {
     id: "collapsible-suggestion-1",
     title: "Summarize this page",
+    description: "Summarize this page",
     detailedSuggestion: "Summarize what is visible in this dashboard.",
     messageId: "collapsible-summarize-dashboard",
   },
   {
     id: "collapsible-suggestion-2",
     title: "Find anomalies",
+    description: "Find anomalies",
     detailedSuggestion: "Point out any unusual trends worth investigating.",
     messageId: "collapsible-find-anomalies",
   },
   {
     id: "collapsible-suggestion-3",
     title: "Suggest next steps",
+    description: "Suggest next steps",
     detailedSuggestion: "What follow-up questions should I ask from this view?",
     messageId: "collapsible-next-questions",
   },
@@ -78,6 +81,7 @@ export function PageWithChat() {
     {
       id: "suggestion-1",
       title: "Summarize this page",
+      description: "Summarize this page",
       detailedSuggestion: "Summarize the dashboard before I share it.",
       messageId: "summary-query",
     },

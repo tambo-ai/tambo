@@ -16,18 +16,21 @@ const availableMcpServersSuggestions: Suggestion[] = [
   {
     id: "fetch-mcp-servers",
     title: "Fetch MCP Servers",
+    description: "Fetch MCP Servers",
     detailedSuggestion: "Fetch all MCP servers for this project",
     messageId: "fetch-mcp-servers",
   },
   {
     id: "add-mcp-server",
     title: "Add MCP Server",
+    description: "Add MCP Server",
     detailedSuggestion: "Add a new MCP server to this project",
     messageId: "add-mcp-server",
   },
   {
     id: "inspect-mcp-server-tools",
     title: "Inspect MCP Server Tools",
+    description: "Inspect MCP Server Tools",
     detailedSuggestion:
       "Inspect the tools available on the MCP servers of this project",
     messageId: "inspect-mcp-server-tools",

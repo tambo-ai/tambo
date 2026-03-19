@@ -45,18 +45,21 @@ const oauthSettingsSuggestions: Suggestion[] = [
   {
     id: "fetch-oauth-settings",
     title: "Fetch OAuth Settings",
+    description: "Fetch OAuth Settings",
     detailedSuggestion: "Fetch the OAuth settings for this project",
     messageId: "fetch-oauth-settings",
   },
   {
     id: "update-oauth-settings",
     title: "Update OAuth Settings",
+    description: "Update OAuth Settings",
     detailedSuggestion: "Update the OAuth settings for this project",
     messageId: "update-oauth-settings",
   },
   {
     id: "make-token-required-true",
     title: "Make Token Required True",
+    description: "Make Token Required True",
     detailedSuggestion: "Make the token required for this project to be true",
     messageId: "make-token-required-true",
   },
