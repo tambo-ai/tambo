@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.144.4](https://github.com/tambo-ai/tambo/compare/api-v0.144.3...api-v0.144.4) (2026-03-19)
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump the testing group with 3 updates ([#2630](https://github.com/tambo-ai/tambo/issues/2630)) ([7a0aca6](https://github.com/tambo-ai/tambo/commit/7a0aca603d843ec4f7962e4a9ccb31a1d56e8189))
+* **deps:** bump the sentry group with 3 updates ([#2634](https://github.com/tambo-ai/tambo/issues/2634)) ([b955c27](https://github.com/tambo-ai/tambo/commit/b955c27850ad5da0c5810a8df1ed38c1f684bd47))
+
 ## [0.144.3](https://github.com/tambo-ai/tambo/compare/api-v0.144.2...api-v0.144.3) (2026-03-11)
 
 
