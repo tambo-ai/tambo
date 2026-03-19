@@ -46,12 +46,14 @@ describe("useTamboSuggestions", () => {
       id: "suggestion_1",
       messageId: "msg_1",
       title: "What's the weather?",
+      description: "Ask for today's weather",
       detailedSuggestion: "What's the weather like today?",
     },
     {
       id: "suggestion_2",
       messageId: "msg_1",
       title: "Tell me a joke",
+      description: "Request a funny joke",
       detailedSuggestion: "Can you tell me a funny joke?",
     },
   ];
