@@ -219,7 +219,8 @@ const COMMAND_HELP_CONFIGS: Record<string, CommandHelp> = {
 ${chalk.bold("Templates")}
   ${chalk.cyan("standard")}    - Tambo + Tools + MCP (recommended)
   ${chalk.cyan("vite")}        - Tambo + TanStack Router + Vite
-  ${chalk.cyan("analytics")}   - Generative UI Analytics Template`);
+  ${chalk.cyan("analytics")}   - Generative UI Analytics Template
+  ${chalk.cyan("expo")}        - Tambo + Expo + React Native`);
     },
   },
   migrate: {

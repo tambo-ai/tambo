@@ -3,7 +3,7 @@
   "apps/web": "0.132.5",
   "cli": "0.55.0",
   "create-tambo-app": "0.3.1",
-  "docs": "1.32.0",
+  "docs": "1.32.1",
   "packages/client": "1.0.3",
   "packages/react-ui-base": "0.1.6",
   "react-sdk": "1.2.3",
