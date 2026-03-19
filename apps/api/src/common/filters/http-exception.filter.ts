@@ -22,6 +22,19 @@ export class HttpExceptionFilter implements ExceptionFilter {
     // Get the original response from the exception
     const exceptionResponse = exception.getResponse();
 
+    // Log the error
+    this.logger.error(
+      `HTTP Exception: ${status} - ${exception.message}`,
+      exception.stack,
+    );
+
+    if (response.headersSent) {
+      this.logger.warn(
+        `Cannot send problem response: headers already sent for ${request.url}`,
+      );
+      return;
+    }
+
     // If the exception already returns a ProblemDetails object, use it
     if (this.isProblemDetails(exceptionResponse)) {
       response
@@ -52,12 +65,6 @@ export class HttpExceptionFilter implements ExceptionFilter {
         }),
       );
     }
-
-    // Log the error
-    this.logger.error(
-      `HTTP Exception: ${status} ${problemDetails.title} - ${problemDetails.detail}`,
-      exception.stack,
-    );
 
     // Send the response
     response
