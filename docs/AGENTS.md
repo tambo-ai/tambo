@@ -172,8 +172,9 @@ In general, try to fit changes into the following categories. If you can't find 
      - labels - Model status labels and observed behaviors
      - reasoning-models - Advanced reasoning capabilities for OpenAI and Gemini
 
-6. **Examples and Templates** (2 pages)
+6. **Examples and Templates** (3 pages)
    - chat-starter-app - Chat starter applications
+   - expo-mobile-app - Expo/React Native mobile app guide
    - supabase-mcp-client - Integration examples
 
 7. **Tambo MCP Server** (1 page)
