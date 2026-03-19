@@ -38,6 +38,11 @@ const templates: Record<string, Template> = {
     description: "Generative UI Analytics Template",
     repository: "https://github.com/tambo-ai/analytics-template.git",
   },
+  expo: {
+    name: "expo",
+    description: "Tambo + Expo + React Native",
+    repository: "https://github.com/tambo-ai/demo-mobile-log.git",
+  },
 };
 
 interface CreateAppOptions {
@@ -114,6 +119,7 @@ export async function handleCreateApp(
         "npx tambo create-app my-app --template=standard  # Recommended",
         "npx tambo create-app my-app --template=vite      # Vite + TanStack Router",
         "npx tambo create-app my-app --template=analytics # Analytics template",
+        "npx tambo create-app my-app --template=expo      # Expo + React Native",
         "npx tambo create-app . --template=standard       # Current directory",
       ],
     );

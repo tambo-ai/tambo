@@ -28,6 +28,7 @@ import {
 import {
   detectFramework,
   getTamboApiKeyEnvVar,
+  isNativeFramework,
 } from "../utils/framework-detection.js";
 import { EVENTS, trackEvent } from "../lib/telemetry.js";
 import { handleAddComponent } from "./add/index.js";
@@ -757,6 +758,32 @@ async function handleFullSendInit(options: InitOptions): Promise<void> {
     prefix: installPath,
   });
 
+  const framework = detectFramework();
+
+  // Skip component installation and Tailwind for native frameworks (Expo)
+  // since the registry components are web-only (DOM + Tailwind CSS)
+  if (isNativeFramework(framework)) {
+    console.log(
+      chalk.blue(
+        "\nℹ Expo project detected — skipping web component installation.",
+      ),
+    );
+    console.log(
+      chalk.gray(
+        "  The component registry contains web-only components (DOM + Tailwind).\n" +
+          "  Use @tambo-ai/react hooks directly to build your native UI.",
+      ),
+    );
+
+    trackEvent(EVENTS.INIT_COMPLETED, {
+      method: "cloud",
+      is_full_send: true,
+    });
+
+    displayFullSendInstructions([]);
+    return;
+  }
+
   // Install required components
   console.log(chalk.cyan("\nStep 2: Choose starter components to install"));
 
@@ -859,14 +886,89 @@ function displayFullSendInstructions(selectedComponents: string[] = []): void {
   console.log(chalk.blue("\nNext steps:"));
   const framework = detectFramework();
   const isVite = framework?.name === "vite";
+  const isExpo = framework?.name === "expo";
+  const envVarName = getTamboApiKeyEnvVar();
 
+  // Expo projects don't use web components — show a simpler provider-only snippet
+  if (isExpo) {
+    console.log(chalk.bold("\n1. Add the TamboProvider to your app"));
+
+    const possibleExpoPaths = [
+      "App.tsx",
+      "App.jsx",
+      "app/_layout.tsx",
+      "src/App.tsx",
+    ];
+    const expoEntryFile =
+      possibleExpoPaths.find((p) => fs.existsSync(p)) ?? "App.tsx";
+    console.log(chalk.gray(`\n   📁 File location: ${expoEntryFile}`));
+    console.log(chalk.gray(`\n   Add the following code:`));
+
+    // Compute relative import path from entry file to lib/tambo.ts
+    const entryDir = path.dirname(expoEntryFile);
+    const hasSrcDir = fs.existsSync("src");
+    const tamboLibPath = hasSrcDir ? "src/lib/tambo" : "lib/tambo";
+    let tamboImportPath = path.relative(entryDir, tamboLibPath);
+    if (!tamboImportPath.startsWith(".")) {
+      tamboImportPath = `./${tamboImportPath}`;
+    }
+
+    const providerSnippet = `import { TamboProvider } from "@tambo-ai/react";
+import { components } from "${tamboImportPath}";
+
+export default function App() {
+  return (
+    <TamboProvider
+      apiKey={process.env.${envVarName} ?? ""}
+      components={components}
+    >
+      {/* Your app content */}
+    </TamboProvider>
+  );
+}`;
+
+    try {
+      clipboard.writeSync(providerSnippet);
+      console.log(chalk.cyan("\n" + providerSnippet + "\n"));
+      console.log(
+        chalk.green("\n   ✓ TamboProvider snippet copied to clipboard!"),
+      );
+    } catch (error) {
+      console.log(chalk.cyan("\n" + providerSnippet + "\n"));
+      console.log(
+        chalk.yellow("\n   ⚠️ Failed to copy to clipboard: " + error),
+      );
+    }
+
+    console.log(chalk.bold("\n2. Build your native UI"));
+    console.log(
+      chalk.gray(
+        "   Use @tambo-ai/react hooks (useTamboThread, useTamboComponentState, etc.)",
+      ),
+    );
+    console.log(
+      chalk.gray(
+        "   to build React Native components that interact with Tambo.",
+      ),
+    );
+
+    console.log(chalk.bold("\n3. Documentation"));
+    console.log(
+      chalk.gray("   Visit https://docs.tambo.co for detailed usage examples"),
+    );
+
+    console.log(chalk.bold("\n4. Start your app"));
+    console.log(chalk.gray("   Run 'npx expo start' to launch your app"));
+    return;
+  }
+
+  // Web frameworks (Next.js, Vite, etc.)
   if (isVite) {
     console.log(chalk.bold("\n1. Add the TamboProvider to your app"));
   } else {
     console.log(chalk.bold("\n1. Add the TamboProvider to your layout file"));
   }
 
-  // Determine the likely entry file paths
   const possiblePaths = isVite
     ? ["src/App.tsx", "src/App.jsx", "src/main.tsx", "src/main.jsx"]
     : [
@@ -875,7 +977,6 @@ function displayFullSendInstructions(selectedComponents: string[] = []): void {
         "src/app/layout.tsx",
         "src/app/layout.jsx",
       ];
-
   const defaultEntryFile = isVite ? "src/App.tsx" : "app/layout.tsx";
   const layoutPath =
     possiblePaths.find((p) => fs.existsSync(p)) ?? defaultEntryFile;
@@ -909,7 +1010,6 @@ function displayFullSendInstructions(selectedComponents: string[] = []): void {
     .join("\n");
 
   // Just the TamboProvider part for clipboard with all selected components
-  const envVarName = getTamboApiKeyEnvVar();
 
   const useClientDirective = isVite ? "" : '"use client"; // Important!\n';
   const envAccess = isVite

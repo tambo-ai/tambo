@@ -6,7 +6,7 @@ icon: Blocks
 
 import LearnMore from "@/components/learn-more";
 
-Tambo works with Next.js, Vite, and other React frameworks. The CLI detects your framework automatically.
+Tambo works with Next.js, Vite, Expo, and other React frameworks. The CLI detects your framework automatically.
 
 ## 1. Install
 
@@ -27,7 +27,7 @@ For manual setup, run `npx tambo init` instead (just the API key). If you don't 
 
 import { Tab, Tabs } from "fumadocs-ui/components/tabs";
 
-<Tabs items={["Next.js", "Vite"]}>
+<Tabs items={["Next.js", "Vite", "Expo"]}>
 <Tab value="Next.js">
 ```tsx title="src/app/layout.tsx"
 "use client";
@@ -92,6 +92,36 @@ VITE_TAMBO_API_KEY=your_api_key_here
 Don't commit this file to version control.
 
 </Callout>
+</Tab>
+<Tab value="Expo">
+```tsx title="App.tsx"
+import { TamboProvider } from "@tambo-ai/react";
+
+export default function App() {
+  return (
+    <TamboProvider
+      apiKey={process.env.EXPO_PUBLIC_TAMBO_API_KEY!}
+      userKey="user-1"
+    >
+      {/* your app content */}
+    </TamboProvider>
+  );
+}
+```
+
+<Callout type="info" title="API key setup">
+  Create a `.env` file in your project root:
+
+```bash
+EXPO_PUBLIC_TAMBO_API_KEY=your_api_key_here
+```
+
+Don't commit this file to version control.
+
+</Callout>
+
+For Expo, the registry components (DOM + Tailwind) won't work in React Native. Use `@tambo-ai/react` hooks directly to build your native UI. See the Expo demos for complete examples: [Activity Logger](https://github.com/tambo-ai/demo-mobile-log), [Music Companion](https://github.com/tambo-ai/music-expo-demo).
+
 </Tab>
 </Tabs>
 

@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.2.3](https://github.com/tambo-ai/tambo/compare/react-v1.2.2...react-v1.2.3) (2026-03-18)
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump the eslint group with 3 updates ([#2629](https://github.com/tambo-ai/tambo/issues/2629)) ([37f58c5](https://github.com/tambo-ai/tambo/commit/37f58c55b767b6641a1d2e376af9463be92a614f))
+* **deps-dev:** bump the testing group with 3 updates ([#2630](https://github.com/tambo-ai/tambo/issues/2630)) ([7a0aca6](https://github.com/tambo-ai/tambo/commit/7a0aca603d843ec4f7962e4a9ccb31a1d56e8189))
+* **deps:** bump the small-safe-packages group with 3 updates ([#2633](https://github.com/tambo-ai/tambo/issues/2633)) ([5bcbfdc](https://github.com/tambo-ai/tambo/commit/5bcbfdc55edbcc13f2ad306e439860e82da24b33))
+* **test:** bump coverage thresholds (2026-03-16) ([#2625](https://github.com/tambo-ai/tambo/issues/2625)) ([63509e8](https://github.com/tambo-ai/tambo/commit/63509e8e5ac6fced96cfe4a5ca7175cdfdcd4538))
+
 ## [1.2.2](https://github.com/tambo-ai/tambo/compare/react-v1.2.1...react-v1.2.2) (2026-03-12)
 
 

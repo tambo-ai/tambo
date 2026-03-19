@@ -1,4 +1,4 @@
 {
   "title": "Examples and Templates",
-  "pages": ["chat-starter-app", "supabase-mcp-client"]
+  "pages": ["chat-starter-app", "expo-mobile-app", "supabase-mcp-client"]
 }
