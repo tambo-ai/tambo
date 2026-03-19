@@ -150,7 +150,8 @@ const pathOptions: PathOption[] = [
   {
     id: "existing-project",
     title: "Add to Existing Project",
-    description: "Integrate Tambo into your current React, Next.js, or Expo app",
+    description:
+      "Integrate Tambo into your current React, Next.js, or Expo app",
     nextStep: "full-send-instructions",
   },
   {
