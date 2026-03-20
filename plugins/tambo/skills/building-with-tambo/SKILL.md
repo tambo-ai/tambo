@@ -230,16 +230,25 @@ export const components: TamboComponent[] = [
 
 ## Step 6: Add Chat UI
 
-Use Tambo's pre-built components for the chat interface:
+Pick the right chat layout for the app:
+
+| Component                    | Best for                                                        | How it renders                                                        |
+| ---------------------------- | --------------------------------------------------------------- | --------------------------------------------------------------------- |
+| `message-thread-collapsible` | Overlaying on top of existing UI (drawing tools, simple apps)   | Fixed-position floating panel, bottom-right corner, toggle open/close |
+| `message-thread-panel`       | Apps with sidebar layouts (dashboards, admin panels, SaaS apps) | Side panel with thread history, resizable                             |
+| `message-thread-full`        | Dedicated chat pages or full-screen chat experiences            | Full-height thread with all features                                  |
+
+Choose based on the app's layout. If there's a sidebar or dashboard layout, use `panel`. If the chat should float over existing content, use `collapsible`. If the whole page is the chat, use `full`.
 
 ```bash
-npx tambo add message-thread-collapsible --yes
-# Or with other package managers:
-# yarn dlx tambo add message-thread-collapsible --yes
-# pnpm dlx tambo add message-thread-collapsible --yes
-```
+npx tambo add message-thread-panel --yes
+# Or: npx tambo add message-thread-collapsible --yes
+# Or: npx tambo add message-thread-full --yes
 
-This installs a collapsible chat panel with message display, input, suggestions, and streaming support. The component renders as a fixed-position panel in the bottom-right corner.
+# With other package managers:
+# yarn dlx tambo add <component> --yes
+# pnpm dlx tambo add <component> --yes
+```
 
 ### After `tambo add`, complete the setup:
 
