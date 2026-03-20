@@ -76,7 +76,7 @@
     }
   },
   "dependencies": {
-    "@ag-ui/core": "^0.0.44",
+    "@ag-ui/core": "^0.0.47",
     "@tambo-ai/client": "0.1.0",
     "@modelcontextprotocol/sdk": "^1.27.1",
     "@tambo-ai/typescript-sdk": "^0.94.0",
