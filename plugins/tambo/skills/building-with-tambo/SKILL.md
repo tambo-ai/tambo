@@ -300,7 +300,9 @@ Wrap the Tambo chat UI in a div that stops keyboard event propagation:
   onKeyDown={(e) => e.stopPropagation()}
   onKeyUp={(e) => e.stopPropagation()}
 >
-  <MessageThreadCollapsible />
+  {/* Use whichever component you installed */}
+  <MessageThreadCollapsible />{" "}
+  {/* or <MessageThreadPanel /> or <MessageThreadFull /> */}
 </div>
 ```
 
@@ -313,7 +315,9 @@ Apps with full-screen canvases or overlays may render on top of the Tambo chat. 
   style={{ position: "fixed", inset: 0, zIndex: 9999, pointerEvents: "none" }}
 >
   <div style={{ pointerEvents: "auto" }}>
-    <MessageThreadCollapsible />
+    {/* Use whichever component you installed */}
+    <MessageThreadCollapsible />{" "}
+    {/* or <MessageThreadPanel /> or <MessageThreadFull /> */}
   </div>
 </div>
 ```
