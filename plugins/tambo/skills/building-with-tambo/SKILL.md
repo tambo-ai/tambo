@@ -249,7 +249,23 @@ This installs a collapsible chat panel with message display, input, suggestions,
 
    If your entry file already imports a CSS file, `tambo add` modifies that file in place. No new import is needed.
 
-2. **Path alias** — Tambo components use `@/` imports. For Vite projects, add the alias:
+2. **Path alias** — Tambo components use `@/` imports. Check if the project's tsconfig already has `@/*` in its `paths`. Many Next.js projects created with `create-next-app` have this, but not all (e.g., Cal.com uses `~/*` and `@components/*` instead).
+
+   If `@/*` is missing, add it to the app tsconfig (`tsconfig.app.json` when present, otherwise `tsconfig.json`):
+
+   ```json
+   {
+     "compilerOptions": {
+       "paths": {
+         "@/*": ["./src/*"]
+       }
+     }
+   }
+   ```
+
+   If the project has no `src/` directory and components land in the project root, use `["./*"]` instead of `["./src/*"]`. Check where `tambo add` placed the components to determine the correct path.
+
+   For **Vite projects**, also add the alias to `vite.config.ts`:
 
    ```ts
    // vite.config.ts
@@ -263,20 +279,6 @@ This installs a collapsible chat panel with message display, input, suggestions,
      },
    });
    ```
-
-   And in the app tsconfig (`tsconfig.app.json` when present, otherwise `tsconfig.json`):
-
-   ```json
-   {
-     "compilerOptions": {
-       "paths": {
-         "@/*": ["./src/*"]
-       }
-     }
-   }
-   ```
-
-   Next.js projects already have `@/` configured by default.
 
 ### Keyboard Event Isolation
 

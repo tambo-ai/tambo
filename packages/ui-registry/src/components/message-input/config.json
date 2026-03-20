@@ -8,6 +8,7 @@
     "@tambo-ai/react@rc",
     "@tambo-ai/react-ui-base@next",
     "@tiptap/core",
+    "@tiptap/extensions",
     "@tiptap/pm",
     "@tiptap/extension-document",
     "@tiptap/extension-hard-break",
