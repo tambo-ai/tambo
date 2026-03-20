@@ -1,5 +1,38 @@
 # Changelog
 
+## [1.32.1](https://github.com/tambo-ai/tambo/compare/docs-v1.32.0...docs-v1.32.1) (2026-03-19)
+
+
+### Documentation
+
+* add Expo support mentions across docs, CLI, and onboarding ([#2651](https://github.com/tambo-ai/tambo/issues/2651)) ([94a6679](https://github.com/tambo-ai/tambo/commit/94a66798327cc989d6e7d9c1f6e0a74f53a613a9))
+
+## [1.32.0](https://github.com/tambo-ai/tambo/compare/docs-v1.31.0...docs-v1.32.0) (2026-03-18)
+
+
+### Features
+
+* **cli:** add Expo framework detection and support ([#2638](https://github.com/tambo-ai/tambo/issues/2638)) ([5f50040](https://github.com/tambo-ai/tambo/commit/5f500401b3fcf7d45bebaebecb94d0eed1ce6950))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump mermaid from 11.12.3 to 11.13.0 ([#2636](https://github.com/tambo-ai/tambo/issues/2636)) ([b55e37b](https://github.com/tambo-ai/tambo/commit/b55e37b3c07bc42d5a50c1a546c3c42ad1f3f96e))
+* **deps:** bump the small-safe-packages group with 3 updates ([#2633](https://github.com/tambo-ai/tambo/issues/2633)) ([5bcbfdc](https://github.com/tambo-ai/tambo/commit/5bcbfdc55edbcc13f2ad306e439860e82da24b33))
+
+## [1.31.0](https://github.com/tambo-ai/tambo/compare/docs-v1.30.2...docs-v1.31.0) (2026-03-13)
+
+
+### Features
+
+* **models:** add gpt-5.4, gpt-5.4-pro, gpt-5.3-chat-latest, gpt-5.2-pro ([#2619](https://github.com/tambo-ai/tambo/issues/2619)) ([950c180](https://github.com/tambo-ai/tambo/commit/950c180ea390fea4320062166e72dfa651b9cfb9))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump @types/node from 22.19.8 to 22.19.15 ([#2606](https://github.com/tambo-ai/tambo/issues/2606)) ([1159b8c](https://github.com/tambo-ai/tambo/commit/1159b8cc0be23165d2d6ae5e409f5eb1867c62af))
+* **deps:** bump the small-safe-packages group with 10 updates ([#2602](https://github.com/tambo-ai/tambo/issues/2602)) ([4a6b8d8](https://github.com/tambo-ai/tambo/commit/4a6b8d8f5f71affe710e709d34f312a48aa024a8))
+
 ## [1.30.2](https://github.com/tambo-ai/tambo/compare/docs-v1.30.1...docs-v1.30.2) (2026-03-09)
 
 

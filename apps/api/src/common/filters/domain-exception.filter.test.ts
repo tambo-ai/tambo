@@ -17,8 +17,8 @@ function createMockHost(req: Partial<Request>, res: Partial<Response>) {
   } as unknown as ArgumentsHost;
 }
 
-function createMockResponse() {
-  const res: Partial<Response> = {};
+function createMockResponse(headersSent = false) {
+  const res: Partial<Response> = { headersSent };
   res.status = jest.fn().mockReturnValue(res);
   res.header = jest.fn().mockReturnValue(res);
   res.json = jest.fn().mockReturnValue(res);
@@ -101,6 +101,18 @@ describe("DomainExceptionFilter", () => {
       );
     },
   );
+
+  it("should not send a response when headers have already been sent", () => {
+    const res = createMockResponse(true);
+    const host = createMockHost(req, res);
+    const error = new InputValidationError("too late");
+
+    filter.catch(error, host);
+
+    expect(res.status).not.toHaveBeenCalled();
+    expect(res.header).not.toHaveBeenCalled();
+    expect(res.json).not.toHaveBeenCalled();
+  });
 
   it("should use request.url as fallback when originalUrl is undefined", () => {
     const res = createMockResponse();

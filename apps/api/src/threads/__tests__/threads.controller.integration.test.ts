@@ -137,7 +137,7 @@ describe("ThreadsController HTTP response handling without network sockets", () 
       expect(response.end).toHaveBeenCalled();
     });
 
-    it("should surface streaming errors as InternalServerErrorException", async () => {
+    it("should throw InternalServerErrorException when headers have not been sent", async () => {
       const threadsService = {
         advanceThread: jest.fn().mockRejectedValue(new Error("stream failure")),
       };
@@ -162,9 +162,44 @@ describe("ThreadsController HTTP response handling without network sockets", () 
             setHeader: jest.fn(),
             write: jest.fn(),
             end: jest.fn(),
+            headersSent: false,
           },
         ),
       ).rejects.toThrow(InternalServerErrorException);
+    });
+
+    it("should not re-throw when headers have already been sent", async () => {
+      const threadsService = {
+        advanceThread: jest.fn().mockRejectedValue(new Error("stream failure")),
+      };
+      const controller = new ThreadsController(threadsService as any);
+      jest
+        .spyOn(controller as any, "handleAdvanceStream")
+        .mockResolvedValue(undefined);
+      mockExtractContextInfo.mockReturnValue({
+        projectId: "test-project",
+        contextKey: "test-context",
+      });
+
+      // Should resolve without throwing — error is logged + sent to Sentry,
+      // not re-thrown into the exception filter pipeline.
+      await expect(
+        controller.createAndAdvanceThreadStream(
+          {} as Request,
+          {
+            messageToAppend: {
+              content: [{ type: ContentPartType.Text, text: "test" }],
+              role: MessageRole.User,
+            },
+          } as any,
+          {
+            setHeader: jest.fn(),
+            write: jest.fn(),
+            end: jest.fn(),
+            headersSent: true,
+          },
+        ),
+      ).resolves.toBeUndefined();
     });
   });
 });

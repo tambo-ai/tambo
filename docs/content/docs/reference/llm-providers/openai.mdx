@@ -1,17 +1,89 @@
 ---
 title: OpenAI
-description: Configure OpenAI models in Tambo including GPT-5, GPT-4.1, o3, GPT-4o, and GPT-4 Turbo families with reasoning capabilities.
+description: Configure OpenAI models in Tambo including GPT-5.4, GPT-5.3, GPT-5.2, GPT-5, GPT-4.1, o3, GPT-4o, and GPT-4 Turbo families with reasoning capabilities.
 ---
 
 OpenAI provides a comprehensive suite of language models optimized for different use cases, from high-intelligence reasoning to cost-efficient production tasks. Tambo supports the full range of OpenAI models, including the latest GPT-5 series with advanced reasoning capabilities.
 
 ## Supported Models
 
-Tambo supports 14 OpenAI models organized into five families:
+Tambo supports 18 OpenAI models organized into five families:
 
 ### GPT-5 Family
 
 The latest generation of OpenAI models with advanced reasoning capabilities and massive context windows.
+
+#### gpt-5.4
+
+**Status:** Tested
+**API Name:** `gpt-5.4`
+**Context Window:** 1,050,000 tokens
+**Provider Docs:** [OpenAI GPT-5.4](https://platform.openai.com/docs/models/gpt-5.4)
+
+Current flagship model with 1M+ context, native computer-use capabilities, and 33% fewer hallucinations vs GPT-5.2.
+
+**Best for:**
+
+- Tasks requiring massive context (1M+ tokens)
+- Computer-use and agentic workflows
+- Applications where factual accuracy is critical
+- Complex multi-step reasoning with large codebases
+
+**Notes:** Released March 2026. The most capable GPT model available. Use [`reasoningEffort`](#reasoningeffort) and [`reasoningSummary`](#reasoningsummary) parameters to control thinking behavior.
+
+#### gpt-5.4-pro
+
+**Status:** Tested
+**API Name:** `gpt-5.4-pro`
+**Context Window:** 1,050,000 tokens
+**Provider Docs:** [OpenAI GPT-5.4 Pro](https://platform.openai.com/docs/models/gpt-5.4-pro)
+
+Maximum capability variant of GPT-5.4. Uses more compute for harder problems. Requests may take several minutes.
+
+**Best for:**
+
+- The hardest reasoning and coding tasks
+- High-stakes professional knowledge work
+- Complex multi-step projects requiring maximum accuracy
+- Tasks where quality matters more than latency
+
+**Notes:** Released March 2026. Highest-compute variant — expect longer response times. Use [`reasoningEffort`](#reasoningeffort) and [`reasoningSummary`](#reasoningsummary) parameters to control thinking behavior.
+
+#### gpt-5.3-chat-latest
+
+**Status:** Tested
+**API Name:** `gpt-5.3-chat-latest`
+**Context Window:** 128,000 tokens
+**Provider Docs:** [OpenAI GPT-5.3 Chat Latest](https://platform.openai.com/docs/models/gpt-5.3-chat-latest)
+
+Conversational model optimized for everyday use. Does not support reasoning parameters.
+
+**Best for:**
+
+- Conversational applications requiring natural responses
+- Everyday chat interactions
+- Applications where low latency matters
+- Use cases that don't require extended reasoning
+
+**Notes:** Points to the GPT-5.3 Instant snapshot used in ChatGPT. Does not support reasoning parameters.
+
+#### gpt-5.2-pro
+
+**Status:** Tested
+**API Name:** `gpt-5.2-pro`
+**Context Window:** 400,000 tokens
+**Provider Docs:** [OpenAI GPT-5.2 Pro](https://platform.openai.com/docs/models/gpt-5.2-pro)
+
+Highest-compute GPT-5.2 variant, optimized for complex reasoning and professional knowledge work.
+
+**Best for:**
+
+- Complex reasoning tasks requiring maximum GPT-5.2 capability
+- Professional knowledge work (spreadsheets, presentations, code)
+- Long-context analysis and generation
+- Tasks where GPT-5.4 Pro is overkill but GPT-5.2 base isn't enough
+
+**Notes:** Released December 2025. Use [`reasoningEffort`](#reasoningeffort) and [`reasoningSummary`](#reasoningsummary) parameters to control thinking behavior.
 
 #### gpt-5.2
 
@@ -20,7 +92,7 @@ The latest generation of OpenAI models with advanced reasoning capabilities and 
 **Context Window:** 400,000 tokens
 **Provider Docs:** [OpenAI GPT-5.2](https://platform.openai.com/docs/models/gpt-5.2)
 
-Latest GPT-5.2 model with improved capabilities. Supports reasoning parameters for exposing internal thought processes.
+GPT-5.2 model with improved capabilities. Supports reasoning parameters for exposing internal thought processes.
 
 **Best for:**
 
@@ -29,7 +101,7 @@ Latest GPT-5.2 model with improved capabilities. Supports reasoning parameters f
 - Tasks requiring cutting-edge model capabilities
 - Applications needing the latest improvements
 
-**Notes:** The newest GPT-5 series model. Use [`reasoningEffort`](#reasoningeffort) and [`reasoningSummary`](#reasoningsummary) parameters to control thinking behavior.
+**Notes:** Use [`reasoningEffort`](#reasoningeffort) and [`reasoningSummary`](#reasoningsummary) parameters to control thinking behavior.
 
 #### gpt-5
 
@@ -284,6 +356,8 @@ Configure reasoning capabilities through your project's LLM provider settings in
 **Default Values by Model:**
 | Model | Default |
 |-------|---------|
+| gpt-5.4 | `"low"` |
+| gpt-5.4-pro, gpt-5.2-pro | `"medium"` |
 | gpt-5.1 | `"none"` |
 | gpt-5.1-chat-latest | `"medium"` |
 | gpt-5.2, gpt-5, gpt-5-mini, gpt-5-nano | `"low"` |
@@ -311,6 +385,9 @@ reasoningSummary: "auto"
 
 Reasoning parameters are available for the following OpenAI models:
 
+- GPT-5.4 (`gpt-5.4`)
+- GPT-5.4 Pro (`gpt-5.4-pro`)
+- GPT-5.2 Pro (`gpt-5.2-pro`)
 - GPT-5.2 (`gpt-5.2`)
 - GPT-5.1 (`gpt-5.1`)
 - GPT-5.1 Chat Latest (`gpt-5.1-chat-latest`)
@@ -344,7 +421,8 @@ Simply click the suggested parameter to add it to your configuration, set the de
 **Model Selection:**
 
 - Use **gpt-5.1** for most production applications (default)
-- Use **gpt-5** family when reasoning capabilities are critical
+- Use **gpt-5.4** or **gpt-5.4-pro** for maximum capability and 1M+ context
+- Use **gpt-5.3-chat-latest** for low-latency conversational use cases
 - Use **gpt-4o** for multimodal applications
 - Use **mini/nano** variants for cost-optimized deployments
 - Use **o3** for maximum reasoning depth

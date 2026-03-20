@@ -1,5 +1,29 @@
 # Changelog
 
+## [1.2.3](https://github.com/tambo-ai/tambo/compare/react-v1.2.2...react-v1.2.3) (2026-03-18)
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump the eslint group with 3 updates ([#2629](https://github.com/tambo-ai/tambo/issues/2629)) ([37f58c5](https://github.com/tambo-ai/tambo/commit/37f58c55b767b6641a1d2e376af9463be92a614f))
+* **deps-dev:** bump the testing group with 3 updates ([#2630](https://github.com/tambo-ai/tambo/issues/2630)) ([7a0aca6](https://github.com/tambo-ai/tambo/commit/7a0aca603d843ec4f7962e4a9ccb31a1d56e8189))
+* **deps:** bump the small-safe-packages group with 3 updates ([#2633](https://github.com/tambo-ai/tambo/issues/2633)) ([5bcbfdc](https://github.com/tambo-ai/tambo/commit/5bcbfdc55edbcc13f2ad306e439860e82da24b33))
+* **test:** bump coverage thresholds (2026-03-16) ([#2625](https://github.com/tambo-ai/tambo/issues/2625)) ([63509e8](https://github.com/tambo-ai/tambo/commit/63509e8e5ac6fced96cfe4a5ca7175cdfdcd4538))
+
+## [1.2.2](https://github.com/tambo-ai/tambo/compare/react-v1.2.1...react-v1.2.2) (2026-03-12)
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump @types/node from 22.19.8 to 22.19.15 ([#2606](https://github.com/tambo-ai/tambo/issues/2606)) ([1159b8c](https://github.com/tambo-ai/tambo/commit/1159b8cc0be23165d2d6ae5e409f5eb1867c62af))
+* **deps-dev:** bump the eslint group with 6 updates ([#2600](https://github.com/tambo-ai/tambo/issues/2600)) ([1db441c](https://github.com/tambo-ai/tambo/commit/1db441c8c4467aac9ecf80b5bfaef70c72e20eb4))
+* **deps:** bump the small-safe-packages group with 10 updates ([#2602](https://github.com/tambo-ai/tambo/issues/2602)) ([4a6b8d8](https://github.com/tambo-ai/tambo/commit/4a6b8d8f5f71affe710e709d34f312a48aa024a8))
+
+
+### Code Refactoring
+
+* **react-sdk:** add registry-level tool ownership for interactable components ([#2620](https://github.com/tambo-ai/tambo/issues/2620)) ([5314485](https://github.com/tambo-ai/tambo/commit/5314485c7a9a124a7c5e2e541170d5eb26adde49))
+
 ## [1.2.1](https://github.com/tambo-ai/tambo/compare/react-v1.2.0...react-v1.2.1) (2026-03-11)
 
 

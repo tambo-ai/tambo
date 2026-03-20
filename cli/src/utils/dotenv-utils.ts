@@ -5,6 +5,7 @@ import { parse } from "dotenv";
  */
 export const TAMBO_API_KEY_NAMES = [
   "NEXT_PUBLIC_TAMBO_API_KEY",
+  "EXPO_PUBLIC_TAMBO_API_KEY",
   "VITE_TAMBO_API_KEY",
   "REACT_APP_TAMBO_API_KEY",
   "TAMBO_API_KEY",

@@ -9,11 +9,11 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { UseQueryOptions } from "@tanstack/react-query";
+import type TamboAI from "@tambo-ai/typescript-sdk";
 import type {
   SuggestionCreateResponse,
   SuggestionListResponse,
 } from "@tambo-ai/typescript-sdk/resources/threads/suggestions";
-import type { Suggestion } from "@tambo-ai/typescript-sdk/resources/beta/threads/suggestions";
 import {
   useTamboClient,
   useTamboQueryClient,
@@ -58,7 +58,7 @@ export interface UseTamboSuggestionsOptions {
  */
 export interface AcceptSuggestionOptions {
   /** The suggestion to accept */
-  suggestion: Suggestion;
+  suggestion: TamboAI.Beta.Threads.Suggestion;
   /** Whether to automatically submit the suggestion after accepting (default: false) */
   shouldSubmit?: boolean;
 }
@@ -78,7 +78,7 @@ export interface UseTamboSuggestionsReturn {
   data: SuggestionsQueryResponse | undefined;
 
   /** List of available suggestions for the current message (convenience accessor) */
-  suggestions: Suggestion[];
+  suggestions: TamboAI.Beta.Threads.Suggestion[];
 
   // ---------------------------------------------------------------------------
   // Query state (matches react-query UseQueryResult)

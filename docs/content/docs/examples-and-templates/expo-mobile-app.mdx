@@ -1,0 +1,70 @@
+---
+title: Expo Mobile App
+description: Build AI-powered React Native apps with Tambo and Expo
+---
+
+import LearnMore from "@/components/learn-more";
+
+Tambo uses the same `@tambo-ai/react` SDK for Expo and React Native as it does for web apps. Hooks like `useTambo()` and `useTamboThreadInput()` work the same way — you just build native UI instead of using the pre-built web components.
+
+## Create an Expo app
+
+```bash title="Create from the Expo template"
+npx tambo create-app my-mobile-app --template=expo
+```
+
+Or add Tambo to an existing Expo project:
+
+```bash
+npx tambo full-send
+```
+
+The CLI detects Expo and skips web component installation automatically.
+
+## Setup
+
+Wrap your app with `TamboProvider` the same way you would in a web app:
+
+```tsx title="App.tsx"
+import { TamboProvider } from "@tambo-ai/react";
+
+export default function App() {
+  return (
+    <TamboProvider
+      apiKey={process.env.EXPO_PUBLIC_TAMBO_API_KEY!}
+      userKey="user-1"
+      components={components}
+      tools={tools}
+    >
+      {/* Your React Native content */}
+    </TamboProvider>
+  );
+}
+```
+
+## What works in Expo
+
+The SDK is framework-agnostic. Everything that doesn't depend on the DOM works out of the box:
+
+- **All hooks** — `useTambo()`, `useTamboThreadInput()`, `useTamboComponentState()`, etc.
+- **Component registration** — Register React Native components the same way
+- **Tools** — Define and use tools identically
+- **Streaming** — Progressive prop updates work the same
+- **Thread management** — Message history, thread switching, all of it
+- **MCP** — Connect MCP servers the same way
+
+The only thing that doesn't carry over is the pre-built UI components from the CLI registry (`tambo add`), since those use DOM elements and Tailwind CSS. Build your chat UI with React Native components instead.
+
+## Demo apps
+
+<LearnMore
+  title="Activity Logger"
+  description="Mobile activity logging app built with Tambo and Expo"
+  href="https://github.com/tambo-ai/demo-mobile-log"
+/>
+
+<LearnMore
+  title="Music Companion"
+  description="AI music companion app built with Tambo and Expo"
+  href="https://github.com/tambo-ai/music-expo-demo"
+/>

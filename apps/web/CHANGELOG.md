@@ -1,5 +1,34 @@
 # Changelog
 
+## [0.133.0](https://github.com/tambo-ai/tambo/compare/web-v0.132.5...web-v0.133.0) (2026-03-19)
+
+
+### Features
+
+* **cli:** add Expo framework detection and support ([#2638](https://github.com/tambo-ai/tambo/issues/2638)) ([5f50040](https://github.com/tambo-ai/tambo/commit/5f500401b3fcf7d45bebaebecb94d0eed1ce6950))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump the testing group with 3 updates ([#2630](https://github.com/tambo-ai/tambo/issues/2630)) ([7a0aca6](https://github.com/tambo-ai/tambo/commit/7a0aca603d843ec4f7962e4a9ccb31a1d56e8189))
+* **deps:** bump recharts from 3.6.0 to 3.8.0 ([#2635](https://github.com/tambo-ai/tambo/issues/2635)) ([9342cc5](https://github.com/tambo-ai/tambo/commit/9342cc50c948c3b20cbfe598bbcc07216228254a))
+* **deps:** bump the sentry group with 3 updates ([#2634](https://github.com/tambo-ai/tambo/issues/2634)) ([b955c27](https://github.com/tambo-ai/tambo/commit/b955c27850ad5da0c5810a8df1ed38c1f684bd47))
+* **deps:** bump the small-safe-packages group with 3 updates ([#2633](https://github.com/tambo-ai/tambo/issues/2633)) ([5bcbfdc](https://github.com/tambo-ai/tambo/commit/5bcbfdc55edbcc13f2ad306e439860e82da24b33))
+
+
+### Documentation
+
+* add Expo support mentions across docs, CLI, and onboarding ([#2651](https://github.com/tambo-ai/tambo/issues/2651)) ([94a6679](https://github.com/tambo-ai/tambo/commit/94a66798327cc989d6e7d9c1f6e0a74f53a613a9))
+
+## [0.132.5](https://github.com/tambo-ai/tambo/compare/web-v0.132.4...web-v0.132.5) (2026-03-13)
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump @types/node from 22.19.8 to 22.19.15 ([#2606](https://github.com/tambo-ai/tambo/issues/2606)) ([1159b8c](https://github.com/tambo-ai/tambo/commit/1159b8cc0be23165d2d6ae5e409f5eb1867c62af))
+* **deps:** bump the small-safe-packages group with 10 updates ([#2602](https://github.com/tambo-ai/tambo/issues/2602)) ([4a6b8d8](https://github.com/tambo-ai/tambo/commit/4a6b8d8f5f71affe710e709d34f312a48aa024a8))
+* **deps:** bump the trpc group with 3 updates ([#2598](https://github.com/tambo-ai/tambo/issues/2598)) ([7905418](https://github.com/tambo-ai/tambo/commit/79054186be0128c535f835a2f7ff6219067f18fa))
+
 ## [0.132.4](https://github.com/tambo-ai/tambo/compare/web-v0.132.3...web-v0.132.4) (2026-03-11)
 
 

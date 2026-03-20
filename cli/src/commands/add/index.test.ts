@@ -147,6 +147,22 @@ jest.unstable_mockModule("../../utils/interactive.js", () => ({
   },
 }));
 
+// Mock framework detection - default to null (no framework), tests can override via mockDetectedFramework
+let mockDetectedFramework: { name: string; envPrefix: string } | null = null;
+jest.unstable_mockModule("../../utils/framework-detection.js", () => ({
+  detectFramework: () => mockDetectedFramework,
+  isNativeFramework: (framework: { name: string; envPrefix: string } | null) =>
+    framework?.name === "expo",
+  getTamboApiKeyEnvVar: () =>
+    mockDetectedFramework?.envPrefix
+      ? `${mockDetectedFramework.envPrefix}TAMBO_API_KEY`
+      : "TAMBO_API_KEY",
+  getEnvVarName: (baseName: string) =>
+    mockDetectedFramework?.envPrefix
+      ? `${mockDetectedFramework.envPrefix}${baseName}`
+      : baseName,
+}));
+
 // Import after mocking
 const { handleAddComponents } = await import("./index.js");
 
@@ -164,6 +180,9 @@ describe("handleAddComponents", () => {
 
     // Reset inquirer responses
     inquirerResponses = {};
+
+    // Reset framework detection
+    mockDetectedFramework = null;
 
     // Mock process.cwd
     originalCwd = process.cwd;
@@ -1134,6 +1153,53 @@ describe("handleAddComponents", () => {
 
       // Verify setupTailwindAndGlobals WAS called
       expect(setupTailwindAndGlobals).toHaveBeenCalled();
+    });
+  });
+
+  describe("Expo native framework warning", () => {
+    it("should warn and cancel when user declines in an Expo project", async () => {
+      mockDetectedFramework = { name: "expo", envPrefix: "EXPO_PUBLIC_" };
+      inquirerResponses = { continueAnyway: false };
+
+      vol.fromJSON({
+        ...createBasicProject(),
+        ...createRegistryFiles(["message"]),
+      });
+
+      await handleAddComponents(["message"]);
+
+      expect(logs.some((l) => l.includes("Expo project detected"))).toBe(true);
+      expect(logs.some((l) => l.includes("Installation cancelled"))).toBe(true);
+    });
+
+    it("should proceed when user confirms in an Expo project", async () => {
+      mockDetectedFramework = { name: "expo", envPrefix: "EXPO_PUBLIC_" };
+      inquirerResponses = { continueAnyway: true, proceed: true };
+
+      vol.fromJSON({
+        ...createProjectWithTamboSDK(),
+        ...createRegistryFiles(["message"]),
+      });
+
+      await handleAddComponents(["message"], { yes: true });
+
+      expect(logs.some((l) => l.includes("Expo project detected"))).toBe(true);
+      expect(logs.some((l) => l.includes("Installation cancelled"))).toBe(
+        false,
+      );
+    });
+
+    it("should not warn for non-Expo projects", async () => {
+      mockDetectedFramework = null;
+
+      vol.fromJSON({
+        ...createProjectWithTamboSDK(),
+        ...createRegistryFiles(["message"]),
+      });
+
+      await handleAddComponents(["message"], { yes: true });
+
+      expect(logs.some((l) => l.includes("Expo project detected"))).toBe(false);
     });
   });
 });

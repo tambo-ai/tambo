@@ -115,7 +115,7 @@ const steps: OnboardingStepConfig[] = [
     id: "full-send-instructions",
     title: "Add Tambo to Your Project",
     description:
-      "Follow these steps to integrate Tambo into your existing React/Next.js application",
+      "Follow these steps to integrate Tambo into your existing React, Next.js, or Expo application",
     type: "instructions",
     showBackButton: true,
     previousStep: "path-selection",
@@ -150,7 +150,8 @@ const pathOptions: PathOption[] = [
   {
     id: "existing-project",
     title: "Add to Existing Project",
-    description: "Integrate Tambo into your current React/Next.js app",
+    description:
+      "Integrate Tambo into your current React, Next.js, or Expo app",
     nextStep: "full-send-instructions",
   },
   {
@@ -183,6 +184,13 @@ const templates = [
     description:
       "Generative UI analytics template with drag-and-drop canvas and data visualization",
     command: "npx create-tambo-app@latest my-app --template=analytics",
+    recommended: false,
+  },
+  {
+    id: "expo",
+    name: "Expo",
+    description: "Tambo + Expo + React Native mobile app template",
+    command: "npx create-tambo-app@latest my-app --template=expo",
     recommended: false,
   },
 ];
