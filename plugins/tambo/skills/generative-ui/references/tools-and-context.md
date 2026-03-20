@@ -94,9 +94,44 @@ function MyChat() {
 
 The `useRef` guard prevents infinite re-renders since `registerTool` updates state.
 
+In the tools file, accept the client and utils as arguments:
+
+```tsx
+type RegisterToolFn = UseTamboReturn["registerTool"];
+
+export function registerTools(
+  registerTool: RegisterToolFn,
+  client: TrpcClient,
+  utils: TrpcUtils,
+) {
+  registerTool({
+    name: "getBookings",
+    description: "Get user bookings",
+    inputSchema: z.object({
+      status: z.enum(["upcoming", "past"]).optional(),
+    }),
+    outputSchema: z.object({ bookings: z.array(z.unknown()) }),
+    tool: async (input) => client.viewer.bookings.get.query(input),
+  });
+
+  registerTool({
+    name: "cancelBooking",
+    description: "Cancel a booking by ID",
+    inputSchema: z.object({ id: z.number() }),
+    outputSchema: z.object({ success: z.boolean() }),
+    tool: async (input) => {
+      const result = await client.viewer.bookings.cancel.mutate(input);
+      // Invalidate cache so the UI updates immediately
+      await utils.viewer.bookings.invalidate();
+      return result;
+    },
+  });
+}
+```
+
 ### Cache Invalidation After Mutations
 
-When a tool modifies data, invalidate the relevant query cache so the host app's UI updates immediately:
+When a tool modifies data, the host app's UI won't update unless you invalidate the relevant query cache. After each mutation, call `utils.{router}.invalidate()` to refresh the UI:
 
 ```tsx
 tool: async (input) => {
@@ -105,6 +140,8 @@ tool: async (input) => {
   return result;
 },
 ```
+
+This works with tRPC/React Query. For other data-fetching libraries (SWR, Apollo), use their equivalent cache invalidation.
 
 ## MCP Servers
 
