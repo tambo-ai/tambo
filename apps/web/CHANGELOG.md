@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.133.1](https://github.com/tambo-ai/tambo/compare/web-v0.133.0...web-v0.133.1) (2026-03-20)
+
+
+### Miscellaneous Chores
+
+* **deps:** bump @tambo-ai/typescript-sdk from 0.93.1 to 0.94.0 in the tambo-ai group ([#2632](https://github.com/tambo-ai/tambo/issues/2632)) ([83a0bf8](https://github.com/tambo-ai/tambo/commit/83a0bf8d8ccc0a0fe0c738a69cd0fc77d92211d9))
+
 ## [0.133.0](https://github.com/tambo-ai/tambo/compare/web-v0.132.5...web-v0.133.0) (2026-03-19)
 
 
