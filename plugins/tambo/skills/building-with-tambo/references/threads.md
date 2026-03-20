@@ -237,6 +237,44 @@ function Suggestions() {
 }
 ```
 
+### Suggestion Type
+
+The `Suggestion` type has these fields (all required):
+
+```tsx
+interface Suggestion {
+  id: string; // Unique identifier
+  title: string; // Short label shown in the pill/button
+  detailedSuggestion: string; // Full text submitted when accepted
+  messageId: string; // ID of the message this relates to (use "" for initial suggestions)
+}
+```
+
+### Initial Suggestions
+
+Pass starter suggestions to chat components for empty threads:
+
+```tsx
+<MessageThreadPanel
+  initialSuggestions={[
+    {
+      id: "1",
+      title: "Show my bookings",
+      detailedSuggestion: "Show me my upcoming bookings for this week",
+      messageId: "",
+    },
+    {
+      id: "2",
+      title: "Create event type",
+      detailedSuggestion: "Create a new 30 minute meeting event type",
+      messageId: "",
+    },
+  ]}
+/>
+```
+
+Initial suggestions only appear when the thread has no messages. Once the user sends a message, they're replaced by AI-generated suggestions.
+
 ### Auto-Submit Suggestion
 
 ```tsx
