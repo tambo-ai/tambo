@@ -59,9 +59,52 @@ const fetchUserTool = defineTool({
 ### Tool Key Points
 
 - **inputSchema**: Zod object for parameters, use `.describe()` on fields
-- **outputSchema**: Zod schema for return value (optional)
+- **outputSchema**: Zod schema for return value. Required when using `registerTool()`, optional with `defineTool()`.
 - **tool**: Function receives single object with input params
 - **transformToContent**: Enable rich content responses (images, formatted text)
+- **Null handling**: The AI often sends null for optional fields. Strip nulls before passing to APIs that reject them:
+  ```tsx
+  const cleaned = Object.fromEntries(
+    Object.entries(input).filter(([, v]) => v != null),
+  );
+  ```
+
+### Dynamic Tool Registration (for apps with existing API clients)
+
+When integrating with an existing app that has its own API client (tRPC, GraphQL, REST), use `registerTool()` inside a React component instead of `defineTool()` at module level. This lets you access the app's client via hooks.
+
+```tsx
+import { useTambo } from "@tambo-ai/react";
+import { trpc } from "./trpc";
+
+function MyChat() {
+  const { registerTool } = useTambo();
+  const utils = trpc.useUtils();
+  const registered = useRef(false);
+
+  useEffect(() => {
+    if (registered.current) return;
+    registered.current = true;
+    registerTools(registerTool, utils.client, utils);
+  }, [registerTool, utils.client, utils]);
+
+  return <MessageThreadPanel />;
+}
+```
+
+The `useRef` guard prevents infinite re-renders since `registerTool` updates state.
+
+### Cache Invalidation After Mutations
+
+When a tool modifies data, invalidate the relevant query cache so the host app's UI updates immediately:
+
+```tsx
+tool: async (input) => {
+  const result = await client.project.create.mutate(input);
+  await utils.project.list.invalidate(); // UI refreshes
+  return result;
+},
+```
 
 ## MCP Servers
 
