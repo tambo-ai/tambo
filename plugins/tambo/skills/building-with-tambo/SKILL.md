@@ -230,16 +230,25 @@ export const components: TamboComponent[] = [
 
 ## Step 6: Add Chat UI
 
-Use Tambo's pre-built components for the chat interface:
+Pick the right chat layout for the app:
+
+| Component                    | Best for                                                        | How it renders                                                        |
+| ---------------------------- | --------------------------------------------------------------- | --------------------------------------------------------------------- |
+| `message-thread-collapsible` | Overlaying on top of existing UI (drawing tools, simple apps)   | Fixed-position floating panel, bottom-right corner, toggle open/close |
+| `message-thread-panel`       | Apps with sidebar layouts (dashboards, admin panels, SaaS apps) | Side panel with thread history, resizable                             |
+| `message-thread-full`        | Dedicated chat pages or full-screen chat experiences            | Full-height thread with all features                                  |
+
+Choose based on the app's layout. If there's a sidebar or dashboard layout, use `panel`. If the chat should float over existing content, use `collapsible`. If the whole page is the chat, use `full`.
 
 ```bash
-npx tambo add message-thread-collapsible --yes
-# Or with other package managers:
-# yarn dlx tambo add message-thread-collapsible --yes
-# pnpm dlx tambo add message-thread-collapsible --yes
-```
+npx tambo add message-thread-panel --yes
+# Or: npx tambo add message-thread-collapsible --yes
+# Or: npx tambo add message-thread-full --yes
 
-This installs a collapsible chat panel with message display, input, suggestions, and streaming support. The component renders as a fixed-position panel in the bottom-right corner.
+# With other package managers:
+# yarn dlx tambo add <component> --yes
+# pnpm dlx tambo add <component> --yes
+```
 
 ### After `tambo add`, complete the setup:
 
@@ -249,7 +258,23 @@ This installs a collapsible chat panel with message display, input, suggestions,
 
    If your entry file already imports a CSS file, `tambo add` modifies that file in place. No new import is needed.
 
-2. **Path alias** — Tambo components use `@/` imports. For Vite projects, add the alias:
+2. **Path alias** — Tambo components use `@/` imports. Check if the project's tsconfig already has `@/*` in its `paths`. Many Next.js projects created with `create-next-app` have this, but not all (e.g., Cal.com uses `~/*` and `@components/*` instead).
+
+   If `@/*` is missing, add it to the app tsconfig (`tsconfig.app.json` when present, otherwise `tsconfig.json`):
+
+   ```json
+   {
+     "compilerOptions": {
+       "paths": {
+         "@/*": ["./src/*"]
+       }
+     }
+   }
+   ```
+
+   If the project has no `src/` directory and components land in the project root, use `["./*"]` instead of `["./src/*"]`. Check where `tambo add` placed the components to determine the correct path.
+
+   For **Vite projects**, also add the alias to `vite.config.ts`:
 
    ```ts
    // vite.config.ts
@@ -264,20 +289,6 @@ This installs a collapsible chat panel with message display, input, suggestions,
    });
    ```
 
-   And in the app tsconfig (`tsconfig.app.json` when present, otherwise `tsconfig.json`):
-
-   ```json
-   {
-     "compilerOptions": {
-       "paths": {
-         "@/*": ["./src/*"]
-       }
-     }
-   }
-   ```
-
-   Next.js projects already have `@/` configured by default.
-
 ### Keyboard Event Isolation
 
 **Critical for apps with global keyboard shortcuts** (drawing tools, editors, terminal-like apps). Without this, typing in the Tambo chat input triggers the host app's shortcuts.
@@ -289,7 +300,9 @@ Wrap the Tambo chat UI in a div that stops keyboard event propagation:
   onKeyDown={(e) => e.stopPropagation()}
   onKeyUp={(e) => e.stopPropagation()}
 >
-  <MessageThreadCollapsible />
+  {/* Use whichever component you installed */}
+  <MessageThreadCollapsible />{" "}
+  {/* or <MessageThreadPanel /> or <MessageThreadFull /> */}
 </div>
 ```
 
@@ -302,7 +315,9 @@ Apps with full-screen canvases or overlays may render on top of the Tambo chat. 
   style={{ position: "fixed", inset: 0, zIndex: 9999, pointerEvents: "none" }}
 >
   <div style={{ pointerEvents: "auto" }}>
-    <MessageThreadCollapsible />
+    {/* Use whichever component you installed */}
+    <MessageThreadCollapsible />{" "}
+    {/* or <MessageThreadPanel /> or <MessageThreadFull /> */}
   </div>
 </div>
 ```
