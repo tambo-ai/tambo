@@ -11,6 +11,7 @@ const inputFieldsThreadSuggestions = [
   {
     id: "input-fields-suggestion-1",
     title: "Create sign-up fields",
+    description: "Create sign-up fields",
     detailedSuggestion:
       "Create sign-up inputs with email and password validation.",
     messageId: "input-fields-signup",
@@ -18,6 +19,7 @@ const inputFieldsThreadSuggestions = [
   {
     id: "input-fields-suggestion-2",
     title: "Add phone validation",
+    description: "Add phone validation",
     detailedSuggestion:
       "Add a phone field with pattern validation and helper text.",
     messageId: "input-fields-phone",
@@ -25,6 +27,7 @@ const inputFieldsThreadSuggestions = [
   {
     id: "input-fields-suggestion-3",
     title: "Improve errors",
+    description: "Improve errors",
     detailedSuggestion:
       "Show clear inline errors for invalid email and short passwords.",
     messageId: "input-fields-errors",

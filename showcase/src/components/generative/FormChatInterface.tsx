@@ -11,6 +11,7 @@ const formThreadSuggestions = [
   {
     id: "form-suggestion-1",
     title: "Build a contact form",
+    description: "Build a contact form",
     detailedSuggestion:
       "Create a contact form with name, email, and message fields.",
     messageId: "form-create-contact-form",
@@ -18,6 +19,7 @@ const formThreadSuggestions = [
   {
     id: "form-suggestion-2",
     title: "Add a dropdown",
+    description: "Add a dropdown",
     detailedSuggestion:
       "Add a required budget dropdown with sensible default options.",
     messageId: "form-add-dropdown",
@@ -25,6 +27,7 @@ const formThreadSuggestions = [
   {
     id: "form-suggestion-3",
     title: "Tune layout",
+    description: "Tune layout",
     detailedSuggestion:
       "Make the form compact and add helpful field descriptions.",
     messageId: "form-tune-layout",

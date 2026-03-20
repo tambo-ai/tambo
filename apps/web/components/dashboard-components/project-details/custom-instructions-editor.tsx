@@ -24,18 +24,21 @@ const customInstructionsEditorSuggestions: Suggestion[] = [
   {
     id: "add-custom-instructions",
     title: "Add Custom Instructions",
+    description: "Add Custom Instructions",
     detailedSuggestion: "Add custom instructions to the project",
     messageId: "add-custom-instructions",
   },
   {
     id: "edit-custom-instructions",
     title: "Edit Custom Instructions",
+    description: "Edit Custom Instructions",
     detailedSuggestion: "Make the custom instructions more detailed",
     messageId: "edit-custom-instructions",
   },
   {
     id: "update-prompt-to-greet-with-howdy",
     title: "Update Prompt to Greet with Howdy",
+    description: "Update Prompt to Greet with Howdy",
     detailedSuggestion: "Update the prompt to always greet with howdy",
     messageId: "update-prompt-to-greet-with-howdy",
   },
