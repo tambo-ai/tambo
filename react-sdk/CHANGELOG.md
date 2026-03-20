@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.4](https://github.com/tambo-ai/tambo/compare/react-v1.2.3...react-v1.2.4) (2026-03-20)
+
+
+### Miscellaneous Chores
+
+* **deps:** bump @tambo-ai/typescript-sdk from 0.93.1 to 0.94.0 in the tambo-ai group ([#2632](https://github.com/tambo-ai/tambo/issues/2632)) ([83a0bf8](https://github.com/tambo-ai/tambo/commit/83a0bf8d8ccc0a0fe0c738a69cd0fc77d92211d9))
+
 ## [1.2.3](https://github.com/tambo-ai/tambo/compare/react-v1.2.2...react-v1.2.3) (2026-03-18)
 
 
