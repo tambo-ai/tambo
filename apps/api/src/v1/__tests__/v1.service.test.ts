@@ -1722,16 +1722,15 @@ describe("V1Service", () => {
 
       const response = createMockResponse();
 
-      await expect(
-        service.executeRun(
-          response as any,
-          "thr_123",
-          "run_123",
-          mockRunDtoBase as any,
-          "prj_123",
-          "user_456",
-        ),
-      ).rejects.toThrow("boom");
+      // executeRun handles errors internally — it emits RUN_ERROR but does not re-throw
+      await service.executeRun(
+        response as any,
+        "thr_123",
+        "run_123",
+        mockRunDtoBase as any,
+        "prj_123",
+        "user_456",
+      );
 
       const writes = response.write.mock.calls.map(([value]) => `${value}`);
       expect(writes.some((w) => w.includes('"type":"RUN_ERROR"'))).toBe(true);
@@ -1755,16 +1754,15 @@ describe("V1Service", () => {
 
       const response = createMockResponse();
 
-      await expect(
-        service.executeRun(
-          response as any,
-          "thr_123",
-          "run_123",
-          mockRunDtoBase as any,
-          "prj_123",
-          "user_456",
-        ),
-      ).rejects.toThrow("boom-early");
+      // executeRun handles errors internally — it emits RUN_ERROR but does not re-throw
+      await service.executeRun(
+        response as any,
+        "thr_123",
+        "run_123",
+        mockRunDtoBase as any,
+        "prj_123",
+        "user_456",
+      );
 
       const writes = response.write.mock.calls.map(([value]) => `${value}`);
       expect(writes.some((w) => w.includes('"type":"RUN_ERROR"'))).toBe(true);
