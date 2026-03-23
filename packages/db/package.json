@@ -29,7 +29,7 @@
     "@tambo-ai/typescript-config": "*",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/pg": "^8.18.0",
-    "drizzle-kit": "^0.31.9"
+    "drizzle-kit": "^0.31.10"
   },
   "dependencies": {
     "@tambo-ai-cloud/core": "*",
