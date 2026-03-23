@@ -2,72 +2,51 @@
 
 ## Overview
 
-The skills system is a cross-cutting feature that adds modular capability packs to Tambo agents. The roadmap follows the dependency chain: types and storage first (everything depends on SkillDefinition and API endpoints), then registration pipelines (CLI push + SDK provider), then runtime activation (router, context merge, state), with dashboard running in parallel once API endpoints exist. Four phases deliver all 25 v1 requirements.
+The skills system is a cross-cutting feature that adds modular capability packs to Tambo agents. Skills follow the same per-request pattern as tools and components -- SDK sends skill data with each run request, no build-time registration needed. Dashboard-created skills are stored in DB and merged at runtime. Three phases deliver all 23 v1 requirements.
 
 ## Phases
 
-**Phase Numbering:**
-- Integer phases (1, 2, 3): Planned milestone work
-- Decimal phases (2.1, 2.2): Urgent insertions (marked with INSERTED)
-
-Decimal phases appear between their surrounding integers in numeric order.
-
-- [ ] **Phase 1: Skill Definition & Storage** - defineSkill() API, DB schema, and CRUD endpoints
-- [ ] **Phase 2: Registration Pipeline** - SDK provider integration and CLI commands
-- [ ] **Phase 3: Runtime Activation** - Skill router, context merge, state persistence, and isolation
-- [ ] **Phase 4: Dashboard** - Skill management UI for creating, editing, and toggling skills
+- [ ] **Phase 1: Skill Definition & SDK Integration** - defineSkill() types, TamboProvider extension, DB schema for dashboard skills, CLI scaffold
+- [ ] **Phase 2: Runtime Activation** - Skill router, context merge, progressive disclosure, state persistence, isolation
+- [ ] **Phase 3: Dashboard** - Skill management UI for creating, editing, and toggling skills
 
 ## Phase Details
 
-### Phase 1: Skill Definition & Storage
-**Goal**: Developers can define skills in code and the API can store/retrieve them
+### Phase 1: Skill Definition & SDK Integration
+**Goal**: Developers can define skills in code, wire them into TamboProvider, and the API can store dashboard-created skills
 **Depends on**: Nothing (first phase)
-**Requirements**: SKILL-01, SKILL-04, SKILL-05, SKILL-06, API-01, API-02, API-03, API-04
+**Requirements**: SKILL-01, SKILL-02, SKILL-03, SKILL-04, SKILL-05, SKILL-06, API-02, API-04, CLI-01
 **Success Criteria** (what must be TRUE):
   1. Developer can call `defineSkill()` in `@tambo-ai/client` with name, description, instructions, tools (inline or external), version, and config escape hatch, and get back a typed SkillDefinition object
-  2. Developer can organize a skill as a directory with skill.ts + instructions.md and have it recognized by the system
-  3. API accepts skill definitions via CRUD endpoints (`/projects/:id/skills`) and persists them as JSONB in the generic config table
-  4. API correctly merges dashboard-created and code-registered skills with the same name (both active, treated as separate by source label)
-**Plans**: TBD
+  2. Developer can pass `skills` array to TamboProvider and have skill tools/components decomposed into existing registries without breaking current defineTool/TamboComponent usage
+  3. Developer can include optional React components in a skill and have them available in the component registry
+  4. Developer can organize a skill as a directory with skill.ts + instructions.md
+  5. `tambo add skill --new <name>` scaffolds a new empty skill with boilerplate
+  6. API CRUD endpoints for dashboard skills persist data as JSONB in the generic config table
 
 Plans:
 - [ ] 01-01: TBD
 - [ ] 01-02: TBD
 
-### Phase 2: Registration Pipeline
-**Goal**: Developers can wire skills into their app and push them to Tambo Cloud
+### Phase 2: Runtime Activation
+**Goal**: Agents intelligently activate relevant skills per message, with isolation, progressive disclosure, and persistent state
 **Depends on**: Phase 1
-**Requirements**: SKILL-02, SKILL-03, CLI-01, CLI-02, CLI-03
+**Requirements**: RUNT-01, RUNT-02, RUNT-03, RUNT-04, RUNT-05, RUNT-06, RUNT-07, RUNT-08, API-01, API-03
 **Success Criteria** (what must be TRUE):
-  1. Developer can pass a `skills` array to TamboProvider and have skill tools/components decomposed into existing registries without breaking current defineTool/TamboComponent usage
-  2. Developer can include optional React components in a skill and have them available in the component registry
-  3. `tambo skills push` serializes local skill definitions and uploads them to Tambo Cloud, with the API storing them for runtime reference
-  4. `tambo add skill <github-repo>` clones skill files from a GitHub repo into the developer's project (shadcn-style)
-  5. `tambo add skill --new <name>` scaffolds a new empty skill with boilerplate
+  1. SDK sends skill metadata (name, description, tool names) with every run request; API uses this plus DB-stored dashboard skills to build the full skill set
+  2. Agent sees skill descriptions always, receives full content (instructions, tools, components) only for activated skills
+  3. When 5 or fewer skills are active, all skills' full content is included with no routing overhead; when more than 5 are active, a Tambo-managed fast model selects relevant skills in under 500ms
+  4. Skill state persists as namespaced key-value pairs on thread metadata across messages (nested structure: `skillState.<name>.<key>`)
+  5. Skills only receive explicitly passed data with no ambient access, and last-wins conflict resolution applies when skills overlap
 **Plans**: TBD
 
 Plans:
 - [ ] 02-01: TBD
 - [ ] 02-02: TBD
 
-### Phase 3: Runtime Activation
-**Goal**: Agents intelligently activate relevant skills per message and skills operate in isolation with persistent state
-**Depends on**: Phase 2
-**Requirements**: RUNT-01, RUNT-02, RUNT-03, RUNT-04, RUNT-05, RUNT-06, RUNT-07, RUNT-08
-**Success Criteria** (what must be TRUE):
-  1. Agent sees skill names and descriptions on every request, and receives full content (instructions, tools, components) only for activated skills
-  2. When 5 or fewer skills are active, all skills' full content is included with no routing overhead; when more than 5 are active, a Tambo-managed fast model selects relevant skills in under 500ms
-  3. Skill state persists as namespaced key-value pairs on thread metadata across messages (nested structure: `skillState.<name>.<key>`)
-  4. Skills only receive explicitly passed data (message, declared state, declared resources) with no ambient access, and last-wins conflict resolution applies when skills overlap
-**Plans**: TBD
-
-Plans:
-- [ ] 03-01: TBD
-- [ ] 03-02: TBD
-
-### Phase 4: Dashboard
+### Phase 3: Dashboard
 **Goal**: Product people can create and manage skills from the web dashboard without writing code
-**Depends on**: Phase 1 (can run in parallel with Phase 3)
+**Depends on**: Phase 1 (can run in parallel with Phase 2)
 **Requirements**: DASH-01, DASH-02, DASH-03, DASH-04
 **Success Criteria** (what must be TRUE):
   1. Product person can enable/disable skills per project from the dashboard
@@ -77,17 +56,16 @@ Plans:
 **UI hint**: yes
 
 Plans:
-- [ ] 04-01: TBD
+- [ ] 03-01: TBD
 
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 -> 2 -> 3 -> 4
-Note: Phase 4 depends only on Phase 1 and can execute in parallel with Phase 3.
+Phases execute in numeric order: 1 -> 2 -> 3
+Note: Phase 3 depends only on Phase 1 and can execute in parallel with Phase 2.
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Skill Definition & Storage | 0/2 | Not started | - |
-| 2. Registration Pipeline | 0/2 | Not started | - |
-| 3. Runtime Activation | 0/2 | Not started | - |
-| 4. Dashboard | 0/1 | Not started | - |
+| 1. Skill Definition & SDK Integration | 0/2 | Not started | - |
+| 2. Runtime Activation | 0/2 | Not started | - |
+| 3. Dashboard | 0/1 | Not started | - |

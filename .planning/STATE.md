@@ -5,14 +5,14 @@
 See: .planning/PROJECT.md (updated 2026-03-23)
 
 **Core value:** Developers can give their Tambo agents specialized capabilities without wiring everything manually, and agents intelligently pick which capabilities to use per message.
-**Current focus:** Phase 1 - Skill Definition & Storage
+**Current focus:** Phase 1 - Skill Definition & SDK Integration
 
 ## Current Position
 
-Phase: 1 of 4 (Skill Definition & Storage)
+Phase: 1 of 3 (Skill Definition & SDK Integration)
 Plan: 0 of 2 in current phase
 Status: Ready to plan
-Last activity: 2026-03-23 -- Roadmap created
+Last activity: 2026-03-23 -- Roadmap revised (per-request hybrid, marketplace cut, 3 phases)
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -42,8 +42,10 @@ Progress: [░░░░░░░░░░] 0%
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
+- Per-request hybrid model (not build-time push) -- skills sent per-request like tools/components
+- Marketplace and workflow skills deferred to v2
 - defineSkill() API shape is the highest-stakes decision for Phase 1
-- Generic config table with type='skill' for storage (not dedicated table)
+- Generic config table with type='skill' for dashboard skills only (code skills are per-request)
 - Nested object structure for skill state in thread metadata
 
 ### Pending Todos
@@ -57,5 +59,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-03-23
-Stopped at: Roadmap created, ready to plan Phase 1
+Stopped at: Roadmap revised, ready to plan Phase 1
 Resume file: None
