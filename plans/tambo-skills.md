@@ -3,8 +3,7 @@
 ## Summary
 
 **Date:** 2026-03-23
-**Phases:** 3 (coarse granularity)
-**Requirements:** 23 v1 requirements across SDK, API, CLI, and dashboard
+**Phases:** 3
 **Branch:** `avi/tambo-skills`
 
 Tambo Skills is a cross-cutting feature that adds modular capability packs to AI agents. A skill bundles instructions, tools, optional React components, and persistent state into a single unit. Agents use progressive disclosure to pick which skills to activate per message. Skills can be authored in code (`defineSkill()`) or created from the dashboard.
@@ -117,7 +116,6 @@ Developer writes code              Dashboard user creates skill
 ## Phase 1: Skill Definition & SDK Integration
 
 **Goal:** Developers can define skills in code, wire them into TamboProvider, and the API can store dashboard-created skills.
-**Requirements:** SKILL-01, SKILL-02, SKILL-03, SKILL-04, SKILL-05, SKILL-06, API-02, API-04, CLI-01
 
 This is the highest-stakes phase. The `defineSkill()` shape becomes a permanent public API the moment it ships. Design for extension from day one.
 
@@ -210,7 +208,6 @@ New command: `tambo add skill --new <name>`
 ## Phase 2: Runtime Activation
 
 **Goal:** Agents intelligently activate relevant skills per message with isolation, progressive disclosure, and persistent state.
-**Requirements:** RUNT-01 through RUNT-08, API-01, API-03
 
 This is the core value proposition. The agent picks which skills to use, and activated skills get their full content injected into the LLM context.
 
@@ -282,7 +279,6 @@ Persistent state as thread metadata:
 ## Phase 3: Dashboard
 
 **Goal:** Product people can create and manage skills from the web dashboard.
-**Requirements:** DASH-01 through DASH-04
 **Can run in parallel with Phase 2** (only depends on Phase 1 API endpoints)
 
 ### 3.1 Skills List Page
