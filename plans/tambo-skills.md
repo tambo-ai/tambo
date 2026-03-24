@@ -1,357 +1,189 @@
-# Implementation Plan: Tambo Skills
+# Tambo Skills
 
-## Summary
-
-**Date:** 2026-03-23
-**Phases:** 3
+**Date:** 2026-03-24
 **Branch:** `avi/tambo-skills`
 
-Tambo Skills is a cross-cutting feature that adds modular capability packs to AI agents. A skill bundles instructions, tools, optional React components, and persistent state into a single unit. Agents use progressive disclosure to pick which skills to activate per message. Skills can be authored in code (`defineSkill()`) or created from the dashboard.
+## Problem
 
-### Why Skills?
+When a developer integrates Tambo into their app, they configure the agent with a system prompt (custom instructions). But as the app grows, that prompt becomes a dumping ground for every behavior they want the agent to have: how to handle scheduling, how to talk about pricing, what to do when a user asks for help, how to fill out forms, etc.
 
-Today, developers wire individual tools and components into Tambo manually. Skills let them author packaged capabilities ("Stripe Checkout", "Calendar Scheduling", "Web Search") that the agent activates on demand. This is Tambo's equivalent of a plugin system, but with a unique differentiator: skills can include React components that render UI, not just tool functions. No other AI agent framework does this.
+This doesn't scale. The context window fills up. Instructions conflict. The agent gets confused. And worst of all, if a product person wants to tweak how the agent handles a specific task, they have to ask an engineer to edit the system prompt.
 
-### Key Design Decisions
+**Skills solve this.** A skill is a focused set of instructions for a specific task. Instead of one giant prompt, you have modular pieces that the agent loads when relevant. A product person can add, edit, or disable skills from the dashboard without touching code.
 
-1. **Per-request hybrid** -- Skills follow the same per-request pattern as tools/components. SDK sends skill metadata with every run request. No build-time push, no sync issues.
-2. **Two-phase progressive disclosure** -- Metadata (name, description) always sent. Full content (instructions, tools, components) only for activated skills.
-3. **Threshold-based routing** -- <=5 skills: send all (no overhead). >5: Tambo-managed fast model selects relevant skills (<500ms).
-4. **Architectural isolation** -- Skills operate through API boundary + scoped context + pure tool functions. No runtime sandboxing (not framework-agnostic). Skills only receive explicitly passed data.
-5. **Thread metadata for state** -- Namespaced key-value pairs (`skillState.<name>.<key>`) on thread object.
-6. **Generic config table** -- Dashboard-created skills stored as JSONB rows with `type='skill'` in project config. Code-defined skills are per-request, not stored in DB.
-7. **Extend TamboRegistryProvider** -- No new React context. Skills decompose into existing tool/component registries.
-8. **Both active for conflicts** -- Dashboard + code skills with same name are treated as separate. Last-wins for tool name collisions.
+### What does "working" look like?
 
+1. Product person goes to the Tambo dashboard, clicks "Add Skill"
+2. They paste a SKILL.md file (or just type instructions with a name and description)
+3. The agent now knows how to do that thing
+4. They can see in the observability panel whether the skill was triggered
+5. If the agent isn't behaving right, they edit the skill and try again
+
+That's it. No code changes, no deploys, no engineer in the loop.
+
+## v1 Scope
+
+**Dashboard-only. No SDK changes.**
+
+v1 is a place in the project dashboard where you manage skill text. Skills are stored in the DB and sent to the LLM provider on each request. We use the provider's own skill/tool routing (Anthropic and OpenAI both have this) instead of building our own router.
+
+### What a skill is (v1)
+
+A skill has three fields:
+
+- **Name** -- identifies the skill (e.g., "scheduling-assistant")
+- **Description** -- short summary the LLM reads to decide relevance (e.g., "Helps users schedule and manage calendar events")
+- **Instructions** -- the full text the agent receives when the skill is active
+
+That's the whole data model. No version, no tools, no components, no state schema, no config bag.
+
+### How skills get created
+
+**Option A: Paste SKILL.md**
+User pastes a SKILL.md file (standard Agent Skills format with YAML frontmatter). We parse the frontmatter to extract name and description, store the full text as instructions. Like Vercel's env file drop-in.
+
+```yaml
+---
+name: scheduling-assistant
+description: Helps users schedule and manage calendar events
 ---
 
-## Architecture
-
-### Skill Definition Shape
-
-```typescript
-// @tambo-ai/client
-interface SkillDefinition {
-  name: string; // Unique identifier
-  description: string; // Used for routing (agent reads this)
-  version: string; // Semantic version
-  instructions: string; // Injected into system prompt when active
-  tools?: TamboTool[]; // Inline or externally referenced
-  components?: TamboComponent[]; // Optional, developer opts in
-  stateSchema?: StandardSchemaV1; // Schema for skill state (thread metadata)
-  config?: Record<string, unknown>; // Escape hatch for future properties
-}
-
-function defineSkill(definition: SkillDefinition): SkillDefinition;
+When a user wants to schedule a meeting:
+1. Ask for the participants
+2. Check availability using the calendar tool
+3. Propose available time slots
+4. Confirm and create the event
 ```
 
-### Data Flow
+**Option B: Form fields**
+User fills in name, description, and instructions in separate fields on the dashboard. Simpler but less portable.
 
-```
-Developer writes code              Dashboard user creates skill
-        |                                    |
-   defineSkill()                    POST /projects/:id/skills
-        |                                    |
-   skills={[...]} on                   Stored in DB
-   TamboProvider                     (source: "dashboard")
-        |                                    |
-   SDK sends metadata               API loads from DB
-   per-request                       per-request
-        |                                    |
-        +------- Both merged at runtime -------+
-                         |
-                    Run Request
-           (SDK skills + DB dashboard skills)
-                         |
-                 Skill Router (API)
-                    /        \
-          <=5 skills       >5 skills
-          include all      fast model selects
-                    \        /
-                Context Merge
-                         |
-            Instructions -> system prompt
-            Tools -> tools array
-            Components -> available components
-                         |
-                    LLM Request
-                         |
-                 Agent Response
-                    /        \
-            Tool calls      Component renders
-                    \        /
-              Skill State Updates
-              (thread metadata)
-```
+We should support both. Paste auto-fills the form fields from frontmatter.
 
-**How it works:**
-
-1. Developer defines skills in code via `defineSkill()` and passes them to `TamboProvider`
-2. Product person creates instruction-only skills from dashboard (stored in DB)
-3. On each run request, SDK sends code-defined skill metadata alongside the message
-4. API loads dashboard skills from DB and merges with SDK-provided skills
-5. Skill router decides which skills to activate (all if <=5, fast model picks if >5)
-6. Activated skills' instructions/tools/components are merged into the LLM context
-7. No sync issues because there's no separate registration step
-
-### Where Code Lives
-
-| Component                     | Location                                              | New/Modified |
-| ----------------------------- | ----------------------------------------------------- | ------------ |
-| `defineSkill()` + types       | `packages/client/src/model/skill-definition.ts`       | New          |
-| Re-export from React SDK      | `react-sdk/src/v1/index.ts`                           | Modified     |
-| Registry extension            | `react-sdk/src/providers/tambo-registry-provider.tsx` | Modified     |
-| Skill metadata in run request | `packages/client/src/utils/send-message.ts`           | Modified     |
-| DB operations                 | `packages/db/src/operations/skills.ts`                | New          |
-| DB schema (config table)      | `packages/db/src/schema.ts`                           | Modified     |
-| API CRUD endpoints            | `apps/api/src/v1/skills/`                             | New module   |
-| Skill router                  | `packages/backend/src/services/skill-router/`         | New          |
-| Context merge                 | `packages/backend/src/services/decision-loop/`        | Modified     |
-| State manager                 | `packages/backend/src/services/skill-state/`          | New          |
-| CLI scaffold                  | `cli/src/commands/add/skill.ts`                       | New          |
-| Dashboard pages               | `apps/web/app/(app)/project/[id]/skills/`             | New          |
-
----
-
-## Phase 1: Skill Definition & SDK Integration
-
-**Goal:** Developers can define skills in code, wire them into TamboProvider, and the API can store dashboard-created skills.
-
-This is the highest-stakes phase. The `defineSkill()` shape becomes a permanent public API the moment it ships. Design for extension from day one.
-
-### 1.1 Skill Definition Types (`packages/client`)
-
-Create `packages/client/src/model/skill-definition.ts`:
-
-- `SkillDefinition` interface with all fields (name, description, version, instructions, tools, components, stateSchema, config)
-- `defineSkill()` function (typed identity function, like `defineTool()`)
-- Tools can be `TamboTool[]` (inline) or `string[]` (references to externally defined tools)
-- `config: Record<string, unknown>` as escape hatch for future properties without breaking changes
-- Re-export from `packages/client/src/index.ts`
-- Re-export from `react-sdk/src/v1/index.ts`
-
-### 1.2 SDK Provider Integration (`react-sdk`)
-
-Extend `TamboRegistryProvider` to accept `skills` prop:
-
-- `TamboProvider` gains `skills?: SkillDefinition[]`
-- On mount, decompose each skill into its parts:
-  - `skill.tools` -> merge into existing tool registry
-  - `skill.components` -> merge into existing component registry (if developer opted in)
-  - `skill.instructions` -> stored separately for runtime activation
-  - `skill.stateSchema` -> stored for state validation
-- Must NOT break existing `tools={[...]}` and `components={[...]}` usage
-- `TamboClient` in `packages/client` also accepts `skills` option for non-React usage
-
-### 1.3 Skill Metadata in Run Requests
-
-Modify `packages/client/src/utils/send-message.ts`:
-
-- Include skill metadata (name, description, tool names) in run request payload
-- Full skill content (instructions, tool schemas, component schemas) also sent per-request
-- Follows the same pattern as `availableComponents` and `tools` arrays
-- API uses this data for routing and context merge
-
-### 1.4 Directory Convention
-
-A skill can be organized as a folder:
-
-```
-my-skill/
-  skill.ts        # exports defineSkill({...})
-  instructions.md # developer loads as instructions string
-```
-
-This is a convention for code organization, not enforced by the runtime.
-
-### 1.5 DB Schema & Operations (`packages/db`)
-
-For dashboard-created skills only (code-defined skills are per-request, not stored):
-
-- Generic config table: `id`, `projectId`, `type` (='skill'), `name`, `source` ('dashboard'), `enabled` (boolean), `data` (JSONB), `createdAt`, `updatedAt`
-- Operations in `packages/db/src/operations/skills.ts`: `createSkill`, `getSkill`, `listSkills`, `updateSkill`, `deleteSkill`
-
-### 1.6 API CRUD Endpoints (`apps/api`)
-
-New NestJS module at `apps/api/src/v1/skills/`:
-
-- `GET /v1/projects/:projectId/skills` -- list dashboard skills
-- `GET /v1/projects/:projectId/skills/:skillId` -- get single skill
-- `POST /v1/projects/:projectId/skills` -- create skill (dashboard)
-- `PUT /v1/projects/:projectId/skills/:skillId` -- update skill
-- `DELETE /v1/projects/:projectId/skills/:skillId` -- delete skill
-- DTOs with class-validator
-- ProjectAccessOwnGuard for authorization
-
-### 1.7 CLI Scaffold New Skill (`cli`)
-
-New command: `tambo add skill --new <name>`
-
-- Generates boilerplate skill directory:
-  ```
-  <name>/
-    skill.ts          # defineSkill() with placeholder
-    instructions.md   # empty instructions file
-  ```
-
-### Success Criteria
-
-1. `defineSkill()` returns typed `SkillDefinition` with all fields
-2. `skills` array on TamboProvider decomposes into existing registries without breaking current usage
-3. Optional React components in skills appear in component registry
-4. Directory convention works (skill.ts + instructions.md)
-5. `tambo add skill --new` scaffolds boilerplate
-6. API CRUD endpoints for dashboard skills work with JSONB storage
-
----
-
-## Phase 2: Runtime Activation
-
-**Goal:** Agents intelligently activate relevant skills per message with isolation, progressive disclosure, and persistent state.
-
-This is the core value proposition. The agent picks which skills to use, and activated skills get their full content injected into the LLM context.
-
-### 2.1 Skill Merge at Runtime
+### How skills reach the LLM
 
 On each run request:
 
-1. SDK sends code-defined skills (metadata + full content) in the request payload
-2. API loads enabled dashboard skills from DB for the project
-3. Both sets are merged into a unified skill list
-4. Dashboard + code skills with the same name are treated as separate (both active)
+1. API loads all enabled skills for the project from the DB
+2. Skills are sent to the LLM provider using their native skill/context API
+3. The provider handles routing (which skills are relevant to this message)
+4. We don't build our own router
 
-### 2.2 Skill Router (`packages/backend`)
+**Important:** Alec pointed out that Anthropic and OpenAI both have skill APIs. We should use those instead of building threshold-based routing ourselves. Their routing is a competitive advantage they're investing in -- we shouldn't try to compete with that.
 
-New service: `packages/backend/src/services/skill-router/skill-router-service.ts`
+**Open question:** How exactly do we send skills to each provider? Need to investigate the specific APIs:
 
-**Threshold logic:**
+- Anthropic: how does their skill/context injection work?
+- OpenAI: how does their equivalent work?
+- Other providers (Groq, Mistral, etc.): do they have something similar, or do we fall back to system prompt injection?
 
-- Count total active skills (code + dashboard)
-- If <=5: include ALL skills' full content. Skip routing. Zero added latency.
-- If >5: run Tambo-managed fast model (e.g., claude-haiku or gpt-4o-mini) to select relevant skills based on:
-  - User's message
-  - Skill names and descriptions
-  - Target: <500ms added latency
-  - Returns list of selected skill names
+### Dashboard UI
 
-### 2.3 Context Merge (`packages/backend`)
+**Skills list page** (`/project/[id]/skills`)
 
-Modify decision loop to merge activated skills:
+- List of all skills for the project
+- Enable/disable toggle per skill
+- "Add Skill" button
+- Edit / delete actions
 
-- **Instructions:** Append each skill's `instructions` to the system prompt, clearly delimited:
-  ```
-  [Skill: calendar-scheduling]
-  You can help users schedule meetings...
-  [End Skill: calendar-scheduling]
-  ```
-- **Tools:** Add each skill's tools to the tools array
-- **Components:** Add each skill's components to availableComponents
-- **Last-wins:** If two skills define a tool with the same name, the later-registered skill's version is used
+**Add/edit skill page**
 
-### 2.4 Architectural Isolation
+- Paste SKILL.md textarea (parses frontmatter into fields below)
+- Name field
+- Description field
+- Instructions field (markdown editor)
+- Save / cancel
 
-Skills operate through a defined contract:
+**Seth will design this** -- keeping it simple, similar to how custom instructions work today but for multiple named skills.
 
-- Skills receive: the user's message, their declared state, their declared resources
-- Skills do NOT receive: direct TamboClient access, other skills' state, React context, thread internals
-- Tool functions are pure: `(input) => output`
-- Enforced at the context merge layer, not runtime sandboxing
+### DB Storage
 
-### 2.5 Skill State (`packages/backend`)
+Simple addition to the existing schema:
 
-Persistent state as thread metadata:
+- `id`, `projectId`, `name`, `description`, `instructions` (text), `enabled` (boolean), `createdAt`, `updatedAt`
+- Unique constraint on (`projectId`, `name`)
+- Operations in `packages/db/src/operations/skills.ts`
+- CRUD endpoints at `/v1/projects/:projectId/skills`
 
-- Storage: `thread.metadata.skillState.<skillName>.<key>`
-- Read: at the start of each run, read current skill state and pass to activated skills
-- Write: skill tools can return state updates that are written back to thread metadata
-- Namespace enforcement: skills can only read/write their own namespace
+Could also be a JSONB column in a generic config table. Either works for v1 -- the important thing is it's simple and we can query by project.
 
-### Success Criteria
+### Observability
 
-1. SDK skills and dashboard skills merged correctly at runtime
-2. Agent sees descriptions always, full content only for activated skills
-3. <=5 skills: all included with zero overhead. >5: fast model selects in <500ms
-4. Skill state persists across messages as `skillState.<name>.<key>`
-5. Skills only see explicitly passed data. Last-wins for conflicts.
+When a skill is triggered during a run, it should show up in the observability/thread history panel. This is how the product person knows if their skill is working:
 
----
+- "Skill triggered: scheduling-assistant"
+- They can see the skill instructions that were injected
+- If the skill wasn't triggered when it should have been, they know to improve the description
 
-## Phase 3: Dashboard
+This is not end-user-facing. It's for the team managing the agent.
 
-**Goal:** Product people can create and manage skills from the web dashboard.
-**Can run in parallel with Phase 2** (only depends on Phase 1 API endpoints)
+## What's NOT in v1
 
-### 3.1 Skills List Page
+| Feature                                | Why not now                                                                                                                                     |
+| -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| `defineSkill()` in SDK / TamboProvider | Start with dashboard. SDK integration is v2 after we validate the concept.                                                                      |
+| Custom skill routing                   | Use the LLM provider's routing. Don't compete with Anthropic/OpenAI on this.                                                                    |
+| Skill state / persistence              | Just instructions for now. State adds complexity before we know it's needed.                                                                    |
+| Tools/components inside skills         | Skills are text. If the instructions say "use the calendar tool", and that tool is registered, the agent will use it. No formal binding needed. |
+| Marketplace / GitHub distribution      | Validate skills work first, then think about sharing.                                                                                           |
+| End-user skill visibility              | Skills are a behind-the-scenes config. End users don't need to see them.                                                                        |
+| Slash command picker                   | v2 -- needs SDK changes.                                                                                                                        |
+| Workflow step sequences                | v2 -- complex, not validated as needed.                                                                                                         |
+| Directory convention / CLI scaffold    | v2 -- when SDK-side skills exist.                                                                                                               |
 
-`apps/web/app/(app)/project/[id]/skills/page.tsx`
+## Implementation
 
-- List all skills for the project (dashboard-created + code-defined visible via run telemetry)
-- Source labels: "Code" badge (blue) vs "Dashboard" badge (green)
-- Enable/disable toggle per skill (dashboard skills only)
-- "Create Skill" button
+### Phase 1: DB + API
 
-### 3.2 Skill Detail/Edit Page
+- Add skills schema/table to `packages/db`
+- DB operations: `createSkill`, `getSkill`, `listSkills`, `updateSkill`, `deleteSkill`, `toggleSkill`
+- NestJS CRUD endpoints at `/v1/projects/:projectId/skills`
+- DTOs with class-validator, ProjectAccessOwnGuard
 
-`apps/web/app/(app)/project/[id]/skills/[skillId]/page.tsx`
+### Phase 2: LLM Integration
 
-- View skill details: name, description, instructions, tools list, components list
-- Edit instructions (textarea with markdown preview)
-- Edit description
-- For dashboard-created skills: full edit access
-- For code-defined skills: read-only view with "Edit in code" guidance
+- Investigate Anthropic/OpenAI skill APIs -- how do we send skills?
+- Modify the decision loop to load project skills from DB and inject them
+- For providers without skill APIs: fall back to appending skill instructions to the system prompt with clear delimiters
+- Add skill trigger events to the run stream (for observability)
 
-### 3.3 Create Skill Flow
+### Phase 3: Dashboard UI
 
-- Name (required, validated unique within project+source)
-- Description (required, with guidance on quality for routing)
-- Instructions (markdown editor)
-- No tools or components (dashboard skills are instruction-only)
-- Auto-enabled on creation
+- Skills list page with enable/disable toggles
+- Add/edit page with SKILL.md paste support + form fields
+- Frontmatter parsing (use `gray-matter` or similar)
+- Seth designs this
 
-### Success Criteria
+Can run in parallel with Phase 2 since it only needs Phase 1 API endpoints.
 
-1. Toggle skills on/off per project
-2. View details with source labels
-3. Create and edit instruction-only skills from dashboard
+## Risks
 
----
+| Risk                                          | Mitigation                                                                                |
+| --------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| Provider skill APIs might not do what we need | Fall back to system prompt injection with delimiters. Every provider supports that.       |
+| Too many skills = too many tokens             | This is why providers are building routing. If needed, we can add our own later.          |
+| Skills conflict with each other               | Product person manages this. They can see all skills and disable ones that conflict.      |
+| SKILL.md parsing edge cases                   | Keep it simple. If frontmatter parsing fails, just store the whole thing as instructions. |
 
-## Risks & Mitigations
+## v2 Ideas (after v1 ships and we get feedback)
 
-| Risk                                                   | Impact                                                    | Mitigation                                                                                                               |
-| ------------------------------------------------------ | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| `defineSkill()` API surface freezes on ship            | HIGH -- can't change public API without breaking users    | Version field + config escape hatch from day one. Internal review of types before Phase 1 ships.                         |
-| Per-request payload size with many skills              | MEDIUM -- large payloads if skills have long instructions | Threshold routing reduces what's sent to LLM. Monitor payload sizes. Build-time push can be added later as optimization. |
-| Skill state namespace collisions                       | MEDIUM -- silent data corruption                          | Nested object structure (`skillState.<name>.<key>`). Validate name uniqueness.                                           |
-| Poor descriptions cause bad routing                    | MEDIUM -- wrong skills activated                          | Description quality validation. Routing decision logging.                                                                |
-| Threshold oscillation (5 -> 6 skills changes behavior) | LOW -- unexpected behavior change                         | Make threshold configurable. Log mode switches.                                                                          |
+- **SDK-side skills** -- `defineSkill()` in code, TamboProvider integration, skills that include tools/components
+- **Skill state** -- persistent data scoped to a skill within a thread
+- **Marketplace** -- browse and install skills from GitHub repos
+- **Slash commands** -- typing `/` in message input opens skill picker
+- **Workflow skills** -- multi-step sequences with tool + UI per step
+- **Skill creator** -- AI-powered: "analyze my app and suggest skills"
+- **T-stack / intentions** -- skills in package.json via npm install (Alec investigating this)
+- **Observability deep dive** -- which skills are triggering, how often, success rate
 
-## v2 Roadmap (Post-v1)
+## Open Questions
 
-After v1 ships with working SDK + docs, these features follow based on user feedback:
+1. **How do Anthropic/OpenAI skill APIs actually work?** Need to investigate before Phase 2. If they just want text blobs, great. If they need structured data, we adapt.
 
-1. **Workflow skills** -- multi-step sequences with tool call + UI render per step
-2. **Slash command picker** -- typing `/` in message input opens skill selector
-3. **Marketplace** -- `tambo add skill <github-repo>` for GitHub-based distribution
-4. **Build-time push** -- `tambo skills push` for large skill catalogs (optimization)
-5. **Tambo Cloud execution** -- run skill tools server-side
-6. **Skill versioning** -- manage skill definition updates over time
-7. **Cross-thread state** -- skill state shared across threads in a project
+2. **Dedicated table vs generic config table?** Leaning toward dedicated `skills` table for simplicity and queryability since we know the schema.
 
----
+3. **Frontmatter parsing library** -- `gray-matter` is the standard. Already used in the ecosystem. Small dep, CLI-only for now but could be used in API too.
 
-## Open Questions for Team Feedback
+4. **How do skills show up in observability?** Need to define what a "skill triggered" event looks like in the run stream.
 
-1. **Config table vs dedicated skills table?** The plan uses a generic config table (type='skill') for dashboard skills. Should we use a dedicated `skills` table instead for stronger typing and easier querying?
-
-2. **Threshold value of 5** -- is this right? Should we start lower (3) or higher (10)? We can make it configurable per project.
-
-3. **Fast model for routing** -- which model? Claude Haiku? GPT-4o-mini? Should this be configurable per project or Tambo-managed only?
-
-4. **Skill state API** -- should `useTamboSkillState()` be a new hook, or should we extend `useTamboComponentState()` to handle skill state?
-
-5. **Per-request payload concern** -- skill instructions can be long text. Is there a point where we'd want to cache skills server-side to avoid sending them every request? Or is per-request fine for v1?
-
-6. **Code skills visibility in dashboard** -- code-defined skills are per-request and not stored in DB. How does the dashboard show them? Options: (a) don't show them, (b) show them from run telemetry, (c) add an endpoint that returns "last seen" skills from recent runs.
-
-7. **Breaking change concern** -- does adding `skills` to `TamboProvider` affect the existing `TamboRegistryProvider` in any unexpected way? Need to verify backwards compatibility.
+5. **Should we support skill creation through Claude Code?** Michael Magan suggested this -- "read through my app and create skills." Could be a powerful onboarding flow. Separate from v1 but worth thinking about.
