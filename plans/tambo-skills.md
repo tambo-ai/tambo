@@ -39,7 +39,9 @@ That's it. No version, no tools, no components, no state schema.
 
 ### How skills get created
 
-User pastes a SKILL.md file into the dashboard. We parse the YAML frontmatter to extract name and description, and the body becomes the instructions.
+The dashboard has a textarea where you paste the contents of a SKILL.md file. This is the same format used by Claude Code, Codex, Cursor, etc. -- it's the industry standard for agent skills.
+
+A SKILL.md file looks like this:
 
 ```yaml
 ---
@@ -54,17 +56,37 @@ When a user wants to schedule a meeting:
 4. Confirm and create the event
 ```
 
-If the frontmatter parsing fails for whatever reason, we just store the whole thing as instructions and let them fill in name/description manually.
+The part between `---` markers at the top is YAML frontmatter (name and description). Everything after is the instructions.
+
+When you paste this into the dashboard, we parse it and split it into three fields:
+
+- `name` = "scheduling-assistant" (from frontmatter)
+- `description` = "Helps users schedule and manage calendar events" (from frontmatter)
+- `instructions` = everything after the second `---`
+
+**Why we parse it apart:**
+
+- **Name** is used as the identifier in the skills list, in observability ("Skill triggered: scheduling-assistant"), and as the unique key in the DB
+- **Description** is shown in the skills list so the product person knows what each skill does at a glance. If we add routing later, this is what the router reads to decide if a skill is relevant.
+- **Instructions** is the text that actually gets injected into the agent's context at runtime. This is the only part the LLM sees.
+
+We store them as separate DB columns so we can list/search/filter skills by name and description without parsing the SKILL.md blob every time. After parsing, all three fields are shown as editable inputs so you can tweak them individually.
 
 ### How skills reach the LLM
 
-I looked into whether Anthropic or OpenAI have "skill APIs" where you upload skills and the provider handles routing. **They don't.** There's no such thing. Every provider just gives you system prompts and tool definitions. If you want the agent to know about skills, you put them in the system prompt yourself.
+Both Anthropic and OpenAI have real skill APIs:
 
-So for v1:
+**Anthropic** (beta: `skills-2025-10-02`): Upload skill files via `POST /v1/skills`, attach to requests via `container.skills`. Skills run inside a code execution container. Supports versioning, multi-turn container reuse. Max 8 skills per request. You specify which skills to include -- no automatic routing.
 
-1. API loads all enabled skills for the project from the DB
-2. Each skill's instructions get appended to the system prompt with delimiters
-3. All enabled skills are included on every request (no routing)
+**OpenAI**: Upload via `POST /v1/skills`, attach via `shell.environment.skills`. Model sees skill name/description and decides whether to use them. Skills run in a shell container.
+
+**Important:** Both APIs are designed for skills that include executable scripts (Python, etc.) running in sandboxed containers. For instruction-only skills (which is what our v1 is), we have two options:
+
+**Option A: Use provider skill APIs.** Upload our skills as SKILL.md files to Anthropic/OpenAI, reference them by ID per request. The provider handles injecting the skill context. Upside: we're using the standard. Downside: tied to providers that support skills, adds API calls for skill management, code execution container overhead for what's just text.
+
+**Option B: System prompt injection.** Load skills from DB, append to system prompt with delimiters. Works with every provider. Simple. No external API dependency.
+
+For v1, we should probably start with **Option B** (system prompt injection) because it works with all providers and our skills are just instruction text. But we should design the DB schema and SKILL.md format to be compatible with the provider APIs so we can switch to Option A later when it makes sense (e.g., when skills include scripts).
 
 ```
 [Skill: scheduling-assistant]
@@ -72,16 +94,11 @@ When a user wants to schedule a meeting:
 1. Ask for the participants
 ...
 [End Skill: scheduling-assistant]
-
-[Skill: pricing-faq]
-When a user asks about pricing:
-...
-[End Skill: pricing-faq]
 ```
 
-If the skill count gets high enough that this bloats the context window, we can add routing later (a lightweight LLM call to pick relevant skills, or embedding-based matching). But for v1 most projects will have a handful of skills and it won't matter.
+All enabled skills are included on every request (no routing). If skill count gets high enough to bloat the context window, we can add routing later or switch to provider APIs which handle this more efficiently.
 
-Anthropic does have prompt caching (`cache_control: {"type": "ephemeral"}`) which means we can cache the skill block across requests so we're not re-tokenizing the same text every time. Worth using if we're on Anthropic.
+Anthropic also has prompt caching (`cache_control: {"type": "ephemeral"}`) which can cache the skill block across requests so we're not re-tokenizing the same text every time.
 
 ### Dashboard UI
 
@@ -167,6 +184,7 @@ Phase 3 can run in parallel with Phase 2 since it only needs Phase 1 API endpoin
 ## v2 Ideas
 
 - **SDK-side skills** -- `defineSkill()` in code, TamboProvider integration, skills with tools/components
+- **Provider skill APIs** -- upload skills to Anthropic/OpenAI directly instead of system prompt injection. Useful when skills include executable scripts.
 - **Skill routing** -- lightweight LLM call or embedding match to pick relevant skills when there are many
 - **Skill state** -- persistent data scoped to a skill within a thread
 - **Marketplace** -- browse and install skills from GitHub repos
@@ -179,9 +197,9 @@ Phase 3 can run in parallel with Phase 2 since it only needs Phase 1 API endpoin
 
 1. **Dedicated table vs generic config table?** Leaning dedicated `skills` table since we know the schema and it's easier to query.
 
-2. **Should the skill description be used by the LLM for anything?** Right now it's just for the dashboard UI. But if we add routing later, the description would be what the router reads. Worth storing separately from instructions even if we don't use it in v1.
+2. **System prompt injection vs provider skill APIs?** v1 starts with system prompt injection (works with all providers). But Anthropic and OpenAI both have real skill APIs now (beta). Should we plan the DB/SKILL.md format to be compatible so we can switch later? Probably yes.
 
-3. **Prompt caching** -- worth investigating Anthropic's prompt caching for the skill block. If skills don't change often, we can cache them and save tokens.
+3. **Should the skill description be used by the LLM for anything?** Right now it's just for the dashboard UI. But if we add routing later, the description would be what the router reads. Worth storing separately from instructions even if we don't use it in v1.
 
 4. **How do skills show up in observability?** Need to define what "skill was included in this run" looks like in the run stream / thread history.
 
