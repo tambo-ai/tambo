@@ -250,6 +250,26 @@ npx tambo add message-thread-panel --yes
 # pnpm dlx tambo add <component> --yes
 ```
 
+### Layout Integration
+
+The chat component needs to fit into the host app's existing layout without breaking it. The approach depends on which component you chose:
+
+**For `message-thread-panel`** (sidebar layout): Place it in a flex row alongside the main content in the root layout. The panel manages its own width.
+
+```tsx
+// In layout.tsx or your root layout component
+<div className="flex h-screen overflow-hidden w-full">
+  <main className="flex-1 min-w-0 overflow-auto">{children}</main>
+  <TamboChat /> {/* Contains MessageThreadPanel */}
+</div>
+```
+
+Key: `min-w-0` on main content allows it to shrink when the panel is open. Without it, content overflows.
+
+**For `message-thread-collapsible`** (floating overlay): No layout changes needed. It uses `position: fixed` and floats above the content. Just render it anywhere inside the provider.
+
+**For `message-thread-full`** (dedicated page): Render it as the only child of a full-height container on a dedicated route.
+
 ### After `tambo add`, complete the setup:
 
 1. **CSS setup** — `tambo add` adds Tailwind directives and CSS variables to your project's CSS entry file. The file it modifies depends on the framework:
