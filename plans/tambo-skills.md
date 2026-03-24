@@ -5,42 +5,41 @@
 
 ## Problem
 
-When a developer integrates Tambo into their app, they configure the agent with a system prompt (custom instructions). But as the app grows, that prompt becomes a dumping ground for every behavior they want the agent to have: how to handle scheduling, how to talk about pricing, what to do when a user asks for help, how to fill out forms, etc.
+When a developer integrates Tambo into their app, they configure the agent with a system prompt (custom instructions). As the app grows, that prompt becomes a dumping ground -- how to handle scheduling, how to talk about pricing, what to do when someone asks for help, how to fill out forms, etc.
 
-This doesn't scale. The context window fills up. Instructions conflict. The agent gets confused. And worst of all, if a product person wants to tweak how the agent handles a specific task, they have to ask an engineer to edit the system prompt.
+This doesn't scale. The context window fills up, instructions conflict, the agent gets confused. And if a product person wants to tweak how the agent handles a specific task, they have to ask an engineer to edit the system prompt and deploy.
 
-**Skills solve this.** A skill is a focused set of instructions for a specific task. Instead of one giant prompt, you have modular pieces that the agent loads when relevant. A product person can add, edit, or disable skills from the dashboard without touching code.
+**Skills solve this.** A skill is a focused set of instructions for a specific task. Instead of one giant prompt, you have modular pieces. A product person can add, edit, or disable skills from the dashboard without touching code.
 
 ### What does "working" look like?
 
 1. Product person goes to the Tambo dashboard, clicks "Add Skill"
-2. They paste a SKILL.md file (or just type instructions with a name and description)
+2. They paste a SKILL.md file (or we help them generate one)
 3. The agent now knows how to do that thing
 4. They can see in the observability panel whether the skill was triggered
 5. If the agent isn't behaving right, they edit the skill and try again
 
-That's it. No code changes, no deploys, no engineer in the loop.
+No code changes, no deploys, no engineer in the loop.
 
 ## v1 Scope
 
 **Dashboard-only. No SDK changes.**
 
-v1 is a place in the project dashboard where you manage skill text. Skills are stored in the DB and sent to the LLM provider on each request. We use the provider's own skill/tool routing (Anthropic and OpenAI both have this) instead of building our own router.
+A place in the project dashboard to manage skills. Skills are stored in the DB and injected into the system prompt on each request.
 
-### What a skill is (v1)
+### What a skill is
 
 A skill has three fields:
 
 - **Name** -- identifies the skill (e.g., "scheduling-assistant")
-- **Description** -- short summary the LLM reads to decide relevance (e.g., "Helps users schedule and manage calendar events")
-- **Instructions** -- the full text the agent receives when the skill is active
+- **Description** -- short summary so the team knows what it does
+- **Instructions** -- the full text that gets injected into the agent's context
 
-That's the whole data model. No version, no tools, no components, no state schema, no config bag.
+That's it. No version, no tools, no components, no state schema.
 
 ### How skills get created
 
-**Option A: Paste SKILL.md**
-User pastes a SKILL.md file (standard Agent Skills format with YAML frontmatter). We parse the frontmatter to extract name and description, store the full text as instructions. Like Vercel's env file drop-in.
+User pastes a SKILL.md file into the dashboard. We parse the YAML frontmatter to extract name and description, and the body becomes the instructions.
 
 ```yaml
 ---
@@ -55,27 +54,34 @@ When a user wants to schedule a meeting:
 4. Confirm and create the event
 ```
 
-**Option B: Form fields**
-User fills in name, description, and instructions in separate fields on the dashboard. Simpler but less portable.
-
-We should support both. Paste auto-fills the form fields from frontmatter.
+If the frontmatter parsing fails for whatever reason, we just store the whole thing as instructions and let them fill in name/description manually.
 
 ### How skills reach the LLM
 
-On each run request:
+I looked into whether Anthropic or OpenAI have "skill APIs" where you upload skills and the provider handles routing. **They don't.** There's no such thing. Every provider just gives you system prompts and tool definitions. If you want the agent to know about skills, you put them in the system prompt yourself.
+
+So for v1:
 
 1. API loads all enabled skills for the project from the DB
-2. Skills are sent to the LLM provider using their native skill/context API
-3. The provider handles routing (which skills are relevant to this message)
-4. We don't build our own router
+2. Each skill's instructions get appended to the system prompt with delimiters
+3. All enabled skills are included on every request (no routing)
 
-**Important:** Alec pointed out that Anthropic and OpenAI both have skill APIs. We should use those instead of building threshold-based routing ourselves. Their routing is a competitive advantage they're investing in -- we shouldn't try to compete with that.
+```
+[Skill: scheduling-assistant]
+When a user wants to schedule a meeting:
+1. Ask for the participants
+...
+[End Skill: scheduling-assistant]
 
-**Open question:** How exactly do we send skills to each provider? Need to investigate the specific APIs:
+[Skill: pricing-faq]
+When a user asks about pricing:
+...
+[End Skill: pricing-faq]
+```
 
-- Anthropic: how does their skill/context injection work?
-- OpenAI: how does their equivalent work?
-- Other providers (Groq, Mistral, etc.): do they have something similar, or do we fall back to system prompt injection?
+If the skill count gets high enough that this bloats the context window, we can add routing later (a lightweight LLM call to pick relevant skills, or embedding-based matching). But for v1 most projects will have a handful of skills and it won't matter.
+
+Anthropic does have prompt caching (`cache_control: {"type": "ephemeral"}`) which means we can cache the skill block across requests so we're not re-tokenizing the same text every time. Worth using if we're on Anthropic.
 
 ### Dashboard UI
 
@@ -88,102 +94,95 @@ On each run request:
 
 **Add/edit skill page**
 
-- Paste SKILL.md textarea (parses frontmatter into fields below)
-- Name field
-- Description field
-- Instructions field (markdown editor)
+- Paste SKILL.md textarea (parses frontmatter into name/description/instructions)
+- Name, description, instructions shown as editable fields after parsing
 - Save / cancel
 
-**Seth will design this** -- keeping it simple, similar to how custom instructions work today but for multiple named skills.
+Seth will design this.
 
 ### DB Storage
-
-Simple addition to the existing schema:
 
 - `id`, `projectId`, `name`, `description`, `instructions` (text), `enabled` (boolean), `createdAt`, `updatedAt`
 - Unique constraint on (`projectId`, `name`)
 - Operations in `packages/db/src/operations/skills.ts`
 - CRUD endpoints at `/v1/projects/:projectId/skills`
 
-Could also be a JSONB column in a generic config table. Either works for v1 -- the important thing is it's simple and we can query by project.
-
 ### Observability
 
-When a skill is triggered during a run, it should show up in the observability/thread history panel. This is how the product person knows if their skill is working:
+When skills are included in a run, it should show up in the observability/thread history panel:
 
-- "Skill triggered: scheduling-assistant"
-- They can see the skill instructions that were injected
-- If the skill wasn't triggered when it should have been, they know to improve the description
+- Which skills were injected for this run
+- The product person can see if the skill instructions are actually reaching the agent
+- If the agent isn't behaving right on a specific task, they can check whether the relevant skill was enabled
 
-This is not end-user-facing. It's for the team managing the agent.
+This is for the team managing the agent, not end users.
 
 ## What's NOT in v1
 
-| Feature                                | Why not now                                                                                                                                     |
-| -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| `defineSkill()` in SDK / TamboProvider | Start with dashboard. SDK integration is v2 after we validate the concept.                                                                      |
-| Custom skill routing                   | Use the LLM provider's routing. Don't compete with Anthropic/OpenAI on this.                                                                    |
-| Skill state / persistence              | Just instructions for now. State adds complexity before we know it's needed.                                                                    |
-| Tools/components inside skills         | Skills are text. If the instructions say "use the calendar tool", and that tool is registered, the agent will use it. No formal binding needed. |
-| Marketplace / GitHub distribution      | Validate skills work first, then think about sharing.                                                                                           |
-| End-user skill visibility              | Skills are a behind-the-scenes config. End users don't need to see them.                                                                        |
-| Slash command picker                   | v2 -- needs SDK changes.                                                                                                                        |
-| Workflow step sequences                | v2 -- complex, not validated as needed.                                                                                                         |
-| Directory convention / CLI scaffold    | v2 -- when SDK-side skills exist.                                                                                                               |
+| What                                            | Why not                                                                                                                |
+| ----------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `defineSkill()` in SDK / TamboProvider          | Dashboard first. SDK integration later after we validate the concept.                                                  |
+| Skill routing (picking which skills to include) | Just include all enabled skills. Routing is an optimization for when someone has 20+ skills.                           |
+| Skill state                                     | Skills are just text. State adds complexity before we know anyone needs it.                                            |
+| Tools/components inside skills                  | If the instructions say "use the calendar tool" and that tool exists, the agent will use it. No formal binding needed. |
+| Marketplace / GitHub distribution               | Validate that skills work at all before thinking about sharing them.                                                   |
+| End-user skill visibility                       | Skills are config. End users don't see them.                                                                           |
+| Slash command picker                            | Needs SDK changes. v2.                                                                                                 |
+| Workflow step sequences                         | Complex, unvalidated. v2.                                                                                              |
 
 ## Implementation
 
 ### Phase 1: DB + API
 
-- Add skills schema/table to `packages/db`
+- Add skills table to `packages/db`
 - DB operations: `createSkill`, `getSkill`, `listSkills`, `updateSkill`, `deleteSkill`, `toggleSkill`
 - NestJS CRUD endpoints at `/v1/projects/:projectId/skills`
 - DTOs with class-validator, ProjectAccessOwnGuard
 
-### Phase 2: LLM Integration
+### Phase 2: System Prompt Injection
 
-- Investigate Anthropic/OpenAI skill APIs -- how do we send skills?
-- Modify the decision loop to load project skills from DB and inject them
-- For providers without skill APIs: fall back to appending skill instructions to the system prompt with clear delimiters
-- Add skill trigger events to the run stream (for observability)
+- Modify the decision loop to load project skills from DB
+- Append enabled skills to the system prompt with clear delimiters
+- Add skill injection info to the run stream (for observability)
+- Look into Anthropic prompt caching for the skill block
 
 ### Phase 3: Dashboard UI
 
 - Skills list page with enable/disable toggles
-- Add/edit page with SKILL.md paste support + form fields
-- Frontmatter parsing (use `gray-matter` or similar)
+- Add/edit page with SKILL.md paste and frontmatter parsing
+- Frontmatter parsing with `gray-matter`
 - Seth designs this
 
-Can run in parallel with Phase 2 since it only needs Phase 1 API endpoints.
+Phase 3 can run in parallel with Phase 2 since it only needs Phase 1 API endpoints.
 
 ## Risks
 
-| Risk                                          | Mitigation                                                                                |
-| --------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| Provider skill APIs might not do what we need | Fall back to system prompt injection with delimiters. Every provider supports that.       |
-| Too many skills = too many tokens             | This is why providers are building routing. If needed, we can add our own later.          |
-| Skills conflict with each other               | Product person manages this. They can see all skills and disable ones that conflict.      |
-| SKILL.md parsing edge cases                   | Keep it simple. If frontmatter parsing fails, just store the whole thing as instructions. |
+| Risk                              | Mitigation                                                                                                                  |
+| --------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| Too many skills = too many tokens | Most projects will have a few skills. If it becomes a problem, add routing later. Anthropic prompt caching helps with cost. |
+| Skills conflict with each other   | Product person manages this. They can see all skills and disable ones that conflict.                                        |
+| Frontmatter parsing edge cases    | If parsing fails, store the whole thing as instructions. Don't block on bad formatting.                                     |
+| Agent ignores skill instructions  | This is a prompt engineering problem, not a technical one. We can help with description/instruction quality guidance.       |
 
-## v2 Ideas (after v1 ships and we get feedback)
+## v2 Ideas
 
-- **SDK-side skills** -- `defineSkill()` in code, TamboProvider integration, skills that include tools/components
+- **SDK-side skills** -- `defineSkill()` in code, TamboProvider integration, skills with tools/components
+- **Skill routing** -- lightweight LLM call or embedding match to pick relevant skills when there are many
 - **Skill state** -- persistent data scoped to a skill within a thread
 - **Marketplace** -- browse and install skills from GitHub repos
-- **Slash commands** -- typing `/` in message input opens skill picker
+- **Slash commands** -- `/` in message input opens skill picker
 - **Workflow skills** -- multi-step sequences with tool + UI per step
-- **Skill creator** -- AI-powered: "analyze my app and suggest skills"
-- **T-stack / intentions** -- skills in package.json via npm install (Alec investigating this)
-- **Observability deep dive** -- which skills are triggering, how often, success rate
+- **Skill creator** -- AI generates skills by analyzing the app (Claude Code flow)
+- **T-stack / intentions** -- skills via npm install (Alec is looking into this)
 
 ## Open Questions
 
-1. **How do Anthropic/OpenAI skill APIs actually work?** Need to investigate before Phase 2. If they just want text blobs, great. If they need structured data, we adapt.
+1. **Dedicated table vs generic config table?** Leaning dedicated `skills` table since we know the schema and it's easier to query.
 
-2. **Dedicated table vs generic config table?** Leaning toward dedicated `skills` table for simplicity and queryability since we know the schema.
+2. **Should the skill description be used by the LLM for anything?** Right now it's just for the dashboard UI. But if we add routing later, the description would be what the router reads. Worth storing separately from instructions even if we don't use it in v1.
 
-3. **Frontmatter parsing library** -- `gray-matter` is the standard. Already used in the ecosystem. Small dep, CLI-only for now but could be used in API too.
+3. **Prompt caching** -- worth investigating Anthropic's prompt caching for the skill block. If skills don't change often, we can cache them and save tokens.
 
-4. **How do skills show up in observability?** Need to define what a "skill triggered" event looks like in the run stream.
+4. **How do skills show up in observability?** Need to define what "skill was included in this run" looks like in the run stream / thread history.
 
-5. **Should we support skill creation through Claude Code?** Michael Magan suggested this -- "read through my app and create skills." Could be a powerful onboarding flow. Separate from v1 but worth thinking about.
+5. **Skill creation through Claude Code** -- Michael suggested "read my app and generate skills." Could be a strong onboarding flow. Separate from v1 but worth thinking about.
