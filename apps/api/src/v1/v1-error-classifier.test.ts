@@ -22,7 +22,7 @@ describe("classifyStreamingError", () => {
       const result = classifyStreamingError(error);
 
       expect(result.category).toBe("client_error");
-      expect(result.code).toBe("UPSTREAM_CLIENT_ERROR");
+      expect(result.code).toBe("LLM_CLIENT_ERROR");
       expect(result.isRetryable).toBe(false);
       expect(result.message).toBe("Bad request");
     });
@@ -35,7 +35,7 @@ describe("classifyStreamingError", () => {
       const result = classifyStreamingError(error);
 
       expect(result.category).toBe("client_error");
-      expect(result.code).toBe("UPSTREAM_CLIENT_ERROR");
+      expect(result.code).toBe("LLM_CLIENT_ERROR");
       expect(result.isRetryable).toBe(false);
       expect(result.message).toBe(
         "You do not have access to the organization tied to the API key.",
@@ -55,7 +55,7 @@ describe("classifyStreamingError", () => {
       );
 
       expect(result.category).toBe("client_error");
-      expect(result.code).toBe("UPSTREAM_CLIENT_ERROR");
+      expect(result.code).toBe("LLM_CLIENT_ERROR");
       expect(result.isRetryable).toBe(true);
       expect(result.message).toBe("Rate limit exceeded");
     });
@@ -66,7 +66,7 @@ describe("classifyStreamingError", () => {
       );
 
       expect(result.category).toBe("server_error");
-      expect(result.code).toBe("UPSTREAM_SERVER_ERROR");
+      expect(result.code).toBe("LLM_SERVER_ERROR");
       expect(result.isRetryable).toBe(true);
       expect(result.message).toBe(
         "The AI provider encountered a temporary error",
@@ -79,7 +79,7 @@ describe("classifyStreamingError", () => {
       );
 
       expect(result.category).toBe("server_error");
-      expect(result.code).toBe("UPSTREAM_SERVER_ERROR");
+      expect(result.code).toBe("LLM_SERVER_ERROR");
       expect(result.isRetryable).toBe(true);
     });
 
@@ -89,7 +89,7 @@ describe("classifyStreamingError", () => {
       );
 
       expect(result.category).toBe("server_error");
-      expect(result.code).toBe("UPSTREAM_ERROR");
+      expect(result.code).toBe("LLM_ERROR");
       expect(result.isRetryable).toBe(false);
       expect(result.message).toBe(
         "An error occurred communicating with the AI provider",

@@ -46,7 +46,7 @@ describe("streamReducer RUN_ERROR handling", () => {
     const event = {
       type: EventType.RUN_ERROR,
       message: "You do not have access to the organization",
-      code: "UPSTREAM_CLIENT_ERROR",
+      code: "LLM_CLIENT_ERROR",
       category: "client_error",
       isRetryable: false,
     } as RunErrorEvent;
@@ -59,7 +59,7 @@ describe("streamReducer RUN_ERROR handling", () => {
 
     const error = result.threadMap.thread_1.streaming.error;
     expect(error?.message).toBe("You do not have access to the organization");
-    expect(error?.code).toBe("UPSTREAM_CLIENT_ERROR");
+    expect(error?.code).toBe("LLM_CLIENT_ERROR");
     expect(error?.category).toBe("client_error");
     expect(error?.isRetryable).toBe(false);
   });
@@ -69,7 +69,7 @@ describe("streamReducer RUN_ERROR handling", () => {
     const event = {
       type: EventType.RUN_ERROR,
       message: "The AI provider encountered a temporary error",
-      code: "UPSTREAM_SERVER_ERROR",
+      code: "LLM_SERVER_ERROR",
       category: "server_error",
       isRetryable: true,
     } as RunErrorEvent;
@@ -84,7 +84,7 @@ describe("streamReducer RUN_ERROR handling", () => {
     expect(error?.message).toBe(
       "The AI provider encountered a temporary error",
     );
-    expect(error?.code).toBe("UPSTREAM_SERVER_ERROR");
+    expect(error?.code).toBe("LLM_SERVER_ERROR");
     expect(error?.category).toBe("server_error");
     expect(error?.isRetryable).toBe(true);
   });

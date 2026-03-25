@@ -52,7 +52,7 @@ function classifyApiCallError(error: APICallError): ClassifiedError {
 
   if (statusCode === undefined) {
     return {
-      code: "UPSTREAM_ERROR",
+      code: "LLM_ERROR",
       category: "server_error",
       message: "An error occurred communicating with the AI provider",
       isRetryable: false,
@@ -62,7 +62,7 @@ function classifyApiCallError(error: APICallError): ClassifiedError {
   // 429 Rate limit — client's fault but retryable after backoff
   if (statusCode === 429) {
     return {
-      code: "UPSTREAM_CLIENT_ERROR",
+      code: "LLM_CLIENT_ERROR",
       category: "client_error",
       message: error.message,
       isRetryable: true,
@@ -72,7 +72,7 @@ function classifyApiCallError(error: APICallError): ClassifiedError {
   // 400-499: client error from the upstream provider
   if (statusCode >= 400 && statusCode < 500) {
     return {
-      code: "UPSTREAM_CLIENT_ERROR",
+      code: "LLM_CLIENT_ERROR",
       category: "client_error",
       message: error.message,
       isRetryable: false,
@@ -82,7 +82,7 @@ function classifyApiCallError(error: APICallError): ClassifiedError {
   // 500-599: server error from the upstream provider
   if (statusCode >= 500 && statusCode < 600) {
     return {
-      code: "UPSTREAM_SERVER_ERROR",
+      code: "LLM_SERVER_ERROR",
       category: "server_error",
       message: "The AI provider encountered a temporary error",
       isRetryable: true,
@@ -91,7 +91,7 @@ function classifyApiCallError(error: APICallError): ClassifiedError {
 
   // Unexpected status code
   return {
-    code: "UPSTREAM_ERROR",
+    code: "LLM_ERROR",
     category: "server_error",
     message: "An error occurred communicating with the AI provider",
     isRetryable: false,
