@@ -53,6 +53,12 @@ export const V1ErrorCodes = {
   VALIDATION_ERROR: "VALIDATION_ERROR",
   /** Internal server error */
   INTERNAL_ERROR: "INTERNAL_ERROR",
+  /** 400-level error from AI provider (e.g. bad API key, invalid request) */
+  UPSTREAM_CLIENT_ERROR: "UPSTREAM_CLIENT_ERROR",
+  /** 500-level error from AI provider (e.g. provider outage) */
+  UPSTREAM_SERVER_ERROR: "UPSTREAM_SERVER_ERROR",
+  /** Unknown error communicating with AI provider */
+  UPSTREAM_ERROR: "UPSTREAM_ERROR",
 } as const;
 
 export type V1ErrorCode = (typeof V1ErrorCodes)[keyof typeof V1ErrorCodes];
@@ -112,6 +118,18 @@ const errorMetadata: Record<V1ErrorCode, { title: string; status: number }> = {
   [V1ErrorCodes.INTERNAL_ERROR]: {
     title: "Internal Error",
     status: 500,
+  },
+  [V1ErrorCodes.UPSTREAM_CLIENT_ERROR]: {
+    title: "Upstream Client Error",
+    status: 400,
+  },
+  [V1ErrorCodes.UPSTREAM_SERVER_ERROR]: {
+    title: "Upstream Server Error",
+    status: 502,
+  },
+  [V1ErrorCodes.UPSTREAM_ERROR]: {
+    title: "Upstream Error",
+    status: 502,
   },
 };
 
