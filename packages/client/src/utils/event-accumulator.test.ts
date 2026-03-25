@@ -49,6 +49,7 @@ describe("streamReducer RUN_ERROR handling", () => {
       code: "LLM_CLIENT_ERROR",
       category: "client_error",
       isRetryable: false,
+      status: 401,
     } as RunErrorEvent;
 
     const result = streamReducer(state, {
@@ -62,6 +63,7 @@ describe("streamReducer RUN_ERROR handling", () => {
     expect(error?.code).toBe("LLM_CLIENT_ERROR");
     expect(error?.category).toBe("client_error");
     expect(error?.isRetryable).toBe(false);
+    expect(error?.status).toBe(401);
   });
 
   it("propagates server_error category with isRetryable true", () => {
@@ -72,6 +74,7 @@ describe("streamReducer RUN_ERROR handling", () => {
       code: "LLM_SERVER_ERROR",
       category: "server_error",
       isRetryable: true,
+      status: 500,
     } as RunErrorEvent;
 
     const result = streamReducer(state, {
@@ -87,6 +90,7 @@ describe("streamReducer RUN_ERROR handling", () => {
     expect(error?.code).toBe("LLM_SERVER_ERROR");
     expect(error?.category).toBe("server_error");
     expect(error?.isRetryable).toBe(true);
+    expect(error?.status).toBe(500);
   });
 
   it("sets lastRunCancelled and no error when code is CANCELLED", () => {

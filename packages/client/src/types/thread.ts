@@ -79,5 +79,7 @@ export interface StreamingState {
     category?: "client_error" | "server_error";
     /** Whether retrying the request is likely to succeed */
     isRetryable?: boolean;
+    /** HTTP status code from the original error (e.g. 401, 429, 500) */
+    status?: number;
   };
 }

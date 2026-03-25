@@ -25,6 +25,7 @@ describe("classifyStreamingError", () => {
       expect(result.code).toBe("LLM_CLIENT_ERROR");
       expect(result.isRetryable).toBe(false);
       expect(result.message).toBe("Bad request");
+      expect(result.status).toBe(400);
     });
 
     it("classifies 401 as client_error with the provider message", () => {
@@ -58,6 +59,7 @@ describe("classifyStreamingError", () => {
       expect(result.code).toBe("LLM_CLIENT_ERROR");
       expect(result.isRetryable).toBe(true);
       expect(result.message).toBe("Rate limit exceeded");
+      expect(result.status).toBe(429);
     });
 
     it("classifies 500 as server_error, retryable, with generic message", () => {
@@ -71,6 +73,7 @@ describe("classifyStreamingError", () => {
       expect(result.message).toBe(
         "The AI provider encountered a temporary error",
       );
+      expect(result.status).toBe(500);
     });
 
     it("classifies 503 as server_error, retryable", () => {
@@ -83,7 +86,7 @@ describe("classifyStreamingError", () => {
       expect(result.isRetryable).toBe(true);
     });
 
-    it("classifies undefined statusCode as server_error, not retryable", () => {
+    it("classifies undefined statusCode as server_error, not retryable, no status", () => {
       const result = classifyStreamingError(
         makeApiCallError(undefined, "Network error"),
       );
@@ -94,6 +97,7 @@ describe("classifyStreamingError", () => {
       expect(result.message).toBe(
         "An error occurred communicating with the AI provider",
       );
+      expect(result.status).toBeUndefined();
     });
   });
 
@@ -124,6 +128,7 @@ describe("classifyStreamingError", () => {
       expect(result.category).toBe("server_error");
       expect(result.code).toBe("INTERNAL_ERROR");
       expect(result.isRetryable).toBe(false);
+      expect(result.status).toBe(500);
     });
 
     it("extracts code from ProblemDetail-shaped response", () => {
@@ -145,13 +150,14 @@ describe("classifyStreamingError", () => {
   });
 
   describe("fallback classification", () => {
-    it("classifies plain Error as server_error", () => {
+    it("classifies plain Error as server_error with status 500", () => {
       const result = classifyStreamingError(new Error("something broke"));
 
       expect(result.category).toBe("server_error");
       expect(result.code).toBe("INTERNAL_ERROR");
       expect(result.isRetryable).toBe(false);
       expect(result.message).toBe("An internal error occurred");
+      expect(result.status).toBe(500);
     });
 
     it("classifies string as server_error", () => {

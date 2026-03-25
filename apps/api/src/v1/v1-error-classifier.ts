@@ -14,6 +14,8 @@ export interface ClassifiedError {
   message: string;
   /** Whether retrying the request is likely to succeed */
   isRetryable: boolean;
+  /** HTTP status code from the original error (e.g. 401, 429, 500), if available */
+  status?: number;
 }
 
 /**
@@ -44,6 +46,7 @@ export function classifyStreamingError(error: unknown): ClassifiedError {
     category: "server_error",
     message: "An internal error occurred",
     isRetryable: false,
+    status: 500,
   };
 }
 
@@ -66,6 +69,7 @@ function classifyApiCallError(error: APICallError): ClassifiedError {
       category: "client_error",
       message: error.message,
       isRetryable: true,
+      status: statusCode,
     };
   }
 
@@ -76,6 +80,7 @@ function classifyApiCallError(error: APICallError): ClassifiedError {
       category: "client_error",
       message: error.message,
       isRetryable: false,
+      status: statusCode,
     };
   }
 
@@ -86,6 +91,7 @@ function classifyApiCallError(error: APICallError): ClassifiedError {
       category: "server_error",
       message: "The AI provider encountered a temporary error",
       isRetryable: true,
+      status: statusCode,
     };
   }
 
@@ -95,6 +101,7 @@ function classifyApiCallError(error: APICallError): ClassifiedError {
     category: "server_error",
     message: "An error occurred communicating with the AI provider",
     isRetryable: false,
+    status: statusCode,
   };
 }
 
@@ -139,6 +146,7 @@ function classifyHttpException(error: HttpException): ClassifiedError {
       category: "client_error",
       message,
       isRetryable: false,
+      status,
     };
   }
 
@@ -147,6 +155,7 @@ function classifyHttpException(error: HttpException): ClassifiedError {
     category: "server_error",
     message: "An internal error occurred",
     isRetryable: false,
+    status,
   };
 }
 

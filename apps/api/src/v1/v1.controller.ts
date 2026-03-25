@@ -416,6 +416,7 @@ export class V1Controller {
         code: classified.code,
         category: classified.category,
         isRetryable: classified.isRetryable,
+        status: classified.status,
         timestamp: Date.now(),
       };
       response.write(`data: ${JSON.stringify(errorEvent)}\n\n`);
@@ -537,6 +538,7 @@ export class V1Controller {
         code: classified.code,
         category: classified.category,
         isRetryable: classified.isRetryable,
+        status: classified.status,
         timestamp: Date.now(),
       };
       response.write(`data: ${JSON.stringify(errorEvent)}\n\n`);

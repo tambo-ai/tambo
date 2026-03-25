@@ -928,6 +928,7 @@ export class V1Service {
             code: classified.code,
             category: classified.category,
             isRetryable: classified.isRetryable,
+            status: classified.status,
             timestamp: Date.now(),
           } as RunErrorEvent;
           this.emitEvent(response, runErrorEvent);

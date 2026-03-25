@@ -737,6 +737,7 @@ function handleRunError(
   const extendedEvent = event as RunErrorEvent & {
     category?: "client_error" | "server_error";
     isRetryable?: boolean;
+    status?: number;
   };
 
   return {
@@ -757,6 +758,7 @@ function handleRunError(
             code: event.code,
             category: extendedEvent.category,
             isRetryable: extendedEvent.isRetryable,
+            status: extendedEvent.status,
           },
     },
   };
