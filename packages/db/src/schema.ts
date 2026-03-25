@@ -19,6 +19,7 @@ import {
   V1RunError,
   V1RunStatus,
   type CustomLlmParameters,
+  type ExternalSkillMetadata,
 } from "@tambo-ai-cloud/core";
 import { relations, sql } from "drizzle-orm";
 import {
@@ -1186,3 +1187,49 @@ export const mcpUsage = pgTable(
 );
 
 export type DBMcpUsage = typeof mcpUsage.$inferSelect;
+
+// Skills
+export const skills = pgTable(
+  "skills",
+  ({ text, timestamp, boolean, integer, uuid }) => ({
+    id: text("id")
+      .primaryKey()
+      .notNull()
+      .unique()
+      .default(sql`generate_custom_id('sk_')`),
+    projectId: text("project_id")
+      .references(() => projects.id, { onDelete: "cascade" })
+      .notNull(),
+    name: text("name").notNull(),
+    description: text("description").notNull(),
+    instructions: text("instructions").notNull(),
+    enabled: boolean("enabled").notNull().default(true),
+    usageCount: integer("usage_count").notNull().default(0),
+    externalSkillMetadata: customJsonb<ExternalSkillMetadata>(
+      "external_skill_metadata",
+    )
+      .notNull()
+      .default({}),
+    createdByUserId: uuid("created_by_user_id").references(() => authUsers.id),
+    lastUsedAt: timestamp("last_used_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  }),
+  (table) => [
+    index("skills_project_id_idx").on(table.projectId),
+    unique("skills_project_id_name_idx").on(table.projectId, table.name),
+  ],
+);
+
+export type DBSkill = typeof skills.$inferSelect;
+
+export const skillRelations = relations(skills, ({ one }) => ({
+  project: one(projects, {
+    fields: [skills.projectId],
+    references: [projects.id],
+  }),
+}));
