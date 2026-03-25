@@ -419,10 +419,16 @@ export class V1Controller {
         timestamp: Date.now(),
       };
       response.write(`data: ${JSON.stringify(errorEvent)}\n\n`);
-      this.logger.error(
-        `Error during run ${startResult.runId} on thread ${thread.id}`,
-        error instanceof Error ? error.stack : String(error),
-      );
+      if (classified.category === "server_error") {
+        this.logger.error(
+          `Error during run ${startResult.runId} on thread ${thread.id}`,
+          error instanceof Error ? error.stack : String(error),
+        );
+      } else {
+        this.logger.warn(
+          `Client error during run ${startResult.runId} on thread ${thread.id}: ${error instanceof Error ? error.message : String(error)}`,
+        );
+      }
     } finally {
       response.end();
     }
@@ -534,10 +540,16 @@ export class V1Controller {
         timestamp: Date.now(),
       };
       response.write(`data: ${JSON.stringify(errorEvent)}\n\n`);
-      this.logger.error(
-        `Error during run ${startResult.runId} on thread ${threadId}`,
-        error instanceof Error ? error.stack : String(error),
-      );
+      if (classified.category === "server_error") {
+        this.logger.error(
+          `Error during run ${startResult.runId} on thread ${threadId}`,
+          error instanceof Error ? error.stack : String(error),
+        );
+      } else {
+        this.logger.warn(
+          `Client error during run ${startResult.runId} on thread ${threadId}: ${error instanceof Error ? error.message : String(error)}`,
+        );
+      }
     } finally {
       response.end();
     }

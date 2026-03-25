@@ -899,21 +899,26 @@ export class V1Service {
           const errorMessage =
             error instanceof Error ? error.message : "Unknown error";
           const classified = classifyStreamingError(error);
-          this.logger.error(
-            `Run ${runId} failed [${classified.code}/${classified.category}]: ${errorMessage}`,
-          );
 
-          // Capture exception with Sentry context including classification
-          Sentry.captureException(error, {
-            tags: {
-              threadId,
-              runId,
-              projectId,
-              errorCode: classified.code,
-              errorCategory: classified.category,
-            },
-            extra: { model: dto.model, contextKey },
-          });
+          if (classified.category === "server_error") {
+            this.logger.error(
+              `Run ${runId} failed [${classified.code}]: ${errorMessage}`,
+            );
+            Sentry.captureException(error, {
+              tags: {
+                threadId,
+                runId,
+                projectId,
+                errorCode: classified.code,
+                errorCategory: classified.category,
+              },
+              extra: { model: dto.model, contextKey },
+            });
+          } else {
+            this.logger.warn(
+              `Run ${runId} client error [${classified.code}]: ${errorMessage}`,
+            );
+          }
 
           // Emit classified error event — category and isRetryable pass through
           // AG-UI's Zod passthrough schema and sanitizeEvent
