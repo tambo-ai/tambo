@@ -333,9 +333,17 @@ export class AISdkClient implements LLMClient {
         },
       });
 
-      // Switch to responses model for skills support
+      // Skills require the Responses API model
+      console.log(
+        `[Skills] Switching OpenAI model to responses API for skills support (model: ${this.model})`,
+      );
       config.model = openai.responses(this.model);
 
+      if (config.tools && "shell" in config.tools) {
+        console.warn(
+          "[Skills] Overwriting existing 'shell' tool with skills shell tool",
+        );
+      }
       config.tools = {
         ...config.tools,
         shell: shellTool,
@@ -344,6 +352,11 @@ export class AISdkClient implements LLMClient {
       const anthropic = createAnthropic({ apiKey: this.apiKey });
       const codeExecutionTool = anthropic.tools.codeExecution_20260120();
 
+      if (config.tools && "code_execution" in config.tools) {
+        console.warn(
+          "[Skills] Overwriting existing 'code_execution' tool with skills code execution tool",
+        );
+      }
       config.tools = {
         ...config.tools,
         code_execution: codeExecutionTool,

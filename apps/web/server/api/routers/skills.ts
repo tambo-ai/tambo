@@ -112,40 +112,40 @@ export const skillsRouter = createTRPCRouter({
         ctx.user.id,
       );
 
-      // Best-effort provider cleanup before DB delete
+      // Best-effort provider cleanup for all providers the skill was uploaded to
       const skill = await operations.getSkill(
         ctx.db,
         input.projectId,
         input.skillId,
       );
-      if (skill) {
-        const project = await operations.getProject(ctx.db, input.projectId);
-        const providerName = project?.defaultLlmProviderName;
-        if (providerName) {
-          const existing = skill.externalSkillMetadata?.[providerName];
-          if (existing) {
-            try {
-              const providerKeys = await operations.getProviderKeys(
-                ctx.db,
-                input.projectId,
+      if (skill?.externalSkillMetadata) {
+        const providerKeys = await operations.getProviderKeys(
+          ctx.db,
+          input.projectId,
+        );
+        for (const providerName of Object.keys(skill.externalSkillMetadata)) {
+          const existing = skill.externalSkillMetadata[providerName];
+          if (!existing) continue;
+          try {
+            const providerKey = providerKeys.find(
+              (k) => k.providerName === providerName,
+            );
+            if (providerKey?.providerKeyEncrypted) {
+              const { providerKey: decryptedKey } = decryptProviderKey(
+                providerKey.providerKeyEncrypted,
+                env.PROVIDER_KEY_SECRET,
               );
-              const providerKey = providerKeys.find(
-                (k) => k.providerName === providerName,
-              );
-              if (providerKey?.providerKeyEncrypted) {
-                const { providerKey: decryptedKey } = decryptProviderKey(
-                  providerKey.providerKeyEncrypted,
-                  env.PROVIDER_KEY_SECRET,
-                );
-                await deleteSkillFromProvider({
-                  skillId: existing.skillId,
-                  providerName,
-                  apiKey: decryptedKey,
-                });
-              }
-            } catch {
-              // Best-effort: don't block DB deletion if provider cleanup fails
+              await deleteSkillFromProvider({
+                skillId: existing.skillId,
+                providerName,
+                apiKey: decryptedKey,
+              });
             }
+          } catch (error) {
+            console.warn(
+              `Failed to clean up skill ${input.skillId} from ${providerName}:`,
+              error,
+            );
           }
         }
       }

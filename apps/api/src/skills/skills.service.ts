@@ -225,7 +225,9 @@ export class SkillsService {
   private formatSkillMd(skill: schema.DBSkill): string {
     const escapedDescription = skill.description
       .replace(/\\/g, "\\\\")
-      .replace(/"/g, '\\"');
+      .replace(/"/g, '\\"')
+      .replace(/\r/g, "")
+      .replace(/\n/g, " ");
     return [
       "---",
       `name: ${skill.name}`,

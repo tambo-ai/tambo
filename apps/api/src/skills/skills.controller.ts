@@ -116,25 +116,35 @@ export class SkillsController {
     @Param("projectId") projectId: string,
     @Param("skillId") skillId: string,
   ) {
-    // Best-effort provider cleanup before DB delete
     const skill = await operations.getSkill(this.db, projectId, skillId);
-    if (skill) {
-      const project = await operations.getProject(this.db, projectId);
-      const providerName = project?.defaultLlmProviderName;
-      if (providerName && this.skillsService.supportsSkills(providerName)) {
-        const apiKey = await this.skillsService.getProviderApiKey(
-          projectId,
-          providerName,
-        );
-        if (apiKey) {
-          await this.skillsService.deleteFromProvider({
-            skill,
+    if (!skill) {
+      throw new NotFoundException(`Skill ${skillId} not found`);
+    }
+
+    // Best-effort provider cleanup for all providers the skill was uploaded to
+    const metadata = skill.externalSkillMetadata;
+    if (metadata) {
+      for (const providerName of Object.keys(metadata)) {
+        try {
+          const apiKey = await this.skillsService.getProviderApiKey(
+            projectId,
             providerName,
-            apiKey,
-          });
+          );
+          if (apiKey) {
+            await this.skillsService.deleteFromProvider({
+              skill,
+              providerName,
+              apiKey,
+            });
+          }
+        } catch (error) {
+          this.logger.warn(
+            `Failed to clean up skill ${skillId} from ${providerName}: ${error}`,
+          );
         }
       }
     }
+
     await operations.deleteSkill(this.db, projectId, skillId);
   }
 }

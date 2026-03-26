@@ -1092,24 +1092,17 @@ export class ThreadsService {
             providerName,
           );
           if (apiKey) {
-            // Backfill + collect refs + increment usage in a single pass
-            const skillRefs: Array<{ skillId: string; version: string }> = [];
-            for (const skill of enabledSkills) {
-              const ref = await this.skillsService.ensureSkillUploaded({
-                skill,
-                providerName,
-                apiKey,
-              });
-              skillRefs.push({
-                skillId: ref.skillId,
-                version: ref.version,
-              });
-              await operations.incrementSkillUsageCount(
-                db,
-                projectId,
-                skill.id,
-              );
-            }
+            // Backfill: upload any skills missing provider metadata
+            const skillRefs = await Promise.all(
+              enabledSkills.map(async (skill) => {
+                const ref = await this.skillsService.ensureSkillUploaded({
+                  skill,
+                  providerName,
+                  apiKey,
+                });
+                return { skillId: ref.skillId, version: ref.version };
+              }),
+            );
 
             if (skillRefs.length > 0) {
               providerSkills = { providerName, skills: skillRefs };
@@ -1118,6 +1111,19 @@ export class ThreadsService {
                 `Skills injected: ${enabledSkills.length} skills for provider ${providerName}`,
               );
             }
+
+            // Increment usage counts (fire-and-forget, don't block the run)
+            void Promise.all(
+              enabledSkills.map(async (skill) =>
+                await operations
+                  .incrementSkillUsageCount(db, projectId, skill.id)
+                  .catch((error) =>
+                    this.logger.warn(
+                      `Failed to increment usage count for skill ${skill.id}: ${error}`,
+                    ),
+                  ),
+              ),
+            );
           }
         }
       }
