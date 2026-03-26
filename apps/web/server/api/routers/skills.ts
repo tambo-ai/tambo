@@ -1,25 +1,7 @@
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
-import { operations } from "@tambo-ai-cloud/db";
+import { operations, SkillNameConflictError } from "@tambo-ai-cloud/db";
 import { TRPCError } from "@trpc/server";
-import { DatabaseError } from "pg-protocol";
 import { z } from "zod/v3";
-
-/**
- * Postgres error code for unique_violation.
- * @see https://www.postgresql.org/docs/current/errcodes-appendix.html
- */
-const PG_UNIQUE_VIOLATION = "23505";
-
-/** Constraint name from packages/db/src/schema.ts */
-const SKILLS_NAME_UNIQUE_CONSTRAINT = "skills_project_id_name_idx";
-
-function isSkillNameConflict(error: unknown): boolean {
-  return (
-    error instanceof DatabaseError &&
-    error.code === PG_UNIQUE_VIOLATION &&
-    error.constraint === SKILLS_NAME_UNIQUE_CONSTRAINT
-  );
-}
 
 export const skillsRouter = createTRPCRouter({
   list: protectedProcedure
@@ -54,10 +36,10 @@ export const skillsRouter = createTRPCRouter({
           createdByUserId: ctx.user.id,
         });
       } catch (error) {
-        if (isSkillNameConflict(error)) {
+        if (error instanceof SkillNameConflictError) {
           throw new TRPCError({
             code: "CONFLICT",
-            message: "A skill with this name already exists in this project",
+            message: error.message,
           });
         }
         throw error;
@@ -85,10 +67,10 @@ export const skillsRouter = createTRPCRouter({
         return await operations.updateSkill(ctx.db, input);
       } catch (error) {
         // User can rename a skill — catch conflict if new name collides
-        if (isSkillNameConflict(error)) {
+        if (error instanceof SkillNameConflictError) {
           throw new TRPCError({
             code: "CONFLICT",
-            message: "A skill with this name already exists in this project",
+            message: error.message,
           });
         }
         throw error;

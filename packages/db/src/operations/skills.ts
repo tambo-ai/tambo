@@ -1,8 +1,36 @@
 import { type ExternalSkillMetadata } from "@tambo-ai-cloud/core";
 import { and, desc, eq, sql } from "drizzle-orm";
+import { DatabaseError } from "pg-protocol";
 import * as schema from "../schema";
 import type { DBSkill } from "../schema";
 import type { HydraDb } from "../types";
+
+/**
+ * Postgres error code for unique_violation.
+ * @see https://www.postgresql.org/docs/current/errcodes-appendix.html
+ */
+const PG_UNIQUE_VIOLATION = "23505";
+
+/** Constraint name from schema.ts */
+const SKILLS_NAME_UNIQUE_CONSTRAINT = "skills_project_id_name_idx";
+
+function isSkillNameConflict(error: unknown): boolean {
+  return (
+    error instanceof DatabaseError &&
+    error.code === PG_UNIQUE_VIOLATION &&
+    error.constraint === SKILLS_NAME_UNIQUE_CONSTRAINT
+  );
+}
+
+/**
+ * Thrown when a skill name already exists within the same project.
+ */
+export class SkillNameConflictError extends Error {
+  constructor(name: string) {
+    super(`A skill named "${name}" already exists in this project`);
+    this.name = "SkillNameConflictError";
+  }
+}
 
 /**
  * Create a new skill for a project.
@@ -24,17 +52,24 @@ export async function createSkill(
     createdByUserId?: string;
   },
 ): Promise<DBSkill> {
-  const [skill] = await db
-    .insert(schema.skills)
-    .values({
-      projectId,
-      name,
-      description,
-      instructions,
-      createdByUserId,
-    })
-    .returning();
-  return skill;
+  try {
+    const [skill] = await db
+      .insert(schema.skills)
+      .values({
+        projectId,
+        name,
+        description,
+        instructions,
+        createdByUserId,
+      })
+      .returning();
+    return skill;
+  } catch (error) {
+    if (isSkillNameConflict(error)) {
+      throw new SkillNameConflictError(name);
+    }
+    throw error;
+  }
 }
 
 /**
@@ -107,17 +142,24 @@ export async function updateSkill(
   if (externalSkillMetadata !== undefined)
     updates.externalSkillMetadata = externalSkillMetadata;
 
-  const [updated] = await db
-    .update(schema.skills)
-    .set(updates)
-    .where(
-      and(
-        eq(schema.skills.id, skillId),
-        eq(schema.skills.projectId, projectId),
-      ),
-    )
-    .returning();
-  return updated;
+  try {
+    const [updated] = await db
+      .update(schema.skills)
+      .set(updates)
+      .where(
+        and(
+          eq(schema.skills.id, skillId),
+          eq(schema.skills.projectId, projectId),
+        ),
+      )
+      .returning();
+    return updated;
+  } catch (error) {
+    if (isSkillNameConflict(error)) {
+      throw new SkillNameConflictError(name ?? "");
+    }
+    throw error;
+  }
 }
 
 /**
