@@ -17,7 +17,7 @@ import { createGroq } from "@ai-sdk/groq";
 import { createMistral } from "@ai-sdk/mistral";
 import { createOpenAI } from "@ai-sdk/openai";
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
-import { LanguageModelV2 } from "@ai-sdk/provider";
+import { type LanguageModelV3 } from "@ai-sdk/provider";
 import {
   CustomLlmParameters,
   getToolDescription,
@@ -72,34 +72,8 @@ interface ProviderConfig {
   [key: string]: unknown;
 }
 
-// Type for a configured provider instance that can create language models
-type ConfiguredProvider = (modelId: string) => LanguageModelV2;
-
-// Provider factory function type - creates configured provider instances
-type ProviderFactory = (config?: ProviderConfig) => ConfiguredProvider;
-
-// Provider instances mapping - these are factory functions
-const PROVIDER_FACTORIES: Record<string, ProviderFactory> = {
-  openai: createOpenAI,
-  anthropic: createAnthropic,
-  mistral: createMistral,
-  google: createGoogleGenerativeAI,
-  groq: createGroq,
-  // Cerebras uses openai-compatible provider with custom base URL (see getModelInstance)
-  "openai-compatible": (config) =>
-    createOpenAICompatible({
-      name: config?.providerName || "openai-compatible",
-      baseURL: config?.baseURL || "",
-      apiKey: config?.apiKey,
-      ...config,
-    }),
-} as const;
-
 // Model to provider mapping based on our config
-function getProviderFromModel(
-  model: string,
-  provider: Provider,
-): keyof typeof PROVIDER_FACTORIES {
+function getProviderFromModel(model: string, provider: Provider): string {
   // For openai-compatible, always use openai instance
   if (provider === "openai-compatible") {
     return "openai-compatible";
@@ -333,30 +307,40 @@ export class AISdkClient implements LLMClient {
     }
   }
 
-  private getModelInstance(providerKey: string): LanguageModelV2 {
+  private getModelInstance(providerKey: string): LanguageModelV3 {
     const config: ProviderConfig = {};
 
     if (this.apiKey) {
       config.apiKey = this.apiKey;
     }
 
-    // Handle openai-compatible providers (including Cerebras)
-    if (providerKey === "openai-compatible") {
-      if (this.provider === "cerebras") {
-        // Cerebras uses openai-compatible with their API endpoint
-        config.baseURL = "https://api.cerebras.ai/v1";
-        config.providerName = "cerebras";
-      } else if (this.baseURL) {
-        config.baseURL = this.baseURL;
+    switch (providerKey) {
+      case "openai":
+        return createOpenAI(config)(this.model);
+      case "anthropic":
+        return createAnthropic(config)(this.model);
+      case "mistral":
+        return createMistral(config)(this.model);
+      case "google":
+        return createGoogleGenerativeAI(config)(this.model);
+      case "groq":
+        return createGroq(config)(this.model);
+      case "openai-compatible": {
+        if (this.provider === "cerebras") {
+          config.baseURL = "https://api.cerebras.ai/v1";
+          config.providerName = "cerebras";
+        } else if (this.baseURL) {
+          config.baseURL = this.baseURL;
+        }
+        return createOpenAICompatible({
+          name: config.providerName || "openai-compatible",
+          baseURL: config.baseURL || "",
+          apiKey: config.apiKey,
+        })(this.model);
       }
+      default:
+        throw new Error(`Unknown provider: ${providerKey}`);
     }
-
-    // Create the configured provider instance
-    const providerFactory = PROVIDER_FACTORIES[providerKey];
-    const configuredProvider = providerFactory(config);
-
-    // Now call the configured provider with the model ID
-    return configuredProvider(this.model);
   }
 
   private convertTools(tools: OpenAI.Chat.Completions.ChatCompletionTool[]) {
@@ -612,6 +596,8 @@ export class AISdkClient implements LLMClient {
         case "start-step": // for capturing round-trips when behaving like an agent
         case "finish-step": // for capturing round-trips when behaving like an agent
         case "raw":
+        case "tool-approval-request":
+        case "tool-output-denied":
           // Fine to ignore these, but we put them in here to make sure we don't
           // miss any new additions to the streamText API
           break;
@@ -692,7 +678,7 @@ export class AISdkClient implements LLMClient {
   }
 
   private convertToLLMResponse(
-    result: GenerateTextResult<Record<string, Tool>, undefined>,
+    result: GenerateTextResult<Record<string, Tool>, never>,
   ): LLMResponse {
     const toolCalls = result.toolCalls.map((call) => ({
       function: {
@@ -741,7 +727,7 @@ function warnUnknownMessageType(message: never) {
  * Exported for testing purposes.
  */
 export async function getSupportedMimeTypePredicate(
-  model: LanguageModelV2,
+  model: LanguageModelV3,
 ): Promise<(mimeType: string) => boolean> {
   const supportedUrls = await model.supportedUrls;
   const mimeTypePatterns = Object.keys(supportedUrls);
