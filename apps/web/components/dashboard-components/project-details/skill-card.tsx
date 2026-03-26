@@ -3,9 +3,8 @@
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Pencil, Trash2 } from "lucide-react";
-import { memo } from "react";
 
-export interface SkillCardProps {
+interface SkillCardProps {
   skillId: string;
   name: string;
   description: string;
@@ -16,7 +15,7 @@ export interface SkillCardProps {
   onDelete: (skillId: string, name: string) => void;
 }
 
-export const SkillCard = memo(function SkillCard({
+export function SkillCard({
   skillId,
   name,
   description,
@@ -58,4 +57,4 @@ export const SkillCard = memo(function SkillCard({
       </Button>
     </div>
   );
-});
+}

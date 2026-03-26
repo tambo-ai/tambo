@@ -10,17 +10,14 @@ import {
 } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { api } from "@/trpc/react";
-import type { RouterOutputs } from "@/trpc/react";
 import { FileText, Plus } from "lucide-react";
-import { useCallback, useState } from "react";
+import { useState } from "react";
 import {
   DeleteConfirmationDialog,
   type AlertState,
 } from "../delete-confirmation-dialog";
 import { SkillCard } from "./skill-card";
-import { SkillSheet } from "./skill-sheet";
-
-type SkillSummary = RouterOutputs["skills"]["list"][number];
+import { SkillSheet, type SkillSummary } from "./skill-sheet";
 
 interface SkillsSectionProps {
   projectId: string;
@@ -121,30 +118,24 @@ export function SkillsSection({ projectId }: SkillsSectionProps) {
     },
   });
 
-  const openCreateSheet = useCallback(() => {
+  const openCreateSheet = () => {
     setEditingSkill(null);
     setIsSheetOpen(true);
-  }, []);
+  };
 
-  const handleToggle = useCallback(
-    (skillId: string, enabled: boolean) => {
-      toggleMutation.mutate({ projectId, skillId, enabled });
-    },
-    [projectId, toggleMutation],
-  );
+  const handleToggle = (skillId: string, enabled: boolean) => {
+    toggleMutation.mutate({ projectId, skillId, enabled });
+  };
 
-  const handleEdit = useCallback(
-    (skillId: string) => {
-      const skill = skills?.find((s) => s.id === skillId);
-      if (skill) {
-        setEditingSkill(skill);
-        setIsSheetOpen(true);
-      }
-    },
-    [skills],
-  );
+  const handleEdit = (skillId: string) => {
+    const skill = skills?.find((s) => s.id === skillId);
+    if (skill) {
+      setEditingSkill(skill);
+      setIsSheetOpen(true);
+    }
+  };
 
-  const handleDelete = useCallback((skillId: string, name: string) => {
+  const handleDelete = (skillId: string, name: string) => {
     setDeleteTargetId(skillId);
     setAlertState({
       show: true,
@@ -152,17 +143,16 @@ export function SkillsSection({ projectId }: SkillsSectionProps) {
       description:
         "This skill will be permanently removed. This action cannot be undone.",
     });
-  }, []);
+  };
 
   const handleDeleteConfirm = async () => {
     if (deleteTargetId) {
-      deleteMutation.mutate({ projectId, skillId: deleteTargetId });
+      await deleteMutation.mutateAsync({
+        projectId,
+        skillId: deleteTargetId,
+      });
     }
   };
-
-  const handleSaved = useCallback(() => {
-    void utils.skills.list.invalidate();
-  }, [utils.skills.list]);
 
   return (
     <>
@@ -210,12 +200,11 @@ export function SkillsSection({ projectId }: SkillsSectionProps) {
       </Card>
 
       <SkillSheet
-        key={editingSkill?.id ?? "new"}
+        key={isSheetOpen ? (editingSkill?.id ?? "new") : "closed"}
         projectId={projectId}
         skill={editingSkill}
         isOpen={isSheetOpen}
         onOpenChange={setIsSheetOpen}
-        onSaved={handleSaved}
       />
 
       <DeleteConfirmationDialog

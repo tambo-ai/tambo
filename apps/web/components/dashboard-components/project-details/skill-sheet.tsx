@@ -21,14 +21,13 @@ import type { RouterOutputs } from "@/trpc/react";
 import { Loader2 } from "lucide-react";
 import { useMemo, useState } from "react";
 
-type SkillSummary = RouterOutputs["skills"]["list"][number];
+export type SkillSummary = RouterOutputs["skills"]["list"][number];
 
 interface SkillSheetProps {
   projectId: string;
   skill: SkillSummary | null;
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  onSaved: () => void;
 }
 
 export function SkillSheet({
@@ -36,7 +35,6 @@ export function SkillSheet({
   skill,
   isOpen,
   onOpenChange,
-  onSaved,
 }: SkillSheetProps) {
   const { toast } = useToast();
   const utils = api.useUtils();
@@ -60,7 +58,6 @@ export function SkillSheet({
     onSuccess: () => {
       onOpenChange(false);
       toast({ title: skill ? "Skill updated" : "Skill created" });
-      onSaved();
       void utils.skills.list.invalidate();
     },
     onError: (error: { message: string }) => {
