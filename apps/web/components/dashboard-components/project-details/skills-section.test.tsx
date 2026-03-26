@@ -70,29 +70,15 @@ jest.mock("@/hooks/use-toast", () => ({
   useToast: () => ({ toast: mockToast }),
 }));
 
-// Mock the SkillSheet to simplify section-level tests
-jest.mock("./skill-sheet", () => ({
-  SkillSheet: ({
-    isOpen,
-    skill,
-    initialContent,
-  }: {
-    isOpen: boolean;
-    skill: { name: string } | null;
-    initialContent?: string;
-  }) =>
-    isOpen ? (
-      <div data-testid="skill-sheet">
-        <span data-testid="sheet-mode">
-          {skill ? `edit:${skill.name}` : "create"}
-        </span>
-        {initialContent ? (
-          <span data-testid="sheet-initial-content">{initialContent}</span>
-        ) : null}
-      </div>
-    ) : null,
-  readFileAsText: jest.fn(),
-}));
+// Only mock readFileAsText (FileReader is unreliable in jsdom).
+// Everything else — SkillSheet, validateSkillFile, getDragState — is real.
+jest.mock("./skill-sheet", () => {
+  const actual = jest.requireActual("./skill-sheet");
+  return {
+    ...actual,
+    readFileAsText: jest.fn(),
+  };
+});
 
 const mockReadFileAsText = jest.requireMock("./skill-sheet")
   .readFileAsText as jest.Mock;
@@ -132,7 +118,7 @@ describe("SkillsSection", () => {
       render(<SkillsSection projectId="proj_1" />);
 
       const createButtons = screen.getAllByText("Create Skill");
-      expect(createButtons.length).toBe(2); // header + empty state
+      expect(createButtons.length).toBe(2);
     });
 
     it("has an Import SKILL.md button in the empty state", () => {
@@ -188,12 +174,11 @@ describe("SkillsSection", () => {
       mockSkillsData = [sampleSkill];
       render(<SkillsSection projectId="proj_1" />);
 
-      // Click the header Create Skill button (not the empty state one)
-      const createButtons = screen.getAllByText("Create Skill");
-      await user.click(createButtons[0]);
+      await user.click(screen.getAllByText("Create Skill")[0]);
 
-      expect(screen.getByTestId("skill-sheet")).toBeInTheDocument();
-      expect(screen.getByTestId("sheet-mode")).toHaveTextContent("create");
+      // The real SkillSheet renders "Create Skill" as the sheet title
+      // and shows a textarea with the placeholder
+      expect(screen.getByPlaceholderText(/name: My Skill/)).toBeInTheDocument();
     });
   });
 
@@ -205,10 +190,11 @@ describe("SkillsSection", () => {
 
       await user.click(screen.getByLabelText("Edit skill My Skill"));
 
-      expect(screen.getByTestId("skill-sheet")).toBeInTheDocument();
-      expect(screen.getByTestId("sheet-mode")).toHaveTextContent(
-        "edit:My Skill",
-      );
+      // The real SkillSheet renders "Edit Skill" as title and pre-fills
+      // the textarea with reconstructed content
+      const textarea = screen.getByRole<HTMLTextAreaElement>("textbox");
+      expect(textarea.value).toContain("My Skill");
+      expect(textarea.value).toContain("Do stuff");
     });
   });
 
@@ -250,11 +236,9 @@ describe("SkillsSection", () => {
       mockSkillsData = [sampleSkill];
       render(<SkillsSection projectId="proj_1" />);
 
-      // Open delete dialog
       await user.click(screen.getByLabelText("Delete skill My Skill"));
       expect(screen.getByText('Delete "My Skill"?')).toBeInTheDocument();
 
-      // Confirm delete - the AlertDialogAction button says "Delete"
       const confirmButton = screen.getByRole("button", { name: /^delete$/i });
       await user.click(confirmButton);
 
@@ -326,34 +310,32 @@ describe("SkillsSection", () => {
 
       await user.upload(fileInput, file);
 
+      // The real SkillSheet opens with the content in the textarea
       await waitFor(() => {
-        expect(screen.getByTestId("skill-sheet")).toBeInTheDocument();
-        expect(screen.getByTestId("sheet-mode")).toHaveTextContent("create");
+        const textarea = screen.getByRole<HTMLTextAreaElement>("textbox");
+        expect(textarea.value).toBe(invalidContent);
       });
     });
 
     it("opens create sheet with file content when importing a new skill", async () => {
       const user = userEvent.setup();
-      mockReadFileAsText.mockResolvedValue(
-        "---\nname: New Skill\ndescription: Imported\n---\nBody",
-      );
+      const content = "---\nname: New Skill\ndescription: Imported\n---\nBody";
+      mockReadFileAsText.mockResolvedValue(content);
       render(<SkillsSection projectId="proj_1" />);
 
-      // Get the hidden file input and simulate file selection
       const fileInput = document.querySelector(
         'input[type="file"]',
       ) as HTMLInputElement;
-      const file = new File(
-        ["---\nname: New Skill\ndescription: Imported\n---\nBody"],
-        "SKILL.md",
-        { type: "text/markdown" },
-      );
+      const file = new File([content], "SKILL.md", {
+        type: "text/markdown",
+      });
 
       await user.upload(fileInput, file);
 
+      // The real SkillSheet parses frontmatter and shows the name
       await waitFor(() => {
-        expect(screen.getByTestId("skill-sheet")).toBeInTheDocument();
-        expect(screen.getByTestId("sheet-mode")).toHaveTextContent("create");
+        expect(screen.getByText("New Skill")).toBeInTheDocument();
+        expect(screen.getByText("Imported")).toBeInTheDocument();
       });
     });
 
@@ -381,7 +363,7 @@ describe("SkillsSection", () => {
       });
     });
 
-    it("opens edit sheet when overwrite is confirmed", async () => {
+    it("opens edit sheet with imported content when overwrite is confirmed", async () => {
       const user = userEvent.setup();
       mockSkillsData = [sampleSkill];
       const importedContent =
@@ -406,11 +388,11 @@ describe("SkillsSection", () => {
 
       await user.click(screen.getByText("Overwrite"));
 
+      // The real SkillSheet opens in edit mode with the imported content
       await waitFor(() => {
-        expect(screen.getByTestId("skill-sheet")).toBeInTheDocument();
-        expect(screen.getByTestId("sheet-mode")).toHaveTextContent(
-          "edit:My Skill",
-        );
+        expect(screen.getByText("Edit Skill")).toBeInTheDocument();
+        const textarea = screen.getByRole<HTMLTextAreaElement>("textbox");
+        expect(textarea.value).toBe(importedContent);
       });
     });
 
@@ -446,7 +428,37 @@ describe("SkillsSection", () => {
           screen.queryByText("Overwrite existing skill?"),
         ).not.toBeInTheDocument();
       });
-      expect(screen.queryByTestId("skill-sheet")).not.toBeInTheDocument();
+      // No textarea visible — sheet did not open
+      expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
+    });
+
+    it("warns but allows files not named SKILL.md", async () => {
+      const user = userEvent.setup();
+      const content = "---\nname: Custom\ndescription: Desc\n---\nBody";
+      mockReadFileAsText.mockResolvedValue(content);
+      render(<SkillsSection projectId="proj_1" />);
+
+      const fileInput = document.querySelector(
+        'input[type="file"]',
+      ) as HTMLInputElement;
+      const file = new File([content], "my-custom-skill.md", {
+        type: "text/markdown",
+      });
+
+      await user.upload(fileInput, file);
+
+      // Warning toast shown
+      expect(mockToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: "Note",
+          description: expect.stringContaining("my-custom-skill.md"),
+        }),
+      );
+
+      // But the sheet still opens with the content
+      await waitFor(() => {
+        expect(screen.getByText("Custom")).toBeInTheDocument();
+      });
     });
   });
 

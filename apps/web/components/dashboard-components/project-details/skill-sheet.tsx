@@ -36,6 +36,65 @@ export async function readFileAsText(file: File): Promise<string> {
   });
 }
 
+interface FileValidationResult {
+  /** Whether the file should be accepted at all. */
+  isValid: boolean;
+  /** A non-blocking warning to show (e.g. unexpected filename). */
+  warning?: string;
+  /** A blocking error message (file rejected). */
+  error?: string;
+}
+
+const MARKDOWN_EXTENSIONS = new Set([".md", ".markdown"]);
+
+/**
+ * Validate a file for skill import. Blocks non-markdown files, warns if
+ * the filename is not SKILL.md.
+ * @returns Validation result with optional warning or error.
+ */
+export function validateSkillFile(file: File): FileValidationResult {
+  const name = file.name.toLowerCase();
+  const ext = name.slice(name.lastIndexOf("."));
+
+  if (!MARKDOWN_EXTENSIONS.has(ext)) {
+    return {
+      isValid: false,
+      error: `Only markdown files (.md) can be imported. "${file.name}" is not a markdown file.`,
+    };
+  }
+
+  if (name !== "skill.md") {
+    return {
+      isValid: true,
+      warning: `"${file.name}" is not named SKILL.md. It will still be imported, but the expected filename is SKILL.md.`,
+    };
+  }
+
+  return { isValid: true };
+}
+
+export type DragState = "none" | "valid" | "invalid";
+
+/** MIME types that are clearly not markdown — used during drag to show a warning. */
+const BLOCKED_MIME_PREFIXES = ["image/", "audio/", "video/", "application/pdf"];
+
+/**
+ * Check drag event items to determine if the file looks like it could be
+ * markdown. During drag, browsers expose MIME type but not filename.
+ * @returns "valid" if it looks like text/markdown, "invalid" if clearly wrong.
+ */
+export function getDragState(e: React.DragEvent): DragState {
+  const item = e.dataTransfer.items[0];
+  if (!item || item.kind !== "file") return "invalid";
+
+  const type = item.type.toLowerCase();
+  if (BLOCKED_MIME_PREFIXES.some((prefix) => type.startsWith(prefix))) {
+    return "invalid";
+  }
+
+  return "valid";
+}
+
 interface SkillSheetProps {
   projectId: string;
   skill: SkillSummary | null;
@@ -67,7 +126,7 @@ export function SkillSheet({
     return "";
   });
 
-  const [isDragOver, setIsDragOver] = useState(false);
+  const [dragState, setDragState] = useState<DragState>("none");
 
   const parseResult = useMemo(() => {
     if (!content.trim()) return null;
@@ -116,9 +175,23 @@ export function SkillSheet({
 
   const handleDrop = async (e: React.DragEvent) => {
     e.preventDefault();
-    setIsDragOver(false);
+    setDragState("none");
     const file = e.dataTransfer.files[0];
     if (!file) return;
+
+    const validation = validateSkillFile(file);
+    if (!validation.isValid) {
+      toast({
+        title: "Invalid file",
+        description: validation.error,
+        variant: "destructive",
+      });
+      return;
+    }
+    if (validation.warning) {
+      toast({ title: "Note", description: validation.warning });
+    }
+
     try {
       const text = await readFileAsText(file);
       setContent(text);
@@ -167,18 +240,25 @@ export function SkillSheet({
           </div>
 
           <div
-            className={`relative rounded-md transition-colors ${isDragOver ? "ring-2 ring-primary ring-offset-2" : ""}`}
+            className={`relative rounded-md transition-colors ${dragState === "valid" ? "ring-2 ring-primary ring-offset-2" : ""} ${dragState === "invalid" ? "ring-2 ring-destructive ring-offset-2" : ""}`}
             onDragOver={(e) => {
               e.preventDefault();
-              setIsDragOver(true);
+              setDragState(getDragState(e));
             }}
-            onDragLeave={() => setIsDragOver(false)}
+            onDragLeave={() => setDragState("none")}
             onDrop={handleDrop}
           >
-            {isDragOver ? (
+            {dragState === "valid" ? (
               <div className="absolute inset-0 z-10 flex items-center justify-center rounded-md bg-primary/5 border-2 border-dashed border-primary">
                 <p className="text-sm font-medium text-primary">
                   Drop SKILL.md file here
+                </p>
+              </div>
+            ) : null}
+            {dragState === "invalid" ? (
+              <div className="absolute inset-0 z-10 flex items-center justify-center rounded-md bg-destructive/5 border-2 border-dashed border-destructive">
+                <p className="text-sm font-medium text-destructive">
+                  Only markdown files (.md) are supported
                 </p>
               </div>
             ) : null}

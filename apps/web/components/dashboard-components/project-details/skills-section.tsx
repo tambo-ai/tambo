@@ -29,7 +29,14 @@ import {
   type AlertState,
 } from "../delete-confirmation-dialog";
 import { SkillCard } from "./skill-card";
-import { readFileAsText, SkillSheet, type SkillSummary } from "./skill-sheet";
+import {
+  type DragState,
+  getDragState,
+  readFileAsText,
+  SkillSheet,
+  type SkillSummary,
+  validateSkillFile,
+} from "./skill-sheet";
 
 const SKILLS_SUPPORTED_PROVIDERS = new Set(["openai", "anthropic"]);
 
@@ -119,7 +126,7 @@ export function SkillsSection({
     title: "",
     description: "",
   });
-  const [isDragOver, setIsDragOver] = useState(false);
+  const [cardDragState, setCardDragState] = useState<DragState>("none");
 
   // Overwrite confirmation state
   const [overwriteDialog, setOverwriteDialog] = useState<{
@@ -183,6 +190,19 @@ export function SkillsSection({
    * and either open the create sheet or prompt to overwrite an existing skill.
    */
   const handleImportedFile = async (file: File) => {
+    const validation = validateSkillFile(file);
+    if (!validation.isValid) {
+      toast({
+        title: "Invalid file",
+        description: validation.error,
+        variant: "destructive",
+      });
+      return;
+    }
+    if (validation.warning) {
+      toast({ title: "Note", description: validation.warning });
+    }
+
     try {
       const content = await readFileAsText(file);
       const parsed = parseSkillContent(content);
@@ -240,7 +260,7 @@ export function SkillsSection({
 
   const handleCardDrop = (e: React.DragEvent) => {
     e.preventDefault();
-    setIsDragOver(false);
+    setCardDragState("none");
     const file = e.dataTransfer.files[0];
     if (file) {
       void handleImportedFile(file);
@@ -284,6 +304,11 @@ export function SkillsSection({
     ? `${editingSkill?.id ?? "new"}-${importedContent ? "import" : "manual"}`
     : "closed";
 
+  const isDragging = cardDragState !== "none";
+  const isReady = !isDragging && !isLoading && !isError;
+  const hasSkills = isReady && !!skills && skills.length > 0;
+  const isEmpty = isReady && skills?.length === 0;
+
   return (
     <>
       <input
@@ -295,15 +320,14 @@ export function SkillsSection({
       />
 
       <Card
-        className={`transition-colors ${isDragOver ? "ring-2 ring-primary ring-offset-2" : ""}`}
+        className={`transition-colors ${cardDragState === "valid" ? "ring-2 ring-primary ring-offset-2" : ""} ${cardDragState === "invalid" ? "ring-2 ring-destructive ring-offset-2" : ""}`}
         onDragOver={(e) => {
           e.preventDefault();
-          setIsDragOver(true);
+          setCardDragState(getDragState(e));
         }}
         onDragLeave={(e) => {
-          // Only clear if leaving the card itself, not entering a child
           if (!e.currentTarget.contains(e.relatedTarget as Node)) {
-            setIsDragOver(false);
+            setCardDragState("none");
           }
         }}
         onDrop={handleCardDrop}
@@ -340,26 +364,33 @@ export function SkillsSection({
               </AlertDescription>
             </Alert>
           ) : null}
-          {isDragOver ? (
+          {cardDragState === "valid" ? (
             <div className="flex items-center justify-center py-8 border-2 border-dashed border-primary rounded-md bg-primary/5">
               <p className="text-sm font-medium text-primary">
                 Drop SKILL.md file to import
               </p>
             </div>
           ) : null}
-          {!isDragOver && isLoading ? <SkillsSkeleton /> : null}
-          {!isDragOver && isError ? (
+          {cardDragState === "invalid" ? (
+            <div className="flex items-center justify-center py-8 border-2 border-dashed border-destructive rounded-md bg-destructive/5">
+              <p className="text-sm font-medium text-destructive">
+                Only markdown files (.md) can be imported
+              </p>
+            </div>
+          ) : null}
+          {!isDragging && isLoading ? <SkillsSkeleton /> : null}
+          {!isDragging && isError ? (
             <p className="text-sm text-destructive py-4">
               Failed to load skills. Please try again.
             </p>
           ) : null}
-          {!isDragOver && !isLoading && !isError && skills?.length === 0 ? (
+          {isEmpty ? (
             <SkillsEmptyState
               onCreateClick={openCreateSheet}
               onImportClick={handleImportClick}
             />
           ) : null}
-          {!isDragOver && !isLoading && !isError && skills && skills.length > 0
+          {hasSkills
             ? skills.map((skill) => (
                 <SkillCard
                   key={skill.id}
