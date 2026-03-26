@@ -190,4 +190,94 @@ describe("SkillSheet", () => {
     await user.click(screen.getByText("Cancel"));
     expect(defaultProps.onOpenChange).toHaveBeenCalledWith(false);
   });
+
+  it("calls create mutation when saving in create mode", async () => {
+    const user = userEvent.setup();
+    render(<SkillSheet {...defaultProps} skill={null} />);
+
+    const textarea = screen.getByRole("textbox");
+    await user.click(textarea);
+    await user.paste(
+      "---\nname: New Skill\ndescription: A new one\n---\nBody here",
+    );
+
+    await user.click(screen.getByText("Save"));
+
+    expect(mockMutate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        projectId: "proj_1",
+        name: "New Skill",
+        description: "A new one",
+        instructions: "Body here",
+      }),
+    );
+  });
+
+  it("calls update mutation when saving in edit mode", async () => {
+    const user = userEvent.setup();
+    const skill = {
+      id: "sk_1",
+      projectId: "proj_1",
+      name: "Existing",
+      description: "Desc",
+      instructions: "Old body",
+      enabled: true,
+      usageCount: 0,
+      externalSkillMetadata: {},
+      createdByUserId: null,
+      lastUsedAt: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    render(<SkillSheet {...defaultProps} skill={skill} />);
+
+    // Clear and type new content
+    const textarea = screen.getByRole("textbox");
+    await user.clear(textarea);
+    await user.paste(
+      "---\nname: Updated\ndescription: New desc\n---\nNew body",
+    );
+
+    await user.click(screen.getByText("Save"));
+
+    expect(mockMutate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        projectId: "proj_1",
+        skillId: "sk_1",
+        name: "Updated",
+        description: "New desc",
+        instructions: "New body",
+      }),
+    );
+  });
+
+  it("closes sheet and shows toast on successful save", async () => {
+    const user = userEvent.setup();
+    render(<SkillSheet {...defaultProps} skill={null} />);
+
+    const textarea = screen.getByRole("textbox");
+    await user.click(textarea);
+    await user.paste("---\nname: My Skill\ndescription: Desc\n---\nBody");
+
+    await user.click(screen.getByText("Save"));
+
+    expect(defaultProps.onOpenChange).toHaveBeenCalledWith(false);
+    expect(mockToast).toHaveBeenCalledWith(
+      expect.objectContaining({ title: "Skill created" }),
+    );
+    expect(mockInvalidate).toHaveBeenCalled();
+  });
+
+  it("does not call mutation when save is clicked with invalid content", async () => {
+    const user = userEvent.setup();
+    render(<SkillSheet {...defaultProps} />);
+
+    const textarea = screen.getByRole("textbox");
+    await user.click(textarea);
+    await user.paste("no frontmatter here");
+
+    // Save button should be disabled, but test the handler guard too
+    expect(screen.getByText("Save")).toBeDisabled();
+    expect(mockMutate).not.toHaveBeenCalled();
+  });
 });

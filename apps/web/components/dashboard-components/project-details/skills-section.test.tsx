@@ -225,6 +225,48 @@ describe("SkillsSection", () => {
     });
   });
 
+  describe("toggle skill", () => {
+    it("calls update mutation when toggle is clicked", async () => {
+      const user = userEvent.setup();
+      mockSkillsData = [sampleSkill];
+      render(<SkillsSection projectId="proj_1" />);
+
+      await user.click(screen.getByLabelText("Disable skill My Skill"));
+
+      expect(mockMutate).toHaveBeenCalledWith(
+        "update",
+        expect.objectContaining({
+          projectId: "proj_1",
+          skillId: "sk_1",
+          enabled: false,
+        }),
+      );
+    });
+  });
+
+  describe("delete confirm flow", () => {
+    it("calls mutateAsync when delete is confirmed", async () => {
+      const user = userEvent.setup();
+      mockSkillsData = [sampleSkill];
+      render(<SkillsSection projectId="proj_1" />);
+
+      // Open delete dialog
+      await user.click(screen.getByLabelText("Delete skill My Skill"));
+      expect(screen.getByText('Delete "My Skill"?')).toBeInTheDocument();
+
+      // Confirm delete - the AlertDialogAction button says "Delete"
+      const confirmButton = screen.getByRole("button", { name: /^delete$/i });
+      await user.click(confirmButton);
+
+      expect(mockMutateAsync).toHaveBeenCalledWith(
+        expect.objectContaining({
+          projectId: "proj_1",
+          skillId: "sk_1",
+        }),
+      );
+    });
+  });
+
   describe("provider compatibility notice", () => {
     it("shows notice when provider is not supported", () => {
       render(
@@ -269,6 +311,27 @@ describe("SkillsSection", () => {
   });
 
   describe("file import", () => {
+    it("opens create sheet when importing a file with invalid frontmatter", async () => {
+      const user = userEvent.setup();
+      const invalidContent = "just some text without frontmatter";
+      mockReadFileAsText.mockResolvedValue(invalidContent);
+      render(<SkillsSection projectId="proj_1" />);
+
+      const fileInput = document.querySelector(
+        'input[type="file"]',
+      ) as HTMLInputElement;
+      const file = new File([invalidContent], "SKILL.md", {
+        type: "text/markdown",
+      });
+
+      await user.upload(fileInput, file);
+
+      await waitFor(() => {
+        expect(screen.getByTestId("skill-sheet")).toBeInTheDocument();
+        expect(screen.getByTestId("sheet-mode")).toHaveTextContent("create");
+      });
+    });
+
     it("opens create sheet with file content when importing a new skill", async () => {
       const user = userEvent.setup();
       mockReadFileAsText.mockResolvedValue(
