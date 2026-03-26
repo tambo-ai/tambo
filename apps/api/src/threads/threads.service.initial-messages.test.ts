@@ -12,6 +12,7 @@ import { EmailService } from "../common/services/email.service";
 import { CorrelationLoggerService } from "../common/services/logger.service";
 import { StorageConfigService } from "../common/services/storage-config.service";
 import { ProjectsService } from "../projects/projects.service";
+import { SkillsService } from "../skills/skills.service";
 import { AdvanceThreadDto } from "./dto/advance-thread.dto";
 import { MessageRequest } from "./dto/message.dto";
 import { ThreadsService } from "./threads.service";
@@ -101,6 +102,14 @@ describe("ThreadsService - Initial Messages", () => {
             capture: jest.fn(),
             identify: jest.fn(),
             isEnabled: jest.fn().mockReturnValue(false),
+          },
+        },
+        {
+          provide: SkillsService,
+          useValue: {
+            supportsSkills: jest.fn().mockReturnValue(false),
+            ensureSkillUploaded: jest.fn(),
+            getProviderApiKey: jest.fn(),
           },
         },
       ],
