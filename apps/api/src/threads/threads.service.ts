@@ -1114,14 +1114,15 @@ export class ThreadsService {
 
             // Increment usage counts (fire-and-forget, don't block the run)
             void Promise.all(
-              enabledSkills.map(async (skill) =>
-                await operations
-                  .incrementSkillUsageCount(db, projectId, skill.id)
-                  .catch((error) =>
-                    this.logger.warn(
-                      `Failed to increment usage count for skill ${skill.id}: ${error}`,
+              enabledSkills.map(
+                async (skill) =>
+                  await operations
+                    .incrementSkillUsageCount(db, projectId, skill.id)
+                    .catch((error) =>
+                      this.logger.warn(
+                        `Failed to increment usage count for skill ${skill.id}: ${error}`,
+                      ),
                     ),
-                  ),
               ),
             );
           }
