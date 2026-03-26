@@ -5,7 +5,10 @@ import {
   listSkillsInput,
   updateSkillInput,
 } from "@/lib/schemas/skills";
+import { env } from "@/lib/env";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
+import { deleteSkillFromProvider } from "@tambo-ai-cloud/backend";
+import { decryptProviderKey } from "@tambo-ai-cloud/core";
 import { operations } from "@tambo-ai-cloud/db";
 import { TRPCError } from "@trpc/server";
 
@@ -108,6 +111,44 @@ export const skillsRouter = createTRPCRouter({
         input.projectId,
         ctx.user.id,
       );
+
+      // Best-effort provider cleanup before DB delete
+      const skill = await operations.getSkill(
+        ctx.db,
+        input.projectId,
+        input.skillId,
+      );
+      if (skill) {
+        const project = await operations.getProject(ctx.db, input.projectId);
+        const providerName = project?.defaultLlmProviderName;
+        if (providerName) {
+          const existing = skill.externalSkillMetadata?.[providerName];
+          if (existing) {
+            try {
+              const providerKeys = await operations.getProviderKeys(
+                ctx.db,
+                input.projectId,
+              );
+              const providerKey = providerKeys.find(
+                (k) => k.providerName === providerName,
+              );
+              if (providerKey?.providerKeyEncrypted) {
+                const { providerKey: decryptedKey } = decryptProviderKey(
+                  providerKey.providerKeyEncrypted,
+                  env.PROVIDER_KEY_SECRET,
+                );
+                await deleteSkillFromProvider({
+                  skillId: existing.skillId,
+                  providerName,
+                  apiKey: decryptedKey,
+                });
+              }
+            } catch {
+              // Best-effort: don't block DB deletion if provider cleanup fails
+            }
+          }
+        }
+      }
 
       await operations.deleteSkill(ctx.db, input.projectId, input.skillId);
     }),

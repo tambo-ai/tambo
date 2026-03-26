@@ -6,6 +6,7 @@ import {
   type ProviderSkillReference,
 } from "@tambo-ai-cloud/core";
 import { type HydraDatabase, operations, schema } from "@tambo-ai-cloud/db";
+import { deleteSkillFromProvider } from "@tambo-ai-cloud/backend";
 import Anthropic from "@anthropic-ai/sdk";
 import OpenAI from "openai";
 import { DATABASE } from "../common/database-provider";
@@ -120,13 +121,11 @@ export class SkillsService {
     }
 
     try {
-      if (providerName === "openai") {
-        const client = new OpenAI({ apiKey });
-        await client.skills.delete(existing.skillId);
-      } else if (providerName === "anthropic") {
-        const client = new Anthropic({ apiKey });
-        await client.beta.skills.delete(existing.skillId);
-      }
+      await deleteSkillFromProvider({
+        skillId: existing.skillId,
+        providerName,
+        apiKey,
+      });
     } catch (error) {
       this.logger.warn(
         `Failed to delete skill ${skill.id} from ${providerName}: ${error}`,
