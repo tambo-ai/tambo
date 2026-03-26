@@ -6,14 +6,16 @@ import {
   type ProviderSkillReference,
 } from "@tambo-ai-cloud/core";
 import { type HydraDatabase, operations, schema } from "@tambo-ai-cloud/db";
+import Anthropic from "@anthropic-ai/sdk";
+import OpenAI from "openai";
 import { DATABASE } from "../common/database-provider";
 
 /** Providers that support the skills API. */
 const SKILL_PROVIDERS = new Set(["openai", "anthropic"]);
 
 /**
- * Service for uploading skills to provider APIs (OpenAI, Anthropic)
- * and persisting returned metadata in `externalSkillMetadata`.
+ * Service for managing skills on provider APIs (OpenAI, Anthropic)
+ * using their official SDKs.
  */
 @Injectable()
 export class SkillsService {
@@ -35,7 +37,6 @@ export class SkillsService {
 
   /**
    * Upload a skill to the provider API and return the metadata to store.
-   * Formats the skill as a SKILL.md file bundle and POSTs to the provider.
    * @returns The provider-specific metadata (skillId, uploadedAt, version).
    */
   async uploadToProvider({
@@ -47,14 +48,12 @@ export class SkillsService {
     providerName: string;
     apiKey: string;
   }): Promise<ProviderSkillReference> {
-    const skillMdContent = this.formatSkillMd(skill);
-
     if (providerName === "openai") {
-      return await this.uploadToOpenAI(skill, skillMdContent, apiKey);
+      return await this.uploadToOpenAI(skill, apiKey);
     }
 
     if (providerName === "anthropic") {
-      return await this.uploadToAnthropic(skill, skillMdContent, apiKey);
+      return await this.uploadToAnthropic(skill, apiKey);
     }
 
     throw new Error(`Provider ${providerName} does not support skills`);
@@ -122,9 +121,11 @@ export class SkillsService {
 
     try {
       if (providerName === "openai") {
-        await this.deleteFromOpenAI(existing.skillId, apiKey);
+        const client = new OpenAI({ apiKey });
+        await client.skills.delete(existing.skillId);
       } else if (providerName === "anthropic") {
-        await this.deleteFromAnthropic(existing.skillId, apiKey);
+        const client = new Anthropic({ apiKey });
+        await client.beta.skills.delete(existing.skillId);
       }
     } catch (error) {
       this.logger.warn(
@@ -166,158 +167,73 @@ export class SkillsService {
   }
 
   /**
+   * Upload a skill to OpenAI using the official SDK.
+   * @returns The provider skill reference with skillId and version.
+   */
+  private async uploadToOpenAI(
+    skill: schema.DBSkill,
+    apiKey: string,
+  ): Promise<ProviderSkillReference> {
+    const client = new OpenAI({ apiKey });
+
+    const skillMdContent = this.formatSkillMd(skill);
+    const file = new File([skillMdContent], "SKILL.md", {
+      type: "text/markdown",
+    });
+
+    const result = await client.skills.create({
+      files: [file],
+    });
+
+    return {
+      skillId: result.id,
+      uploadedAt: new Date().toISOString(),
+      version: result.latest_version ?? "1",
+    };
+  }
+
+  /**
+   * Upload a skill to Anthropic using the official SDK.
+   * @returns The provider skill reference with skillId and version.
+   */
+  private async uploadToAnthropic(
+    skill: schema.DBSkill,
+    apiKey: string,
+  ): Promise<ProviderSkillReference> {
+    const client = new Anthropic({ apiKey });
+
+    const skillMdContent = this.formatSkillMd(skill);
+    const file = new File([skillMdContent], "SKILL.md", {
+      type: "text/markdown",
+    });
+
+    const result = await client.beta.skills.create({
+      display_title: skill.name,
+      files: [file],
+    });
+
+    return {
+      skillId: result.id,
+      uploadedAt: new Date().toISOString(),
+      version: result.latest_version ?? "1",
+    };
+  }
+
+  /**
    * Format a skill as SKILL.md content for upload.
    * @returns The formatted SKILL.md string.
    */
   private formatSkillMd(skill: schema.DBSkill): string {
-    const quotedDescription = skill.description
+    const escapedDescription = skill.description
       .replace(/\\/g, "\\\\")
       .replace(/"/g, '\\"');
     return [
       "---",
       `name: ${skill.name}`,
-      `description: "${quotedDescription}"`,
+      `description: "${escapedDescription}"`,
       "---",
       "",
       skill.instructions,
     ].join("\n");
-  }
-
-  /**
-   * Upload a skill to OpenAI's skills API.
-   * POST /v1/skills with multipart form data.
-   * @returns The provider skill reference with skillId and version.
-   */
-  private async uploadToOpenAI(
-    skill: schema.DBSkill,
-    skillMdContent: string,
-    apiKey: string,
-  ): Promise<ProviderSkillReference> {
-    const formData = new FormData();
-    const blob = new Blob([skillMdContent], { type: "text/markdown" });
-    formData.append("files[]", blob, "SKILL.md");
-    formData.append("name", skill.name);
-
-    const response = await fetch("https://api.openai.com/v1/skills", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: formData,
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(
-        `OpenAI skill upload failed (${response.status}): ${errorText}`,
-      );
-    }
-
-    const data = (await response.json()) as {
-      id: string;
-      latest_version: string;
-    };
-
-    return {
-      skillId: data.id,
-      uploadedAt: new Date().toISOString(),
-      version: data.latest_version,
-    };
-  }
-
-  /**
-   * Upload a skill to Anthropic's skills API.
-   * POST /v1/skills with multipart form data and beta header.
-   * @returns The provider skill reference with skillId and version.
-   */
-  private async uploadToAnthropic(
-    skill: schema.DBSkill,
-    skillMdContent: string,
-    apiKey: string,
-  ): Promise<ProviderSkillReference> {
-    const formData = new FormData();
-    const blob = new Blob([skillMdContent], { type: "text/markdown" });
-    formData.append("files[]", blob, "SKILL.md");
-    formData.append("display_title", skill.name);
-
-    const response = await fetch("https://api.anthropic.com/v1/skills", {
-      method: "POST",
-      headers: {
-        "x-api-key": apiKey,
-        "anthropic-beta": "skills-2025-10-02",
-        "anthropic-version": "2023-06-01",
-      },
-      body: formData,
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(
-        `Anthropic skill upload failed (${response.status}): ${errorText}`,
-      );
-    }
-
-    const data = (await response.json()) as {
-      id: string;
-      latest_version: string;
-    };
-
-    return {
-      skillId: data.id,
-      uploadedAt: new Date().toISOString(),
-      version: data.latest_version,
-    };
-  }
-
-  /**
-   * Delete a skill from OpenAI's API.
-   */
-  private async deleteFromOpenAI(
-    skillId: string,
-    apiKey: string,
-  ): Promise<void> {
-    const response = await fetch(
-      `https://api.openai.com/v1/skills/${skillId}`,
-      {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-        },
-      },
-    );
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(
-        `OpenAI skill delete failed (${response.status}): ${errorText}`,
-      );
-    }
-  }
-
-  /**
-   * Delete a skill from Anthropic's API.
-   */
-  private async deleteFromAnthropic(
-    skillId: string,
-    apiKey: string,
-  ): Promise<void> {
-    const response = await fetch(
-      `https://api.anthropic.com/v1/skills/${skillId}`,
-      {
-        method: "DELETE",
-        headers: {
-          "x-api-key": apiKey,
-          "anthropic-beta": "skills-2025-10-02",
-          "anthropic-version": "2023-06-01",
-        },
-      },
-    );
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(
-        `Anthropic skill delete failed (${response.status}): ${errorText}`,
-      );
-    }
   }
 }
