@@ -190,19 +190,6 @@ export function SkillsSection({
    * and either open the create sheet or prompt to overwrite an existing skill.
    */
   const handleImportedFile = async (file: File) => {
-    const validation = validateSkillFile(file);
-    if (!validation.isValid) {
-      toast({
-        title: "Invalid file",
-        description: validation.error,
-        variant: "destructive",
-      });
-      return;
-    }
-    if (validation.warning) {
-      toast({ title: "Note", description: validation.warning });
-    }
-
     try {
       const content = await readFileAsText(file);
       const parsed = parseSkillContent(content);
@@ -252,7 +239,19 @@ export function SkillsSection({
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      void handleImportedFile(file);
+      const validation = validateSkillFile(file);
+      if (!validation.isValid) {
+        toast({
+          title: "Invalid file",
+          description: validation.error,
+          variant: "destructive",
+        });
+      } else {
+        if (validation.warning) {
+          toast({ title: "Note", description: validation.warning });
+        }
+        void handleImportedFile(file);
+      }
     }
     // Reset so the same file can be re-imported
     e.target.value = "";
@@ -262,9 +261,22 @@ export function SkillsSection({
     e.preventDefault();
     setCardDragState("none");
     const file = e.dataTransfer.files[0];
-    if (file) {
-      void handleImportedFile(file);
+    if (!file) return;
+
+    const validation = validateSkillFile(file);
+    if (!validation.isValid) {
+      toast({
+        title: "Invalid file",
+        description: validation.error,
+        variant: "destructive",
+      });
+      return;
     }
+    if (validation.warning) {
+      toast({ title: "Note", description: validation.warning });
+    }
+
+    void handleImportedFile(file);
   };
 
   const handleToggle = (skillId: string, enabled: boolean) => {

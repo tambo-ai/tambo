@@ -75,13 +75,15 @@ export function validateSkillFile(file: File): FileValidationResult {
 
 export type DragState = "none" | "valid" | "invalid";
 
-/** MIME types that are clearly not markdown — used during drag to show a warning. */
+/** MIME types that are clearly not markdown — detected during drag via dataTransfer.items. */
 const BLOCKED_MIME_PREFIXES = ["image/", "audio/", "video/", "application/pdf"];
 
 /**
- * Check drag event items to determine if the file looks like it could be
- * markdown. During drag, browsers expose MIME type but not filename.
- * @returns "valid" if it looks like text/markdown, "invalid" if clearly wrong.
+ * Check drag event MIME type to detect clearly non-markdown files.
+ * Browsers only expose MIME type during drag, not the filename — so this
+ * catches obvious cases (images, PDFs) but can't distinguish .ts from .md.
+ * Full filename validation happens on drop via validateSkillFile().
+ * @returns "valid" if it could be markdown, "invalid" if clearly not.
  */
 export function getDragState(e: React.DragEvent): DragState {
   const item = e.dataTransfer.items[0];
