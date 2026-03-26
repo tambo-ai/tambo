@@ -170,7 +170,9 @@ export class SkillsService {
    * @returns The formatted SKILL.md string.
    */
   private formatSkillMd(skill: schema.DBSkill): string {
-    const quotedDescription = skill.description.replace(/"/g, '\\"');
+    const quotedDescription = skill.description
+      .replace(/\\/g, "\\\\")
+      .replace(/"/g, '\\"');
     return [
       "---",
       `name: ${skill.name}`,
