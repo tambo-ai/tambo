@@ -171,7 +171,7 @@ describe("SkillSheet", () => {
     };
     render(<SkillSheet {...defaultProps} skill={skill} />);
 
-    const textarea = screen.getByRole("textbox");
+    const textarea = screen.getByRole<HTMLTextAreaElement>("textbox");
     expect(textarea.value).toContain("Test Skill");
     expect(textarea.value).toContain("A test");
     expect(textarea.value).toContain("Do stuff");
