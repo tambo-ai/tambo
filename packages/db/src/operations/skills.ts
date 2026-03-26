@@ -1,5 +1,5 @@
 import { type ExternalSkillMetadata } from "@tambo-ai-cloud/core";
-import { and, eq, sql } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 import * as schema from "../schema";
 import type { DBSkill } from "../schema";
 import type { HydraDb } from "../types";
@@ -69,6 +69,7 @@ export async function listSkillsForProject(
   }
   return await db.query.skills.findMany({
     where: and(...conditions),
+    orderBy: [desc(schema.skills.createdAt)],
   });
 }
 
