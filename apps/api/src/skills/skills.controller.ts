@@ -14,6 +14,7 @@ import {
 import { ApiOperation, ApiParam, ApiSecurity, ApiTags } from "@nestjs/swagger";
 import { type HydraDatabase, operations } from "@tambo-ai-cloud/db";
 import { DATABASE } from "../common/database-provider";
+import { SkillsService } from "./skills.service";
 import { ApiKeyGuard } from "../projects/guards/apikey.guard";
 import { BearerTokenGuard } from "../projects/guards/bearer-token.guard";
 import {
@@ -34,6 +35,7 @@ export class SkillsController {
   constructor(
     @Inject(DATABASE)
     private readonly db: HydraDatabase,
+    private readonly skillsService: SkillsService,
   ) {}
 
   @ProjectIdParameterKey("projectId")
@@ -114,6 +116,25 @@ export class SkillsController {
     @Param("projectId") projectId: string,
     @Param("skillId") skillId: string,
   ) {
+    // Best-effort provider cleanup before DB delete
+    const skill = await operations.getSkill(this.db, projectId, skillId);
+    if (skill) {
+      const project = await operations.getProject(this.db, projectId);
+      const providerName = project?.defaultLlmProviderName;
+      if (providerName && this.skillsService.supportsSkills(providerName)) {
+        const apiKey = await this.skillsService.getProviderApiKey(
+          projectId,
+          providerName,
+        );
+        if (apiKey) {
+          await this.skillsService.deleteFromProvider({
+            skill,
+            providerName,
+            apiKey,
+          });
+        }
+      }
+    }
     await operations.deleteSkill(this.db, projectId, skillId);
   }
 }

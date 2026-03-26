@@ -1092,38 +1092,27 @@ export class ThreadsService {
             providerName,
           );
           if (apiKey) {
+            // Backfill + collect refs + increment usage in a single pass
+            const skillRefs: Array<{ skillId: string; version: string }> = [];
             for (const skill of enabledSkills) {
-              await this.skillsService.ensureSkillUploaded({
+              const ref = await this.skillsService.ensureSkillUploaded({
                 skill,
                 providerName,
                 apiKey,
               });
-            }
-
-            // Build config with uploaded skill IDs
-            const skillRefs = enabledSkills
-              .map((s) => {
-                const meta = s.externalSkillMetadata?.[providerName];
-                return meta
-                  ? { skillId: meta.skillId, version: meta.version }
-                  : null;
-              })
-              .filter(
-                (ref): ref is { skillId: string; version: string } =>
-                  ref !== null,
+              skillRefs.push({
+                skillId: ref.skillId,
+                version: ref.version,
+              });
+              await operations.incrementSkillUsageCount(
+                db,
+                projectId,
+                skill.id,
               );
+            }
 
             if (skillRefs.length > 0) {
               providerSkills = { providerName, skills: skillRefs };
-
-              // Increment usage counts
-              for (const skill of enabledSkills) {
-                await operations.incrementSkillUsageCount(
-                  db,
-                  projectId,
-                  skill.id,
-                );
-              }
 
               this.logger.log(
                 `Skills injected: ${enabledSkills.length} skills for provider ${providerName}`,
