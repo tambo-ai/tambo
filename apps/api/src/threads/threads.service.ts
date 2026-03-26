@@ -95,6 +95,8 @@ import {
   updateToolCallCounts,
 } from "./util/tool-call-tracking";
 import { createAttachmentFetcher } from "./util/attachment-fetcher";
+import { SkillsService } from "../skills/skills.service";
+import type { ProviderSkillConfig } from "@tambo-ai-cloud/core";
 
 const TAMBO_ANON_CONTEXT_KEY = "tambo:anon-user";
 @Injectable()
@@ -109,6 +111,7 @@ export class ThreadsService {
     private readonly authService: AuthService,
     private readonly storageConfig: StorageConfigService,
     private readonly analytics: AnalyticsService,
+    private readonly skillsService: SkillsService,
   ) {}
 
   getDb() {
@@ -1073,6 +1076,63 @@ export class ThreadsService {
       });
       const project = await operations.getProject(db, projectId);
 
+      // Fetch enabled skills and build provider skill config
+      let providerSkills: ProviderSkillConfig | undefined;
+      const providerName = project?.defaultLlmProviderName;
+      if (providerName && this.skillsService.supportsSkills(providerName)) {
+        const enabledSkills = await operations.listSkillsForProject(
+          db,
+          projectId,
+          { enabledOnly: true },
+        );
+        if (enabledSkills.length > 0) {
+          // Backfill any skills missing provider metadata
+          const apiKey = await this.skillsService.getProviderApiKey(
+            projectId,
+            providerName,
+          );
+          if (apiKey) {
+            for (const skill of enabledSkills) {
+              await this.skillsService.ensureSkillUploaded({
+                skill,
+                providerName,
+                apiKey,
+              });
+            }
+
+            // Build config with uploaded skill IDs
+            const skillRefs = enabledSkills
+              .map((s) => {
+                const meta = s.externalSkillMetadata?.[providerName];
+                return meta
+                  ? { skillId: meta.skillId, version: meta.version }
+                  : null;
+              })
+              .filter(
+                (ref): ref is { skillId: string; version: string } =>
+                  ref !== null,
+              );
+
+            if (skillRefs.length > 0) {
+              providerSkills = { providerName, skills: skillRefs };
+
+              // Increment usage counts
+              for (const skill of enabledSkills) {
+                await operations.incrementSkillUsageCount(
+                  db,
+                  projectId,
+                  skill.id,
+                );
+              }
+
+              this.logger.log(
+                `Skills injected: ${enabledSkills.length} skills for provider ${providerName}`,
+              );
+            }
+          }
+        }
+      }
+
       // Track user messages (not tool responses) using already-fetched project data
       if (advanceRequestDto.messageToAppend.role === MessageRole.User) {
         const projectOwnerUserId = project?.members[0]?.userId;
@@ -1147,6 +1207,7 @@ export class ThreadsService {
         project?.maxToolCallLimit ?? DEFAULT_MAX_TOTAL_TOOL_CALLS,
         mcpClients,
         abortSignal,
+        providerSkills,
       );
     } catch (error) {
       queue.fail(error);
@@ -1287,6 +1348,7 @@ export class ThreadsService {
       serverId: string;
     }>,
     abortSignal?: AbortSignal,
+    providerSkills?: ProviderSkillConfig,
   ): Promise<void> {
     return await Sentry.startSpan(
       {
@@ -1318,6 +1380,7 @@ export class ThreadsService {
           maxToolCallLimit,
           mcpClients,
           abortSignal,
+          providerSkills,
         ),
     );
   }
@@ -1342,6 +1405,7 @@ export class ThreadsService {
       serverId: string;
     }>,
     abortSignal?: AbortSignal,
+    providerSkills?: ProviderSkillConfig,
   ): Promise<void> {
     const { projectId } = contextInfo;
     // Create internal abort controller for this streaming session.
@@ -1438,6 +1502,7 @@ export class ThreadsService {
           strictTools,
           resourceFetchers,
           abortSignal: abortController.signal,
+          providerSkills,
         });
 
         decisionLoopSpan.end();
@@ -1523,6 +1588,7 @@ export class ThreadsService {
         forceToolChoice: advanceRequestDto.forceToolChoice,
         resourceFetchers,
         abortSignal: abortController.signal,
+        providerSkills,
       });
 
       decisionLoopSpan.end();

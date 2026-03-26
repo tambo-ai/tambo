@@ -4,6 +4,7 @@ import {
   AsyncQueue,
   CustomLlmParameters,
   DEFAULT_OPENAI_MODEL,
+  type ProviderSkillConfig,
   ThreadMessage,
 } from "@tambo-ai-cloud/core";
 import OpenAI from "openai";
@@ -49,6 +50,7 @@ interface RunDecisionLoopParams {
   forceToolChoice?: string;
   resourceFetchers: ResourceFetcherMap;
   abortSignal?: AbortSignal;
+  providerSkills?: ProviderSkillConfig;
 }
 
 export interface TamboBackend {
@@ -210,6 +212,7 @@ class AgenticTamboBackend implements TamboBackend {
       this.llmClient,
       params.messages,
       params.strictTools,
+      params.providerSkills,
       params.customInstructions,
       params.forceToolChoice,
       params.resourceFetchers,

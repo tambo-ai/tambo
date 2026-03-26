@@ -49,6 +49,7 @@ import {
 } from "../../util/component-streaming";
 import { formatTemplate, ObjectTemplate } from "../../util/template";
 import { threadMessagesToModelMessages } from "../../util/thread-to-model-message-conversion";
+import type { ProviderSkillConfig } from "@tambo-ai-cloud/core";
 import {
   CompleteParams,
   LLMClient,
@@ -292,6 +293,11 @@ export class AISdkClient implements LLMClient {
       ...filteredCustomParams, // Custom parameters override all, but exclude model-specific provider params
     };
 
+    // Merge provider-specific skills into config if present
+    if (params.providerSkills && params.providerSkills.skills.length > 0) {
+      this.mergeProviderSkills(baseConfig, params.providerSkills, providerKey);
+    }
+
     if (params.stream) {
       // added explicit await even though types say it isn't necessary
       const result = await streamText({
@@ -302,6 +308,64 @@ export class AISdkClient implements LLMClient {
     } else {
       const result = await generateText(baseConfig);
       return this.convertToLLMResponse(result);
+    }
+  }
+
+  /**
+   * Merge provider-specific skills into the AI SDK config.
+   * For OpenAI: adds a shell tool with skillReference entries and switches to responses model.
+   * For Anthropic: adds codeExecution tool and container.skills providerOptions.
+   */
+  private mergeProviderSkills(
+    config: AICompleteParams,
+    skillConfig: ProviderSkillConfig,
+    providerKey: string,
+  ): void {
+    if (providerKey === "openai") {
+      const openai = createOpenAI({ apiKey: this.apiKey });
+      const shellTool = openai.tools.shell({
+        environment: {
+          type: "containerAuto",
+          skills: skillConfig.skills.map((s) => ({
+            type: "skillReference" as const,
+            skillId: s.skillId,
+          })),
+        },
+      });
+
+      // Switch to responses model for skills support
+      config.model = openai.responses(this.model);
+
+      config.tools = {
+        ...config.tools,
+        shell: shellTool,
+      };
+    } else if (providerKey === "anthropic") {
+      const anthropic = createAnthropic({ apiKey: this.apiKey });
+      const codeExecutionTool = anthropic.tools.codeExecution_20260120();
+
+      config.tools = {
+        ...config.tools,
+        code_execution: codeExecutionTool,
+      };
+
+      const existingAnthropicOptions =
+        (config.providerOptions?.[providerKey] as Record<string, unknown>) ??
+        {};
+
+      config.providerOptions = {
+        ...config.providerOptions,
+        anthropic: {
+          ...existingAnthropicOptions,
+          container: {
+            skills: skillConfig.skills.map((s) => ({
+              type: "custom" as const,
+              skillId: s.skillId,
+              version: s.version,
+            })),
+          },
+        },
+      };
     }
   }
 

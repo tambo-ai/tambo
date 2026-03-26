@@ -75,9 +75,7 @@ export class SkillsService {
     providerName: string;
     apiKey: string;
   }): Promise<ProviderSkillReference> {
-    const existing = (skill.externalSkillMetadata)?.[
-      providerName
-    ];
+    const existing = skill.externalSkillMetadata?.[providerName];
 
     if (existing) {
       return existing;
@@ -90,7 +88,7 @@ export class SkillsService {
     });
 
     const updatedExternalMetadata: ExternalSkillMetadata = {
-      ...(skill.externalSkillMetadata),
+      ...skill.externalSkillMetadata,
       [providerName]: metadata,
     };
 
@@ -116,9 +114,7 @@ export class SkillsService {
     providerName: string;
     apiKey: string;
   }): Promise<void> {
-    const existing = (skill.externalSkillMetadata)?.[
-      providerName
-    ];
+    const existing = skill.externalSkillMetadata?.[providerName];
 
     if (!existing) {
       return;

@@ -1,5 +1,6 @@
 import type { BaseEvent } from "@ag-ui/core";
 import { ThreadMessage } from "@tambo-ai-cloud/core";
+import type { ProviderSkillConfig } from "@tambo-ai-cloud/core";
 import type { ProviderOptions } from "@ai-sdk/provider-utils";
 import OpenAI from "openai";
 import { JSONSchema } from "openai/lib/jsonschema";
@@ -39,6 +40,7 @@ interface StreamingCompleteBaseParams {
   promptTemplateParams: Record<string, string | ThreadMessage[]>;
   chainId?: string;
   abortSignal?: AbortSignal;
+  providerSkills?: ProviderSkillConfig;
 }
 
 export type StreamingCompleteParams = StreamingCompleteBaseParams &
@@ -52,6 +54,7 @@ interface CompleteBaseParams {
   promptTemplateName: string;
   promptTemplateParams: Record<string, string | ThreadMessage[]>;
   chainId?: string;
+  providerSkills?: ProviderSkillConfig;
 }
 
 export type CompleteParams = CompleteBaseParams & ResponseFormat;

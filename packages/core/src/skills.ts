@@ -16,3 +16,15 @@ export interface ProviderSkillReference {
 export type ExternalSkillMetadata = Partial<
   Record<string, ProviderSkillReference>
 >;
+
+/**
+ * Skills to pass to the LLM via provider-specific mechanisms at runtime.
+ * Built from enabled skills with uploaded provider metadata.
+ */
+export interface ProviderSkillConfig {
+  providerName: string;
+  skills: Array<{
+    skillId: string;
+    version: string;
+  }>;
+}
