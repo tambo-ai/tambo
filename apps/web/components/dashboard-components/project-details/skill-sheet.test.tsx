@@ -2,9 +2,11 @@ import { SkillSheet, readFileAsText } from "./skill-sheet";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
-// Mock tRPC
+// Mock tRPC — store callbacks so tests can trigger onSuccess or onError
 const mockMutate = jest.fn();
 const mockInvalidate = jest.fn();
+let shouldFailWith: { message: string } | null = null;
+
 jest.mock("@/trpc/react", () => ({
   api: {
     skills: {
@@ -12,7 +14,13 @@ jest.mock("@/trpc/react", () => ({
         useMutation: (opts: Record<string, unknown>) => ({
           mutate: (...args: unknown[]) => {
             mockMutate(...args);
-            (opts.onSuccess as () => void)?.();
+            if (shouldFailWith) {
+              (opts.onError as (err: { message: string }) => void)?.(
+                shouldFailWith,
+              );
+            } else {
+              (opts.onSuccess as () => void)?.();
+            }
           },
           isPending: false,
         }),
@@ -21,7 +29,13 @@ jest.mock("@/trpc/react", () => ({
         useMutation: (opts: Record<string, unknown>) => ({
           mutate: (...args: unknown[]) => {
             mockMutate(...args);
-            (opts.onSuccess as () => void)?.();
+            if (shouldFailWith) {
+              (opts.onError as (err: { message: string }) => void)?.(
+                shouldFailWith,
+              );
+            } else {
+              (opts.onSuccess as () => void)?.();
+            }
           },
           isPending: false,
         }),
@@ -68,6 +82,7 @@ describe("SkillSheet", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    shouldFailWith = null;
   });
 
   it("renders create mode title when skill is null", () => {
@@ -279,5 +294,68 @@ describe("SkillSheet", () => {
     // Save button should be disabled, but test the handler guard too
     expect(screen.getByText("Save")).toBeDisabled();
     expect(mockMutate).not.toHaveBeenCalled();
+  });
+
+  it("shows destructive toast when create fails with name conflict", async () => {
+    shouldFailWith = {
+      message: "A skill with this name already exists in this project",
+    };
+    const user = userEvent.setup();
+    render(<SkillSheet {...defaultProps} skill={null} />);
+
+    const textarea = screen.getByRole("textbox");
+    await user.click(textarea);
+    await user.paste("---\nname: Duplicate\ndescription: Desc\n---\nBody");
+
+    await user.click(screen.getByText("Save"));
+
+    expect(mockToast).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: "Error",
+        description: "A skill with this name already exists in this project",
+        variant: "destructive",
+      }),
+    );
+    // Sheet should NOT close on error
+    expect(defaultProps.onOpenChange).not.toHaveBeenCalledWith(false);
+  });
+
+  it("shows destructive toast when update fails with name conflict", async () => {
+    shouldFailWith = {
+      message: "A skill with this name already exists in this project",
+    };
+    const user = userEvent.setup();
+    const skill = {
+      id: "sk_1",
+      projectId: "proj_1",
+      name: "Existing",
+      description: "Desc",
+      instructions: "Old body",
+      enabled: true,
+      usageCount: 0,
+      externalSkillMetadata: {},
+      createdByUserId: null,
+      lastUsedAt: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    render(<SkillSheet {...defaultProps} skill={skill} />);
+
+    const textarea = screen.getByRole("textbox");
+    await user.clear(textarea);
+    await user.paste(
+      "---\nname: Taken Name\ndescription: New desc\n---\nNew body",
+    );
+
+    await user.click(screen.getByText("Save"));
+
+    expect(mockToast).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: "Error",
+        description: "A skill with this name already exists in this project",
+        variant: "destructive",
+      }),
+    );
+    expect(defaultProps.onOpenChange).not.toHaveBeenCalledWith(false);
   });
 });
