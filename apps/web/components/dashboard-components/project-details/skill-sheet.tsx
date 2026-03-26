@@ -23,11 +23,26 @@ import { useMemo, useState } from "react";
 
 export type SkillSummary = RouterOutputs["skills"]["list"][number];
 
+/**
+ * Read the text content of a dropped or selected File.
+ * @returns The file content as a string.
+ */
+export async function readFileAsText(file: File): Promise<string> {
+  return await new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = () => reject(new Error("Failed to read file"));
+    reader.readAsText(file);
+  });
+}
+
 interface SkillSheetProps {
   projectId: string;
   skill: SkillSummary | null;
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
+  /** When provided, overrides the default content (used for file import). */
+  initialContent?: string;
 }
 
 export function SkillSheet({
@@ -35,19 +50,24 @@ export function SkillSheet({
   skill,
   isOpen,
   onOpenChange,
+  initialContent,
 }: SkillSheetProps) {
   const { toast } = useToast();
   const utils = api.useUtils();
 
-  const [content, setContent] = useState(() =>
-    skill
-      ? reconstructSkillContent(
-          skill.name,
-          skill.description,
-          skill.instructions,
-        )
-      : "",
-  );
+  const [content, setContent] = useState(() => {
+    if (initialContent !== undefined) return initialContent;
+    if (skill) {
+      return reconstructSkillContent(
+        skill.name,
+        skill.description,
+        skill.instructions,
+      );
+    }
+    return "";
+  });
+
+  const [isDragOver, setIsDragOver] = useState(false);
 
   const parseResult = useMemo(() => {
     if (!content.trim()) return null;
@@ -94,14 +114,31 @@ export function SkillSheet({
     }
   };
 
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    const file = e.dataTransfer.files[0];
+    if (!file) return;
+    try {
+      const text = await readFileAsText(file);
+      setContent(text);
+    } catch {
+      toast({
+        title: "Error",
+        description: "Failed to read file",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
       <SheetContent side="right" className="sm:max-w-xl w-full flex flex-col">
         <SheetHeader>
           <SheetTitle>{skill ? "Edit Skill" : "Create Skill"}</SheetTitle>
           <SheetDescription>
-            Paste a SKILL.md file below. The name and description are extracted
-            from the YAML frontmatter.
+            Paste or drag a SKILL.md file below. The name and description are
+            extracted from the YAML frontmatter.
           </SheetDescription>
         </SheetHeader>
 
@@ -129,7 +166,22 @@ export function SkillSheet({
             ) : null}
           </div>
 
-          <div>
+          <div
+            className={`relative rounded-md transition-colors ${isDragOver ? "ring-2 ring-primary ring-offset-2" : ""}`}
+            onDragOver={(e) => {
+              e.preventDefault();
+              setIsDragOver(true);
+            }}
+            onDragLeave={() => setIsDragOver(false)}
+            onDrop={handleDrop}
+          >
+            {isDragOver ? (
+              <div className="absolute inset-0 z-10 flex items-center justify-center rounded-md bg-primary/5 border-2 border-dashed border-primary">
+                <p className="text-sm font-medium text-primary">
+                  Drop SKILL.md file here
+                </p>
+              </div>
+            ) : null}
             <Label htmlFor="skill-content" className="sr-only">
               Skill content
             </Label>

@@ -1,6 +1,16 @@
 "use client";
 
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -10,15 +20,16 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { parseSkillContent } from "@/lib/parse-skill-frontmatter";
 import { api } from "@/trpc/react";
-import { FileText, Info, Plus } from "lucide-react";
-import { useState } from "react";
+import { FileText, Import, Info, Plus } from "lucide-react";
+import { useRef, useState } from "react";
 import {
   DeleteConfirmationDialog,
   type AlertState,
 } from "../delete-confirmation-dialog";
 import { SkillCard } from "./skill-card";
-import { SkillSheet, type SkillSummary } from "./skill-sheet";
+import { readFileAsText, SkillSheet, type SkillSummary } from "./skill-sheet";
 
 const SKILLS_SUPPORTED_PROVIDERS = new Set(["openai", "anthropic"]);
 
@@ -27,7 +38,13 @@ interface SkillsSectionProps {
   defaultLlmProviderName?: string;
 }
 
-function SkillsEmptyState({ onCreateClick }: { onCreateClick: () => void }) {
+function SkillsEmptyState({
+  onCreateClick,
+  onImportClick,
+}: {
+  onCreateClick: () => void;
+  onImportClick: () => void;
+}) {
   return (
     <div className="flex flex-col items-center justify-center py-12 gap-4">
       <FileText
@@ -37,14 +54,20 @@ function SkillsEmptyState({ onCreateClick }: { onCreateClick: () => void }) {
       <div className="text-center">
         <h3 className="text-lg font-heading font-semibold">No Skills Yet</h3>
         <p className="text-sm text-muted-foreground max-w-sm">
-          Skills define how your agent behaves. Create your first skill to get
-          started.
+          Skills define how your agent behaves. Create your first skill or
+          import a SKILL.md file to get started.
         </p>
       </div>
-      <Button onClick={onCreateClick}>
-        <Plus className="h-4 w-4" aria-hidden="true" />
-        Create Skill
-      </Button>
+      <div className="flex gap-2">
+        <Button variant="outline" onClick={onImportClick}>
+          <Import className="h-4 w-4" aria-hidden="true" />
+          Import SKILL.md
+        </Button>
+        <Button onClick={onCreateClick}>
+          <Plus className="h-4 w-4" aria-hidden="true" />
+          Create Skill
+        </Button>
+      </div>
     </div>
   );
 }
@@ -76,6 +99,7 @@ export function SkillsSection({
     SKILLS_SUPPORTED_PROVIDERS.has(defaultLlmProviderName);
   const { toast } = useToast();
   const utils = api.useUtils();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const {
     data: skills,
@@ -85,6 +109,9 @@ export function SkillsSection({
 
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [editingSkill, setEditingSkill] = useState<SkillSummary | null>(null);
+  const [importedContent, setImportedContent] = useState<string | undefined>(
+    undefined,
+  );
   const [togglingSkillId, setTogglingSkillId] = useState<string | null>(null);
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
   const [alertState, setAlertState] = useState<AlertState>({
@@ -92,6 +119,14 @@ export function SkillsSection({
     title: "",
     description: "",
   });
+  const [isDragOver, setIsDragOver] = useState(false);
+
+  // Overwrite confirmation state
+  const [overwriteDialog, setOverwriteDialog] = useState<{
+    isOpen: boolean;
+    existingSkill: SkillSummary | null;
+    fileContent: string;
+  }>({ isOpen: false, existingSkill: null, fileContent: "" });
 
   const toggleMutation = api.skills.update.useMutation({
     onMutate: ({ skillId }) => {
@@ -130,7 +165,86 @@ export function SkillsSection({
 
   const openCreateSheet = () => {
     setEditingSkill(null);
+    setImportedContent(undefined);
     setIsSheetOpen(true);
+  };
+
+  const openSheetWithContent = (
+    content: string,
+    skill: SkillSummary | null,
+  ) => {
+    setEditingSkill(skill);
+    setImportedContent(content);
+    setIsSheetOpen(true);
+  };
+
+  /**
+   * Handle an imported file: parse its frontmatter, check for name conflicts,
+   * and either open the create sheet or prompt to overwrite an existing skill.
+   */
+  const handleImportedFile = async (file: File) => {
+    try {
+      const content = await readFileAsText(file);
+      const parsed = parseSkillContent(content);
+
+      if (!parsed.success) {
+        // File doesn't have valid frontmatter — still open create sheet with the content
+        openSheetWithContent(content, null);
+        return;
+      }
+
+      // Check for name conflict with existing skills
+      const existingSkill = skills?.find((s) => s.name === parsed.name);
+      if (existingSkill) {
+        setOverwriteDialog({
+          isOpen: true,
+          existingSkill,
+          fileContent: content,
+        });
+      } else {
+        openSheetWithContent(content, null);
+      }
+    } catch {
+      toast({
+        title: "Error",
+        description: "Failed to read file",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleOverwriteConfirm = () => {
+    openSheetWithContent(
+      overwriteDialog.fileContent,
+      overwriteDialog.existingSkill,
+    );
+    setOverwriteDialog({ isOpen: false, existingSkill: null, fileContent: "" });
+  };
+
+  const handleOverwriteCancel = () => {
+    setOverwriteDialog({ isOpen: false, existingSkill: null, fileContent: "" });
+  };
+
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      void handleImportedFile(file);
+    }
+    // Reset so the same file can be re-imported
+    e.target.value = "";
+  };
+
+  const handleCardDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    const file = e.dataTransfer.files[0];
+    if (file) {
+      void handleImportedFile(file);
+    }
   };
 
   const handleToggle = (skillId: string, enabled: boolean) => {
@@ -141,6 +255,7 @@ export function SkillsSection({
     const skill = skills?.find((s) => s.id === skillId);
     if (skill) {
       setEditingSkill(skill);
+      setImportedContent(undefined);
       setIsSheetOpen(true);
     }
   };
@@ -164,9 +279,35 @@ export function SkillsSection({
     }
   };
 
+  // Build a unique key for the sheet that changes when we want it to remount
+  const sheetKey = isSheetOpen
+    ? `${editingSkill?.id ?? "new"}-${importedContent ? "import" : "manual"}`
+    : "closed";
+
   return (
     <>
-      <Card>
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".md,.markdown,.txt"
+        className="hidden"
+        onChange={handleFileInputChange}
+      />
+
+      <Card
+        className={`transition-colors ${isDragOver ? "ring-2 ring-primary ring-offset-2" : ""}`}
+        onDragOver={(e) => {
+          e.preventDefault();
+          setIsDragOver(true);
+        }}
+        onDragLeave={(e) => {
+          // Only clear if leaving the card itself, not entering a child
+          if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+            setIsDragOver(false);
+          }
+        }}
+        onDrop={handleCardDrop}
+      >
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
@@ -175,10 +316,16 @@ export function SkillsSection({
                 Define agent skills using SKILL.md files.
               </CardDescription>
             </div>
-            <Button onClick={openCreateSheet}>
-              <Plus className="h-4 w-4" aria-hidden="true" />
-              Create Skill
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={handleImportClick}>
+                <Import className="h-4 w-4" aria-hidden="true" />
+                Import
+              </Button>
+              <Button onClick={openCreateSheet}>
+                <Plus className="h-4 w-4" aria-hidden="true" />
+                Create Skill
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
@@ -193,16 +340,26 @@ export function SkillsSection({
               </AlertDescription>
             </Alert>
           ) : null}
-          {isLoading ? <SkillsSkeleton /> : null}
-          {isError ? (
+          {isDragOver ? (
+            <div className="flex items-center justify-center py-8 border-2 border-dashed border-primary rounded-md bg-primary/5">
+              <p className="text-sm font-medium text-primary">
+                Drop SKILL.md file to import
+              </p>
+            </div>
+          ) : null}
+          {!isDragOver && isLoading ? <SkillsSkeleton /> : null}
+          {!isDragOver && isError ? (
             <p className="text-sm text-destructive py-4">
               Failed to load skills. Please try again.
             </p>
           ) : null}
-          {!isLoading && !isError && skills?.length === 0 ? (
-            <SkillsEmptyState onCreateClick={openCreateSheet} />
+          {!isDragOver && !isLoading && !isError && skills?.length === 0 ? (
+            <SkillsEmptyState
+              onCreateClick={openCreateSheet}
+              onImportClick={handleImportClick}
+            />
           ) : null}
-          {!isLoading && !isError && skills && skills.length > 0
+          {!isDragOver && !isLoading && !isError && skills && skills.length > 0
             ? skills.map((skill) => (
                 <SkillCard
                   key={skill.id}
@@ -221,11 +378,12 @@ export function SkillsSection({
       </Card>
 
       <SkillSheet
-        key={isSheetOpen ? (editingSkill?.id ?? "new") : "closed"}
+        key={sheetKey}
         projectId={projectId}
         skill={editingSkill}
         isOpen={isSheetOpen}
         onOpenChange={setIsSheetOpen}
+        initialContent={importedContent}
       />
 
       <DeleteConfirmationDialog
@@ -234,6 +392,32 @@ export function SkillsSection({
         setAlertState={setAlertState}
         onConfirm={handleDeleteConfirm}
       />
+
+      <AlertDialog
+        open={overwriteDialog.isOpen}
+        onOpenChange={(open) => {
+          if (!open) handleOverwriteCancel();
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Overwrite existing skill?</AlertDialogTitle>
+            <AlertDialogDescription>
+              A skill named &ldquo;{overwriteDialog.existingSkill?.name}&rdquo;
+              already exists. Do you want to replace its content with the
+              imported file?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={handleOverwriteCancel}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={handleOverwriteConfirm}>
+              Overwrite
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
