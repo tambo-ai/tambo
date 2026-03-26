@@ -67,9 +67,7 @@ type TextStreamResponse = ReturnType<typeof streamText<ToolSet, never>>;
 interface ProviderConfig {
   apiKey?: string;
   baseURL?: string;
-  headers?: Record<string, string>;
   providerName?: string;
-  [key: string]: unknown;
 }
 
 // Model to provider mapping based on our config
