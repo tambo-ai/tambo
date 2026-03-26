@@ -1,5 +1,6 @@
 "use client";
 
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -10,7 +11,7 @@ import {
 } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { api } from "@/trpc/react";
-import { FileText, Plus } from "lucide-react";
+import { FileText, Info, Plus } from "lucide-react";
 import { useState } from "react";
 import {
   DeleteConfirmationDialog,
@@ -19,8 +20,11 @@ import {
 import { SkillCard } from "./skill-card";
 import { SkillSheet, type SkillSummary } from "./skill-sheet";
 
+const SKILLS_SUPPORTED_PROVIDERS = new Set(["openai", "anthropic"]);
+
 interface SkillsSectionProps {
   projectId: string;
+  defaultLlmProviderName?: string;
 }
 
 function SkillsEmptyState({ onCreateClick }: { onCreateClick: () => void }) {
@@ -63,7 +67,13 @@ function SkillsSkeleton() {
   );
 }
 
-export function SkillsSection({ projectId }: SkillsSectionProps) {
+export function SkillsSection({
+  projectId,
+  defaultLlmProviderName,
+}: SkillsSectionProps) {
+  const isProviderSupported =
+    !defaultLlmProviderName ||
+    SKILLS_SUPPORTED_PROVIDERS.has(defaultLlmProviderName);
   const { toast } = useToast();
   const utils = api.useUtils();
 
@@ -172,6 +182,17 @@ export function SkillsSection({ projectId }: SkillsSectionProps) {
           </div>
         </CardHeader>
         <CardContent>
+          {!isProviderSupported ? (
+            <Alert className="mb-4">
+              <Info className="h-4 w-4" />
+              <AlertDescription>
+                Skills are currently supported with OpenAI and Anthropic models.
+                Your project uses {defaultLlmProviderName}. Skills you define
+                here won&apos;t take effect until you switch to a supported
+                model.
+              </AlertDescription>
+            </Alert>
+          ) : null}
           {isLoading ? <SkillsSkeleton /> : null}
           {isError ? (
             <p className="text-sm text-destructive py-4">

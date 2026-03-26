@@ -506,7 +506,12 @@ export function ProjectSettings({ projectId }: ProjectSettingsProps) {
               </div>
 
               <div ref={skillsRef} className="p-2">
-                <SkillsSection projectId={project.id} />
+                <SkillsSection
+                  projectId={project.id}
+                  defaultLlmProviderName={
+                    project.defaultLlmProviderName ?? undefined
+                  }
+                />
               </div>
 
               <div ref={mcpServersRef} className="p-2">
