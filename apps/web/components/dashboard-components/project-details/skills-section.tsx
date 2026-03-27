@@ -1,5 +1,6 @@
 "use client";
 
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -379,14 +380,14 @@ export function SkillsSection({
         </CardHeader>
         <CardContent>
           {!isProviderSupported ? (
-            <div className="flex gap-3 p-3 mb-4 rounded-md bg-amber-50 border border-amber-200 text-amber-800 dark:bg-amber-950/20 dark:border-amber-800 dark:text-amber-200">
-              <AlertTriangle className="h-5 w-5 shrink-0 mt-0.5" />
-              <p className="text-sm">
+            <Alert variant="warning" className="mb-4">
+              <AlertTriangle className="h-5 w-5" />
+              <AlertDescription>
                 Skills are currently supported with OpenAI and Anthropic models.
                 Your project uses {defaultLlmProviderName}. Switch to a
                 supported model to enable skills.
-              </p>
-            </div>
+              </AlertDescription>
+            </Alert>
           ) : null}
           {cardDragState === "valid" ? (
             <div className="flex items-center justify-center py-8 border-2 border-dashed border-primary rounded-md bg-primary/5">
