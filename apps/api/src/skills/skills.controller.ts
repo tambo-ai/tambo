@@ -15,6 +15,7 @@ import { ApiOperation, ApiParam, ApiSecurity, ApiTags } from "@nestjs/swagger";
 import { type HydraDatabase, operations } from "@tambo-ai-cloud/db";
 import { DATABASE } from "../common/database-provider";
 import { SkillsService } from "./skills.service";
+import { ProjectsService } from "../projects/projects.service";
 import { ApiKeyGuard } from "../projects/guards/apikey.guard";
 import { BearerTokenGuard } from "../projects/guards/bearer-token.guard";
 import {
@@ -36,6 +37,7 @@ export class SkillsController {
     @Inject(DATABASE)
     private readonly db: HydraDatabase,
     private readonly skillsService: SkillsService,
+    private readonly projectsService: ProjectsService,
   ) {}
 
   @ProjectIdParameterKey("projectId")
@@ -133,7 +135,7 @@ export class SkillsController {
     if (metadata) {
       for (const providerName of Object.keys(metadata)) {
         try {
-          const apiKey = await this.skillsService.getProviderApiKey(
+          const apiKey = await this.projectsService.getDecryptedProviderKey(
             projectId,
             providerName,
           );

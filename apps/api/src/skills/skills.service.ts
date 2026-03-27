@@ -1,7 +1,5 @@
 import { Inject, Injectable, Logger } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
 import {
-  decryptProviderKey,
   type ExternalSkillMetadata,
   type ProviderSkillReference,
 } from "@tambo-ai-cloud/core";
@@ -25,7 +23,6 @@ export class SkillsService {
   constructor(
     @Inject(DATABASE)
     private readonly db: HydraDatabase,
-    private readonly configService: ConfigService,
   ) {}
 
   /**
@@ -130,38 +127,6 @@ export class SkillsService {
       this.logger.warn(
         `Failed to delete skill ${skill.id} from ${providerName}: ${error}`,
       );
-    }
-  }
-
-  /**
-   * Get the decrypted provider API key for a project.
-   * @returns The decrypted API key, or undefined if not available.
-   */
-  async getProviderApiKey(
-    projectId: string,
-    providerName: string,
-  ): Promise<string | undefined> {
-    try {
-      const providerKeys = await operations.getProviderKeys(this.db, projectId);
-
-      const providerKey = providerKeys.find(
-        (k) => k.providerName === providerName,
-      );
-      if (!providerKey?.providerKeyEncrypted) return undefined;
-
-      const secret = this.configService.get<string>("PROVIDER_KEY_SECRET");
-      if (!secret) return undefined;
-
-      const { providerKey: decryptedKey } = decryptProviderKey(
-        providerKey.providerKeyEncrypted,
-        secret,
-      );
-      return decryptedKey;
-    } catch (error) {
-      this.logger.warn(
-        `Failed to get provider key for ${providerName} in project ${projectId}: ${error}`,
-      );
-      return undefined;
     }
   }
 

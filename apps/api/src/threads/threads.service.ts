@@ -1087,7 +1087,7 @@ export class ThreadsService {
         );
         if (enabledSkills.length > 0) {
           // Backfill any skills missing provider metadata
-          const apiKey = await this.skillsService.getProviderApiKey(
+          const apiKey = await this.projectsService.getDecryptedProviderKey(
             projectId,
             providerName,
           );
