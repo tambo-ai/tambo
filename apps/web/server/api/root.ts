@@ -14,7 +14,6 @@ import { deviceAuthRouter } from "./routers/device-auth";
 import { llmRouter } from "./routers/llm";
 import { projectRouter } from "./routers/project";
 import { threadRouter } from "./routers/thread";
-import { skillsRouter } from "./routers/skills";
 import { toolsRouter } from "./routers/tools";
 import { userRouter } from "./routers/user";
 import { validateRouter } from "./routers/validate";
@@ -32,7 +31,6 @@ export const appRouter = createTRPCRouter({
   project: projectRouter,
   thread: threadRouter,
   app: applicationRouter,
-  skills: skillsRouter,
   tools: toolsRouter,
   demo: demoRouter,
   llm: llmRouter,
