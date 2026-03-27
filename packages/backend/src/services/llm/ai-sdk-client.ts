@@ -294,19 +294,24 @@ export class AISdkClient implements LLMClient {
     };
 
     // Merge provider-specific skills into config if present
-    if (params.providerSkills && params.providerSkills.skills.length > 0) {
-      this.mergeProviderSkills(baseConfig, params.providerSkills, providerKey);
-    }
+    const finalConfig =
+      params.providerSkills && params.providerSkills.skills.length > 0
+        ? this.mergeProviderSkills(
+            baseConfig,
+            params.providerSkills,
+            providerKey,
+          )
+        : baseConfig;
 
     if (params.stream) {
       // added explicit await even though types say it isn't necessary
       const result = await streamText({
-        ...baseConfig,
+        ...finalConfig,
         abortSignal: params.abortSignal,
       });
       return this.handleStreamingResponse(result);
     } else {
-      const result = await generateText(baseConfig);
+      const result = await generateText(finalConfig);
       return this.convertToLLMResponse(result);
     }
   }
@@ -320,7 +325,7 @@ export class AISdkClient implements LLMClient {
     config: AICompleteParams,
     skillConfig: ProviderSkillConfig,
     providerKey: string,
-  ): void {
+  ): AICompleteParams {
     if (providerKey === "openai") {
       const openai = createOpenAI({ apiKey: this.apiKey });
       const shellTool = openai.tools.shell({
@@ -333,22 +338,27 @@ export class AISdkClient implements LLMClient {
         },
       });
 
-      // Skills require the Responses API model
       console.log(
         `[Skills] Switching OpenAI model to responses API for skills support (model: ${this.model})`,
       );
-      config.model = openai.responses(this.model);
 
       if (config.tools && "shell" in config.tools) {
         console.warn(
           "[Skills] Overwriting existing 'shell' tool with skills shell tool",
         );
       }
-      config.tools = {
-        ...config.tools,
-        shell: shellTool,
+
+      return {
+        ...config,
+        model: openai.responses(this.model),
+        tools: {
+          ...config.tools,
+          shell: shellTool,
+        },
       };
-    } else if (providerKey === "anthropic") {
+    }
+
+    if (providerKey === "anthropic") {
       const anthropic = createAnthropic({ apiKey: this.apiKey });
       const codeExecutionTool = anthropic.tools.codeExecution_20260120();
 
@@ -357,29 +367,34 @@ export class AISdkClient implements LLMClient {
           "[Skills] Overwriting existing 'code_execution' tool with skills code execution tool",
         );
       }
-      config.tools = {
-        ...config.tools,
-        code_execution: codeExecutionTool,
-      };
 
       const existingAnthropicOptions =
         (config.providerOptions?.[providerKey] as Record<string, unknown>) ??
         {};
 
-      config.providerOptions = {
-        ...config.providerOptions,
-        anthropic: {
-          ...existingAnthropicOptions,
-          container: {
-            skills: skillConfig.skills.map((s) => ({
-              type: "custom" as const,
-              skillId: s.skillId,
-              version: s.version,
-            })),
+      return {
+        ...config,
+        tools: {
+          ...config.tools,
+          code_execution: codeExecutionTool,
+        },
+        providerOptions: {
+          ...config.providerOptions,
+          anthropic: {
+            ...existingAnthropicOptions,
+            container: {
+              skills: skillConfig.skills.map((s) => ({
+                type: "custom" as const,
+                skillId: s.skillId,
+                version: s.version,
+              })),
+            },
           },
         },
       };
     }
+
+    return config;
   }
 
   private getModelInstance(providerKey: string): LanguageModelV3 {
