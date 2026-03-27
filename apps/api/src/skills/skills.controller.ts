@@ -92,6 +92,12 @@ export class SkillsController {
     @Param("skillId") skillId: string,
     @Body() dto: UpdateSkillDto,
   ) {
+    // If content fields changed, invalidate provider metadata so the next run re-uploads
+    const contentChanged =
+      dto.name !== undefined ||
+      dto.description !== undefined ||
+      dto.instructions !== undefined;
+
     const updated = await operations.updateSkill(this.db, {
       projectId,
       skillId,
@@ -99,6 +105,7 @@ export class SkillsController {
       description: dto.description,
       instructions: dto.instructions,
       enabled: dto.enabled,
+      ...(contentChanged ? { externalSkillMetadata: {} } : {}),
     });
     if (!updated) {
       throw new NotFoundException(`Skill ${skillId} not found`);

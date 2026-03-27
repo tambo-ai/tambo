@@ -84,6 +84,12 @@ export const skillsRouter = createTRPCRouter({
         ctx.user.id,
       );
 
+      // If content fields changed, invalidate provider metadata so the next run re-uploads
+      const contentChanged =
+        input.name !== undefined ||
+        input.description !== undefined ||
+        input.instructions !== undefined;
+
       const updated = await operations.updateSkill(ctx.db, {
         projectId: input.projectId,
         skillId: input.skillId,
@@ -91,6 +97,7 @@ export const skillsRouter = createTRPCRouter({
         description: input.description,
         instructions: input.instructions,
         enabled: input.enabled,
+        ...(contentChanged ? { externalSkillMetadata: {} } : {}),
       });
 
       if (!updated) {
