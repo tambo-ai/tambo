@@ -68,11 +68,16 @@ function SkillsEmptyState({
         </p>
       </div>
       <div className="flex gap-2">
-        <Button variant="outline" onClick={onImportClick} disabled={disabled}>
+        <Button
+          variant="outline"
+          className="gap-2"
+          onClick={onImportClick}
+          disabled={disabled}
+        >
           <Import className="h-4 w-4" aria-hidden="true" />
           Import SKILL.md
         </Button>
-        <Button onClick={onCreateClick} disabled={disabled}>
+        <Button className="gap-2" onClick={onCreateClick} disabled={disabled}>
           <Plus className="h-4 w-4" aria-hidden="true" />
           Create Skill
         </Button>
@@ -365,13 +370,18 @@ export function SkillsSection({
             <div className="flex gap-2">
               <Button
                 variant="outline"
+                className="gap-2"
                 onClick={handleImportClick}
                 disabled={!isProviderSupported}
               >
                 <Import className="h-4 w-4" aria-hidden="true" />
                 Import
               </Button>
-              <Button onClick={openCreateSheet} disabled={!isProviderSupported}>
+              <Button
+                className="gap-2"
+                onClick={openCreateSheet}
+                disabled={!isProviderSupported}
+              >
                 <Plus className="h-4 w-4" aria-hidden="true" />
                 Create Skill
               </Button>
