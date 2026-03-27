@@ -61,7 +61,7 @@ function SkillsEmptyState({
         aria-hidden="true"
       />
       <div className="text-center">
-        <h3 className="text-lg font-heading font-semibold">No Skills Yet</h3>
+        <h3 className="text-lg font-semibold">No Skills Yet</h3>
         <p className="text-sm text-muted-foreground max-w-sm">
           Skills define how your agent behaves. Create your first skill or
           import a SKILL.md file to get started.
@@ -357,7 +357,7 @@ export function SkillsSection({
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="font-heading">Skills</CardTitle>
+              <CardTitle className="text-lg font-semibold">Skills</CardTitle>
               <CardDescription>
                 Define agent skills using SKILL.md files.
               </CardDescription>
