@@ -36,9 +36,8 @@ Memory is NOT:
 1. **Works out of the box.** Memory works with zero configuration. Opt-out, not opt-in.
 2. **Scoped to contextKey.** Memory isolates per end-user automatically. Developers don't have to think about multi-tenancy.
 3. **Developers can disable it.** A project-level setting turns memory off entirely.
-4. **Developers can configure it.** What categories get stored, how much context is injected (token budget), how long memories persist (TTL).
-5. **Cross-thread.** Facts learned in one thread are available in another for the same contextKey.
-6. **Respects token limits.** Never injects so much memory that it crowds out the conversation or tool definitions.
+4. **Cross-thread.** Facts learned in one thread are available in another for the same contextKey.
+5. **Respects token limits.** Never injects so much memory that it crowds out the conversation or tool definitions.
 
 ### Later
 
