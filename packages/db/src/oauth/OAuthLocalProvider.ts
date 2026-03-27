@@ -1,10 +1,16 @@
 import { OAuthClientProvider } from "@modelcontextprotocol/sdk/client/auth.js";
 import {
   OAuthClientInformation,
-  OAuthClientInformationFull,
+  OAuthClientInformationMixed,
   OAuthClientMetadata,
   OAuthTokens,
 } from "@modelcontextprotocol/sdk/shared/auth.js";
+import {
+  buildMcpOAuthCallbackUrl,
+  buildMcpOAuthClientMetadata,
+  buildMcpOAuthClientMetadataUrl,
+  canUseMcpOAuthClientMetadataUrl,
+} from "@tambo-ai-cloud/core";
 import { eq } from "drizzle-orm";
 import * as schema from "../schema";
 import { HydraDb } from "../types";
@@ -16,6 +22,7 @@ export class OAuthLocalProvider implements OAuthClientProvider {
   private _redirectStartAuthUrl: URL | undefined;
   private _saveAuthUrl: URL | undefined;
   private _sessionId: string;
+  private _baseUrl: string | undefined;
   private _serverUrl: string | undefined;
   constructor(
     private db: HydraDb,
@@ -39,15 +46,24 @@ export class OAuthLocalProvider implements OAuthClientProvider {
     this._clientInformation = clientInformation;
     // we generate a session id, because we'll be asked to store the client information
     this._sessionId = sessionId ?? crypto.randomUUID();
+    this._baseUrl = baseUrl;
 
     this._saveAuthUrl = baseUrl
-      ? new URL(`/oauth/callback?sessionId=${this._sessionId}`, baseUrl)
+      ? new URL(buildMcpOAuthCallbackUrl(baseUrl))
       : undefined;
     this._serverUrl = serverUrl;
   }
 
-  get redirectUrl(): string {
-    return this._saveAuthUrl?.toString() ?? "";
+  get redirectUrl(): string | undefined {
+    return this._saveAuthUrl?.toString();
+  }
+
+  get clientMetadataUrl(): string | undefined {
+    if (!this._baseUrl || !canUseMcpOAuthClientMetadataUrl(this._baseUrl)) {
+      return undefined;
+    }
+
+    return buildMcpOAuthClientMetadataUrl(this._baseUrl);
   }
 
   // is this the same as the redirectUrl?
@@ -58,6 +74,19 @@ export class OAuthLocalProvider implements OAuthClientProvider {
 
   async clientInformation(): Promise<OAuthClientInformation | undefined> {
     if (!this._clientInformation) {
+      const toolProviderUserContext =
+        await this.db.query.toolProviderUserContexts.findFirst({
+          where: eq(
+            schema.toolProviderUserContexts.id,
+            this.toolProviderUserContextId,
+          ),
+        });
+
+      if (toolProviderUserContext?.mcpOauthClientInfo) {
+        this._clientInformation = toolProviderUserContext.mcpOauthClientInfo;
+        return this._clientInformation;
+      }
+
       const session = await this.db.query.mcpOauthClients.findFirst({
         where: eq(schema.mcpOauthClients.sessionId, this._sessionId),
       });
@@ -67,18 +96,50 @@ export class OAuthLocalProvider implements OAuthClientProvider {
     }
     return this._clientInformation;
   }
-  async saveClientInformation(clientInformation: OAuthClientInformationFull) {
+
+  state(): string {
+    return this._sessionId;
+  }
+
+  async saveClientInformation(clientInformation: OAuthClientInformationMixed) {
     if (!this._serverUrl) {
       throw new Error("Cannot save client information without server URL");
     }
-    await this.db.insert(schema.mcpOauthClients).values({
-      toolProviderUserContextId: this.toolProviderUserContextId,
-      sessionInfo: {
-        serverUrl: this._serverUrl,
-        clientInformation,
-      },
-      sessionId: this._sessionId,
+
+    const existingSession = await this.db.query.mcpOauthClients.findFirst({
+      where: eq(schema.mcpOauthClients.sessionId, this._sessionId),
     });
+
+    if (existingSession) {
+      await this.db
+        .update(schema.mcpOauthClients)
+        .set({
+          sessionInfo: {
+            serverUrl: this._serverUrl,
+            clientInformation,
+          },
+        })
+        .where(eq(schema.mcpOauthClients.sessionId, this._sessionId));
+    } else {
+      await this.db.insert(schema.mcpOauthClients).values({
+        toolProviderUserContextId: this.toolProviderUserContextId,
+        sessionInfo: {
+          serverUrl: this._serverUrl,
+          clientInformation,
+        },
+        sessionId: this._sessionId,
+      });
+    }
+
+    await this.db
+      .update(schema.toolProviderUserContexts)
+      .set({
+        mcpOauthClientInfo: clientInformation,
+      })
+      .where(
+        eq(schema.toolProviderUserContexts.id, this.toolProviderUserContextId),
+      );
+
     this._clientInformation = clientInformation;
   }
   async codeVerifier() {
@@ -98,19 +159,56 @@ export class OAuthLocalProvider implements OAuthClientProvider {
 
   async saveCodeVerifier(codeVerifier: string) {
     this._codeVerifier = codeVerifier;
-    await this.db
-      .update(schema.mcpOauthClients)
-      .set({
-        codeVerifier,
-      })
-      .where(eq(schema.mcpOauthClients.sessionId, this._sessionId));
+    if (!this._serverUrl) {
+      throw new Error("Cannot save code verifier without server URL");
+    }
+
+    const clientInformation =
+      this._clientInformation ??
+      (await this.clientInformation()) ??
+      (this.clientMetadataUrl
+        ? { client_id: this.clientMetadataUrl }
+        : undefined);
+
+    if (!clientInformation) {
+      throw new Error(
+        "Cannot save code verifier without OAuth client information",
+      );
+    }
+
+    const existingSession = await this.db.query.mcpOauthClients.findFirst({
+      where: eq(schema.mcpOauthClients.sessionId, this._sessionId),
+    });
+
+    if (existingSession) {
+      await this.db
+        .update(schema.mcpOauthClients)
+        .set({
+          codeVerifier,
+        })
+        .where(eq(schema.mcpOauthClients.sessionId, this._sessionId));
+      return;
+    }
+
+    await this.db.insert(schema.mcpOauthClients).values({
+      toolProviderUserContextId: this.toolProviderUserContextId,
+      sessionInfo: {
+        serverUrl: this._serverUrl,
+        clientInformation,
+      },
+      sessionId: this._sessionId,
+      codeVerifier,
+    });
   }
+
   get clientMetadata(): OAuthClientMetadata {
-    const clientMetadata: OAuthClientMetadata = {
-      redirect_uris: [this.redirectUrl],
-      client_name: "Tambo",
-    };
-    return clientMetadata;
+    if (!this._baseUrl) {
+      throw new Error(
+        "Cannot build MCP OAuth client metadata without base URL",
+      );
+    }
+
+    return buildMcpOAuthClientMetadata({ baseUrl: this._baseUrl });
   }
 
   redirectToAuthorization(authorizationUrl: URL) {

@@ -2,20 +2,32 @@ import { getBaseUrl } from "@/lib/base-url";
 import { createFetchWithTimeout } from "@/lib/fetch-with-timeout";
 import { customHeadersSchema } from "@/lib/headerValidation";
 import {
+  authorizeMcpServerOutputSchema,
   deleteMcpServerInput,
   inspectMcpServerInput,
   inspectMcpServerOutputSchema,
   listMcpServersInput,
+  mcpManualClientRegistrationInput,
   mcpServerDetailSchema,
   mcpServerSchema,
 } from "@/lib/schemas/mcp";
 import { validateSafeURL, validateServerUrl } from "@/lib/urlSecurity";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
-import { auth } from "@modelcontextprotocol/sdk/client/auth.js";
+import {
+  auth,
+  discoverAuthorizationServerMetadata,
+  discoverOAuthProtectedResourceMetadata,
+} from "@modelcontextprotocol/sdk/client/auth.js";
 import {
   MCPClient,
   MCPTransport,
   ToolProviderType,
+  buildMcpOAuthCallbackUrl,
+  buildMcpOAuthClientMetadata,
+  buildMcpOAuthClientMetadataUrl,
+  canUseMcpOAuthClientMetadataUrl,
+  canUseMcpOAuthRedirectBaseUrl,
+  hasCompatibleMcpOAuthClientRedirect,
   isValidServerKey,
   validateMcpServer,
 } from "@tambo-ai-cloud/core";
@@ -176,10 +188,12 @@ export const toolsRouter = createTRPCRouter({
       z.object({
         toolProviderId: z.string(),
         contextKey: z.string().nullable(),
+        clientRegistration: mcpManualClientRegistrationInput.optional(),
       }),
     )
+    .output(authorizeMcpServerOutputSchema)
     .mutation(async ({ input, ctx }) => {
-      const { contextKey, toolProviderId } = input;
+      const { clientRegistration, contextKey, toolProviderId } = input;
 
       const db = ctx.db;
       const toolProvider = await db.query.toolProviders.findFirst({
@@ -204,36 +218,152 @@ export const toolsRouter = createTRPCRouter({
           message: "Tool provider missing MCP URL",
         });
       }
+      const baseUrl = getBaseUrl();
+      if (!baseUrl || !canUseMcpOAuthRedirectBaseUrl(baseUrl)) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message:
+            "Tambo Cloud OAuth requires NEXT_PUBLIC_APP_URL or VERCEL_URL to resolve to an HTTPS URL or localhost",
+        });
+      }
+
       const toolProviderUserContextId = await upsertToolProviderUserContext(
         db,
         toolProviderId,
         contextKey,
       );
+      let toolProviderUserContext =
+        await db.query.toolProviderUserContexts.findFirst({
+          where: eq(
+            schema.toolProviderUserContexts.id,
+            toolProviderUserContextId,
+          ),
+        });
+
+      if (!toolProviderUserContext) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Tool provider context not found",
+        });
+      }
+
+      const expectedRedirectUrl = buildMcpOAuthCallbackUrl(baseUrl);
+      if (
+        toolProviderUserContext.mcpOauthClientInfo &&
+        !hasCompatibleMcpOAuthClientRedirect(
+          toolProviderUserContext.mcpOauthClientInfo,
+          expectedRedirectUrl,
+        )
+      ) {
+        await clearStoredMcpOAuthState(db, toolProviderUserContext.id);
+        toolProviderUserContext = {
+          ...toolProviderUserContext,
+          mcpOauthClientInfo: null,
+          mcpOauthTokens: null,
+        };
+      }
+
+      const authServerDetails =
+        !toolProviderUserContext.mcpOauthClientInfo && !clientRegistration
+          ? await discoverMcpAuthorizationServerDetails(url)
+          : undefined;
+
+      if (
+        !toolProviderUserContext.mcpOauthClientInfo &&
+        !clientRegistration &&
+        authServerDetails &&
+        !authServerDetails.hasRegistrationEndpoint &&
+        !authServerDetails.supportsClientMetadataDocument
+      ) {
+        return buildManualClientRegistrationResponse(
+          baseUrl,
+          authServerDetails.authorizationServer,
+          "registration_not_available",
+        );
+      }
+
+      const manualClientInformation = clientRegistration
+        ? {
+            client_id: clientRegistration.clientId,
+            ...(clientRegistration.clientSecret
+              ? { client_secret: clientRegistration.clientSecret }
+              : {}),
+          }
+        : undefined;
 
       const localProvider = new OAuthLocalProvider(
         db,
         toolProviderUserContextId,
         {
-          baseUrl: getBaseUrl(),
+          baseUrl,
+          clientInformation:
+            manualClientInformation ??
+            toolProviderUserContext.mcpOauthClientInfo ??
+            undefined,
           serverUrl: url,
         },
       );
 
-      const result = await auth(localProvider, {
-        serverUrl: url,
-        fetchFn: createFetchWithTimeout(5_000),
-      });
-      if (result === "AUTHORIZED") {
-        return {
-          success: true,
-        };
+      if (
+        manualClientInformation &&
+        !toolProviderUserContext.mcpOauthClientInfo
+      ) {
+        await localProvider.saveClientInformation(manualClientInformation);
       }
-      if (result === "REDIRECT") {
-        return {
-          success: true,
-          redirectUrl: localProvider.redirectStartAuthUrl?.toString(),
-        };
+
+      try {
+        const result = await auth(localProvider, {
+          serverUrl: url,
+          fetchFn: createFetchWithTimeout(5_000),
+        });
+        if (result === "AUTHORIZED") {
+          return {
+            status: "authorized",
+          };
+        }
+        if (result === "REDIRECT") {
+          const redirectUrl = localProvider.redirectStartAuthUrl?.toString();
+          if (!redirectUrl) {
+            throw new Error("OAuth redirect URL was not set");
+          }
+
+          return {
+            status: "redirect",
+            redirectUrl,
+          };
+        }
+      } catch (error) {
+        if (
+          manualClientInformation &&
+          !toolProviderUserContext.mcpOauthClientInfo
+        ) {
+          await clearStoredMcpOAuthState(db, toolProviderUserContext.id);
+        }
+
+        if (
+          !toolProviderUserContext.mcpOauthClientInfo &&
+          !manualClientInformation &&
+          authServerDetails &&
+          isManualClientRegistrationRequiredError(error)
+        ) {
+          return buildManualClientRegistrationResponse(
+            baseUrl,
+            authServerDetails.authorizationServer,
+            authServerDetails.hasRegistrationEndpoint ||
+              authServerDetails.supportsClientMetadataDocument
+              ? "dcr_failed"
+              : "registration_not_available",
+          );
+        }
+
+        throw new TRPCError({
+          code: manualClientInformation
+            ? "BAD_REQUEST"
+            : "INTERNAL_SERVER_ERROR",
+          message: `MCP authorization failed: ${getErrorMessage(error)}`,
+        });
       }
+
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
         message: "Unexpected auth result",
@@ -465,19 +595,14 @@ async function getOAuthProvider(
   }
 
   const context = mcpServer.contexts[0];
-  const client = await db.query.mcpOauthClients.findFirst({
-    where: eq(schema.mcpOauthClients.toolProviderUserContextId, context.id),
-  });
-
-  if (!client) {
+  if (!context.mcpOauthClientInfo) {
     return undefined;
   }
 
   return new OAuthLocalProvider(db, context.id, {
     baseUrl: getBaseUrl(),
     serverUrl: url,
-    clientInformation: client.sessionInfo.clientInformation,
-    sessionId: client.sessionId,
+    clientInformation: context.mcpOauthClientInfo,
   });
 }
 
@@ -548,4 +673,108 @@ async function upsertToolProviderUserContext(
 
     return newToolProviderUserContext.id;
   });
+}
+
+async function clearStoredMcpOAuthState(db: HydraDb, userContextId: string) {
+  await db
+    .update(schema.toolProviderUserContexts)
+    .set({
+      mcpOauthClientInfo: null,
+      mcpOauthTokens: null,
+    })
+    .where(eq(schema.toolProviderUserContexts.id, userContextId));
+
+  await db
+    .delete(schema.mcpOauthClients)
+    .where(eq(schema.mcpOauthClients.toolProviderUserContextId, userContextId));
+}
+
+async function discoverMcpAuthorizationServerDetails(serverUrl: string) {
+  const fetchFn = createFetchWithTimeout(5_000);
+  let authorizationServer = new URL("/", serverUrl);
+
+  try {
+    const resourceMetadata = await discoverOAuthProtectedResourceMetadata(
+      serverUrl,
+      undefined,
+      fetchFn,
+    );
+    const discoveredAuthorizationServer =
+      resourceMetadata.authorization_servers?.[0];
+
+    if (discoveredAuthorizationServer) {
+      authorizationServer = new URL(discoveredAuthorizationServer);
+    }
+  } catch {
+    // Fall back to the server root, matching the MCP SDK's legacy behavior.
+  }
+
+  try {
+    const metadata = await discoverAuthorizationServerMetadata(
+      authorizationServer,
+      { fetchFn },
+    );
+
+    if (!metadata) {
+      throw new Error("Authorization server metadata not found");
+    }
+
+    return {
+      authorizationServer: authorizationServer.toString(),
+      hasRegistrationEndpoint: !!metadata.registration_endpoint,
+      supportsClientMetadataDocument:
+        metadata.client_id_metadata_document_supported === true,
+    };
+  } catch {
+    return {
+      authorizationServer: authorizationServer.toString(),
+      hasRegistrationEndpoint: false,
+      supportsClientMetadataDocument: false,
+    };
+  }
+}
+
+function buildManualClientRegistrationResponse(
+  baseUrl: string,
+  authorizationServer: string,
+  reason: "dcr_failed" | "registration_not_available",
+) {
+  const suggestedClientMetadata = buildMcpOAuthClientMetadata({ baseUrl });
+
+  return {
+    status: "manual_client_registration_required" as const,
+    authorizationServer,
+    reason,
+    suggestedClientMetadata: {
+      clientName: suggestedClientMetadata.client_name ?? "Tambo Cloud",
+      clientUri: suggestedClientMetadata.client_uri ?? baseUrl,
+      redirectUris: suggestedClientMetadata.redirect_uris,
+      grantTypes: suggestedClientMetadata.grant_types ?? [],
+      responseTypes: suggestedClientMetadata.response_types ?? [],
+      tokenEndpointAuthMethod:
+        suggestedClientMetadata.token_endpoint_auth_method ?? "none",
+      applicationType: suggestedClientMetadata.application_type,
+      clientMetadataUrl: canUseMcpOAuthClientMetadataUrl(baseUrl)
+        ? buildMcpOAuthClientMetadataUrl(baseUrl)
+        : undefined,
+    },
+  };
+}
+
+function isManualClientRegistrationRequiredError(error: unknown): boolean {
+  const message = getErrorMessage(error).toLowerCase();
+
+  return (
+    message.includes("registration") ||
+    message.includes("client details") ||
+    message.includes("client metadata") ||
+    message.includes("client_id") ||
+    message.includes("client id") ||
+    message.includes("response_types") ||
+    message.includes("invalid oauth error response")
+  );
+}
+
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
 }

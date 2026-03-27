@@ -10,11 +10,11 @@ import { z } from "zod/v3";
 // Define schema for validating query parameters
 const callbackParamsSchema = z
   .object({
-    code: z.string().min(1, "Authorization code is required"),
-    state: z.string().optional(),
-    error: z.string().optional(),
+    code: z.string().min(1, "Authorization code is required").optional(),
+    state: z.string().min(1).optional(),
+    error: z.string().min(1).optional(),
     redirect_uri: z.string().url().optional(),
-    sessionId: z.string(),
+    sessionId: z.string().min(1).optional(),
   })
   .passthrough();
 
@@ -25,13 +25,25 @@ const callbackParamsSchema = z
 export async function GET(request: NextRequest) {
   // Get query parameters from URL
   const url = new URL(request.url);
-  console.log("--> /oauth/callback", url.toString());
   const queryParams = Object.fromEntries(url.searchParams.entries());
 
   try {
     // Validate query parameters
     const validatedParams = callbackParamsSchema.parse(queryParams);
-    const { sessionId, code } = validatedParams;
+    if (validatedParams.error) {
+      return redirectToOAuthError(request, validatedParams.error);
+    }
+
+    const sessionId = validatedParams.state ?? validatedParams.sessionId;
+    if (!sessionId) {
+      throw new Error("OAuth session ID missing from callback state");
+    }
+
+    if (!validatedParams.code) {
+      throw new Error("Authorization code is required");
+    }
+
+    const { code } = validatedParams;
     const db = getDb(env.DATABASE_URL);
     const oauthClient = await db.query.mcpOauthClients.findFirst({
       where: eq(schema.mcpOauthClients.sessionId, sessionId),
@@ -63,17 +75,6 @@ export async function GET(request: NextRequest) {
       },
     );
 
-    // Check for errors returned from OAuth provider before attempting token exchange
-    if (validatedParams.error) {
-      console.error("OAuth error:", validatedParams.error);
-      return NextResponse.redirect(
-        new URL(
-          `/auth/error?error=${encodeURIComponent(validatedParams.error)}`,
-          request.url,
-        ),
-      );
-    }
-
     await auth(oauthProvider, {
       serverUrl: oauthClient.sessionInfo.serverUrl,
       authorizationCode: code,
@@ -89,30 +90,17 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.redirect(redirectUrl);
   } catch (error) {
-    console.error("Error handling OAuth callback:", error);
-    console.trace();
-
     if (error instanceof z.ZodError) {
       // Format validation errors
       const errorMessage = error.errors
         .map((err) => `${err.path}: ${err.message}`)
         .join(", ");
-      return NextResponse.redirect(
-        new URL(
-          `/auth/error?error=${encodeURIComponent(errorMessage)}`,
-          request.url,
-        ),
-      );
+      return redirectToOAuthError(request, errorMessage);
     }
 
     const errorMessage =
       error instanceof Error ? error.message : "unknown_error";
-    return NextResponse.redirect(
-      new URL(
-        `/auth/error?error=${encodeURIComponent(errorMessage)}`,
-        request.url,
-      ),
-    );
+    return redirectToOAuthError(request, errorMessage);
   }
 }
 
@@ -131,4 +119,13 @@ function getPostAuthRedirect(
   }
   // fall back to the project settings page where MCP servers are configured
   return new URL(`/${projectId}/settings`, baseUrl).toString();
+}
+
+function redirectToOAuthError(request: NextRequest, errorMessage: string) {
+  return NextResponse.redirect(
+    new URL(
+      `/oauth/error?error=${encodeURIComponent(errorMessage)}`,
+      request.url,
+    ),
+  );
 }

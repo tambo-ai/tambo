@@ -8,6 +8,7 @@ export * from "./encrypt";
 export * from "./json";
 export type * from "./llm-parameter-types";
 export * from "./mcp-auth";
+export * from "./mcp-oauth-client";
 export * from "./mcp-client";
 export * from "./mcp-utils";
 export * from "./oauth";

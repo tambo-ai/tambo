@@ -4,16 +4,40 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { McpServerEditor, type MCPServerInfo } from "./mcp-server-editor";
 
+const authorizeMutateAsync = jest.fn();
+let authorizeData: {
+  status: "manual_client_registration_required";
+  authorizationServer: string;
+  reason: "dcr_failed" | "registration_not_available";
+  suggestedClientMetadata: {
+    clientName: string;
+    clientUri: string;
+    redirectUris: string[];
+    grantTypes: string[];
+    responseTypes: string[];
+    tokenEndpointAuthMethod: string;
+    applicationType: string;
+    clientMetadataUrl?: string;
+  };
+} | null = null;
+
 // Mock tRPC api
 jest.mock("@/trpc/react", () => ({
   api: {
     tools: {
       authorizeMcpServer: {
         useMutation: () => ({
-          mutateAsync: jest.fn(),
+          mutateAsync: authorizeMutateAsync,
           isPending: false,
           error: null,
+          data: authorizeData,
+        }),
+      },
+      inspectMcpServer: {
+        useQuery: () => ({
           data: null,
+          isLoading: false,
+          error: null,
         }),
       },
     },
@@ -89,6 +113,7 @@ function renderEditor(
 describe("McpServerEditor", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    authorizeData = null;
   });
 
   it("renders server URL and headers", () => {
@@ -164,6 +189,90 @@ describe("McpServerEditor", () => {
         customHeaders: { Authorization: "Bearer token123" },
         mcpTransport: MCPTransport.HTTP,
       });
+    });
+  });
+
+  it("renders manual OAuth client registration details when automatic registration fails", () => {
+    authorizeData = {
+      status: "manual_client_registration_required",
+      authorizationServer: "https://mcp.mapbox.com",
+      reason: "dcr_failed",
+      suggestedClientMetadata: {
+        clientName: "Tambo Cloud",
+        clientUri: "https://console.tambo.co/",
+        redirectUris: ["https://console.tambo.co/oauth/callback"],
+        grantTypes: ["authorization_code", "refresh_token"],
+        responseTypes: ["code"],
+        tokenEndpointAuthMethod: "none",
+        applicationType: "web",
+        clientMetadataUrl: "https://console.tambo.co/oauth/client-metadata",
+      },
+    };
+
+    renderEditor({
+      isEditing: false,
+      projectId: "proj_123",
+      redirectToAuth: jest.fn(),
+      server: {
+        ...baseServer,
+        mcpRequiresAuth: true,
+      },
+    });
+
+    expect(
+      screen.getByText("Manual OAuth Client Registration Required"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("https://console.tambo.co/oauth/callback"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("https://console.tambo.co/oauth/client-metadata"),
+    ).toBeInTheDocument();
+  });
+
+  it("submits manual client registration details when provided", async () => {
+    const user = userEvent.setup();
+    authorizeData = {
+      status: "manual_client_registration_required",
+      authorizationServer: "https://mcp.mapbox.com",
+      reason: "dcr_failed",
+      suggestedClientMetadata: {
+        clientName: "Tambo Cloud",
+        clientUri: "https://console.tambo.co/",
+        redirectUris: ["https://console.tambo.co/oauth/callback"],
+        grantTypes: ["authorization_code", "refresh_token"],
+        responseTypes: ["code"],
+        tokenEndpointAuthMethod: "none",
+        applicationType: "web",
+      },
+    };
+
+    renderEditor({
+      isEditing: false,
+      projectId: "proj_123",
+      redirectToAuth: jest.fn(),
+      server: {
+        ...baseServer,
+        mcpRequiresAuth: true,
+      },
+    });
+
+    await user.type(screen.getByLabelText("Client ID"), "mapbox-client-id");
+    await user.type(
+      screen.getByLabelText("Client Secret"),
+      "mapbox-client-secret",
+    );
+    await user.click(
+      screen.getByRole("button", { name: "Continue Authorization" }),
+    );
+
+    expect(authorizeMutateAsync).toHaveBeenCalledWith({
+      contextKey: null,
+      toolProviderId: "tp_123",
+      clientRegistration: {
+        clientId: "mapbox-client-id",
+        clientSecret: "mapbox-client-secret",
+      },
     });
   });
 });

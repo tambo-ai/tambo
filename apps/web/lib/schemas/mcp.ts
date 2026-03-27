@@ -66,6 +66,22 @@ export const inspectMcpServerInput = z.object({
   serverId: z.string().describe("The ID of the MCP server to inspect"),
 });
 
+export const mcpManualClientRegistrationInput = z.object({
+  clientId: z
+    .string()
+    .trim()
+    .min(1)
+    .describe(
+      "A pre-registered OAuth client ID for the MCP authorization server",
+    ),
+  clientSecret: z
+    .string()
+    .trim()
+    .min(1)
+    .optional()
+    .describe("Optional OAuth client secret for the MCP authorization server"),
+});
+
 // Output schemas
 export const mcpServerSchema = z.object({
   id: z.string().describe("The unique identifier for the MCP server"),
@@ -144,3 +160,44 @@ export const inspectMcpServerOutputSchema = z.object({
     .describe("List of tools available from the MCP server"),
   serverInfo: mcpServerInfoSchema.describe("Information about the MCP server"),
 });
+
+export const mcpSuggestedClientMetadataSchema = z.object({
+  clientName: z.string().describe("Suggested OAuth client display name"),
+  clientUri: z.string().url().describe("Suggested OAuth client homepage URL"),
+  redirectUris: z
+    .array(z.string().url())
+    .describe("Redirect URIs that should be registered with the provider"),
+  grantTypes: z
+    .array(z.string())
+    .describe("Grant types Tambo Cloud expects for MCP OAuth"),
+  responseTypes: z
+    .array(z.string())
+    .describe("Response types Tambo Cloud expects for MCP OAuth"),
+  tokenEndpointAuthMethod: z
+    .string()
+    .describe("Preferred token endpoint client authentication method"),
+  applicationType: z
+    .string()
+    .describe("Suggested OAuth application type for registration"),
+  clientMetadataUrl: z
+    .string()
+    .url()
+    .optional()
+    .describe("Optional hosted client metadata document URL"),
+});
+
+export const authorizeMcpServerOutputSchema = z.discriminatedUnion("status", [
+  z.object({
+    status: z.literal("authorized"),
+  }),
+  z.object({
+    status: z.literal("redirect"),
+    redirectUrl: z.string().url(),
+  }),
+  z.object({
+    status: z.literal("manual_client_registration_required"),
+    authorizationServer: z.string().url(),
+    reason: z.enum(["dcr_failed", "registration_not_available"]),
+    suggestedClientMetadata: mcpSuggestedClientMetadataSchema,
+  }),
+]);

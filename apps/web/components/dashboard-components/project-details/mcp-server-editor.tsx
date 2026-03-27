@@ -95,6 +95,8 @@ export function McpServerEditor({
     title: "",
     description: "",
   });
+  const [manualClientId, setManualClientId] = useState("");
+  const [manualClientSecret, setManualClientSecret] = useState("");
 
   const {
     data: authResult,
@@ -103,7 +105,7 @@ export function McpServerEditor({
     error: authError,
   } = api.tools.authorizeMcpServer.useMutation({
     onSuccess: (authResult) => {
-      if (authResult.redirectUrl && redirectToAuth) {
+      if (authResult.status === "redirect" && redirectToAuth) {
         redirectToAuth(authResult.redirectUrl);
       }
     },
@@ -127,6 +129,8 @@ export function McpServerEditor({
     setMcpTransport(server.mcpTransport || MCPTransport.HTTP);
     setUrl(server.url || (isNew ? "https://" : ""));
     setServerKey(server.serverKey || "");
+    setManualClientId("");
+    setManualClientSecret("");
     setHeaders(
       Object.entries(server.customHeaders ?? {}).map(([header, value]) => ({
         header,
@@ -235,9 +239,17 @@ export function McpServerEditor({
   const showAuthButton =
     !!mcpRequiresAuth &&
     !mcpIsAuthed &&
-    !authResult?.redirectUrl &&
     projectId &&
-    redirectToAuth;
+    redirectToAuth &&
+    authResult?.status !== "manual_client_registration_required";
+  const manualRegistrationResult =
+    authResult?.status === "manual_client_registration_required"
+      ? authResult
+      : null;
+  const manualRegistrationHelpText =
+    manualRegistrationResult?.reason === "registration_not_available"
+      ? "This MCP server does not advertise automatic client registration. Register a client with the authorization server, then continue here with that client ID."
+      : "Automatic client registration failed. Register a client with the authorization server using the details below, then continue here with that client ID.";
   const serverKeyValid = isValidServerKey(serverKey);
   return (
     <div className="flex flex-col gap-2 rounded-md w-full">
@@ -360,6 +372,143 @@ export function McpServerEditor({
             >
               Begin Authorization
             </Button>
+          )}
+          {manualRegistrationResult && (
+            <div className="flex flex-col gap-3 rounded-md border p-3">
+              <div className="flex flex-col gap-1">
+                <p className="text-sm font-medium">
+                  Manual OAuth Client Registration Required
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {manualRegistrationHelpText}
+                </p>
+                <p className="font-mono text-xs break-all text-muted-foreground">
+                  Authorization server:{" "}
+                  {manualRegistrationResult.authorizationServer}
+                </p>
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <label
+                  className="text-sm font-medium"
+                  htmlFor={`${server.id}-client-id`}
+                >
+                  Client ID
+                </label>
+                <Input
+                  id={`${server.id}-client-id`}
+                  value={manualClientId}
+                  onChange={(event) => setManualClientId(event.target.value)}
+                  placeholder="Enter the registered OAuth client ID"
+                />
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <label
+                  className="text-sm font-medium"
+                  htmlFor={`${server.id}-client-secret`}
+                >
+                  Client Secret
+                </label>
+                <Input
+                  id={`${server.id}-client-secret`}
+                  value={manualClientSecret}
+                  onChange={(event) =>
+                    setManualClientSecret(event.target.value)
+                  }
+                  placeholder="Optional client secret"
+                  type="password"
+                />
+              </div>
+
+              <div className="flex flex-col gap-2 rounded-md bg-muted/50 p-3">
+                <p className="text-xs font-medium">
+                  Register this OAuth client with
+                </p>
+                <div className="flex flex-col gap-1">
+                  <p className="text-xs text-muted-foreground">Redirect URI</p>
+                  <p className="font-mono text-xs break-all">
+                    {
+                      manualRegistrationResult.suggestedClientMetadata
+                        .redirectUris[0]
+                    }
+                  </p>
+                </div>
+                {manualRegistrationResult.suggestedClientMetadata
+                  .clientMetadataUrl && (
+                  <div className="flex flex-col gap-1">
+                    <p className="text-xs text-muted-foreground">
+                      Client Metadata URL
+                    </p>
+                    <p className="font-mono text-xs break-all">
+                      {
+                        manualRegistrationResult.suggestedClientMetadata
+                          .clientMetadataUrl
+                      }
+                    </p>
+                  </div>
+                )}
+                <div className="flex flex-col gap-1">
+                  <p className="text-xs text-muted-foreground">Grant Types</p>
+                  <p className="font-mono text-xs break-all">
+                    {manualRegistrationResult.suggestedClientMetadata.grantTypes.join(
+                      ", ",
+                    )}
+                  </p>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <p className="text-xs text-muted-foreground">
+                    Response Types
+                  </p>
+                  <p className="font-mono text-xs break-all">
+                    {manualRegistrationResult.suggestedClientMetadata.responseTypes.join(
+                      ", ",
+                    )}
+                  </p>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <p className="text-xs text-muted-foreground">
+                    Token Endpoint Auth Method
+                  </p>
+                  <p className="font-mono text-xs break-all">
+                    {
+                      manualRegistrationResult.suggestedClientMetadata
+                        .tokenEndpointAuthMethod
+                    }
+                  </p>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <p className="text-xs text-muted-foreground">
+                    Application Type
+                  </p>
+                  <p className="font-mono text-xs break-all">
+                    {
+                      manualRegistrationResult.suggestedClientMetadata
+                        .applicationType
+                    }
+                  </p>
+                </div>
+              </div>
+
+              <Button
+                disabled={isAuthPending || !manualClientId.trim()}
+                onClick={async () =>
+                  await startAuth({
+                    contextKey: null,
+                    toolProviderId: server.id,
+                    clientRegistration: {
+                      clientId: manualClientId.trim(),
+                      ...(manualClientSecret.trim()
+                        ? { clientSecret: manualClientSecret.trim() }
+                        : {}),
+                    },
+                  })
+                }
+                variant="outline"
+              >
+                {isAuthPending ? "Continuing..." : "Continue Authorization"}
+              </Button>
+            </div>
           )}
           {authError && (
             <p className="text-sm text-destructive px-2">{authError.message}</p>
