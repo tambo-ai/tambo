@@ -1,4 +1,10 @@
 import {
+  InvalidClientMetadataError,
+  ServerError,
+  TemporarilyUnavailableError,
+} from "@modelcontextprotocol/sdk/server/auth/errors.js";
+import {
+  isManualMcpClientRegistrationRequiredError,
   requiresManualMcpClientRegistration,
   type McpAuthorizationServerDetails,
   shouldReusePersistedMcpOAuthState,
@@ -70,5 +76,39 @@ describe("mcp-oauth-registration", () => {
         }),
       ),
     ).toBe(false);
+  });
+
+  it("requires manual registration for invalid client metadata errors", () => {
+    expect(
+      isManualMcpClientRegistrationRequiredError(
+        new InvalidClientMetadataError("Invalid client metadata"),
+      ),
+    ).toBe(true);
+  });
+
+  it("does not require manual registration for generic OAuth parse failures", () => {
+    expect(
+      isManualMcpClientRegistrationRequiredError(
+        new ServerError(
+          "Invalid OAuth error response: <html>bad gateway</html>",
+        ),
+      ),
+    ).toBe(false);
+  });
+
+  it("does not require manual registration for temporary authorization server outages", () => {
+    expect(
+      isManualMcpClientRegistrationRequiredError(
+        new TemporarilyUnavailableError("Authorization server is overloaded"),
+      ),
+    ).toBe(false);
+  });
+
+  it("still recognizes registration-specific validation failures", () => {
+    expect(
+      isManualMcpClientRegistrationRequiredError(
+        new Error("client metadata response_types value is invalid"),
+      ),
+    ).toBe(true);
   });
 });

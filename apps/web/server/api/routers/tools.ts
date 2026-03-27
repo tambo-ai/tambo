@@ -14,6 +14,7 @@ import {
 import { validateSafeURL, validateServerUrl } from "@/lib/urlSecurity";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import {
+  isManualMcpClientRegistrationRequiredError,
   requiresManualMcpClientRegistration,
   shouldReusePersistedMcpOAuthState,
 } from "./mcp-oauth-registration";
@@ -333,7 +334,7 @@ export const toolsRouter = createTRPCRouter({
           !persistedClientInformation &&
           !manualClientInformation &&
           authServerDetails &&
-          isManualClientRegistrationRequiredError(error)
+          isManualMcpClientRegistrationRequiredError(error)
         ) {
           return buildManualClientRegistrationResponse(
             baseUrl,
@@ -741,20 +742,6 @@ function buildManualClientRegistrationResponse(
         : undefined,
     },
   };
-}
-
-function isManualClientRegistrationRequiredError(error: unknown): boolean {
-  const message = getErrorMessage(error).toLowerCase();
-
-  return (
-    message.includes("registration") ||
-    message.includes("client details") ||
-    message.includes("client metadata") ||
-    message.includes("client_id") ||
-    message.includes("client id") ||
-    message.includes("response_types") ||
-    message.includes("invalid oauth error response")
-  );
 }
 
 function getErrorMessage(error: unknown): string {
