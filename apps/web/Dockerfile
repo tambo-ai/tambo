@@ -1,6 +1,10 @@
 FROM node:22-alpine AS base
 # ---- base ----
 
+# Upgrade npm to v11 (npx bootstraps a working copy to bypass broken
+# promise-retry in the bundled npm on node:22-alpine)
+RUN npx -y npm@11 install -g npm@^11
+
 # Install system dependencies (aligned with @tambo-ai-cloud/api)
 RUN apk add --no-cache gcompat dumb-init
 
