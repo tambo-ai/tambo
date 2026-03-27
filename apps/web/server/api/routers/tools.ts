@@ -15,7 +15,7 @@ import { validateSafeURL, validateServerUrl } from "@/lib/urlSecurity";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import {
   requiresManualMcpClientRegistration,
-  type McpAuthorizationServerDetails,
+  shouldReusePersistedMcpOAuthState,
 } from "./mcp-oauth-registration";
 import {
   auth,
@@ -31,7 +31,6 @@ import {
   buildMcpOAuthClientMetadataUrl,
   canUseMcpOAuthClientMetadataUrl,
   canUseMcpOAuthRedirectBaseUrl,
-  hasCompatibleMcpOAuthClientRedirect,
   isValidServerKey,
   validateMcpServer,
 } from "@tambo-ai-cloud/core";
@@ -236,7 +235,7 @@ export const toolsRouter = createTRPCRouter({
         toolProviderId,
         contextKey,
       );
-      let toolProviderUserContext =
+      const toolProviderUserContext =
         await db.query.toolProviderUserContexts.findFirst({
           where: eq(
             schema.toolProviderUserContexts.id,
@@ -252,28 +251,22 @@ export const toolsRouter = createTRPCRouter({
       }
 
       const expectedRedirectUrl = buildMcpOAuthCallbackUrl(baseUrl);
-      if (
-        toolProviderUserContext.mcpOauthClientInfo &&
-        !hasCompatibleMcpOAuthClientRedirect(
-          toolProviderUserContext.mcpOauthClientInfo,
-          expectedRedirectUrl,
-        )
-      ) {
-        await clearStoredMcpOAuthState(db, toolProviderUserContext.id);
-        toolProviderUserContext = {
-          ...toolProviderUserContext,
-          mcpOauthClientInfo: null,
-          mcpOauthTokens: null,
-        };
-      }
+      const shouldReusePersistedState = shouldReusePersistedMcpOAuthState({
+        clientInformation: toolProviderUserContext.mcpOauthClientInfo,
+        hasManualClientRegistration: !!clientRegistration,
+        redirectUrl: expectedRedirectUrl,
+      });
+      const persistedClientInformation = shouldReusePersistedState
+        ? (toolProviderUserContext.mcpOauthClientInfo ?? undefined)
+        : undefined;
 
       const authServerDetails =
-        !toolProviderUserContext.mcpOauthClientInfo && !clientRegistration
+        !persistedClientInformation && !clientRegistration
           ? await discoverMcpAuthorizationServerDetails(url)
           : undefined;
 
       if (
-        !toolProviderUserContext.mcpOauthClientInfo &&
+        !persistedClientInformation &&
         !clientRegistration &&
         authServerDetails &&
         requiresManualMcpClientRegistration(authServerDetails)
@@ -300,17 +293,13 @@ export const toolsRouter = createTRPCRouter({
         {
           baseUrl,
           clientInformation:
-            manualClientInformation ??
-            toolProviderUserContext.mcpOauthClientInfo ??
-            undefined,
+            manualClientInformation ?? persistedClientInformation,
           serverUrl: url,
+          usePersistedContextState: shouldReusePersistedState,
         },
       );
 
-      if (
-        manualClientInformation &&
-        !toolProviderUserContext.mcpOauthClientInfo
-      ) {
+      if (manualClientInformation) {
         await localProvider.saveClientInformation(manualClientInformation);
       }
 
@@ -336,15 +325,12 @@ export const toolsRouter = createTRPCRouter({
           };
         }
       } catch (error) {
-        if (
-          manualClientInformation &&
-          !toolProviderUserContext.mcpOauthClientInfo
-        ) {
-          await clearStoredMcpOAuthState(db, toolProviderUserContext.id);
+        if (!shouldReusePersistedState) {
+          await clearStoredMcpOAuthSession(db, localProvider.state());
         }
 
         if (
-          !toolProviderUserContext.mcpOauthClientInfo &&
+          !persistedClientInformation &&
           !manualClientInformation &&
           authServerDetails &&
           isManualClientRegistrationRequiredError(error)
@@ -677,18 +663,10 @@ async function upsertToolProviderUserContext(
   });
 }
 
-async function clearStoredMcpOAuthState(db: HydraDb, userContextId: string) {
-  await db
-    .update(schema.toolProviderUserContexts)
-    .set({
-      mcpOauthClientInfo: null,
-      mcpOauthTokens: null,
-    })
-    .where(eq(schema.toolProviderUserContexts.id, userContextId));
-
+async function clearStoredMcpOAuthSession(db: HydraDb, sessionId: string) {
   await db
     .delete(schema.mcpOauthClients)
-    .where(eq(schema.mcpOauthClients.toolProviderUserContextId, userContextId));
+    .where(eq(schema.mcpOauthClients.sessionId, sessionId));
 }
 
 async function discoverMcpAuthorizationServerDetails(serverUrl: string) {

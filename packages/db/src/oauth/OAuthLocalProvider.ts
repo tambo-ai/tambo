@@ -24,6 +24,7 @@ export class OAuthLocalProvider implements OAuthClientProvider {
   private _sessionId: string;
   private _baseUrl: string | undefined;
   private _serverUrl: string | undefined;
+  private _usePersistedContextState: boolean;
   constructor(
     private db: HydraDb,
     private toolProviderUserContextId: string,
@@ -32,6 +33,7 @@ export class OAuthLocalProvider implements OAuthClientProvider {
       baseUrl,
       sessionId,
       serverUrl,
+      usePersistedContextState = true,
     }: {
       /** The base URL of the Tambo service, usually from process.env.VERCEL_URL */
       baseUrl?: string;
@@ -41,12 +43,15 @@ export class OAuthLocalProvider implements OAuthClientProvider {
       sessionId?: string;
       /** The server URL to use for the OAuth client */
       serverUrl?: string;
+      /** Whether to reuse the shared context client info and tokens for this auth attempt */
+      usePersistedContextState?: boolean;
     } = {},
   ) {
     this._clientInformation = clientInformation;
     // we generate a session id, because we'll be asked to store the client information
     this._sessionId = sessionId ?? crypto.randomUUID();
     this._baseUrl = baseUrl;
+    this._usePersistedContextState = usePersistedContextState;
 
     this._saveAuthUrl = baseUrl
       ? new URL(buildMcpOAuthCallbackUrl(baseUrl))
@@ -74,17 +79,19 @@ export class OAuthLocalProvider implements OAuthClientProvider {
 
   async clientInformation(): Promise<OAuthClientInformation | undefined> {
     if (!this._clientInformation) {
-      const toolProviderUserContext =
-        await this.db.query.toolProviderUserContexts.findFirst({
-          where: eq(
-            schema.toolProviderUserContexts.id,
-            this.toolProviderUserContextId,
-          ),
-        });
+      if (this._usePersistedContextState) {
+        const toolProviderUserContext =
+          await this.db.query.toolProviderUserContexts.findFirst({
+            where: eq(
+              schema.toolProviderUserContexts.id,
+              this.toolProviderUserContextId,
+            ),
+          });
 
-      if (toolProviderUserContext?.mcpOauthClientInfo) {
-        this._clientInformation = toolProviderUserContext.mcpOauthClientInfo;
-        return this._clientInformation;
+        if (toolProviderUserContext?.mcpOauthClientInfo) {
+          this._clientInformation = toolProviderUserContext.mcpOauthClientInfo;
+          return this._clientInformation;
+        }
       }
 
       const session = await this.db.query.mcpOauthClients.findFirst({
@@ -130,15 +137,6 @@ export class OAuthLocalProvider implements OAuthClientProvider {
         sessionId: this._sessionId,
       });
     }
-
-    await this.db
-      .update(schema.toolProviderUserContexts)
-      .set({
-        mcpOauthClientInfo: clientInformation,
-      })
-      .where(
-        eq(schema.toolProviderUserContexts.id, this.toolProviderUserContextId),
-      );
 
     this._clientInformation = clientInformation;
   }
@@ -218,15 +216,17 @@ export class OAuthLocalProvider implements OAuthClientProvider {
 
   async tokens() {
     if (!this._tokens) {
-      const toolProviderUserContext =
-        await this.db.query.toolProviderUserContexts.findFirst({
-          where: eq(
-            schema.toolProviderUserContexts.id,
-            this.toolProviderUserContextId,
-          ),
-        });
-      if (toolProviderUserContext?.mcpOauthTokens) {
-        this._tokens = toolProviderUserContext.mcpOauthTokens;
+      if (this._usePersistedContextState) {
+        const toolProviderUserContext =
+          await this.db.query.toolProviderUserContexts.findFirst({
+            where: eq(
+              schema.toolProviderUserContexts.id,
+              this.toolProviderUserContextId,
+            ),
+          });
+        if (toolProviderUserContext?.mcpOauthTokens) {
+          this._tokens = toolProviderUserContext.mcpOauthTokens;
+        }
       }
     }
 
