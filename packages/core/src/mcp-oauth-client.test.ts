@@ -56,6 +56,7 @@ describe("mcp-oauth-client", () => {
       true,
     );
     expect(canUseMcpOAuthRedirectBaseUrl("http://127.0.0.1:8260")).toBe(true);
+    expect(canUseMcpOAuthRedirectBaseUrl("http://[::1]:8260")).toBe(true);
     expect(canUseMcpOAuthRedirectBaseUrl("http://example.com")).toBe(false);
   });
 

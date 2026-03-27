@@ -26,11 +26,11 @@ function getClientUri(baseUrl: string): string {
 
 export function canUseMcpOAuthRedirectBaseUrl(baseUrl: string): boolean {
   const parsedBaseUrl = parseBaseUrl(baseUrl);
+  const hostname = normalizeHostname(parsedBaseUrl.hostname);
 
   return (
     parsedBaseUrl.protocol === "https:" ||
-    (parsedBaseUrl.protocol === "http:" &&
-      LOOPBACK_HOSTS.has(parsedBaseUrl.hostname))
+    (parsedBaseUrl.protocol === "http:" && LOOPBACK_HOSTS.has(hostname))
   );
 }
 
@@ -114,4 +114,12 @@ function isTamboMcpOAuthClientId(clientId: string): boolean {
   } catch {
     return false;
   }
+}
+
+function normalizeHostname(hostname: string): string {
+  if (hostname.startsWith("[") && hostname.endsWith("]")) {
+    return hostname.slice(1, -1);
+  }
+
+  return hostname;
 }
