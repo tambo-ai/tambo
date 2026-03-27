@@ -1,8 +1,11 @@
 FROM node:22-alpine AS base
 # ---- base ----
 
-# Install NPM globally
-RUN npm cache clean --force && npm install -g npm@^11
+# Work around broken promise-retry in node:22-alpine's bundled npm by
+# downloading a fresh copy of npm via wget and installing it manually
+RUN wget -qO- https://registry.npmjs.org/npm/-/npm-11.2.0.tgz | tar xz -C /tmp \
+    && node /tmp/package/bin/npm-cli.js install -g npm@^11 \
+    && rm -rf /tmp/package
 
 # Install system dependencies (aligned with @tambo-ai-cloud/api)
 RUN apk add --no-cache gcompat dumb-init
