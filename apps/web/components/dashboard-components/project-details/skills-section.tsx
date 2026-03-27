@@ -381,7 +381,7 @@ export function SkillsSection({
         <CardContent>
           {!isProviderSupported ? (
             <Alert variant="warning" className="mb-4">
-              <AlertTriangle className="h-5 w-5" />
+              <AlertTriangle />
               <AlertDescription>
                 Skills are currently supported with OpenAI and Anthropic models.
                 Your project uses {defaultLlmProviderName}. Switch to a
