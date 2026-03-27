@@ -10,6 +10,7 @@ interface SkillCardProps {
   description: string;
   enabled: boolean;
   isToggling?: boolean;
+  disabled?: boolean;
   onToggle: (skillId: string, enabled: boolean) => void;
   onEdit: (skillId: string) => void;
   onDelete: (skillId: string, name: string) => void;
@@ -21,6 +22,7 @@ export function SkillCard({
   description,
   enabled,
   isToggling,
+  disabled,
   onToggle,
   onEdit,
   onDelete,
@@ -36,13 +38,14 @@ export function SkillCard({
       <Switch
         checked={enabled}
         onCheckedChange={(checked) => onToggle(skillId, checked)}
-        disabled={isToggling}
+        disabled={disabled || isToggling}
         aria-label={`${enabled ? "Disable" : "Enable"} skill ${name}`}
       />
       <Button
         variant="ghost"
         size="icon"
         onClick={() => onEdit(skillId)}
+        disabled={disabled}
         aria-label={`Edit skill ${name}`}
       >
         <Pencil className="h-4 w-4" aria-hidden="true" />
@@ -51,6 +54,7 @@ export function SkillCard({
         variant="ghost"
         size="icon"
         onClick={() => onDelete(skillId, name)}
+        disabled={disabled}
         aria-label={`Delete skill ${name}`}
       >
         <Trash2 className="h-4 w-4" aria-hidden="true" />

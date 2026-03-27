@@ -1,6 +1,5 @@
 "use client";
 
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,7 +21,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { parseSkillContent } from "@/lib/parse-skill-frontmatter";
 import { api } from "@/trpc/react";
-import { FileText, Import, Info, Plus } from "lucide-react";
+import { AlertTriangle, FileText, Import, Plus } from "lucide-react";
 import { useRef, useState } from "react";
 import {
   DeleteConfirmationDialog,
@@ -48,9 +47,11 @@ interface SkillsSectionProps {
 function SkillsEmptyState({
   onCreateClick,
   onImportClick,
+  disabled,
 }: {
   onCreateClick: () => void;
   onImportClick: () => void;
+  disabled?: boolean;
 }) {
   return (
     <div className="flex flex-col items-center justify-center py-12 gap-4">
@@ -66,11 +67,11 @@ function SkillsEmptyState({
         </p>
       </div>
       <div className="flex gap-2">
-        <Button variant="outline" onClick={onImportClick}>
+        <Button variant="outline" onClick={onImportClick} disabled={disabled}>
           <Import className="h-4 w-4" aria-hidden="true" />
           Import SKILL.md
         </Button>
-        <Button onClick={onCreateClick}>
+        <Button onClick={onCreateClick} disabled={disabled}>
           <Plus className="h-4 w-4" aria-hidden="true" />
           Create Skill
         </Button>
@@ -333,16 +334,24 @@ export function SkillsSection({
 
       <Card
         className={`transition-colors ${cardDragState === "valid" ? "ring-2 ring-primary ring-offset-2" : ""} ${cardDragState === "invalid" ? "ring-2 ring-destructive ring-offset-2" : ""}`}
-        onDragOver={(e) => {
-          e.preventDefault();
-          setCardDragState(getDragState(e));
-        }}
-        onDragLeave={(e) => {
-          if (!e.currentTarget.contains(e.relatedTarget as Node)) {
-            setCardDragState("none");
-          }
-        }}
-        onDrop={handleCardDrop}
+        onDragOver={
+          isProviderSupported
+            ? (e) => {
+                e.preventDefault();
+                setCardDragState(getDragState(e));
+              }
+            : undefined
+        }
+        onDragLeave={
+          isProviderSupported
+            ? (e) => {
+                if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+                  setCardDragState("none");
+                }
+              }
+            : undefined
+        }
+        onDrop={isProviderSupported ? handleCardDrop : undefined}
       >
         <CardHeader>
           <div className="flex items-center justify-between">
@@ -353,11 +362,15 @@ export function SkillsSection({
               </CardDescription>
             </div>
             <div className="flex gap-2">
-              <Button variant="outline" onClick={handleImportClick}>
+              <Button
+                variant="outline"
+                onClick={handleImportClick}
+                disabled={!isProviderSupported}
+              >
                 <Import className="h-4 w-4" aria-hidden="true" />
                 Import
               </Button>
-              <Button onClick={openCreateSheet}>
+              <Button onClick={openCreateSheet} disabled={!isProviderSupported}>
                 <Plus className="h-4 w-4" aria-hidden="true" />
                 Create Skill
               </Button>
@@ -366,15 +379,14 @@ export function SkillsSection({
         </CardHeader>
         <CardContent>
           {!isProviderSupported ? (
-            <Alert className="mb-4">
-              <Info className="h-4 w-4" />
-              <AlertDescription>
+            <div className="flex gap-3 p-3 mb-4 rounded-md bg-amber-50 border border-amber-200 text-amber-800 dark:bg-amber-950/20 dark:border-amber-800 dark:text-amber-200">
+              <AlertTriangle className="h-5 w-5 shrink-0 mt-0.5" />
+              <p className="text-sm">
                 Skills are currently supported with OpenAI and Anthropic models.
-                Your project uses {defaultLlmProviderName}. Skills you define
-                here won&apos;t take effect until you switch to a supported
-                model.
-              </AlertDescription>
-            </Alert>
+                Your project uses {defaultLlmProviderName}. Switch to a
+                supported model to enable skills.
+              </p>
+            </div>
           ) : null}
           {cardDragState === "valid" ? (
             <div className="flex items-center justify-center py-8 border-2 border-dashed border-primary rounded-md bg-primary/5">
@@ -400,6 +412,7 @@ export function SkillsSection({
             <SkillsEmptyState
               onCreateClick={openCreateSheet}
               onImportClick={handleImportClick}
+              disabled={!isProviderSupported}
             />
           ) : null}
           {hasSkills
@@ -411,6 +424,7 @@ export function SkillsSection({
                   description={skill.description}
                   enabled={skill.enabled}
                   isToggling={togglingSkillId === skill.id}
+                  disabled={!isProviderSupported}
                   onToggle={handleToggle}
                   onEdit={handleEdit}
                   onDelete={handleDelete}
