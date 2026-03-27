@@ -59,11 +59,33 @@ describe("mcp-oauth-client", () => {
     expect(canUseMcpOAuthRedirectBaseUrl("http://example.com")).toBe(false);
   });
 
-  it("treats URL-based client IDs as compatible with the new callback URL", () => {
+  it("treats matching URL-based client IDs as compatible with the callback URL", () => {
     expect(
       hasCompatibleMcpOAuthClientRedirect(
         {
           client_id: "https://console.tambo.co/oauth/client-metadata",
+        },
+        "https://console.tambo.co/oauth/callback",
+      ),
+    ).toBe(true);
+  });
+
+  it("rejects URL-based client IDs from a different origin", () => {
+    expect(
+      hasCompatibleMcpOAuthClientRedirect(
+        {
+          client_id: "https://old-console.tambo.co/oauth/client-metadata",
+        },
+        "https://console.tambo.co/oauth/callback",
+      ),
+    ).toBe(false);
+  });
+
+  it("keeps opaque pre-registered client IDs compatible when redirect URIs are absent", () => {
+    expect(
+      hasCompatibleMcpOAuthClientRedirect(
+        {
+          client_id: "mapbox-client-id",
         },
         "https://console.tambo.co/oauth/callback",
       ),

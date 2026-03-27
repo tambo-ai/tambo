@@ -95,8 +95,23 @@ export function hasCompatibleMcpOAuthClientRedirect(
   }
 
   if (!("redirect_uris" in clientInformation)) {
-    return true;
+    if (!isTamboMcpOAuthClientId(clientInformation.client_id)) {
+      return true;
+    }
+
+    return (
+      clientInformation.client_id ===
+      buildMcpOAuthClientMetadataUrl(redirectUrl)
+    );
   }
 
   return clientInformation.redirect_uris.includes(redirectUrl);
+}
+
+function isTamboMcpOAuthClientId(clientId: string): boolean {
+  try {
+    return new URL(clientId).pathname === TAMBO_MCP_OAUTH_CLIENT_METADATA_PATH;
+  } catch {
+    return false;
+  }
 }

@@ -14,6 +14,10 @@ import {
 import { validateSafeURL, validateServerUrl } from "@/lib/urlSecurity";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import {
+  requiresManualMcpClientRegistration,
+  type McpAuthorizationServerDetails,
+} from "./mcp-oauth-registration";
+import {
   auth,
   discoverAuthorizationServerMetadata,
   discoverOAuthProtectedResourceMetadata,
@@ -272,8 +276,7 @@ export const toolsRouter = createTRPCRouter({
         !toolProviderUserContext.mcpOauthClientInfo &&
         !clientRegistration &&
         authServerDetails &&
-        !authServerDetails.hasRegistrationEndpoint &&
-        !authServerDetails.supportsClientMetadataDocument
+        requiresManualMcpClientRegistration(authServerDetails)
       ) {
         return buildManualClientRegistrationResponse(
           baseUrl,
@@ -349,10 +352,9 @@ export const toolsRouter = createTRPCRouter({
           return buildManualClientRegistrationResponse(
             baseUrl,
             authServerDetails.authorizationServer,
-            authServerDetails.hasRegistrationEndpoint ||
-              authServerDetails.supportsClientMetadataDocument
-              ? "dcr_failed"
-              : "registration_not_available",
+            requiresManualMcpClientRegistration(authServerDetails)
+              ? "registration_not_available"
+              : "dcr_failed",
           );
         }
 
@@ -722,6 +724,7 @@ async function discoverMcpAuthorizationServerDetails(serverUrl: string) {
     return {
       authorizationServer: authorizationServer.toString(),
       hasRegistrationEndpoint: !!metadata.registration_endpoint,
+      metadataDiscovered: true,
       supportsClientMetadataDocument:
         metadata.client_id_metadata_document_supported === true,
     };
@@ -729,6 +732,7 @@ async function discoverMcpAuthorizationServerDetails(serverUrl: string) {
     return {
       authorizationServer: authorizationServer.toString(),
       hasRegistrationEndpoint: false,
+      metadataDiscovered: false,
       supportsClientMetadataDocument: false,
     };
   }
