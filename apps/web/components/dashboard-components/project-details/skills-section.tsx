@@ -95,9 +95,11 @@ function SkillsSkeleton() {
             <div className="h-4 w-32 bg-muted animate-pulse rounded" />
             <div className="h-3 w-48 bg-muted animate-pulse rounded" />
           </div>
-          <div className="h-6 w-11 bg-muted animate-pulse rounded-full" />
-          <div className="h-8 w-8 bg-muted animate-pulse rounded-md" />
-          <div className="h-8 w-8 bg-muted animate-pulse rounded-md" />
+          <div className="flex items-center gap-2">
+            <div className="h-5 w-9 bg-muted animate-pulse rounded-full" />
+            <div className="h-8 w-8 bg-muted animate-pulse rounded-md" />
+            <div className="h-8 w-8 bg-muted animate-pulse rounded-md" />
+          </div>
         </div>
       ))}
     </div>
