@@ -28,7 +28,7 @@ export function SkillCard({
   onDelete,
 }: SkillCardProps) {
   return (
-    <div className="flex items-center gap-3 py-3 px-2 border-b last:border-b-0">
+    <div className="flex items-center gap-3 py-3 border-b last:border-b-0">
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium truncate">{name}</p>
         <p className="text-xs text-muted-foreground truncate hidden sm:block">

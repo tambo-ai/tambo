@@ -90,7 +90,7 @@ function SkillsSkeleton() {
   return (
     <div className="space-y-3">
       {Array.from({ length: 3 }).map((_, i) => (
-        <div key={i} className="flex items-center gap-3 py-3 px-2">
+        <div key={i} className="flex items-center gap-3 py-3">
           <div className="flex-1 space-y-1">
             <div className="h-4 w-32 bg-muted animate-pulse rounded" />
             <div className="h-3 w-48 bg-muted animate-pulse rounded" />
