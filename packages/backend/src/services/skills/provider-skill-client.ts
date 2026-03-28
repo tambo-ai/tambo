@@ -138,7 +138,7 @@ async function uploadToAnthropic(
   const client = new Anthropic({ apiKey });
 
   const content = formatSkillMd(skill);
-  const file = new File([content], "SKILL.md", {
+  const file = new File([content], `${skill.name}/SKILL.md`, {
     type: "text/markdown",
   });
 
