@@ -289,7 +289,7 @@ export function convertAssistantMessage(
   // not the text content to send to the LLM. Always use message.content for the
   // actual text content.
   message.content.forEach((part) => {
-    if (part.type === ContentPartType.Text) {
+    if (part.type === ContentPartType.Text && part.text.trim()) {
       content.push({ type: "text", text: part.text });
     }
   });
