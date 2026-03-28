@@ -64,6 +64,13 @@
       "onFail": "error"
     }
   },
+  "//overrides": "@ai-sdk/openai v3 is required for openai.tools.shell() used by skills runtime (mergeProviderSkills in ai-sdk-client.ts). @copilotkit/runtime pulls in v2 which gets hoisted to root, so we pin v3 here to ensure all packages resolve the same version.",
+  "overrides": {
+    "@ai-sdk/openai": "$@ai-sdk/openai"
+  },
+  "dependencies": {
+    "@ai-sdk/openai": "^3.0.48"
+  },
   "volta": {
     "node": "22.22.0",
     "npm": "11.7.0"

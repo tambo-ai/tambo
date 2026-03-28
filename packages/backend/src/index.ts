@@ -35,5 +35,10 @@ export {
 } from "./tambo-backend";
 export { type DecisionStreamItem } from "./services/decision-loop/decision-loop-service";
 export { sanitizeEvent } from "./util/event-sanitization";
-export { deleteSkillFromProvider } from "./services/skills/provider-skill-client";
+export {
+  deleteSkillFromProvider,
+  uploadSkillToProvider,
+  formatSkillMd,
+  providerSupportsSkills,
+} from "./services/skills/provider-skill-client";
 export * from "./util/tambo-custom-events";

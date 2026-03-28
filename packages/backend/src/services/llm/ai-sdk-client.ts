@@ -334,6 +334,7 @@ export class AISdkClient implements LLMClient {
           skills: skillConfig.skills.map((s) => ({
             type: "skillReference" as const,
             skillId: s.skillId,
+            version: s.version,
           })),
         },
       });
@@ -648,8 +649,14 @@ export class AISdkClient implements LLMClient {
           }
           break;
         case "tool-result":
-          // Tambo should be handling all tool results, not operating like an agent
-          throw new Error("Tool result should not be emitted during streaming");
+          // Provider-managed tools (e.g. OpenAI shell for skills) return results
+          // inline in the stream. These are handled by the provider, not Tambo.
+          if (!("providerExecuted" in delta) || !delta.providerExecuted) {
+            throw new Error(
+              "Tool result should not be emitted during streaming",
+            );
+          }
+          break;
         case "tool-error":
           throw delta.error;
         case "reasoning-start":

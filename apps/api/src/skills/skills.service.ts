@@ -4,17 +4,17 @@ import {
   type ProviderSkillReference,
 } from "@tambo-ai-cloud/core";
 import { type HydraDatabase, operations, schema } from "@tambo-ai-cloud/db";
-import { deleteSkillFromProvider } from "@tambo-ai-cloud/backend";
-import Anthropic from "@anthropic-ai/sdk";
-import OpenAI from "openai";
+import {
+  deleteSkillFromProvider,
+  uploadSkillToProvider,
+  providerSupportsSkills,
+} from "@tambo-ai-cloud/backend";
 import { DATABASE } from "../common/database-provider";
 
-/** Providers that support the skills API. */
-const SKILL_PROVIDERS = new Set(["openai", "anthropic"]);
-
 /**
- * Service for managing skills on provider APIs (OpenAI, Anthropic)
- * using their official SDKs.
+ * Service for managing skills on provider APIs (OpenAI, Anthropic).
+ * Delegates to shared helpers in @tambo-ai-cloud/backend for the actual
+ * provider API calls.
  */
 @Injectable()
 export class SkillsService {
@@ -30,7 +30,7 @@ export class SkillsService {
    * @returns Whether the provider has a skills upload endpoint.
    */
   supportsSkills(providerName: string): boolean {
-    return SKILL_PROVIDERS.has(providerName);
+    return providerSupportsSkills(providerName);
   }
 
   /**
@@ -46,15 +46,7 @@ export class SkillsService {
     providerName: string;
     apiKey: string;
   }): Promise<ProviderSkillReference> {
-    if (providerName === "openai") {
-      return await this.uploadToOpenAI(skill, apiKey);
-    }
-
-    if (providerName === "anthropic") {
-      return await this.uploadToAnthropic(skill, apiKey);
-    }
-
-    throw new Error(`Provider ${providerName} does not support skills`);
+    return await uploadSkillToProvider({ skill, providerName, apiKey });
   }
 
   /**
@@ -128,78 +120,5 @@ export class SkillsService {
         `Failed to delete skill ${skill.id} from ${providerName}: ${error}`,
       );
     }
-  }
-
-  /**
-   * Upload a skill to OpenAI using the official SDK.
-   * @returns The provider skill reference with skillId and version.
-   */
-  private async uploadToOpenAI(
-    skill: schema.DBSkill,
-    apiKey: string,
-  ): Promise<ProviderSkillReference> {
-    const client = new OpenAI({ apiKey });
-
-    const skillMdContent = this.formatSkillMd(skill);
-    const file = new File([skillMdContent], "SKILL.md", {
-      type: "text/markdown",
-    });
-
-    const result = await client.skills.create({
-      files: [file],
-    });
-
-    return {
-      skillId: result.id,
-      uploadedAt: new Date().toISOString(),
-      version: result.latest_version ?? "1",
-    };
-  }
-
-  /**
-   * Upload a skill to Anthropic using the official SDK.
-   * @returns The provider skill reference with skillId and version.
-   */
-  private async uploadToAnthropic(
-    skill: schema.DBSkill,
-    apiKey: string,
-  ): Promise<ProviderSkillReference> {
-    const client = new Anthropic({ apiKey });
-
-    const skillMdContent = this.formatSkillMd(skill);
-    const file = new File([skillMdContent], "SKILL.md", {
-      type: "text/markdown",
-    });
-
-    const result = await client.beta.skills.create({
-      display_title: skill.name,
-      files: [file],
-    });
-
-    return {
-      skillId: result.id,
-      uploadedAt: new Date().toISOString(),
-      version: result.latest_version ?? "1",
-    };
-  }
-
-  /**
-   * Format a skill as SKILL.md content for upload.
-   * @returns The formatted SKILL.md string.
-   */
-  private formatSkillMd(skill: schema.DBSkill): string {
-    const escapedDescription = skill.description
-      .replace(/\\/g, "\\\\")
-      .replace(/"/g, '\\"')
-      .replace(/\r/g, "")
-      .replace(/\n/g, " ");
-    return [
-      "---",
-      `name: ${skill.name}`,
-      `description: "${escapedDescription}"`,
-      "---",
-      "",
-      skill.instructions,
-    ].join("\n");
   }
 }

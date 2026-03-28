@@ -1,4 +1,8 @@
-import { deleteSkillFromProvider } from "./provider-skill-client";
+import {
+  deleteSkillFromProvider,
+  formatSkillMd,
+  providerSupportsSkills,
+} from "./provider-skill-client";
 
 // Mock the OpenAI SDK
 jest.mock("openai", () => {
@@ -78,5 +82,50 @@ describe("deleteSkillFromProvider", () => {
         apiKey: "test-key",
       }),
     ).rejects.toThrow("API rate limited");
+  });
+});
+
+describe("providerSupportsSkills", () => {
+  it("returns true for openai and anthropic", () => {
+    expect(providerSupportsSkills("openai")).toBe(true);
+    expect(providerSupportsSkills("anthropic")).toBe(true);
+  });
+
+  it("returns false for unsupported providers", () => {
+    expect(providerSupportsSkills("mistral")).toBe(false);
+    expect(providerSupportsSkills("groq")).toBe(false);
+  });
+});
+
+describe("formatSkillMd", () => {
+  it("formats a skill as SKILL.md with frontmatter", () => {
+    const result = formatSkillMd({
+      name: "my-skill",
+      description: "Does cool stuff",
+      instructions: "Step 1: do the thing\nStep 2: done",
+    });
+
+    expect(result).toBe(
+      [
+        "---",
+        "name: my-skill",
+        'description: "Does cool stuff"',
+        "---",
+        "",
+        "Step 1: do the thing\nStep 2: done",
+      ].join("\n"),
+    );
+  });
+
+  it("escapes special characters in description", () => {
+    const result = formatSkillMd({
+      name: "test",
+      description: 'Has "quotes" and \\ backslashes\nand newlines',
+      instructions: "test",
+    });
+
+    expect(result).toContain(
+      'description: "Has \\"quotes\\" and \\\\ backslashes and newlines"',
+    );
   });
 });

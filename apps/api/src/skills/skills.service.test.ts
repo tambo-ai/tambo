@@ -8,35 +8,18 @@ import { DATABASE } from "../common/database-provider";
 import { createTestingModule } from "../test/utils/create-testing-module";
 import { SkillsService } from "./skills.service";
 
-// Mock provider SDKs
-// Note: resetMocks is true in jest config, so mockImplementation must be
-// re-applied each test. We use a factory that captures the per-test mock fns.
-let mockOpenAISkillsCreate: jest.Mock;
-let mockAnthropicSkillsCreate: jest.Mock;
+// Mock backend helpers
+let mockUploadSkillToProvider: jest.Mock;
+let mockDeleteSkillFromProvider: jest.Mock;
+let mockProviderSupportsSkills: jest.Mock;
 
-jest.mock("openai", () => {
-  return class MockOpenAI {
-    skills = {
-      create: (...args: unknown[]) => mockOpenAISkillsCreate(...args),
-    };
-  };
-});
-
-jest.mock("@anthropic-ai/sdk", () => {
-  return class MockAnthropic {
-    beta = {
-      skills: {
-        create: (...args: unknown[]) => mockAnthropicSkillsCreate(...args),
-      },
-    };
-  };
-});
-
-// Mock deleteSkillFromProvider from backend
-const mockDeleteSkillFromProvider = jest.fn();
 jest.mock("@tambo-ai-cloud/backend", () => ({
+  uploadSkillToProvider: (...args: unknown[]) =>
+    mockUploadSkillToProvider(...args),
   deleteSkillFromProvider: (...args: unknown[]) =>
     mockDeleteSkillFromProvider(...args),
+  providerSupportsSkills: (...args: unknown[]) =>
+    mockProviderSupportsSkills(...args),
 }));
 
 // Mock DB operations
@@ -79,8 +62,11 @@ describe("SkillsService", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockDb = {} as HydraDatabase;
-    mockOpenAISkillsCreate = jest.fn();
-    mockAnthropicSkillsCreate = jest.fn();
+    mockUploadSkillToProvider = jest.fn();
+    mockDeleteSkillFromProvider = jest.fn();
+    mockProviderSupportsSkills = jest.fn((name: string) =>
+      ["openai", "anthropic"].includes(name),
+    );
   });
 
   async function createService(): Promise<{
@@ -124,11 +110,13 @@ describe("SkillsService", () => {
   });
 
   describe("uploadToProvider", () => {
-    it("uploads to OpenAI and returns provider reference", async () => {
-      mockOpenAISkillsCreate.mockResolvedValue({
-        id: "oai-skill-1",
-        latest_version: "v2",
-      });
+    it("delegates to uploadSkillToProvider and returns the result", async () => {
+      const ref: ProviderSkillReference = {
+        skillId: "oai-skill-1",
+        uploadedAt: "2026-01-01T00:00:00Z",
+        version: "v2",
+      };
+      mockUploadSkillToProvider.mockResolvedValue(ref);
 
       const { service, module } = await createService();
       try {
@@ -139,72 +127,12 @@ describe("SkillsService", () => {
           apiKey: "sk-test",
         });
 
-        expect(result.skillId).toBe("oai-skill-1");
-        expect(result.version).toBe("v2");
-        expect(result.uploadedAt).toBeDefined();
-        expect(mockOpenAISkillsCreate).toHaveBeenCalledWith({
-          files: [expect.any(File)],
-        });
-      } finally {
-        await module.close();
-      }
-    });
-
-    it("uploads to Anthropic and returns provider reference", async () => {
-      mockAnthropicSkillsCreate.mockResolvedValue({
-        id: "ant-skill-1",
-        latest_version: "v1",
-      });
-
-      const { service, module } = await createService();
-      try {
-        const skill = makeSkill();
-        const result = await service.uploadToProvider({
+        expect(result).toBe(ref);
+        expect(mockUploadSkillToProvider).toHaveBeenCalledWith({
           skill,
-          providerName: "anthropic",
-          apiKey: "sk-ant-test",
-        });
-
-        expect(result.skillId).toBe("ant-skill-1");
-        expect(result.version).toBe("v1");
-        expect(mockAnthropicSkillsCreate).toHaveBeenCalledWith({
-          display_title: "test-skill",
-          files: [expect.any(File)],
-        });
-      } finally {
-        await module.close();
-      }
-    });
-
-    it("defaults version to '1' when latest_version is absent", async () => {
-      mockOpenAISkillsCreate.mockResolvedValue({
-        id: "oai-skill-2",
-      });
-
-      const { service, module } = await createService();
-      try {
-        const result = await service.uploadToProvider({
-          skill: makeSkill(),
           providerName: "openai",
           apiKey: "sk-test",
         });
-
-        expect(result.version).toBe("1");
-      } finally {
-        await module.close();
-      }
-    });
-
-    it("throws for unsupported provider", async () => {
-      const { service, module } = await createService();
-      try {
-        await expect(
-          service.uploadToProvider({
-            skill: makeSkill(),
-            providerName: "mistral",
-            apiKey: "sk-test",
-          }),
-        ).rejects.toThrow("Provider mistral does not support skills");
       } finally {
         await module.close();
       }
@@ -231,7 +159,7 @@ describe("SkillsService", () => {
         });
 
         expect(result).toBe(existing);
-        expect(mockOpenAISkillsCreate).not.toHaveBeenCalled();
+        expect(mockUploadSkillToProvider).not.toHaveBeenCalled();
         expect(mockedOperations.updateSkill).not.toHaveBeenCalled();
       } finally {
         await module.close();
@@ -239,9 +167,10 @@ describe("SkillsService", () => {
     });
 
     it("uploads and persists metadata when not present", async () => {
-      mockOpenAISkillsCreate.mockResolvedValue({
-        id: "oai-new",
-        latest_version: "1",
+      mockUploadSkillToProvider.mockResolvedValue({
+        skillId: "oai-new",
+        uploadedAt: "2026-01-01T00:00:00Z",
+        version: "1",
       });
 
       const skill = makeSkill();
@@ -276,9 +205,10 @@ describe("SkillsService", () => {
         externalSkillMetadata: { anthropic: anthropicMeta },
       });
 
-      mockOpenAISkillsCreate.mockResolvedValue({
-        id: "oai-new",
-        latest_version: "1",
+      mockUploadSkillToProvider.mockResolvedValue({
+        skillId: "oai-new",
+        uploadedAt: "2026-01-01T00:00:00Z",
+        version: "1",
       });
 
       const { service, module } = await createService();
@@ -373,51 +303,6 @@ describe("SkillsService", () => {
         });
 
         expect(mockDeleteSkillFromProvider).toHaveBeenCalled();
-      } finally {
-        await module.close();
-      }
-    });
-  });
-
-  describe("formatSkillMd", () => {
-    it("formats a skill as SKILL.md with frontmatter", async () => {
-      const { service, module } = await createService();
-      try {
-        const skill = makeSkill({
-          name: "my-skill",
-          description: "Does cool stuff",
-          instructions: "Step 1: do the thing\nStep 2: done",
-        });
-
-        const result = (service as any).formatSkillMd(skill);
-
-        expect(result).toBe(
-          [
-            "---",
-            "name: my-skill",
-            'description: "Does cool stuff"',
-            "---",
-            "",
-            "Step 1: do the thing\nStep 2: done",
-          ].join("\n"),
-        );
-      } finally {
-        await module.close();
-      }
-    });
-
-    it("escapes special characters in description", async () => {
-      const { service, module } = await createService();
-      try {
-        const skill = makeSkill({
-          description: 'Has "quotes" and \\ backslashes\nand newlines',
-        });
-
-        const result = (service as any).formatSkillMd(skill);
-
-        expect(result).toContain(
-          'description: "Has \\"quotes\\" and \\\\ backslashes and newlines"',
-        );
       } finally {
         await module.close();
       }
