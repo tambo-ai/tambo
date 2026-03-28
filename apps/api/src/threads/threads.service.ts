@@ -1836,16 +1836,18 @@ export class ThreadsService {
             (tool) => getToolName(tool) === toolCallRequest.toolName,
           );
           if (!originalTool) {
-            // This should never happen, because the original tools are part of this same callchain, it would
-            // have to have been filtered out during the decision loop.
-            throw new Error(
-              `Original tool not found for tool call request: ${toolCallRequest.toolName}`,
+            // Provider-managed tools (e.g. code_execution from Anthropic skills,
+            // shell from OpenAI skills) are injected by the AI SDK and not in
+            // Tambo's original tool list. Skip unstrictify for these.
+            this.logger.log(
+              `Skipping unstrictify for provider-managed tool: ${toolCallRequest.toolName}`,
+            );
+          } else {
+            currentThreadMessage.toolCallRequest = unstrictifyToolCallRequest(
+              originalTool,
+              toolCallRequest,
             );
           }
-          currentThreadMessage.toolCallRequest = unstrictifyToolCallRequest(
-            originalTool,
-            toolCallRequest,
-          );
         }
         chunkCount++;
         if (!ttfbEnded) {
