@@ -1,7 +1,7 @@
-import { NotFoundException } from "@nestjs/common";
+import { ConflictException, NotFoundException } from "@nestjs/common";
 import { Test, TestingModule } from "@nestjs/testing";
 import type { ExternalSkillMetadata } from "@tambo-ai-cloud/core";
-import type { HydraDatabase } from "@tambo-ai-cloud/db";
+import { SkillNameConflictError, type HydraDatabase } from "@tambo-ai-cloud/db";
 import { DATABASE } from "../common/database-provider";
 import { ApiKeyGuard } from "../projects/guards/apikey.guard";
 import { BearerTokenGuard } from "../projects/guards/bearer-token.guard";
@@ -118,6 +118,20 @@ describe("SkillsController", () => {
         },
       );
     });
+
+    it("throws ConflictException on duplicate name", async () => {
+      mockedOperations.createSkill.mockRejectedValue(
+        new SkillNameConflictError("my-skill"),
+      );
+
+      await expect(
+        controller.create("proj-1", {
+          name: "my-skill",
+          description: "A skill",
+          instructions: "Do the thing",
+        }),
+      ).rejects.toThrow(ConflictException);
+    });
   });
 
   describe("list", () => {
@@ -198,6 +212,16 @@ describe("SkillsController", () => {
       await expect(
         controller.update("proj-1", "sk-missing", { name: "nope" }),
       ).rejects.toThrow(NotFoundException);
+    });
+
+    it("throws ConflictException on duplicate name", async () => {
+      mockedOperations.updateSkill.mockRejectedValue(
+        new SkillNameConflictError("existing-name"),
+      );
+
+      await expect(
+        controller.update("proj-1", "sk-1", { name: "existing-name" }),
+      ).rejects.toThrow(ConflictException);
     });
   });
 

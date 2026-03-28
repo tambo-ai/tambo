@@ -1,5 +1,6 @@
 import {
   Body,
+  ConflictException,
   Controller,
   Delete,
   Get,
@@ -12,7 +13,11 @@ import {
   UseGuards,
 } from "@nestjs/common";
 import { ApiOperation, ApiParam, ApiSecurity, ApiTags } from "@nestjs/swagger";
-import { type HydraDatabase, operations } from "@tambo-ai-cloud/db";
+import {
+  type HydraDatabase,
+  operations,
+  SkillNameConflictError,
+} from "@tambo-ai-cloud/db";
 import { DATABASE } from "../common/database-provider";
 import { SkillsService } from "./skills.service";
 import { ProjectsService } from "../projects/projects.service";
@@ -49,12 +54,19 @@ export class SkillsController {
     @Param("projectId") projectId: string,
     @Body() dto: CreateSkillDto,
   ) {
-    return await operations.createSkill(this.db, {
-      projectId,
-      name: dto.name,
-      description: dto.description,
-      instructions: dto.instructions,
-    });
+    try {
+      return await operations.createSkill(this.db, {
+        projectId,
+        name: dto.name,
+        description: dto.description,
+        instructions: dto.instructions,
+      });
+    } catch (error) {
+      if (error instanceof SkillNameConflictError) {
+        throw new ConflictException(error.message);
+      }
+      throw error;
+    }
   }
 
   @ProjectIdParameterKey("projectId")
@@ -100,15 +112,23 @@ export class SkillsController {
       dto.description !== undefined ||
       dto.instructions !== undefined;
 
-    const updated = await operations.updateSkill(this.db, {
-      projectId,
-      skillId,
-      name: dto.name,
-      description: dto.description,
-      instructions: dto.instructions,
-      enabled: dto.enabled,
-      ...(contentChanged ? { externalSkillMetadata: {} } : {}),
-    });
+    let updated;
+    try {
+      updated = await operations.updateSkill(this.db, {
+        projectId,
+        skillId,
+        name: dto.name,
+        description: dto.description,
+        instructions: dto.instructions,
+        enabled: dto.enabled,
+        ...(contentChanged ? { externalSkillMetadata: {} } : {}),
+      });
+    } catch (error) {
+      if (error instanceof SkillNameConflictError) {
+        throw new ConflictException(error.message);
+      }
+      throw error;
+    }
     if (!updated) {
       throw new NotFoundException(`Skill ${skillId} not found`);
     }
