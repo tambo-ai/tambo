@@ -1,6 +1,5 @@
 import { type ExternalSkillMetadata } from "@tambo-ai-cloud/core";
 import { and, desc, eq, sql } from "drizzle-orm";
-import { DatabaseError } from "pg-protocol";
 import * as schema from "../schema";
 import type { DBSkill } from "../schema";
 import type { HydraDb } from "../types";
@@ -14,11 +13,27 @@ const PG_UNIQUE_VIOLATION = "23505";
 /** Constraint name from schema.ts */
 const SKILLS_NAME_UNIQUE_CONSTRAINT = "skills_project_id_name_idx";
 
+/**
+ * Check if an error (or its cause) is a unique violation on the skills name constraint.
+ * Drizzle wraps pg errors in DrizzleQueryError with the original on `.cause`.
+ * We duck-type rather than using instanceof since duplicate pg-protocol copies
+ * in node_modules break class identity checks.
+ */
 function isSkillNameConflict(error: unknown): boolean {
+  const err = error as { code?: string; constraint?: string; cause?: unknown };
+  // Check the error itself first, then its .cause (DrizzleQueryError wrapping)
+  if (
+    err?.code === PG_UNIQUE_VIOLATION &&
+    err?.constraint === SKILLS_NAME_UNIQUE_CONSTRAINT
+  ) {
+    return true;
+  }
+  const cause = err?.cause as
+    | { code?: string; constraint?: string }
+    | undefined;
   return (
-    error instanceof DatabaseError &&
-    error.code === PG_UNIQUE_VIOLATION &&
-    error.constraint === SKILLS_NAME_UNIQUE_CONSTRAINT
+    cause?.code === PG_UNIQUE_VIOLATION &&
+    cause?.constraint === SKILLS_NAME_UNIQUE_CONSTRAINT
   );
 }
 
