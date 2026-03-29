@@ -71,6 +71,17 @@ describe("mcp-oauth-client", () => {
     ).toBe(true);
   });
 
+  it("derives the metadata document URL from the redirect origin", () => {
+    expect(
+      hasCompatibleMcpOAuthClientRedirect(
+        {
+          client_id: "https://console.tambo.co/oauth/client-metadata",
+        },
+        "https://console.tambo.co/oauth/callback?sessionId=current",
+      ),
+    ).toBe(true);
+  });
+
   it("rejects URL-based client IDs from a different origin", () => {
     expect(
       hasCompatibleMcpOAuthClientRedirect(

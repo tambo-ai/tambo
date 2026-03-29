@@ -24,6 +24,10 @@ function getClientUri(baseUrl: string): string {
   return new URL("/", parseBaseUrl(baseUrl)).toString();
 }
 
+function getBaseUrlFromRedirectUrl(redirectUrl: string): string {
+  return new URL("/", redirectUrl).toString();
+}
+
 export function canUseMcpOAuthRedirectBaseUrl(baseUrl: string): boolean {
   const parsedBaseUrl = parseBaseUrl(baseUrl);
   const hostname = normalizeHostname(parsedBaseUrl.hostname);
@@ -88,7 +92,7 @@ export function buildMcpOAuthClientMetadataDocument({
 
 export function hasCompatibleMcpOAuthClientRedirect(
   clientInformation: OAuthClientInformationMixed | undefined,
-  redirectUrl: string,
+  expectedRedirectUrl: string,
 ): boolean {
   if (!clientInformation) {
     return false;
@@ -101,11 +105,13 @@ export function hasCompatibleMcpOAuthClientRedirect(
 
     return (
       clientInformation.client_id ===
-      buildMcpOAuthClientMetadataUrl(redirectUrl)
+      buildMcpOAuthClientMetadataUrl(
+        getBaseUrlFromRedirectUrl(expectedRedirectUrl),
+      )
     );
   }
 
-  return clientInformation.redirect_uris.includes(redirectUrl);
+  return clientInformation.redirect_uris.includes(expectedRedirectUrl);
 }
 
 function isTamboMcpOAuthClientId(clientId: string): boolean {
