@@ -723,25 +723,46 @@ function buildManualClientRegistrationResponse(
   reason: "dcr_failed" | "registration_not_available",
 ) {
   const suggestedClientMetadata = buildMcpOAuthClientMetadata({ baseUrl });
+  assertSuggestedClientMetadataFields(suggestedClientMetadata);
 
   return {
     status: "manual_client_registration_required" as const,
     authorizationServer,
     reason,
     suggestedClientMetadata: {
-      clientName: suggestedClientMetadata.client_name ?? "Tambo Cloud",
-      clientUri: suggestedClientMetadata.client_uri ?? baseUrl,
+      clientName: suggestedClientMetadata.client_name,
+      clientUri: suggestedClientMetadata.client_uri,
       redirectUris: suggestedClientMetadata.redirect_uris,
-      grantTypes: suggestedClientMetadata.grant_types ?? [],
-      responseTypes: suggestedClientMetadata.response_types ?? [],
+      grantTypes: suggestedClientMetadata.grant_types,
+      responseTypes: suggestedClientMetadata.response_types,
       tokenEndpointAuthMethod:
-        suggestedClientMetadata.token_endpoint_auth_method ?? "none",
+        suggestedClientMetadata.token_endpoint_auth_method,
       applicationType: suggestedClientMetadata.application_type,
       clientMetadataUrl: canUseMcpOAuthClientMetadataUrl(baseUrl)
         ? buildMcpOAuthClientMetadataUrl(baseUrl)
         : undefined,
     },
   };
+}
+
+function assertSuggestedClientMetadataFields(
+  metadata: ReturnType<typeof buildMcpOAuthClientMetadata>,
+): asserts metadata is ReturnType<typeof buildMcpOAuthClientMetadata> & {
+  client_name: string;
+  client_uri: string;
+  grant_types: string[];
+  response_types: string[];
+  token_endpoint_auth_method: string;
+} {
+  if (
+    metadata.client_name === undefined ||
+    metadata.client_uri === undefined ||
+    metadata.grant_types === undefined ||
+    metadata.response_types === undefined ||
+    metadata.token_endpoint_auth_method === undefined
+  ) {
+    throw new Error("MCP OAuth client metadata is missing required fields");
+  }
 }
 
 function getErrorMessage(error: unknown): string {
