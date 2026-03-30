@@ -9,7 +9,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { UseQueryOptions } from "@tanstack/react-query";
-import TamboAI, { APIError } from "@tambo-ai/typescript-sdk";
+import type TamboAI from "@tambo-ai/typescript-sdk";
 import type {
   SuggestionCreateResponse,
   SuggestionListResponse,
@@ -239,7 +239,13 @@ export function useTamboSuggestions(
     // immediately after a run completes.
     retry: (failureCount, error) => {
       if (failureCount >= 3) return false;
-      return error instanceof APIError && error.status === 404;
+      // Use structural check instead of instanceof to handle duplicate SDK copies
+      // where the APIError constructor identity may differ between packages.
+      const status =
+        typeof error === "object" && error !== null && "status" in error
+          ? (error as { status: unknown }).status
+          : undefined;
+      return status === 404;
     },
     retryDelay: (attemptIndex) => Math.min(500 * 2 ** attemptIndex, 3000),
   });

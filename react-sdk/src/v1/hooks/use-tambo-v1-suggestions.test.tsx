@@ -1,7 +1,7 @@
 import { renderHook, act, waitFor } from "@testing-library/react";
 import React from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import TamboAI, { APIError } from "@tambo-ai/typescript-sdk";
+import type TamboAI from "@tambo-ai/typescript-sdk";
 import { useTamboSuggestions } from "./use-tambo-v1-suggestions";
 import { useTamboThreadInput } from "./use-tambo-v1-thread-input";
 import { useTambo } from "./use-tambo-v1";
@@ -641,12 +641,11 @@ describe("useTamboSuggestions", () => {
 
   describe("Retry on 404", () => {
     it("retries list query on 404 and succeeds on subsequent attempt", async () => {
-      const notFoundError = APIError.generate(
-        404,
-        { message: "Message not found" },
-        "Message not found",
-        new Headers(),
-      );
+      // Use a plain object with status to verify structural check works
+      // (simulates duplicate SDK copy where instanceof would fail)
+      const notFoundError = Object.assign(new Error("Message not found"), {
+        status: 404,
+      });
 
       // First call: 404, second call: success with empty suggestions
       mockListSuggestions
@@ -692,12 +691,9 @@ describe("useTamboSuggestions", () => {
     });
 
     it("does not retry on non-404 errors", async () => {
-      const serverError = APIError.generate(
-        500,
-        { message: "Internal server error" },
-        "Internal server error",
-        new Headers(),
-      );
+      const serverError = Object.assign(new Error("Internal server error"), {
+        status: 500,
+      });
 
       mockListSuggestions.mockRejectedValue(serverError);
 
