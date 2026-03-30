@@ -104,11 +104,40 @@ describe("mcp-oauth-registration", () => {
     ).toBe(false);
   });
 
-  it("still recognizes registration-specific validation failures", () => {
+  it("logs when the fallback heuristic classifies a client metadata validation error", () => {
+    const warnSpy = jest
+      .spyOn(console, "warn")
+      .mockImplementation(() => undefined);
+
     expect(
       isManualMcpClientRegistrationRequiredError(
         new Error("client metadata response_types value is invalid"),
       ),
     ).toBe(true);
+
+    expect(warnSpy).toHaveBeenCalledWith(
+      "Heuristically classified MCP OAuth error as requiring manual client registration",
+      {
+        message: "client metadata response_types value is invalid",
+      },
+    );
+
+    warnSpy.mockRestore();
+  });
+
+  it("does not require manual registration for registration endpoint connectivity failures", () => {
+    expect(
+      isManualMcpClientRegistrationRequiredError(
+        new Error("Failed to connect to registration endpoint"),
+      ),
+    ).toBe(false);
+  });
+
+  it("does not require manual registration for unrelated response_types errors", () => {
+    expect(
+      isManualMcpClientRegistrationRequiredError(
+        new Error("Invalid response_types in token response"),
+      ),
+    ).toBe(false);
   });
 });

@@ -275,6 +275,44 @@ describe("toolsRouter.authorizeMcpServer", () => {
     expect(spies.update).not.toHaveBeenCalled();
   });
 
+  it("keeps generic registration endpoint failures on the standard auth error path", async () => {
+    const { db, spies } = createDbMock({
+      toolProviderUserContext: {
+        id: "ctx_123",
+        mcpOauthClientInfo: null,
+        mcpOauthTokens: null,
+      },
+    });
+
+    discoverOAuthProtectedResourceMetadataMock.mockResolvedValue(
+      createProtectedResourceMetadata({
+        authorization_servers: ["https://auth.example.com"],
+      }),
+    );
+    discoverAuthorizationServerMetadataMock.mockResolvedValue(
+      createAuthorizationServerMetadata({
+        registration_endpoint: "https://auth.example.com/register",
+      }),
+    );
+    authMock.mockRejectedValue(
+      new Error("Failed to connect to registration endpoint"),
+    );
+    const caller = createCaller(createContext(db as unknown as Context["db"]));
+
+    await expect(
+      caller.authorizeMcpServer({
+        toolProviderId: "tp_123",
+        contextKey: null,
+      }),
+    ).rejects.toThrow(
+      "MCP authorization failed: Failed to connect to registration endpoint",
+    );
+
+    expect(warnSpy).not.toHaveBeenCalled();
+    expect(spies.deleteFn).toHaveBeenCalledTimes(1);
+    expect(spies.update).not.toHaveBeenCalled();
+  });
+
   it("logs resource metadata discovery failures before requiring manual registration", async () => {
     const { db } = createDbMock({
       toolProviderUserContext: {

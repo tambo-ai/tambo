@@ -53,15 +53,49 @@ export function isManualMcpClientRegistrationRequiredError(
     return false;
   }
 
-  const message = getErrorMessage(error).toLowerCase();
+  const message = getErrorMessage(error);
+  const normalizedMessage = message.toLowerCase();
+
+  if (!isManualMcpClientRegistrationHeuristicMatch(normalizedMessage)) {
+    return false;
+  }
+
+  console.warn(
+    "Heuristically classified MCP OAuth error as requiring manual client registration",
+    {
+      message,
+    },
+  );
+
+  return true;
+}
+
+function isManualMcpClientRegistrationHeuristicMatch(message: string): boolean {
+  const hasClientMetadataContext =
+    message.includes("client metadata") || message.includes("client details");
+
+  if (!hasClientMetadataContext) {
+    return false;
+  }
+
+  const hasValidationContext =
+    message.includes("invalid") ||
+    message.includes("missing") ||
+    message.includes("required") ||
+    message.includes("unsupported") ||
+    message.includes("must");
+
+  if (hasValidationContext) {
+    return true;
+  }
 
   return (
-    message.includes("registration") ||
-    message.includes("client details") ||
-    message.includes("client metadata") ||
     message.includes("client_id") ||
     message.includes("client id") ||
-    message.includes("response_types")
+    message.includes("redirect_uris") ||
+    message.includes("redirect uris") ||
+    message.includes("response_types") ||
+    message.includes("token_endpoint_auth_method")
   );
 }
 
