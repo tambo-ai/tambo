@@ -4,7 +4,7 @@
   "cli": "0.55.1",
   "create-tambo-app": "0.3.2",
   "docs": "1.32.1",
-  "packages/client": "1.0.4",
+  "packages/client": "1.0.5",
   "packages/react-ui-base": "0.1.6",
   "react-sdk": "1.2.4",
   "showcase": "0.37.5"
