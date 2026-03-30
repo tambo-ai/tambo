@@ -9,7 +9,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { UseQueryOptions } from "@tanstack/react-query";
-import type TamboAI from "@tambo-ai/typescript-sdk";
+import TamboAI, { APIError } from "@tambo-ai/typescript-sdk";
 import type {
   SuggestionCreateResponse,
   SuggestionListResponse,
@@ -239,8 +239,7 @@ export function useTamboSuggestions(
     // immediately after a run completes.
     retry: (failureCount, error) => {
       if (failureCount >= 3) return false;
-      const status = (error as { status?: number }).status;
-      return status === 404;
+      return error instanceof APIError && error.status === 404;
     },
     retryDelay: (attemptIndex) => Math.min(500 * 2 ** attemptIndex, 3000),
   });
