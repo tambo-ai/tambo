@@ -100,7 +100,32 @@ describe("/oauth/callback route", () => {
       error,
     });
     expect(response.headers.get("location")).toBe(
-      "https://console.tambo.co/oauth/error?error=token%20exchange%20failed",
+      "https://console.tambo.co/oauth/error?code=TokenExchangeFailed",
+    );
+
+    consoleErrorSpy.mockRestore();
+  });
+
+  it("maps provider error callbacks to the provider denied code", async () => {
+    const consoleErrorSpy = jest
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
+
+    const response = await GET(
+      new NextRequest(
+        "https://console.tambo.co/oauth/callback?error=access_denied&state=session_123",
+      ),
+    );
+
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      "OAuth callback returned provider error",
+      {
+        sessionId: "session_123",
+        error: "access_denied",
+      },
+    );
+    expect(response.headers.get("location")).toBe(
+      "https://console.tambo.co/oauth/error?code=ProviderDenied",
     );
 
     consoleErrorSpy.mockRestore();

@@ -1,6 +1,7 @@
 import { getBaseUrl } from "@/lib/base-url";
 import { env } from "@/lib/env";
 import { createFetchWithTimeout } from "@/lib/fetch-with-timeout";
+import { OAuthErrorCode, oauthErrorCodeSchema } from "@/lib/oauth-error";
 import { auth } from "@modelcontextprotocol/sdk/client/auth.js";
 import { getDb, OAuthLocalProvider, schema } from "@tambo-ai-cloud/db";
 import { eq } from "drizzle-orm";
@@ -15,6 +16,13 @@ export const callbackParamsSchema = z.object({
   redirect_uri: z.string().url().optional(),
   sessionId: z.string().min(1).optional(),
 });
+
+class OAuthCallbackRouteError extends Error {
+  constructor(readonly code: OAuthErrorCode) {
+    super(code);
+    this.name = "OAuthCallbackRouteError";
+  }
+}
 
 /**
  * Handler for OAuth callback
@@ -34,15 +42,15 @@ export async function GET(request: NextRequest) {
         sessionId,
         error: validatedParams.error,
       });
-      return redirectToOAuthError(request, validatedParams.error);
+      return redirectToOAuthError(request, "ProviderDenied");
     }
 
     if (!sessionId) {
-      throw new Error("OAuth session ID missing from callback state");
+      throw new OAuthCallbackRouteError("SessionExpired");
     }
 
     if (!validatedParams.code) {
-      throw new Error("Authorization code is required");
+      throw new OAuthCallbackRouteError("MissingAuthorizationCode");
     }
 
     const { code } = validatedParams;
@@ -63,7 +71,7 @@ export async function GET(request: NextRequest) {
     });
 
     if (!oauthClient) {
-      throw new Error("Session not found");
+      throw new OAuthCallbackRouteError("SessionExpired");
     }
 
     const oauthProvider = new OAuthLocalProvider(
@@ -98,16 +106,14 @@ export async function GET(request: NextRequest) {
     });
 
     if (error instanceof z.ZodError) {
-      // Format validation errors
-      const errorMessage = error.errors
-        .map((err) => `${err.path}: ${err.message}`)
-        .join(", ");
-      return redirectToOAuthError(request, errorMessage);
+      return redirectToOAuthError(request, "InvalidCallback");
     }
 
-    const errorMessage =
-      error instanceof Error ? error.message : "unknown_error";
-    return redirectToOAuthError(request, errorMessage);
+    if (error instanceof OAuthCallbackRouteError) {
+      return redirectToOAuthError(request, error.code);
+    }
+
+    return redirectToOAuthError(request, "TokenExchangeFailed");
   }
 }
 
@@ -128,10 +134,12 @@ function getPostAuthRedirect(
   return new URL(`/${projectId}/settings`, baseUrl).toString();
 }
 
-function redirectToOAuthError(request: NextRequest, errorMessage: string) {
+function redirectToOAuthError(request: NextRequest, code: OAuthErrorCode) {
+  const validatedCode = oauthErrorCodeSchema.parse(code);
+
   return NextResponse.redirect(
     new URL(
-      `/oauth/error?error=${encodeURIComponent(errorMessage)}`,
+      `/oauth/error?code=${encodeURIComponent(validatedCode)}`,
       request.url,
     ),
   );
