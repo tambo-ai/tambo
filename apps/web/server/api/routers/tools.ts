@@ -714,8 +714,11 @@ async function discoverMcpAuthorizationServerDetails(serverUrl: string) {
     if (discoveredAuthorizationServer) {
       authorizationServer = new URL(discoveredAuthorizationServer);
     }
-  } catch {
-    // Fall back to the server root, matching the MCP SDK's legacy behavior.
+  } catch (error) {
+    console.warn("Failed to discover OAuth resource metadata", {
+      serverUrl,
+      error: getErrorMessage(error),
+    });
   }
 
   try {
@@ -735,7 +738,12 @@ async function discoverMcpAuthorizationServerDetails(serverUrl: string) {
       supportsClientMetadataDocument:
         metadata.client_id_metadata_document_supported === true,
     };
-  } catch {
+  } catch (error) {
+    console.warn("Failed to discover OAuth authorization server metadata", {
+      authorizationServer: authorizationServer.toString(),
+      error: getErrorMessage(error),
+    });
+
     return {
       authorizationServer: authorizationServer.toString(),
       hasRegistrationEndpoint: false,

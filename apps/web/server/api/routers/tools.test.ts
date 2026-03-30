@@ -7,7 +7,11 @@ import {
   discoverOAuthProtectedResourceMetadata,
 } from "@modelcontextprotocol/sdk/client/auth.js";
 import { ServerError } from "@modelcontextprotocol/sdk/server/auth/errors.js";
-import { ToolProviderType } from "@tambo-ai-cloud/core";
+import {
+  MCP_OAUTH_AUTHORIZATION_STATUS_AUTHORIZED,
+  MCP_OAUTH_AUTHORIZATION_STATUS_MANUAL_CLIENT_REGISTRATION_REQUIRED,
+  ToolProviderType,
+} from "@tambo-ai-cloud/core";
 import { operations } from "@tambo-ai-cloud/db";
 import { toolsRouter } from "./tools";
 
@@ -80,6 +84,41 @@ const discoverOAuthProtectedResourceMetadataMock = jest.mocked(
 );
 
 const createCaller = createCallerFactory(toolsRouter);
+let warnSpy: jest.SpiedFunction<typeof console.warn>;
+
+function createAuthorizationServerMetadata(
+  overrides: Partial<
+    NonNullable<Awaited<ReturnType<typeof discoverAuthorizationServerMetadata>>>
+  > = {},
+): NonNullable<
+  Awaited<ReturnType<typeof discoverAuthorizationServerMetadata>>
+> {
+  return {
+    issuer: "https://auth.example.com",
+    authorization_endpoint: "https://auth.example.com/authorize",
+    token_endpoint: "https://auth.example.com/token",
+    jwks_uri: "https://auth.example.com/jwks",
+    response_types_supported: ["code"],
+    subject_types_supported: ["public"],
+    id_token_signing_alg_values_supported: ["RS256"],
+    ...overrides,
+  };
+}
+
+function createProtectedResourceMetadata(
+  overrides: Partial<
+    NonNullable<
+      Awaited<ReturnType<typeof discoverOAuthProtectedResourceMetadata>>
+    >
+  > = {},
+): NonNullable<
+  Awaited<ReturnType<typeof discoverOAuthProtectedResourceMetadata>>
+> {
+  return {
+    resource: "https://mcp.example.com",
+    ...overrides,
+  };
+}
 
 function createDbMock({
   toolProviderUserContext,
@@ -165,6 +204,7 @@ function createContext(db: Context["db"]): Context {
 describe("toolsRouter.authorizeMcpServer", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    warnSpy = jest.spyOn(console, "warn").mockImplementation(() => undefined);
     ensureProjectAccessMock.mockResolvedValue(undefined);
     createFetchWithTimeoutMock.mockReturnValue(jest.fn());
     discoverOAuthProtectedResourceMetadataMock.mockRejectedValue(
@@ -173,6 +213,10 @@ describe("toolsRouter.authorizeMcpServer", () => {
     discoverAuthorizationServerMetadataMock.mockRejectedValue(
       new Error("authorization metadata unavailable"),
     );
+  });
+
+  afterEach(() => {
+    warnSpy.mockRestore();
   });
 
   it("clears persisted OAuth state when reused auth state fails", async () => {
@@ -229,5 +273,80 @@ describe("toolsRouter.authorizeMcpServer", () => {
     expect(spies.deleteFn).toHaveBeenCalledTimes(1);
     expect(spies.deleteWhere).toHaveBeenCalledTimes(1);
     expect(spies.update).not.toHaveBeenCalled();
+  });
+
+  it("logs resource metadata discovery failures before requiring manual registration", async () => {
+    const { db } = createDbMock({
+      toolProviderUserContext: {
+        id: "ctx_123",
+        mcpOauthClientInfo: null,
+        mcpOauthTokens: null,
+      },
+    });
+
+    discoverAuthorizationServerMetadataMock.mockResolvedValue(
+      createAuthorizationServerMetadata({
+        client_id_metadata_document_supported: false,
+        registration_endpoint: undefined,
+      }),
+    );
+    const caller = createCaller(createContext(db as unknown as Context["db"]));
+
+    await expect(
+      caller.authorizeMcpServer({
+        toolProviderId: "tp_123",
+        contextKey: null,
+      }),
+    ).resolves.toMatchObject({
+      status:
+        MCP_OAUTH_AUTHORIZATION_STATUS_MANUAL_CLIENT_REGISTRATION_REQUIRED,
+    });
+
+    expect(authMock).not.toHaveBeenCalled();
+    expect(warnSpy).toHaveBeenCalledTimes(1);
+    expect(warnSpy).toHaveBeenCalledWith(
+      "Failed to discover OAuth resource metadata",
+      {
+        serverUrl: "https://mcp.example.com",
+        error: "resource metadata unavailable",
+      },
+    );
+  });
+
+  it("logs authorization server metadata discovery failures before falling back to DCR", async () => {
+    const { db } = createDbMock({
+      toolProviderUserContext: {
+        id: "ctx_123",
+        mcpOauthClientInfo: null,
+        mcpOauthTokens: null,
+      },
+    });
+
+    discoverOAuthProtectedResourceMetadataMock.mockResolvedValue(
+      createProtectedResourceMetadata({
+        authorization_servers: ["https://auth.example.com"],
+      }),
+    );
+    authMock.mockResolvedValue("AUTHORIZED");
+    const caller = createCaller(createContext(db as unknown as Context["db"]));
+
+    await expect(
+      caller.authorizeMcpServer({
+        toolProviderId: "tp_123",
+        contextKey: null,
+      }),
+    ).resolves.toMatchObject({
+      status: MCP_OAUTH_AUTHORIZATION_STATUS_AUTHORIZED,
+    });
+
+    expect(authMock).toHaveBeenCalledTimes(1);
+    expect(warnSpy).toHaveBeenCalledTimes(1);
+    expect(warnSpy).toHaveBeenCalledWith(
+      "Failed to discover OAuth authorization server metadata",
+      {
+        authorizationServer: "https://auth.example.com/",
+        error: "authorization metadata unavailable",
+      },
+    );
   });
 });
