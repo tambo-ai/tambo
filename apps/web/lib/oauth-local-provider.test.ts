@@ -7,6 +7,7 @@ function createDbMock({
   mcpOauthClient,
 }: {
   mcpOauthClient?: {
+    codeVerifier?: string | null;
     sessionInfo: { clientInformation: { client_id: string } };
   };
   toolProviderUserContext?: {
@@ -132,5 +133,31 @@ describe("OAuthLocalProvider", () => {
     expect(spies.insert).not.toHaveBeenCalled();
     expect(spies.toolProviderUserContextsFindFirst).toHaveBeenCalledTimes(1);
     expect(spies.mcpOauthClientsFindFirst).toHaveBeenCalledTimes(1);
+  });
+
+  it("reuses the cached OAuth session across client information and code verifier reads", async () => {
+    const { db, spies } = createDbMock({
+      mcpOauthClient: {
+        codeVerifier: "verifier_123",
+        sessionInfo: {
+          clientInformation: {
+            client_id: "client_123",
+          },
+        },
+      },
+    });
+    const provider = new OAuthLocalProvider(db, "ctx_123", {
+      serverUrl: "https://mcp.example.com",
+      sessionId: "11111111-1111-1111-1111-111111111111",
+      usePersistedContextState: false,
+    });
+
+    await expect(provider.clientInformation()).resolves.toEqual({
+      client_id: "client_123",
+    });
+    await expect(provider.codeVerifier()).resolves.toBe("verifier_123");
+
+    expect(spies.mcpOauthClientsFindFirst).toHaveBeenCalledTimes(1);
+    expect(spies.toolProviderUserContextsFindFirst).not.toHaveBeenCalled();
   });
 });

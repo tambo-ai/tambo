@@ -17,6 +17,13 @@ import { HydraDb } from "../types";
 
 export class OAuthLocalProvider implements OAuthClientProvider {
   private _clientInformation: OAuthClientInformation | undefined;
+  private _cachedSession:
+    | {
+        clientInformation: OAuthClientInformation;
+        codeVerifier: string | null;
+      }
+    | null
+    | undefined;
   private _codeVerifier: string | undefined;
   private _tokens: OAuthTokens | undefined;
   private _redirectStartAuthUrl: URL | undefined;
@@ -89,11 +96,9 @@ export class OAuthLocalProvider implements OAuthClientProvider {
         }
       }
 
-      const session = await this.db.query.mcpOauthClients.findFirst({
-        where: eq(schema.mcpOauthClients.sessionId, this._sessionId),
-      });
+      const session = await this.getCachedSession();
       if (session) {
-        this._clientInformation = session.sessionInfo.clientInformation;
+        this._clientInformation = session.clientInformation;
       }
     }
     return this._clientInformation;
@@ -129,12 +134,15 @@ export class OAuthLocalProvider implements OAuthClientProvider {
       });
 
     this._clientInformation = clientInformation;
+    this._cachedSession = {
+      clientInformation,
+      codeVerifier:
+        this._cachedSession?.codeVerifier ?? this._codeVerifier ?? null,
+    };
   }
   async codeVerifier() {
     if (!this._codeVerifier) {
-      const session = await this.db.query.mcpOauthClients.findFirst({
-        where: eq(schema.mcpOauthClients.sessionId, this._sessionId),
-      });
+      const session = await this.getCachedSession();
       if (!session || !session.codeVerifier) {
         throw new Error(
           `Code verifier not set: ${!session ? "session not found" : "codeVerifier is null"}`,
@@ -181,6 +189,11 @@ export class OAuthLocalProvider implements OAuthClientProvider {
           codeVerifier,
         },
       });
+
+    this._cachedSession = {
+      clientInformation,
+      codeVerifier,
+    };
   }
 
   get clientMetadata(): OAuthClientMetadata {
@@ -230,5 +243,24 @@ export class OAuthLocalProvider implements OAuthClientProvider {
       .where(
         eq(schema.toolProviderUserContexts.id, this.toolProviderUserContextId),
       );
+  }
+
+  private async getCachedSession() {
+    if (this._cachedSession !== undefined) {
+      return this._cachedSession;
+    }
+
+    const session = await this.db.query.mcpOauthClients.findFirst({
+      where: eq(schema.mcpOauthClients.sessionId, this._sessionId),
+    });
+
+    this._cachedSession = session
+      ? {
+          clientInformation: session.sessionInfo.clientInformation,
+          codeVerifier: session.codeVerifier,
+        }
+      : null;
+
+    return this._cachedSession;
   }
 }
