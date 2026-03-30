@@ -108,30 +108,25 @@ export class OAuthLocalProvider implements OAuthClientProvider {
       throw new Error("Cannot save client information without server URL");
     }
 
-    const existingSession = await this.db.query.mcpOauthClients.findFirst({
-      where: eq(schema.mcpOauthClients.sessionId, this._sessionId),
-    });
-
-    if (existingSession) {
-      await this.db
-        .update(schema.mcpOauthClients)
-        .set({
-          sessionInfo: {
-            serverUrl: this._serverUrl,
-            clientInformation,
-          },
-        })
-        .where(eq(schema.mcpOauthClients.sessionId, this._sessionId));
-    } else {
-      await this.db.insert(schema.mcpOauthClients).values({
+    await this.db
+      .insert(schema.mcpOauthClients)
+      .values({
         toolProviderUserContextId: this.toolProviderUserContextId,
         sessionInfo: {
           serverUrl: this._serverUrl,
           clientInformation,
         },
         sessionId: this._sessionId,
+      })
+      .onConflictDoUpdate({
+        target: schema.mcpOauthClients.sessionId,
+        set: {
+          sessionInfo: {
+            serverUrl: this._serverUrl,
+            clientInformation,
+          },
+        },
       });
-    }
 
     this._clientInformation = clientInformation;
   }
@@ -169,29 +164,23 @@ export class OAuthLocalProvider implements OAuthClientProvider {
       );
     }
 
-    const existingSession = await this.db.query.mcpOauthClients.findFirst({
-      where: eq(schema.mcpOauthClients.sessionId, this._sessionId),
-    });
-
-    if (existingSession) {
-      await this.db
-        .update(schema.mcpOauthClients)
-        .set({
+    await this.db
+      .insert(schema.mcpOauthClients)
+      .values({
+        toolProviderUserContextId: this.toolProviderUserContextId,
+        sessionInfo: {
+          serverUrl: this._serverUrl,
+          clientInformation,
+        },
+        sessionId: this._sessionId,
+        codeVerifier,
+      })
+      .onConflictDoUpdate({
+        target: schema.mcpOauthClients.sessionId,
+        set: {
           codeVerifier,
-        })
-        .where(eq(schema.mcpOauthClients.sessionId, this._sessionId));
-      return;
-    }
-
-    await this.db.insert(schema.mcpOauthClients).values({
-      toolProviderUserContextId: this.toolProviderUserContextId,
-      sessionInfo: {
-        serverUrl: this._serverUrl,
-        clientInformation,
-      },
-      sessionId: this._sessionId,
-      codeVerifier,
-    });
+        },
+      });
   }
 
   get clientMetadata(): OAuthClientMetadata {

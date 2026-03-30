@@ -1033,7 +1033,7 @@ export const mcpOauthClients = pgTable(
     sessionInfo:
       customJsonb<SessionClientInformation>("client_information").notNull(),
     // must be generated on the client before insertion
-    sessionId: uuid("session_id").notNull(),
+    sessionId: uuid("session_id").notNull().unique(),
     codeVerifier: text("code_verifier"),
   }),
   (table) => [
