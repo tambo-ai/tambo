@@ -1086,11 +1086,15 @@ export class ThreadsService {
           { enabledOnly: true },
         );
         if (enabledSkills.length > 0) {
-          // Backfill any skills missing provider metadata
-          const apiKey = await this.projectsService.getDecryptedProviderKey(
-            projectId,
-            providerName,
-          );
+          // Resolve API key: user-provided key first, then platform fallback for OpenAI
+          const apiKey =
+            (await this.projectsService.getDecryptedProviderKey(
+              projectId,
+              providerName,
+            )) ??
+            (providerName === "openai"
+              ? process.env.FALLBACK_OPENAI_API_KEY
+              : undefined);
           if (apiKey) {
             // Backfill: upload any skills missing provider metadata
             const skillRefs = await Promise.all(

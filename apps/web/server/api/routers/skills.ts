@@ -29,6 +29,9 @@ async function getProjectProviderKey(
   const providerName = project?.defaultLlmProviderName ?? "openai";
   if (!providerSupportsSkills(providerName)) return undefined;
 
+  // Only user-provided keys are available here. Free-tier OpenAI projects
+  // (no user key, using FALLBACK_OPENAI_API_KEY) skip eager upload -- the
+  // runtime in advanceThread_ handles lazy upload with the fallback key.
   const providerKeys = await operations.getProviderKeys(db, projectId);
   const keyRow = providerKeys.find((k) => k.providerName === providerName);
   if (!keyRow?.providerKeyEncrypted) return undefined;
