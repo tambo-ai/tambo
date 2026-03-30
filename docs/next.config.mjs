@@ -202,70 +202,72 @@ const config = {
       },
 
       // --- Group C: Folder-index redirects (folders without index.mdx) ---
+      // Temporary (307) so browsers don't cache them permanently. Once a
+      // proper index.mdx is added for a folder, remove the redirect entry.
       {
         source: "/getting-started",
         destination: "/getting-started/quickstart",
-        permanent: true,
+        permanent: false,
       },
       {
         source: "/concepts",
         destination: "/concepts/generative-interfaces",
-        permanent: true,
+        permanent: false,
       },
       {
         source: "/best-practices",
         destination: "/best-practices/coding-agent-generative-ui-rules",
-        permanent: true,
+        permanent: false,
       },
       {
         source: "/guides",
         destination: "/guides/coding-agent-skills",
-        permanent: true,
+        permanent: false,
       },
       {
         source: "/guides/setup-project",
         destination: "/guides/setup-project/create-project",
-        permanent: true,
+        permanent: false,
       },
       {
         source: "/guides/enable-generative-ui",
         destination: "/guides/enable-generative-ui/register-components",
-        permanent: true,
+        permanent: false,
       },
       {
         source: "/guides/build-interfaces",
         destination: "/guides/build-interfaces/build-chat-interface",
-        permanent: true,
+        permanent: false,
       },
       {
         source: "/guides/give-context",
         destination: "/guides/give-context/make-ai-aware-of-state",
-        permanent: true,
+        permanent: false,
       },
       {
         source: "/guides/take-actions",
         destination: "/guides/take-actions/register-tools",
-        permanent: true,
+        permanent: false,
       },
       {
         source: "/examples-and-templates",
         destination: "/examples-and-templates/chat-starter-app",
-        permanent: true,
+        permanent: false,
       },
       {
         source: "/reference",
         destination: "/reference/react-sdk",
-        permanent: true,
+        permanent: false,
       },
       {
         source: "/reference/cli/commands",
         destination: "/reference/cli/commands/create-app",
-        permanent: true,
+        permanent: false,
       },
       {
         source: "/reference/problems",
         destination: "/reference/problems/validation",
-        permanent: true,
+        permanent: false,
       },
     ];
   },
