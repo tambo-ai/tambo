@@ -38,6 +38,8 @@ Memory is NOT:
 3. **Developers can disable it.** A project-level setting turns memory off entirely.
 4. **Cross-thread.** Facts learned in one thread are available in another for the same contextKey.
 5. **Respects token limits.** Never injects so much memory that it crowds out the conversation or tool definitions.
+6. **Basic Observability** The console app thread observability should show what memories or facts were sent to the LLM along with each user message for debugging purposes.
+7. **Self-hosting Instructions** Structure the implementation in a way that, by default, somebody self-hosting Tambo isn't required to enable a 3rd-party memory. It can be off by default, but there are instructions to enable it through adding an API key.
 
 ### Later
 
@@ -49,7 +51,7 @@ Memory is NOT:
   - instructions about what types of memories to ignore
   - how long memories live
 - Developers can plug in their own memory system.
-- Access/observability of a project's memories. Maybe:
+- Advanced Access/observability of a project's memories. Maybe:
   - UI for semantic search over memories
   - Memory importance scoring and automatic pruning
   - React hook for client-side memory access (`useTamboMemory`)
