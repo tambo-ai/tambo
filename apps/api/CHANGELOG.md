@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.144.5](https://github.com/tambo-ai/tambo/compare/api-v0.144.4...api-v0.144.5) (2026-03-20)
+
+
+### Bug Fixes
+
+* **api:** flush Sentry spans during long-running SSE streams ([#2656](https://github.com/tambo-ai/tambo/issues/2656)) ([9bdffb0](https://github.com/tambo-ai/tambo/commit/9bdffb09ac7a790cb9865a4e744a6d50b96fb215))
+* **api:** stop re-throwing errors after SSE headers are committed ([#2654](https://github.com/tambo-ai/tambo/issues/2654)) ([2a83063](https://github.com/tambo-ai/tambo/commit/2a830637cf607eeed743d4bb5925ffbfdf453b61))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump the testing group with 3 updates ([#2630](https://github.com/tambo-ai/tambo/issues/2630)) ([7a0aca6](https://github.com/tambo-ai/tambo/commit/7a0aca603d843ec4f7962e4a9ccb31a1d56e8189))
+* **deps:** bump the sentry group with 3 updates ([#2634](https://github.com/tambo-ai/tambo/issues/2634)) ([b955c27](https://github.com/tambo-ai/tambo/commit/b955c27850ad5da0c5810a8df1ed38c1f684bd47))
+* **main:** release api 0.144.4 ([#2645](https://github.com/tambo-ai/tambo/issues/2645)) ([bfbfb43](https://github.com/tambo-ai/tambo/commit/bfbfb431c80e33a19baf73716fb14db65d40b3d1))
+
+## [0.144.4](https://github.com/tambo-ai/tambo/compare/api-v0.144.3...api-v0.144.4) (2026-03-19)
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump the testing group with 3 updates ([#2630](https://github.com/tambo-ai/tambo/issues/2630)) ([7a0aca6](https://github.com/tambo-ai/tambo/commit/7a0aca603d843ec4f7962e4a9ccb31a1d56e8189))
+* **deps:** bump the sentry group with 3 updates ([#2634](https://github.com/tambo-ai/tambo/issues/2634)) ([b955c27](https://github.com/tambo-ai/tambo/commit/b955c27850ad5da0c5810a8df1ed38c1f684bd47))
+
 ## [0.144.3](https://github.com/tambo-ai/tambo/compare/api-v0.144.2...api-v0.144.3) (2026-03-11)
 
 

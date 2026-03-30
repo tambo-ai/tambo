@@ -8,12 +8,14 @@ const graphThreadSuggestions = [
   {
     id: "graph-suggestion-1",
     title: "Create bar chart",
+    description: "Create bar chart",
     detailedSuggestion: "Create a bar chart of monthly revenue for Q1.",
     messageId: "graph-bar-chart",
   },
   {
     id: "graph-suggestion-2",
     title: "Switch to line",
+    description: "Switch to line",
     detailedSuggestion:
       "Switch that data to a line chart to highlight trend changes.",
     messageId: "graph-line-chart",
@@ -21,6 +23,7 @@ const graphThreadSuggestions = [
   {
     id: "graph-suggestion-3",
     title: "Show channel split",
+    description: "Show channel split",
     detailedSuggestion:
       "Create a pie chart for traffic channels: organic, paid, and referral.",
     messageId: "graph-pie-chart",

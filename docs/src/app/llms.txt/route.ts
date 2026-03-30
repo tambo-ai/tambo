@@ -44,6 +44,9 @@ export async function GET() {
   scanned.push(
     "Use `/llms-full.txt` for a single file containing all docs. Append `.mdx` to any docs path to fetch that page as Markdown (e.g. `/getting-started/quickstart.mdx`).",
   );
+  scanned.push(
+    "> **URL guide**: Every page below is listed with its full path. Use the path in each link verbatim — do not guess or shorten URLs. Section headings below are grouping labels, not valid URL paths.",
+  );
 
   const map = new Map<string, string[]>();
 
@@ -58,7 +61,7 @@ export async function GET() {
 
   // Section order follows the order sections are first encountered in source.getPages().
   for (const [key, value] of map) {
-    scanned.push(`## ${key}`);
+    scanned.push(`## ${key} (section)`);
     scanned.push(value.join("\n"));
   }
 

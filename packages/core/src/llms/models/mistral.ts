@@ -15,17 +15,6 @@ export const mistralModels: Partial<LlmModelConfig<MistralModelId>> = {
       "https://docs.tambo.co/reference/llm-providers/mistral#mistral-medium-3",
     inputTokenLimit: 128000,
   },
-  "magistral-medium-2506": {
-    apiName: "magistral-medium-2506",
-    displayName: "Magistral Medium 1",
-    status: "tested",
-    notes:
-      "Magistral Medium 1 is a frontier-class reasoning model released June 2025.",
-    docLink: "https://mistral.ai/news/magistral",
-    tamboDocLink:
-      "https://docs.tambo.co/reference/llm-providers/mistral#magistral-medium-1",
-    inputTokenLimit: 40000,
-  },
   "mistral-large-latest": {
     apiName: "mistral-large-latest",
     displayName: "Mistral Large 2.1",

@@ -11,6 +11,7 @@ const canvasThreadSuggestions = [
   {
     id: "canvas-suggestion-1",
     title: "Add users chart",
+    description: "Add users chart",
     detailedSuggestion:
       "Add a bar chart of weekly active users in the top-left of the canvas.",
     messageId: "canvas-users-chart",
@@ -18,6 +19,7 @@ const canvasThreadSuggestions = [
   {
     id: "canvas-suggestion-2",
     title: "Compare metrics",
+    description: "Compare metrics",
     detailedSuggestion:
       "Create a second line chart comparing signups versus activations.",
     messageId: "canvas-compare-metrics",
@@ -25,6 +27,7 @@ const canvasThreadSuggestions = [
   {
     id: "canvas-suggestion-3",
     title: "Change chart type",
+    description: "Change chart type",
     detailedSuggestion:
       "Convert the first chart to a pie chart and keep the same dataset.",
     messageId: "canvas-change-chart-type",

@@ -402,18 +402,23 @@ export class V1Controller {
         sdkVersion,
       );
     } catch (error) {
-      // Emit error event if headers already sent
-      // Note: We use a generic message to avoid exposing internal error details
-      if (response.headersSent) {
-        const errorEvent = {
-          type: "RUN_ERROR",
-          message: "An internal error occurred",
-          code: "INTERNAL_ERROR",
-          timestamp: Date.now(),
-        };
-        response.write(`data: ${JSON.stringify(errorEvent)}\n\n`);
+      if (!response.headersSent) {
+        throw error;
       }
-      throw error;
+      // Headers already sent — we can't return an HTTP error response, so
+      // emit an SSE error event instead and log. Re-throwing here would just
+      // cause "Cannot set headers after they are sent" in the exception filter.
+      const errorEvent = {
+        type: "RUN_ERROR",
+        message: "An internal error occurred",
+        code: "INTERNAL_ERROR",
+        timestamp: Date.now(),
+      };
+      response.write(`data: ${JSON.stringify(errorEvent)}\n\n`);
+      this.logger.error(
+        `Error during run ${startResult.runId} on thread ${thread.id}`,
+        error instanceof Error ? error.stack : String(error),
+      );
     } finally {
       response.end();
     }
@@ -509,18 +514,23 @@ export class V1Controller {
         sdkVersion,
       );
     } catch (error) {
-      // Emit error event if headers already sent
-      // Note: We use a generic message to avoid exposing internal error details
-      if (response.headersSent) {
-        const errorEvent = {
-          type: "RUN_ERROR",
-          message: "An internal error occurred",
-          code: "INTERNAL_ERROR",
-          timestamp: Date.now(),
-        };
-        response.write(`data: ${JSON.stringify(errorEvent)}\n\n`);
+      if (!response.headersSent) {
+        throw error;
       }
-      throw error;
+      // Headers already sent — we can't return an HTTP error response, so
+      // emit an SSE error event instead and log. Re-throwing here would just
+      // cause "Cannot set headers after they are sent" in the exception filter.
+      const errorEvent = {
+        type: "RUN_ERROR",
+        message: "An internal error occurred",
+        code: "INTERNAL_ERROR",
+        timestamp: Date.now(),
+      };
+      response.write(`data: ${JSON.stringify(errorEvent)}\n\n`);
+      this.logger.error(
+        `Error during run ${startResult.runId} on thread ${threadId}`,
+        error instanceof Error ? error.stack : String(error),
+      );
     } finally {
       response.end();
     }

@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.55.1](https://github.com/tambo-ai/tambo/compare/tambo-v0.55.0...tambo-v0.55.1) (2026-03-19)
+
+
+### Documentation
+
+* add Expo support mentions across docs, CLI, and onboarding ([#2651](https://github.com/tambo-ai/tambo/issues/2651)) ([94a6679](https://github.com/tambo-ai/tambo/commit/94a66798327cc989d6e7d9c1f6e0a74f53a613a9))
+
 ## [0.55.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.54.2...tambo-v0.55.0) (2026-03-18)
 
 

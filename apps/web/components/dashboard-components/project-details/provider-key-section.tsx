@@ -36,18 +36,21 @@ const providerKeySectionSuggestions: Suggestion[] = [
   {
     id: "change-model",
     title: "Change Model",
+    description: "Change Model",
     detailedSuggestion: "Change the model used for this project to gpt-4o",
     messageId: "change-model",
   },
   {
     id: "turn-on-thinking",
     title: "Turn on Thinking",
+    description: "Turn on Thinking",
     detailedSuggestion: "Turn on thinking for the model used for this project",
     messageId: "turn-on-thinking",
   },
   {
     id: "change-input-token-limit",
     title: "Change Input Token Limit",
+    description: "Change Input Token Limit",
     detailedSuggestion:
       "Change the input token limit for the model used for this project",
     messageId: "change-input-token-limit",

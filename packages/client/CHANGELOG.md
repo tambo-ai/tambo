@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.0.5](https://github.com/tambo-ai/tambo/compare/client-v1.0.4...client-v1.0.5) (2026-03-30)
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump the eslint group with 3 updates ([#2674](https://github.com/tambo-ai/tambo/issues/2674)) ([5480ca6](https://github.com/tambo-ai/tambo/commit/5480ca6df206e7ce3cb9d3f9e6d94443631e81e8))
+
+## [1.0.4](https://github.com/tambo-ai/tambo/compare/client-v1.0.3...client-v1.0.4) (2026-03-20)
+
+
+### Miscellaneous Chores
+
+* **deps:** bump @tambo-ai/typescript-sdk from 0.93.1 to 0.94.0 in the tambo-ai group ([#2632](https://github.com/tambo-ai/tambo/issues/2632)) ([83a0bf8](https://github.com/tambo-ai/tambo/commit/83a0bf8d8ccc0a0fe0c738a69cd0fc77d92211d9))
+
 ## [1.0.3](https://github.com/tambo-ai/tambo/compare/client-v1.0.2...client-v1.0.3) (2026-03-18)
 
 
