@@ -8,15 +8,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod/v3";
 
 // Define schema for validating query parameters
-const callbackParamsSchema = z
-  .object({
-    code: z.string().min(1, "Authorization code is required").optional(),
-    state: z.string().min(1).optional(),
-    error: z.string().min(1).optional(),
-    redirect_uri: z.string().url().optional(),
-    sessionId: z.string().min(1).optional(),
-  })
-  .passthrough();
+export const callbackParamsSchema = z.object({
+  code: z.string().min(1, "Authorization code is required").optional(),
+  state: z.string().min(1).optional(),
+  error: z.string().min(1).optional(),
+  redirect_uri: z.string().url().optional(),
+  sessionId: z.string().min(1).optional(),
+});
 
 /**
  * Handler for OAuth callback

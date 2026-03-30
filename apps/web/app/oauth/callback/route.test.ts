@@ -1,4 +1,4 @@
-import { GET } from "./route";
+import { callbackParamsSchema, GET } from "./route";
 import { NextRequest } from "next/server";
 
 const authMock = jest.fn();
@@ -104,5 +104,19 @@ describe("/oauth/callback route", () => {
     );
 
     consoleErrorSpy.mockRestore();
+  });
+
+  it("strips unknown callback query parameters during validation", () => {
+    const parsedParams = callbackParamsSchema.parse({
+      code: "auth-code",
+      state: "session_123",
+      unexpected: "keep-out",
+    });
+
+    expect(parsedParams).toEqual({
+      code: "auth-code",
+      state: "session_123",
+    });
+    expect("unexpected" in parsedParams).toBe(false);
   });
 });
