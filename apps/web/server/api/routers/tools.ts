@@ -316,6 +316,7 @@ export const toolsRouter = createTRPCRouter({
       if (manualClientInformation) {
         await localProvider.saveClientInformation(manualClientInformation);
       }
+      const sessionId = localProvider.state();
 
       try {
         const result = await auth(localProvider, {
@@ -323,6 +324,8 @@ export const toolsRouter = createTRPCRouter({
           fetchFn: createFetchWithTimeout(5_000),
         });
         if (result === "AUTHORIZED") {
+          await clearStoredMcpOAuthSessionSafely(db, sessionId);
+
           return {
             status: MCP_OAUTH_AUTHORIZATION_STATUS_AUTHORIZED,
           };
@@ -342,17 +345,7 @@ export const toolsRouter = createTRPCRouter({
         if (shouldReusePersistedState) {
           await clearPersistedMcpOAuthState(db, toolProviderUserContextId);
         } else {
-          const sessionId = localProvider.state();
-
-          try {
-            await clearStoredMcpOAuthSession(db, sessionId);
-          } catch (cleanupError) {
-            console.error("Failed to clean up OAuth session", {
-              sessionId,
-              cleanupError,
-              originalError: error,
-            });
-          }
+          await clearStoredMcpOAuthSessionSafely(db, sessionId, error);
         }
 
         if (
@@ -693,6 +686,22 @@ async function clearStoredMcpOAuthSession(db: HydraDb, sessionId: string) {
   await db
     .delete(schema.mcpOauthClients)
     .where(eq(schema.mcpOauthClients.sessionId, sessionId));
+}
+
+async function clearStoredMcpOAuthSessionSafely(
+  db: HydraDb,
+  sessionId: string,
+  originalError?: unknown,
+) {
+  try {
+    await clearStoredMcpOAuthSession(db, sessionId);
+  } catch (cleanupError) {
+    console.error("Failed to clean up OAuth session", {
+      sessionId,
+      cleanupError,
+      ...(originalError ? { originalError } : {}),
+    });
+  }
 }
 
 async function clearPersistedMcpOAuthState(
