@@ -90,6 +90,22 @@ const discoverOAuthProtectedResourceMetadataMock = jest.mocked(
 const createCaller = createCallerFactory(toolsRouter);
 let warnSpy: jest.SpiedFunction<typeof console.warn>;
 
+type ToolProviderUserContext = {
+  id: string;
+  createdAt: Date;
+  contextKey: string | null;
+  toolProviderId: string;
+  deprecatedComposioIntegrationId: string | null;
+  deprecatedComposioConnectedAccountId: string | null;
+  deprecatedComposioConnectedAccountStatus: string | null;
+  deprecatedComposioRedirectUrl: string | null;
+  deprecatedComposioAuthSchemaMode: string | null;
+  deprecatedComposioAuthFields: Record<string, string>;
+  mcpOauthClientInfo: Record<string, unknown> | null;
+  mcpOauthTokens: Record<string, unknown> | null;
+  mcpOauthLastRefreshedAt: Date | null;
+};
+
 function createAuthorizationServerMetadata(
   overrides: Partial<
     NonNullable<Awaited<ReturnType<typeof discoverAuthorizationServerMetadata>>>
@@ -124,14 +140,31 @@ function createProtectedResourceMetadata(
   };
 }
 
+function createToolProviderUserContext(
+  overrides: Partial<ToolProviderUserContext> = {},
+): ToolProviderUserContext {
+  return {
+    id: "ctx_123",
+    createdAt: new Date("2025-01-01T00:00:00.000Z"),
+    contextKey: null,
+    toolProviderId: "tp_123",
+    deprecatedComposioIntegrationId: null,
+    deprecatedComposioConnectedAccountId: null,
+    deprecatedComposioConnectedAccountStatus: null,
+    deprecatedComposioRedirectUrl: null,
+    deprecatedComposioAuthSchemaMode: null,
+    deprecatedComposioAuthFields: {},
+    mcpOauthClientInfo: null,
+    mcpOauthTokens: null,
+    mcpOauthLastRefreshedAt: new Date("2025-01-01T00:00:00.000Z"),
+    ...overrides,
+  };
+}
+
 function createDbMock({
   toolProviderUserContext,
 }: {
-  toolProviderUserContext: {
-    id: string;
-    mcpOauthClientInfo: Record<string, unknown> | null;
-    mcpOauthTokens: Record<string, unknown> | null;
-  };
+  toolProviderUserContext: ToolProviderUserContext;
 }) {
   const toolProvidersFindFirst = jest.fn().mockResolvedValue({
     id: "tp_123",
@@ -177,6 +210,8 @@ function createDbMock({
     delete: deleteFn,
   };
 
+  upsertToolProviderUserContextMock.mockResolvedValue(toolProviderUserContext);
+
   return {
     db,
     spies: {
@@ -210,7 +245,6 @@ describe("toolsRouter.authorizeMcpServer", () => {
     jest.clearAllMocks();
     warnSpy = jest.spyOn(console, "warn").mockImplementation(() => undefined);
     ensureProjectAccessMock.mockResolvedValue(undefined);
-    upsertToolProviderUserContextMock.mockResolvedValue("ctx_123");
     createFetchWithTimeoutMock.mockReturnValue(jest.fn());
     discoverOAuthProtectedResourceMetadataMock.mockRejectedValue(
       new Error("resource metadata unavailable"),
@@ -226,15 +260,14 @@ describe("toolsRouter.authorizeMcpServer", () => {
 
   it("clears persisted OAuth state when reused auth state fails", async () => {
     const { db, spies } = createDbMock({
-      toolProviderUserContext: {
-        id: "ctx_123",
+      toolProviderUserContext: createToolProviderUserContext({
         mcpOauthClientInfo: {
           client_id: "opaque-client-id",
         },
         mcpOauthTokens: {
           access_token: "stale-token",
         },
-      },
+      }),
     });
 
     authMock.mockRejectedValue(new Error("stale token"));
@@ -254,15 +287,12 @@ describe("toolsRouter.authorizeMcpServer", () => {
     });
     expect(spies.updateWhere).toHaveBeenCalledTimes(1);
     expect(spies.deleteFn).not.toHaveBeenCalled();
+    expect(spies.toolProviderUserContextsFindFirst).not.toHaveBeenCalled();
   });
 
   it("cleans up only the ephemeral OAuth session for fresh auth failures", async () => {
     const { db, spies } = createDbMock({
-      toolProviderUserContext: {
-        id: "ctx_123",
-        mcpOauthClientInfo: null,
-        mcpOauthTokens: null,
-      },
+      toolProviderUserContext: createToolProviderUserContext(),
     });
 
     authMock.mockRejectedValue(new ServerError("temporary auth failure"));
@@ -282,11 +312,7 @@ describe("toolsRouter.authorizeMcpServer", () => {
 
   it("cleans up the ephemeral OAuth session after successful authorization", async () => {
     const { db, spies } = createDbMock({
-      toolProviderUserContext: {
-        id: "ctx_123",
-        mcpOauthClientInfo: null,
-        mcpOauthTokens: null,
-      },
+      toolProviderUserContext: createToolProviderUserContext(),
     });
 
     authMock.mockResolvedValue("AUTHORIZED");
@@ -311,11 +337,7 @@ describe("toolsRouter.authorizeMcpServer", () => {
       .spyOn(console, "error")
       .mockImplementation(() => undefined);
     const { db, spies } = createDbMock({
-      toolProviderUserContext: {
-        id: "ctx_123",
-        mcpOauthClientInfo: null,
-        mcpOauthTokens: null,
-      },
+      toolProviderUserContext: createToolProviderUserContext(),
     });
     const cleanupError = new Error("cleanup failed");
 
@@ -347,11 +369,7 @@ describe("toolsRouter.authorizeMcpServer", () => {
       .spyOn(console, "error")
       .mockImplementation(() => undefined);
     const { db, spies } = createDbMock({
-      toolProviderUserContext: {
-        id: "ctx_123",
-        mcpOauthClientInfo: null,
-        mcpOauthTokens: null,
-      },
+      toolProviderUserContext: createToolProviderUserContext(),
     });
     const authError = new ServerError("temporary auth failure");
     const cleanupError = new Error("cleanup failed");
@@ -380,11 +398,7 @@ describe("toolsRouter.authorizeMcpServer", () => {
 
   it("keeps generic registration endpoint failures on the standard auth error path", async () => {
     const { db, spies } = createDbMock({
-      toolProviderUserContext: {
-        id: "ctx_123",
-        mcpOauthClientInfo: null,
-        mcpOauthTokens: null,
-      },
+      toolProviderUserContext: createToolProviderUserContext(),
     });
 
     discoverOAuthProtectedResourceMetadataMock.mockResolvedValue(
@@ -418,11 +432,7 @@ describe("toolsRouter.authorizeMcpServer", () => {
 
   it("logs resource metadata discovery failures before requiring manual registration", async () => {
     const { db } = createDbMock({
-      toolProviderUserContext: {
-        id: "ctx_123",
-        mcpOauthClientInfo: null,
-        mcpOauthTokens: null,
-      },
+      toolProviderUserContext: createToolProviderUserContext(),
     });
 
     discoverAuthorizationServerMetadataMock.mockResolvedValue(
@@ -456,11 +466,7 @@ describe("toolsRouter.authorizeMcpServer", () => {
 
   it("logs authorization server metadata discovery failures before falling back to DCR", async () => {
     const { db } = createDbMock({
-      toolProviderUserContext: {
-        id: "ctx_123",
-        mcpOauthClientInfo: null,
-        mcpOauthTokens: null,
-      },
+      toolProviderUserContext: createToolProviderUserContext(),
     });
 
     discoverOAuthProtectedResourceMetadataMock.mockResolvedValue(

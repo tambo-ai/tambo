@@ -101,23 +101,12 @@ export async function authorizeMcpServer({
     });
   }
 
-  const toolProviderUserContextId =
+  const toolProviderUserContext =
     await operations.upsertToolProviderUserContext(
       db,
       toolProviderId,
       contextKey,
     );
-  const toolProviderUserContext =
-    await db.query.toolProviderUserContexts.findFirst({
-      where: eq(schema.toolProviderUserContexts.id, toolProviderUserContextId),
-    });
-
-  if (!toolProviderUserContext) {
-    throw new TRPCError({
-      code: "NOT_FOUND",
-      message: "Tool provider context not found",
-    });
-  }
 
   const expectedRedirectUrl = buildMcpOAuthCallbackUrl(baseUrl);
   const shouldReusePersistedState = shouldReusePersistedMcpOAuthState({
@@ -156,7 +145,7 @@ export async function authorizeMcpServer({
       }
     : undefined;
 
-  const localProvider = new OAuthLocalProvider(db, toolProviderUserContextId, {
+  const localProvider = new OAuthLocalProvider(db, toolProviderUserContext.id, {
     baseUrl,
     clientInformation: manualClientInformation ?? persistedClientInformation,
     serverUrl: url,
@@ -193,7 +182,7 @@ export async function authorizeMcpServer({
     }
   } catch (error) {
     if (shouldReusePersistedState) {
-      await clearPersistedMcpOAuthState(db, toolProviderUserContextId);
+      await clearPersistedMcpOAuthState(db, toolProviderUserContext.id);
     } else {
       await clearStoredMcpOAuthSessionSafely(db, sessionId, error);
     }

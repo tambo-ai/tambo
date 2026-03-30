@@ -600,7 +600,7 @@ export async function upsertToolProviderUserContext(
   db: HydraDb,
   toolProviderId: string,
   contextKey: string | null,
-) {
+): Promise<typeof schema.toolProviderUserContexts.$inferSelect> {
   return await db.transaction(async (tx) => {
     const toolProviderUserContext =
       await tx.query.toolProviderUserContexts.findFirst({
@@ -610,7 +610,7 @@ export async function upsertToolProviderUserContext(
         ),
       });
     if (toolProviderUserContext) {
-      return toolProviderUserContext.id;
+      return toolProviderUserContext;
     }
 
     const [newToolProviderUserContext] = await tx
@@ -621,7 +621,7 @@ export async function upsertToolProviderUserContext(
       })
       .returning();
 
-    return newToolProviderUserContext.id;
+    return newToolProviderUserContext;
   });
 }
 
