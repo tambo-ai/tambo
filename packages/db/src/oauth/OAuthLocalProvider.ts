@@ -25,6 +25,8 @@ export class OAuthLocalProvider implements OAuthClientProvider {
   private _baseUrl: string | undefined;
   private _serverUrl: string | undefined;
   private _usePersistedContextState: boolean;
+  readonly redirectUrl: string | undefined;
+  readonly clientMetadataUrl: string | undefined;
   constructor(
     private db: HydraDb,
     private toolProviderUserContextId: string,
@@ -56,19 +58,12 @@ export class OAuthLocalProvider implements OAuthClientProvider {
     this._saveAuthUrl = baseUrl
       ? new URL(buildMcpOAuthCallbackUrl(baseUrl))
       : undefined;
+    this.redirectUrl = this._saveAuthUrl?.toString();
+    this.clientMetadataUrl =
+      baseUrl && canUseMcpOAuthClientMetadataUrl(baseUrl)
+        ? buildMcpOAuthClientMetadataUrl(baseUrl)
+        : undefined;
     this._serverUrl = serverUrl;
-  }
-
-  get redirectUrl(): string | undefined {
-    return this._saveAuthUrl?.toString();
-  }
-
-  get clientMetadataUrl(): string | undefined {
-    if (!this._baseUrl || !canUseMcpOAuthClientMetadataUrl(this._baseUrl)) {
-      return undefined;
-    }
-
-    return buildMcpOAuthClientMetadataUrl(this._baseUrl);
   }
 
   // is this the same as the redirectUrl?
