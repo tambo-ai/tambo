@@ -1,4 +1,11 @@
-import { MCPTransport, isValidServerKey } from "@tambo-ai-cloud/core";
+import {
+  MCPTransport,
+  MCP_OAUTH_AUTHORIZATION_STATUS_AUTHORIZED,
+  MCP_OAUTH_AUTHORIZATION_STATUS_MANUAL_CLIENT_REGISTRATION_REQUIRED,
+  MCP_OAUTH_AUTHORIZATION_STATUS_REDIRECT,
+  MCP_OAUTH_MANUAL_CLIENT_REGISTRATION_REASON_VALUES,
+  isValidServerKey,
+} from "@tambo-ai-cloud/core";
 import { z } from "zod/v3";
 
 /**
@@ -188,16 +195,18 @@ export const mcpSuggestedClientMetadataSchema = z.object({
 
 export const authorizeMcpServerOutputSchema = z.discriminatedUnion("status", [
   z.object({
-    status: z.literal("authorized"),
+    status: z.literal(MCP_OAUTH_AUTHORIZATION_STATUS_AUTHORIZED),
   }),
   z.object({
-    status: z.literal("redirect"),
+    status: z.literal(MCP_OAUTH_AUTHORIZATION_STATUS_REDIRECT),
     redirectUrl: z.string().url(),
   }),
   z.object({
-    status: z.literal("manual_client_registration_required"),
+    status: z.literal(
+      MCP_OAUTH_AUTHORIZATION_STATUS_MANUAL_CLIENT_REGISTRATION_REQUIRED,
+    ),
     authorizationServer: z.string().url(),
-    reason: z.enum(["dcr_failed", "registration_not_available"]),
+    reason: z.enum(MCP_OAUTH_MANUAL_CLIENT_REGISTRATION_REASON_VALUES),
     suggestedClientMetadata: mcpSuggestedClientMetadataSchema,
   }),
 ]);

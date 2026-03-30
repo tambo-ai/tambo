@@ -13,6 +13,9 @@ import {
   deriveServerKey,
   isValidServerKey,
   MCPTransport,
+  MCP_OAUTH_AUTHORIZATION_STATUS_MANUAL_CLIENT_REGISTRATION_REQUIRED,
+  MCP_OAUTH_AUTHORIZATION_STATUS_REDIRECT,
+  MCP_OAUTH_MANUAL_CLIENT_REGISTRATION_REASON_REGISTRATION_NOT_AVAILABLE,
 } from "@tambo-ai-cloud/core";
 import { useMutation } from "@tanstack/react-query";
 import { TRPCClientErrorLike } from "@trpc/client";
@@ -105,7 +108,10 @@ export function McpServerEditor({
     error: authError,
   } = api.tools.authorizeMcpServer.useMutation({
     onSuccess: (authResult) => {
-      if (authResult.status === "redirect" && redirectToAuth) {
+      if (
+        authResult.status === MCP_OAUTH_AUTHORIZATION_STATUS_REDIRECT &&
+        redirectToAuth
+      ) {
         redirectToAuth(authResult.redirectUrl);
       }
     },
@@ -241,13 +247,16 @@ export function McpServerEditor({
     !mcpIsAuthed &&
     projectId &&
     redirectToAuth &&
-    authResult?.status !== "manual_client_registration_required";
+    authResult?.status !==
+      MCP_OAUTH_AUTHORIZATION_STATUS_MANUAL_CLIENT_REGISTRATION_REQUIRED;
   const manualRegistrationResult =
-    authResult?.status === "manual_client_registration_required"
+    authResult?.status ===
+    MCP_OAUTH_AUTHORIZATION_STATUS_MANUAL_CLIENT_REGISTRATION_REQUIRED
       ? authResult
       : null;
   const manualRegistrationHelpText =
-    manualRegistrationResult?.reason === "registration_not_available"
+    manualRegistrationResult?.reason ===
+    MCP_OAUTH_MANUAL_CLIENT_REGISTRATION_REASON_REGISTRATION_NOT_AVAILABLE
       ? "This MCP server does not advertise automatic client registration. Register a client with the authorization server, then continue here with that client ID."
       : "Automatic client registration failed. Register a client with the authorization server using the details below, then continue here with that client ID.";
   const serverKeyValid = isValidServerKey(serverKey);

@@ -26,6 +26,12 @@ import {
 import {
   MCPClient,
   MCPTransport,
+  MCP_OAUTH_AUTHORIZATION_STATUS_AUTHORIZED,
+  MCP_OAUTH_AUTHORIZATION_STATUS_MANUAL_CLIENT_REGISTRATION_REQUIRED,
+  MCP_OAUTH_AUTHORIZATION_STATUS_REDIRECT,
+  MCP_OAUTH_MANUAL_CLIENT_REGISTRATION_REASON_DCR_FAILED,
+  MCP_OAUTH_MANUAL_CLIENT_REGISTRATION_REASON_REGISTRATION_NOT_AVAILABLE,
+  type McpOAuthManualClientRegistrationReason,
   ToolProviderType,
   buildMcpOAuthCallbackUrl,
   buildMcpOAuthClientMetadata,
@@ -50,6 +56,13 @@ type McpServer = Awaited<
 >[number];
 
 type OAuthClientProvider = OAuthLocalProvider;
+type AuthorizeMcpServerOutput = z.infer<typeof authorizeMcpServerOutputSchema>;
+type ManualClientRegistrationRequiredResponse = Extract<
+  AuthorizeMcpServerOutput,
+  {
+    status: typeof MCP_OAUTH_AUTHORIZATION_STATUS_MANUAL_CLIENT_REGISTRATION_REQUIRED;
+  }
+>;
 
 /**
  * Get all existing serverKeys for a project to validate uniqueness
@@ -275,7 +288,7 @@ export const toolsRouter = createTRPCRouter({
         return buildManualClientRegistrationResponse(
           baseUrl,
           authServerDetails.authorizationServer,
-          "registration_not_available",
+          MCP_OAUTH_MANUAL_CLIENT_REGISTRATION_REASON_REGISTRATION_NOT_AVAILABLE,
         );
       }
 
@@ -311,7 +324,7 @@ export const toolsRouter = createTRPCRouter({
         });
         if (result === "AUTHORIZED") {
           return {
-            status: "authorized",
+            status: MCP_OAUTH_AUTHORIZATION_STATUS_AUTHORIZED,
           };
         }
         if (result === "REDIRECT") {
@@ -321,7 +334,7 @@ export const toolsRouter = createTRPCRouter({
           }
 
           return {
-            status: "redirect",
+            status: MCP_OAUTH_AUTHORIZATION_STATUS_REDIRECT,
             redirectUrl,
           };
         }
@@ -340,8 +353,8 @@ export const toolsRouter = createTRPCRouter({
             baseUrl,
             authServerDetails.authorizationServer,
             requiresManualMcpClientRegistration(authServerDetails)
-              ? "registration_not_available"
-              : "dcr_failed",
+              ? MCP_OAUTH_MANUAL_CLIENT_REGISTRATION_REASON_REGISTRATION_NOT_AVAILABLE
+              : MCP_OAUTH_MANUAL_CLIENT_REGISTRATION_REASON_DCR_FAILED,
           );
         }
 
@@ -720,13 +733,13 @@ async function discoverMcpAuthorizationServerDetails(serverUrl: string) {
 function buildManualClientRegistrationResponse(
   baseUrl: string,
   authorizationServer: string,
-  reason: "dcr_failed" | "registration_not_available",
-) {
+  reason: McpOAuthManualClientRegistrationReason,
+): ManualClientRegistrationRequiredResponse {
   const suggestedClientMetadata = buildMcpOAuthClientMetadata({ baseUrl });
   assertSuggestedClientMetadataFields(suggestedClientMetadata);
 
   return {
-    status: "manual_client_registration_required" as const,
+    status: MCP_OAUTH_AUTHORIZATION_STATUS_MANUAL_CLIENT_REGISTRATION_REQUIRED,
     authorizationServer,
     reason,
     suggestedClientMetadata: {

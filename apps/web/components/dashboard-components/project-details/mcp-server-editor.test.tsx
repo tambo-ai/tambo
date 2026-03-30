@@ -1,4 +1,9 @@
-import { MCPTransport } from "@tambo-ai-cloud/core";
+import {
+  MCPTransport,
+  MCP_OAUTH_AUTHORIZATION_STATUS_MANUAL_CLIENT_REGISTRATION_REQUIRED,
+  MCP_OAUTH_MANUAL_CLIENT_REGISTRATION_REASON_DCR_FAILED,
+  type McpOAuthManualClientRegistrationReason,
+} from "@tambo-ai-cloud/core";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -6,9 +11,9 @@ import { McpServerEditor, type MCPServerInfo } from "./mcp-server-editor";
 
 const authorizeMutateAsync = jest.fn();
 let authorizeData: {
-  status: "manual_client_registration_required";
+  status: typeof MCP_OAUTH_AUTHORIZATION_STATUS_MANUAL_CLIENT_REGISTRATION_REQUIRED;
   authorizationServer: string;
-  reason: "dcr_failed" | "registration_not_available";
+  reason: McpOAuthManualClientRegistrationReason;
   suggestedClientMetadata: {
     clientName: string;
     clientUri: string;
@@ -194,9 +199,10 @@ describe("McpServerEditor", () => {
 
   it("renders manual OAuth client registration details when automatic registration fails", () => {
     authorizeData = {
-      status: "manual_client_registration_required",
+      status:
+        MCP_OAUTH_AUTHORIZATION_STATUS_MANUAL_CLIENT_REGISTRATION_REQUIRED,
       authorizationServer: "https://mcp.mapbox.com",
-      reason: "dcr_failed",
+      reason: MCP_OAUTH_MANUAL_CLIENT_REGISTRATION_REASON_DCR_FAILED,
       suggestedClientMetadata: {
         clientName: "Tambo Cloud",
         clientUri: "https://console.tambo.co/",
@@ -233,9 +239,10 @@ describe("McpServerEditor", () => {
   it("submits manual client registration details when provided", async () => {
     const user = userEvent.setup();
     authorizeData = {
-      status: "manual_client_registration_required",
+      status:
+        MCP_OAUTH_AUTHORIZATION_STATUS_MANUAL_CLIENT_REGISTRATION_REQUIRED,
       authorizationServer: "https://mcp.mapbox.com",
-      reason: "dcr_failed",
+      reason: MCP_OAUTH_MANUAL_CLIENT_REGISTRATION_REASON_DCR_FAILED,
       suggestedClientMetadata: {
         clientName: "Tambo Cloud",
         clientUri: "https://console.tambo.co/",
