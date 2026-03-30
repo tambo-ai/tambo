@@ -342,7 +342,17 @@ export const toolsRouter = createTRPCRouter({
         if (shouldReusePersistedState) {
           await clearPersistedMcpOAuthState(db, toolProviderUserContextId);
         } else {
-          await clearStoredMcpOAuthSession(db, localProvider.state());
+          const sessionId = localProvider.state();
+
+          try {
+            await clearStoredMcpOAuthSession(db, sessionId);
+          } catch (cleanupError) {
+            console.error("Failed to clean up OAuth session", {
+              sessionId,
+              cleanupError,
+              originalError: error,
+            });
+          }
         }
 
         if (

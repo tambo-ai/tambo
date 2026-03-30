@@ -275,6 +275,42 @@ describe("toolsRouter.authorizeMcpServer", () => {
     expect(spies.update).not.toHaveBeenCalled();
   });
 
+  it("preserves the original auth failure when OAuth session cleanup fails", async () => {
+    const errorSpy = jest
+      .spyOn(console, "error")
+      .mockImplementation(() => undefined);
+    const { db, spies } = createDbMock({
+      toolProviderUserContext: {
+        id: "ctx_123",
+        mcpOauthClientInfo: null,
+        mcpOauthTokens: null,
+      },
+    });
+    const authError = new ServerError("temporary auth failure");
+    const cleanupError = new Error("cleanup failed");
+
+    spies.deleteWhere.mockRejectedValueOnce(cleanupError);
+    authMock.mockRejectedValue(authError);
+    const caller = createCaller(createContext(db as unknown as Context["db"]));
+
+    await expect(
+      caller.authorizeMcpServer({
+        toolProviderId: "tp_123",
+        contextKey: null,
+      }),
+    ).rejects.toThrow("MCP authorization failed: temporary auth failure");
+
+    expect(spies.deleteFn).toHaveBeenCalledTimes(1);
+    expect(spies.deleteWhere).toHaveBeenCalledTimes(1);
+    expect(errorSpy).toHaveBeenCalledWith("Failed to clean up OAuth session", {
+      sessionId: "session_123",
+      cleanupError,
+      originalError: authError,
+    });
+
+    errorSpy.mockRestore();
+  });
+
   it("keeps generic registration endpoint failures on the standard auth error path", async () => {
     const { db, spies } = createDbMock({
       toolProviderUserContext: {
