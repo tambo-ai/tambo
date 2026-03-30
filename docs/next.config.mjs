@@ -126,6 +126,147 @@ const config = {
         destination: "/reference/llm-providers/:path*",
         permanent: true,
       },
+
+      // --- Group A: Top-level shortcut aliases (common AI agent guesses) ---
+      {
+        source: "/quickstart",
+        destination: "/getting-started/quickstart",
+        permanent: true,
+      },
+      {
+        source: "/integrate",
+        destination: "/getting-started/integrate",
+        permanent: true,
+      },
+      {
+        source: "/generative-interfaces",
+        destination: "/concepts/generative-interfaces",
+        permanent: true,
+      },
+      {
+        source: "/mcp",
+        destination: "/concepts/model-context-protocol",
+        permanent: true,
+      },
+      {
+        source: "/user-authentication",
+        destination: "/concepts/user-authentication",
+        permanent: true,
+      },
+      {
+        source: "/authentication",
+        destination: "/concepts/user-authentication",
+        permanent: true,
+      },
+      {
+        source: "/tools",
+        destination: "/concepts/tools",
+        permanent: true,
+      },
+      {
+        source: "/conversation-storage",
+        destination: "/concepts/conversation-storage",
+        permanent: true,
+      },
+      {
+        source: "/self-hosting",
+        destination: "/guides/self-hosting",
+        permanent: true,
+      },
+
+      // --- Group B: Wrong-slug / synonym redirects ---
+      {
+        source: "/concepts/component-state",
+        destination: "/concepts/generative-interfaces/component-state",
+        permanent: true,
+      },
+      {
+        source: "/concepts/state",
+        destination: "/concepts/generative-interfaces/component-state",
+        permanent: true,
+      },
+      {
+        source: "/concepts/conversation-persistence",
+        destination: "/concepts/conversation-storage",
+        permanent: true,
+      },
+      {
+        source: "/concepts/authentication",
+        destination: "/concepts/user-authentication",
+        permanent: true,
+      },
+      {
+        source: "/guides/component-registration",
+        destination: "/guides/enable-generative-ui/register-components",
+        permanent: true,
+      },
+
+      // --- Group C: Folder-index redirects (folders without index.mdx) ---
+      {
+        source: "/getting-started",
+        destination: "/getting-started/quickstart",
+        permanent: true,
+      },
+      {
+        source: "/concepts",
+        destination: "/concepts/generative-interfaces",
+        permanent: true,
+      },
+      {
+        source: "/best-practices",
+        destination: "/best-practices/coding-agent-generative-ui-rules",
+        permanent: true,
+      },
+      {
+        source: "/guides",
+        destination: "/guides/coding-agent-skills",
+        permanent: true,
+      },
+      {
+        source: "/guides/setup-project",
+        destination: "/guides/setup-project/create-project",
+        permanent: true,
+      },
+      {
+        source: "/guides/enable-generative-ui",
+        destination: "/guides/enable-generative-ui/register-components",
+        permanent: true,
+      },
+      {
+        source: "/guides/build-interfaces",
+        destination: "/guides/build-interfaces/build-chat-interface",
+        permanent: true,
+      },
+      {
+        source: "/guides/give-context",
+        destination: "/guides/give-context/make-ai-aware-of-state",
+        permanent: true,
+      },
+      {
+        source: "/guides/take-actions",
+        destination: "/guides/take-actions/register-tools",
+        permanent: true,
+      },
+      {
+        source: "/examples-and-templates",
+        destination: "/examples-and-templates/chat-starter-app",
+        permanent: true,
+      },
+      {
+        source: "/reference",
+        destination: "/reference/react-sdk",
+        permanent: true,
+      },
+      {
+        source: "/reference/cli/commands",
+        destination: "/reference/cli/commands/create-app",
+        permanent: true,
+      },
+      {
+        source: "/reference/problems",
+        destination: "/reference/problems/validation",
+        permanent: true,
+      },
     ];
   },
   async rewrites() {
