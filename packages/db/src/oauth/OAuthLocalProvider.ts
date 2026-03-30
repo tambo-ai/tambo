@@ -231,10 +231,8 @@ export class OAuthLocalProvider implements OAuthClientProvider {
   }
 
   async saveTokens(tokens: OAuthTokens) {
-    // at this point we want to migrate the entire auth state to the toolProviderUserContext table
-    this._tokens = tokens;
-
-    await this.db
+    // At this point we want to migrate the entire auth state to the toolProviderUserContext table.
+    const result = await this.db
       .update(schema.toolProviderUserContexts)
       .set({
         mcpOauthTokens: tokens,
@@ -243,6 +241,14 @@ export class OAuthLocalProvider implements OAuthClientProvider {
       .where(
         eq(schema.toolProviderUserContexts.id, this.toolProviderUserContextId),
       );
+
+    if ((result.rowCount ?? 0) === 0) {
+      throw new Error(
+        `Failed to persist OAuth tokens: tool provider context ${this.toolProviderUserContextId} was not found`,
+      );
+    }
+
+    this._tokens = tokens;
   }
 
   private async getCachedSession() {

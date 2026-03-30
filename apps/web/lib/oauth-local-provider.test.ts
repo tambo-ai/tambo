@@ -5,6 +5,7 @@ import type { HydraDb } from "../../../packages/db/src/types";
 function createDbMock({
   toolProviderUserContext,
   mcpOauthClient,
+  toolProviderUserContextUpdateRowCount = 1,
 }: {
   mcpOauthClient?: {
     codeVerifier?: string | null;
@@ -13,6 +14,7 @@ function createDbMock({
   toolProviderUserContext?: {
     mcpOauthClientInfo: { client_id: string } | null;
   } | null;
+  toolProviderUserContextUpdateRowCount?: number;
 }) {
   const onConflictDoUpdate = jest.fn().mockResolvedValue(undefined);
   const values = jest.fn(() => ({
@@ -20,6 +22,15 @@ function createDbMock({
   }));
   const insert = jest.fn(() => ({
     values,
+  }));
+  const updateWhere = jest
+    .fn()
+    .mockResolvedValue({ rowCount: toolProviderUserContextUpdateRowCount });
+  const updateSet = jest.fn(() => ({
+    where: updateWhere,
+  }));
+  const update = jest.fn(() => ({
+    set: updateSet,
   }));
   const mcpOauthClientsFindFirst = jest.fn().mockResolvedValue(mcpOauthClient);
   const toolProviderUserContextsFindFirst = jest
@@ -29,6 +40,7 @@ function createDbMock({
   return {
     db: {
       insert,
+      update,
       query: {
         mcpOauthClients: {
           findFirst: mcpOauthClientsFindFirst,
@@ -43,6 +55,9 @@ function createDbMock({
       mcpOauthClientsFindFirst,
       onConflictDoUpdate,
       toolProviderUserContextsFindFirst,
+      update,
+      updateSet,
+      updateWhere,
       values,
     },
   };
@@ -159,5 +174,51 @@ describe("OAuthLocalProvider", () => {
 
     expect(spies.mcpOauthClientsFindFirst).toHaveBeenCalledTimes(1);
     expect(spies.toolProviderUserContextsFindFirst).not.toHaveBeenCalled();
+  });
+
+  it("persists tokens to the tool provider user context", async () => {
+    const { db, spies } = createDbMock({});
+    const provider = new OAuthLocalProvider(db, "ctx_123", {
+      clientInformation: {
+        client_id: "client_123",
+      },
+    });
+    const tokens = {
+      access_token: "access_token_123",
+    };
+
+    await provider.saveTokens(tokens);
+
+    expect(spies.update).toHaveBeenCalledWith(schema.toolProviderUserContexts);
+    expect(spies.updateSet).toHaveBeenCalledWith({
+      mcpOauthTokens: tokens,
+      mcpOauthClientInfo: {
+        client_id: "client_123",
+      },
+    });
+    expect(spies.updateWhere).toHaveBeenCalledTimes(1);
+    await expect(provider.tokens()).resolves.toEqual(tokens);
+  });
+
+  it("throws when persisting tokens for a deleted tool provider user context", async () => {
+    const { db, spies } = createDbMock({
+      toolProviderUserContextUpdateRowCount: 0,
+    });
+    const provider = new OAuthLocalProvider(db, "ctx_123", {
+      clientInformation: {
+        client_id: "client_123",
+      },
+    });
+
+    await expect(
+      provider.saveTokens({
+        access_token: "access_token_123",
+      }),
+    ).rejects.toThrow(
+      "Failed to persist OAuth tokens: tool provider context ctx_123 was not found",
+    );
+
+    expect(spies.update).toHaveBeenCalledWith(schema.toolProviderUserContexts);
+    await expect(provider.tokens()).resolves.toBeUndefined();
   });
 });
