@@ -249,9 +249,7 @@ describe("toolsRouter.authorizeMcpServer", () => {
     discoverOAuthProtectedResourceMetadataMock.mockRejectedValue(
       new Error("resource metadata unavailable"),
     );
-    discoverAuthorizationServerMetadataMock.mockRejectedValue(
-      new Error("authorization metadata unavailable"),
-    );
+    discoverAuthorizationServerMetadataMock.mockResolvedValue(undefined);
   });
 
   afterEach(() => {
@@ -464,7 +462,7 @@ describe("toolsRouter.authorizeMcpServer", () => {
     );
   });
 
-  it("logs authorization server metadata discovery failures before falling back to DCR", async () => {
+  it("propagates authorization server metadata discovery failures instead of falling back to DCR", async () => {
     const { db } = createDbMock({
       toolProviderUserContext: createToolProviderUserContext(),
     });
@@ -474,6 +472,42 @@ describe("toolsRouter.authorizeMcpServer", () => {
         authorization_servers: ["https://auth.example.com"],
       }),
     );
+    discoverAuthorizationServerMetadataMock.mockRejectedValue(
+      new Error("authorization metadata unavailable"),
+    );
+    const caller = createCaller(createContext(db as unknown as Context["db"]));
+
+    await expect(
+      caller.authorizeMcpServer({
+        toolProviderId: "tp_123",
+        contextKey: null,
+      }),
+    ).rejects.toThrow(
+      "MCP authorization failed: authorization metadata unavailable",
+    );
+
+    expect(authMock).not.toHaveBeenCalled();
+    expect(warnSpy).toHaveBeenCalledTimes(1);
+    expect(warnSpy).toHaveBeenCalledWith(
+      "Failed to discover OAuth authorization server metadata",
+      {
+        authorizationServer: "https://auth.example.com/",
+        error: "authorization metadata unavailable",
+      },
+    );
+  });
+
+  it("still falls back to DCR when authorization server metadata is unavailable without an endpoint error", async () => {
+    const { db } = createDbMock({
+      toolProviderUserContext: createToolProviderUserContext(),
+    });
+
+    discoverOAuthProtectedResourceMetadataMock.mockResolvedValue(
+      createProtectedResourceMetadata({
+        authorization_servers: ["https://auth.example.com"],
+      }),
+    );
+    discoverAuthorizationServerMetadataMock.mockResolvedValue(undefined);
     authMock.mockResolvedValue("AUTHORIZED");
     const caller = createCaller(createContext(db as unknown as Context["db"]));
 
@@ -487,13 +521,6 @@ describe("toolsRouter.authorizeMcpServer", () => {
     });
 
     expect(authMock).toHaveBeenCalledTimes(1);
-    expect(warnSpy).toHaveBeenCalledTimes(1);
-    expect(warnSpy).toHaveBeenCalledWith(
-      "Failed to discover OAuth authorization server metadata",
-      {
-        authorizationServer: "https://auth.example.com/",
-        error: "authorization metadata unavailable",
-      },
-    );
+    expect(warnSpy).not.toHaveBeenCalled();
   });
 });

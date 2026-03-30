@@ -120,7 +120,7 @@ export async function authorizeMcpServer({
 
   const authServerDetails =
     !persistedClientInformation && !clientRegistration
-      ? await discoverMcpAuthorizationServerDetails(url)
+      ? await getMcpAuthorizationServerDetails(url)
       : undefined;
 
   if (
@@ -363,7 +363,12 @@ async function discoverMcpAuthorizationServerDetails(serverUrl: string) {
     );
 
     if (!metadata) {
-      throw new Error("Authorization server metadata not found");
+      return {
+        authorizationServer: authorizationServer.toString(),
+        hasRegistrationEndpoint: false,
+        metadataDiscovered: false,
+        supportsClientMetadataDocument: false,
+      };
     }
 
     return {
@@ -378,13 +383,18 @@ async function discoverMcpAuthorizationServerDetails(serverUrl: string) {
       authorizationServer: authorizationServer.toString(),
       error: getErrorMessage(error),
     });
+    throw error;
+  }
+}
 
-    return {
-      authorizationServer: authorizationServer.toString(),
-      hasRegistrationEndpoint: false,
-      metadataDiscovered: false,
-      supportsClientMetadataDocument: false,
-    };
+async function getMcpAuthorizationServerDetails(serverUrl: string) {
+  try {
+    return await discoverMcpAuthorizationServerDetails(serverUrl);
+  } catch (error) {
+    throw new TRPCError({
+      code: "INTERNAL_SERVER_ERROR",
+      message: `MCP authorization failed: ${getErrorMessage(error)}`,
+    });
   }
 }
 
