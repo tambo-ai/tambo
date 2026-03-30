@@ -234,7 +234,15 @@ export function useTamboSuggestions(
     enabled: Boolean(shouldFetchSuggestions),
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
-    retry: false,
+    // Retry on 404s to handle the race condition where the assistant message
+    // hasn't been persisted to the DB yet when suggestions are requested
+    // immediately after a run completes.
+    retry: (failureCount, error) => {
+      if (failureCount >= 3) return false;
+      const status = (error as { status?: number }).status;
+      return status === 404;
+    },
+    retryDelay: (attemptIndex) => Math.min(500 * 2 ** attemptIndex, 3000),
   });
 
   // Mutation to manually generate suggestions
