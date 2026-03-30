@@ -26,8 +26,8 @@ async function getProjectProviderKey(
     where: eq(schema.projects.id, projectId),
     columns: { defaultLlmProviderName: true },
   });
-  const providerName = project?.defaultLlmProviderName;
-  if (!providerName || !providerSupportsSkills(providerName)) return undefined;
+  const providerName = project?.defaultLlmProviderName ?? "openai";
+  if (!providerSupportsSkills(providerName)) return undefined;
 
   const providerKeys = await operations.getProviderKeys(db, projectId);
   const keyRow = providerKeys.find((k) => k.providerName === providerName);

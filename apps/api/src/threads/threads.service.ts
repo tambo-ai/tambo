@@ -1078,8 +1078,8 @@ export class ThreadsService {
 
       // Fetch enabled skills and build provider skill config
       let providerSkills: ProviderSkillConfig | undefined;
-      const providerName = project?.defaultLlmProviderName;
-      if (providerName && this.skillsService.supportsSkills(providerName)) {
+      const providerName = project?.defaultLlmProviderName ?? "openai";
+      if (this.skillsService.supportsSkills(providerName)) {
         const enabledSkills = await operations.listSkillsForProject(
           db,
           projectId,
