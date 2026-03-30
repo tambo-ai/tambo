@@ -30,11 +30,15 @@ export async function GET(request: NextRequest) {
   try {
     // Validate query parameters
     const validatedParams = callbackParamsSchema.parse(queryParams);
+    const sessionId = validatedParams.state ?? validatedParams.sessionId;
     if (validatedParams.error) {
+      console.error("OAuth callback returned provider error", {
+        sessionId,
+        error: validatedParams.error,
+      });
       return redirectToOAuthError(request, validatedParams.error);
     }
 
-    const sessionId = validatedParams.state ?? validatedParams.sessionId;
     if (!sessionId) {
       throw new Error("OAuth session ID missing from callback state");
     }
@@ -90,6 +94,11 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.redirect(redirectUrl);
   } catch (error) {
+    console.error("OAuth callback failed", {
+      sessionId: queryParams.state ?? queryParams.sessionId,
+      error,
+    });
+
     if (error instanceof z.ZodError) {
       // Format validation errors
       const errorMessage = error.errors
