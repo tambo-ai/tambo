@@ -339,7 +339,9 @@ export const toolsRouter = createTRPCRouter({
           };
         }
       } catch (error) {
-        if (!shouldReusePersistedState) {
+        if (shouldReusePersistedState) {
+          await clearPersistedMcpOAuthState(db, toolProviderUserContextId);
+        } else {
           await clearStoredMcpOAuthSession(db, localProvider.state());
         }
 
@@ -681,6 +683,19 @@ async function clearStoredMcpOAuthSession(db: HydraDb, sessionId: string) {
   await db
     .delete(schema.mcpOauthClients)
     .where(eq(schema.mcpOauthClients.sessionId, sessionId));
+}
+
+async function clearPersistedMcpOAuthState(
+  db: HydraDb,
+  toolProviderUserContextId: string,
+) {
+  await db
+    .update(schema.toolProviderUserContexts)
+    .set({
+      mcpOauthClientInfo: null,
+      mcpOauthTokens: null,
+    })
+    .where(eq(schema.toolProviderUserContexts.id, toolProviderUserContextId));
 }
 
 async function discoverMcpAuthorizationServerDetails(serverUrl: string) {
