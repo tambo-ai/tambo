@@ -596,6 +596,35 @@ export async function getMcpServer(
   });
 }
 
+export async function upsertToolProviderUserContext(
+  db: HydraDb,
+  toolProviderId: string,
+  contextKey: string | null,
+) {
+  return await db.transaction(async (tx) => {
+    const toolProviderUserContext =
+      await tx.query.toolProviderUserContexts.findFirst({
+        where: eq(
+          schema.toolProviderUserContexts.toolProviderId,
+          toolProviderId,
+        ),
+      });
+    if (toolProviderUserContext) {
+      return toolProviderUserContext.id;
+    }
+
+    const [newToolProviderUserContext] = await tx
+      .insert(schema.toolProviderUserContexts)
+      .values({
+        toolProviderId,
+        contextKey,
+      })
+      .returning();
+
+    return newToolProviderUserContext.id;
+  });
+}
+
 /**
  * Get OAuth validation settings for a project
  */

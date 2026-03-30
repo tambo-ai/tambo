@@ -56,6 +56,7 @@ jest.mock("@tambo-ai-cloud/db", () => ({
   },
   operations: {
     ensureProjectAccess: jest.fn(),
+    upsertToolProviderUserContext: jest.fn(),
   },
   schema: {
     mcpOauthClients: {
@@ -74,6 +75,9 @@ jest.mock("@tambo-ai-cloud/db", () => ({
 }));
 
 const ensureProjectAccessMock = jest.mocked(operations.ensureProjectAccess);
+const upsertToolProviderUserContextMock = jest.mocked(
+  operations.upsertToolProviderUserContext,
+);
 const authMock = jest.mocked(auth);
 const createFetchWithTimeoutMock = jest.mocked(createFetchWithTimeout);
 const discoverAuthorizationServerMetadataMock = jest.mocked(
@@ -206,6 +210,7 @@ describe("toolsRouter.authorizeMcpServer", () => {
     jest.clearAllMocks();
     warnSpy = jest.spyOn(console, "warn").mockImplementation(() => undefined);
     ensureProjectAccessMock.mockResolvedValue(undefined);
+    upsertToolProviderUserContextMock.mockResolvedValue("ctx_123");
     createFetchWithTimeoutMock.mockReturnValue(jest.fn());
     discoverOAuthProtectedResourceMetadataMock.mockRejectedValue(
       new Error("resource metadata unavailable"),
