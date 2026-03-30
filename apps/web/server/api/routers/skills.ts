@@ -44,10 +44,11 @@ async function getProjectProviderKey(
 }
 
 /**
- * Eagerly upload a skill to the provider API and persist the metadata.
- * Best-effort: logs warning on failure, does not throw.
+ * Upload a skill to the provider API and persist the metadata.
+ * Throws a TRPCError on failure so the client sees what went wrong.
+ * Silently skips if no provider key is available (free-tier projects).
  */
-async function eagerUploadSkill(
+async function uploadSkillToProviderAndPersist(
   db: Parameters<typeof operations.getSkill>[0],
   projectId: string,
   skill: {
@@ -57,10 +58,10 @@ async function eagerUploadSkill(
     instructions: string;
   },
 ): Promise<void> {
-  try {
-    const provider = await getProjectProviderKey(db, projectId);
-    if (!provider) return;
+  const provider = await getProjectProviderKey(db, projectId);
+  if (!provider) return;
 
+  try {
     const metadata = await uploadSkillToProvider({
       skill,
       providerName: provider.providerName,
@@ -77,7 +78,10 @@ async function eagerUploadSkill(
       externalSkillMetadata,
     });
   } catch (error) {
-    console.warn(`[Skills] Eager upload failed for skill ${skill.id}:`, error);
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: `Failed to upload skill to provider: ${error instanceof Error ? error.message : "unknown error"}`,
+    });
   }
 }
 
@@ -124,8 +128,8 @@ export const skillsRouter = createTRPCRouter({
         throw error;
       }
 
-      // Eager upload so the skill is available by the time the user sends a message
-      void eagerUploadSkill(ctx.db, input.projectId, skill);
+      // Upload to provider so the skill is available by the time the user sends a message
+      await uploadSkillToProviderAndPersist(ctx.db, input.projectId, skill);
 
       return skill;
     }),
@@ -173,7 +177,7 @@ export const skillsRouter = createTRPCRouter({
 
       // Re-upload to provider after content changes so it's ready before next message
       if (contentChanged && updated) {
-        void eagerUploadSkill(ctx.db, input.projectId, updated);
+        await uploadSkillToProviderAndPersist(ctx.db, input.projectId, updated);
       }
 
       return updated;
