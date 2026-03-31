@@ -107,14 +107,27 @@ export class SkillsService {
     );
     if (enabledSkills.length === 0) return undefined;
 
-    const skillRefs = await Promise.all(
+    // Only include skills that already have provider metadata. Freshly uploaded
+    // skills may not be available on the provider yet (eventual consistency),
+    // so we upload them now (for next time) but skip them for this run.
+    const skillRefs: Array<{ skillId: string; version: string }> = [];
+    await Promise.all(
       enabledSkills.map(async (skill) => {
-        const ref = await this.ensureSkillUploaded({
-          skill,
-          providerName,
-          apiKey,
-        });
-        return { skillId: ref.skillId, version: ref.version };
+        const existingRef = skill.externalSkillMetadata?.[providerName];
+        if (existingRef) {
+          skillRefs.push({
+            skillId: existingRef.skillId,
+            version: existingRef.version,
+          });
+        } else {
+          // Upload for next run (fire-and-forget)
+          void this.ensureSkillUploaded({ skill, providerName, apiKey }).catch(
+            (error) =>
+              this.logger.warn(
+                `Background upload failed for skill ${skill.id}: ${error}`,
+              ),
+          );
+        }
       }),
     );
 
