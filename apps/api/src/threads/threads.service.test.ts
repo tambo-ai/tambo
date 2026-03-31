@@ -381,6 +381,7 @@ describe("ThreadsService.advanceThread initialization", () => {
         {
           provide: ProjectsService,
           useValue: {
+            getDecryptedProviderKey: jest.fn().mockResolvedValue(undefined),
             findOneWithKeys: jest
               .fn()
               .mockResolvedValue({ getProviderKeys: () => [] }),
@@ -419,6 +420,7 @@ describe("ThreadsService.advanceThread initialization", () => {
           useValue: {
             supportsSkills: jest.fn().mockReturnValue(false),
             ensureSkillUploaded: jest.fn(),
+            getProviderSkillsForRun: jest.fn().mockResolvedValue(undefined),
           },
         },
       ],
