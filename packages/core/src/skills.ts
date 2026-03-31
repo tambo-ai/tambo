@@ -1,3 +1,8 @@
+/** Validation limits for skill fields. Shared across tRPC and any future entry points. */
+export const SKILL_NAME_MAX_LENGTH = 200;
+export const SKILL_DESCRIPTION_MAX_LENGTH = 2000;
+export const SKILL_INSTRUCTIONS_MAX_LENGTH = 100_000;
+
 /**
  * Provider-specific metadata returned after uploading a skill
  * to an external provider API (e.g., OpenAI, Anthropic).

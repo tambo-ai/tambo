@@ -8,6 +8,9 @@ import {
 import {
   decryptProviderKey,
   type ExternalSkillMetadata,
+  SKILL_NAME_MAX_LENGTH,
+  SKILL_DESCRIPTION_MAX_LENGTH,
+  SKILL_INSTRUCTIONS_MAX_LENGTH,
 } from "@tambo-ai-cloud/core";
 import { operations, schema, SkillNameConflictError } from "@tambo-ai-cloud/db";
 import { eq } from "drizzle-orm";
@@ -101,9 +104,12 @@ export const skillsRouter = createTRPCRouter({
     .input(
       z.object({
         projectId: z.string(),
-        name: z.string().min(1, "Name is required").max(200),
-        description: z.string().min(1, "Description is required").max(2000),
-        instructions: z.string().max(100_000),
+        name: z.string().min(1, "Name is required").max(SKILL_NAME_MAX_LENGTH),
+        description: z
+          .string()
+          .min(1, "Description is required")
+          .max(SKILL_DESCRIPTION_MAX_LENGTH),
+        instructions: z.string().max(SKILL_INSTRUCTIONS_MAX_LENGTH),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -139,9 +145,13 @@ export const skillsRouter = createTRPCRouter({
       z.object({
         projectId: z.string(),
         skillId: z.string(),
-        name: z.string().min(1).max(200).optional(),
-        description: z.string().min(1).max(2000).optional(),
-        instructions: z.string().max(100_000).optional(),
+        name: z.string().min(1).max(SKILL_NAME_MAX_LENGTH).optional(),
+        description: z
+          .string()
+          .min(1)
+          .max(SKILL_DESCRIPTION_MAX_LENGTH)
+          .optional(),
+        instructions: z.string().max(SKILL_INSTRUCTIONS_MAX_LENGTH).optional(),
         enabled: z.boolean().optional(),
       }),
     )
