@@ -123,7 +123,15 @@ export const NextAuthLayoutWrapper: FC<NextAuthLayoutWrapperProps> = ({
   ]);
 
   // Show loading state while checking session or auto-accepting legal
-  if (status === "loading" || (session && !legalStatus) || isAutoAccepting) {
+  if (
+    status === "loading" ||
+    (session && !legalStatus) ||
+    isAutoAccepting ||
+    (session &&
+      legalStatus?.accepted &&
+      hasCompletedOnboarding === undefined &&
+      pathname !== "/onboarding")
+  ) {
     return (
       fallback || (
         <div className="flex items-center justify-center min-h-screen">

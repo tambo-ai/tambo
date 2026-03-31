@@ -158,49 +158,27 @@ export function GettingStartedGuide() {
               Copy
               <Copy className="h-3 w-3 text-muted-foreground" />
             </button>
-            <div className="flex items-center gap-2">
-              <CopyCommandButton
-                label="Use Skill"
-                command="npx skills add tambo-ai/tambo"
-              />
-              <CopyCommandButton
-                label="Create App"
-                command="npm create tambo-app@latest"
-              />
-            </div>
           </>
         ) : hasExistingProject ? (
-          <>
-            <Button
-              size="sm"
-              variant="default"
-              className="font-sans"
-              disabled={generateKeyMutation.isPending}
-              onClick={handleCreateApiKey}
-            >
-              {generateKeyMutation.isPending ? (
-                <span className="flex items-center gap-1">
-                  <Loader2 className="h-3 w-3 animate-spin" />
-                  Creating...
-                </span>
-              ) : (
-                <span className="flex items-center gap-1">
-                  <KeyRound className="h-3 w-3" />
-                  Create API Key
-                </span>
-              )}
-            </Button>
-            <div className="flex items-center gap-2">
-              <CopyCommandButton
-                label="Use Skill"
-                command="npx skills add tambo-ai/tambo"
-              />
-              <CopyCommandButton
-                label="Create App"
-                command="npm create tambo-app@latest"
-              />
-            </div>
-          </>
+          <Button
+            size="sm"
+            variant="default"
+            className="font-sans"
+            disabled={generateKeyMutation.isPending}
+            onClick={handleCreateApiKey}
+          >
+            {generateKeyMutation.isPending ? (
+              <span className="flex items-center gap-1">
+                <Loader2 className="h-3 w-3 animate-spin" />
+                Creating...
+              </span>
+            ) : (
+              <span className="flex items-center gap-1">
+                <KeyRound className="h-3 w-3" />
+                Create API Key
+              </span>
+            )}
+          </Button>
         ) : (
           <>
             <Input
@@ -234,18 +212,18 @@ export function GettingStartedGuide() {
                 </span>
               )}
             </Button>
-            <div className="flex items-center gap-2">
-              <CopyCommandButton
-                label="Use Skill"
-                command="npx skills add tambo-ai/tambo"
-              />
-              <CopyCommandButton
-                label="Create App"
-                command="npm create tambo-app@latest"
-              />
-            </div>
           </>
         )}
+        <div className="flex items-center gap-2">
+          <CopyCommandButton
+            label="Use Skill"
+            command="npx skills add tambo-ai/tambo"
+          />
+          <CopyCommandButton
+            label="Create App"
+            command="npm create tambo-app@latest"
+          />
+        </div>
       </div>
     </div>
   );

@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { REFERRAL_SOURCES, type ReferralSource } from "@tambo-ai-cloud/core";
 import { api } from "@/trpc/react";
@@ -15,6 +16,7 @@ export default function OnboardingPage() {
   const [referralSource, setReferralSource] = useState<ReferralSource | "">("");
   const router = useRouter();
   const utils = api.useUtils();
+  const { toast } = useToast();
   const saveReferralMutation = api.user.saveReferralSource.useMutation();
   const completeOnboardingMutation = api.user.completeOnboarding.useMutation();
 
@@ -39,8 +41,14 @@ export default function OnboardingPage() {
       await utils.user.hasCompletedOnboarding.invalidate();
       router.push("/");
     } catch (error) {
-      console.error("Failed to complete onboarding:", error);
-      // Error already handled by mutation error states
+      toast({
+        title: "Error",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Failed to complete onboarding",
+        variant: "destructive",
+      });
     }
   };
 

@@ -161,4 +161,23 @@ describe("NextAuthLayoutWrapper", () => {
       );
     });
   });
+
+  it("redirects to /onboarding when legal is accepted but onboarding is not complete", async () => {
+    mockSession = { user: { id: "1", userToken: "valid-token" } };
+    mockStatus = "authenticated";
+    mockLegalStatus = { accepted: true, version: 1 };
+    mockHasCompletedOnboarding = false;
+
+    render(
+      <NextAuthLayoutWrapper>
+        <p>Dashboard</p>
+      </NextAuthLayoutWrapper>,
+    );
+
+    await waitFor(() => {
+      expect(mockPush).toHaveBeenCalledWith("/onboarding");
+    });
+
+    expect(screen.queryByText("Dashboard")).not.toBeInTheDocument();
+  });
 });
