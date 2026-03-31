@@ -2,30 +2,16 @@
 
 import { CreateProjectDialog } from "@/components/dashboard-components/create-project-dialog";
 import { DashboardCard } from "@/components/dashboard-components/dashboard-card";
-import { OnboardingWizard } from "@/components/dashboard-components/onboarding-wizard";
+import { GettingStartedGuide } from "@/components/dashboard-components/getting-started-guide";
 import { ProjectsManager } from "@/components/dashboard-components/projects-manager";
 import { Icons } from "@/components/icons";
 import { useToast } from "@/hooks/use-toast";
 import { api } from "@/trpc/react";
-import { motion } from "framer-motion";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 
-// Animation variants
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1,
-      duration: 0.3,
-    },
-  },
-};
-
 export default function DashboardPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
   const [messagesPeriod, setMessagesPeriod] = useState("all time");
   const [usersPeriod, setUsersPeriod] = useState("all time");
   const { toast } = useToast();
@@ -63,13 +49,6 @@ export default function DashboardPage() {
     }
   }, [projectLoadingError, toast]);
 
-  // Open onboarding wizard for new users (no projects), otherwise use regular create dialog
-  useEffect(() => {
-    if (!isProjectsLoading && projects && projects.length === 0) {
-      setIsOnboardingOpen(true);
-    }
-  }, [isProjectsLoading, projects]);
-
   const { mutateAsync: createProject } =
     api.project.createProject2.useMutation();
   const { mutateAsync: addProviderKey } =
@@ -88,7 +67,6 @@ export default function DashboardPage() {
       });
       await refetchProjects();
       setIsCreateDialogOpen(false);
-      setIsOnboardingOpen(false);
       toast({
         title: "Success",
         description: "Project created successfully",
@@ -110,70 +88,56 @@ export default function DashboardPage() {
     { value: "per week", label: "last 7 days" },
   ];
 
-  const LoadingSpinner = () => (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      className="flex flex-col items-center justify-center min-h-[60vh]"
-    >
-      <Icons.spinner className="h-8 w-8 animate-spin text-foreground" />
-      <p className="mt-4 text-sm text-foreground">Loading...</p>
-    </motion.div>
-  );
-
-  // Show loading spinner while checking auth or loading projects
   if (isAuthLoading || isProjectsLoading) {
-    return <LoadingSpinner />;
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh]">
+        <Icons.spinner className="h-8 w-8 animate-spin text-foreground" />
+        <p className="mt-4 text-sm text-foreground">Loading...</p>
+      </div>
+    );
   }
 
   return (
-    <motion.div initial="hidden" animate="visible" variants={containerVariants}>
-      <>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 py-6 md:py-14">
-          <DashboardCard
-            title="Number of Projects"
-            value={projects?.length || 0}
-          />
-          <DashboardCard
-            title="Messages"
-            value={totalUsage?.totalMessages || 0}
-            defaultPeriod="all time"
-            periodOptions={periodOptions}
-            onPeriodChange={setMessagesPeriod}
-            isLoading={isLoadingMessageUsage}
-          />
-          <DashboardCard
-            title="Users"
-            value={totalUsers?.totalUsers || 0}
-            defaultPeriod="all time"
-            periodOptions={periodOptions}
-            onPeriodChange={setUsersPeriod}
-            isLoading={isLoadingUserCount}
-          />
-        </div>
-
-        <ProjectsManager
-          projects={projects}
-          onCreateProject={() => setIsCreateDialogOpen(true)}
-          onRefetchProjects={async () => {
-            await refetchProjects();
-          }}
+    <div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 py-6 md:py-8">
+        <DashboardCard
+          title="Number of Projects"
+          value={projects?.length || 0}
         />
-
-        {/* Onboarding wizard for new users (no projects) */}
-        <OnboardingWizard
-          open={isOnboardingOpen}
-          onOpenChange={setIsOnboardingOpen}
-          onSubmit={handleCreateProject}
+        <DashboardCard
+          title="Messages"
+          value={totalUsage?.totalMessages || 0}
+          defaultPeriod="all time"
+          periodOptions={periodOptions}
+          onPeriodChange={setMessagesPeriod}
+          isLoading={isLoadingMessageUsage}
         />
-
-        {/* Regular create project dialog for existing users */}
-        <CreateProjectDialog
-          open={isCreateDialogOpen}
-          onOpenChange={setIsCreateDialogOpen}
-          onSubmit={handleCreateProject}
+        <DashboardCard
+          title="Users"
+          value={totalUsers?.totalUsers || 0}
+          defaultPeriod="all time"
+          periodOptions={periodOptions}
+          onPeriodChange={setUsersPeriod}
+          isLoading={isLoadingUserCount}
         />
-      </>
-    </motion.div>
+      </div>
+
+      {/* Getting started guide for new users - between stats and projects */}
+      <GettingStartedGuide />
+
+      <ProjectsManager
+        projects={projects}
+        onCreateProject={() => setIsCreateDialogOpen(true)}
+        onRefetchProjects={async () => {
+          await refetchProjects();
+        }}
+      />
+
+      <CreateProjectDialog
+        open={isCreateDialogOpen}
+        onOpenChange={setIsCreateDialogOpen}
+        onSubmit={handleCreateProject}
+      />
+    </div>
   );
 }

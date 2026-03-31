@@ -58,6 +58,17 @@ export const userRouter = createTRPCRouter({
       return { success: true };
     }),
 
+  // Check if user has completed onboarding
+  hasCompletedOnboarding: protectedProcedure.query(async ({ ctx }) => {
+    return await operations.hasCompletedOnboarding(ctx.db, ctx.user.id);
+  }),
+
+  // Mark onboarding as completed
+  completeOnboarding: protectedProcedure.mutation(async ({ ctx }) => {
+    await operations.completeOnboarding(ctx.db, ctx.user.id);
+    return { success: true };
+  }),
+
   // Save referral source (how the user heard about Tambo)
   saveReferralSource: protectedProcedure
     .input(

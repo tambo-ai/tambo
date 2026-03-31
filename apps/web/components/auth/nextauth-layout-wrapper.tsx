@@ -42,6 +42,16 @@ export const NextAuthLayoutWrapper: FC<NextAuthLayoutWrapperProps> = ({
     enabled: !!session && !isLegacySession && pathname !== "/legal-acceptance",
   });
 
+  // Check onboarding completion status
+  const { data: hasCompletedOnboarding } =
+    api.user.hasCompletedOnboarding.useQuery(undefined, {
+      enabled:
+        !!session &&
+        !isLegacySession &&
+        !!legalStatus?.accepted &&
+        pathname !== "/onboarding",
+    });
+
   // Hook for auto-accepting legal terms from pre-auth checkbox
   const { isAutoAccepting, triggerAutoAccept, shouldRedirectToLegalPage } =
     useAutoAcceptLegal(legalStatus);
@@ -88,6 +98,16 @@ export const NextAuthLayoutWrapper: FC<NextAuthLayoutWrapperProps> = ({
     // Redirect to legal acceptance if not accepted and no pending cookie
     if (shouldRedirectToLegalPage() && pathname !== "/legal-acceptance") {
       router.push(`/legal-acceptance?returnUrl=${returnUrl}`);
+      return;
+    }
+
+    // Redirect to onboarding if not completed
+    if (
+      legalStatus?.accepted &&
+      hasCompletedOnboarding === false &&
+      pathname !== "/onboarding"
+    ) {
+      router.push("/onboarding");
     }
   }, [
     session,
@@ -98,6 +118,8 @@ export const NextAuthLayoutWrapper: FC<NextAuthLayoutWrapperProps> = ({
     isLegacySession,
     triggerAutoAccept,
     shouldRedirectToLegalPage,
+    legalStatus?.accepted,
+    hasCompletedOnboarding,
   ]);
 
   // Show loading state while checking session or auto-accepting legal
@@ -111,8 +133,12 @@ export const NextAuthLayoutWrapper: FC<NextAuthLayoutWrapperProps> = ({
     );
   }
 
-  // Show children if authenticated and legal accepted
-  if (session && legalStatus?.accepted) {
+  // Show children if authenticated, legal accepted, and onboarding completed
+  if (
+    session &&
+    legalStatus?.accepted &&
+    (hasCompletedOnboarding === true || pathname === "/onboarding")
+  ) {
     return <>{children}</>;
   }
 
