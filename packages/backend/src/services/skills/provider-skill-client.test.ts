@@ -108,7 +108,7 @@ describe("formatSkillMd", () => {
     expect(result).toBe(
       [
         "---",
-        "name: my-skill",
+        'name: "my-skill"',
         'description: "Does cool stuff"',
         "---",
         "",

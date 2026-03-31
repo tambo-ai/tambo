@@ -1,3 +1,6 @@
+/** Kebab-case pattern for skill names (e.g. "scheduling-assistant"). */
+export const SKILL_NAME_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
 /** Validation limits for skill fields. Shared across tRPC and any future entry points. */
 export const SKILL_NAME_MAX_LENGTH = 200;
 export const SKILL_DESCRIPTION_MAX_LENGTH = 2000;

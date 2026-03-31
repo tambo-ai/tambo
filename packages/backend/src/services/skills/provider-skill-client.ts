@@ -29,7 +29,7 @@ export function formatSkillMd(skill: {
     .replace(/\n/g, " ");
   return [
     "---",
-    `name: ${skill.name}`,
+    `name: "${skill.name}"`,
     `description: "${escapedDescription}"`,
     "---",
     "",

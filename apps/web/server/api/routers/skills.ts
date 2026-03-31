@@ -9,6 +9,7 @@ import {
   decryptProviderKey,
   type ExternalSkillMetadata,
   SKILL_NAME_MAX_LENGTH,
+  SKILL_NAME_PATTERN,
   SKILL_DESCRIPTION_MAX_LENGTH,
   SKILL_INSTRUCTIONS_MAX_LENGTH,
 } from "@tambo-ai-cloud/core";
@@ -104,7 +105,14 @@ export const skillsRouter = createTRPCRouter({
     .input(
       z.object({
         projectId: z.string(),
-        name: z.string().min(1, "Name is required").max(SKILL_NAME_MAX_LENGTH),
+        name: z
+          .string()
+          .min(1, "Name is required")
+          .max(SKILL_NAME_MAX_LENGTH)
+          .regex(
+            SKILL_NAME_PATTERN,
+            "Name must be kebab-case (e.g. scheduling-assistant)",
+          ),
         description: z
           .string()
           .min(1, "Description is required")
@@ -145,7 +153,15 @@ export const skillsRouter = createTRPCRouter({
       z.object({
         projectId: z.string(),
         skillId: z.string(),
-        name: z.string().min(1).max(SKILL_NAME_MAX_LENGTH).optional(),
+        name: z
+          .string()
+          .min(1)
+          .max(SKILL_NAME_MAX_LENGTH)
+          .regex(
+            SKILL_NAME_PATTERN,
+            "Name must be kebab-case (e.g. scheduling-assistant)",
+          )
+          .optional(),
         description: z
           .string()
           .min(1)
