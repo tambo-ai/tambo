@@ -38,10 +38,10 @@ export function formatSkillMd(skill: {
 }
 
 /**
- * Upload a skill to the provider API (OpenAI or Anthropic).
+ * Create a new skill on the provider API (OpenAI or Anthropic).
  *
  * Shared helper so both the NestJS service and the tRPC route
- * can upload skills without duplicating provider-specific logic.
+ * can create skills without duplicating provider-specific logic.
  *
  * @returns The provider-specific metadata (skillId, uploadedAt, version).
  */
@@ -64,7 +64,51 @@ export async function uploadSkillToProvider({
   }
 
   if (providerName === "anthropic") {
-    return await uploadToAnthropic(skill, apiKey);
+    return await createAnthropicSkill(skill, apiKey);
+  }
+
+  throw new Error(`Provider ${providerName} does not support skills`);
+}
+
+/**
+ * Update an existing skill on the provider API by creating a new version.
+ *
+ * Requires the existing provider skill reference so the provider client
+ * knows which remote skill to update. For Anthropic this deletes the old
+ * skill and creates a fresh one. Ideally we'd use Anthropic's
+ * `skills.versions.create()`, but the SDK strips directory paths from
+ * filenames in multipart uploads, and `versions.create` requires
+ * `SKILL.md` inside a top-level directory.
+ * See: https://github.com/anthropics/anthropic-sdk-typescript/issues/968
+ * Same issue exists in the OpenAI SDK:
+ * See: https://github.com/openai/openai-node/issues/1807
+ *
+ * @returns The updated provider-specific metadata.
+ */
+export async function updateSkillOnProvider({
+  skill,
+  providerName,
+  apiKey,
+  existingRef,
+}: {
+  skill: {
+    name: string;
+    description: string;
+    instructions: string;
+    projectId?: string;
+  };
+  providerName: string;
+  apiKey: string;
+  existingRef: ProviderSkillReference;
+}): Promise<ProviderSkillReference> {
+  if (providerName === "openai") {
+    const client = new OpenAI({ apiKey });
+    await client.skills.delete(existingRef.skillId);
+    return await uploadToOpenAI(skill, apiKey);
+  }
+
+  if (providerName === "anthropic") {
+    return await updateAnthropicSkill(skill, apiKey, existingRef);
   }
 
   throw new Error(`Provider ${providerName} does not support skills`);
@@ -92,7 +136,7 @@ export async function deleteSkillFromProvider({
     await client.skills.delete(skillId);
   } else if (providerName === "anthropic") {
     const client = new Anthropic({ apiKey });
-    await client.beta.skills.delete(skillId);
+    await deleteAnthropicSkillWithVersions(client, skillId);
   } else {
     throw new Error(`Provider ${providerName} does not support skill deletion`);
   }
@@ -137,7 +181,7 @@ async function uploadToOpenAI(
   };
 }
 
-async function uploadToAnthropic(
+async function createAnthropicSkill(
   skill: {
     name: string;
     description: string;
@@ -159,14 +203,95 @@ async function uploadToAnthropic(
     ? `${skill.projectId}/${skill.name}`
     : skill.name;
 
-  const result = await client.beta.skills.create({
-    display_title: displayTitle,
-    files: [file],
-  });
+  try {
+    const result = await client.beta.skills.create({
+      display_title: displayTitle,
+      files: [file],
+    });
 
-  return {
-    skillId: result.id,
-    uploadedAt: new Date().toISOString(),
-    version: result.latest_version ?? "1",
-  };
+    return {
+      skillId: result.id,
+      uploadedAt: new Date().toISOString(),
+      version: result.latest_version ?? "1",
+    };
+  } catch (error) {
+    // An orphaned skill with this display_title may exist on Anthropic
+    // (e.g. local metadata was lost). Delete it and retry the create.
+    if (isDuplicateTitleError(error)) {
+      const orphaned = await findAnthropicSkillByTitle(client, displayTitle);
+      if (orphaned) {
+        await deleteAnthropicSkillWithVersions(client, orphaned.id);
+        const result = await client.beta.skills.create({
+          display_title: displayTitle,
+          files: [file],
+        });
+        return {
+          skillId: result.id,
+          uploadedAt: new Date().toISOString(),
+          version: result.latest_version ?? "1",
+        };
+      }
+    }
+    throw error;
+  }
+}
+
+function isDuplicateTitleError(error: unknown): boolean {
+  return (
+    error instanceof Anthropic.APIError &&
+    error.status === 400 &&
+    typeof error.message === "string" &&
+    error.message.includes("reuse an existing display_title")
+  );
+}
+
+/**
+ * Find an Anthropic skill by its display_title.
+ * @returns The matching skill, or undefined if not found.
+ */
+async function findAnthropicSkillByTitle(
+  client: Anthropic,
+  displayTitle: string,
+): Promise<{ id: string } | undefined> {
+  for await (const skill of client.beta.skills.list()) {
+    if (skill.display_title === displayTitle) {
+      return { id: skill.id };
+    }
+  }
+  return undefined;
+}
+
+/**
+ * Delete an Anthropic skill, removing all its versions first.
+ * Anthropic requires all versions to be deleted before the skill itself.
+ */
+async function deleteAnthropicSkillWithVersions(
+  client: Anthropic,
+  skillId: string,
+): Promise<void> {
+  for await (const version of client.beta.skills.versions.list(skillId)) {
+    await client.beta.skills.versions.delete(version.version, {
+      skill_id: skillId,
+    });
+  }
+  await client.beta.skills.delete(skillId);
+}
+
+async function updateAnthropicSkill(
+  skill: {
+    name: string;
+    description: string;
+    instructions: string;
+    projectId?: string;
+  },
+  apiKey: string,
+  existingRef: ProviderSkillReference,
+): Promise<ProviderSkillReference> {
+  // The Anthropic SDK strips directory paths from filenames, but
+  // versions.create requires SKILL.md inside a top-level directory.
+  // Rather than bypassing the SDK with raw fetch, delete the old skill
+  // and create a fresh one with the updated content.
+  const client = new Anthropic({ apiKey });
+  await deleteAnthropicSkillWithVersions(client, existingRef.skillId);
+  return await createAnthropicSkill(skill, apiKey);
 }

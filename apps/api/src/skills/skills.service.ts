@@ -70,7 +70,7 @@ export class SkillsService {
       return existing;
     }
 
-    const metadata = await this.uploadToProvider({
+    const metadata = await uploadSkillToProvider({
       skill,
       providerName,
       apiKey,

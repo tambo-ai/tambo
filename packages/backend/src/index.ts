@@ -38,6 +38,7 @@ export { sanitizeEvent } from "./util/event-sanitization";
 export {
   deleteSkillFromProvider,
   uploadSkillToProvider,
+  updateSkillOnProvider,
   formatSkillMd,
   providerSupportsSkills,
 } from "./services/skills/provider-skill-client";

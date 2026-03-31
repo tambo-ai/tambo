@@ -3,6 +3,7 @@ import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import {
   deleteSkillFromProvider,
   uploadSkillToProvider,
+  updateSkillOnProvider,
   providerSupportsSkills,
 } from "@tambo-ai-cloud/backend";
 import {
@@ -47,11 +48,11 @@ async function getProjectProviderKey(
 }
 
 /**
- * Upload a skill to the provider API and persist the metadata.
+ * Create a new skill on the provider API and persist the metadata.
  * Throws a TRPCError on failure so the client sees what went wrong.
  * Silently skips if no provider key is available (free-tier projects).
  */
-async function uploadSkillToProviderAndPersist(
+async function createSkillOnProviderAndPersist(
   db: Parameters<typeof operations.getSkill>[0],
   projectId: string,
   skill: {
@@ -79,6 +80,55 @@ async function uploadSkillToProviderAndPersist(
     throw new TRPCError({
       code: "BAD_REQUEST",
       message: `Failed to upload skill to provider: ${error instanceof Error ? error.message : "unknown error"}`,
+    });
+  }
+}
+
+/**
+ * Update an existing skill on the provider by creating a new version.
+ * Falls back to creating a brand-new skill if no provider metadata exists yet.
+ * Throws a TRPCError on failure so the client sees what went wrong.
+ * Silently skips if no provider key is available (free-tier projects).
+ */
+async function updateSkillOnProviderAndPersist(
+  db: Parameters<typeof operations.getSkill>[0],
+  projectId: string,
+  skill: {
+    id: string;
+    name: string;
+    description: string;
+    instructions: string;
+  },
+  existingRef:
+    | { skillId: string; uploadedAt: string; version: string }
+    | undefined,
+): Promise<void> {
+  const provider = await getProjectProviderKey(db, projectId);
+  if (!provider) return;
+
+  try {
+    // If we have an existing provider reference, update via versions.create().
+    // Otherwise fall back to creating a new skill (e.g. first upload for this provider).
+    const metadata = existingRef
+      ? await updateSkillOnProvider({
+          skill: { ...skill, projectId },
+          providerName: provider.providerName,
+          apiKey: provider.apiKey,
+          existingRef,
+        })
+      : await uploadSkillToProvider({
+          skill: { ...skill, projectId },
+          providerName: provider.providerName,
+          apiKey: provider.apiKey,
+        });
+
+    await operations.mergeSkillMetadata(db, projectId, skill.id, {
+      [provider.providerName]: metadata,
+    });
+  } catch (error) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: `Failed to update skill on provider: ${error instanceof Error ? error.message : "unknown error"}`,
     });
   }
 }
@@ -136,8 +186,14 @@ export const skillsRouter = createTRPCRouter({
         throw error;
       }
 
-      // Upload to provider so the skill is available by the time the user sends a message
-      await uploadSkillToProviderAndPersist(ctx.db, input.projectId, skill);
+      // Upload to provider so the skill is available by the time the user sends a message.
+      // If the upload fails, delete the DB record so the user doesn't see a broken skill.
+      try {
+        await createSkillOnProviderAndPersist(ctx.db, input.projectId, skill);
+      } catch (error) {
+        await operations.deleteSkill(ctx.db, input.projectId, skill.id);
+        throw error;
+      }
 
       return skill;
     }),
@@ -171,19 +227,20 @@ export const skillsRouter = createTRPCRouter({
         input.projectId,
         ctx.user.id,
       );
-      // If content fields changed, invalidate provider metadata so the next
-      // run re-uploads the updated skill to the provider.
       const contentChanged =
         input.name !== undefined ||
         input.description !== undefined ||
         input.instructions !== undefined;
 
+      // Fetch existing skill before updating so we have the provider metadata
+      // needed to update in-place (e.g. Anthropic versions.create).
+      const existingSkill = contentChanged
+        ? await operations.getSkill(ctx.db, input.projectId, input.skillId)
+        : undefined;
+
       let updated;
       try {
-        updated = await operations.updateSkill(ctx.db, {
-          ...input,
-          ...(contentChanged ? { externalSkillMetadata: {} } : {}),
-        });
+        updated = await operations.updateSkill(ctx.db, input);
       } catch (error) {
         // User can rename a skill -- catch conflict if new name collides
         if (error instanceof SkillNameConflictError) {
@@ -195,9 +252,31 @@ export const skillsRouter = createTRPCRouter({
         throw error;
       }
 
-      // Re-upload to provider after content changes so it's ready before next message
       if (contentChanged && updated) {
-        await uploadSkillToProviderAndPersist(ctx.db, input.projectId, updated);
+        const provider = await getProjectProviderKey(ctx.db, input.projectId);
+        const existingRef =
+          existingSkill?.externalSkillMetadata?.[provider?.providerName ?? ""];
+
+        try {
+          await updateSkillOnProviderAndPersist(
+            ctx.db,
+            input.projectId,
+            updated,
+            existingRef,
+          );
+        } catch (error) {
+          // Roll back the DB update so the UI stays consistent with the error
+          if (existingSkill) {
+            await operations.updateSkill(ctx.db, {
+              projectId: input.projectId,
+              skillId: input.skillId,
+              name: existingSkill.name,
+              description: existingSkill.description,
+              instructions: existingSkill.instructions,
+            });
+          }
+          throw error;
+        }
       }
 
       return updated;
