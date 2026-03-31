@@ -1,4 +1,4 @@
-import type { Account } from "next-auth";
+import type { Account, Session } from "next-auth";
 import type { JWT } from "next-auth/jwt";
 
 // --- Mocks ---
@@ -286,7 +286,7 @@ describe("auth callbacks", () => {
         provider: "google",
       });
 
-      const result = await callSession({ token });
+      const result = (await callSession({ token })) as Session;
 
       expect(result.user.id).toBe("user-1");
       expect(result.user.userToken).toBe("safe-token");
@@ -298,16 +298,16 @@ describe("auth callbacks", () => {
     });
 
     it("preserves default session fields (name, email)", async () => {
-      const result = await callSession({ token: makeJwt() });
+      const result = (await callSession({ token: makeJwt() })) as Session;
 
       expect(result.user.name).toBe("Test");
       expect(result.user.email).toBe("test@example.com");
     });
 
     it("uses user fields when user object is provided", async () => {
-      const result = await callSession({
+      const result = (await callSession({
         user: { id: "user-from-db", userToken: "db-token" },
-      });
+      })) as Session;
 
       expect(result.user.id).toBe("user-from-db");
       expect(result.user.userToken).toBe("db-token");
