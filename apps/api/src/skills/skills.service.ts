@@ -1,6 +1,7 @@
 import { Inject, Injectable, Logger } from "@nestjs/common";
 import {
   type ExternalSkillMetadata,
+  type ProviderSkillConfig,
   type ProviderSkillReference,
 } from "@tambo-ai-cloud/core";
 import { type HydraDatabase, operations, schema } from "@tambo-ai-cloud/db";
@@ -88,6 +89,63 @@ export class SkillsService {
     });
 
     return metadata;
+  }
+
+  /**
+   * Fetch enabled skills for a project, ensure they're uploaded to the provider,
+   * and return the config to pass to the LLM. Also increments usage counts
+   * (fire-and-forget).
+   * @returns The provider skill config, or undefined if no skills to inject.
+   */
+  async getProviderSkillsForRun({
+    projectId,
+    providerName,
+    apiKey,
+  }: {
+    projectId: string;
+    providerName: string;
+    apiKey: string;
+  }): Promise<ProviderSkillConfig | undefined> {
+    if (!this.supportsSkills(providerName)) return undefined;
+
+    const enabledSkills = await operations.listSkillsForProject(
+      this.db,
+      projectId,
+      { enabledOnly: true },
+    );
+    if (enabledSkills.length === 0) return undefined;
+
+    const skillRefs = await Promise.all(
+      enabledSkills.map(async (skill) => {
+        const ref = await this.ensureSkillUploaded({
+          skill,
+          providerName,
+          apiKey,
+        });
+        return { skillId: ref.skillId, version: ref.version };
+      }),
+    );
+
+    if (skillRefs.length === 0) return undefined;
+
+    this.logger.log(
+      `Skills injected: ${skillRefs.length} skills for provider ${providerName}`,
+    );
+
+    // Increment usage counts (fire-and-forget, don't block the run)
+    void Promise.all(
+      enabledSkills.map(async (skill) =>
+        await operations
+          .incrementSkillUsageCount(this.db, projectId, skill.id)
+          .catch((error) =>
+            this.logger.warn(
+              `Failed to increment usage count for skill ${skill.id}: ${error}`,
+            ),
+          ),
+      ),
+    );
+
+    return { providerName, skills: skillRefs };
   }
 
   /**

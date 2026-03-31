@@ -1077,61 +1077,22 @@ export class ThreadsService {
       const project = await operations.getProject(db, projectId);
 
       // Fetch enabled skills and build provider skill config
-      let providerSkills: ProviderSkillConfig | undefined;
-      const providerName = project?.defaultLlmProviderName ?? "openai";
-      if (this.skillsService.supportsSkills(providerName)) {
-        const enabledSkills = await operations.listSkillsForProject(
-          db,
+      const skillProviderName = project?.defaultLlmProviderName ?? "openai";
+      const skillApiKey =
+        (await this.projectsService.getDecryptedProviderKey(
           projectId,
-          { enabledOnly: true },
-        );
-        if (enabledSkills.length > 0) {
-          // Resolve API key: user-provided key first, then platform fallback for OpenAI
-          const apiKey =
-            (await this.projectsService.getDecryptedProviderKey(
-              projectId,
-              providerName,
-            )) ??
-            (providerName === "openai"
-              ? process.env.FALLBACK_OPENAI_API_KEY
-              : undefined);
-          if (apiKey) {
-            // Backfill: upload any skills missing provider metadata
-            const skillRefs = await Promise.all(
-              enabledSkills.map(async (skill) => {
-                const ref = await this.skillsService.ensureSkillUploaded({
-                  skill,
-                  providerName,
-                  apiKey,
-                });
-                return { skillId: ref.skillId, version: ref.version };
-              }),
-            );
-
-            if (skillRefs.length > 0) {
-              providerSkills = { providerName, skills: skillRefs };
-
-              this.logger.log(
-                `Skills injected: ${enabledSkills.length} skills for provider ${providerName}`,
-              );
-            }
-
-            // Increment usage counts (fire-and-forget, don't block the run)
-            void Promise.all(
-              enabledSkills.map(
-                async (skill) =>
-                  await operations
-                    .incrementSkillUsageCount(db, projectId, skill.id)
-                    .catch((error) =>
-                      this.logger.warn(
-                        `Failed to increment usage count for skill ${skill.id}: ${error}`,
-                      ),
-                    ),
-              ),
-            );
-          }
-        }
-      }
+          skillProviderName,
+        )) ??
+        (skillProviderName === "openai"
+          ? process.env.FALLBACK_OPENAI_API_KEY
+          : undefined);
+      const providerSkills = skillApiKey
+        ? await this.skillsService.getProviderSkillsForRun({
+            projectId,
+            providerName: skillProviderName,
+            apiKey: skillApiKey,
+          })
+        : undefined;
 
       // Track user messages (not tool responses) using already-fetched project data
       if (advanceRequestDto.messageToAppend.role === MessageRole.User) {
