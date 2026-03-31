@@ -196,6 +196,30 @@ export async function deleteSkill(
 }
 
 /**
+ * Atomically merge provider metadata into a skill's externalSkillMetadata.
+ * Uses Postgres jsonb || jsonb to avoid read-spread-write race conditions.
+ */
+export async function mergeSkillMetadata(
+  db: HydraDb,
+  projectId: string,
+  skillId: string,
+  metadata: ExternalSkillMetadata,
+): Promise<void> {
+  await db
+    .update(schema.skills)
+    .set({
+      externalSkillMetadata: sql`${schema.skills.externalSkillMetadata} || ${JSON.stringify(metadata)}::jsonb`,
+      updatedAt: sql`now()`,
+    })
+    .where(
+      and(
+        eq(schema.skills.id, skillId),
+        eq(schema.skills.projectId, projectId),
+      ),
+    );
+}
+
+/**
  * Atomically increment a skill's usage count by 1.
  */
 export async function incrementSkillUsageCount(

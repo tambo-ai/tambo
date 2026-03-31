@@ -29,12 +29,15 @@ jest.mock("@tambo-ai-cloud/db", () => {
     ...actual,
     operations: {
       updateSkill: jest.fn(),
+      mergeSkillMetadata: jest.fn(),
     },
   };
 });
 
-const mockedOperations: { updateSkill: jest.Mock } =
-  jest.requireMock("@tambo-ai-cloud/db").operations;
+const mockedOperations: {
+  updateSkill: jest.Mock;
+  mergeSkillMetadata: jest.Mock;
+} = jest.requireMock("@tambo-ai-cloud/db").operations;
 
 function makeSkill(
   overrides: Partial<import("@tambo-ai-cloud/db").schema.DBSkill> = {},
@@ -160,7 +163,7 @@ describe("SkillsService", () => {
 
         expect(result).toBe(existing);
         expect(mockUploadSkillToProvider).not.toHaveBeenCalled();
-        expect(mockedOperations.updateSkill).not.toHaveBeenCalled();
+        expect(mockedOperations.mergeSkillMetadata).not.toHaveBeenCalled();
       } finally {
         await module.close();
       }
@@ -183,13 +186,14 @@ describe("SkillsService", () => {
         });
 
         expect(result.skillId).toBe("oai-new");
-        expect(mockedOperations.updateSkill).toHaveBeenCalledWith(mockDb, {
-          projectId: "proj-1",
-          skillId: "sk-test-1",
-          externalSkillMetadata: {
+        expect(mockedOperations.mergeSkillMetadata).toHaveBeenCalledWith(
+          mockDb,
+          "proj-1",
+          "sk-test-1",
+          {
             openai: expect.objectContaining({ skillId: "oai-new" }),
           },
-        });
+        );
       } finally {
         await module.close();
       }
@@ -219,14 +223,14 @@ describe("SkillsService", () => {
           apiKey: "sk-test",
         });
 
-        expect(mockedOperations.updateSkill).toHaveBeenCalledWith(mockDb, {
-          projectId: "proj-1",
-          skillId: "sk-test-1",
-          externalSkillMetadata: {
-            anthropic: anthropicMeta,
+        expect(mockedOperations.mergeSkillMetadata).toHaveBeenCalledWith(
+          mockDb,
+          "proj-1",
+          "sk-test-1",
+          {
             openai: expect.objectContaining({ skillId: "oai-new" }),
           },
-        });
+        );
       } finally {
         await module.close();
       }

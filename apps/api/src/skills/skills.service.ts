@@ -1,6 +1,5 @@
 import { Inject, Injectable, Logger } from "@nestjs/common";
 import {
-  type ExternalSkillMetadata,
   type ProviderSkillConfig,
   type ProviderSkillReference,
 } from "@tambo-ai-cloud/core";
@@ -77,15 +76,9 @@ export class SkillsService {
       apiKey,
     });
 
-    const updatedExternalMetadata: ExternalSkillMetadata = {
-      ...skill.externalSkillMetadata,
+    // Atomic merge to avoid read-spread-write race conditions
+    await operations.mergeSkillMetadata(this.db, skill.projectId, skill.id, {
       [providerName]: metadata,
-    };
-
-    await operations.updateSkill(this.db, {
-      projectId: skill.projectId,
-      skillId: skill.id,
-      externalSkillMetadata: updatedExternalMetadata,
     });
 
     return metadata;
@@ -134,14 +127,15 @@ export class SkillsService {
 
     // Increment usage counts (fire-and-forget, don't block the run)
     void Promise.all(
-      enabledSkills.map(async (skill) =>
-        await operations
-          .incrementSkillUsageCount(this.db, projectId, skill.id)
-          .catch((error) =>
-            this.logger.warn(
-              `Failed to increment usage count for skill ${skill.id}: ${error}`,
+      enabledSkills.map(
+        async (skill) =>
+          await operations
+            .incrementSkillUsageCount(this.db, projectId, skill.id)
+            .catch((error) =>
+              this.logger.warn(
+                `Failed to increment usage count for skill ${skill.id}: ${error}`,
+              ),
             ),
-          ),
       ),
     );
 
