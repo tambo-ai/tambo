@@ -308,8 +308,7 @@ export const authOptions: NextAuthOptions = {
 };
 /**
  * Refresh the token if it is expired, otherwise return the token as is
- * @param account - The account object
- * @param token - The token to refresh
+ * @param token - The JWT token containing idToken and refreshToken
  * @returns The refreshed token
  */
 
