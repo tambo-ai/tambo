@@ -867,14 +867,16 @@ export const projectRouter = createTRPCRouter({
       await Promise.all(
         skills
           .filter((s) => s.externalSkillMetadata?.[providerName])
-          .map(
-            async (s) =>
-              await operations.updateSkill(ctx.db, {
-                projectId,
-                skillId: s.id,
-                externalSkillMetadata: {},
-              }),
-          ),
+          .map(async (s) => {
+            // Remove only the changed provider, preserve metadata for other providers
+            const { [providerName]: _, ...remaining } =
+              s.externalSkillMetadata ?? {};
+            return await operations.updateSkill(ctx.db, {
+              projectId,
+              skillId: s.id,
+              externalSkillMetadata: remaining,
+            });
+          }),
       );
 
       // Then add the new key if one was provided
