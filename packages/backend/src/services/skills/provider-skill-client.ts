@@ -50,7 +50,12 @@ export async function uploadSkillToProvider({
   providerName,
   apiKey,
 }: {
-  skill: { name: string; description: string; instructions: string };
+  skill: {
+    name: string;
+    description: string;
+    instructions: string;
+    projectId?: string;
+  };
   providerName: string;
   apiKey: string;
 }): Promise<ProviderSkillReference> {
@@ -133,7 +138,12 @@ async function uploadToOpenAI(
 }
 
 async function uploadToAnthropic(
-  skill: { name: string; description: string; instructions: string },
+  skill: {
+    name: string;
+    description: string;
+    instructions: string;
+    projectId?: string;
+  },
   apiKey: string,
 ): Promise<ProviderSkillReference> {
   const client = new Anthropic({ apiKey });
@@ -143,8 +153,14 @@ async function uploadToAnthropic(
     type: "text/markdown",
   });
 
+  // Anthropic scopes display_title by API key. If two projects share a key,
+  // duplicate names collide. Prefix with projectId to avoid conflicts.
+  const displayTitle = skill.projectId
+    ? `${skill.projectId}/${skill.name}`
+    : skill.name;
+
   const result = await client.beta.skills.create({
-    display_title: skill.name,
+    display_title: displayTitle,
     files: [file],
   });
 

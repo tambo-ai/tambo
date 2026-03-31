@@ -66,7 +66,7 @@ async function uploadSkillToProviderAndPersist(
 
   try {
     const metadata = await uploadSkillToProvider({
-      skill,
+      skill: { ...skill, projectId },
       providerName: provider.providerName,
       apiKey: provider.apiKey,
     });
