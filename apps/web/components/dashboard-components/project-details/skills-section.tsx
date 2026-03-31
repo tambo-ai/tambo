@@ -21,7 +21,9 @@ import {
 } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { parseSkillContent } from "@/lib/parse-skill-frontmatter";
+import { EditWithTamboButton } from "@/components/ui/tambo/edit-with-tambo-button";
 import { api } from "@/trpc/react";
+import { withTamboInteractable } from "@tambo-ai/react";
 import { AnimatePresence, motion } from "framer-motion";
 import { AlertTriangle, FileText, Import, Plus } from "lucide-react";
 import { useRef, useState } from "react";
@@ -38,6 +40,7 @@ import {
   type SkillSummary,
   validateSkillFile,
 } from "./skill-form";
+import { z } from "zod/v3";
 
 const SKILLS_SUPPORTED_PROVIDERS = new Set(["openai", "anthropic"]);
 
@@ -376,7 +379,10 @@ export function SkillsSection({
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-lg font-semibold">Skills</CardTitle>
+              <CardTitle className="text-lg font-semibold">
+                Skills
+                <EditWithTamboButton description="Manage skills for this project." />
+              </CardTitle>
               <CardDescription>
                 Define agent skills using SKILL.md files.
               </CardDescription>
@@ -524,3 +530,18 @@ export function SkillsSection({
     </>
   );
 }
+
+const InteractableSkillsSectionProps = z.object({
+  projectId: z.string().describe("The unique identifier for the project."),
+  defaultLlmProviderName: z
+    .string()
+    .optional()
+    .describe("The default LLM provider name for the project."),
+});
+
+export const InteractableSkillsSection = withTamboInteractable(SkillsSection, {
+  componentName: "Skills",
+  description:
+    "A component that allows users to manage agent skills for their project. Users can create, edit, delete, toggle, and import skills from SKILL.md files.",
+  propsSchema: InteractableSkillsSectionProps,
+});
