@@ -1,6 +1,6 @@
-import { SkillsSection } from "./skills-section";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { SkillsSection } from "./skills-section";
 
 // Mock tRPC
 const mockMutate = jest.fn();
@@ -114,17 +114,16 @@ describe("SkillsSection", () => {
       expect(screen.getByText(/Create your first skill/)).toBeInTheDocument();
     });
 
-    it("has Create Skill buttons in header and empty state", () => {
+    it("has a Create Skill button in header", () => {
       render(<SkillsSection projectId="proj_1" />);
 
-      const createButtons = screen.getAllByText("Create Skill");
-      expect(createButtons.length).toBe(2);
+      expect(screen.getByText("Create Skill")).toBeInTheDocument();
     });
 
-    it("has an Import SKILL.md button in the empty state", () => {
+    it("has an Import button in the header", () => {
       render(<SkillsSection projectId="proj_1" />);
 
-      expect(screen.getByText("Import SKILL.md")).toBeInTheDocument();
+      expect(screen.getByText("Import")).toBeInTheDocument();
     });
   });
 

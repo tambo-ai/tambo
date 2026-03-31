@@ -22,6 +22,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { parseSkillContent } from "@/lib/parse-skill-frontmatter";
 import { api } from "@/trpc/react";
+import { AnimatePresence, motion } from "framer-motion";
 import { AlertTriangle, FileText, Import, Plus } from "lucide-react";
 import { useRef, useState } from "react";
 import {
@@ -380,21 +381,33 @@ export function SkillsSection({
                 Define agent skills using SKILL.md files.
               </CardDescription>
             </div>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                className="gap-2"
-                onClick={handleImportClick}
-                disabled={!isProviderSupported}
-              >
-                <Import className="h-4 w-4 mr-1" aria-hidden="true" />
-                Import
-              </Button>
-              <Button onClick={openCreateForm} disabled={!isProviderSupported}>
-                <Plus className="h-4 w-4 mr-1" aria-hidden="true" />
-                Create Skill
-              </Button>
-            </div>
+            <AnimatePresence mode="wait">
+              {!isFormOpen && (
+                <motion.div
+                  className="flex gap-2"
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <Button
+                    variant="outline"
+                    onClick={handleImportClick}
+                    disabled={!isProviderSupported}
+                  >
+                    <Import className="h-4 w-4 mr-1" aria-hidden="true" />
+                    Import
+                  </Button>
+                  <Button
+                    onClick={openCreateForm}
+                    disabled={!isProviderSupported}
+                  >
+                    <Plus className="h-4 w-4 mr-1" aria-hidden="true" />
+                    Create Skill
+                  </Button>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </CardHeader>
         <CardContent className="relative">
@@ -432,15 +445,24 @@ export function SkillsSection({
             </p>
           ) : null}
 
-          {isFormOpen ? (
-            <SkillForm
-              key={formKey}
-              projectId={projectId}
-              skill={editingSkill}
-              onClose={closeForm}
-              initialFields={importedFields}
-            />
-          ) : null}
+          <AnimatePresence mode="wait">
+            {isFormOpen && (
+              <motion.div
+                key={formKey}
+                initial={{ opacity: 0, height: 0, marginBottom: 0 }}
+                animate={{ opacity: 1, height: "auto", marginBottom: 16 }}
+                exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                <SkillForm
+                  projectId={projectId}
+                  skill={editingSkill}
+                  onClose={closeForm}
+                  initialFields={importedFields}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {!isFormOpen && isEmpty ? (
             <SkillsEmptyState dragState={cardDragState} />
