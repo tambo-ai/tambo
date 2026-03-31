@@ -1,5 +1,6 @@
 import { type ExternalSkillMetadata } from "@tambo-ai-cloud/core";
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
+import { mergeSuperJson } from "../drizzleUtil";
 import * as schema from "../schema";
 import type { DBSkill } from "../schema";
 import type { HydraDb } from "../types";
@@ -197,7 +198,8 @@ export async function deleteSkill(
 
 /**
  * Atomically merge provider metadata into a skill's externalSkillMetadata.
- * Uses Postgres jsonb || jsonb to avoid read-spread-write race conditions.
+ * Uses mergeSuperJson to atomically merge into the superjson-wrapped column
+ * without corrupting the {"json": ..., "meta": ...} envelope.
  */
 export async function mergeSkillMetadata(
   db: HydraDb,
@@ -208,7 +210,10 @@ export async function mergeSkillMetadata(
   await db
     .update(schema.skills)
     .set({
-      externalSkillMetadata: sql`${schema.skills.externalSkillMetadata} || ${JSON.stringify(metadata)}::jsonb`,
+      externalSkillMetadata: mergeSuperJson(
+        schema.skills.externalSkillMetadata,
+        metadata as Record<string, unknown>,
+      ),
       updatedAt: sql`now()`,
     })
     .where(
