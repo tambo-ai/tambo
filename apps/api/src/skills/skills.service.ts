@@ -86,11 +86,10 @@ export class SkillsService {
 
   /**
    * Fetch enabled skills for a project, ensure they're uploaded to the provider,
-   * and return the config to pass to the LLM. Also increments usage counts
-   * (fire-and-forget).
+   * and return the config to pass to the LLM.
    * @returns The provider skill config, or undefined if no skills to inject.
    */
-  async getProviderSkillsForRun({
+  async ensureProviderSkillsForRun({
     projectId,
     providerName,
     apiKey,
@@ -124,17 +123,6 @@ export class SkillsService {
     this.logger.log(
       `Skills injected: ${skillRefs.length} skills for provider ${providerName}`,
     );
-
-    // Batch increment usage counts (fire-and-forget, single query)
-    void operations
-      .incrementSkillUsageCounts(
-        this.db,
-        projectId,
-        enabledSkills.map((s) => s.id),
-      )
-      .catch((error) =>
-        this.logger.warn(`Failed to increment skill usage counts: ${error}`),
-      );
 
     return { providerName, skills: skillRefs };
   }

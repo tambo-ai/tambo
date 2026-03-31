@@ -1087,7 +1087,7 @@ export class ThreadsService {
           ? process.env.FALLBACK_OPENAI_API_KEY
           : undefined);
       const providerSkills = skillApiKey
-        ? await this.skillsService.getProviderSkillsForRun({
+        ? await this.skillsService.ensureProviderSkillsForRun({
             projectId,
             providerName: skillProviderName,
             apiKey: skillApiKey,

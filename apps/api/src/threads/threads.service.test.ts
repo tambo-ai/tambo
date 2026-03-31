@@ -420,7 +420,7 @@ describe("ThreadsService.advanceThread initialization", () => {
           useValue: {
             supportsSkills: jest.fn().mockReturnValue(false),
             ensureSkillUploaded: jest.fn(),
-            getProviderSkillsForRun: jest.fn().mockResolvedValue(undefined),
+            ensureProviderSkillsForRun: jest.fn().mockResolvedValue(undefined),
           },
         },
       ],
