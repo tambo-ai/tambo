@@ -294,14 +294,9 @@ export class AISdkClient implements LLMClient {
     };
 
     // Merge provider-specific skills into config if present
-    const finalConfig =
-      params.providerSkills && params.providerSkills.skills.length > 0
-        ? this.mergeProviderSkills(
-            baseConfig,
-            params.providerSkills,
-            providerKey,
-          )
-        : baseConfig;
+    const finalConfig = params.providerSkills?.skills.length
+      ? this.mergeProviderSkills(baseConfig, params.providerSkills, providerKey)
+      : baseConfig;
 
     if (params.stream) {
       // added explicit await even though types say it isn't necessary
