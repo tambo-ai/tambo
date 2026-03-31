@@ -1,5 +1,5 @@
 import { type ExternalSkillMetadata } from "@tambo-ai-cloud/core";
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import * as schema from "../schema";
 import type { DBSkill } from "../schema";
 import type { HydraDb } from "../types";
@@ -237,6 +237,29 @@ export async function incrementSkillUsageCount(
       and(
         eq(schema.skills.id, skillId),
         eq(schema.skills.projectId, projectId),
+      ),
+    );
+}
+
+/**
+ * Batch increment usage counts for multiple skills in a single query.
+ */
+export async function incrementSkillUsageCounts(
+  db: HydraDb,
+  projectId: string,
+  skillIds: string[],
+): Promise<void> {
+  if (skillIds.length === 0) return;
+  await db
+    .update(schema.skills)
+    .set({
+      usageCount: sql`${schema.skills.usageCount} + 1`,
+      lastUsedAt: sql`now()`,
+    })
+    .where(
+      and(
+        eq(schema.skills.projectId, projectId),
+        inArray(schema.skills.id, skillIds),
       ),
     );
 }

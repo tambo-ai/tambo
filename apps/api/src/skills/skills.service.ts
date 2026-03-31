@@ -125,19 +125,16 @@ export class SkillsService {
       `Skills injected: ${skillRefs.length} skills for provider ${providerName}`,
     );
 
-    // Increment usage counts (fire-and-forget, don't block the run)
-    void Promise.all(
-      enabledSkills.map(
-        async (skill) =>
-          await operations
-            .incrementSkillUsageCount(this.db, projectId, skill.id)
-            .catch((error) =>
-              this.logger.warn(
-                `Failed to increment usage count for skill ${skill.id}: ${error}`,
-              ),
-            ),
-      ),
-    );
+    // Batch increment usage counts (fire-and-forget, single query)
+    void operations
+      .incrementSkillUsageCounts(
+        this.db,
+        projectId,
+        enabledSkills.map((s) => s.id),
+      )
+      .catch((error) =>
+        this.logger.warn(`Failed to increment skill usage counts: ${error}`),
+      );
 
     return { providerName, skills: skillRefs };
   }
