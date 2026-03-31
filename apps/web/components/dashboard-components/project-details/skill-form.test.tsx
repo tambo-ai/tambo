@@ -1,8 +1,8 @@
-import { SkillSheet, readFileAsText } from "./skill-sheet";
+import { SkillForm, readFileAsText } from "./skill-form";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
-// Mock tRPC — store callbacks so tests can trigger onSuccess or onError
+// Mock tRPC -- store callbacks so tests can trigger onSuccess or onError
 const mockMutate = jest.fn();
 const mockInvalidate = jest.fn();
 let shouldFailWith: { message: string } | null = null;
@@ -72,12 +72,11 @@ describe("readFileAsText", () => {
   });
 });
 
-describe("SkillSheet", () => {
+describe("SkillForm", () => {
   const defaultProps = {
     projectId: "proj_1",
     skill: null,
-    isOpen: true,
-    onOpenChange: jest.fn(),
+    onClose: jest.fn(),
   };
 
   beforeEach(() => {
@@ -85,12 +84,12 @@ describe("SkillSheet", () => {
     shouldFailWith = null;
   });
 
-  it("renders create mode title when skill is null", () => {
-    render(<SkillSheet {...defaultProps} skill={null} />);
+  it("renders create mode heading when skill is null", () => {
+    render(<SkillForm {...defaultProps} skill={null} />);
     expect(screen.getByText("Create Skill")).toBeInTheDocument();
   });
 
-  it("renders edit mode title when skill is provided", () => {
+  it("renders edit mode heading when skill is provided", () => {
     const skill = {
       id: "sk_1",
       projectId: "proj_1",
@@ -105,71 +104,61 @@ describe("SkillSheet", () => {
       createdAt: new Date(),
       updatedAt: new Date(),
     };
-    render(<SkillSheet {...defaultProps} skill={skill} />);
+    render(<SkillForm {...defaultProps} skill={skill} />);
     expect(screen.getByText("Edit Skill")).toBeInTheDocument();
   });
 
-  it("shows em dash placeholders when textarea is empty", () => {
-    render(<SkillSheet {...defaultProps} />);
-    const dashes = screen.getAllByText("\u2014");
-    expect(dashes.length).toBe(2); // Name and Description
+  it("shows three separate fields: Name, Description, Instructions", () => {
+    render(<SkillForm {...defaultProps} />);
+    expect(screen.getByLabelText("Name")).toBeInTheDocument();
+    expect(screen.getByLabelText("Description")).toBeInTheDocument();
+    expect(screen.getByLabelText("Instructions")).toBeInTheDocument();
   });
 
-  it("save button is disabled when textarea is empty", () => {
-    render(<SkillSheet {...defaultProps} />);
-    const saveButton = screen.getByText("Save");
+  it("create button is disabled when name and description are empty", () => {
+    render(<SkillForm {...defaultProps} />);
+    const saveButton = screen.getByText("Create skill");
     expect(saveButton).toBeDisabled();
   });
 
-  it("parses frontmatter and shows name/description as user types", async () => {
+  it("enables create button when name and description are filled", async () => {
     const user = userEvent.setup();
-    render(<SkillSheet {...defaultProps} />);
+    render(<SkillForm {...defaultProps} />);
 
-    const textarea = screen.getByRole("textbox");
-    await user.click(textarea);
-    await user.paste(
-      "---\nname: My Skill\ndescription: A brief description\n---\nBody content",
+    await user.type(screen.getByLabelText("Name"), "My Skill");
+    await user.type(
+      screen.getByLabelText("Description"),
+      "A brief description",
     );
 
-    expect(screen.getByText("My Skill")).toBeInTheDocument();
-    expect(screen.getByText("A brief description")).toBeInTheDocument();
-  });
-
-  it("enables save button when valid frontmatter is entered", async () => {
-    const user = userEvent.setup();
-    render(<SkillSheet {...defaultProps} />);
-
-    const textarea = screen.getByRole("textbox");
-    await user.click(textarea);
-    await user.paste(
-      "---\nname: My Skill\ndescription: A brief description\n---\nBody",
-    );
-
-    const saveButton = screen.getByText("Save");
+    const saveButton = screen.getByText("Create skill");
     expect(saveButton).not.toBeDisabled();
   });
 
-  it("shows parse error when frontmatter is invalid", async () => {
-    const user = userEvent.setup();
-    render(<SkillSheet {...defaultProps} />);
+  it("pre-populates fields from initialFields", () => {
+    render(
+      <SkillForm
+        {...defaultProps}
+        initialFields={{
+          name: "Imported",
+          description: "From file",
+          instructions: "Imported body",
+        }}
+      />,
+    );
 
-    const textarea = screen.getByRole("textbox");
-    await user.click(textarea);
-    await user.paste("---\ndescription: only desc\n---\nBody");
-
-    expect(screen.getByText(/Missing 'name'/)).toBeInTheDocument();
+    expect(screen.getByLabelText<HTMLInputElement>("Name").value).toBe(
+      "Imported",
+    );
+    expect(screen.getByLabelText<HTMLInputElement>("Description").value).toBe(
+      "From file",
+    );
+    expect(
+      screen.getByLabelText<HTMLTextAreaElement>("Instructions").value,
+    ).toBe("Imported body");
   });
 
-  it("uses initialContent when provided", () => {
-    const content =
-      "---\nname: Imported\ndescription: From file\n---\nImported body";
-    render(<SkillSheet {...defaultProps} initialContent={content} />);
-
-    expect(screen.getByText("Imported")).toBeInTheDocument();
-    expect(screen.getByText("From file")).toBeInTheDocument();
-  });
-
-  it("pre-populates textarea with reconstructed content in edit mode", () => {
+  it("pre-populates fields from skill in edit mode", () => {
     const skill = {
       id: "sk_1",
       projectId: "proj_1",
@@ -184,39 +173,44 @@ describe("SkillSheet", () => {
       createdAt: new Date(),
       updatedAt: new Date(),
     };
-    render(<SkillSheet {...defaultProps} skill={skill} />);
+    render(<SkillForm {...defaultProps} skill={skill} />);
 
-    const textarea = screen.getByRole<HTMLTextAreaElement>("textbox");
-    expect(textarea.value).toContain("Test Skill");
-    expect(textarea.value).toContain("A test");
-    expect(textarea.value).toContain("Do stuff");
+    expect(screen.getByLabelText<HTMLInputElement>("Name").value).toBe(
+      "Test Skill",
+    );
+    expect(screen.getByLabelText<HTMLInputElement>("Description").value).toBe(
+      "A test",
+    );
+    expect(
+      screen.getByLabelText<HTMLTextAreaElement>("Instructions").value,
+    ).toBe("Do stuff");
   });
 
-  it("has spellCheck disabled on textarea", () => {
-    render(<SkillSheet {...defaultProps} />);
-    const textarea = screen.getByRole("textbox");
-    expect(textarea).toHaveAttribute("spellcheck", "false");
+  it("has spellCheck disabled on instructions textarea", () => {
+    render(<SkillForm {...defaultProps} />);
+    expect(screen.getByLabelText("Instructions")).toHaveAttribute(
+      "spellcheck",
+      "false",
+    );
   });
 
-  it("calls onOpenChange(false) when Cancel is clicked", async () => {
+  it("calls onClose when Cancel is clicked", async () => {
     const user = userEvent.setup();
-    render(<SkillSheet {...defaultProps} />);
+    render(<SkillForm {...defaultProps} />);
 
     await user.click(screen.getByText("Cancel"));
-    expect(defaultProps.onOpenChange).toHaveBeenCalledWith(false);
+    expect(defaultProps.onClose).toHaveBeenCalled();
   });
 
-  it("calls create mutation when saving in create mode", async () => {
+  it("calls create mutation with separate fields when saving in create mode", async () => {
     const user = userEvent.setup();
-    render(<SkillSheet {...defaultProps} skill={null} />);
+    render(<SkillForm {...defaultProps} skill={null} />);
 
-    const textarea = screen.getByRole("textbox");
-    await user.click(textarea);
-    await user.paste(
-      "---\nname: New Skill\ndescription: A new one\n---\nBody here",
-    );
+    await user.type(screen.getByLabelText("Name"), "New Skill");
+    await user.type(screen.getByLabelText("Description"), "A new one");
+    await user.type(screen.getByLabelText("Instructions"), "Body here");
 
-    await user.click(screen.getByText("Save"));
+    await user.click(screen.getByText("Create skill"));
 
     expect(mockMutate).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -244,16 +238,20 @@ describe("SkillSheet", () => {
       createdAt: new Date(),
       updatedAt: new Date(),
     };
-    render(<SkillSheet {...defaultProps} skill={skill} />);
+    render(<SkillForm {...defaultProps} skill={skill} />);
 
-    // Clear and type new content
-    const textarea = screen.getByRole("textbox");
-    await user.clear(textarea);
-    await user.paste(
-      "---\nname: Updated\ndescription: New desc\n---\nNew body",
-    );
+    // Clear and type new values
+    const nameInput = screen.getByLabelText("Name");
+    const descInput = screen.getByLabelText("Description");
+    const instrInput = screen.getByLabelText("Instructions");
+    await user.clear(nameInput);
+    await user.type(nameInput, "Updated");
+    await user.clear(descInput);
+    await user.type(descInput, "New desc");
+    await user.clear(instrInput);
+    await user.type(instrInput, "New body");
 
-    await user.click(screen.getByText("Save"));
+    await user.click(screen.getByText("Save changes"));
 
     expect(mockMutate).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -266,48 +264,43 @@ describe("SkillSheet", () => {
     );
   });
 
-  it("closes sheet and shows toast on successful save", async () => {
+  it("closes form and shows toast on successful save", async () => {
     const user = userEvent.setup();
-    render(<SkillSheet {...defaultProps} skill={null} />);
+    render(<SkillForm {...defaultProps} skill={null} />);
 
-    const textarea = screen.getByRole("textbox");
-    await user.click(textarea);
-    await user.paste("---\nname: My Skill\ndescription: Desc\n---\nBody");
+    await user.type(screen.getByLabelText("Name"), "My Skill");
+    await user.type(screen.getByLabelText("Description"), "Desc");
 
-    await user.click(screen.getByText("Save"));
+    await user.click(screen.getByText("Create skill"));
 
-    expect(defaultProps.onOpenChange).toHaveBeenCalledWith(false);
+    expect(defaultProps.onClose).toHaveBeenCalled();
     expect(mockToast).toHaveBeenCalledWith(
       expect.objectContaining({ title: "Skill created" }),
     );
     expect(mockInvalidate).toHaveBeenCalled();
   });
 
-  it("does not call mutation when save is clicked with invalid content", async () => {
+  it("does not call mutation when name is empty", async () => {
     const user = userEvent.setup();
-    render(<SkillSheet {...defaultProps} />);
+    render(<SkillForm {...defaultProps} />);
 
-    const textarea = screen.getByRole("textbox");
-    await user.click(textarea);
-    await user.paste("no frontmatter here");
+    await user.type(screen.getByLabelText("Description"), "some desc");
 
-    // Save button should be disabled, but test the handler guard too
-    expect(screen.getByText("Save")).toBeDisabled();
+    expect(screen.getByText("Create skill")).toBeDisabled();
     expect(mockMutate).not.toHaveBeenCalled();
   });
 
-  it("shows destructive toast when create fails with name conflict", async () => {
+  it("shows destructive toast when create fails", async () => {
     shouldFailWith = {
       message: "A skill with this name already exists in this project",
     };
     const user = userEvent.setup();
-    render(<SkillSheet {...defaultProps} skill={null} />);
+    render(<SkillForm {...defaultProps} skill={null} />);
 
-    const textarea = screen.getByRole("textbox");
-    await user.click(textarea);
-    await user.paste("---\nname: Duplicate\ndescription: Desc\n---\nBody");
+    await user.type(screen.getByLabelText("Name"), "Duplicate");
+    await user.type(screen.getByLabelText("Description"), "Desc");
 
-    await user.click(screen.getByText("Save"));
+    await user.click(screen.getByText("Create skill"));
 
     expect(mockToast).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -316,11 +309,11 @@ describe("SkillSheet", () => {
         variant: "destructive",
       }),
     );
-    // Sheet should NOT close on error
-    expect(defaultProps.onOpenChange).not.toHaveBeenCalledWith(false);
+    // Form should NOT close on error
+    expect(defaultProps.onClose).not.toHaveBeenCalled();
   });
 
-  it("shows destructive toast when update fails with name conflict", async () => {
+  it("shows destructive toast when update fails", async () => {
     shouldFailWith = {
       message: "A skill with this name already exists in this project",
     };
@@ -339,15 +332,13 @@ describe("SkillSheet", () => {
       createdAt: new Date(),
       updatedAt: new Date(),
     };
-    render(<SkillSheet {...defaultProps} skill={skill} />);
+    render(<SkillForm {...defaultProps} skill={skill} />);
 
-    const textarea = screen.getByRole("textbox");
-    await user.clear(textarea);
-    await user.paste(
-      "---\nname: Taken Name\ndescription: New desc\n---\nNew body",
-    );
+    const nameInput = screen.getByLabelText("Name");
+    await user.clear(nameInput);
+    await user.type(nameInput, "Taken Name");
 
-    await user.click(screen.getByText("Save"));
+    await user.click(screen.getByText("Save changes"));
 
     expect(mockToast).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -356,6 +347,6 @@ describe("SkillSheet", () => {
         variant: "destructive",
       }),
     );
-    expect(defaultProps.onOpenChange).not.toHaveBeenCalledWith(false);
+    expect(defaultProps.onClose).not.toHaveBeenCalled();
   });
 });
