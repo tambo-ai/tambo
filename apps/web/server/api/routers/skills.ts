@@ -7,7 +7,6 @@ import {
 } from "@tambo-ai-cloud/backend";
 import {
   decryptProviderKey,
-  type ExternalSkillMetadata,
   SKILL_NAME_MAX_LENGTH,
   SKILL_NAME_PATTERN,
   SKILL_DESCRIPTION_MAX_LENGTH,
@@ -72,14 +71,9 @@ async function uploadSkillToProviderAndPersist(
       apiKey: provider.apiKey,
     });
 
-    const externalSkillMetadata: ExternalSkillMetadata = {
+    // Atomic merge to avoid race conditions with concurrent updates
+    await operations.mergeSkillMetadata(db, projectId, skill.id, {
       [provider.providerName]: metadata,
-    };
-
-    await operations.updateSkill(db, {
-      projectId,
-      skillId: skill.id,
-      externalSkillMetadata,
     });
   } catch (error) {
     throw new TRPCError({
