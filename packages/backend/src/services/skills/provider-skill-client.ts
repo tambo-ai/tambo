@@ -102,6 +102,7 @@ async function uploadToOpenAI(
   // OpenAI requires skill files under a top-level directory
   // (e.g. "my-skill/SKILL.md"). The Node SDK's getName() strips directory
   // paths from filenames, so we build the multipart form directly.
+  // See: https://github.com/openai/openai-node/issues/1807
   const form = new FormData();
   form.append(
     "files",
