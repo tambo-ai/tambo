@@ -247,11 +247,14 @@ export const authOptions: NextAuthOptions = {
       return refreshedToken;
     },
     async session({ session, token, user }) {
-      // console.log("AUTH ROUTE: session callback with", session, token, user);
+      // Only expose safe fields to the client -- never leak refreshToken,
+      // accessToken, or idToken into the browser session.
       if (user) {
-        session.user = user;
+        session.user.id = user.id;
+        session.user.userToken = user.userToken;
       } else if (token) {
-        session.user = token;
+        session.user.id = token.id;
+        session.user.userToken = token.userToken;
       }
       return session;
     },
