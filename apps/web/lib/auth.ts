@@ -8,7 +8,7 @@ import {
 } from "@tambo-ai-cloud/core";
 import { getDb, schema } from "@tambo-ai-cloud/db";
 import { decodeJwt } from "jose";
-import { Account, AuthOptions as NextAuthOptions } from "next-auth";
+import { AuthOptions as NextAuthOptions } from "next-auth";
 import { JWT } from "next-auth/jwt";
 import Email from "next-auth/providers/email";
 import GitHub from "next-auth/providers/github";
@@ -234,9 +234,12 @@ export const authOptions: NextAuthOptions = {
         token.provider = account.provider;
         token.idToken = account.id_token;
         token.userToken = account.id_token || account.access_token;
+        if (account.refresh_token) {
+          token.refreshToken = account.refresh_token;
+        }
       }
 
-      const refreshedToken = await refreshTokenIfNecessary(account, token);
+      const refreshedToken = await refreshTokenIfNecessary(token);
       // Add user ID to token
       if (user) {
         refreshedToken.id = user.id;
@@ -310,14 +313,11 @@ export const authOptions: NextAuthOptions = {
  * @returns The refreshed token
  */
 
-async function refreshTokenIfNecessary(
-  account: Account | null,
-  token: JWT,
-): Promise<JWT> {
+async function refreshTokenIfNecessary(token: JWT): Promise<JWT> {
   if (!token.idToken) {
     return token;
   }
-  const refreshToken = account?.refresh_token;
+  const refreshToken = token.refreshToken;
   const idToken = decodeJwt(token.idToken);
 
   // Extract expiration and issued-at times (in seconds)
@@ -359,13 +359,19 @@ async function refreshTokenIfNecessary(
     provider.clientId,
     provider.clientSecret,
   );
+  const newIdToken = refreshedToken.idToken as string;
   return {
     ...token,
     accessToken: refreshedToken.accessToken as string,
-    idToken: refreshedToken.idToken as string,
+    idToken: newIdToken,
+    userToken: newIdToken,
     expiresAt: refreshedToken.expiresAt,
     scope: refreshedToken.scope,
     tokenType: refreshedToken.tokenType,
+    // Persist rotated refresh token if the provider issued a new one
+    ...(refreshedToken.refreshToken
+      ? { refreshToken: refreshedToken.refreshToken as string }
+      : {}),
   };
 }
 
