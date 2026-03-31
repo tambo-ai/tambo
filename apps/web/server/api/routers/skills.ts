@@ -241,8 +241,11 @@ export const skillsRouter = createTRPCRouter({
                 apiKey,
               });
             }
-          } catch {
-            // Best-effort: don't block DB deletion if provider cleanup fails
+          } catch (error) {
+            console.warn(
+              `[Skills] Provider cleanup failed for ${providerName}:`,
+              error,
+            );
           }
         }
       }
