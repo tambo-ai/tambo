@@ -422,82 +422,84 @@ export function SkillsSection({
             </AnimatePresence>
           </div>
         </CardHeader>
-        <CardContent className="relative">
-          {isDragging ? (
-            <div
-              className={`absolute inset-x-6 top-0 bottom-6 z-10 flex items-center justify-center rounded-md border-2 border-dashed bg-background/80 backdrop-blur-sm ${
-                cardDragState === "valid"
-                  ? "border-primary"
-                  : "border-destructive"
-              }`}
-            >
-              <p
-                className={`text-sm font-medium ${cardDragState === "valid" ? "text-primary" : "text-destructive"}`}
+        <CardContent>
+          <div className="relative">
+            {isDragging ? (
+              <div
+                className={`absolute inset-0 z-10 flex items-center justify-center rounded-md border-2 border-dashed bg-background/80 backdrop-blur-sm ${
+                  cardDragState === "valid"
+                    ? "border-primary"
+                    : "border-destructive"
+                }`}
               >
-                {cardDragState === "valid"
-                  ? "Drop SKILL.md file to import"
-                  : "Only markdown files (.md) can be imported"}
+                <p
+                  className={`text-sm font-medium ${cardDragState === "valid" ? "text-primary" : "text-destructive"}`}
+                >
+                  {cardDragState === "valid"
+                    ? "Drop SKILL.md file to import"
+                    : "Only markdown files (.md) can be imported"}
+                </p>
+              </div>
+            ) : null}
+            {!isProviderSupported ? (
+              <Alert variant="warning" className="mb-4">
+                <AlertTriangle />
+                <AlertDescription>
+                  Skills are currently supported with OpenAI and Anthropic
+                  models. Your project uses {defaultLlmProviderName}. Switch to
+                  a supported model to enable skills.
+                </AlertDescription>
+              </Alert>
+            ) : null}
+            {isLoading ? <SkillsSkeleton /> : null}
+            {isError ? (
+              <p className="text-sm text-destructive py-4">
+                Failed to load skills. Please try again.
               </p>
-            </div>
-          ) : null}
-          {!isProviderSupported ? (
-            <Alert variant="warning" className="mb-4">
-              <AlertTriangle />
-              <AlertDescription>
-                Skills are currently supported with OpenAI and Anthropic models.
-                Your project uses {defaultLlmProviderName}. Switch to a
-                supported model to enable skills.
-              </AlertDescription>
-            </Alert>
-          ) : null}
-          {isLoading ? <SkillsSkeleton /> : null}
-          {isError ? (
-            <p className="text-sm text-destructive py-4">
-              Failed to load skills. Please try again.
-            </p>
-          ) : null}
+            ) : null}
 
-          <AnimatePresence mode="wait">
-            {isFormOpen && (
-              <motion.div
-                key={formKey}
-                initial={{ opacity: 0, height: 0, marginBottom: 0 }}
-                animate={{ opacity: 1, height: "auto", marginBottom: 16 }}
-                exit={{ opacity: 0, height: 0, marginBottom: 0 }}
-                transition={{ duration: 0.3 }}
-              >
-                <SkillForm
-                  projectId={projectId}
-                  skill={editingSkill}
-                  onClose={closeForm}
-                  initialFields={importedFields}
-                />
-              </motion.div>
-            )}
-          </AnimatePresence>
+            <AnimatePresence mode="wait">
+              {isFormOpen && (
+                <motion.div
+                  key={formKey}
+                  initial={{ opacity: 0, height: 0, marginBottom: 0 }}
+                  animate={{ opacity: 1, height: "auto", marginBottom: 16 }}
+                  exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <SkillForm
+                    projectId={projectId}
+                    skill={editingSkill}
+                    onClose={closeForm}
+                    initialFields={importedFields}
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
 
-          {!isFormOpen && isEmpty ? (
-            <SkillsEmptyState dragState={cardDragState} />
-          ) : null}
-          {!isFormOpen && hasSkills
-            ? skills.map((skill) => (
-                <SkillCard
-                  key={skill.id}
-                  skillId={skill.id}
-                  name={skill.name}
-                  description={skill.description}
-                  enabled={skill.enabled}
-                  isToggling={togglingSkillId === skill.id}
-                  isDeleting={
-                    deleteMutation.isPending && deleteTargetId === skill.id
-                  }
-                  disabled={!isProviderSupported}
-                  onToggle={handleToggle}
-                  onEdit={handleEdit}
-                  onDelete={handleDelete}
-                />
-              ))
-            : null}
+            {!isFormOpen && isEmpty ? (
+              <SkillsEmptyState dragState={cardDragState} />
+            ) : null}
+            {!isFormOpen && hasSkills
+              ? skills.map((skill) => (
+                  <SkillCard
+                    key={skill.id}
+                    skillId={skill.id}
+                    name={skill.name}
+                    description={skill.description}
+                    enabled={skill.enabled}
+                    isToggling={togglingSkillId === skill.id}
+                    isDeleting={
+                      deleteMutation.isPending && deleteTargetId === skill.id
+                    }
+                    disabled={!isProviderSupported}
+                    onToggle={handleToggle}
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                  />
+                ))
+              : null}
+          </div>
         </CardContent>
       </Card>
 

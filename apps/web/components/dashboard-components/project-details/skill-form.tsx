@@ -154,14 +154,14 @@ export function SkillForm({
         skillId: skill.id,
         name: name.trim(),
         description: description.trim(),
-        instructions,
+        instructions: instructions.trim(),
       });
     } else {
       createMutation.mutate({
         projectId,
         name: name.trim(),
         description: description.trim(),
-        instructions,
+        instructions: instructions.trim(),
       });
     }
   };
