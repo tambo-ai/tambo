@@ -7,6 +7,7 @@
     "conversation-storage",
     "agent-configuration",
     "model-context-protocol",
-    "user-authentication"
+    "user-authentication",
+    "security-and-compliance"
   ]
 }

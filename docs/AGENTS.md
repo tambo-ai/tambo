@@ -113,6 +113,7 @@ In general, try to fit changes into the following categories. If you can't find 
    - conversation-storage - Message threads, history management, status tracking
    - agent-configuration - AI personality and behavior
    - user-authentication - OAuth providers, session management, context keys
+   - security-and-compliance - SOC 2, HIPAA, data handling, audit logging, deployment options
 
 3. **Guides** (26 pages across 8 subsections)
    - **setup-project/** (3 pages)

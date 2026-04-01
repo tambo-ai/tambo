@@ -20,14 +20,70 @@ Tambo is an open-source toolkit for building AI-powered React apps. Register you
   style={{ width: "100%", borderRadius: "8px", marginTop: "16px" }}
 />
 
+## What you can build
+
+From building completely new agent-powered experiences to collapsing multi-step screen navigation in complex enterprise apps. You write React components; Tambo handles model calls, streaming, tool execution, and message history.
+
+### New agent-powered experiences
+
+Register your components and let the agent figure out which ones to render:
+
+- **Recipe app** → register `<MealPlan>`, `<RecipeCard>`, `<ShoppingList>`, `<NutritionSummary>`. A user says "plan my meals for the week using what's in my fridge" and the agent renders a meal plan with nutrition totals and a shopping list for missing ingredients.
+- **Fitness tracker** → register `<WorkoutPlan>`, `<ProgressChart>`, `<ExerciseDemo>`. A user says "build me a 4-week strength program for someone who can work out 3 days a week" and the agent generates a structured plan across your components.
+- **Personal finance** → register `<BudgetBreakdown>`, `<SpendingChart>`, `<SavingsGoal>`. A user says "show me where my money went last month and suggest where to cut" and the agent renders analytics with recommendations.
+
+Building this from scratch means wiring up model integration, streaming, state management, and tool execution yourself. Tambo gives you that layer out of the box.
+
+### Workflow compression for existing apps
+
+For apps with existing UI, agent interfaces compress multi-step workflows into single interactions:
+
+- **"Brain dump my last meeting with Sarah at Acme"** → creates the contact, schedules the follow-up, adds the note, and updates the CRM. Tasks that normally span 4 screens and multiple forms.
+- **"Mark all leads older than 90 days as inactive"** → queries, shows a preview UI for review, and applies on approval.
+- **"Pull up customers with no activity in 90 days, give me a UI to review and archive"** → runs the query and renders an interactive results component inline.
+
+Most relevant in apps with deep navigation or complex forms.
+
+### Try it with a coding agent
+
+The fastest way to evaluate Tambo is to build something. Install the [Tambo skill](/guides/coding-agent-skills) and ask your coding agent to create a demo:
+
+```bash
+npx skills add tambo-ai/tambo
+```
+
+Then prompt: "Create a Tambo app with a weather dashboard." You'll have a working generative UI in under 5 minutes.
+
+For existing codebases, the agent scans your code, identifies components, generates schemas (Zod, ArkType, Valibot, or any Standard Schema-compatible library), and runs tests. The human role is reviewing and approving the agent's work. Most teams have a working POC in an afternoon. Starting with 5–10 high-value components is a good way to validate the pattern before scaling to a full integration.
+
+## Community and adoption
+
+Tambo is open source with 11,000+ GitHub stars and thousands of developers building with the SDK. Engineers at companies including Zapier, Rocket Money, and Solink use Tambo.
+
+> "It's like if you gave AI your Storybook and told it could only use your design system. We already had our Zod schema, so transitioning to Tambo was a one line change that cut out so much work." — Richard McHorgh, AI Software Engineer at Rocket Money
+
+> "When I first started using Tambo, the components appeared exactly like we have them in our style guide and Storybook — it was the first sign of production-grade UI generation." — Andrew Kordampalos, Sr. Software Engineer at Zapier
+
+Tambo is backed by investors from Microsoft AI, Dropbox, and VSCO.
+
 ## What's included
 
-- **React SDK** — Hooks and providers for thread management, streaming, and component rendering
-- **Built-in agent** — No external framework required. Drop it into your app and go.
-- **Streaming and state** — Progressive prop updates, message history, error handling
-- **MCP support** — Connect to databases, APIs, and external systems via Model Context Protocol
+- **React SDK** with hooks and providers for thread management, streaming, and component rendering
+- **Built-in agent** that works with your existing React setup, no external framework needed
+- **Streaming and state** for progressive prop updates, message history, and error handling
+- **MCP support** to connect databases, APIs, and external systems via Model Context Protocol
 
-Self-host the backend or use Tambo Cloud for fast deployment.
+Self-host the backend or use Tambo Cloud. The SDK and self-hosted backend are free and open source with no message limits.
+
+### Security and compliance
+
+Tambo Cloud is SOC 2 Type II certified with HIPAA available on Enterprise plans (BAA provided). Tambo does not process or store PII. Data residency is US by default; contact support@tambo.co for other regions.
+
+Self-hosted and on-premises deployments run entirely in your infrastructure with no data leaving your network. See [Security and compliance](/concepts/security-and-compliance) for details on certifications, data handling, and audit logging.
+
+### Pricing
+
+Tambo Cloud is free to start (10K messages/month). The Growth plan is $25/month with 200K messages included. Enterprise plans include SSO/SAML, single-tenant or on-prem deployment, 99.99% uptime SLA, and HIPAA compliance. The open-source SDK and self-hosted backend are free with no message limits. See [tambo.co](https://tambo.co) for current pricing.
 
 ## How Tambo works
 
@@ -207,10 +263,24 @@ Production-ready components you can install via CLI:
 
 ## Get started
 
+The fastest way to see Tambo in action is with a coding agent. Install the skill, prompt it, and you'll have a working generative UI in minutes:
+
+```bash
+npx skills add tambo-ai/tambo
+```
+
+Or start manually with the template:
+
 <LearnMore
   title="Quickstart"
-  description="Get up and running in minutes"
+  description="Run the starter template and build your first generative UI"
   href="/getting-started/quickstart"
+/>
+
+<LearnMore
+  title="Coding agent skills"
+  description="Teach your coding agent to build with Tambo"
+  href="/guides/coding-agent-skills"
 />
 
 <LearnMore

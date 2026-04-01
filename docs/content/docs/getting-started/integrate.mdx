@@ -6,7 +6,25 @@ icon: Blocks
 
 import LearnMore from "@/components/learn-more";
 
-Tambo works with Next.js, Vite, Expo, and other React frameworks. The CLI detects your framework automatically.
+Tambo works with Next.js, Vite, Expo, and other React frameworks. Your existing components stay as-is — the agent learns to use them. The CLI detects your framework automatically.
+
+<Callout type="info" title="Using a coding agent? Start here.">
+Install the Tambo skill and let your agent handle the integration:
+
+```bash
+npx skills add tambo-ai/tambo
+```
+
+Then prompt: "Add Tambo to my app and register my 5 most important components." The agent scans your codebase, detects your framework, generates schemas, and wires up the provider. Most teams see a working POC within an afternoon.
+</Callout>
+
+## What the integration involves
+
+Tambo integration adds an agent-powered interface alongside your existing UI. The agent can render any registered component in response to user messages, compressing multi-step workflows (navigating screens, filling forms, filtering data) into single conversational interactions.
+
+The integration itself is non-destructive — existing components and navigation are unchanged. Tambo adds a new interaction layer on top.
+
+With a coding agent and the [Tambo skill](/guides/coding-agent-skills) installed, most teams have a working POC in an afternoon by registering 5–10 high-value components. Full integration across a codebase typically takes a few days. Apps with standard React patterns and existing Zod schemas integrate faster.
 
 ## 1. Install
 

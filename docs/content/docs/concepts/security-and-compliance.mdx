@@ -1,0 +1,95 @@
+---
+title: Security and compliance
+description: SOC 2 Type II, HIPAA, data handling, audit logging, and deployment options for regulated environments.
+icon: Shield
+---
+
+import LearnMore from "@/components/learn-more";
+
+This page covers Tambo Cloud certifications, data handling, and deployment options for teams with compliance requirements.
+
+## Certifications
+
+| Certification | Status | Availability |
+|---|---|---|
+| **SOC 2 Type II** | Certified | All plans |
+| **HIPAA** | Available | Enterprise plans (BAA provided) |
+| **GDPR** | Available | Upon request |
+
+For SOC 2 reports or BAA agreements, contact [support@tambo.co](mailto:support@tambo.co).
+
+## Data handling
+
+Tambo routes messages to registered components and streams props back to the client. The platform handles:
+
+- **Message threads** — conversation history and message content
+- **Component metadata** — registered component names, descriptions, and schemas
+- **Tool calls** — function names and parameters (not return values stored client-side)
+
+Tambo does not process or store PII. Component props are streamed to the client and not persisted beyond the message thread. Your application's data stays in your application — Tambo sees the instructions, not the underlying records.
+
+### What flows through Tambo Cloud
+
+| Data | Stored? | Purpose |
+|---|---|---|
+| User messages | Yes (thread history) | Conversation continuity |
+| Component selection | Yes (message metadata) | Which component the agent chose |
+| Streamed props | Transient | Delivered to client, not retained after streaming |
+| Tool call names/params | Yes (message metadata) | Audit trail for agent actions |
+| Tool call results | No | Returned directly to client |
+| Your application data | No | Never leaves your infrastructure |
+
+## Audit logging
+
+Tambo Cloud logs agent decisions for compliance and debugging:
+
+- **Component selection** — which component was chosen and why
+- **Tool invocations** — which tools were called with what parameters
+- **Message history** — full conversation thread with timestamps
+- **User attribution** — actions tied to user identity via `userKey` or `userToken`
+
+These logs are accessible through the Tambo Cloud dashboard and the REST API. For HIPAA deployments, audit logs are retained according to your BAA terms.
+
+## Data residency
+
+Tambo Cloud data is stored in the **United States** by default. For other regions, contact [support@tambo.co](mailto:support@tambo.co).
+
+## Deployment options
+
+| Option | Data location | Compliance |
+|---|---|---|
+| **Tambo Cloud** | US (managed) | SOC 2 Type II, HIPAA (Enterprise) |
+| **Self-hosted** | Your infrastructure | You control all compliance |
+| **Single-tenant Cloud** | Dedicated instance | Enterprise plan, custom region |
+| **On-premises** | Your network | Enterprise plan, no data leaves your network |
+
+Self-hosted and on-premises deployments run entirely in your infrastructure. No data flows to Tambo servers. See the [self-hosting guide](/guides/self-hosting) for setup instructions.
+
+## Healthcare and regulated industries
+
+Regulated environments have multi-step processes that span multiple screens and forms. Some examples where workflow compression applies:
+
+- **Patient intake**: collecting insurance info, medical history, and consent forms normally means navigating 3–4 separate screens. An agent can collect this conversationally and populate the correct forms.
+- **Prescription refills**: verifying identity, checking eligibility, confirming pharmacy, and submitting the request spans multiple steps that can be compressed.
+- **Claims processing**: reviewing claim details, checking coverage, requesting additional documentation, and routing for approval involves forms across multiple systems.
+
+For HIPAA deployments, use a self-hosted or single-tenant deployment with a signed BAA. The agent routes to your existing components — all PHI stays in your application layer, and Tambo handles only the orchestration.
+
+## Enterprise contact
+
+For enterprise pricing, BAA agreements, custom deployment options, or compliance questions:
+
+- Email: [support@tambo.co](mailto:support@tambo.co)
+- Contact form: [tambo.co/contact-us](https://tambo.co/contact-us)
+
+<LearnMore
+  title="Self-hosting guide"
+  description="Deploy Tambo on your own infrastructure"
+  href="/guides/self-hosting"
+/>
+
+<LearnMore
+  title="User authentication"
+  description="OAuth, JWT tokens, and per-user data isolation"
+  href="/concepts/user-authentication"
+/>
