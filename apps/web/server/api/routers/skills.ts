@@ -33,18 +33,24 @@ async function getProjectProviderKey(
   const providerName = project?.defaultLlmProviderName ?? "openai";
   if (!providerSupportsSkills(providerName)) return undefined;
 
-  // Only user-provided keys are available here. Free-tier OpenAI projects
-  // (no user key, using FALLBACK_OPENAI_API_KEY) skip eager upload -- the
-  // runtime in advanceThread_ handles lazy upload with the fallback key.
+  // Try user-provided key first, then fall back to the platform key
+  // so free-tier projects also get eager skill uploads.
   const providerKeys = await operations.getProviderKeys(db, projectId);
   const keyRow = providerKeys.find((k) => k.providerName === providerName);
-  if (!keyRow?.providerKeyEncrypted) return undefined;
+  if (keyRow?.providerKeyEncrypted) {
+    const { providerKey: apiKey } = decryptProviderKey(
+      keyRow.providerKeyEncrypted,
+      env.PROVIDER_KEY_SECRET,
+    );
+    return { providerName, apiKey };
+  }
 
-  const { providerKey: apiKey } = decryptProviderKey(
-    keyRow.providerKeyEncrypted,
-    env.PROVIDER_KEY_SECRET,
-  );
-  return { providerName, apiKey };
+  // Fall back to platform key for free-tier OpenAI projects
+  if (providerName === "openai" && env.FALLBACK_OPENAI_API_KEY) {
+    return { providerName, apiKey: env.FALLBACK_OPENAI_API_KEY };
+  }
+
+  return undefined;
 }
 
 /**
@@ -257,6 +263,19 @@ export const skillsRouter = createTRPCRouter({
         const existingRef =
           existingSkill?.externalSkillMetadata?.[provider?.providerName ?? ""];
 
+        // Clear provider metadata before the provider call so the transaction
+        // commits without stale refs. The update path is delete-then-create,
+        // so if create fails after delete the old skillId is dead. By clearing
+        // first and not throwing on provider failure, the transaction commits
+        // with clean metadata and the next run does a fresh upload.
+        if (existingRef) {
+          await operations.updateSkill(ctx.db, {
+            projectId: input.projectId,
+            skillId: input.skillId,
+            externalSkillMetadata: {},
+          });
+        }
+
         try {
           await updateSkillOnProviderAndPersist(
             ctx.db,
@@ -265,17 +284,13 @@ export const skillsRouter = createTRPCRouter({
             existingRef,
           );
         } catch (error) {
-          // Roll back the DB update so the UI stays consistent with the error
-          if (existingSkill) {
-            await operations.updateSkill(ctx.db, {
-              projectId: input.projectId,
-              skillId: input.skillId,
-              name: existingSkill.name,
-              description: existingSkill.description,
-              instructions: existingSkill.instructions,
-            });
-          }
-          throw error;
+          // Log but don't throw -- the DB update and metadata clear should
+          // commit so the next run can do a fresh upload. Throwing would
+          // abort the transaction and restore stale metadata.
+          console.warn(
+            `[Skills] Provider update failed, will re-upload on next run:`,
+            error instanceof Error ? error.message : error,
+          );
         }
       }
 
@@ -297,32 +312,19 @@ export const skillsRouter = createTRPCRouter({
         input.projectId,
         input.skillId,
       );
-      if (skill?.externalSkillMetadata) {
-        const providerKeys = await operations.getProviderKeys(
-          ctx.db,
-          input.projectId,
-        );
-        for (const providerName of Object.keys(skill.externalSkillMetadata)) {
+      const provider = await getProjectProviderKey(ctx.db, input.projectId);
+      if (skill?.externalSkillMetadata && provider) {
+        const ref = skill.externalSkillMetadata[provider.providerName];
+        if (ref) {
           try {
-            const keyRow = providerKeys.find(
-              (k) => k.providerName === providerName,
-            );
-            if (!keyRow?.providerKeyEncrypted) continue;
-            const { providerKey: apiKey } = decryptProviderKey(
-              keyRow.providerKeyEncrypted,
-              env.PROVIDER_KEY_SECRET,
-            );
-            const ref = skill.externalSkillMetadata[providerName];
-            if (ref) {
-              await deleteSkillFromProvider({
-                skillId: ref.skillId,
-                providerName,
-                apiKey,
-              });
-            }
+            await deleteSkillFromProvider({
+              skillId: ref.skillId,
+              providerName: provider.providerName,
+              apiKey: provider.apiKey,
+            });
           } catch (error) {
             console.warn(
-              `[Skills] Provider cleanup failed for ${providerName}:`,
+              `[Skills] Provider cleanup failed for ${provider.providerName}:`,
               error,
             );
           }
