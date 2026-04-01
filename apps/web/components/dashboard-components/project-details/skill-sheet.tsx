@@ -210,14 +210,16 @@ export function SkillSheet({
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
       <SheetContent side="right" className="sm:max-w-xl w-full flex flex-col">
         <SheetHeader>
-          <SheetTitle>{skill ? "Edit Skill" : "Create Skill"}</SheetTitle>
+          <SheetTitle className="text-card-foreground">
+            {skill ? "Edit Skill" : "Create Skill"}
+          </SheetTitle>
           <SheetDescription>
             Paste or drag a SKILL.md file below. The name and description are
             extracted from the YAML frontmatter.
           </SheetDescription>
         </SheetHeader>
 
-        <div className="flex-1 overflow-y-auto py-4 space-y-4">
+        <div className="flex-1 overflow-y-auto py-4 px-1 -mx-1 space-y-4">
           <div
             className="space-y-2 rounded-md border p-3 bg-muted/50"
             aria-live="polite"
@@ -286,6 +288,7 @@ export function SkillSheet({
             Cancel
           </Button>
           <Button
+            className="gap-2"
             onClick={handleSave}
             disabled={!parseResult?.success || saveMutation.isPending}
           >

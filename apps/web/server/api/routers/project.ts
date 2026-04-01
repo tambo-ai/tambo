@@ -860,6 +860,25 @@ export const projectRouter = createTRPCRouter({
           ),
         );
 
+      // Clear skill metadata for this provider so skills re-upload under the new key.
+      // Without this, skills uploaded under the old key (e.g. Tambo's fallback key)
+      // would 404 when the LLM call uses the new user key.
+      const skills = await operations.listSkillsForProject(ctx.db, projectId);
+      await Promise.all(
+        skills
+          .filter((s) => s.externalSkillMetadata?.[providerName])
+          .map(async (s) => {
+            // Remove only the changed provider, preserve metadata for other providers
+            const { [providerName]: _, ...remaining } =
+              s.externalSkillMetadata ?? {};
+            return await operations.updateSkill(ctx.db, {
+              projectId,
+              skillId: s.id,
+              externalSkillMetadata: remaining,
+            });
+          }),
+      );
+
       // Then add the new key if one was provided
       if (providerKey) {
         return await operations.addProviderKey(

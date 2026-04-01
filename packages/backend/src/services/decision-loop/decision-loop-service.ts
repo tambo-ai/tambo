@@ -5,6 +5,7 @@ import {
   isUiToolName,
   LegacyComponentDecision,
   MessageRole,
+  type ProviderSkillConfig,
   ThreadMessage,
   ToolCallRequest,
   UI_TOOLNAME_PREFIX,
@@ -114,6 +115,7 @@ export async function* runDecisionLoop(
   llmClient: LLMClient,
   messages: ThreadMessage[],
   strictTools: OpenAI.Chat.Completions.ChatCompletionTool[],
+  providerSkills: ProviderSkillConfig | undefined,
   customInstructions: string | undefined,
   forceToolChoice: string | undefined,
   resourceFetchers: ResourceFetcherMap,
@@ -181,6 +183,7 @@ export async function* runDecisionLoop(
     stream: true,
     tool_choice: convertToolChoice(forceToolChoice),
     abortSignal,
+    providerSkills,
   });
 
   const initialDecision: LegacyComponentDecision = {

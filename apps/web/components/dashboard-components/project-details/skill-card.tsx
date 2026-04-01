@@ -28,37 +28,41 @@ export function SkillCard({
   onDelete,
 }: SkillCardProps) {
   return (
-    <div className="flex items-center gap-3 py-3 px-2 border-b last:border-b-0">
+    <div className="flex items-center gap-3 py-3 border-b last:border-b-0">
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium truncate">{name}</p>
         <p className="text-xs text-muted-foreground truncate hidden sm:block">
           {description}
         </p>
       </div>
-      <Switch
-        checked={enabled}
-        onCheckedChange={(checked) => onToggle(skillId, checked)}
-        disabled={disabled || isToggling}
-        aria-label={`${enabled ? "Disable" : "Enable"} skill ${name}`}
-      />
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={() => onEdit(skillId)}
-        disabled={disabled}
-        aria-label={`Edit skill ${name}`}
-      >
-        <Pencil className="h-4 w-4" aria-hidden="true" />
-      </Button>
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={() => onDelete(skillId, name)}
-        disabled={disabled}
-        aria-label={`Delete skill ${name}`}
-      >
-        <Trash2 className="h-4 w-4" aria-hidden="true" />
-      </Button>
+      <div className="flex items-center gap-2">
+        <Switch
+          checked={enabled}
+          onCheckedChange={(checked) => onToggle(skillId, checked)}
+          disabled={disabled || isToggling}
+          aria-label={`${enabled ? "Disable" : "Enable"} skill ${name}`}
+        />
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-8 w-8 p-0"
+          onClick={() => onEdit(skillId)}
+          disabled={disabled}
+          aria-label={`Edit skill ${name}`}
+        >
+          <Pencil className="h-4 w-4" aria-hidden="true" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-8 w-8 p-0"
+          onClick={() => onDelete(skillId, name)}
+          disabled={disabled}
+          aria-label={`Delete skill ${name}`}
+        >
+          <Trash2 className="h-4 w-4" aria-hidden="true" />
+        </Button>
+      </div>
     </div>
   );
 }

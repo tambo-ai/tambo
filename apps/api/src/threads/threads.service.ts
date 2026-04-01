@@ -95,6 +95,8 @@ import {
   updateToolCallCounts,
 } from "./util/tool-call-tracking";
 import { createAttachmentFetcher } from "./util/attachment-fetcher";
+import { SkillsService } from "../skills/skills.service";
+import type { ProviderSkillConfig } from "@tambo-ai-cloud/core";
 
 const TAMBO_ANON_CONTEXT_KEY = "tambo:anon-user";
 @Injectable()
@@ -109,6 +111,7 @@ export class ThreadsService {
     private readonly authService: AuthService,
     private readonly storageConfig: StorageConfigService,
     private readonly analytics: AnalyticsService,
+    private readonly skillsService: SkillsService,
   ) {}
 
   getDb() {
@@ -1073,6 +1076,24 @@ export class ThreadsService {
       });
       const project = await operations.getProject(db, projectId);
 
+      // Fetch enabled skills and build provider skill config
+      const skillProviderName = project?.defaultLlmProviderName ?? "openai";
+      const skillApiKey =
+        (await this.projectsService.getDecryptedProviderKey(
+          projectId,
+          skillProviderName,
+        )) ??
+        (skillProviderName === "openai"
+          ? process.env.FALLBACK_OPENAI_API_KEY
+          : undefined);
+      const providerSkills = skillApiKey
+        ? await this.skillsService.ensureProviderSkillsForRun({
+            projectId,
+            providerName: skillProviderName,
+            apiKey: skillApiKey,
+          })
+        : undefined;
+
       // Track user messages (not tool responses) using already-fetched project data
       if (advanceRequestDto.messageToAppend.role === MessageRole.User) {
         const projectOwnerUserId = project?.members[0]?.userId;
@@ -1147,6 +1168,7 @@ export class ThreadsService {
         project?.maxToolCallLimit ?? DEFAULT_MAX_TOTAL_TOOL_CALLS,
         mcpClients,
         abortSignal,
+        providerSkills,
       );
     } catch (error) {
       queue.fail(error);
@@ -1287,6 +1309,7 @@ export class ThreadsService {
       serverId: string;
     }>,
     abortSignal?: AbortSignal,
+    providerSkills?: ProviderSkillConfig,
   ): Promise<void> {
     return await Sentry.startSpan(
       {
@@ -1318,6 +1341,7 @@ export class ThreadsService {
           maxToolCallLimit,
           mcpClients,
           abortSignal,
+          providerSkills,
         ),
     );
   }
@@ -1342,6 +1366,7 @@ export class ThreadsService {
       serverId: string;
     }>,
     abortSignal?: AbortSignal,
+    providerSkills?: ProviderSkillConfig,
   ): Promise<void> {
     const { projectId } = contextInfo;
     // Create internal abort controller for this streaming session.
@@ -1438,6 +1463,7 @@ export class ThreadsService {
           strictTools,
           resourceFetchers,
           abortSignal: abortController.signal,
+          providerSkills,
         });
 
         decisionLoopSpan.end();
@@ -1523,6 +1549,7 @@ export class ThreadsService {
         forceToolChoice: advanceRequestDto.forceToolChoice,
         resourceFetchers,
         abortSignal: abortController.signal,
+        providerSkills,
       });
 
       decisionLoopSpan.end();
@@ -1774,16 +1801,18 @@ export class ThreadsService {
             (tool) => getToolName(tool) === toolCallRequest.toolName,
           );
           if (!originalTool) {
-            // This should never happen, because the original tools are part of this same callchain, it would
-            // have to have been filtered out during the decision loop.
-            throw new Error(
-              `Original tool not found for tool call request: ${toolCallRequest.toolName}`,
+            // Provider-managed tools (e.g. code_execution from Anthropic skills,
+            // shell from OpenAI skills) are injected by the AI SDK and not in
+            // Tambo's original tool list. Skip unstrictify for these.
+            this.logger.log(
+              `Skipping unstrictify for provider-managed tool: ${toolCallRequest.toolName}`,
+            );
+          } else {
+            currentThreadMessage.toolCallRequest = unstrictifyToolCallRequest(
+              originalTool,
+              toolCallRequest,
             );
           }
-          currentThreadMessage.toolCallRequest = unstrictifyToolCallRequest(
-            originalTool,
-            toolCallRequest,
-          );
         }
         chunkCount++;
         if (!ttfbEnded) {
