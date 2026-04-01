@@ -3,16 +3,16 @@
 import { env } from "@/lib/env";
 import { tamboRegisteredComponents } from "@/lib/tambo/config";
 import { TamboProvider, currentPageContextHelper } from "@tambo-ai/react";
+import { useSession } from "next-auth/react";
 
 type TamboProviderWrapperProps = Readonly<{
   children: React.ReactNode;
-  userToken?: string;
 }>;
 
-export function TamboProviderWrapper({
-  children,
-  userToken,
-}: TamboProviderWrapperProps) {
+export function TamboProviderWrapper({ children }: TamboProviderWrapperProps) {
+  const { data: session } = useSession();
+  const userToken = session?.user?.userToken;
+
   return (
     <TamboProvider
       apiKey={env.NEXT_PUBLIC_TAMBO_DASH_KEY!}
