@@ -24,16 +24,16 @@ export interface DeviceAuthOptions {
 }
 
 /**
- * Result of a successful device auth flow
+ * Result of the device auth flow. Discriminated union so callers can
+ * safely distinguish between a completed auth and a background poll.
  */
-export interface DeviceAuthResult {
-  sessionToken: string;
-  user: {
-    id: string;
-    email: string | null;
-    name: string | null;
-  };
-}
+export type DeviceAuthResult =
+  | {
+      status: "authenticated";
+      sessionToken: string;
+      user: { id: string; email: string | null; name: string | null };
+    }
+  | { status: "pending_background_poll" };
 
 /**
  * Error thrown when device auth fails
@@ -153,10 +153,7 @@ export async function runDeviceAuthFlow(
         ),
       );
 
-      return {
-        sessionToken: "",
-        user: { id: "", email: null, name: null },
-      };
+      return { status: "pending_background_poll" };
     }
   } else {
     try {
@@ -244,6 +241,7 @@ export async function runDeviceAuthFlow(
           setInMemoryToken(null); // Clear in-memory token now that we've persisted
 
           return {
+            status: "authenticated",
             sessionToken: pollResponse.sessionToken,
             user: completeTokenData.user,
           };

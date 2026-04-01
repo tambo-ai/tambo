@@ -15,6 +15,11 @@ import {
 } from "./token-storage.js";
 
 const [deviceCode, intervalStr] = process.argv.slice(2);
+
+if (!deviceCode) {
+  process.exit(1);
+}
+
 const pollIntervalMs = (Number(intervalStr) || 5) * 1000;
 const maxAttempts = 180;
 

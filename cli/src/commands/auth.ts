@@ -188,7 +188,10 @@ export async function handleAuthLogin(
   }
 
   try {
-    await runDeviceAuthFlow({ noBrowser: options.noBrowser });
+    const result = await runDeviceAuthFlow({ noBrowser: options.noBrowser });
+    if (result.status === "pending_background_poll") {
+      return 0;
+    }
     trackEvent(EVENTS.AUTH_LOGIN);
     console.log(chalk.green("\n✓ Successfully authenticated!\n"));
     return 0;
