@@ -1,6 +1,16 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import React from "react";
 import { SkillsSection } from "./skills-section";
+
+// Mock the Tambo React hooks and EditWithTamboButton
+jest.mock("@tambo-ai/react", () => ({
+  withTamboInteractable: (Component: React.ComponentType) => Component,
+}));
+
+jest.mock("@/components/ui/tambo/edit-with-tambo-button", () => ({
+  EditWithTamboButton: () => null,
+}));
 
 // Mock tRPC
 const mockMutate = jest.fn();
