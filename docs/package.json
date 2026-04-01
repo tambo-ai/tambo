@@ -30,7 +30,7 @@
     "mermaid": "^11.13.0",
     "next": "^15.5.14",
     "next-themes": "^0.4.6",
-    "posthog-js": "^1.362.0",
+    "posthog-js": "^1.364.1",
     "radix-ui": "^1.4.3",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
