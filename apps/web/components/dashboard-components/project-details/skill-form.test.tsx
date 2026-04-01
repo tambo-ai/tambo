@@ -1,5 +1,5 @@
 import { SkillForm, readFileAsText } from "./skill-form";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 // Mock tRPC -- store callbacks so tests can trigger onSuccess or onError
@@ -311,6 +311,64 @@ describe("SkillForm", () => {
     );
     // Form should NOT close on error
     expect(defaultProps.onClose).not.toHaveBeenCalled();
+  });
+
+  it("parses frontmatter when pasting into the Name field", () => {
+    render(<SkillForm {...defaultProps} />);
+
+    const nameInput = screen.getByLabelText("Name");
+    fireEvent.paste(nameInput, {
+      clipboardData: {
+        getData: () =>
+          "---\nname: ABC\ndescription: This is a simple skill\n---\nLLM do this thing.",
+      },
+    });
+
+    expect(screen.getByLabelText<HTMLInputElement>("Name").value).toBe("ABC");
+    expect(screen.getByLabelText<HTMLInputElement>("Description").value).toBe(
+      "This is a simple skill",
+    );
+    expect(
+      screen.getByLabelText<HTMLTextAreaElement>("Instructions").value,
+    ).toBe("LLM do this thing.");
+  });
+
+  it("parses frontmatter when pasting into the Instructions field", () => {
+    render(<SkillForm {...defaultProps} />);
+
+    const instrInput = screen.getByLabelText("Instructions");
+    fireEvent.paste(instrInput, {
+      clipboardData: {
+        getData: () =>
+          "---\nname: FromInstructions\ndescription: Pasted here\n---\nBody text.",
+      },
+    });
+
+    expect(screen.getByLabelText<HTMLInputElement>("Name").value).toBe(
+      "FromInstructions",
+    );
+    expect(screen.getByLabelText<HTMLInputElement>("Description").value).toBe(
+      "Pasted here",
+    );
+    expect(
+      screen.getByLabelText<HTMLTextAreaElement>("Instructions").value,
+    ).toBe("Body text.");
+  });
+
+  it("does not intercept paste when content has no frontmatter", async () => {
+    const user = userEvent.setup();
+    render(<SkillForm {...defaultProps} />);
+
+    const nameInput = screen.getByLabelText("Name");
+    await user.click(nameInput);
+    await user.paste("just plain text");
+
+    expect(screen.getByLabelText<HTMLInputElement>("Name").value).toBe(
+      "just plain text",
+    );
+    expect(screen.getByLabelText<HTMLInputElement>("Description").value).toBe(
+      "",
+    );
   });
 
   it("shows destructive toast when update fails", async () => {

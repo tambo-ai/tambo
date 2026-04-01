@@ -7,8 +7,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import type { RouterOutputs } from "@/trpc/react";
 import { api } from "@/trpc/react";
+import { parseSkillContent } from "@/lib/parse-skill-frontmatter";
 import { Loader2 } from "lucide-react";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 
 export type SkillSummary = RouterOutputs["skills"]["list"][number];
 
@@ -111,6 +112,17 @@ export function SkillForm({
     initialFields?.instructions ?? skill?.instructions ?? "",
   );
 
+  const handlePasteWithFrontmatter = useCallback((e: React.ClipboardEvent) => {
+    const text = e.clipboardData.getData("text/plain");
+    const result = parseSkillContent(text);
+    if (!result.success) return;
+
+    e.preventDefault();
+    setName(result.name);
+    setDescription(result.description);
+    setInstructions(result.body);
+  }, []);
+
   const isValid = name.trim().length > 0 && description.trim().length > 0;
   const saveButtonLabel = skill ? "Save changes" : "Create skill";
 
@@ -166,6 +178,7 @@ export function SkillForm({
           id="skill-name"
           value={name}
           onChange={(e) => setName(e.target.value)}
+          onPaste={handlePasteWithFrontmatter}
           placeholder="e.g. Code Review Assistant"
           maxLength={200}
         />
@@ -177,6 +190,7 @@ export function SkillForm({
           id="skill-description"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
+          onPaste={handlePasteWithFrontmatter}
           placeholder="What this skill does, in one sentence"
           maxLength={2000}
         />
@@ -188,6 +202,7 @@ export function SkillForm({
           id="skill-instructions"
           value={instructions}
           onChange={(e) => setInstructions(e.target.value)}
+          onPaste={handlePasteWithFrontmatter}
           placeholder="Detailed instructions for the agent..."
           className="min-h-[200px] font-mono text-sm"
           spellCheck={false}
