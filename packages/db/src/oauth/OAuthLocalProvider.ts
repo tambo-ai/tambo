@@ -11,12 +11,10 @@ import { HydraDb } from "../types";
 
 const DEFAULT_OAUTH_CLIENT_METADATA: Pick<
   OAuthClientMetadata,
-  "grant_types" | "response_types" | "token_endpoint_auth_method"
+  "response_types"
 > = {
-  // Some OAuth servers reject DCR requests unless these standard defaults are explicit.
-  grant_types: ["authorization_code", "refresh_token"],
+  // Some OAuth servers reject DCR requests unless the auth code response type is explicit.
   response_types: ["code"],
-  token_endpoint_auth_method: "none",
 };
 
 export class OAuthLocalProvider implements OAuthClientProvider {
@@ -88,7 +86,26 @@ export class OAuthLocalProvider implements OAuthClientProvider {
     });
 
     if (!session) {
-      throw new Error("OAuth session not found while saving state");
+      if (!this._serverUrl) {
+        throw new Error("Cannot create OAuth session without server URL");
+      }
+      if (!this._clientInformation) {
+        throw new Error(
+          "Cannot create OAuth session without client information",
+        );
+      }
+
+      await this.db.insert(schema.mcpOauthClients).values({
+        toolProviderUserContextId: this.toolProviderUserContextId,
+        sessionInfo: {
+          serverUrl: this._serverUrl,
+          clientInformation: this._clientInformation,
+          state,
+        },
+        sessionId: this._sessionId,
+      });
+
+      return state;
     }
 
     await this.db
