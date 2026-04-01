@@ -19,14 +19,15 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { EditWithTamboButton } from "@/components/ui/tambo/edit-with-tambo-button";
 import { useToast } from "@/hooks/use-toast";
 import { parseSkillContent } from "@/lib/parse-skill-frontmatter";
-import { EditWithTamboButton } from "@/components/ui/tambo/edit-with-tambo-button";
 import { api } from "@/trpc/react";
 import { withTamboInteractable } from "@tambo-ai/react";
 import { AnimatePresence, motion } from "framer-motion";
 import { AlertTriangle, FileText, Import, Plus } from "lucide-react";
 import { useRef, useState } from "react";
+import { z } from "zod/v3";
 import {
   type AlertState,
   DeleteConfirmationDialog,
@@ -40,13 +41,17 @@ import {
   type SkillSummary,
   validateSkillFile,
 } from "./skill-form";
-import { z } from "zod/v3";
 
 const SKILLS_SUPPORTED_PROVIDERS = new Set(["openai", "anthropic"]);
 
 interface SkillsSectionProps {
   projectId: string;
   defaultLlmProviderName?: string;
+  defaultNewSkill?: {
+    name: string;
+    description: string;
+    instructions: string;
+  };
 }
 
 function SkillsEmptyState({ dragState }: { dragState: DragState }) {
@@ -97,6 +102,7 @@ function SkillsSkeleton() {
 export function SkillsSection({
   projectId,
   defaultLlmProviderName,
+  defaultNewSkill,
 }: SkillsSectionProps) {
   const isProviderSupported =
     !defaultLlmProviderName ||
@@ -111,7 +117,7 @@ export function SkillsSection({
     isError,
   } = api.skills.list.useQuery({ projectId });
 
-  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isFormOpen, setIsFormOpen] = useState(!!defaultNewSkill);
   const [editingSkill, setEditingSkill] = useState<SkillSummary | null>(null);
   const [importedFields, setImportedFields] = useState<
     { name: string; description: string; instructions: string } | undefined
@@ -173,7 +179,7 @@ export function SkillsSection({
 
   const openCreateForm = () => {
     setEditingSkill(null);
-    setImportedFields(undefined);
+    setImportedFields(defaultNewSkill);
     setIsFormOpen(true);
   };
 
@@ -537,6 +543,20 @@ const InteractableSkillsSectionProps = z.object({
     .string()
     .optional()
     .describe("The default LLM provider name for the project."),
+  defaultNewSkill: z
+    .object({
+      name: z.string().describe("The default name for a new skill."),
+      description: z
+        .string()
+        .describe("The default description for a new skill."),
+      instructions: z
+        .string()
+        .describe("The default instructions for a new skill."),
+    })
+    .optional()
+    .describe(
+      "Optional default fields for a new skill, used when creating a skill via Tambo.",
+    ),
 });
 
 export const InteractableSkillsSection = withTamboInteractable(SkillsSection, {
