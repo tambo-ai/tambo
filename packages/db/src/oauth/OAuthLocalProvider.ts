@@ -9,10 +9,21 @@ import { eq } from "drizzle-orm";
 import * as schema from "../schema";
 import { HydraDb } from "../types";
 
+const DEFAULT_OAUTH_CLIENT_METADATA: Pick<
+  OAuthClientMetadata,
+  "grant_types" | "response_types" | "token_endpoint_auth_method"
+> = {
+  // Some OAuth servers reject DCR requests unless these standard defaults are explicit.
+  grant_types: ["authorization_code", "refresh_token"],
+  response_types: ["code"],
+  token_endpoint_auth_method: "none",
+};
+
 export class OAuthLocalProvider implements OAuthClientProvider {
   private _clientInformation: OAuthClientInformation | undefined;
   private _codeVerifier: string | undefined;
   private _tokens: OAuthTokens | undefined;
+  private _state: string | undefined;
   private _redirectStartAuthUrl: URL | undefined;
   private _saveAuthUrl: URL | undefined;
   private _sessionId: string;
@@ -67,6 +78,32 @@ export class OAuthLocalProvider implements OAuthClientProvider {
     }
     return this._clientInformation;
   }
+
+  async state(): Promise<string> {
+    const state = crypto.randomUUID();
+    this._state = state;
+
+    const session = await this.db.query.mcpOauthClients.findFirst({
+      where: eq(schema.mcpOauthClients.sessionId, this._sessionId),
+    });
+
+    if (!session) {
+      throw new Error("OAuth session not found while saving state");
+    }
+
+    await this.db
+      .update(schema.mcpOauthClients)
+      .set({
+        sessionInfo: {
+          ...session.sessionInfo,
+          state,
+        },
+      })
+      .where(eq(schema.mcpOauthClients.sessionId, this._sessionId));
+
+    return state;
+  }
+
   async saveClientInformation(clientInformation: OAuthClientInformationFull) {
     if (!this._serverUrl) {
       throw new Error("Cannot save client information without server URL");
@@ -76,6 +113,7 @@ export class OAuthLocalProvider implements OAuthClientProvider {
       sessionInfo: {
         serverUrl: this._serverUrl,
         clientInformation,
+        state: this._state,
       },
       sessionId: this._sessionId,
     });
@@ -109,6 +147,7 @@ export class OAuthLocalProvider implements OAuthClientProvider {
     const clientMetadata: OAuthClientMetadata = {
       redirect_uris: [this.redirectUrl],
       client_name: "Tambo",
+      ...DEFAULT_OAUTH_CLIENT_METADATA,
     };
     return clientMetadata;
   }
