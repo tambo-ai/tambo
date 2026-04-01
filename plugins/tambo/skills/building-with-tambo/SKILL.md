@@ -349,12 +349,9 @@ If using Yup/Joi instead of Zod, user can either:
 
 ### Monorepo?
 
-Run commands from the web app package, not the monorepo root:
+Run commands from the web app package, not the monorepo root.
 
-```bash
-cd apps/web  # or wherever the web app lives
-npx tambo init --api-key=sk_...
-```
+Run `npx tambo init --project-name=<app-name> --no-browser` from the web app directory. This prints an auth URL and device code -- tell the user to click the URL and authenticate. After they authenticate, re-run `npx tambo init --project-name=<app-name>` to create the project and write the API key to `.env.local`.
 
 **Monorepo gotchas:**
 
@@ -364,7 +361,7 @@ npx tambo init --api-key=sk_...
 
 ## Environment Variables
 
-`npx tambo init --api-key=sk_...` automatically creates `.env.local` with the correct env var for your framework.
+`npx tambo init --project-name=<name> --no-browser` prints an auth URL for the user to click, then saves the token when they authenticate. Re-run `npx tambo init --project-name=<name>` after auth to create the project and write `.env.local`.
 
 If manual setup is needed (monorepo, read-only filesystem), add the appropriate variable:
 

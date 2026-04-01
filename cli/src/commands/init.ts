@@ -1141,9 +1141,36 @@ export async function handleInit({
       );
 
       try {
-        // Run device auth with noBrowser option
-        await runDeviceAuthFlow({ noBrowser });
-        console.log(chalk.green("\n✔ Authentication successful"));
+        // Check if already authenticated before starting device auth
+        let needsAuth = true;
+        if (isTokenValid()) {
+          const isValid = await verifySession();
+          if (isValid) {
+            console.log(chalk.green("\n✔ Already authenticated"));
+            needsAuth = false;
+          }
+        }
+
+        if (needsAuth) {
+          // Run device auth with noBrowser option
+          const authResult = await runDeviceAuthFlow({ noBrowser });
+
+          // In non-interactive mode, runDeviceAuthFlow spawns a background
+          // poller and returns immediately with an empty placeholder.
+          // Tell the agent to re-run after the user authenticates.
+          if (!authResult.sessionToken) {
+            console.log(
+              chalk.blue(
+                "\nAuthentication started in the background.\n" +
+                  "After the user authenticates, re-run this command:\n\n" +
+                  `  npx tambo init --project-name=${projectName}\n`,
+              ),
+            );
+            return;
+          }
+
+          console.log(chalk.green("\n✔ Authentication successful"));
+        }
 
         // Create project and generate key
         const success = await createProjectAndGenerateKey(projectName);
@@ -1179,9 +1206,32 @@ export async function handleInit({
       );
 
       try {
-        // Run device auth with noBrowser option
-        await runDeviceAuthFlow({ noBrowser });
-        console.log(chalk.green("\n✔ Authentication successful"));
+        // Check if already authenticated before starting device auth
+        let needsAuth = true;
+        if (isTokenValid()) {
+          const isValid = await verifySession();
+          if (isValid) {
+            console.log(chalk.green("\n✔ Already authenticated"));
+            needsAuth = false;
+          }
+        }
+
+        if (needsAuth) {
+          // Run device auth with noBrowser option
+          const authResult = await runDeviceAuthFlow({ noBrowser });
+
+          if (!authResult.sessionToken) {
+            console.log(
+              chalk.blue(
+                "\nAuthentication started in the background.\n" +
+                  "After the user authenticates, re-run this command:\n\n" +
+                  `  npx tambo init --project-id=${projectId}\n`,
+              ),
+            );
+            return;
+          }
+          console.log(chalk.green("\n✔ Authentication successful"));
+        }
 
         // Use existing project and generate key
         const success = await useExistingProjectAndGenerateKey(projectId);

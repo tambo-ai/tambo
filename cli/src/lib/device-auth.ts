@@ -1,5 +1,10 @@
 import chalk from "chalk";
 import clipboard from "clipboardy";
+import { fork } from "node:child_process";
+import { writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 import open from "open";
 import ora from "ora";
 import { api, ApiError } from "./api-client.js";
@@ -8,6 +13,7 @@ import {
   setInMemoryToken,
   type StoredToken,
 } from "./token-storage.js";
+import { isInteractive } from "../utils/interactive.js";
 
 /**
  * Options for the device auth flow
@@ -113,6 +119,45 @@ export async function runDeviceAuthFlow(
         "\n   Open this URL in a browser and complete authentication.\n",
       ),
     );
+
+    // Write device auth info to a well-known temp file so agents can read it
+    // without parsing stdout
+    const authInfoPath = join(tmpdir(), "tambo-device-auth.json");
+    writeFileSync(
+      authInfoPath,
+      JSON.stringify({
+        verificationUri,
+        verificationUriComplete,
+        userCode,
+      }),
+    );
+
+    // In non-interactive mode (agents/CI), spawn a detached background process
+    // to poll for auth completion so this process can exit immediately.
+    // The agent then re-runs `tambo init` after the user authenticates.
+    if (!isInteractive()) {
+      const workerPath = join(
+        fileURLToPath(new URL(".", import.meta.url)),
+        "device-auth-poll-worker.js",
+      );
+      const child = fork(workerPath, [deviceCode, String(interval || 5)], {
+        detached: true,
+        stdio: "ignore",
+      });
+      child.unref();
+
+      console.log(
+        chalk.gray(
+          "   Polling for authentication in the background.\n" +
+            "   After authenticating, re-run your command to continue.\n",
+        ),
+      );
+
+      return {
+        sessionToken: "",
+        user: { id: "", email: null, name: null },
+      };
+    }
   } else {
     try {
       await open(verificationUriComplete);
