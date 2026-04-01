@@ -116,13 +116,26 @@ export function EditWithTamboButton({
 
     setShouldCloseOnComplete(true);
 
+    // Mark the interactable as selected so the model focuses on it
+    const interactableId = component?.interactableId ?? "";
+    if (interactableId) {
+      setInteractableSelected(interactableId, true);
+    }
+
     // Set value and submit via the thread input
     setThreadInputValue(prompt.trim());
     await submit();
 
     // Clear the prompt after successful send
     setPrompt("");
-  }, [prompt, isGenerating, component, setThreadInputValue, submit]);
+  }, [
+    prompt,
+    isGenerating,
+    component,
+    setInteractableSelected,
+    setThreadInputValue,
+    submit,
+  ]);
 
   const handleSendInThread = useCallback(() => {
     if (!prompt.trim()) {
