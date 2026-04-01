@@ -20,7 +20,7 @@ import { APIKeyListItem } from "./api-key-list-item";
 
 const COMPONENT_NAME = "APIKeys";
 
-const apiKeyListSuggestions: Suggestion[] = [
+const _apiKeyListSuggestions: Suggestion[] = [
   {
     id: "fetch-api-keys",
     title: "Fetch API Keys",

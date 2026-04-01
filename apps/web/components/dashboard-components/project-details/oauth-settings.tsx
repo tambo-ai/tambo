@@ -41,7 +41,7 @@ import { z } from "zod/v3";
 
 const COMPONENT_NAME = "OAuthTokenValidation";
 
-const oauthSettingsSuggestions: Suggestion[] = [
+const _oauthSettingsSuggestions: Suggestion[] = [
   {
     id: "fetch-oauth-settings",
     title: "Fetch OAuth Settings",

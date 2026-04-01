@@ -32,7 +32,7 @@ import { CustomLlmParametersEditor } from "./custom-llm-parameters/editor";
 
 const COMPONENT_NAME = "LLMProviders";
 
-const providerKeySectionSuggestions: Suggestion[] = [
+const _providerKeySectionSuggestions: Suggestion[] = [
   {
     id: "change-model",
     title: "Change Model",

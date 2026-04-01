@@ -20,7 +20,7 @@ import { z } from "zod/v3";
 
 const COMPONENT_NAME = "CustomInstructions";
 
-const customInstructionsEditorSuggestions: Suggestion[] = [
+const _customInstructionsEditorSuggestions: Suggestion[] = [
   {
     id: "add-custom-instructions",
     title: "Add Custom Instructions",

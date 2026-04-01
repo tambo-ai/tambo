@@ -38,7 +38,7 @@ jest.mock("@/trpc/react", () => ({
         }),
       },
       update: {
-        useMutation: (opts: Record<string, unknown>) => ({
+        useMutation: (_opts: Record<string, unknown>) => ({
           mutate: (...args: unknown[]) => {
             mockMutate("update", ...args);
           },
