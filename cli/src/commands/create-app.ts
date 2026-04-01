@@ -240,13 +240,20 @@ export async function handleCreateApp(
         `git clone --depth 1 ${selectedTemplate.repository} ${
           appName === "." ? "." : appName
         }`,
-        { stdio: "ignore", allowNonInteractive: true },
+        { stdio: "pipe", allowNonInteractive: true },
       );
       cloneSpinner.succeed(
         `${selectedTemplate.name} template downloaded successfully`,
       );
-    } catch (_error) {
+    } catch (error) {
       cloneSpinner.fail(`Failed to download ${selectedTemplate.name} template`);
+      const stderr =
+        error instanceof Error && "stderr" in error
+          ? String((error as { stderr: unknown }).stderr).trim()
+          : "";
+      if (stderr) {
+        throw new Error(`Failed to clone template repository:\n${stderr}`);
+      }
       throw new Error(
         "Failed to clone template repository. Please check your internet connection and try again.",
       );

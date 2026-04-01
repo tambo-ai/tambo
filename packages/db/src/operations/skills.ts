@@ -1,6 +1,6 @@
 import { type ExternalSkillMetadata } from "@tambo-ai-cloud/core";
-import { and, desc, eq, sql } from "drizzle-orm";
-import { DatabaseError } from "pg-protocol";
+import { and, desc, eq, inArray, sql } from "drizzle-orm";
+import { mergeSuperJson } from "../drizzleUtil";
 import * as schema from "../schema";
 import type { DBSkill } from "../schema";
 import type { HydraDb } from "../types";
@@ -14,11 +14,27 @@ const PG_UNIQUE_VIOLATION = "23505";
 /** Constraint name from schema.ts */
 const SKILLS_NAME_UNIQUE_CONSTRAINT = "skills_project_id_name_idx";
 
+/**
+ * Check if an error (or its cause) is a unique violation on the skills name constraint.
+ * Drizzle wraps pg errors in DrizzleQueryError with the original on `.cause`.
+ * We duck-type rather than using instanceof since duplicate pg-protocol copies
+ * in node_modules break class identity checks.
+ */
 function isSkillNameConflict(error: unknown): boolean {
+  const err = error as { code?: string; constraint?: string; cause?: unknown };
+  // Check the error itself first, then its .cause (DrizzleQueryError wrapping)
+  if (
+    err?.code === PG_UNIQUE_VIOLATION &&
+    err?.constraint === SKILLS_NAME_UNIQUE_CONSTRAINT
+  ) {
+    return true;
+  }
+  const cause = err?.cause as
+    | { code?: string; constraint?: string }
+    | undefined;
   return (
-    error instanceof DatabaseError &&
-    error.code === PG_UNIQUE_VIOLATION &&
-    error.constraint === SKILLS_NAME_UNIQUE_CONSTRAINT
+    cause?.code === PG_UNIQUE_VIOLATION &&
+    cause?.constraint === SKILLS_NAME_UNIQUE_CONSTRAINT
   );
 }
 
@@ -181,6 +197,34 @@ export async function deleteSkill(
 }
 
 /**
+ * Atomically merge provider metadata into a skill's externalSkillMetadata.
+ * Uses mergeSuperJson to atomically merge into the superjson-wrapped column
+ * without corrupting the {"json": ..., "meta": ...} envelope.
+ */
+export async function mergeSkillMetadata(
+  db: HydraDb,
+  projectId: string,
+  skillId: string,
+  metadata: ExternalSkillMetadata,
+): Promise<void> {
+  await db
+    .update(schema.skills)
+    .set({
+      externalSkillMetadata: mergeSuperJson(
+        schema.skills.externalSkillMetadata,
+        metadata as Record<string, unknown>,
+      ),
+      updatedAt: sql`now()`,
+    })
+    .where(
+      and(
+        eq(schema.skills.id, skillId),
+        eq(schema.skills.projectId, projectId),
+      ),
+    );
+}
+
+/**
  * Atomically increment a skill's usage count by 1.
  */
 export async function incrementSkillUsageCount(
@@ -198,6 +242,29 @@ export async function incrementSkillUsageCount(
       and(
         eq(schema.skills.id, skillId),
         eq(schema.skills.projectId, projectId),
+      ),
+    );
+}
+
+/**
+ * Batch increment usage counts for multiple skills in a single query.
+ */
+export async function incrementSkillUsageCounts(
+  db: HydraDb,
+  projectId: string,
+  skillIds: string[],
+): Promise<void> {
+  if (skillIds.length === 0) return;
+  await db
+    .update(schema.skills)
+    .set({
+      usageCount: sql`${schema.skills.usageCount} + 1`,
+      lastUsedAt: sql`now()`,
+    })
+    .where(
+      and(
+        eq(schema.skills.projectId, projectId),
+        inArray(schema.skills.id, skillIds),
       ),
     );
 }

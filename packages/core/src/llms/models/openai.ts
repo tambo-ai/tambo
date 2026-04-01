@@ -234,15 +234,4 @@ export const openaiModels: Partial<LlmModelConfig<OpenAIModelId>> = {
       "https://docs.tambo.co/reference/llm-providers/openai#gpt-4o-mini",
     inputTokenLimit: 128000,
   },
-  "gpt-4-turbo-2024-04-09": {
-    apiName: "gpt-4-turbo-2024-04-09",
-    displayName: "gpt-4-turbo",
-    status: "tested",
-    notes:
-      "High-intelligence model that's cheaper and faster than GPT-4. Still powerful, but we recommend using GPT-4o for most tasks.",
-    docLink: "https://platform.openai.com/docs/models/gpt-4-turbo",
-    tamboDocLink:
-      "https://docs.tambo.co/reference/llm-providers/openai#gpt-4-turbo",
-    inputTokenLimit: 128000,
-  },
 };

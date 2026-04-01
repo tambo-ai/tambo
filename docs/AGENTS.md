@@ -399,6 +399,12 @@ Never delete doc pages that exist on main. This breaks external links.
 
 Instead, remove the page from `meta.json` (delists from nav) and replace content with pointers to the new/better pages. Old URLs keep working, users find current content.
 
+### Folder Index Pages
+
+Every docs folder that contains child pages **must** have an `index.mdx` file. Without one, the folder URL (e.g. `/guides/setup-project`) returns a 404, which breaks AI agents and anyone who guesses the URL.
+
+If a folder genuinely has no standalone overview content, create an `index.mdx` that redirects or briefly introduces the section and links to its children. Alternatively, add a redirect entry in `docs/next.config.mjs` pointing the folder URL to the first child page. Either way, the folder URL must never 404.
+
 ### General Rules
 
 - All components must be SSR compatible

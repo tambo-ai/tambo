@@ -12,6 +12,38 @@ jest.mock("../../config/langfuse.config", () => ({
   createLangfuseTelemetryConfig: jest.fn(() => undefined),
 }));
 
+// Mock AI SDK provider factories for mergeProviderSkills tests
+const mockShellTool = { type: "provider-defined", id: "shell" };
+const mockCodeExecutionTool = {
+  type: "provider-defined",
+  id: "code_execution",
+};
+const mockResponsesModel = { modelId: "gpt-4-responses", provider: "openai" };
+
+jest.mock("@ai-sdk/openai", () => ({
+  createOpenAI: jest.fn(() => {
+    const provider = () => ({ modelId: "gpt-4", provider: "openai" });
+    provider.responses = jest.fn(() => mockResponsesModel);
+    provider.tools = {
+      shell: jest.fn(() => mockShellTool),
+    };
+    return provider;
+  }),
+}));
+
+jest.mock("@ai-sdk/anthropic", () => ({
+  createAnthropic: jest.fn(() => {
+    const provider = () => ({
+      modelId: "claude-sonnet",
+      provider: "anthropic",
+    });
+    provider.tools = {
+      codeExecution_20260120: jest.fn(() => mockCodeExecutionTool),
+    };
+    return provider;
+  }),
+}));
+
 // Type for the delta events from AI SDK's fullStream
 type StreamDelta =
   | { type: "tool-input-start"; id: string; toolName: string }
@@ -288,6 +320,240 @@ describe("AISdkClient", () => {
           toolCallId: "call-123",
         }),
       ]);
+    });
+  });
+
+  describe("mergeProviderSkills", () => {
+    function callMergeProviderSkills(
+      client: AISdkClient,
+      config: Record<string, unknown>,
+      skillConfig: import("@tambo-ai-cloud/core").ProviderSkillConfig,
+      providerKey: string,
+    ) {
+      return (client as any).mergeProviderSkills(
+        config,
+        skillConfig,
+        providerKey,
+      );
+    }
+
+    it("adds shell tool and switches to responses model for OpenAI", () => {
+      const client = new AISdkClient(
+        "test-api-key",
+        "gpt-4",
+        "openai",
+        "test-chain",
+        "test-user",
+      );
+
+      const baseConfig = {
+        model: { modelId: "gpt-4" },
+        messages: [],
+        tools: { existing_tool: { type: "function" } },
+        providerOptions: { openai: { parallelToolCalls: false } },
+      };
+
+      const skillConfig = {
+        providerName: "openai",
+        skills: [
+          { skillId: "sk-abc", version: "1" },
+          { skillId: "sk-def", version: "2" },
+        ],
+      };
+
+      const result = callMergeProviderSkills(
+        client,
+        baseConfig,
+        skillConfig,
+        "openai",
+      );
+
+      // Should switch to responses model
+      expect(result.model).toBe(mockResponsesModel);
+
+      // Should add shell tool while preserving existing tools
+      expect(result.tools.existing_tool).toEqual({ type: "function" });
+      expect(result.tools.shell).toBe(mockShellTool);
+
+      // Should preserve existing providerOptions
+      expect(result.providerOptions.openai).toEqual({
+        parallelToolCalls: false,
+      });
+    });
+
+    it("adds code execution tool and container skills for Anthropic", () => {
+      const client = new AISdkClient(
+        "test-api-key",
+        "claude-sonnet",
+        "anthropic",
+        "test-chain",
+        "test-user",
+      );
+
+      const baseConfig = {
+        model: { modelId: "claude-sonnet" },
+        messages: [],
+        tools: { existing_tool: { type: "function" } },
+        providerOptions: {
+          anthropic: { cacheControl: true },
+        },
+      };
+
+      const skillConfig = {
+        providerName: "anthropic",
+        skills: [{ skillId: "sk-xyz", version: "3" }],
+      };
+
+      const result = callMergeProviderSkills(
+        client,
+        baseConfig,
+        skillConfig,
+        "anthropic",
+      );
+
+      // Should NOT change the model
+      expect(result.model).toEqual({ modelId: "claude-sonnet" });
+
+      // Should add code_execution tool while preserving existing
+      expect(result.tools.existing_tool).toEqual({ type: "function" });
+      expect(result.tools.code_execution).toBe(mockCodeExecutionTool);
+
+      // Should add container.skills under anthropic providerOptions
+      expect(result.providerOptions.anthropic.container).toEqual({
+        skills: [{ type: "custom", skillId: "sk-xyz", version: "3" }],
+      });
+
+      // Should preserve existing anthropic providerOptions
+      expect(result.providerOptions.anthropic.cacheControl).toBe(true);
+    });
+
+    it("returns config unchanged for unsupported provider", () => {
+      const client = new AISdkClient(
+        "test-api-key",
+        "mistral-large",
+        "mistral",
+        "test-chain",
+        "test-user",
+      );
+
+      const baseConfig = {
+        model: { modelId: "mistral-large" },
+        messages: [],
+        tools: {},
+      };
+
+      const skillConfig = {
+        providerName: "mistral",
+        skills: [{ skillId: "sk-nope", version: "1" }],
+      };
+
+      const result = callMergeProviderSkills(
+        client,
+        baseConfig,
+        skillConfig,
+        "mistral",
+      );
+
+      expect(result).toBe(baseConfig);
+    });
+
+    it("works with empty existing tools for OpenAI", () => {
+      const client = new AISdkClient(
+        "test-api-key",
+        "gpt-4",
+        "openai",
+        "test-chain",
+        "test-user",
+      );
+
+      const baseConfig = {
+        model: { modelId: "gpt-4" },
+        messages: [],
+        tools: undefined,
+        providerOptions: {},
+      };
+
+      const skillConfig = {
+        providerName: "openai",
+        skills: [{ skillId: "sk-solo", version: "1" }],
+      };
+
+      const result = callMergeProviderSkills(
+        client,
+        baseConfig,
+        skillConfig,
+        "openai",
+      );
+
+      expect(result.tools.shell).toBe(mockShellTool);
+      expect(result.model).toBe(mockResponsesModel);
+    });
+
+    it("works with no existing providerOptions for Anthropic", () => {
+      const client = new AISdkClient(
+        "test-api-key",
+        "claude-sonnet",
+        "anthropic",
+        "test-chain",
+        "test-user",
+      );
+
+      const baseConfig = {
+        model: { modelId: "claude-sonnet" },
+        messages: [],
+        tools: {},
+        providerOptions: {},
+      };
+
+      const skillConfig = {
+        providerName: "anthropic",
+        skills: [{ skillId: "sk-one", version: "1" }],
+      };
+
+      const result = callMergeProviderSkills(
+        client,
+        baseConfig,
+        skillConfig,
+        "anthropic",
+      );
+
+      expect(result.providerOptions.anthropic.container.skills).toEqual([
+        { type: "custom", skillId: "sk-one", version: "1" },
+      ]);
+    });
+
+    it("does not mutate the original config", () => {
+      const client = new AISdkClient(
+        "test-api-key",
+        "gpt-4",
+        "openai",
+        "test-chain",
+        "test-user",
+      );
+
+      const baseConfig = {
+        model: { modelId: "gpt-4" },
+        messages: [],
+        tools: { my_tool: { type: "function" } },
+        providerOptions: { openai: { parallelToolCalls: false } },
+      };
+
+      const originalTools = { ...baseConfig.tools };
+      const originalProviderOptions = { ...baseConfig.providerOptions };
+
+      callMergeProviderSkills(
+        client,
+        baseConfig,
+        {
+          providerName: "openai",
+          skills: [{ skillId: "sk-abc", version: "1" }],
+        },
+        "openai",
+      );
+
+      // Original config should not be mutated
+      expect(baseConfig.tools).toEqual(originalTools);
+      expect(baseConfig.providerOptions).toEqual(originalProviderOptions);
     });
   });
 });

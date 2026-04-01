@@ -61,18 +61,23 @@ function SkillsEmptyState({
         aria-hidden="true"
       />
       <div className="text-center">
-        <h3 className="text-lg font-heading font-semibold">No Skills Yet</h3>
+        <h3 className="text-lg font-semibold">No Skills Yet</h3>
         <p className="text-sm text-muted-foreground max-w-sm">
           Skills define how your agent behaves. Create your first skill or
           import a SKILL.md file to get started.
         </p>
       </div>
       <div className="flex gap-2">
-        <Button variant="outline" onClick={onImportClick} disabled={disabled}>
+        <Button
+          variant="outline"
+          className="gap-2"
+          onClick={onImportClick}
+          disabled={disabled}
+        >
           <Import className="h-4 w-4" aria-hidden="true" />
           Import SKILL.md
         </Button>
-        <Button onClick={onCreateClick} disabled={disabled}>
+        <Button className="gap-2" onClick={onCreateClick} disabled={disabled}>
           <Plus className="h-4 w-4" aria-hidden="true" />
           Create Skill
         </Button>
@@ -85,14 +90,16 @@ function SkillsSkeleton() {
   return (
     <div className="space-y-3">
       {Array.from({ length: 3 }).map((_, i) => (
-        <div key={i} className="flex items-center gap-3 py-3 px-2">
+        <div key={i} className="flex items-center gap-3 py-3">
           <div className="flex-1 space-y-1">
             <div className="h-4 w-32 bg-muted animate-pulse rounded" />
             <div className="h-3 w-48 bg-muted animate-pulse rounded" />
           </div>
-          <div className="h-6 w-11 bg-muted animate-pulse rounded-full" />
-          <div className="h-8 w-8 bg-muted animate-pulse rounded-md" />
-          <div className="h-8 w-8 bg-muted animate-pulse rounded-md" />
+          <div className="flex items-center gap-2">
+            <div className="h-5 w-9 bg-muted animate-pulse rounded-full" />
+            <div className="h-8 w-8 bg-muted animate-pulse rounded-md" />
+            <div className="h-8 w-8 bg-muted animate-pulse rounded-md" />
+          </div>
         </div>
       ))}
     </div>
@@ -357,7 +364,7 @@ export function SkillsSection({
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="font-heading">Skills</CardTitle>
+              <CardTitle className="text-lg font-semibold">Skills</CardTitle>
               <CardDescription>
                 Define agent skills using SKILL.md files.
               </CardDescription>
@@ -365,13 +372,18 @@ export function SkillsSection({
             <div className="flex gap-2">
               <Button
                 variant="outline"
+                className="gap-2"
                 onClick={handleImportClick}
                 disabled={!isProviderSupported}
               >
                 <Import className="h-4 w-4" aria-hidden="true" />
                 Import
               </Button>
-              <Button onClick={openCreateSheet} disabled={!isProviderSupported}>
+              <Button
+                className="gap-2"
+                onClick={openCreateSheet}
+                disabled={!isProviderSupported}
+              >
                 <Plus className="h-4 w-4" aria-hidden="true" />
                 Create Skill
               </Button>

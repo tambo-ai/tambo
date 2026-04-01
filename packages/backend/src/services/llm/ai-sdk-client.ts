@@ -49,6 +49,7 @@ import {
 } from "../../util/component-streaming";
 import { formatTemplate, ObjectTemplate } from "../../util/template";
 import { threadMessagesToModelMessages } from "../../util/thread-to-model-message-conversion";
+import type { ProviderSkillConfig } from "@tambo-ai-cloud/core";
 import {
   CompleteParams,
   LLMClient,
@@ -292,17 +293,104 @@ export class AISdkClient implements LLMClient {
       ...filteredCustomParams, // Custom parameters override all, but exclude model-specific provider params
     };
 
+    // Merge provider-specific skills into config if present
+    const finalConfig = params.providerSkills?.skills.length
+      ? this.mergeProviderSkills(baseConfig, params.providerSkills, providerKey)
+      : baseConfig;
+
     if (params.stream) {
       // added explicit await even though types say it isn't necessary
       const result = await streamText({
-        ...baseConfig,
+        ...finalConfig,
         abortSignal: params.abortSignal,
       });
       return this.handleStreamingResponse(result);
     } else {
-      const result = await generateText(baseConfig);
+      const result = await generateText(finalConfig);
       return this.convertToLLMResponse(result);
     }
+  }
+
+  /**
+   * Merge provider-specific skills into the AI SDK config.
+   * For OpenAI: adds a shell tool with skillReference entries and switches to responses model.
+   * For Anthropic: adds codeExecution tool and container.skills providerOptions.
+   */
+  private mergeProviderSkills(
+    config: AICompleteParams,
+    skillConfig: ProviderSkillConfig,
+    providerKey: string,
+  ): AICompleteParams {
+    if (providerKey === "openai") {
+      const openai = createOpenAI({ apiKey: this.apiKey });
+      const shellTool = openai.tools.shell({
+        environment: {
+          type: "containerAuto",
+          skills: skillConfig.skills.map((s) => ({
+            type: "skillReference" as const,
+            skillId: s.skillId,
+            version: s.version,
+          })),
+        },
+      });
+
+      console.log(
+        `[Skills] Switching OpenAI model to responses API for skills support (model: ${this.model})`,
+      );
+
+      if (config.tools && "shell" in config.tools) {
+        console.warn(
+          "[Skills] Overwriting existing 'shell' tool with skills shell tool",
+        );
+      }
+
+      return {
+        ...config,
+        model: openai.responses(this.model),
+        tools: {
+          ...config.tools,
+          shell: shellTool,
+        },
+      };
+    }
+
+    if (providerKey === "anthropic") {
+      const anthropic = createAnthropic({ apiKey: this.apiKey });
+      const codeExecutionTool = anthropic.tools.codeExecution_20260120();
+
+      if (config.tools && "code_execution" in config.tools) {
+        console.warn(
+          "[Skills] Overwriting existing 'code_execution' tool with skills code execution tool",
+        );
+      }
+
+      const existingAnthropicOptions =
+        (config.providerOptions?.[providerKey] as Record<string, unknown>) ??
+        {};
+
+      return {
+        ...config,
+        tools: {
+          ...config.tools,
+          code_execution: codeExecutionTool,
+        },
+        providerOptions: {
+          ...config.providerOptions,
+          anthropic: {
+            ...existingAnthropicOptions,
+            container: {
+              skills: skillConfig.skills.map((s) => ({
+                type: "custom" as const,
+                skillId: s.skillId,
+                version: s.version,
+              })),
+            },
+          },
+        },
+      };
+    }
+
+    return config;
   }
 
   private getModelInstance(providerKey: string): LanguageModelV3 {
@@ -556,8 +644,19 @@ export class AISdkClient implements LLMClient {
           }
           break;
         case "tool-result":
-          // Tambo should be handling all tool results, not operating like an agent
-          throw new Error("Tool result should not be emitted during streaming");
+          // Provider-managed tools (e.g. OpenAI shell for skills) return results
+          // inline in the stream. These are handled by the provider, not Tambo.
+          if (!("providerExecuted" in delta) || !delta.providerExecuted) {
+            throw new Error(
+              "Tool result should not be emitted during streaming",
+            );
+          }
+          // Clear accumulated tool call so subsequent chunks don't carry
+          // the provider-executed tool as an unresolved client tool call.
+          accumulatedToolCall.name = undefined;
+          accumulatedToolCall.arguments = "";
+          accumulatedToolCall.id = undefined;
+          break;
         case "tool-error":
           throw delta.error;
         case "reasoning-start":
