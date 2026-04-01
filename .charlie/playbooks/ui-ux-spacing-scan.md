@@ -2,21 +2,20 @@
 
 ## Overview
 
-Create a Linear issue covering two categories of spacing issues in `apps/web` component files:
+Scan `apps/web` component files for two categories of spacing issues, then open a PR that fixes them:
 
 1. **Banned classes**: `space-x-*` and `space-y-*` usage, explicitly discouraged by `AGENTS.md` in favor of `gap-*` with flex/grid layouts.
 2. **Off-scale values**: Margin, padding, and gap classes using values outside the project's allowed spacing scale.
 
 ## Creates
 
-- Artifact: Linear issue
-- Team: `TAM`
-- Title pattern: "UI/UX spacing scan: \<YYYY-MM-DD>"
+- Artifact: Pull request with fixes
+- Branch pattern: `charlie/spacing-scan-<YYYY-MM-DD>`
+- Title pattern: "fix(web): UI/UX spacing scan <YYYY-MM-DD>"
 
 ## Limits
 
-- Max artifacts per run: 1 issue
-- Max candidates listed: 10 per scan category (20 total max)
+- Max fixes per run: 10 per scan category (20 total max)
 - Scope: `apps/web` only (`.tsx` files)
 - Guardrails:
   - Scan 1: Flag `space-x-*` and `space-y-*` Tailwind utility classes.
@@ -121,26 +120,26 @@ Sort files by last commit date (most recent first) and take the first 10 finding
    - For Scan 2: skip lines inside SVG elements or SVG component files.
 5. For each file with matches, retrieve the last commit date via `git log`.
 6. Sort by recency (most recently modified files first) and cap at 10 candidates per category.
-7. Create a Linear issue in team `TAM` titled "UI/UX spacing scan: <start_date>-<end_date>" with a Markdown body containing:
-   - A short summary (total issues found repo-wide vs. the ones listed)
-   - **Banned classes section**:
-     - A reference to the `AGENTS.md` guideline: "Avoid `space-x-*`/`space-y-*`; use `gap-*` with flex/grid instead."
-     - Findings with file path, line number, matched line, and the specific `space-*` class to replace
-     - A note that the parent element likely needs `flex` + `gap-*` as the replacement pattern
-   - **Off-scale values section**:
-     - The allowed spacing scale for reference
-     - Findings with file path, line number, matched line, the off-scale value, and the nearest allowed value(s)
-     - Arbitrary bracket values listed separately as "review needed"
+7. Fix findings directly in the source files:
+   - **Banned classes**: Replace `space-x-*`/`space-y-*` with `gap-*` on the parent element, ensuring the parent uses flex or grid layout.
+   - **Off-scale values**: Replace with the nearest allowed scale value.
+   - **Arbitrary bracket values**: Replace with the nearest allowed scale value, or leave with a `TODO` comment if the intent is unclear.
+8. Run `npm run lint`, `npm run check-types`, and `npm test` to verify fixes.
+9. Create a PR with:
+   - Branch: `charlie/spacing-scan-<YYYY-MM-DD>`
+   - Title: `fix(web): UI/UX spacing scan <YYYY-MM-DD>`
+   - Body: summary of findings and fixes per category, with file paths and before/after classes.
 
 ## Verify
 
-- Every finding includes a file path and line number verifiable with `rg`.
+- Every fix corresponds to a real finding (file path + line number verifiable with `rg`).
 - No findings are from test files, build output, or excluded paths.
 - No findings are from commented-out code.
 - No off-scale findings are from SVG elements or SVG component files.
-- The total count does not exceed 10 candidates per category.
-- All listed files exist in `apps/web`.
-- Off-scale findings correctly identify values not in the allowed scale.
+- The total fixes do not exceed 10 per category.
+- All fixed files exist in `apps/web`.
+- `npm run lint`, `npm run check-types`, and `npm test` pass after fixes.
+- PR is created and ready for review.
 
 ## References
 
