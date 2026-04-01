@@ -286,8 +286,9 @@ jest.unstable_mockModule("chalk", () => ({
 }));
 
 // Mock the interactive module to make tests think they're in an interactive environment
+let mockIsInteractive = true;
 jest.unstable_mockModule("../utils/interactive.js", () => ({
-  isInteractive: () => true, // Always return true in tests
+  isInteractive: () => mockIsInteractive,
   interactivePrompt: mockPrompt, // Use the same mockPrompt as inquirer
   execSync: mockExecSync, // Use the same mockExecSync as child_process
   execFileSync: mockExecFileSync, // Use the same mockExecFileSync as child_process
@@ -344,6 +345,7 @@ describe("handleInit", () => {
     clipboardContent = null;
 
     // Reset device auth mocks
+    mockIsInteractive = true;
     mockIsTokenValid = false;
     mockVerifySession = true;
     mockDeviceAuthShouldFail = false;
@@ -398,6 +400,7 @@ describe("handleInit", () => {
     shouldOpenFail = false;
     clipboardContent = null;
     // Reset device auth mocks
+    mockIsInteractive = true;
     mockIsTokenValid = false;
     mockVerifySession = true;
     mockDeviceAuthShouldFail = false;
@@ -430,6 +433,36 @@ describe("handleInit", () => {
       // Verify error message
       const output = logs.join("\n");
       expect(output).toContain("Could not find a valid package.json");
+    });
+  });
+
+  describe("non-interactive --project-name", () => {
+    beforeEach(() => {
+      mockIsInteractive = false;
+      vol.fromJSON(createNextProject());
+    });
+
+    it("should skip auth when already authenticated", async () => {
+      mockIsTokenValid = true;
+      mockVerifySession = true;
+
+      await handleInit({ projectName: "my-app", noBrowser: true });
+
+      const output = logs.join("\n");
+      expect(output).toContain("Already authenticated");
+      expect(output).toContain("Initialization complete");
+    });
+
+    it("should show re-run message when auth is pending", async () => {
+      mockRunDeviceAuthFlowResult = {
+        status: "pending_background_poll",
+      };
+
+      await handleInit({ projectName: "my-app", noBrowser: true });
+
+      const output = logs.join("\n");
+      expect(output).toContain("Authentication started in the background");
+      expect(output).toContain("npx tambo init --project-name=my-app");
     });
   });
 
