@@ -10,8 +10,8 @@ Scan `apps/web` component files for two categories of spacing issues, then open 
 ## Creates
 
 - Artifact: Pull request with fixes
-- Branch pattern: `charlie/spacing-scan-<YYYY-MM-DD>`
-- Title pattern: "fix(web): UI/UX spacing scan <YYYY-MM-DD>"
+- Branch pattern: `charlie/spacing-scan-<start_date>-<end_date>`
+- Title pattern: "fix(web): UI/UX spacing scan <start_date>-<end_date>"
 
 ## Limits
 
@@ -78,7 +78,7 @@ rg -n 'space-[xy]-' "${EXCLUDES[@]}" apps/web --glob '*.tsx'
 Find all margin, padding, and gap classes, then filter to those with values outside the allowed scale:
 
 ```bash
-rg -on '(?:m[trblxy]?|p[trblxy]?|gap(?:-[xy])?)-(\[[^\]]+\]|\d+\.?\d*)' \
+rg -on '(?<![a-z-])-?(?:m[trblxy]?|p[trblxy]?|gap(?:-[xy])?)-(\[[^\]]+\]|\d+\.?\d*)' \
   "${EXCLUDES[@]}" apps/web --glob '*.tsx'
 ```
 
@@ -126,8 +126,8 @@ Sort files by last commit date (most recent first) and take the first 10 finding
    - **Arbitrary bracket values**: Replace with the nearest allowed scale value, or leave with a `TODO` comment if the intent is unclear.
 8. Run `npm run lint`, `npm run check-types`, and `npm test` to verify fixes.
 9. Create a PR with:
-   - Branch: `charlie/spacing-scan-<YYYY-MM-DD>`
-   - Title: `fix(web): UI/UX spacing scan <YYYY-MM-DD>`
+   - Branch: `charlie/spacing-scan-<start_date>-<end_date>`
+   - Title: `fix(web): UI/UX spacing scan <start_date>-<end_date>`
    - Body: summary of findings and fixes per category, with file paths and before/after classes.
 
 ## Verify
