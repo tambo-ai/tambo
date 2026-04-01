@@ -90,21 +90,9 @@ const discoverOAuthProtectedResourceMetadataMock = jest.mocked(
 const createCaller = createCallerFactory(toolsRouter);
 let warnSpy: jest.SpiedFunction<typeof console.warn>;
 
-type ToolProviderUserContext = {
-  id: string;
-  createdAt: Date;
-  contextKey: string | null;
-  toolProviderId: string;
-  deprecatedComposioIntegrationId: string | null;
-  deprecatedComposioConnectedAccountId: string | null;
-  deprecatedComposioConnectedAccountStatus: string | null;
-  deprecatedComposioRedirectUrl: string | null;
-  deprecatedComposioAuthSchemaMode: string | null;
-  deprecatedComposioAuthFields: Record<string, string>;
-  mcpOauthClientInfo: Record<string, unknown> | null;
-  mcpOauthTokens: Record<string, unknown> | null;
-  mcpOauthLastRefreshedAt: Date | null;
-};
+type ToolProviderUserContext = Awaited<
+  ReturnType<typeof operations.upsertToolProviderUserContext>
+>;
 
 function createAuthorizationServerMetadata(
   overrides: Partial<
@@ -264,6 +252,7 @@ describe("toolsRouter.authorizeMcpServer", () => {
         },
         mcpOauthTokens: {
           access_token: "stale-token",
+          token_type: "Bearer",
         },
       }),
     });

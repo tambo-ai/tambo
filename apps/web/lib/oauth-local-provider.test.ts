@@ -185,6 +185,7 @@ describe("OAuthLocalProvider", () => {
     });
     const tokens = {
       access_token: "access_token_123",
+      token_type: "Bearer",
     };
 
     await provider.saveTokens(tokens);
@@ -213,6 +214,7 @@ describe("OAuthLocalProvider", () => {
     await expect(
       provider.saveTokens({
         access_token: "access_token_123",
+        token_type: "Bearer",
       }),
     ).rejects.toThrow(
       "Failed to persist OAuth tokens: tool provider context ctx_123 was not found",
