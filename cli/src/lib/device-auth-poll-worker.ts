@@ -8,11 +8,7 @@
  * Usage: node device-auth-poll-worker.js <deviceCode> <intervalSeconds>
  */
 import { api, ApiError } from "./api-client.js";
-import {
-  saveToken,
-  setInMemoryToken,
-  type StoredToken,
-} from "./token-storage.js";
+import { exchangeAndSaveToken } from "./device-auth.js";
 
 const [deviceCode, intervalStr] = process.argv.slice(2);
 
@@ -35,28 +31,7 @@ async function poll(): Promise<void> {
         response.sessionToken &&
         response.expiresAt
       ) {
-        // Temporarily set in-memory token to fetch user info
-        setInMemoryToken(response.sessionToken);
-
-        try {
-          const userInfo = await api.user.getUser.query();
-
-          const tokenData: StoredToken = {
-            sessionToken: response.sessionToken,
-            expiresAt: response.expiresAt,
-            user: {
-              id: userInfo.id,
-              email: userInfo.email,
-              name: userInfo.name,
-            },
-            storedAt: new Date().toISOString(),
-          };
-
-          await saveToken(tokenData);
-        } finally {
-          setInMemoryToken(null);
-        }
-
+        await exchangeAndSaveToken(response.sessionToken, response.expiresAt);
         process.exit(0);
       }
 

@@ -209,36 +209,18 @@ export async function runDeviceAuthFlow(
           );
         }
 
-        // Step 4a: Set in-memory token for the upcoming getUser request.
-        // We don't persist to disk yet to avoid saving an incomplete token.
-        setInMemoryToken(pollResponse.sessionToken);
-
-        // Step 4b: Fetch user info using the new token (two-step auth flow)
-        // The poll endpoint runs as 'anon' and can't access user data, so we
-        // fetch it separately via an authenticated endpoint.
+        // Exchange session token for user info and save to disk
         const userSpinner = ora({
           text: "Fetching user info...",
           color: "cyan",
         }).start();
 
         try {
-          const userInfo = await api.user.getUser.query();
+          const completeTokenData = await exchangeAndSaveToken(
+            pollResponse.sessionToken,
+            pollResponse.expiresAt,
+          );
           userSpinner.stop();
-
-          // Step 4c: Save complete token to disk (only after we have user info)
-          const completeTokenData: StoredToken = {
-            sessionToken: pollResponse.sessionToken,
-            expiresAt: pollResponse.expiresAt,
-            user: {
-              id: userInfo.id,
-              email: userInfo.email,
-              name: userInfo.name,
-            },
-            storedAt: new Date().toISOString(),
-          };
-
-          await saveToken(completeTokenData);
-          setInMemoryToken(null); // Clear in-memory token now that we've persisted
 
           return {
             status: "authenticated",
@@ -247,7 +229,6 @@ export async function runDeviceAuthFlow(
           };
         } catch (userError) {
           userSpinner.fail(chalk.red("Failed to fetch user info"));
-          setInMemoryToken(null); // Clear in-memory token on failure
           throw new DeviceAuthError(
             `Failed to fetch user info after authentication. Please try again. (${userError instanceof Error ? userError.message : String(userError)})`,
             "USER_INFO_FAILED",
@@ -355,6 +336,40 @@ export async function runDeviceAuthFlow(
     "Authentication timed out. Please try again.",
     "TIMEOUT",
   );
+}
+
+/**
+ * Exchanges a session token for user info and persists the complete token to disk.
+ * Used by both the main device auth flow and the background poll worker.
+ * @param sessionToken - The session token from the poll response
+ * @param expiresAt - The token expiry timestamp
+ * @returns The saved token data
+ */
+export async function exchangeAndSaveToken(
+  sessionToken: string,
+  expiresAt: string,
+): Promise<StoredToken> {
+  setInMemoryToken(sessionToken);
+
+  try {
+    const userInfo = await api.user.getUser.query();
+
+    const tokenData: StoredToken = {
+      sessionToken,
+      expiresAt,
+      user: {
+        id: userInfo.id,
+        email: userInfo.email,
+        name: userInfo.name,
+      },
+      storedAt: new Date().toISOString(),
+    };
+
+    await saveToken(tokenData);
+    return tokenData;
+  } finally {
+    setInMemoryToken(null);
+  }
 }
 
 /**
