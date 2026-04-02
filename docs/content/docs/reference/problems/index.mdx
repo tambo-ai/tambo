@@ -1,12 +1,11 @@
 ---
 title: API Problems
 description: Reference for error responses returned by the Tambo Cloud API.
-icon: AlertTriangle
 ---
 
 import LearnMore from "@/components/learn-more";
 
-When the Tambo API returns an error, the response body uses a structured problem format. These pages document each error type.
+When a Tambo Cloud API request fails, the response body follows a structured problem format with a `type` URI, human-readable `title`, HTTP `status` code, and a `detail` message explaining what went wrong. Each error type is documented below with its causes and how to resolve it.
 
 <LearnMore
   title="Validation Error"
