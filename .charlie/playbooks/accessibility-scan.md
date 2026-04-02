@@ -59,17 +59,29 @@ Find `role="button"` on div/span elements:
 rg -n 'role="button"' "${EXCLUDES[@]}" apps/web --glob '*.tsx'
 ```
 
-For each match, check whether the element is a `<div` or `<span` (not already a `<button>`). Only flag div/span elements.
+For each match, check whether the element is a `<div` or `<span` (not already a `<button>`). Only flag div/span elements. `<TableHead>` elements with `role="button"` are a special case for sortable columns -- leave these alone unless they also lack `aria-label`.
 
 ### Scan 2: Missing or generic aria-labels
 
-Find icon-only buttons (buttons containing only an icon component with no visible text) that lack `aria-label`:
+Find icon-only buttons. The codebase uses `size="icon"` on `<Button>` components, but the attribute is typically on a separate line from the `<Button` tag. Use a simple attribute search:
 
 ```bash
-rg -n '<Button[^>]*size="icon"' "${EXCLUDES[@]}" apps/web --glob '*.tsx'
+rg -n 'size="icon"' "${EXCLUDES[@]}" apps/web --glob '*.tsx'
 ```
 
-For each match, check whether `aria-label` is present on the element. Flag if missing.
+For each match, read surrounding lines (5-10 lines above and below) to check:
+
+- Whether `aria-label` is present on the same `<Button>` element
+- Whether an `sr-only` span provides screen-reader text (acceptable alternative, see `copy-button.tsx` for example)
+- Flag if neither exists
+
+Also find icon-only buttons that use `size="sm"` with only an icon child and no text:
+
+```bash
+rg -n 'size="sm"' "${EXCLUDES[@]}" apps/web --glob '*.tsx'
+```
+
+For each `size="sm"` match, read context to determine if the button contains only an icon (Lucide component like `<Menu />`, `<Trash2 />`, etc.) with no visible text. Flag these if they lack `aria-label`.
 
 Find generic one-word aria-labels that lack context:
 
@@ -77,7 +89,7 @@ Find generic one-word aria-labels that lack context:
 rg -n 'aria-label="(Delete|Close|Edit|Remove|Copy|Add|Save|Cancel|Open|Toggle)"' "${EXCLUDES[@]}" apps/web --glob '*.tsx'
 ```
 
-These labels are considered generic because they don't describe what is being deleted, closed, etc. The fix is to add context, e.g., `aria-label="Delete"` becomes `aria-label={`Delete skill ${name}`}`.
+These labels are considered generic because they don't describe what is being deleted, closed, etc. The fix is to add context, e.g., `aria-label="Delete"` becomes `aria-label={`Delete skill ${name}`}`. Exception: dialog/panel close buttons where "Close" is unambiguous are acceptable.
 
 ### Recency sorting
 
@@ -106,19 +118,26 @@ Sort files by last commit date (most recent first) and take the first 5 findings
 3. Run Scan 2 (missing/generic aria-labels) against `apps/web` `.tsx` files.
 4. For each match in both scans, verify it is a true positive:
    - Skip commented-out code (lines starting with `//` or inside `/* */` blocks).
-   - For Scan 1: confirm the element is a `<div` or `<span`, not already a `<button>`.
-   - For Scan 2: confirm the button is truly icon-only (no visible text children) or the label is truly generic (no interpolated context).
+   - For Scan 1: confirm the element is a `<div` or `<span`, not already a `<button>`. Skip `<TableHead>` elements used for sortable columns.
+   - For Scan 2: confirm the button is truly icon-only (no visible text children and no `sr-only` span) or the label is truly generic (no interpolated context). Skip dialog/panel close buttons where "Close" is contextually unambiguous.
 5. For each file with matches, retrieve the last commit date via `git log`.
 6. Sort by recency (most recently modified files first) and cap at 5 candidates per category.
 7. Fix findings directly in the source files:
    - **Non-semantic elements**: Replace `<div role="button" tabIndex={0} onClick={handler} onKeyDown={...}>` with `<button onClick={handler} className={...}>`. Preserve existing `className` and `aria-label`. Remove the manual `onKeyDown` Enter/Space handler (native `<button>` handles this). Remove `tabIndex={0}` (native `<button>` is focusable by default). If the div had `cursor-pointer` in its className, that can also be removed (buttons have pointer cursor by default with proper styling).
-   - **Missing aria-labels**: Add a descriptive `aria-label` that includes both the action and target, e.g., `aria-label={`Delete skill ${name}`}`. Look at the component's props or surrounding context to find the appropriate target name.
+   - **Missing aria-labels**: Add a descriptive `aria-label` that includes both the action and target, e.g., `aria-label={`Delete skill ${name}`}`. Look at the component's props or surrounding context to find the appropriate target name. If the component uses an `sr-only` span pattern instead (see `copy-button.tsx`), that is also acceptable.
    - **Generic aria-labels**: Replace the static string with a template literal that includes context from the component's props or state.
-8. Run `npm run lint`, `npm run check-types`, and `npm test` to verify fixes.
-9. Create a PR with:
-   - Branch: `charlie/a11y-scan-<end_date>`
-   - Title: `fix(web): accessibility scan <end_date>`
-   - Body: summary of findings and fixes per category, with file paths and before/after markup.
+8. Validate each fix immediately after applying it:
+   - Run `npm run check-types` to confirm no type errors were introduced.
+   - If it fails, fix the issue and re-run before applying the next fix.
+9. After all fixes are applied, run the full validation suite:
+   - `npm run check-types && npm run lint && npm test`
+   - If any step fails, fix the issue and re-run all three until clean.
+10. Re-run the original scan patterns from steps 2-3 on the fixed files to confirm findings are resolved.
+11. Create a PR with:
+
+- Branch: `charlie/a11y-scan-<end_date>`
+- Title: `fix(web): accessibility scan <end_date>`
+- Body: summary of findings and fixes per category, with file paths and before/after markup.
 
 ## Verify
 
@@ -135,6 +154,6 @@ Sort files by last commit date (most recent first) and take the first 5 findings
 ## References
 
 - `AGENTS.md` section 4 (Accessibility): semantic HTML, proper labels, roles
-- `devdocs/skills/accessibility-checklist/SKILL.md`: project accessibility standards
+- `apps/web/AGENTS.md` (Accessibility & UX): buttons must be `<button>`, semantic HTML
 - WAI-ARIA button role: <https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Roles/button_role>
-- Baseline analysis: 2026-04-02 audit of `apps/web` accessibility patterns (11 role="button" instances across 5 files)
+- Baseline analysis: 2026-04-02 audit of `apps/web` accessibility patterns (11 role="button" instances across 5 files, 10 size="icon" buttons across 6 files)
