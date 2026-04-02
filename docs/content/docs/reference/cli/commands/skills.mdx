@@ -1,0 +1,133 @@
+---
+title: skills
+description: Manage project skills from the CLI with markdown files containing YAML frontmatter.
+---
+
+`npx tambo skills <subcommand> [options]`
+
+Manage project skills directly from the terminal. Skills are markdown files with YAML frontmatter that provide instructions to your AI agent.
+
+## Subcommands
+
+### list
+
+List all skills in the current project.
+
+```bash
+npx tambo skills list
+```
+
+Displays a table with each skill's name, description, and enabled status.
+
+### add
+
+Create one or more skills from markdown files.
+
+```bash
+npx tambo skills add <file.md> [file2.md] [...]
+```
+
+Reads each file, parses the YAML frontmatter for `name` and `description`, and creates the skill with the file body as instructions.
+
+```bash
+# Add a single skill
+npx tambo skills add my-skill.md
+
+# Add multiple skills at once
+npx tambo skills add skill1.md skill2.md skill3.md
+```
+
+If a file has invalid frontmatter or a name conflict, the error is reported and remaining files continue processing.
+
+### get
+
+Print a skill as markdown to stdout.
+
+```bash
+npx tambo skills get <name>
+```
+
+Outputs round-trippable markdown with frontmatter. Pipe to a file to save locally:
+
+```bash
+npx tambo skills get my-skill > my-skill.md
+```
+
+### update
+
+Update one or more existing skills from modified files.
+
+```bash
+npx tambo skills update <file.md> [file2.md] [...]
+```
+
+Matches each file to an existing skill by the `name` field in frontmatter, then updates the description and instructions.
+
+```bash
+# Edit a skill locally, then push changes
+npx tambo skills get my-skill > my-skill.md
+# ... edit my-skill.md ...
+npx tambo skills update my-skill.md
+```
+
+### delete
+
+Delete a skill by name.
+
+```bash
+npx tambo skills delete <name>
+```
+
+Prompts for confirmation in interactive mode. Use `--force` to skip the prompt:
+
+```bash
+npx tambo skills delete my-skill --force
+```
+
+## Skill file format
+
+Skills use YAML frontmatter with `name` and `description` fields, followed by markdown instructions:
+
+```markdown
+---
+name: my-skill-name
+description: "A brief description of what this skill does"
+---
+
+Your instructions go here. Full markdown is supported.
+```
+
+**Name requirements:**
+- Kebab-case only (lowercase letters, numbers, hyphens)
+- Maximum 200 characters
+
+**Limits:**
+- Description: 2,000 characters
+- Instructions: 100,000 characters
+
+## Options
+
+| Option | Description |
+|--------|-------------|
+| `--force, -f` | Skip confirmation prompts (delete only) |
+| `--help` | Show help |
+
+## Authentication
+
+All skills commands require:
+
+1. An authenticated session via `npx tambo auth login`
+2. A project API key in `.env.local` (set up via `npx tambo init`)
+
+## Non-interactive usage
+
+All commands work in CI/CD environments. For `delete`, pass `--force` to skip the confirmation prompt:
+
+```bash
+npx tambo skills delete my-skill --force
+```
+
+Exit codes:
+- `0` -- success
+- `1` -- error (invalid file, skill not found, auth failure)
+- `2` -- user action required (non-interactive mode needs flags)
