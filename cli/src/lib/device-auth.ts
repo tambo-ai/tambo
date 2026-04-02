@@ -1,8 +1,5 @@
 import chalk from "chalk";
 import clipboard from "clipboardy";
-import { writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
 import open from "open";
 import ora from "ora";
 import { api, ApiError } from "./api-client.js";
@@ -92,22 +89,9 @@ export async function runDeviceAuthFlow(): Promise<DeviceAuthResult> {
     // Clipboard might not be available in all environments (e.g. headless CI)
   }
 
-  // In non-interactive mode (agents, CI), output machine-readable auth info
+  // In non-interactive mode (agents, CI), output raw URL for machine parsing
   if (nonInteractive) {
-    // Raw URL first for machine parsing (no styling, no prefix)
     console.log(verificationUriComplete);
-
-    // Write device auth info to a well-known temp file so agents can read it
-    // without parsing stdout
-    const authInfoPath = join(tmpdir(), "tambo-device-auth.json");
-    writeFileSync(
-      authInfoPath,
-      JSON.stringify({
-        verificationUri,
-        verificationUriComplete,
-        userCode,
-      }),
-    );
   }
 
   // Always try to open the browser. Agents (e.g. Claude Code) run CLI
