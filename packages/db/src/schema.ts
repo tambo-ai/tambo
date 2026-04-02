@@ -1251,7 +1251,6 @@ export const memories = pgTable(
     id: text("id")
       .primaryKey()
       .notNull()
-      .unique()
       .default(sql`generate_custom_id('mem_')`),
     projectId: text("project_id")
       .references(() => projects.id, { onDelete: "cascade" })

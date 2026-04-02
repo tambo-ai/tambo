@@ -1,5 +1,5 @@
 import type { MemoryCategory, MemoryImportance } from "@tambo-ai-cloud/core";
-import { and, count, desc, eq, isNull, sql } from "drizzle-orm";
+import { and, desc, eq, isNull, sql } from "drizzle-orm";
 import * as schema from "../schema";
 import type { DBMemory } from "../schema";
 import type { HydraDb } from "../types";
@@ -107,92 +107,6 @@ export async function softDeleteAllMemoriesForContextKey(
     )
     .returning();
   return result.length;
-}
-
-/**
- * Supersede an existing memory with a new one, in a single transaction.
- * Reads the existing memory to derive projectId + contextKey (prevents mismatched scoping).
- * Sets deletedAt + supersededBy on the old memory, creates the new one.
- * @returns The newly created memory.
- */
-export async function supersedeMemory(
-  db: HydraDb,
-  params: {
-    existingId: string;
-    newContent: string;
-    newCategory: MemoryCategory;
-    newImportance?: MemoryImportance;
-  },
-): Promise<DBMemory> {
-  // Must run in a transaction to prevent orphaned duplicates on partial failure
-  const dbWithTx = db as import("../types").HydraDatabase;
-  return await dbWithTx.transaction(async (tx) => {
-    // Look up the existing memory to derive scoping fields
-    const existing = await tx.query.memories.findFirst({
-      where: and(
-        eq(schema.memories.id, params.existingId),
-        isNull(schema.memories.deletedAt),
-      ),
-    });
-
-    if (!existing) {
-      throw new Error(
-        `Memory ${params.existingId} not found or already deleted`,
-      );
-    }
-
-    // Create the replacement memory
-    const [newMemory] = await tx
-      .insert(schema.memories)
-      .values({
-        projectId: existing.projectId,
-        contextKey: existing.contextKey,
-        content: params.newContent,
-        category: params.newCategory,
-        importance: params.newImportance ?? 3,
-      })
-      .returning();
-
-    // Mark the old memory as superseded (re-check deletedAt for TOCTOU safety)
-    await tx
-      .update(schema.memories)
-      .set({
-        deletedAt: sql`now()`,
-        supersededBy: newMemory.id,
-        updatedAt: sql`now()`,
-      })
-      .where(
-        and(
-          eq(schema.memories.id, params.existingId),
-          isNull(schema.memories.deletedAt),
-        ),
-      );
-
-    return newMemory;
-  });
-}
-
-/**
- * Count active (non-deleted) memories for a (projectId, contextKey) pair.
- * Used for cap enforcement.
- * @returns The count of active memories.
- */
-export async function getActiveMemoryCount(
-  db: HydraDb,
-  projectId: string,
-  contextKey: string,
-): Promise<number> {
-  const [result] = await db
-    .select({ value: count() })
-    .from(schema.memories)
-    .where(
-      and(
-        eq(schema.memories.projectId, projectId),
-        eq(schema.memories.contextKey, contextKey),
-        isNull(schema.memories.deletedAt),
-      ),
-    );
-  return result.value;
 }
 
 /**

@@ -17,11 +17,36 @@ const MIN_MESSAGES_FOR_EXTRACTION = 4; // At least 2 exchanges
 /** Hard cap on active memories per (projectId, contextKey) */
 const MEMORY_CAP = 200;
 
-/** In-memory rate limiting: minimum seconds between extractions per user */
-const EXTRACTION_COOLDOWN_MS = 60_000;
-
-/** Rate limiting map: key = "projectId:contextKey", value = last extraction timestamp */
+// TODO: Replace this in-memory rate limiting with Redis or a DB-based approach
+// as part of a larger rate-limiting effort. This Map doesn't survive restarts
+// and doesn't work across multiple server instances.
+const EXTRACTION_COOLDOWN_MS = 15_000;
+const RATE_LIMIT_MAP_MAX_SIZE = 10_000;
 const lastExtractionTimestamps = new Map<string, number>();
+
+/**
+ * Check if extraction is allowed for the given key and record the attempt.
+ * Returns true if the extraction should proceed, false if rate-limited.
+ * Encapsulates all knowledge of the in-memory rate limiting map.
+ */
+function shouldExtract(rateLimitKey: string): boolean {
+  const lastExtraction = lastExtractionTimestamps.get(rateLimitKey);
+  if (lastExtraction && Date.now() - lastExtraction < EXTRACTION_COOLDOWN_MS) {
+    return false;
+  }
+  // Evict oldest half of entries if the map grows too large
+  if (lastExtractionTimestamps.size >= RATE_LIMIT_MAP_MAX_SIZE) {
+    const entries = [...lastExtractionTimestamps.entries()].sort(
+      (a, b) => a[1] - b[1],
+    );
+    const deleteCount = Math.floor(entries.length / 2);
+    for (let i = 0; i < deleteCount; i++) {
+      lastExtractionTimestamps.delete(entries[i][0]);
+    }
+  }
+  lastExtractionTimestamps.set(rateLimitKey, Date.now());
+  return true;
+}
 
 @Injectable()
 export class MemoryExtractionService {
@@ -46,18 +71,12 @@ export class MemoryExtractionService {
     const rateLimitKey = `${projectId}:${contextKey}`;
 
     try {
-      // Rate limiting
-      const lastExtraction = lastExtractionTimestamps.get(rateLimitKey);
-      if (
-        lastExtraction &&
-        Date.now() - lastExtraction < EXTRACTION_COOLDOWN_MS
-      ) {
+      if (!shouldExtract(rateLimitKey)) {
         this.logger.debug(
           `Skipping extraction for ${rateLimitKey}: rate limited`,
         );
         return;
       }
-      lastExtractionTimestamps.set(rateLimitKey, Date.now());
 
       // Only extract from conversations with enough substance
       if (messages.length < MIN_MESSAGES_FOR_EXTRACTION) {

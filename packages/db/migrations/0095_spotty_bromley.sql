@@ -1,0 +1,1 @@
+ALTER TABLE "memories" DROP CONSTRAINT "memories_id_unique";
