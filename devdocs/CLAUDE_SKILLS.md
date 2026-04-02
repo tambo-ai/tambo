@@ -16,6 +16,26 @@ Claude Code skills are specialized prompts that give Claude detailed instruction
 
 > Note: Weekly release summaries now live as Charlie proactive playbooks under `.charlie/playbooks/`.
 
+### API Resource Lifecycle
+
+**When to use:** When building CRUD operations for API resources with cascading dependencies, validation, or external API sync. Covers cascading deletes, descriptive error messages, duplicate detection, and orphan prevention.
+
+**Details:** See `devdocs/skills/api-resource-lifecycle/SKILL.md`
+
+### Feature Dependency Graph
+
+**When to use:** When adding features that depend on provider capabilities or other settings. Documents which features depend on what, provider capability matrix, and UI patterns for communicating unavailable features.
+
+**Details:** See `devdocs/skills/feature-dependency-graph/SKILL.md`
+
+## Agents
+
+### Info Hierarchy Auditor
+
+**When to use:** On-demand agent that audits the dashboard navigation, settings structure, and route tree. Run periodically to detect drift between code and documentation.
+
+**Details:** See `.claude/agents/info-hierarchy-auditor.md`
+
 ## Creating New Skills
 
 To create a new skill for this repository:
