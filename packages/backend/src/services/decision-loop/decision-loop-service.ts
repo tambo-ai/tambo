@@ -117,6 +117,7 @@ export async function* runDecisionLoop(
   strictTools: OpenAI.Chat.Completions.ChatCompletionTool[],
   providerSkills: ProviderSkillConfig | undefined,
   customInstructions: string | undefined,
+  memories: string | undefined,
   forceToolChoice: string | undefined,
   resourceFetchers: ResourceFetcherMap,
   abortSignal?: AbortSignal,
@@ -141,7 +142,7 @@ export async function* runDecisionLoop(
   }
 
   const { template: systemPrompt, args: systemPromptArgs } =
-    generateDecisionLoopPrompt(customInstructions);
+    generateDecisionLoopPrompt(customInstructions, memories);
 
   // Pre-fetch and cache all resources before sending to LLM
   const messagesWithCachedResources = await prefetchAndCacheResources(

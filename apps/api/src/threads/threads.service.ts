@@ -96,7 +96,15 @@ import {
 } from "./util/tool-call-tracking";
 import { createAttachmentFetcher } from "./util/attachment-fetcher";
 import { SkillsService } from "../skills/skills.service";
-import type { ProviderSkillConfig } from "@tambo-ai-cloud/core";
+import type {
+  MemoryImportance,
+  ProviderSkillConfig,
+} from "@tambo-ai-cloud/core";
+import {
+  formatMemoriesForPrompt,
+  MEMORY_TOKEN_BUDGET,
+  selectMemoriesWithinBudget,
+} from "@tambo-ai-cloud/core";
 
 const TAMBO_ANON_CONTEXT_KEY = "tambo:anon-user";
 @Injectable()
@@ -1076,6 +1084,32 @@ export class ThreadsService {
       });
       const project = await operations.getProject(db, projectId);
 
+      // Fetch and format memories for injection into system prompt
+      let memoriesText: string | undefined;
+      if (project?.memoryEnabled && contextKey) {
+        const dbMemories = await operations.getActiveMemories(
+          db,
+          projectId,
+          contextKey,
+          50,
+        );
+        if (dbMemories.length > 0) {
+          const selectedMemories = selectMemoriesWithinBudget(
+            dbMemories.map((m) => ({
+              id: m.id,
+              content: m.content,
+              category: m.category,
+              importance: m.importance as MemoryImportance,
+            })),
+            MEMORY_TOKEN_BUDGET,
+          );
+          memoriesText = formatMemoriesForPrompt(selectedMemories);
+          this.logger.log(
+            `Injecting ${selectedMemories.length} memories for context ${contextKey} in project ${projectId}`,
+          );
+        }
+      }
+
       // Fetch enabled skills and build provider skill config
       const skillProviderName = project?.defaultLlmProviderName ?? "openai";
       const skillApiKey =
@@ -1171,6 +1205,7 @@ export class ThreadsService {
         mcpClients,
         abortSignal,
         providerSkills,
+        memoriesText,
       );
     } catch (error) {
       queue.fail(error);
@@ -1312,6 +1347,7 @@ export class ThreadsService {
     }>,
     abortSignal?: AbortSignal,
     providerSkills?: ProviderSkillConfig,
+    memories?: string,
   ): Promise<void> {
     return await Sentry.startSpan(
       {
@@ -1344,6 +1380,7 @@ export class ThreadsService {
           mcpClients,
           abortSignal,
           providerSkills,
+          memories,
         ),
     );
   }
@@ -1369,6 +1406,7 @@ export class ThreadsService {
     }>,
     abortSignal?: AbortSignal,
     providerSkills?: ProviderSkillConfig,
+    memories?: string,
   ): Promise<void> {
     const { projectId } = contextInfo;
     // Create internal abort controller for this streaming session.
@@ -1466,6 +1504,7 @@ export class ThreadsService {
           resourceFetchers,
           abortSignal: abortController.signal,
           providerSkills,
+          memories,
         });
 
         decisionLoopSpan.end();
@@ -1552,6 +1591,7 @@ export class ThreadsService {
         resourceFetchers,
         abortSignal: abortController.signal,
         providerSkills,
+        memories,
       });
 
       decisionLoopSpan.end();

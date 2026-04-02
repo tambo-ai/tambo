@@ -47,6 +47,8 @@ interface RunDecisionLoopParams {
   messages: ThreadMessage[];
   strictTools: OpenAI.Chat.Completions.ChatCompletionTool[];
   customInstructions?: string | undefined;
+  /** Pre-formatted memory text block for injection into the system prompt. */
+  memories?: string | undefined;
   forceToolChoice?: string;
   resourceFetchers: ResourceFetcherMap;
   abortSignal?: AbortSignal;
@@ -214,6 +216,7 @@ class AgenticTamboBackend implements TamboBackend {
       params.strictTools,
       params.providerSkills,
       params.customInstructions,
+      params.memories,
       params.forceToolChoice,
       params.resourceFetchers,
       params.abortSignal,
