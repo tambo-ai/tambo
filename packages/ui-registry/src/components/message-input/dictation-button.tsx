@@ -16,7 +16,7 @@ export default function DictationButton() {
     transcriptionError,
   } = useTamboVoice();
   const { setValue } = useTamboThreadInput();
-  const lastProcessedTranscriptRef = useRef<string>("");
+  const lastProcessedTranscriptRef = useRef("");
 
   const handleStartRecording = () => {
     lastProcessedTranscriptRef.current = "";
