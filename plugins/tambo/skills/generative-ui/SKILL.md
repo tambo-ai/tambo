@@ -74,7 +74,7 @@ Use `--skip-tambo-init` since `create-app` normally tries to run `tambo init` in
 npx tambo init --project-name=<app-name>
 ```
 
-This opens the browser for authentication and polls until the user completes auth (up to 15 minutes). Use a long timeout (e.g. 10 minutes) when running this command. Once auth completes, the CLI creates the project and writes the API key to `.env.local` with the correct env var for the framework (`NEXT_PUBLIC_TAMBO_API_KEY`, `VITE_TAMBO_API_KEY`, etc.).
+This opens the browser for authentication and polls until the user completes auth (up to 15 minutes). Use a long timeout (at least 15 minutes) when running this command. Once auth completes, the CLI creates the project and writes the API key to `.env.local` with the correct env var for the framework (`NEXT_PUBLIC_TAMBO_API_KEY`, `VITE_TAMBO_API_KEY`, etc.).
 
 **IMPORTANT:** Do NOT ask the user to paste an API key manually. Always use the CLI auth flow.
 
