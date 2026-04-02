@@ -10,8 +10,8 @@ Scan `apps/web` component files for two categories of spacing issues, then open 
 ## Creates
 
 - Artifact: Pull request with fixes
-- Branch pattern: `charlie/spacing-scan-<start_date>-<end_date>`
-- Title pattern: "fix(web): UI/UX spacing scan <start_date>-<end_date>"
+- Branch pattern: `charlie/spacing-scan-<end_date>`
+- Title pattern: "fix(web): UI/UX spacing scan <end_date>"
 
 ## Limits
 
@@ -126,8 +126,8 @@ Sort files by last commit date (most recent first) and take the first 10 finding
    - **Arbitrary bracket values**: Replace with the nearest allowed scale value, or leave with a `TODO` comment if the intent is unclear.
 8. Run `npm run lint`, `npm run check-types`, and `npm test` to verify fixes.
 9. Create a PR with:
-   - Branch: `charlie/spacing-scan-<start_date>-<end_date>`
-   - Title: `fix(web): UI/UX spacing scan <start_date>-<end_date>`
+   - Branch: `charlie/spacing-scan-<end_date>`
+   - Title: `fix(web): UI/UX spacing scan <end_date>`
    - Body: summary of findings and fixes per category, with file paths and before/after classes.
 
 ## Verify
