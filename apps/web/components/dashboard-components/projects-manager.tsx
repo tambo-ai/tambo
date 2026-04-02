@@ -31,9 +31,7 @@ export function ProjectsManager({
   onRefetchProjects,
 }: ProjectsManagerProps) {
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedProjects, setSelectedProjects] = useState<Set<string>>(
-    new Set(),
-  );
+  const [selectedProjects, setSelectedProjects] = useState(new Set());
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const { toast } = useToast();

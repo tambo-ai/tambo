@@ -188,9 +188,7 @@ export function OAuthSettings({
   const { toast } = useToast();
 
   // State management
-  const [selectedMode, setSelectedMode] = useState<OAuthValidationMode>(
-    OAuthValidationMode.NONE,
-  );
+  const [selectedMode, setSelectedMode] = useState(OAuthValidationMode.NONE);
   const [secretKey, setSecretKey] = useState("");
   const [publicKey, setPublicKey] = useState("");
   const [userinfoEndpoint, setUserinfoEndpoint] = useState("");
