@@ -1250,6 +1250,15 @@ export const projectRouter = createTRPCRouter({
         });
       }
       await operations.ensureProjectAccess(ctx.db, projectId, ctx.user.id);
-      return { projectId };
+
+      const project = await ctx.db.query.projects.findFirst({
+        where: eq(schema.projects.id, projectId),
+        columns: { defaultLlmProviderName: true },
+      });
+
+      return {
+        projectId,
+        defaultLlmProviderName: project?.defaultLlmProviderName ?? null,
+      };
     }),
 });

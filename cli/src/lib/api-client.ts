@@ -89,7 +89,12 @@ interface StubRouter {
       }) => Promise<GeneratedApiKey>;
     };
     resolveProjectFromApiKey: {
-      mutate: (input: { apiKey: string }) => Promise<{ projectId: string }>;
+      mutate: (input: {
+        apiKey: string;
+      }) => Promise<{
+        projectId: string;
+        defaultLlmProviderName: string | null;
+      }>;
     };
   };
   skills: {

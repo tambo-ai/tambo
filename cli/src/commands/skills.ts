@@ -32,12 +32,19 @@ function readApiKeyFromEnv(): string | null {
   return null;
 }
 
+const SKILLS_SUPPORTED_PROVIDERS = new Set(["openai", "anthropic"]);
+
+interface ResolvedProject {
+  projectId: string;
+  skillsSupported: boolean;
+}
+
 /**
  * Resolve the project ID for the current directory.
  * Requires both a valid session token and an API key in .env.local.
- * @returns The project ID string.
+ * @returns The project ID and whether skills are supported by the provider.
  */
-async function resolveProjectId(): Promise<string> {
+async function resolveProjectId(): Promise<ResolvedProject> {
   const apiKey = readApiKeyFromEnv();
   const hasToken = hasStoredToken() && isTokenValid();
 
@@ -70,10 +77,14 @@ async function resolveProjectId(): Promise<string> {
     throw new Error("No API key found");
   }
 
-  const { projectId } = await api.project.resolveProjectFromApiKey.mutate({
-    apiKey,
-  });
-  return projectId;
+  const { projectId, defaultLlmProviderName } =
+    await api.project.resolveProjectFromApiKey.mutate({ apiKey });
+
+  const skillsSupported =
+    !defaultLlmProviderName ||
+    SKILLS_SUPPORTED_PROVIDERS.has(defaultLlmProviderName);
+
+  return { projectId, skillsSupported };
 }
 
 // ============================================================================
@@ -453,9 +464,9 @@ export async function handleSkills(
   }
 
   // Resolve project ID upfront (all subcommands need it)
-  let projectId: string;
+  let project: ResolvedProject;
   try {
-    projectId = await resolveProjectId();
+    project = await resolveProjectId();
   } catch (error) {
     // resolveProjectId already prints messages for known errors (no key,
     // no session). For API/network errors, show a generic message -- don't
@@ -483,7 +494,20 @@ export async function handleSkills(
     return;
   }
 
-  const exitCode = await dispatchSubcommand(subcommand, projectId, args, flags);
+  if (!project.skillsSupported && subcommand !== "list") {
+    console.log(
+      chalk.yellow(
+        "\n⚠ Your current LLM provider does not support skills. Skills will be stored but won't be active until you switch to OpenAI or Anthropic.\n",
+      ),
+    );
+  }
+
+  const exitCode = await dispatchSubcommand(
+    subcommand,
+    project.projectId,
+    args,
+    flags,
+  );
 
   if (exitCode !== 0) {
     process.exit(exitCode);

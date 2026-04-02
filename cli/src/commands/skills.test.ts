@@ -44,7 +44,10 @@ jest.unstable_mockModule("../lib/api-client.js", () => ({
       resolveProjectFromApiKey: {
         mutate: async () => {
           if (mockApiError) throw mockApiError;
-          return { projectId: mockResolvedProjectId };
+          return {
+            projectId: mockResolvedProjectId,
+            defaultLlmProviderName: "openai",
+          };
         },
       },
     },
