@@ -32,7 +32,19 @@ function readApiKeyFromEnv(): string | null {
   return null;
 }
 
+// Duplicated from packages/core/src/skills.ts (CLI can't import raw TS from core).
 const SKILLS_SUPPORTED_PROVIDERS = new Set(["openai", "anthropic"]);
+
+/**
+ * Thrown by resolveProjectId when the error has already been printed to stderr.
+ * The catch block in handleSkills uses this to avoid double-printing.
+ */
+class ProjectResolutionError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "ProjectResolutionError";
+  }
+}
 
 interface ResolvedProject {
   projectId: string;
@@ -58,7 +70,7 @@ async function resolveProjectId(): Promise<ResolvedProject> {
           `  2. Run ${chalk.cyan("tambo init")} to set up a project API key`,
       ),
     );
-    throw new Error("Missing both session token and API key");
+    throw new ProjectResolutionError("Missing both session token and API key");
   }
 
   if (!hasToken) {
@@ -66,7 +78,7 @@ async function resolveProjectId(): Promise<ResolvedProject> {
     console.error(
       chalk.gray(`Run ${chalk.cyan("tambo auth login")} to authenticate.`),
     );
-    throw new Error("Not authenticated");
+    throw new ProjectResolutionError("Not authenticated");
   }
 
   if (!apiKey) {
@@ -74,7 +86,7 @@ async function resolveProjectId(): Promise<ResolvedProject> {
     console.error(
       chalk.gray(`Run ${chalk.cyan("tambo init")} to set up your project.`),
     );
-    throw new Error("No API key found");
+    throw new ProjectResolutionError("No API key found");
   }
 
   const { projectId, defaultLlmProviderName } =
@@ -468,21 +480,18 @@ export async function handleSkills(
   try {
     project = await resolveProjectId();
   } catch (error) {
-    // resolveProjectId already prints messages for known errors (no key,
-    // no session). For API/network errors, show a generic message -- don't
-    // surface internal tRPC details to end users.
-    if (isAuthError(error)) {
+    // ProjectResolutionError means resolveProjectId already printed a
+    // user-facing message. For anything else, show a generic message --
+    // don't surface internal tRPC details to end users.
+    if (error instanceof ProjectResolutionError) {
+      // Already printed, nothing to add.
+    } else if (isAuthError(error)) {
       console.error(
         chalk.gray(
           `Session expired. Run ${chalk.cyan("tambo auth login")} to re-authenticate.`,
         ),
       );
-    } else if (
-      error instanceof Error &&
-      !error.message.startsWith("Missing both") &&
-      !error.message.startsWith("Not authenticated") &&
-      !error.message.startsWith("No API key")
-    ) {
+    } else {
       console.error(chalk.red("\nFailed to resolve project."));
       console.error(
         chalk.gray(

@@ -21,7 +21,10 @@ import {
 } from "@/components/ui/card";
 import { EditWithTamboButton } from "@/components/ui/tambo/edit-with-tambo-button";
 import { useToast } from "@/hooks/use-toast";
-import { parseSkillContent } from "@tambo-ai-cloud/core";
+import {
+  parseSkillContent,
+  SKILLS_SUPPORTED_PROVIDERS,
+} from "@tambo-ai-cloud/core";
 import { api } from "@/trpc/react";
 import { withTamboInteractable } from "@tambo-ai/react";
 import { AnimatePresence, motion } from "framer-motion";
@@ -41,8 +44,6 @@ import {
   type SkillSummary,
   validateSkillFile,
 } from "./skill-form";
-
-const SKILLS_SUPPORTED_PROVIDERS = new Set(["openai", "anthropic"]);
 
 interface SkillsSectionProps {
   projectId: string;
