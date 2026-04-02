@@ -12,9 +12,21 @@ Claude Code skills are specialized prompts that give Claude detailed instruction
 
 **When to use:** After AI providers announce new models, monthly maintenance checks, or when TypeScript errors about model IDs appear.
 
-**Details:** See `.claude/skills/ai-sdk-model-manager/SKILL.md`
+**Details:** See `devdocs/skills/ai-sdk-model-manager/SKILL.md`
 
 > Note: Weekly release summaries now live as Charlie proactive playbooks under `.charlie/playbooks/`.
+
+### Compound Components
+
+**When to use:** When building headless UI primitives, creating Radix-style namespaced compound components, or implementing render props patterns. Separates business logic from styles.
+
+**Details:** See `devdocs/skills/compound-components/SKILL.md`
+
+### Styled Wrappers
+
+**When to use:** When creating styled wrapper components that compose headless/base compound components, refactoring styled components to use base primitives, or implementing opinionated design systems on top of headless components.
+
+**Details:** See `devdocs/skills/creating-styled-wrappers/SKILL.md`
 
 ### Settings Component Patterns
 
@@ -38,43 +50,23 @@ Claude Code skills are specialized prompts that give Claude detailed instruction
 
 To create a new skill for this repository:
 
-1. Create a directory in `.claude/skills/your-skill-name/`
+1. Create a directory in `devdocs/skills/your-skill-name/`
 2. Add a `SKILL.md` file with YAML frontmatter:
 
 ```markdown
 ---
 name: your-skill-name
-description: A clear description of what this skill does and when to use it (max 200 chars)
+description: A clear description of what this skill does and when to use it (max 1024 chars)
+metadata:
+  internal: true
 ---
 
 # Your Skill Name
 
 [Detailed instructions for Claude to follow]
-
-## What This Skill Does
-
-[Bullet points]
-
-## When to Use This Skill
-
-[Scenarios]
-
-## Process
-
-[Step-by-step instructions]
-
-## Guidelines
-
-[Best practices and constraints]
 ```
 
-3. Copy to user's skills directory for Claude Code to recognize it:
-
-```bash
-cp -r .claude/skills/your-skill-name ~/.claude/skills/
-```
-
-4. Document it in this file (devdocs/CLAUDE_SKILLS.md)
+3. Document it in this file (devdocs/CLAUDE_SKILLS.md)
 
 ## Skill Best Practices
 
