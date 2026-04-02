@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/card";
 import { EditWithTamboButton } from "@/components/ui/tambo/edit-with-tambo-button";
 import { useToast } from "@/hooks/use-toast";
-import { parseSkillContent } from "@/lib/parse-skill-frontmatter";
+import { parseSkillContent } from "@tambo-ai-cloud/core";
 import { api } from "@/trpc/react";
 import { withTamboInteractable } from "@tambo-ai/react";
 import { AnimatePresence, motion } from "framer-motion";
