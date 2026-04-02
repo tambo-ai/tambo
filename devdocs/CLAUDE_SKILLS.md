@@ -16,6 +16,18 @@ Claude Code skills are specialized prompts that give Claude detailed instruction
 
 > Note: Weekly release summaries now live as Charlie proactive playbooks under `.charlie/playbooks/`.
 
+### Tambo Cloud Component Factory
+
+**When to use:** When adding a new feature to Tambo Cloud that spans database, tRPC, and UI. Guides the full end-to-end wiring from schema to tests.
+
+**Details:** See `devdocs/skills/tambo-cloud-component-factory/SKILL.md`
+
+### Compound Review
+
+**When to use:** After completing a feature or fixing issues. Captures lessons learned and updates skills or AGENTS.md so the team doesn't repeat mistakes.
+
+**Details:** See `devdocs/skills/compound-review/SKILL.md`
+
 ## Creating New Skills
 
 To create a new skill for this repository:
