@@ -1,3 +1,6 @@
+/** Providers that support the skills API. */
+export const SKILLS_SUPPORTED_PROVIDERS = new Set(["openai", "anthropic"]);
+
 /** Kebab-case pattern for skill names (e.g. "scheduling-assistant"). */
 export const SKILL_NAME_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 

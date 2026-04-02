@@ -10,6 +10,7 @@ import { fileURLToPath } from "url";
 import { handleAddComponents } from "./commands/add/index.js";
 import { getComponentList } from "./commands/add/utils.js";
 import { handleAuth, showAuthHelp } from "./commands/auth.js";
+import { handleSkills, showSkillsHelp } from "./commands/skills.js";
 import { handleCreateApp } from "./commands/create-app.js";
 import { handleInit } from "./commands/init.js";
 import { handleListComponents } from "./commands/list/index.js";
@@ -309,6 +310,27 @@ ${chalk.bold("Templates")}
       `$ ${chalk.cyan("tambo auth revoke-session")}       # Interactive session picker`,
       `$ ${chalk.cyan("tambo auth revoke-session --all")} # Revoke all sessions`,
     ],
+  },
+  skills: {
+    command: "skills",
+    syntax: "skills [subcommand]",
+    description: "Manage project skills (list, add, get, update, delete)",
+    usage: [
+      `$ ${chalk.cyan("tambo skills")} <subcommand> [options]`,
+      `$ ${chalk.cyan("tambo skills list")}            ${chalk.dim("List all skills")}`,
+      `$ ${chalk.cyan("tambo skills add")} <file.md>   ${chalk.dim("Create skill from file")}`,
+      `$ ${chalk.cyan("tambo skills get")} <name>      ${chalk.dim("Print skill as markdown")}`,
+      `$ ${chalk.cyan("tambo skills update")} <file.md> ${chalk.dim("Update skill from file")}`,
+      `$ ${chalk.cyan("tambo skills delete")} <name>   ${chalk.dim("Delete a skill")}`,
+    ],
+    options: ["force"],
+    examples: [
+      `$ ${chalk.cyan("tambo skills list")}                        # List all skills`,
+      `$ ${chalk.cyan("tambo skills add my-skill.md")}             # Create a skill`,
+      `$ ${chalk.cyan("tambo skills get my-skill > my-skill.md")}  # Save skill to file`,
+      `$ ${chalk.cyan("tambo skills delete my-skill --force")}     # Delete without prompt`,
+    ],
+    exampleTitle: "Skills Management",
   },
 };
 
@@ -635,6 +657,19 @@ async function handleCommand(cmd: string, flags: Result<CLIFlags>["flags"]) {
       force: Boolean(flags.force ?? flags.f),
       all: Boolean(flags.all),
       noBrowser: flags.browser === false,
+    });
+    return;
+  }
+
+  if (cmd === "skills") {
+    if (flags.help) {
+      showSkillsHelp();
+      return;
+    }
+    const subcommand = cli.input[1];
+    const fileArgs = cli.input.slice(2);
+    await handleSkills(subcommand, fileArgs, {
+      force: Boolean(flags.force ?? flags.f),
     });
     return;
   }

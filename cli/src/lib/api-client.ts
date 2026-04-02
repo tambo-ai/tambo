@@ -44,6 +44,17 @@ export interface Project {
   createdAt: Date;
 }
 
+/** Minimal subset of the server's skill shape -- only what the CLI needs. */
+export interface Skill {
+  id: string;
+  name: string;
+  description: string;
+  instructions: string;
+  enabled: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export interface GeneratedApiKey {
   id: string;
   apiKey: string;
@@ -76,6 +87,35 @@ interface StubRouter {
         projectId: string;
         name: string;
       }) => Promise<GeneratedApiKey>;
+    };
+    resolveProjectFromApiKey: {
+      mutate: (input: { apiKey: string }) => Promise<{
+        projectId: string;
+        defaultLlmProviderName: string | null;
+      }>;
+    };
+  };
+  skills: {
+    list: { query: (input: { projectId: string }) => Promise<Skill[]> };
+    create: {
+      mutate: (input: {
+        projectId: string;
+        name: string;
+        description: string;
+        instructions: string;
+      }) => Promise<Skill>;
+    };
+    update: {
+      mutate: (input: {
+        projectId: string;
+        skillId: string;
+        name?: string;
+        description?: string;
+        instructions?: string;
+      }) => Promise<Skill>;
+    };
+    delete: {
+      mutate: (input: { projectId: string; skillId: string }) => Promise<void>;
     };
   };
   user: {
@@ -114,6 +154,15 @@ export function isAuthError(error: unknown): boolean {
       error.data?.httpStatus === 401 ||
       error.data?.httpStatus === 403
     );
+  }
+  return false;
+}
+
+/** Used by skills commands to detect duplicate name errors from the tRPC API. */
+export function isConflictError(error: unknown): boolean {
+  if (error instanceof TRPCClientError) {
+    const code = error.data?.code ?? error.shape?.data?.code;
+    return code === "CONFLICT";
   }
   return false;
 }

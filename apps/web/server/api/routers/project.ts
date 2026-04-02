@@ -42,6 +42,7 @@ import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import {
   AgentProviderType,
   AiProviderType,
+  decryptApiKey,
   deriveServerKey,
   encryptOAuthSecretKey,
   hashKey,
@@ -1226,5 +1227,38 @@ export const projectRouter = createTRPCRouter({
       }
 
       return { success: true };
+    }),
+
+  // ---------------------------------------------------------------------
+  //  Resolve project ID from an encrypted API key (used by CLI).
+  //  Uses mutation (not query) so the API key stays in the POST body
+  //  rather than appearing in URL query strings / CDN logs.
+  // ---------------------------------------------------------------------
+  resolveProjectFromApiKey: protectedProcedure
+    .input(z.object({ apiKey: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      let projectId: string;
+      try {
+        ({ storedString: projectId } = decryptApiKey(
+          input.apiKey,
+          env.API_KEY_SECRET,
+        ));
+      } catch {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Invalid or malformed API key",
+        });
+      }
+      await operations.ensureProjectAccess(ctx.db, projectId, ctx.user.id);
+
+      const project = await ctx.db.query.projects.findFirst({
+        where: eq(schema.projects.id, projectId),
+        columns: { defaultLlmProviderName: true },
+      });
+
+      return {
+        projectId,
+        defaultLlmProviderName: project?.defaultLlmProviderName ?? null,
+      };
     }),
 });
