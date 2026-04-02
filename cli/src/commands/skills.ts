@@ -497,7 +497,7 @@ export async function handleSkills(
   if (!project.skillsSupported) {
     console.log(
       chalk.yellow(
-        "\n⚠ Your current LLM provider does not support skills. Skills will be stored but won't be active until you switch to OpenAI or Anthropic.\n",
+        "\n⚠ Your current LLM provider does not support skills. Skills will be stored but won't be active until you switch to OpenAI or Anthropic.",
       ),
     );
   }
