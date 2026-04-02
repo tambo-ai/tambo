@@ -1,45 +1,21 @@
 ---
 name: feature-dependency-graph
-description: Documents which Tambo Cloud features depend on other features. Use when adding features that depend on configuration, checking provider capabilities, or building UI that conditionally shows/hides settings.
+description: Documents which Tambo Cloud features depend on other features. Use when adding features that depend on configuration, checking provider capabilities, building UI that conditionally shows/hides settings, or when the user mentions "provider support", "feature gating", "capability check", "agent mode vs LLM mode", "skills supported", or "adding a new provider".
 metadata:
   internal: true
 ---
 
 # Feature Dependency Graph
 
-Maps which Tambo Cloud features depend on others. When building a feature that depends on configuration or provider capabilities, this skill tells you what to check and how to communicate constraints to users.
+Maps which Tambo Cloud features depend on others. Check the source files to verify tables are current before acting on them.
 
-## When to Use This Skill
+## Gotchas
 
-- Adding a feature that only works with certain LLM providers
-- Building UI that conditionally shows/hides based on other settings
-- Checking whether a provider supports a capability
-- Adding a new provider or capability to the platform
-
-## Dependency Graph
-
-```mermaid
-graph TD
-    Mode[LLM/Agent Mode Toggle]
-    Provider[LLM Provider Selection]
-    APIKey[Provider API Key]
-
-    Mode -->|"LLM mode only"| Skills
-    Mode -->|"LLM mode only"| MCP[MCP Servers]
-    Provider -->|"OpenAI or Anthropic only"| Skills
-    APIKey -->|"key must be present"| Skills
-    Provider -->|"determines available models"| Models[Model Selection]
-    Provider -->|"determines params"| Params[Custom LLM Parameters]
-
-    AgentMode[Agent Mode] -->|"requires"| AgentURL[Agent URL]
-    AgentMode -->|"disables"| MCP
-
-    ToolLimit[Tool Call Limit] --- |"all providers"| Independent
-    CustomInstructions[Custom Instructions] --- |"all providers"| Independent
-    OAuthSettings[OAuth Settings] --- |"all providers"| Independent
-
-    style Independent fill:none,stroke:none
-```
+- Skills are silently skipped at runtime when the provider doesn't support them -- this is intentional, not a bug. A project can have skills configured for when the user switches providers.
+- LangGraph is in the agent provider registry but marked `isSupported: false`. The UI shows it as "coming soon" via `getAgentProviderLabel()`, not by hiding the option.
+- "OpenAI Compatible" providers require a base URL but don't support skills or custom model selection from a predefined list -- they use free-text model IDs instead.
+- The `parallelToolCalls` and `strictJsonSchema` LLM parameters only exist for some providers. The UI must conditionally render these based on the provider config, not just hide/show a single params form.
+- MCP server support and Agent mode are mutually exclusive right now. When building features that touch both, gate on `isAgentMode` early.
 
 ## Known Dependencies
 
@@ -75,7 +51,7 @@ These features work with all providers and modes:
 | OpenAI Compatible | No     | Yes         | Yes (custom)  | Yes               |
 | Agent Mode        | No     | No          | N/A           | Yes (agent URL)   |
 
-**Source files:**
+**Source files (authoritative -- verify tables against these before acting):**
 
 - `packages/core/src/llms/llm.config.ts` -- LLM provider configs
 - `packages/core/src/agent-registry.ts` -- Agent provider support flags
@@ -83,72 +59,44 @@ These features work with all providers and modes:
 
 ## UI Patterns for Dependent Features
 
-When a feature is unavailable due to a dependency, communicate it clearly.
+Never silently hide a feature because its dependency is unmet. Show it in a disabled/informational state. Use one of these three patterns:
 
-### Warning alert (feature exists but is limited)
+1. **Warning alert** -- feature section is visible but limited. Name the dependency and how to resolve it. Disable buttons/toggles in the section.
 
-Used when the feature section is visible but the current configuration prevents use:
+   ```tsx
+   // skills-section.tsx -- provider doesn't support skills
+   <Alert variant="warning">
+     <AlertTriangle className="h-4 w-4" />
+     <AlertDescription>
+       Skills are currently supported with OpenAI and Anthropic models. Your
+       project uses {providerName}. Switch to a supported model to enable
+       skills.
+     </AlertDescription>
+   </Alert>
+   ```
 
-```tsx
-// skills-section.tsx
-{
-  !isProviderSupported && (
-    <Alert variant="warning">
-      <AlertTriangle className="h-4 w-4" />
-      <AlertDescription>
-        Skills are currently supported with OpenAI and Anthropic models. Your
-        project uses {providerName}. Switch to a supported model to enable
-        skills.
-      </AlertDescription>
-    </Alert>
-  );
-}
-```
+2. **Disabled card** (`opacity-60`) -- entire section is non-functional due to mode.
 
-**When to use:** The user can see what the feature does but needs to change a dependency to enable it. Buttons and toggles in the section are disabled.
+   ```tsx
+   // available-mcp-servers.tsx -- agent mode active
+   <Card className="opacity-60">
+     <CardContent>
+       <p>MCP Servers are disabled while Agent mode is enabled.</p>
+     </CardContent>
+   </Card>
+   ```
 
-### Disabled card with explanation
-
-Used when an entire section is non-functional due to mode:
-
-```tsx
-// available-mcp-servers.tsx
-{
-  isAgentMode && (
-    <Card className="opacity-60">
-      <CardContent>
-        <p>
-          MCP Servers are disabled while Agent mode is enabled. MCP + Agent
-          support is coming soon.
-        </p>
-      </CardContent>
-    </Card>
-  );
-}
-```
-
-**When to use:** The feature is completely unavailable in the current mode.
-
-### "Coming soon" in dropdowns
-
-Used for specific options within a feature that aren't yet supported:
-
-```tsx
-// agent-settings.tsx
-<SelectItem value={provider.name} disabled={!provider.isSupported}>
-  {provider.name} {!provider.isSupported && "(coming soon)"}
-</SelectItem>
-```
-
-**When to use:** Most options work, but specific entries are not yet available.
-
-### Rules
-
-- Never silently hide a feature because its dependency is unmet. Show it in a disabled/informational state so users know it exists.
-- Warning messages must name the specific dependency and tell the user how to resolve it.
-- Disable individual controls (buttons, toggles, inputs) rather than hiding the entire section.
-- Use `opacity-60` on the card wrapper for completely unavailable sections.
-- Link to or name the settings section where the dependency can be resolved.
+3. **"Coming soon" in dropdowns** -- specific options not yet supported. Use `disabled` prop + label suffix.
+   ```tsx
+   // agent-settings.tsx
+   <Combobox
+     items={AGENT_PROVIDER_REGISTRY.map((provider) => ({
+       value: provider.type,
+       label: getAgentProviderLabel(provider.type),
+       disabled: !provider.isSupported,
+     }))}
+   />
+   ```
 
 ## API-Side Gating
 
@@ -178,7 +126,6 @@ When adding a new feature that depends on provider capabilities:
 2. Add the UI gate in the component (warning alert + disabled controls)
 3. Add the API gate in the service (skip or error based on whether the operation is destructive)
 4. Update this skill's dependency table and provider capabilities table
-5. Update the mermaid graph if the dependency introduces a new relationship
 
 ## Adding a New Provider
 

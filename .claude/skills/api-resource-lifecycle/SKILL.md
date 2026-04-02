@@ -1,28 +1,25 @@
 ---
 name: api-resource-lifecycle
-description: Guides CRUD operations for API resources with cascading dependencies, descriptive validation, and orphan prevention. Use when adding delete/remove operations, creating validation logic, or building resources that depend on other resources.
+description: Guides CRUD operations for API resources with cascading dependencies, descriptive validation, and orphan prevention. Use when adding delete/remove operations, creating validation logic, building resources that depend on other resources, or when the user mentions "cascade delete", "orphan records", "duplicate detection", "validation errors", "resource cleanup", or "rollback on failure".
 metadata:
   internal: true
 ---
 
 # API Resource Lifecycle
 
-Patterns for building reliable CRUD operations in Tambo Cloud. Covers cascading deletes, descriptive validation errors, duplicate detection, and orphan prevention.
+Patterns for building reliable CRUD operations in Tambo Cloud.
 
-## When to Use This Skill
+## Gotchas
 
-- Adding delete/remove operations for API resources
-- Building resources that depend on other resources (e.g., skills depend on LLM provider)
-- Writing validation logic for user input
-- Handling resource creation that syncs to external APIs
+- The codebase uses `CONFLICT` for duplicate name errors in skills but `BAD_REQUEST` for the same pattern in MCP servers. Always use `CONFLICT` for duplicates.
+- PostgreSQL unique violation code is `23505`. Catch it and map to a domain-specific exception rather than letting the raw DB error propagate.
+- When replacing a provider key, all skills with `externalSkillMetadata` for that provider must have their metadata cleared, or they'll reference a stale key.
+- Skills are silently skipped (not errored) at runtime when the provider doesn't support them. This is intentional -- don't add validation that blocks skill creation for unsupported providers.
+- `Promise.allSettled` (not `Promise.all`) for batch external API calls -- partial failures need cleanup, not an all-or-nothing abort.
 
 ## Cascading Deletes
 
-When a resource has dependents, deletion must clean up the entire dependency chain.
-
-### Database-level cascades
-
-Use `onDelete: "cascade"` in the schema for simple parent-child relationships where the child has no meaning without the parent:
+Default to `onDelete: "cascade"` in the schema. Only use manual transaction cascades when deletion requires external API calls, metadata cleanup, or cross-reference logic.
 
 ```typescript
 // packages/db/src/schema.ts
@@ -35,11 +32,9 @@ export const skills = pgTable("skills", {
 });
 ```
 
-When the project is deleted, all its skills are automatically removed.
-
 ### Manual cascades in transactions
 
-When deletion requires cleanup beyond simple FK cascades (clearing metadata, syncing to external APIs, cleaning up cross-references), use a database transaction:
+When deletion requires cleanup beyond FK cascades (external APIs, metadata, cross-references), wrap in a transaction:
 
 ```typescript
 // packages/db/src/operations/project.ts
@@ -95,58 +90,19 @@ await Promise.all(
 - Always delete children before the parent in manual cascades
 - Check for affected dependents and document the cascade chain in code comments
 
-## Descriptive Validation Errors
+## Validation Errors
 
-Every validation error must tell the user what went wrong AND what to do instead.
-
-### Zod schema validation
+Every error must say what went wrong and what to do instead. Include the specific value that failed and an example of what's valid.
 
 ```typescript
-// Good: descriptive message with example
-name: z
-  .string()
-  .min(1, "Name is required")
-  .max(64)
-  .regex(
-    SKILL_NAME_PATTERN,
-    "Name must be kebab-case (e.g. scheduling-assistant)",
-  ),
+// Zod: include format example
+name: z.string().min(1, "Name is required").max(64)
+  .regex(SKILL_NAME_PATTERN, "Name must be kebab-case (e.g. scheduling-assistant)"),
 
-// Good: explains the constraint
-url: z
-  .string()
-  .url()
-  .refine(
-    validateServerUrl,
-    "URL appears to be unsafe: must not point to internal, local, or private networks",
-  ),
-
-// Bad: generic message
-name: z.string().min(1), // Just says "String must contain at least 1 character(s)"
-```
-
-**Reference:** `apps/web/server/api/routers/skills.ts` lines 154-171
-
-### TRPCError messages
-
-```typescript
-// Good: includes the specific value that caused the conflict
+// tRPC: include the conflicting value
 throw new TRPCError({
-  code: "BAD_REQUEST",
+  code: "CONFLICT",
   message: `Server key "${serverKey}" is already in use by another MCP server in this project`,
-});
-
-// Good: explains what was expected
-throw new TRPCError({
-  code: "BAD_REQUEST",
-  message:
-    "Max input tokens must be greater than 0 and less than the model's max.",
-});
-
-// Bad: vague
-throw new TRPCError({
-  code: "BAD_REQUEST",
-  message: "Invalid input",
 });
 ```
 
@@ -159,15 +115,9 @@ throw new TRPCError({
 | Duplicate resource      | `CONFLICT`              | Name/key already exists               |
 | Unexpected failure      | `INTERNAL_SERVER_ERROR` | Catch-all for unhandled errors        |
 
-**Consistency note:** Use `CONFLICT` for duplicate name errors, not `BAD_REQUEST`. The codebase has some inconsistency here -- skills use `CONFLICT`, MCP servers use `BAD_REQUEST` for the same pattern. Prefer `CONFLICT`.
-
 ## Duplicate Detection
 
-Check for existing resources before creation. Return a clear error if a duplicate exists.
-
-### Custom exception classes
-
-For database-level unique constraints, map PostgreSQL violation codes to domain-specific exceptions:
+Default to database unique constraints with custom exception mapping. Only use pre-creation queries when no DB constraint exists.
 
 ```typescript
 // packages/db/src/operations/skills.ts
@@ -197,11 +147,9 @@ export async function createSkill(
 }
 ```
 
-**Reference:** `packages/db/src/operations/skills.ts` lines 44-89
+### Pre-creation queries (fallback)
 
-### Pre-creation queries
-
-For resources without unique DB constraints, query before inserting:
+When no unique DB constraint exists, query before inserting:
 
 ```typescript
 const existingKeys = await getExistingServerKeys(ctx.db, projectId);
