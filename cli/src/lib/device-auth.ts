@@ -84,14 +84,12 @@ export async function runDeviceAuthFlow(): Promise<DeviceAuthResult> {
   console.log(chalk.white(`   Visit: ${chalk.bold(verificationUri)}`));
   console.log(chalk.white(`   Enter code: ${chalk.bold.green(userCode)}\n`));
 
-  // Copy code to clipboard (skip in non-interactive mode as it may not be available)
-  if (!nonInteractive) {
-    try {
-      await clipboard.write(userCode);
-      console.log(chalk.gray("   ✓ User code copied to clipboard!\n"));
-    } catch {
-      // Clipboard might not be available in all environments
-    }
+  // Copy code to clipboard
+  try {
+    await clipboard.write(userCode);
+    console.log(chalk.gray("   ✓ User code copied to clipboard!\n"));
+  } catch {
+    // Clipboard might not be available in all environments (e.g. headless CI)
   }
 
   // In non-interactive mode (agents, CI), output machine-readable auth info
