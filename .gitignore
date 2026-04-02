@@ -67,4 +67,3 @@ react-sdk/dist/**
 # Agents
 .claude/settings.local.json
 .claude/**/*.local.md
-.claude/skills/
