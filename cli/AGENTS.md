@@ -27,6 +27,7 @@ tambo list                   # List available components
 tambo create-app <name>      # Create new Tambo application
 tambo update                 # Update existing components
 tambo upgrade               # Upgrade Tambo dependencies
+tambo skills <subcommand>   # Manage project skills (list, add, get, update, delete)
 ```
 
 ## Non-Interactive Mode (for AI Agents)
@@ -104,6 +105,7 @@ Override with `FORCE_INTERACTIVE=1` if needed (requires real TTY).
   - `list/` - Component listing
   - `update.ts` - Component updates
   - `upgrade/` - Dependency upgrades
+  - `skills.ts` - Project skills management (list, add, get, update, delete)
 
 ### Component Registry System
 

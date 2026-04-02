@@ -42,6 +42,7 @@ import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import {
   AgentProviderType,
   AiProviderType,
+  decryptApiKey,
   deriveServerKey,
   encryptOAuthSecretKey,
   hashKey,
@@ -1226,5 +1227,19 @@ export const projectRouter = createTRPCRouter({
       }
 
       return { success: true };
+    }),
+
+  // ---------------------------------------------------------------------
+  //  Resolve project ID from an encrypted API key (used by CLI)
+  // ---------------------------------------------------------------------
+  resolveProjectFromApiKey: protectedProcedure
+    .input(z.object({ apiKey: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const { storedString: projectId } = decryptApiKey(
+        input.apiKey,
+        env.API_KEY_SECRET,
+      );
+      await operations.ensureProjectAccess(ctx.db, projectId, ctx.user.id);
+      return { projectId };
     }),
 });

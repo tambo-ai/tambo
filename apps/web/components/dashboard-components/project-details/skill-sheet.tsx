@@ -163,14 +163,14 @@ export function SkillSheet({
         skillId: skill.id,
         name: parseResult.name,
         description: parseResult.description,
-        instructions: parseResult.body,
+        instructions: parseResult.instructions,
       });
     } else {
       createMutation.mutate({
         projectId,
         name: parseResult.name,
         description: parseResult.description,
-        instructions: parseResult.body,
+        instructions: parseResult.instructions,
       });
     }
   };
