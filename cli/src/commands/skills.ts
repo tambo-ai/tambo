@@ -397,11 +397,13 @@ async function handleDelete(
 // ============================================================================
 
 function isConflictError(error: unknown): boolean {
+  if (!(error instanceof Error) || !("data" in error)) return false;
+  const data = (error as { data: unknown }).data;
   return (
-    error instanceof Error &&
-    "data" in error &&
-    typeof (error as Record<string, unknown>).data === "object" &&
-    (error as Record<string, Record<string, unknown>>).data?.code === "CONFLICT"
+    data !== null &&
+    typeof data === "object" &&
+    "code" in data &&
+    (data as { code: unknown }).code === "CONFLICT"
   );
 }
 
@@ -429,7 +431,6 @@ export async function handleSkills(
   subcommand: string | undefined,
   args: string[],
   flags: {
-    help?: boolean;
     force?: boolean;
   },
 ): Promise<void> {
@@ -445,27 +446,32 @@ export async function handleSkills(
   try {
     projectId = await resolveProjectId();
   } catch {
-    exitCode = 1;
-    if (exitCode !== 0) process.exit(exitCode);
+    process.exit(1);
     return;
   }
 
-  if (subcommand === "list") {
-    exitCode = await handleList(projectId);
-  } else if (subcommand === "add") {
-    exitCode = await handleAdd(projectId, args);
-  } else if (subcommand === "get") {
-    exitCode = await handleGet(projectId, args[0]);
-  } else if (subcommand === "update") {
-    exitCode = await handleUpdate(projectId, args);
-  } else if (subcommand === "delete") {
-    exitCode = await handleDelete(projectId, args[0], {
-      force: flags.force,
-    });
-  } else {
-    console.log(chalk.red(`Unknown skills subcommand: ${subcommand}`));
-    showSkillsHelp();
-    exitCode = 1;
+  switch (subcommand) {
+    case "list":
+      exitCode = await handleList(projectId);
+      break;
+    case "add":
+      exitCode = await handleAdd(projectId, args);
+      break;
+    case "get":
+      exitCode = await handleGet(projectId, args[0]);
+      break;
+    case "update":
+      exitCode = await handleUpdate(projectId, args);
+      break;
+    case "delete":
+      exitCode = await handleDelete(projectId, args[0], {
+        force: flags.force,
+      });
+      break;
+    default:
+      console.log(chalk.red(`Unknown skills subcommand: ${subcommand}`));
+      showSkillsHelp();
+      exitCode = 1;
   }
 
   trackEvent(EVENTS.COMMAND_COMPLETED, {

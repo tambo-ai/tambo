@@ -1,3 +1,7 @@
+/**
+ * If you change this file, also update cli/src/utils/skill-frontmatter.ts
+ * (the CLI has a local copy because it cannot import raw TS from this package).
+ */
 import { load as parseYaml, dump as dumpYaml } from "js-yaml";
 import { z } from "zod";
 

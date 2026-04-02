@@ -669,7 +669,6 @@ async function handleCommand(cmd: string, flags: Result<CLIFlags>["flags"]) {
     const subcommand = cli.input[1];
     const fileArgs = cli.input.slice(2);
     await handleSkills(subcommand, fileArgs, {
-      help: Boolean(flags.help),
       force: Boolean(flags.force ?? flags.f),
     });
     return;
