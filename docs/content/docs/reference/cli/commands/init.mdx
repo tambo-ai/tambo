@@ -67,7 +67,7 @@ npx tambo init --project-id=abc123
 ### Non-Interactive Auth
 
 In non-interactive environments (agents, CI), the CLI automatically prints the
-raw auth URL to stdout and writes auth info to a temp file. The browser opens
+raw auth URL to stdout. The browser opens
 regardless. The CLI polls in the foreground until auth completes (up to 15 minutes):
 
 ```bash
