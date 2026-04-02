@@ -1,0 +1,39 @@
+---
+title: API Problems
+description: Reference for error responses returned by the Tambo Cloud API.
+icon: AlertTriangle
+---
+
+import LearnMore from "@/components/learn-more";
+
+When the Tambo API returns an error, the response body uses a structured problem format. These pages document each error type.
+
+<LearnMore
+  title="Validation Error"
+  description="Error response when a request fails input validation"
+  href="/reference/problems/validation"
+/>
+
+<LearnMore
+  title="Not Found"
+  description="Error response when a requested resource does not exist"
+  href="/reference/problems/not-found"
+/>
+
+<LearnMore
+  title="Forbidden"
+  description="Error response when the request is not allowed for the current project or configuration"
+  href="/reference/problems/forbidden"
+/>
+
+<LearnMore
+  title="Conflict"
+  description="Error response when the request cannot be completed due to the current state of the resource"
+  href="/reference/problems/conflict"
+/>
+
+<LearnMore
+  title="Endpoint Deprecated"
+  description="Error response when calling a deprecated API endpoint"
+  href="/reference/problems/endpoint-deprecated"
+/>
