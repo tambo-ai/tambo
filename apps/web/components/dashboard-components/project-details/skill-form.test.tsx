@@ -320,11 +320,11 @@ describe("SkillForm", () => {
     fireEvent.paste(nameInput, {
       clipboardData: {
         getData: () =>
-          "---\nname: ABC\ndescription: This is a simple skill\n---\nLLM do this thing.",
+          "---\nname: abc-skill\ndescription: This is a simple skill\n---\nLLM do this thing.",
       },
     });
 
-    expect(screen.getByLabelText<HTMLInputElement>("Name").value).toBe("ABC");
+    expect(screen.getByLabelText<HTMLInputElement>("Name").value).toBe("abc-skill");
     expect(screen.getByLabelText<HTMLInputElement>("Description").value).toBe(
       "This is a simple skill",
     );
@@ -340,12 +340,12 @@ describe("SkillForm", () => {
     fireEvent.paste(instrInput, {
       clipboardData: {
         getData: () =>
-          "---\nname: FromInstructions\ndescription: Pasted here\n---\nBody text.",
+          "---\nname: from-instructions\ndescription: Pasted here\n---\nBody text.",
       },
     });
 
     expect(screen.getByLabelText<HTMLInputElement>("Name").value).toBe(
-      "FromInstructions",
+      "from-instructions",
     );
     expect(screen.getByLabelText<HTMLInputElement>("Description").value).toBe(
       "Pasted here",

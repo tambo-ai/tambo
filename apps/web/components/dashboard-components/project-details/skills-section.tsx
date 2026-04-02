@@ -216,7 +216,7 @@ export function SkillsSection({
     const fields = {
       name: parsed.name,
       description: parsed.description,
-      instructions: parsed.body,
+      instructions: parsed.instructions,
     };
 
     // Check for name conflict with existing skills

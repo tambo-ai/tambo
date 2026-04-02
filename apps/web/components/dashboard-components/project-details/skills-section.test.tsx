@@ -96,7 +96,7 @@ const mockReadFileAsText = jest.requireMock("./skill-form")
 const sampleSkill = {
   id: "sk_1",
   projectId: "proj_1",
-  name: "My Skill",
+  name: "my-skill",
   description: "A skill that does things",
   instructions: "Do stuff",
   enabled: true,
@@ -161,19 +161,19 @@ describe("SkillsSection", () => {
       mockSkillsData = [sampleSkill];
       render(<SkillsSection projectId="proj_1" />);
 
-      expect(screen.getByText("My Skill")).toBeInTheDocument();
+      expect(screen.getByText("my-skill")).toBeInTheDocument();
       expect(screen.getByText("A skill that does things")).toBeInTheDocument();
     });
 
     it("renders multiple skills", () => {
       mockSkillsData = [
         sampleSkill,
-        { ...sampleSkill, id: "sk_2", name: "Second Skill" },
+        { ...sampleSkill, id: "sk_2", name: "second-skill" },
       ];
       render(<SkillsSection projectId="proj_1" />);
 
-      expect(screen.getByText("My Skill")).toBeInTheDocument();
-      expect(screen.getByText("Second Skill")).toBeInTheDocument();
+      expect(screen.getByText("my-skill")).toBeInTheDocument();
+      expect(screen.getByText("second-skill")).toBeInTheDocument();
     });
   });
 
@@ -202,7 +202,7 @@ describe("SkillsSection", () => {
       expect(screen.queryByText("Import")).not.toBeInTheDocument();
       // Skill cards should be hidden
       expect(
-        screen.queryByLabelText("Edit skill My Skill"),
+        screen.queryByLabelText("Edit skill my-skill"),
       ).not.toBeInTheDocument();
     });
   });
@@ -213,11 +213,11 @@ describe("SkillsSection", () => {
       mockSkillsData = [sampleSkill];
       render(<SkillsSection projectId="proj_1" />);
 
-      await user.click(screen.getByLabelText("Edit skill My Skill"));
+      await user.click(screen.getByLabelText("Edit skill my-skill"));
 
       // Form shows with skill data pre-populated
       expect(screen.getByLabelText<HTMLInputElement>("Name").value).toBe(
-        "My Skill",
+        "my-skill",
       );
       expect(
         screen.getByLabelText<HTMLTextAreaElement>("Instructions").value,
@@ -231,9 +231,9 @@ describe("SkillsSection", () => {
       mockSkillsData = [sampleSkill];
       render(<SkillsSection projectId="proj_1" />);
 
-      await user.click(screen.getByLabelText("Delete skill My Skill"));
+      await user.click(screen.getByLabelText("Delete skill my-skill"));
 
-      expect(screen.getByText('Delete "My Skill"?')).toBeInTheDocument();
+      expect(screen.getByText('Delete "my-skill"?')).toBeInTheDocument();
       expect(screen.getByText(/permanently removed/)).toBeInTheDocument();
     });
   });
@@ -244,7 +244,7 @@ describe("SkillsSection", () => {
       mockSkillsData = [sampleSkill];
       render(<SkillsSection projectId="proj_1" />);
 
-      await user.click(screen.getByLabelText("Disable skill My Skill"));
+      await user.click(screen.getByLabelText("Disable skill my-skill"));
 
       expect(mockMutate).toHaveBeenCalledWith(
         "update",
@@ -263,8 +263,8 @@ describe("SkillsSection", () => {
       mockSkillsData = [sampleSkill];
       render(<SkillsSection projectId="proj_1" />);
 
-      await user.click(screen.getByLabelText("Delete skill My Skill"));
-      expect(screen.getByText('Delete "My Skill"?')).toBeInTheDocument();
+      await user.click(screen.getByLabelText("Delete skill my-skill"));
+      expect(screen.getByText('Delete "my-skill"?')).toBeInTheDocument();
 
       const confirmButton = screen.getByRole("button", { name: /^delete$/i });
       await user.click(confirmButton);
@@ -347,7 +347,7 @@ describe("SkillsSection", () => {
 
     it("opens form with parsed fields when importing a valid skill", async () => {
       const user = userEvent.setup();
-      const content = "---\nname: New Skill\ndescription: Imported\n---\nBody";
+      const content = "---\nname: new-skill\ndescription: Imported desc\n---\nBody";
       mockReadFileAsText.mockResolvedValue(content);
       render(<SkillsSection projectId="proj_1" />);
 
@@ -363,11 +363,11 @@ describe("SkillsSection", () => {
       // The inline form shows with parsed fields
       await waitFor(() => {
         expect(screen.getByLabelText<HTMLInputElement>("Name").value).toBe(
-          "New Skill",
+          "new-skill",
         );
         expect(
           screen.getByLabelText<HTMLInputElement>("Description").value,
-        ).toBe("Imported");
+        ).toBe("Imported desc");
         expect(
           screen.getByLabelText<HTMLTextAreaElement>("Instructions").value,
         ).toBe("Body");
@@ -378,7 +378,7 @@ describe("SkillsSection", () => {
       const user = userEvent.setup();
       mockSkillsData = [sampleSkill];
       const importedContent =
-        "---\nname: My Skill\ndescription: Updated\n---\nNew body";
+        "---\nname: my-skill\ndescription: Updated\n---\nNew body";
       mockReadFileAsText.mockResolvedValue(importedContent);
       render(<SkillsSection projectId="proj_1" />);
 
@@ -402,7 +402,7 @@ describe("SkillsSection", () => {
       const user = userEvent.setup();
       mockSkillsData = [sampleSkill];
       const importedContent =
-        "---\nname: My Skill\ndescription: Updated\n---\nNew body";
+        "---\nname: my-skill\ndescription: Updated\n---\nNew body";
       mockReadFileAsText.mockResolvedValue(importedContent);
       render(<SkillsSection projectId="proj_1" />);
 
@@ -427,7 +427,7 @@ describe("SkillsSection", () => {
       await waitFor(() => {
         expect(screen.getByText("Edit Skill")).toBeInTheDocument();
         expect(screen.getByLabelText<HTMLInputElement>("Name").value).toBe(
-          "My Skill",
+          "my-skill",
         );
         expect(
           screen.getByLabelText<HTMLInputElement>("Description").value,
@@ -439,7 +439,7 @@ describe("SkillsSection", () => {
       const user = userEvent.setup();
       mockSkillsData = [sampleSkill];
       mockReadFileAsText.mockResolvedValue(
-        "---\nname: My Skill\ndescription: Updated\n---\nNew body",
+        "---\nname: my-skill\ndescription: Updated\n---\nNew body",
       );
       render(<SkillsSection projectId="proj_1" />);
 
@@ -447,7 +447,7 @@ describe("SkillsSection", () => {
         'input[type="file"]',
       ) as HTMLInputElement;
       const file = new File(
-        ["---\nname: My Skill\ndescription: Updated\n---\nNew body"],
+        ["---\nname: my-skill\ndescription: Updated\n---\nNew body"],
         "SKILL.md",
         { type: "text/markdown" },
       );
@@ -473,7 +473,7 @@ describe("SkillsSection", () => {
 
     it("warns but allows files not named SKILL.md", async () => {
       const user = userEvent.setup();
-      const content = "---\nname: Custom\ndescription: Desc\n---\nBody";
+      const content = "---\nname: custom-skill\ndescription: Desc\n---\nBody";
       mockReadFileAsText.mockResolvedValue(content);
       render(<SkillsSection projectId="proj_1" />);
 
@@ -497,7 +497,7 @@ describe("SkillsSection", () => {
       // Form opens with parsed fields
       await waitFor(() => {
         expect(screen.getByLabelText<HTMLInputElement>("Name").value).toBe(
-          "Custom",
+          "custom-skill",
         );
       });
     });

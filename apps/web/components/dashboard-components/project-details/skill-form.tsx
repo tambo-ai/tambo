@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import type { RouterOutputs } from "@/trpc/react";
 import { api } from "@/trpc/react";
-import { parseSkillContent } from "@/lib/parse-skill-frontmatter";
+import { parseSkillContent } from "@tambo-ai-cloud/core";
 import { Loader2 } from "lucide-react";
 import { useCallback, useState } from "react";
 
@@ -120,7 +120,7 @@ export function SkillForm({
     e.preventDefault();
     setName(result.name);
     setDescription(result.description);
-    setInstructions(result.body);
+    setInstructions(result.instructions);
   }, []);
 
   const isValid = name.trim().length > 0 && description.trim().length > 0;
