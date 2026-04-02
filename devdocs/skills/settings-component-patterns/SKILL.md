@@ -1,11 +1,12 @@
 ---
 name: settings-component-patterns
 description: >-
-  Enforce consistent UI patterns for settings sections in apps/web. Covers card layout, toasts,
-  confirmation dialogs, destructive styling, and save behaviors. Use when: (1) creating or modifying
-  settings sections, (2) editing files in apps/web/**/settings/ or
-  apps/web/components/dashboard-components/project-details/, (3) adding features to the settings page,
-  (4) reviewing settings-related code.
+  Use this skill when building or modifying any settings UI in apps/web, even if the user just says
+  "add a toggle" or "let users delete X." Covers the required Card layout, toast notifications,
+  confirmation dialogs, destructive action styling, and save behaviors (toggle vs edit/save/cancel).
+  Trigger on: editing files in apps/web/**/settings/ or project-details/, adding settings features,
+  wiring up mutations with toasts, or adding delete/remove actions in settings. Includes a validation
+  script. Not for deciding where a feature belongs (use settings-feature-placement instead).
 metadata:
   internal: true
 ---
@@ -13,6 +14,23 @@ metadata:
 # Settings Component Patterns
 
 Consistent UI patterns for settings sections in Tambo Cloud (`apps/web`).
+
+## Available scripts
+
+- **`scripts/check-settings-section.sh`** -- verifies a settings component has required patterns (EditWithTamboButton, withTamboInteractable, useToast, destructive variant, Card layout). Run from repo root:
+
+```bash
+bash devdocs/skills/settings-component-patterns/scripts/check-settings-section.sh <component-file>
+```
+
+## Gotchas
+
+- **`EditWithTamboButton` goes inside `CardTitle`**, not as a sibling of `CardHeader`. It must have a `description` prop explaining what the section configures.
+- **`withTamboInteractable()` wraps the component export**, not the JSX. Forgetting it breaks AI-driven interactions.
+- **Always call the `onEdited` callback** after successful mutations. Forgetting it leaves the parent displaying stale data.
+- **Invalidate the query before toasting** in `onSuccess`. Reversing the order can show a success toast while the UI still displays old data.
+- **Use `DeleteConfirmationDialog`**, never inline `AlertDialog` for destructive confirmations. It handles the state shape (`show`, `title`, `description`, `data`) consistently.
+- **Use `text-destructive` semantic color**, never `text-red-500`. Cancel/discard buttons are NOT destructive.
 
 ## Card Layout
 
@@ -44,21 +62,13 @@ import { EditWithTamboButton } from "@tambo-ai/react";
 </Card>;
 ```
 
-- Always include `EditWithTamboButton` in `CardTitle` with a descriptive `description` prop
-- Wrap the component with `withTamboInteractable()` for AI-driven interactions
-- Use `CardDescription` for section descriptions, not raw `<p>`
-
-**Reference:** `project-details/tool-call-editor.tsx`, `project-details/oauth-settings.tsx`
+**Reference:** `project-details/tool-call-limit-editor.tsx`, `project-details/oauth-settings.tsx`
 
 ## Toast Notifications
 
-Every mutation shows a toast on both success and error:
+Every mutation shows a toast on both success and error. Import `useToast` from `@/hooks/use-toast`.
 
 ```tsx
-import { useToast } from "@/hooks/use-toast";
-
-const { toast } = useToast();
-
 const mutation = api.someRoute.someMutation.useMutation({
   onSuccess: async () => {
     await utils.someRoute.someQuery.invalidate();
@@ -74,15 +84,13 @@ const mutation = api.someRoute.someMutation.useMutation({
 });
 ```
 
-Always invalidate the relevant query in `onSuccess` before toasting. Never skip the error toast.
+Never skip the error toast.
 
 ## Confirmation Dialogs
 
-All destructive actions require confirmation via `DeleteConfirmationDialog`:
+All destructive actions require `DeleteConfirmationDialog` from `@/components/dashboard-components/delete-confirmation-dialog`:
 
 ```tsx
-import { DeleteConfirmationDialog } from "@/components/dashboard-components/delete-confirmation-dialog";
-
 const [alertState, setAlertState] = useState<{
   show: boolean;
   title: string;
@@ -98,16 +106,14 @@ const [alertState, setAlertState] = useState<{
 />;
 ```
 
-- Title includes the item name: `Delete "${name}"?`
-- Description warns the action cannot be undone
-- Non-destructive actions (save, toggle) skip confirmation
+Title includes the item name (`Delete "${name}"?`). Description warns the action cannot be undone.
 
 **Reference:** `project-details/skills-section.tsx`, `project-details/api-key-list.tsx`
 
 ## Destructive Action Styling
 
 ```tsx
-// Icon button (inline delete)
+// Inline delete button
 <Button variant="ghost" size="icon"
   className="text-destructive hover:text-destructive hover:bg-destructive/10">
   <Trash2 className="h-4 w-4" />
@@ -117,16 +123,13 @@ const [alertState, setAlertState] = useState<{
 <AlertDialogAction className="bg-destructive hover:bg-destructive/90 text-white">
 ```
 
-- Use `text-destructive` semantic color, never `text-red-500`
-- Use `hover:bg-destructive/10` for ghost variant hover
-- Cancel/discard buttons are NOT destructive
-- Use `Trash2` icon from `lucide-react`
+Use `Trash2` from `lucide-react`. Use `hover:bg-destructive/10` for ghost variant hover.
 
 ## Save Behavior
 
-### Toggles: Immediate Save
+**Default:** Use immediate save for toggles, edit/save/cancel for everything else.
 
-Fire mutation on change, no save button:
+### Toggles: Immediate Save
 
 ```tsx
 <Switch
@@ -141,9 +144,8 @@ Fire mutation on change, no save button:
 
 ### Form Fields: Edit/Save/Cancel
 
-Text and number inputs use edit mode with explicit Save and Cancel:
+Track `isEditing`, `savedValue`, and `displayValue` state:
 
-- Track `isEditing`, `savedValue`, and `displayValue` state
 - Cancel reverts `displayValue` to `savedValue` and exits edit mode
 - Save button disabled during mutation, shows "Saving..."
 - `autoFocus` on first input when entering edit mode
@@ -160,3 +162,18 @@ In `project-settings.tsx`:
 3. Add section `<div ref={newSectionRef}>` in content area in correct order
 4. Wrap with `withTamboInteractable()`
 5. Pass `projectId` and `onEdited` callback
+
+### Validation
+
+1. Run the check script on your component:
+
+   ```bash
+   bash devdocs/skills/settings-component-patterns/scripts/check-settings-section.sh <your-file>
+   ```
+
+2. If any checks fail, fix them and re-run until all pass.
+3. Manually verify items the script cannot check:
+   - [ ] Section appears in both desktop and mobile sidebar
+   - [ ] Clicking the sidebar item scrolls to the section
+   - [ ] Mutations show toasts on both success and error
+   - [ ] Query invalidation refreshes displayed data

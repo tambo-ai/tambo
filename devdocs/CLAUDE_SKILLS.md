@@ -18,19 +18,19 @@ Claude Code skills are specialized prompts that give Claude detailed instruction
 
 ### Settings Component Patterns
 
-**When to use:** When creating or modifying settings sections, editing files in `apps/web/**/settings/` or `apps/web/components/dashboard-components/project-details/`, adding features to the settings page, or reviewing settings-related code. Covers card layout, toasts, confirmation dialogs, destructive styling, and save behaviors.
+**When to use:** When building or modifying any settings UI in `apps/web`, even for implicit tasks like "add a toggle" or "let users delete X." Covers Card layout, toasts, confirmation dialogs, destructive styling, and save behaviors. Includes a validation script. Not for feature placement decisions (use Settings Feature Placement).
 
 **Details:** See `devdocs/skills/settings-component-patterns/SKILL.md`
 
 ### Accessibility Checklist
 
-**When to use:** When creating or modifying any `.tsx` component in `apps/web`, adding interactive elements (buttons, links, toggles, dialogs), building forms or data entry flows, or reviewing UI code for accessibility. Covers semantic HTML, aria labels, landmarks, forms, dialogs, and keyboard navigation.
+**When to use:** When creating, modifying, or reviewing any `.tsx` component in `apps/web`, even if accessibility isn't explicitly mentioned. Covers semantic HTML, aria labels, landmarks, forms, dialogs, and keyboard navigation. Includes a scan script that finds violations automatically. Not for styling/layout changes without interactive elements.
 
 **Details:** See `devdocs/skills/accessibility-checklist/SKILL.md`
 
 ### Settings Feature Placement
 
-**When to use:** When adding new settings sections, pages, or tabs. When deciding where a feature belongs in navigation or adding features that depend on other features' configuration. Covers the project vs agent settings split, feature dependencies, and route placement.
+**When to use:** When deciding where a new feature belongs in the dashboard, even for implicit requests like "add model selection" or "add a billing page." Covers the project vs agent settings split, feature dependencies, and route structure. Not for how to build the UI (use Settings Component Patterns).
 
 **Details:** See `devdocs/skills/settings-feature-placement/SKILL.md`
 

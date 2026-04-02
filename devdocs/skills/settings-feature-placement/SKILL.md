@@ -1,10 +1,12 @@
 ---
 name: settings-feature-placement
 description: >-
-  Guide placement of new features in the Tambo Cloud dashboard information hierarchy. Covers the
-  project vs agent settings split, feature dependencies, and route placement. Use when: (1) adding
-  new settings sections, (2) adding new pages or tabs, (3) deciding where a feature belongs in
-  navigation, (4) adding features that depend on other features' configuration.
+  Use this skill when deciding where a new feature belongs in the Tambo Cloud dashboard, even if the
+  user just says "add model selection" or "add a billing page" without asking about placement. Covers
+  the project vs agent settings split, feature dependencies, and route structure. Trigger on: adding
+  new settings sections, pages, or tabs; asking "where should X go?"; adding features that depend on
+  other settings. Not for how to build the UI once placement is decided (use settings-component-patterns
+  instead).
 metadata:
   internal: true
 ---
@@ -12,6 +14,13 @@ metadata:
 # Settings Feature Placement
 
 Determine where new features belong in the Tambo Cloud dashboard. Placement should be obvious 80% of the time; ask the user when it is not.
+
+## Gotchas
+
+- **Settings subsections are scroll targets, NOT routes** -- do not create a new route under `settings/`. All sections render within `settings/page.tsx`.
+- **Update BOTH desktop and mobile sidebar** -- forgetting the mobile sidebar in `mobile-drawer.tsx` is a common miss.
+- **Agent and Project sections are grouped** -- do not interleave. Check the current order table before placing a new section.
+- **Do not add a new top-level tab** without explicit team alignment. Current tabs (Overview, Observability, Settings) have been stable.
 
 ## Navigation Structure
 
@@ -34,7 +43,7 @@ Project (/{projectId})
 | 3   | Custom Instructions | Agent    | `project-details/custom-instructions-editor.tsx` |
 | 4   | Skills              | Agent    | `project-details/skills-section.tsx`             |
 | 5   | MCP Servers         | Agent    | `project-details/available-mcp-servers.tsx`      |
-| 6   | Tool Call Limit     | Agent    | `project-details/tool-call-editor.tsx`           |
+| 6   | Tool Call Limit     | Agent    | `project-details/tool-call-limit-editor.tsx`     |
 | 7   | User Authentication | Project  | `project-details/oauth-settings.tsx`             |
 
 **Container:** `apps/web/components/dashboard-components/project-settings.tsx`
@@ -83,14 +92,13 @@ When adding a dependent feature:
 apps/web/app/(authed)/(dashboard)/
   page.tsx                    -- Dashboard hub (project list)
   [projectId]/
-    layout.tsx                -- Project tabs (Overview, Observability, Settings)
+    layout.tsx                -- Project tabs
     page.tsx                  -- Overview tab
     observability/page.tsx    -- Observability tab
     settings/page.tsx         -- Settings tab
 ```
 
 - Project-scoped pages go under `[projectId]/`
-- New top-level tabs update `[projectId]/layout.tsx` and `apps/web/components/mobile-drawer.tsx`
 - Settings subsections are scrollable sections within `settings/page.tsx`, NOT separate routes
 - Non-project routes go under `(authed)/` outside `(dashboard)/[projectId]/`
 
@@ -103,10 +111,11 @@ apps/web/app/(authed)/(dashboard)/
 5. Wire up tRPC route/mutation with standard toast pattern
 6. Add dependency handling if applicable (disabled state, warning, link to prerequisite)
 
-## Adding a New Top-Level Tab
+### Validation
 
-Confirm with the team first. Current tabs (Overview, Observability, Settings) have been stable.
+After placing a new feature, verify each item and fix before moving on:
 
-1. Update `[projectId]/layout.tsx` tab triggers
-2. Create route directory under `[projectId]/`
-3. Update mobile navigation in `apps/web/components/mobile-drawer.tsx`
+- [ ] Section is in the correct category group (Agent or Project) in the sidebar
+- [ ] Both desktop and mobile navigation include the new entry
+- [ ] Dependency prerequisites show appropriate disabled/warning states
+- [ ] Sidebar click scrolls to the correct section
