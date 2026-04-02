@@ -67,7 +67,7 @@ async function resolveProjectId(): Promise<ResolvedProject> {
     console.error(
       chalk.gray(
         `  1. Run ${chalk.cyan("tambo auth login")} to authenticate\n` +
-          `  2. Run ${chalk.cyan("tambo init")} to set up a project API key`,
+          `  2. Run ${chalk.cyan("tambo init")} to set up a new Tambo project and generate an API key`,
       ),
     );
     throw new ProjectResolutionError("Missing both session token and API key");
@@ -84,7 +84,9 @@ async function resolveProjectId(): Promise<ResolvedProject> {
   if (!apiKey) {
     console.error(chalk.red("\nNo Tambo API key found in .env.local or .env."));
     console.error(
-      chalk.gray(`Run ${chalk.cyan("tambo init")} to set up your project.`),
+      chalk.gray(
+        `Run this command from your project root (where .env.local lives),\nor run ${chalk.cyan("tambo init")} to set up a new Tambo project and generate an API key.`,
+      ),
     );
     throw new ProjectResolutionError("No API key found");
   }
