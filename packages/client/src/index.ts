@@ -18,6 +18,7 @@ export type {
   BeforeRunContext,
   ContextHelperFn,
 } from "./tambo-client";
+export { MemoryClient } from "./memory-client";
 export { TamboStream } from "./tambo-stream";
 export type { StreamEvent, TamboStreamOptions } from "./tambo-stream";
 

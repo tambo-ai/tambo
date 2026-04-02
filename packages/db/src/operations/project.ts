@@ -144,6 +144,8 @@ export async function updateProject(
     customLlmParameters,
     agentHeaders,
     allowSystemPromptOverride,
+    memoryEnabled,
+    memoryToolsEnabled,
   }: {
     name?: string;
     customInstructions?: string | null;
@@ -161,6 +163,8 @@ export async function updateProject(
     customLlmParameters?: CustomLlmParameters | null;
     agentHeaders?: Record<string, string> | null;
     allowSystemPromptOverride?: boolean;
+    memoryEnabled?: boolean;
+    memoryToolsEnabled?: boolean;
   },
 ) {
   // Create update object with only provided fields
@@ -211,6 +215,12 @@ export async function updateProject(
   }
   if (allowSystemPromptOverride !== undefined) {
     updateData.allowSystemPromptOverride = allowSystemPromptOverride;
+  }
+  if (memoryEnabled !== undefined) {
+    updateData.memoryEnabled = memoryEnabled;
+  }
+  if (memoryToolsEnabled !== undefined) {
+    updateData.memoryToolsEnabled = memoryToolsEnabled;
   }
 
   // Only perform update if there are fields to update

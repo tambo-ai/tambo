@@ -102,6 +102,16 @@ export const updateProjectInput = z.object({
     .nullable()
     .optional()
     .describe("Agent headers"),
+  memoryEnabled: z
+    .boolean()
+    .optional()
+    .describe("Whether background memory extraction and injection is enabled"),
+  memoryToolsEnabled: z
+    .boolean()
+    .optional()
+    .describe(
+      "Whether agent-visible save_memory/delete_memory tools are enabled",
+    ),
 });
 
 export const removeProjectInput = z
@@ -141,6 +151,14 @@ export const projectSchema = z.object({
   allowSystemPromptOverride: z
     .boolean()
     .describe("Whether system prompt override is allowed"),
+  memoryEnabled: z
+    .boolean()
+    .describe("Whether background memory extraction and injection is enabled"),
+  memoryToolsEnabled: z
+    .boolean()
+    .describe(
+      "Whether agent-visible save_memory/delete_memory tools are enabled",
+    ),
   defaultLlmProviderName: z
     .string()
     .nullable()

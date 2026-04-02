@@ -240,6 +240,8 @@ export const projectRouter = createTRPCRouter({
         updatedAt: project.updatedAt,
         customInstructions: project.customInstructions,
         allowSystemPromptOverride: project.allowSystemPromptOverride ?? false,
+        memoryEnabled: project.memoryEnabled ?? false,
+        memoryToolsEnabled: project.memoryToolsEnabled ?? false,
         defaultLlmProviderName: project.defaultLlmProviderName,
         defaultLlmModelName: project.defaultLlmModelName,
         customLlmModelName: project.customLlmModelName,
@@ -323,6 +325,8 @@ export const projectRouter = createTRPCRouter({
           updatedAt: project.updatedAt,
           customInstructions: project.customInstructions,
           allowSystemPromptOverride: project.allowSystemPromptOverride ?? false,
+          memoryEnabled: project.memoryEnabled ?? false,
+          memoryToolsEnabled: project.memoryToolsEnabled ?? false,
           defaultLlmProviderName: project.defaultLlmProviderName,
           defaultLlmModelName: project.defaultLlmModelName,
           customLlmModelName: project.customLlmModelName,
@@ -519,6 +523,8 @@ export const projectRouter = createTRPCRouter({
         customLlmParameters,
         agentHeaders,
         allowSystemPromptOverride,
+        memoryEnabled,
+        memoryToolsEnabled,
       } = input;
       await operations.ensureProjectAccess(ctx.db, projectId, ctx.user.id);
 
@@ -554,6 +560,8 @@ export const projectRouter = createTRPCRouter({
         customLlmParameters:
           customLlmParameters === undefined ? undefined : customLlmParameters,
         allowSystemPromptOverride,
+        memoryEnabled,
+        memoryToolsEnabled,
       });
 
       if (!updatedProject) {
@@ -578,6 +586,8 @@ export const projectRouter = createTRPCRouter({
         agentName: updatedProject.agentName,
         customLlmParameters: updatedProject.customLlmParameters,
         agentHeaders: updatedProject.agentHeaders,
+        memoryEnabled: updatedProject.memoryEnabled,
+        memoryToolsEnabled: updatedProject.memoryToolsEnabled,
       };
     }),
 
