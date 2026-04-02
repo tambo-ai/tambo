@@ -89,6 +89,9 @@ jest.unstable_mockModule("../lib/api-client.js", () => ({
   isAuthError: (error: unknown) => {
     return error instanceof Error && error.message === "UNAUTHORIZED";
   },
+  isConflictError: (error: unknown) => {
+    return error instanceof Error && error.message === "CONFLICT";
+  },
 }));
 
 // Mock fs
@@ -297,6 +300,15 @@ describe("skills commands", () => {
       );
 
       expect(consoleErrors.some((l) => l.includes("API key"))).toBe(true);
+    });
+
+    it("falls back to .env when .env.local is absent", async () => {
+      mockFiles = {
+        ".env": "NEXT_PUBLIC_TAMBO_API_KEY=tambo_fallback_key",
+      };
+      mockSkillsList = [];
+      await handleSkills("list", [], {});
+      expect(consoleLogs.some((l) => l.includes("No skills found"))).toBe(true);
     });
   });
 

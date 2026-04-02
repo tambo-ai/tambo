@@ -55,6 +55,9 @@ Body`;
 
     const result = parseSkillContent(content);
     expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error).toContain("string");
+    }
   });
 
   it("returns failure for non-kebab-case name", () => {

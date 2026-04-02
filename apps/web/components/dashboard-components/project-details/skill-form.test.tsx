@@ -324,7 +324,9 @@ describe("SkillForm", () => {
       },
     });
 
-    expect(screen.getByLabelText<HTMLInputElement>("Name").value).toBe("abc-skill");
+    expect(screen.getByLabelText<HTMLInputElement>("Name").value).toBe(
+      "abc-skill",
+    );
     expect(screen.getByLabelText<HTMLInputElement>("Description").value).toBe(
       "This is a simple skill",
     );

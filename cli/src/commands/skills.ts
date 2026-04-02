@@ -8,9 +8,8 @@ import {
   reconstructSkillContent,
 } from "../utils/skill-frontmatter.js";
 import type { Skill } from "../lib/api-client.js";
-import { api, isAuthError } from "../lib/api-client.js";
+import { api, isAuthError, isConflictError } from "../lib/api-client.js";
 import { hasStoredToken, isTokenValid } from "../lib/token-storage.js";
-import { EVENTS, trackEvent } from "../lib/telemetry.js";
 import { GuidanceError, isInteractive } from "../utils/interactive.js";
 import { findTamboApiKey } from "../utils/dotenv-utils.js";
 
@@ -396,17 +395,6 @@ async function handleDelete(
 // Error Helpers
 // ============================================================================
 
-function isConflictError(error: unknown): boolean {
-  if (!(error instanceof Error) || !("data" in error)) return false;
-  const { data } = error;
-  return (
-    data !== null &&
-    typeof data === "object" &&
-    "code" in data &&
-    data.code === "CONFLICT"
-  );
-}
-
 function logApiError(error: unknown): void {
   if (isAuthError(error)) {
     console.error(
@@ -423,8 +411,33 @@ function logApiError(error: unknown): void {
 // Main Handler & Help
 // ============================================================================
 
+async function dispatchSubcommand(
+  subcommand: string,
+  projectId: string,
+  args: string[],
+  flags: { force?: boolean },
+): Promise<number> {
+  switch (subcommand) {
+    case "list":
+      return await handleList(projectId);
+    case "add":
+      return await handleAdd(projectId, args);
+    case "get":
+      return await handleGet(projectId, args[0]);
+    case "update":
+      return await handleUpdate(projectId, args);
+    case "delete":
+      return await handleDelete(projectId, args[0], { force: flags.force });
+    default:
+      console.log(chalk.red(`Unknown skills subcommand: ${subcommand}`));
+      showSkillsHelp();
+      return 1;
+  }
+}
+
 /**
  * Main skills command handler -- routes to subcommands.
+ * Telemetry is handled by main() in cli.ts -- do not track here.
  * @returns Calls process.exit on non-zero exit code.
  */
 export async function handleSkills(
@@ -434,8 +447,6 @@ export async function handleSkills(
     force?: boolean;
   },
 ): Promise<void> {
-  let exitCode = 0;
-
   if (!subcommand || subcommand === "help") {
     showSkillsHelp();
     return;
@@ -450,35 +461,7 @@ export async function handleSkills(
     return;
   }
 
-  switch (subcommand) {
-    case "list":
-      exitCode = await handleList(projectId);
-      break;
-    case "add":
-      exitCode = await handleAdd(projectId, args);
-      break;
-    case "get":
-      exitCode = await handleGet(projectId, args[0]);
-      break;
-    case "update":
-      exitCode = await handleUpdate(projectId, args);
-      break;
-    case "delete":
-      exitCode = await handleDelete(projectId, args[0], {
-        force: flags.force,
-      });
-      break;
-    default:
-      console.log(chalk.red(`Unknown skills subcommand: ${subcommand}`));
-      showSkillsHelp();
-      exitCode = 1;
-  }
-
-  trackEvent(EVENTS.COMMAND_COMPLETED, {
-    command: "skills",
-    subcommand,
-    success: exitCode === 0,
-  });
+  const exitCode = await dispatchSubcommand(subcommand, projectId, args, flags);
 
   if (exitCode !== 0) {
     process.exit(exitCode);

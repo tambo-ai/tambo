@@ -347,7 +347,8 @@ describe("SkillsSection", () => {
 
     it("opens form with parsed fields when importing a valid skill", async () => {
       const user = userEvent.setup();
-      const content = "---\nname: new-skill\ndescription: Imported desc\n---\nBody";
+      const content =
+        "---\nname: new-skill\ndescription: Imported desc\n---\nBody";
       mockReadFileAsText.mockResolvedValue(content);
       render(<SkillsSection projectId="proj_1" />);
 

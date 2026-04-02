@@ -155,6 +155,14 @@ export function isAuthError(error: unknown): boolean {
   return false;
 }
 
+export function isConflictError(error: unknown): boolean {
+  if (error instanceof TRPCClientError) {
+    const code = error.data?.code ?? error.shape?.data?.code;
+    return code === "CONFLICT";
+  }
+  return false;
+}
+
 // Create raw tRPC client
 const rawClient = createTRPCClient({
   links: [
