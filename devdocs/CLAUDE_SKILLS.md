@@ -16,6 +16,24 @@ Claude Code skills are specialized prompts that give Claude detailed instruction
 
 > Note: Weekly release summaries now live as Charlie proactive playbooks under `.charlie/playbooks/`.
 
+### Settings Component Patterns
+
+**When to use:** When creating or modifying settings sections, editing files in `apps/web/**/settings/` or `apps/web/components/dashboard-components/project-details/`, adding features to the settings page, or reviewing settings-related code. Covers card layout, toasts, confirmation dialogs, destructive styling, and save behaviors.
+
+**Details:** See `devdocs/skills/settings-component-patterns/SKILL.md`
+
+### Accessibility Checklist
+
+**When to use:** When creating or modifying any `.tsx` component in `apps/web`, adding interactive elements (buttons, links, toggles, dialogs), building forms or data entry flows, or reviewing UI code for accessibility. Covers semantic HTML, aria labels, landmarks, forms, dialogs, and keyboard navigation.
+
+**Details:** See `devdocs/skills/accessibility-checklist/SKILL.md`
+
+### Settings Feature Placement
+
+**When to use:** When adding new settings sections, pages, or tabs. When deciding where a feature belongs in navigation or adding features that depend on other features' configuration. Covers the project vs agent settings split, feature dependencies, and route placement.
+
+**Details:** See `devdocs/skills/settings-feature-placement/SKILL.md`
+
 ## Creating New Skills
 
 To create a new skill for this repository:
