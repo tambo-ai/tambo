@@ -158,6 +158,7 @@ export function isAuthError(error: unknown): boolean {
   return false;
 }
 
+/** Used by skills commands to detect duplicate name errors from the tRPC API. */
 export function isConflictError(error: unknown): boolean {
   if (error instanceof TRPCClientError) {
     const code = error.data?.code ?? error.shape?.data?.code;
