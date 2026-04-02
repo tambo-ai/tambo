@@ -71,18 +71,10 @@ Use `--skip-tambo-init` since `create-app` normally tries to run `tambo init` in
 #### 2b. Authenticate and initialize Tambo
 
 ```bash
-npx tambo init --project-name=<app-name> --no-browser
-```
-
-This prints an auth URL and device code. Tell the user to click the URL and authenticate. The CLI spawns a background poller that saves the token when the user completes auth.
-
-After the user authenticates, re-run the same command:
-
-```bash
 npx tambo init --project-name=<app-name>
 ```
 
-This time it picks up the saved token, creates the project, and writes the API key to `.env.local` with the correct env var for the framework (`NEXT_PUBLIC_TAMBO_API_KEY`, `VITE_TAMBO_API_KEY`, etc.).
+This opens the browser for authentication and polls until the user completes auth (up to 15 minutes). Use a long timeout (e.g. 10 minutes) when running this command. Once auth completes, the CLI creates the project and writes the API key to `.env.local` with the correct env var for the framework (`NEXT_PUBLIC_TAMBO_API_KEY`, `VITE_TAMBO_API_KEY`, etc.).
 
 **IMPORTANT:** Do NOT ask the user to paste an API key manually. Always use the CLI auth flow.
 

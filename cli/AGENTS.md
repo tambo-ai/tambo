@@ -78,8 +78,13 @@ tambo list --yes
 **Authenticate (for --project-name/--project-id flows):**
 
 ```bash
-tambo auth login --no-browser  # Prints URL instead of opening browser
+tambo auth login  # Opens browser, polls until auth completes
 ```
+
+In non-interactive mode (agents, CI), the CLI automatically prints the raw
+verification URL to stdout and writes auth info to `/tmp/tambo-device-auth.json`.
+The browser opens regardless. The CLI polls in the foreground until auth completes
+(up to 15 minutes). Use a long timeout when running this from an agent.
 
 ### Detection Logic
 

@@ -1,10 +1,8 @@
 import chalk from "chalk";
 import clipboard from "clipboardy";
-import { fork } from "node:child_process";
 import { writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { fileURLToPath } from "node:url";
 import open from "open";
 import ora from "ora";
 import { api, ApiError } from "./api-client.js";
@@ -16,24 +14,13 @@ import {
 import { isInteractive } from "../utils/interactive.js";
 
 /**
- * Options for the device auth flow
+ * Result of a completed device auth flow.
  */
-export interface DeviceAuthOptions {
-  /** If true, print the auth URL instead of opening browser (for CI/agents) */
-  noBrowser?: boolean;
+export interface DeviceAuthResult {
+  status: "authenticated";
+  sessionToken: string;
+  user: { id: string; email: string | null; name: string | null };
 }
-
-/**
- * Result of the device auth flow. Discriminated union so callers can
- * safely distinguish between a completed auth and a background poll.
- */
-export type DeviceAuthResult =
-  | {
-      status: "authenticated";
-      sessionToken: string;
-      user: { id: string; email: string | null; name: string | null };
-    }
-  | { status: "pending_background_poll" };
 
 /**
  * Error thrown when device auth fails
@@ -63,13 +50,11 @@ async function sleep(ms: number): Promise<void> {
  * 3. Polls api.deviceAuth.poll until user verifies or code expires
  * 4. Saves the session token to disk
  *
- * @param options - Options for the auth flow
  * @returns The auth result with session token and user info
  * @throws DeviceAuthError if auth fails
  */
-export async function runDeviceAuthFlow(
-  options: DeviceAuthOptions = {},
-): Promise<DeviceAuthResult> {
+export async function runDeviceAuthFlow(): Promise<DeviceAuthResult> {
+  const nonInteractive = !isInteractive();
   // Step 1: Initiate the device auth flow
   console.log(chalk.gray("\nInitiating device authentication..."));
 
@@ -99,8 +84,8 @@ export async function runDeviceAuthFlow(
   console.log(chalk.white(`   Visit: ${chalk.bold(verificationUri)}`));
   console.log(chalk.white(`   Enter code: ${chalk.bold.green(userCode)}\n`));
 
-  // Copy code to clipboard (skip in no-browser mode as it may not be available)
-  if (!options.noBrowser) {
+  // Copy code to clipboard (skip in non-interactive mode as it may not be available)
+  if (!nonInteractive) {
     try {
       await clipboard.write(userCode);
       console.log(chalk.gray("   ✓ User code copied to clipboard!\n"));
@@ -109,16 +94,10 @@ export async function runDeviceAuthFlow(
     }
   }
 
-  // Open browser with pre-filled code URL (or print it in no-browser mode)
-  if (options.noBrowser) {
-    // For CI/agents: output raw URL first for machine parsing (no styling, no prefix)
+  // In non-interactive mode (agents, CI), output machine-readable auth info
+  if (nonInteractive) {
+    // Raw URL first for machine parsing (no styling, no prefix)
     console.log(verificationUriComplete);
-    // Then add human-readable guidance
-    console.log(
-      chalk.gray(
-        "\n   Open this URL in a browser and complete authentication.\n",
-      ),
-    );
 
     // Write device auth info to a well-known temp file so agents can read it
     // without parsing stdout
@@ -131,41 +110,23 @@ export async function runDeviceAuthFlow(
         userCode,
       }),
     );
+  }
 
-    // In non-interactive mode (agents/CI), spawn a detached background process
-    // to poll for auth completion so this process can exit immediately.
-    // The agent then re-runs `tambo init` after the user authenticates.
-    if (!isInteractive()) {
-      const workerPath = join(
-        fileURLToPath(new URL(".", import.meta.url)),
-        "device-auth-poll-worker.js",
-      );
-      const child = fork(workerPath, [deviceCode, String(interval || 5)], {
-        detached: true,
-        stdio: "ignore",
-      });
-      child.unref();
-
-      console.log(
-        chalk.gray(
-          "   Polling for authentication in the background.\n" +
-            "   After authenticating, re-run your command to continue.\n",
-        ),
-      );
-
-      return { status: "pending_background_poll" };
-    }
-  } else {
-    try {
-      await open(verificationUriComplete);
-      console.log(chalk.gray("   Browser opened for authentication\n"));
-    } catch {
+  // Always try to open the browser. Agents (e.g. Claude Code) run CLI
+  // commands on the user's machine, so the browser lets them authenticate.
+  try {
+    await open(verificationUriComplete);
+    console.log(chalk.gray("   Browser opened for authentication\n"));
+  } catch {
+    if (!nonInteractive) {
       console.log(
         chalk.yellow(
           `   Could not open browser automatically. Please visit the URL above.\n`,
         ),
       );
     }
+    // In non-interactive mode, failing to open is expected (e.g. headless CI).
+    // The URL was already printed above.
   }
 
   // Step 3: Poll for completion
@@ -340,7 +301,7 @@ export async function runDeviceAuthFlow(
 
 /**
  * Exchanges a session token for user info and persists the complete token to disk.
- * Used by both the main device auth flow and the background poll worker.
+ * Used by the main device auth flow after polling completes.
  * @param sessionToken - The session token from the poll response
  * @param expiresAt - The token expiry timestamp
  * @returns The saved token data

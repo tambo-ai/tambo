@@ -29,8 +29,6 @@ const config: Config = {
   collectCoverageFrom: [
     "<rootDir>/src/**/*.(ts|tsx)",
     "!<rootDir>/src/**/*.test.(ts|tsx)",
-    // Detached child process spawned by device-auth.ts -- not unit-testable
-    "!<rootDir>/src/lib/device-auth-poll-worker.ts",
   ],
   coverageThreshold: {
     global: {

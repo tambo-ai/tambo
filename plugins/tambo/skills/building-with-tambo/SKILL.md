@@ -351,7 +351,7 @@ If using Yup/Joi instead of Zod, user can either:
 
 Run commands from the web app package, not the monorepo root.
 
-Run `npx tambo init --project-name=<app-name> --no-browser` from the web app directory. This prints an auth URL and device code -- tell the user to click the URL and authenticate. After they authenticate, re-run `npx tambo init --project-name=<app-name>` to create the project and write the API key to `.env.local`.
+Run `npx tambo init --project-name=<app-name>` from the web app directory. This opens the browser for authentication and polls until the user completes auth (up to 15 minutes). Use a long timeout. Once auth completes, the CLI creates the project and writes the API key to `.env.local`.
 
 **Monorepo gotchas:**
 
@@ -361,7 +361,7 @@ Run `npx tambo init --project-name=<app-name> --no-browser` from the web app dir
 
 ## Environment Variables
 
-`npx tambo init --project-name=<name> --no-browser` prints an auth URL for the user to click, then saves the token when they authenticate. Re-run `npx tambo init --project-name=<name>` after auth to create the project and write `.env.local`.
+`npx tambo init --project-name=<name>` opens the browser and polls until the user authenticates (up to 15 minutes). Use a long timeout. Once auth completes, it creates the project and writes `.env.local`.
 
 If manual setup is needed (monorepo, read-only filesystem), add the appropriate variable:
 

@@ -446,23 +446,24 @@ describe("handleInit", () => {
       mockIsTokenValid = true;
       mockVerifySession = true;
 
-      await handleInit({ projectName: "my-app", noBrowser: true });
+      await handleInit({ projectName: "my-app" });
 
       const output = logs.join("\n");
       expect(output).toContain("Already authenticated");
       expect(output).toContain("Initialization complete");
     });
 
-    it("should show re-run message when auth is pending", async () => {
+    it("should complete auth and continue when device auth succeeds", async () => {
       mockRunDeviceAuthFlowResult = {
-        status: "pending_background_poll",
+        status: "authenticated",
+        sessionToken: "test-token",
+        user: { id: "u1", email: "test@test.com", name: "Test" },
       };
 
-      await handleInit({ projectName: "my-app", noBrowser: true });
+      await handleInit({ projectName: "my-app" });
 
       const output = logs.join("\n");
-      expect(output).toContain("Authentication started in the background");
-      expect(output).toContain("npx tambo init --project-name=my-app");
+      expect(output).toContain("Authentication successful");
     });
   });
 

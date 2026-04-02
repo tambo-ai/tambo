@@ -305,22 +305,13 @@ describe("auth commands", () => {
       );
     });
 
-    it("throws GuidanceError when already authenticated in non-interactive mode without --no-browser", async () => {
+    it("returns 0 when already authenticated in non-interactive mode", async () => {
       mockHasStoredToken = true;
       mockIsTokenValid = true;
       mockCurrentUser = { id: "user-1", email: "test@example.com" };
       mockIsInteractive = false;
 
-      await expect(handleAuthLogin()).rejects.toThrow("Already authenticated");
-    });
-
-    it("returns 0 when already authenticated in non-interactive mode with --no-browser", async () => {
-      mockHasStoredToken = true;
-      mockIsTokenValid = true;
-      mockCurrentUser = { id: "user-1", email: "test@example.com" };
-      mockIsInteractive = false;
-
-      const result = await handleAuthLogin({ noBrowser: true });
+      const result = await handleAuthLogin();
 
       expect(result).toBe(0);
     });

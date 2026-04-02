@@ -75,7 +75,6 @@ interface InitOptions {
   apiKey?: string;
   projectName?: string;
   projectId?: string;
-  noBrowser?: boolean;
 }
 
 /**
@@ -308,29 +307,19 @@ export async function getInstallationPath(yes = false): Promise<string> {
 
 /**
  * Ensures the user is authenticated, running device auth if needed.
- * In non-interactive + no-browser mode, spawns a background poller and
- * returns "pending" so the caller can exit and tell the agent to re-run.
- * @returns "authenticated" or "pending_background_poll"
+ * Always opens the browser and polls in the foreground.
  */
-async function ensureAuthenticated(opts: {
-  noBrowser: boolean;
-}): Promise<"authenticated" | "pending_background_poll"> {
+async function ensureAuthenticated(): Promise<void> {
   if (isTokenValid()) {
     const isValid = await verifySession();
     if (isValid) {
       console.log(chalk.green("\n✔ Already authenticated"));
-      return "authenticated";
+      return;
     }
   }
 
-  const authResult = await runDeviceAuthFlow({ noBrowser: opts.noBrowser });
-
-  if (authResult.status === "pending_background_poll") {
-    return "pending_background_poll";
-  }
-
+  await runDeviceAuthFlow();
   console.log(chalk.green("\n✔ Authentication successful"));
-  return "authenticated";
 }
 
 /**
@@ -1137,7 +1126,6 @@ export async function handleInit({
   apiKey,
   projectName,
   projectId,
-  noBrowser = false,
 }: InitOptions): Promise<void> {
   // In non-interactive mode, check if we have what we need
   if (!isInteractive()) {
@@ -1172,17 +1160,7 @@ export async function handleInit({
       );
 
       try {
-        const authStatus = await ensureAuthenticated({ noBrowser });
-        if (authStatus === "pending_background_poll") {
-          console.log(
-            chalk.blue(
-              "\nAuthentication started in the background.\n" +
-                "After the user authenticates, re-run this command:\n\n" +
-                `  npx tambo init --project-name=${projectName}\n`,
-            ),
-          );
-          return;
-        }
+        await ensureAuthenticated();
 
         // Create project and generate key
         const success = await createProjectAndGenerateKey(projectName);
@@ -1218,17 +1196,7 @@ export async function handleInit({
       );
 
       try {
-        const authStatus = await ensureAuthenticated({ noBrowser });
-        if (authStatus === "pending_background_poll") {
-          console.log(
-            chalk.blue(
-              "\nAuthentication started in the background.\n" +
-                "After the user authenticates, re-run this command:\n\n" +
-                `  npx tambo init --project-id=${projectId}\n`,
-            ),
-          );
-          return;
-        }
+        await ensureAuthenticated();
 
         // Use existing project and generate key
         const success = await useExistingProjectAndGenerateKey(projectId);

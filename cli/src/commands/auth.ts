@@ -35,10 +35,6 @@ export interface AuthRevokeSessionOptions {
   all?: boolean;
 }
 
-export interface AuthLoginOptions {
-  noBrowser?: boolean;
-}
-
 // ============================================================================
 // Common auth message helpers
 // ============================================================================
@@ -146,9 +142,7 @@ export async function handleAuthStatus(
  * Login via device auth flow
  * @returns Exit code: 0 on success, 1 on failure
  */
-export async function handleAuthLogin(
-  options: AuthLoginOptions = {},
-): Promise<number> {
+export async function handleAuthLogin(): Promise<number> {
   console.log(chalk.bold("\n🔐 Login to tambo\n"));
 
   // Check if already authenticated
@@ -160,20 +154,10 @@ export async function handleAuthLogin(
       ),
     );
 
-    // --no-browser when already authenticated is a clean no-op
-    if (options.noBrowser) {
+    if (!isInteractive()) {
+      // Already authenticated in non-interactive mode is a clean no-op
       console.log(chalk.gray("\nUse --force to re-authenticate.\n"));
       return 0;
-    }
-
-    if (!isInteractive()) {
-      throw new GuidanceError(
-        "Already authenticated. Re-authentication requires confirmation.",
-        [
-          "npx tambo auth login --no-browser  # No-op when already authenticated",
-          "npx tambo auth logout --force && npx tambo auth login --no-browser  # Force re-auth",
-        ],
-      );
     }
 
     const shouldReauth = await confirm({
@@ -188,10 +172,7 @@ export async function handleAuthLogin(
   }
 
   try {
-    const result = await runDeviceAuthFlow({ noBrowser: options.noBrowser });
-    if (result.status === "pending_background_poll") {
-      return 0;
-    }
+    await runDeviceAuthFlow();
     trackEvent(EVENTS.AUTH_LOGIN);
     console.log(chalk.green("\n✓ Successfully authenticated!\n"));
     return 0;
@@ -531,7 +512,6 @@ export async function handleAuth(
     force?: boolean;
     all?: boolean;
     help?: boolean;
-    noBrowser?: boolean;
   },
 ): Promise<void> {
   let exitCode = 0;
@@ -540,7 +520,7 @@ export async function handleAuth(
   if (!subcommand || subcommand === "status") {
     exitCode = await handleAuthStatus({ quiet: flags.quiet });
   } else if (subcommand === "login") {
-    exitCode = await handleAuthLogin({ noBrowser: flags.noBrowser });
+    exitCode = await handleAuthLogin();
   } else if (subcommand === "logout") {
     exitCode = await handleAuthLogout({ force: flags.force });
   } else if (subcommand === "sessions") {
@@ -582,13 +562,11 @@ ${chalk.bold("Options")}
   ${chalk.yellow("--quiet, -q")}     Exit with code 0 if authenticated, 1 otherwise (status only)
   ${chalk.yellow("--force, -f")}     Skip confirmation prompts (logout only)
   ${chalk.yellow("--all")}           Revoke all sessions (revoke-session only)
-  ${chalk.yellow("--no-browser")}    Print auth URL instead of opening browser (login only)
 
 ${chalk.bold("Examples")}
   $ ${chalk.cyan("tambo auth")}                            # Show auth status
   $ ${chalk.cyan("tambo auth status --quiet")}             # Check auth in scripts
-  $ ${chalk.cyan("tambo auth login")}                      # Authenticate
-  $ ${chalk.cyan("tambo auth login --no-browser")}         # Print URL for CI/agents
+  $ ${chalk.cyan("tambo auth login")}                      # Authenticate (opens browser)
   $ ${chalk.cyan("tambo auth logout")}                     # Clear credentials
   $ ${chalk.cyan("tambo auth sessions")}                   # List all CLI sessions
   $ ${chalk.cyan("tambo auth revoke-session")}             # Select session to revoke

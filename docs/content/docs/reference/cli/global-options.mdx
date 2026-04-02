@@ -284,8 +284,8 @@ npx tambo init --api-key="$TAMBO_API_KEY"
 # Add components without prompts
 npx tambo add form graph --yes
 
-# Create new project (requires browser auth - use --no-browser for URL output)
-npx tambo init --project-name=myapp --no-browser
+# Create new project (opens browser for auth, polls until complete)
+npx tambo init --project-name=myapp
 ```
 
 ### Exit Code 2: User Action Required
