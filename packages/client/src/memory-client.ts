@@ -1,12 +1,19 @@
-/** Memory category for classification. */
+/**
+ * Memory category for classification.
+ * Mirrors MemoryCategory from @tambo-ai-cloud/core — kept separate because
+ * this public SDK package cannot depend on the internal cloud core package.
+ */
 export type MemoryCategory = "preference" | "fact" | "goal" | "relationship";
 
-/** A stored memory about a user. */
+/**
+ * A stored memory about a user.
+ * Mirrors Memory from @tambo-ai-cloud/core.
+ */
 export interface Memory {
   readonly id: string;
   readonly content: string;
   readonly category: MemoryCategory;
-  readonly importance: number;
+  readonly importance: 1 | 2 | 3 | 4 | 5;
 }
 
 /**

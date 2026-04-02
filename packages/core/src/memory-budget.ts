@@ -35,7 +35,11 @@ export function selectMemoriesWithinBudget(
  */
 export function formatMemoriesForPrompt(memories: readonly Memory[]): string {
   if (memories.length === 0) return "";
-  return memories
+  const items = memories
     .map((m) => `- [${m.id}] (importance: ${m.importance}) ${m.content}`)
     .join("\n");
+  // Wrap in XML-style delimiters to structurally separate memory data from instructions.
+  // This mitigates prompt injection by making it clear to the model that
+  // memory content is data to reference, not instructions to follow.
+  return `<memory_data>\n${items}\n</memory_data>`;
 }

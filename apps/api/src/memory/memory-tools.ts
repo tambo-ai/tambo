@@ -3,6 +3,7 @@ import { MEMORY_CATEGORIES } from "@tambo-ai-cloud/core";
 import { operations } from "@tambo-ai-cloud/db";
 import type { HydraDatabase } from "@tambo-ai-cloud/db";
 import type OpenAI from "openai";
+import { z } from "zod/v3";
 
 export const SAVE_MEMORY_TOOL_NAME = "save_memory";
 export const DELETE_MEMORY_TOOL_NAME = "delete_memory";
@@ -75,6 +76,16 @@ export function isMemoryToolCall(toolName: string): boolean {
   );
 }
 
+const saveMemoryArgsSchema = z.object({
+  content: z.string().min(1).max(1000),
+  category: z.enum(MEMORY_CATEGORIES),
+  importance: z.number().int().min(1).max(5).optional().default(3),
+});
+
+const deleteMemoryArgsSchema = z.object({
+  memory_id: z.string().min(1),
+});
+
 /**
  * Execute a memory tool call. Returns the tool result string.
  */
@@ -86,39 +97,53 @@ export async function executeMemoryToolCall(
   contextKey: string,
 ): Promise<string> {
   if (toolName === SAVE_MEMORY_TOOL_NAME) {
-    const content = args.content as string;
-    const category = args.category as string;
-    const importance = (args.importance as number | undefined) ?? 3;
+    const parsed = saveMemoryArgsSchema.safeParse(args);
+    if (!parsed.success) {
+      return JSON.stringify({
+        success: false,
+        message: `Invalid save_memory args: ${parsed.error.message}`,
+      });
+    }
 
     const memory = await operations.createMemory(db, {
       projectId,
       contextKey,
-      content,
-      category: category as "preference" | "fact" | "goal" | "relationship",
-      importance: importance as MemoryImportance,
+      content: parsed.data.content,
+      category: parsed.data.category,
+      importance: parsed.data.importance as MemoryImportance,
     });
 
     return JSON.stringify({
       success: true,
       memoryId: memory.id,
-      message: `Memory saved: "${content}"`,
     });
   }
 
   if (toolName === DELETE_MEMORY_TOOL_NAME) {
-    const memoryId = args.memory_id as string;
-    const deleted = await operations.softDeleteMemory(db, projectId, memoryId);
+    const parsed = deleteMemoryArgsSchema.safeParse(args);
+    if (!parsed.success) {
+      return JSON.stringify({
+        success: false,
+        message: `Invalid delete_memory args: ${parsed.error.message}`,
+      });
+    }
+
+    const deleted = await operations.softDeleteMemory(
+      db,
+      projectId,
+      parsed.data.memory_id,
+    );
 
     if (!deleted) {
       return JSON.stringify({
         success: false,
-        message: `Memory ${memoryId} not found or already deleted`,
+        message: `Memory ${parsed.data.memory_id} not found or already deleted`,
       });
     }
 
     return JSON.stringify({
       success: true,
-      message: `Memory ${memoryId} deleted`,
+      message: `Memory deleted`,
     });
   }
 

@@ -1299,6 +1299,11 @@ export const memories = pgTable(
       for: "select",
       using: sql`exists (select 1 from project_members where project_members.project_id = ${table.projectId} and project_members.user_id = ${authUid})`,
     }),
+    pgPolicy("memories_user_update_policy", {
+      to: authenticatedRole,
+      for: "update",
+      using: sql`exists (select 1 from project_members where project_members.project_id = ${table.projectId} and project_members.user_id = ${authUid})`,
+    }),
     pgPolicy("memories_user_delete_policy", {
       to: authenticatedRole,
       for: "delete",

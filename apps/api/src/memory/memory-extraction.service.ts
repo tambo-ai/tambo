@@ -43,116 +43,125 @@ export class MemoryExtractionService {
     messages: ThreadMessage[],
     tamboBackend: ITamboBackend,
   ): Promise<void> {
-    // Rate limiting
     const rateLimitKey = `${projectId}:${contextKey}`;
-    const lastExtraction = lastExtractionTimestamps.get(rateLimitKey);
-    if (
-      lastExtraction &&
-      Date.now() - lastExtraction < EXTRACTION_COOLDOWN_MS
-    ) {
-      this.logger.debug(
-        `Skipping extraction for ${rateLimitKey}: rate limited`,
-      );
-      return;
-    }
-    lastExtractionTimestamps.set(rateLimitKey, Date.now());
 
-    // Only extract from conversations with enough substance
-    if (messages.length < MIN_MESSAGES_FOR_EXTRACTION) {
-      return;
-    }
-
-    // Take only recent messages for extraction
-    const recentMessages = messages.slice(-MAX_EXTRACTION_MESSAGES);
-
-    // Call the LLM for extraction
-    const rawResponse = await callMemoryExtractionLLM(
-      tamboBackend.llmClient,
-      recentMessages,
-    );
-
-    if (!rawResponse) {
-      this.logger.warn(
-        `Memory extraction returned no content for ${rateLimitKey}`,
-      );
-      return;
-    }
-
-    // Parse JSON from LLM response (may be wrapped in markdown code blocks)
-    const jsonStr = extractJsonFromResponse(rawResponse);
-    if (!jsonStr) {
-      this.logger.warn(
-        `Memory extraction returned unparseable response for ${rateLimitKey}`,
-      );
-      return;
-    }
-
-    let parsed: unknown;
     try {
-      parsed = JSON.parse(jsonStr);
-    } catch {
-      this.logger.warn(
-        `Memory extraction returned invalid JSON for ${rateLimitKey}`,
-      );
-      return;
-    }
+      // Rate limiting
+      const lastExtraction = lastExtractionTimestamps.get(rateLimitKey);
+      if (
+        lastExtraction &&
+        Date.now() - lastExtraction < EXTRACTION_COOLDOWN_MS
+      ) {
+        this.logger.debug(
+          `Skipping extraction for ${rateLimitKey}: rate limited`,
+        );
+        return;
+      }
+      lastExtractionTimestamps.set(rateLimitKey, Date.now());
 
-    // Validate with Zod
-    const result = memoryExtractionResponseSchema.safeParse(parsed);
-    if (!result.success) {
-      this.logger.warn(
-        `Memory extraction response failed validation for ${rateLimitKey}: ${result.error.message}`,
-      );
-      return;
-    }
-
-    const { memories: extractedMemories } = result.data;
-    if (extractedMemories.length === 0) {
-      return;
-    }
-
-    // Dedup: load existing memories and skip exact matches
-    const existingMemories = await operations.getActiveMemories(
-      this.db,
-      projectId,
-      contextKey,
-      MEMORY_CAP,
-    );
-    const existingContentLower = new Set(
-      existingMemories.map((m) => m.content.toLowerCase()),
-    );
-
-    let insertedCount = 0;
-    for (const extracted of extractedMemories) {
-      if (existingContentLower.has(extracted.content.toLowerCase())) {
-        continue;
+      // Only extract from conversations with enough substance
+      if (messages.length < MIN_MESSAGES_FOR_EXTRACTION) {
+        return;
       }
 
-      await operations.createMemory(this.db, {
+      // Take only recent messages for extraction
+      const recentMessages = messages.slice(-MAX_EXTRACTION_MESSAGES);
+
+      // Call the LLM for extraction
+      const rawResponse = await callMemoryExtractionLLM(
+        tamboBackend.llmClient,
+        recentMessages,
+      );
+
+      if (!rawResponse) {
+        this.logger.warn(
+          `Memory extraction returned no content for ${rateLimitKey}`,
+        );
+        return;
+      }
+
+      // Parse JSON from LLM response (may be wrapped in markdown code blocks)
+      const jsonStr = extractJsonFromResponse(rawResponse);
+      if (!jsonStr) {
+        this.logger.warn(
+          `Memory extraction returned unparseable response for ${rateLimitKey}`,
+        );
+        return;
+      }
+
+      let parsed: unknown;
+      try {
+        parsed = JSON.parse(jsonStr);
+      } catch {
+        this.logger.warn(
+          `Memory extraction returned invalid JSON for ${rateLimitKey}`,
+        );
+        return;
+      }
+
+      // Validate with Zod
+      const result = memoryExtractionResponseSchema.safeParse(parsed);
+      if (!result.success) {
+        this.logger.warn(
+          `Memory extraction response failed validation for ${rateLimitKey}: ${result.error.message}`,
+        );
+        return;
+      }
+
+      const { memories: extractedMemories } = result.data;
+      if (extractedMemories.length === 0) {
+        return;
+      }
+
+      // Dedup: load existing memories and skip exact matches
+      const existingMemories = await operations.getActiveMemories(
+        this.db,
         projectId,
         contextKey,
-        content: extracted.content,
-        category: extracted.category,
-        importance: extracted.importance as MemoryImportance,
-      });
-      insertedCount++;
-      // Add to dedup set so subsequent memories in this batch don't duplicate
-      existingContentLower.add(extracted.content.toLowerCase());
-    }
+        MEMORY_CAP,
+      );
+      const existingContentLower = new Set(
+        existingMemories.map((m) => m.content.toLowerCase()),
+      );
 
-    if (insertedCount > 0) {
-      this.logger.log(
-        `Extracted ${insertedCount} new memories for ${rateLimitKey}`,
+      let insertedCount = 0;
+      for (const extracted of extractedMemories) {
+        if (existingContentLower.has(extracted.content.toLowerCase())) {
+          continue;
+        }
+
+        await operations.createMemory(this.db, {
+          projectId,
+          contextKey,
+          content: extracted.content,
+          category: extracted.category,
+          importance: extracted.importance as MemoryImportance,
+        });
+        insertedCount++;
+        // Add to dedup set so subsequent memories in this batch don't duplicate
+        existingContentLower.add(extracted.content.toLowerCase());
+      }
+
+      if (insertedCount > 0) {
+        this.logger.log(
+          `Extracted ${insertedCount} new memories for ${rateLimitKey}`,
+        );
+      }
+
+      // Enforce cap: evict excess if over limit
+      await operations.evictExcessMemories(
+        this.db,
+        projectId,
+        contextKey,
+        MEMORY_CAP,
+      );
+    } catch (error: unknown) {
+      this.logger.error(
+        `Memory extraction failed for ${rateLimitKey}: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
       );
     }
-
-    // Enforce cap: evict excess if over limit
-    await operations.evictExcessMemories(
-      this.db,
-      projectId,
-      contextKey,
-      MEMORY_CAP,
-    );
   }
 }
 

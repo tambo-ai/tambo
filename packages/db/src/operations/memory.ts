@@ -124,41 +124,52 @@ export async function supersedeMemory(
     newImportance?: MemoryImportance;
   },
 ): Promise<DBMemory> {
-  // Look up the existing memory to derive scoping fields
-  const existing = await db.query.memories.findFirst({
-    where: and(
-      eq(schema.memories.id, params.existingId),
-      isNull(schema.memories.deletedAt),
-    ),
+  // Must run in a transaction to prevent orphaned duplicates on partial failure
+  const dbWithTx = db as import("../types").HydraDatabase;
+  return await dbWithTx.transaction(async (tx) => {
+    // Look up the existing memory to derive scoping fields
+    const existing = await tx.query.memories.findFirst({
+      where: and(
+        eq(schema.memories.id, params.existingId),
+        isNull(schema.memories.deletedAt),
+      ),
+    });
+
+    if (!existing) {
+      throw new Error(
+        `Memory ${params.existingId} not found or already deleted`,
+      );
+    }
+
+    // Create the replacement memory
+    const [newMemory] = await tx
+      .insert(schema.memories)
+      .values({
+        projectId: existing.projectId,
+        contextKey: existing.contextKey,
+        content: params.newContent,
+        category: params.newCategory,
+        importance: params.newImportance ?? 3,
+      })
+      .returning();
+
+    // Mark the old memory as superseded (re-check deletedAt for TOCTOU safety)
+    await tx
+      .update(schema.memories)
+      .set({
+        deletedAt: sql`now()`,
+        supersededBy: newMemory.id,
+        updatedAt: sql`now()`,
+      })
+      .where(
+        and(
+          eq(schema.memories.id, params.existingId),
+          isNull(schema.memories.deletedAt),
+        ),
+      );
+
+    return newMemory;
   });
-
-  if (!existing) {
-    throw new Error(`Memory ${params.existingId} not found or already deleted`);
-  }
-
-  // Create the replacement memory
-  const [newMemory] = await db
-    .insert(schema.memories)
-    .values({
-      projectId: existing.projectId,
-      contextKey: existing.contextKey,
-      content: params.newContent,
-      category: params.newCategory,
-      importance: params.newImportance ?? 3,
-    })
-    .returning();
-
-  // Mark the old memory as superseded
-  await db
-    .update(schema.memories)
-    .set({
-      deletedAt: sql`now()`,
-      supersededBy: newMemory.id,
-      updatedAt: sql`now()`,
-    })
-    .where(eq(schema.memories.id, params.existingId));
-
-  return newMemory;
 }
 
 /**
@@ -195,46 +206,28 @@ export async function evictExcessMemories(
   contextKey: string,
   cap: number = 200,
 ): Promise<number> {
-  // Get IDs of memories that should be kept (top `cap` by importance/recency)
-  const keepMemories = await db.query.memories.findMany({
-    columns: { id: true },
-    where: and(
-      eq(schema.memories.projectId, projectId),
-      eq(schema.memories.contextKey, contextKey),
-      isNull(schema.memories.deletedAt),
-    ),
-    orderBy: [
-      desc(schema.memories.importance),
-      desc(schema.memories.createdAt),
-    ],
-    limit: cap,
-  });
-
-  const keepIds = new Set(keepMemories.map((m) => m.id));
-
-  // Get all active memories to find ones to evict
-  const allActive = await db.query.memories.findMany({
-    columns: { id: true },
-    where: and(
-      eq(schema.memories.projectId, projectId),
-      eq(schema.memories.contextKey, contextKey),
-      isNull(schema.memories.deletedAt),
-    ),
-  });
-
-  const evictIds = allActive.filter((m) => !keepIds.has(m.id)).map((m) => m.id);
-  if (evictIds.length === 0) return 0;
-
-  // Soft-delete the excess memories
-  for (const id of evictIds) {
-    await db
-      .update(schema.memories)
-      .set({
-        deletedAt: sql`now()`,
-        updatedAt: sql`now()`,
-      })
-      .where(eq(schema.memories.id, id));
-  }
-
-  return evictIds.length;
+  // Single SQL: soft-delete all active memories NOT in the top `cap` by importance/recency
+  const result = await db
+    .update(schema.memories)
+    .set({
+      deletedAt: sql`now()`,
+      updatedAt: sql`now()`,
+    })
+    .where(
+      and(
+        eq(schema.memories.projectId, projectId),
+        eq(schema.memories.contextKey, contextKey),
+        isNull(schema.memories.deletedAt),
+        sql`${schema.memories.id} NOT IN (
+          SELECT id FROM memories
+          WHERE project_id = ${projectId}
+            AND context_key = ${contextKey}
+            AND deleted_at IS NULL
+          ORDER BY importance DESC, created_at DESC
+          LIMIT ${cap}
+        )`,
+      ),
+    )
+    .returning({ id: schema.memories.id });
+  return result.length;
 }

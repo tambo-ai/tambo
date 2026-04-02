@@ -24,6 +24,7 @@ import type { MemoryImportance } from "@tambo-ai-cloud/core";
 import { type HydraDatabase, operations } from "@tambo-ai-cloud/db";
 import type { Request } from "express";
 import { DATABASE } from "../common/database-provider";
+import { CreateMemoryDto } from "./dto/create-memory.dto";
 import { ApiKeyGuard } from "../projects/guards/apikey.guard";
 import { BearerTokenGuard } from "../projects/guards/bearer-token.guard";
 import { getV1ContextInfo } from "../v1/utils/get-v1-context-info";
@@ -69,16 +70,7 @@ export class MemoryController {
       "Create a new memory for a user within the authenticated project.",
   })
   @ApiResponse({ status: 201, description: "Memory created" })
-  async createMemory(
-    @Req() request: Request,
-    @Body()
-    body: {
-      userKey?: string;
-      content: string;
-      category: "preference" | "fact" | "goal" | "relationship";
-      importance?: number;
-    },
-  ) {
+  async createMemory(@Req() request: Request, @Body() body: CreateMemoryDto) {
     const { projectId, contextKey } = getV1ContextInfo(request, body.userKey);
     const memory = await operations.createMemory(this.db, {
       projectId,

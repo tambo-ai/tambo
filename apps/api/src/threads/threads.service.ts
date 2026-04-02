@@ -96,7 +96,11 @@ import {
 } from "./util/tool-call-tracking";
 import { createAttachmentFetcher } from "./util/attachment-fetcher";
 import { MemoryExtractionService } from "../memory/memory-extraction.service";
-import { memoryToolDefinitions } from "../memory/memory-tools";
+import {
+  executeMemoryToolCall,
+  isMemoryToolCall,
+  memoryToolDefinitions,
+} from "../memory/memory-tools";
 import { SkillsService } from "../skills/skills.service";
 import type {
   MemoryImportance,
@@ -1212,20 +1216,13 @@ export class ThreadsService {
         project?.memoryToolsEnabled && project?.memoryEnabled,
       );
 
-      // Fire-and-forget memory extraction after successful streaming
+      // Fire-and-forget memory extraction after successful streaming.
+      // Pass the pre-streaming messages — the extraction service slices to the
+      // last 20 internally, and these contain the user messages which hold the
+      // key facts. Avoids an expensive full re-fetch of all thread messages.
       if (project?.memoryEnabled && contextKey) {
-        // Re-fetch messages to include the assistant response
-        const updatedMessages = await this.getMessages({
-          threadId: thread.id,
-          includeSystem: false,
-        });
         void this.memoryExtractionService
-          .extractAndSaveMemories(
-            projectId,
-            contextKey,
-            updatedMessages,
-            tamboBackend,
-          )
+          .extractAndSaveMemories(projectId, contextKey, messages, tamboBackend)
           .catch((error: unknown) => {
             this.logger.error(
               `Memory extraction failed for project ${projectId}, context ${contextKey}: ${error instanceof Error ? error.message : String(error)}`,
@@ -2125,6 +2122,79 @@ export class ThreadsService {
             tool_call_id: toolCallId,
             actionType: ActionType.ToolResponse,
             component: finalThreadMessage.component as ComponentDecisionV2Dto,
+          },
+          availableComponents: originalRequest.availableComponents,
+          contextKey: originalRequest.contextKey,
+        };
+
+        await this.advanceThread(
+          contextInfo,
+          toolResponseAdvanceDto,
+          threadId,
+          updatedToolCallCounts,
+          allTools,
+          queue,
+        );
+
+        return;
+      }
+
+      // Check if this is a memory tool call — execute server-side and continue the loop
+      if (toolCallRequest && isMemoryToolCall(toolCallRequest.toolName)) {
+        const toolCallId = finalThreadMessage.tool_call_id;
+        if (!toolCallId) {
+          Sentry.captureMessage(
+            "Missing memory tool call ID in stream",
+            "warning",
+          );
+          return;
+        }
+
+        // Convert parameters array to a record for the tool executor
+        const toolArgs: Record<string, unknown> = {};
+        for (const param of toolCallRequest.parameters) {
+          toolArgs[param.parameterName] = param.parameterValue;
+        }
+
+        // Execute the memory tool server-side
+        const result = await executeMemoryToolCall(
+          db,
+          toolCallRequest.toolName,
+          toolArgs,
+          projectId,
+          contextInfo.contextKey ?? "",
+        );
+
+        // Yield the assistant message with the tool call stripped (handled server-side)
+        queue.push({
+          response: {
+            responseMessageDto: {
+              ...finalThreadMessage,
+              content: convertContentPartToDto(finalThreadMessage.content),
+              componentState: finalThreadMessage.componentState ?? {},
+              toolCallRequest: undefined,
+              tool_call_id: undefined,
+              component: finalThreadMessage.component as ComponentDecisionV2Dto,
+            },
+            generationStage: resultingGenerationStage,
+            statusMessage: resultingStatusMessage,
+            ...(mcpAccessToken && { mcpAccessToken }),
+          },
+          aguiEvents: [],
+        });
+
+        // Continue the decision loop with the tool response
+        const updatedToolCallCounts = updateToolCallCounts(
+          toolCallCounts,
+          toolCallRequest,
+        );
+
+        const toolResponseAdvanceDto: AdvanceThreadDto = {
+          messageToAppend: {
+            role: MessageRole.Tool,
+            content: [{ type: ContentPartType.Text, text: result }],
+            tool_call_id: toolCallId,
+            actionType: ActionType.ToolResponse,
           },
           availableComponents: originalRequest.availableComponents,
           contextKey: originalRequest.contextKey,

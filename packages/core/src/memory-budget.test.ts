@@ -77,20 +77,22 @@ describe("formatMemoriesForPrompt", () => {
     expect(formatMemoriesForPrompt([])).toBe("");
   });
 
-  it("formats memories with IDs and importance", () => {
+  it("formats memories with IDs, importance, and XML delimiters", () => {
     const memories = [
       makeMemory("mem_abc", "Prefers dark mode", 5),
       makeMemory("mem_def", "Works at Acme Corp", 3),
     ];
     const result = formatMemoriesForPrompt(memories);
     expect(result).toBe(
-      "- [mem_abc] (importance: 5) Prefers dark mode\n- [mem_def] (importance: 3) Works at Acme Corp",
+      "<memory_data>\n- [mem_abc] (importance: 5) Prefers dark mode\n- [mem_def] (importance: 3) Works at Acme Corp\n</memory_data>",
     );
   });
 
-  it("formats a single memory", () => {
+  it("wraps single memory in XML delimiters", () => {
     const memories = [makeMemory("mem_1", "Uses TypeScript", 4)];
     const result = formatMemoriesForPrompt(memories);
-    expect(result).toBe("- [mem_1] (importance: 4) Uses TypeScript");
+    expect(result).toBe(
+      "<memory_data>\n- [mem_1] (importance: 4) Uses TypeScript\n</memory_data>",
+    );
   });
 });
