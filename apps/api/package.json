@@ -28,7 +28,7 @@
     "@ag-ui/client": "0.0.44",
     "@ag-ui/crewai": "^0.0.3",
     "@ag-ui/llamaindex": "^0.1.5",
-    "@anthropic-ai/sdk": "^0.80.0",
+    "@anthropic-ai/sdk": "^0.81.0",
     "@langfuse/otel": "^4.5.1",
     "@nestjs/common": "^11.1.17",
     "@nestjs/config": "^4.0.3",
