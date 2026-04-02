@@ -95,6 +95,8 @@ import {
   updateToolCallCounts,
 } from "./util/tool-call-tracking";
 import { createAttachmentFetcher } from "./util/attachment-fetcher";
+import { MemoryExtractionService } from "../memory/memory-extraction.service";
+import { memoryToolDefinitions } from "../memory/memory-tools";
 import { SkillsService } from "../skills/skills.service";
 import type {
   MemoryImportance,
@@ -120,6 +122,7 @@ export class ThreadsService {
     private readonly storageConfig: StorageConfigService,
     private readonly analytics: AnalyticsService,
     private readonly skillsService: SkillsService,
+    private readonly memoryExtractionService: MemoryExtractionService,
   ) {}
 
   getDb() {
@@ -1206,7 +1209,29 @@ export class ThreadsService {
         abortSignal,
         providerSkills,
         memoriesText,
+        project?.memoryToolsEnabled && project?.memoryEnabled,
       );
+
+      // Fire-and-forget memory extraction after successful streaming
+      if (project?.memoryEnabled && contextKey) {
+        // Re-fetch messages to include the assistant response
+        const updatedMessages = await this.getMessages({
+          threadId: thread.id,
+          includeSystem: false,
+        });
+        void this.memoryExtractionService
+          .extractAndSaveMemories(
+            projectId,
+            contextKey,
+            updatedMessages,
+            tamboBackend,
+          )
+          .catch((error: unknown) => {
+            this.logger.error(
+              `Memory extraction failed for project ${projectId}, context ${contextKey}: ${error instanceof Error ? error.message : String(error)}`,
+            );
+          });
+      }
     } catch (error) {
       queue.fail(error);
       // Capture any errors with full context
@@ -1348,6 +1373,7 @@ export class ThreadsService {
     abortSignal?: AbortSignal,
     providerSkills?: ProviderSkillConfig,
     memories?: string,
+    memoryToolsEnabled?: boolean,
   ): Promise<void> {
     return await Sentry.startSpan(
       {
@@ -1381,6 +1407,7 @@ export class ThreadsService {
           abortSignal,
           providerSkills,
           memories,
+          memoryToolsEnabled,
         ),
     );
   }
@@ -1407,6 +1434,7 @@ export class ThreadsService {
     abortSignal?: AbortSignal,
     providerSkills?: ProviderSkillConfig,
     memories?: string,
+    memoryToolsEnabled?: boolean,
   ): Promise<void> {
     const { projectId } = contextInfo;
     // Create internal abort controller for this streaming session.
@@ -1471,10 +1499,14 @@ export class ThreadsService {
           throw error;
         }
 
-        const { originalTools, strictTools } = getToolsFromSources(
-          allTools,
-          advanceRequestDto.availableComponents ?? [],
-        );
+        const { originalTools, strictTools: baseStrictTools } =
+          getToolsFromSources(
+            allTools,
+            advanceRequestDto.availableComponents ?? [],
+          );
+        const strictTools = memoryToolsEnabled
+          ? [...baseStrictTools, ...memoryToolDefinitions]
+          : baseStrictTools;
 
         // Track decision loop execution
         const decisionLoopSpan = Sentry.startInactiveSpan({
@@ -1548,10 +1580,14 @@ export class ThreadsService {
         },
       });
 
-      const { originalTools, strictTools } = getToolsFromSources(
-        allTools,
-        advanceRequestDto.availableComponents ?? [],
-      );
+      const { originalTools, strictTools: baseStrictTools2 } =
+        getToolsFromSources(
+          allTools,
+          advanceRequestDto.availableComponents ?? [],
+        );
+      const strictTools = memoryToolsEnabled
+        ? [...baseStrictTools2, ...memoryToolDefinitions]
+        : baseStrictTools2;
 
       // Track available tools
       Sentry.setContext("availableTools", {

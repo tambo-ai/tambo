@@ -43,3 +43,4 @@ export {
   providerSupportsSkills,
 } from "./services/skills/provider-skill-client";
 export * from "./util/tambo-custom-events";
+export { callMemoryExtractionLLM } from "./prompt/memory-extraction-prompt";
