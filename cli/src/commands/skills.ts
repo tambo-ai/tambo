@@ -456,7 +456,29 @@ export async function handleSkills(
   let projectId: string;
   try {
     projectId = await resolveProjectId();
-  } catch {
+  } catch (error) {
+    // resolveProjectId already prints messages for known errors (no key,
+    // no session). For API/network errors, show a generic message -- don't
+    // surface internal tRPC details to end users.
+    if (isAuthError(error)) {
+      console.error(
+        chalk.gray(
+          `Session expired. Run ${chalk.cyan("tambo auth login")} to re-authenticate.`,
+        ),
+      );
+    } else if (
+      error instanceof Error &&
+      !error.message.startsWith("Missing both") &&
+      !error.message.startsWith("Not authenticated") &&
+      !error.message.startsWith("No API key")
+    ) {
+      console.error(chalk.red("\nFailed to resolve project."));
+      console.error(
+        chalk.gray(
+          `Check your internet connection and try again. If the problem persists, run ${chalk.cyan("tambo init")} to reconfigure.`,
+        ),
+      );
+    }
     process.exit(1);
     return;
   }
