@@ -14,7 +14,6 @@ import { isInteractive } from "../utils/interactive.js";
  * Result of a completed device auth flow.
  */
 export interface DeviceAuthResult {
-  status: "authenticated";
   sessionToken: string;
   user: { id: string; email: string | null; name: string | null };
 }
@@ -51,7 +50,6 @@ async function sleep(ms: number): Promise<void> {
  * @throws DeviceAuthError if auth fails
  */
 export async function runDeviceAuthFlow(): Promise<DeviceAuthResult> {
-  const nonInteractive = !isInteractive();
   // Step 1: Initiate the device auth flow
   console.log(chalk.gray("\nInitiating device authentication..."));
 
@@ -90,7 +88,7 @@ export async function runDeviceAuthFlow(): Promise<DeviceAuthResult> {
   }
 
   // In non-interactive mode (agents, CI), output raw URL for machine parsing
-  if (nonInteractive) {
+  if (!isInteractive()) {
     console.log(verificationUriComplete);
   }
 
@@ -100,7 +98,7 @@ export async function runDeviceAuthFlow(): Promise<DeviceAuthResult> {
     await open(verificationUriComplete);
     console.log(chalk.gray("   Browser opened for authentication\n"));
   } catch {
-    if (!nonInteractive) {
+    if (isInteractive()) {
       console.log(
         chalk.yellow(
           `   Could not open browser automatically. Please visit the URL above.\n`,
@@ -166,7 +164,6 @@ export async function runDeviceAuthFlow(): Promise<DeviceAuthResult> {
           userSpinner.stop();
 
           return {
-            status: "authenticated",
             sessionToken: pollResponse.sessionToken,
             user: completeTokenData.user,
           };
@@ -288,7 +285,7 @@ export async function runDeviceAuthFlow(): Promise<DeviceAuthResult> {
  * @param expiresAt - The token expiry timestamp
  * @returns The saved token data
  */
-export async function exchangeAndSaveToken(
+async function exchangeAndSaveToken(
   sessionToken: string,
   expiresAt: string,
 ): Promise<StoredToken> {

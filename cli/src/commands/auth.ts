@@ -156,7 +156,11 @@ export async function handleAuthLogin(): Promise<number> {
 
     if (!isInteractive()) {
       // Already authenticated in non-interactive mode is a clean no-op
-      console.log(chalk.gray("\nUse --force to re-authenticate.\n"));
+      console.log(
+        chalk.gray(
+          "\nRun `tambo auth logout --force` then `tambo auth login` to re-authenticate.\n",
+        ),
+      );
       return 0;
     }
 

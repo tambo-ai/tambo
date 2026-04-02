@@ -155,8 +155,7 @@ jest.unstable_mockModule("ora", () => ({
 // Mock device-auth module for new auth flow
 let mockIsTokenValid = false;
 let mockVerifySession = true;
-let mockRunDeviceAuthFlowResult: Record<string, unknown> = {
-  status: "authenticated",
+let mockRunDeviceAuthFlowResult = {
   sessionToken: "mock-session-token",
   user: {
     id: "mock-user-id",
@@ -352,7 +351,6 @@ describe("handleInit", () => {
     mockProjects = [];
     mockGeneratedApiKey = "test-api-key-123";
     mockRunDeviceAuthFlowResult = {
-      status: "authenticated",
       sessionToken: "mock-session-token",
       user: {
         id: "mock-user-id",
@@ -455,7 +453,6 @@ describe("handleInit", () => {
 
     it("should complete auth and continue when device auth succeeds", async () => {
       mockRunDeviceAuthFlowResult = {
-        status: "authenticated",
         sessionToken: "test-token",
         user: { id: "u1", email: "test@test.com", name: "Test" },
       };

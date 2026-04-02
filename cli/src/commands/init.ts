@@ -353,12 +353,8 @@ async function handleAuthentication(): Promise<boolean> {
       console.log(chalk.yellow("\n⚠ Session expired, please re-authenticate"));
     }
 
-    // Run device auth flow
+    // Run device auth flow (throws on failure)
     const authResult = await runDeviceAuthFlow();
-
-    if (authResult.status !== "authenticated") {
-      return false;
-    }
 
     console.log(
       chalk.green(
