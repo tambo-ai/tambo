@@ -16,12 +16,6 @@ Claude Code skills are specialized prompts that give Claude detailed instruction
 
 > Note: Weekly release summaries now live as Charlie proactive playbooks under `.charlie/playbooks/`.
 
-### Tambo Cloud Component Factory
-
-**When to use:** When adding a new feature to Tambo Cloud that spans database, tRPC, and UI (apps/web + packages/db). Guides the full end-to-end wiring from Drizzle schema through DB operations, tRPC router, settings UI with interactable wrapping, settings page registration, and tests. Includes a gotchas section with the most common mistakes agents make (wrong import paths, missing `.describe()` on Zod fields, etc.).
-
-**Details:** See `devdocs/skills/tambo-cloud-component-factory/SKILL.md`
-
 ## Creating New Skills
 
 To create a new skill for this repository:
