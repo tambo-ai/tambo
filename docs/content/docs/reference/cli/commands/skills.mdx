@@ -98,19 +98,21 @@ Your instructions go here. Full markdown is supported.
 ```
 
 **Name requirements:**
+
 - Kebab-case only (lowercase letters, numbers, hyphens)
 - Maximum 200 characters
 
 **Limits:**
+
 - Description: 2,000 characters
 - Instructions: 100,000 characters
 
 ## Options
 
-| Option | Description |
-|--------|-------------|
+| Option        | Description                             |
+| ------------- | --------------------------------------- |
 | `--force, -f` | Skip confirmation prompts (delete only) |
-| `--help` | Show help |
+| `--help`      | Show help                               |
 
 ## Authentication
 
@@ -128,6 +130,7 @@ npx tambo skills delete my-skill --force
 ```
 
 Exit codes:
+
 - `0` -- success
 - `1` -- error (invalid file, skill not found, auth failure)
 - `2` -- user action required (non-interactive mode needs flags)

@@ -6,7 +6,7 @@ import ora from "ora";
 import {
   parseSkillContent,
   reconstructSkillContent,
-} from "@tambo-ai-cloud/core";
+} from "../utils/skill-frontmatter.js";
 import type { Skill } from "../lib/api-client.js";
 import { api, isAuthError } from "../lib/api-client.js";
 import { hasStoredToken, isTokenValid } from "../lib/token-storage.js";
