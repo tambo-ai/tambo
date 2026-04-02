@@ -398,12 +398,12 @@ async function handleDelete(
 
 function isConflictError(error: unknown): boolean {
   if (!(error instanceof Error) || !("data" in error)) return false;
-  const data = (error as { data: unknown }).data;
+  const { data } = error;
   return (
     data !== null &&
     typeof data === "object" &&
     "code" in data &&
-    (data as { code: unknown }).code === "CONFLICT"
+    data.code === "CONFLICT"
   );
 }
 
