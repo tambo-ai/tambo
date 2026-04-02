@@ -12,61 +12,51 @@ Claude Code skills are specialized prompts that give Claude detailed instruction
 
 **When to use:** After AI providers announce new models, monthly maintenance checks, or when TypeScript errors about model IDs appear.
 
-**Details:** See `devdocs/skills/ai-sdk-model-manager/SKILL.md`
+**Details:** See `.claude/skills/ai-sdk-model-manager/SKILL.md`
 
 > Note: Weekly release summaries now live as Charlie proactive playbooks under `.charlie/playbooks/`.
-
-### Compound Components
-
-**When to use:** When building headless UI primitives, creating Radix-style namespaced compound components, or implementing render props patterns. Separates business logic from styles.
-
-**Details:** See `devdocs/skills/compound-components/SKILL.md`
-
-### Styled Wrappers
-
-**When to use:** When creating styled wrapper components that compose headless/base compound components, refactoring styled components to use base primitives, or implementing opinionated design systems on top of headless components.
-
-**Details:** See `devdocs/skills/creating-styled-wrappers/SKILL.md`
-
-### Settings Component Patterns
-
-**When to use:** When building or modifying any settings UI in `apps/web`, even for implicit tasks like "add a toggle" or "let users delete X." Covers Card layout, toasts, confirmation dialogs, destructive styling, and save behaviors. Includes a validation script. Not for feature placement decisions (use Settings Feature Placement).
-
-**Details:** See `devdocs/skills/settings-component-patterns/SKILL.md`
-
-### Accessibility Checklist
-
-**When to use:** When creating, modifying, or reviewing any `.tsx` component in `apps/web`, even if accessibility isn't explicitly mentioned. Covers semantic HTML, aria labels, landmarks, forms, dialogs, and keyboard navigation. Includes a scan script that finds violations automatically. Not for styling/layout changes without interactive elements.
-
-**Details:** See `devdocs/skills/accessibility-checklist/SKILL.md`
-
-### Settings Feature Placement
-
-**When to use:** When deciding where a new feature belongs in the dashboard, even for implicit requests like "add model selection" or "add a billing page." Covers the project vs agent settings split, feature dependencies, and route structure. Not for how to build the UI (use Settings Component Patterns).
-
-**Details:** See `devdocs/skills/settings-feature-placement/SKILL.md`
 
 ## Creating New Skills
 
 To create a new skill for this repository:
 
-1. Create a directory in `devdocs/skills/your-skill-name/`
+1. Create a directory in `.claude/skills/your-skill-name/`
 2. Add a `SKILL.md` file with YAML frontmatter:
 
 ```markdown
 ---
 name: your-skill-name
-description: A clear description of what this skill does and when to use it (max 1024 chars)
-metadata:
-  internal: true
+description: A clear description of what this skill does and when to use it (max 200 chars)
 ---
 
 # Your Skill Name
 
 [Detailed instructions for Claude to follow]
+
+## What This Skill Does
+
+[Bullet points]
+
+## When to Use This Skill
+
+[Scenarios]
+
+## Process
+
+[Step-by-step instructions]
+
+## Guidelines
+
+[Best practices and constraints]
 ```
 
-3. Document it in this file (devdocs/CLAUDE_SKILLS.md)
+3. Copy to user's skills directory for Claude Code to recognize it:
+
+```bash
+cp -r .claude/skills/your-skill-name ~/.claude/skills/
+```
+
+4. Document it in this file (devdocs/CLAUDE_SKILLS.md)
 
 ## Skill Best Practices
 
