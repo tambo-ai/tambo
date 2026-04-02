@@ -133,9 +133,12 @@ export const InputFields = React.forwardRef<HTMLDivElement, InputFieldsProps>(
      * Component state managed by Tambo
      * Stores all input field values
      */
-    const [state, setState] = useTamboComponentState(inputFieldsId, {
-      values: {},
-    });
+    const [state, setState] = useTamboComponentState<InputFieldsState>(
+      inputFieldsId,
+      {
+        values: {},
+      },
+    );
 
     /**
      * Filtered list of valid input fields
