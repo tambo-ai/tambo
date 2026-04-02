@@ -44,7 +44,7 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
-import { EditWithTamboButton } from "@tambo-ai/react";
+import { EditWithTamboButton } from "@/components/ui/tambo/edit-with-tambo-button";
 
 <Card>
   <CardHeader>
