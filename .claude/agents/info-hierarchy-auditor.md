@@ -1,6 +1,6 @@
 ---
 name: info-hierarchy-auditor
-description: Audits the Tambo Cloud dashboard information hierarchy -- maps what lives where, flags misplaced features, and detects drift from documented structure
+description: Audits the Tambo Cloud dashboard information hierarchy -- maps routes, navigation, and settings sections; flags misplaced features; and detects drift from documented structure. Use to validate navigation reachability, settings categorization, and feature dependency documentation.
 tools: Read, Glob, Grep, Bash
 ---
 
@@ -32,7 +32,7 @@ Cross-reference: are all routes reachable from the navigation? Are there navigat
 For each section in the settings page:
 
 - Name and component file
-- Category (Agent vs Project -- use the `settings-feature-placement` skill's categories)
+- Category (Agent vs Project -- classify by whether the setting configures the AI agent's behavior or the project's infrastructure)
 - Whether it's in the correct category
 - Any feature dependencies (check for conditional rendering, disabled states, provider checks)
 
@@ -52,8 +52,7 @@ Compare the current state against what's documented in:
 
 - `apps/web/AGENTS.md`
 - `apps/web/README.md`
-- `devdocs/skills/settings-feature-placement/SKILL.md`
-- `devdocs/skills/feature-dependency-graph/SKILL.md`
+- `.claude/skills/feature-dependency-graph/SKILL.md`
 
 Flag any discrepancies: new routes not documented, settings sections added without updating the feature placement skill, new dependencies not in the graph.
 
