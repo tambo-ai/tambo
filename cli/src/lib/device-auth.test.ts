@@ -65,8 +65,10 @@ jest.unstable_mockModule("./api-client.js", () => ({
       initiate: {
         mutate: async () => {
           if (mockInitiateShouldFail) {
-            const err = new Error("Server error");
-            (err as Record<string, unknown>).statusCode = 500;
+            const err = new Error("Server error") as Error & {
+              statusCode?: number;
+            };
+            err.statusCode = 500;
             throw err;
           }
           return {
