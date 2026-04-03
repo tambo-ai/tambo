@@ -99,7 +99,7 @@ In general, try to fit changes into the following categories. If you can't find 
    - integrate - Adding Tambo to existing projects
    - components - Understanding registration patterns
 
-2. **Concepts** (10 pages across subsections)
+2. **Concepts** (11 pages across subsections)
    - **generative-interfaces/** (4 pages including index)
      - generative-components
      - interactable-components
@@ -111,10 +111,13 @@ In general, try to fit changes into the following categories. If you can't find 
    - tools - Function calling, schemas, orchestration
    - additional-context - Configuration, custom helpers, context attachments
    - conversation-storage - Message threads, history management, status tracking
+   - skills - Reusable instruction sets that run in the provider's sandbox
    - agent-configuration - AI personality and behavior
    - user-authentication - OAuth providers, session management, context keys
 
-3. **Guides** (26 pages across 8 subsections)
+3. **Guides** (27 pages across 8 subsections)
+   - coding-agent-skills - Install Tambo skills for AI coding agents
+   - manage-skills - Create, import, and toggle project skills
    - **setup-project/** (3 pages)
      - create-project
      - agent-behavior
