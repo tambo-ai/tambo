@@ -270,10 +270,16 @@ export async function* runDecisionLoop(
           ? (componentId ?? accumulatedDecision.componentId)
           : undefined,
         props: isUITool ? filteredToolArgs : null,
-        toolCallRequest: clientToolRequest,
-        toolCallId: toolCall
-          ? getLLMResponseToolCallId(llmResponse)
-          : undefined,
+        // Only update toolCallRequest/toolCallId when we have new values.
+        // Provider-managed tools (skills) may fire multiple calls within one
+        // turn, causing intermediate yields with undefined tool call data
+        // that would overwrite previously accumulated values.
+        ...(clientToolRequest && {
+          toolCallRequest: clientToolRequest,
+        }),
+        ...(toolCall && {
+          toolCallId: getLLMResponseToolCallId(llmResponse),
+        }),
         statusMessage,
         completionStatusMessage,
         reasoning: llmResponse.reasoning ?? undefined,
