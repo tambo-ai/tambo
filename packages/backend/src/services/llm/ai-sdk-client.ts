@@ -666,11 +666,10 @@ export class AISdkClient implements LLMClient {
               "Tool result should not be emitted during streaming",
             );
           }
-          // Clear accumulated tool call so subsequent chunks don't carry
-          // the provider-executed tool as an unresolved client tool call.
-          accumulatedToolCall.name = undefined;
-          accumulatedToolCall.arguments = "";
-          accumulatedToolCall.id = undefined;
+          // Keep the accumulated tool call data so it persists through
+          // subsequent yields and gets stored in the database. The threads
+          // service handles provider-managed tools by stripping them from
+          // client responses while keeping them in DB for observability.
           break;
         case "tool-error":
           throw delta.error;

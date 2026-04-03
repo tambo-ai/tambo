@@ -1987,6 +1987,46 @@ export class ThreadsService {
         return;
       }
 
+      // Check if this is a provider-managed tool (e.g. skill execution).
+      // These tools are already executed by the provider during streaming and
+      // persisted in DB by finishInProgressMessage above. Strip from client
+      // response since there's nothing for the client to execute.
+      if (
+        toolCallRequest &&
+        !isUiToolName(toolCallRequest.toolName) &&
+        !originalTools.some(
+          (tool) => getToolName(tool) === toolCallRequest.toolName,
+        )
+      ) {
+        this.logger.log(
+          `Provider-managed tool call "${toolCallRequest.toolName}" persisted for observability, skipping client execution`,
+        );
+        const {
+          toolCallRequest: _providerToolCallRequest,
+          tool_call_id: _providerToolCallId,
+          ...messageWithoutProviderToolCall
+        } = finalThreadMessage;
+        queue.push({
+          response: {
+            responseMessageDto: {
+              ...messageWithoutProviderToolCall,
+              content: convertContentPartToDto(
+                messageWithoutProviderToolCall.content,
+              ),
+              componentState:
+                messageWithoutProviderToolCall.componentState ?? {},
+              component:
+                messageWithoutProviderToolCall.component as ComponentDecisionV2Dto,
+            },
+            generationStage: resultingGenerationStage,
+            statusMessage: resultingStatusMessage,
+            ...(mcpAccessToken && { mcpAccessToken }),
+          },
+          aguiEvents: [],
+        });
+        return;
+      }
+
       // Check if this is a UI tool call - if so, auto-generate a tool response and continue the loop
       if (toolCallRequest && isUiToolName(toolCallRequest.toolName)) {
         // Yield the final response first
