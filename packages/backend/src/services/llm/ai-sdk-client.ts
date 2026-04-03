@@ -537,6 +537,11 @@ export class AISdkClient implements LLMClient {
     // Track component streaming for UI tools (show_component_*)
     let componentTracker: ComponentStreamTracker | undefined;
 
+    // Track whether the current tool call is a provider skill tool.
+    // Used to suppress TOOL_CALL_ARGS events so internal provider
+    // arguments (like SKILL.md paths) aren't exposed to clients.
+    let isProviderSkillTool = false;
+
     for await (const delta of result.fullStream) {
       // Collect AG-UI events for this delta
       const aguiEvents: BaseEvent[] = [];
@@ -575,7 +580,8 @@ export class AISdkClient implements LLMClient {
           break;
         case "tool-input-start": {
           // Replace provider skill tool names with a friendly display name
-          const displayToolName = PROVIDER_SKILL_TOOL_NAMES.has(delta.toolName)
+          isProviderSkillTool = PROVIDER_SKILL_TOOL_NAMES.has(delta.toolName);
+          const displayToolName = isProviderSkillTool
             ? SKILL_TOOL_DISPLAY_NAME
             : delta.toolName;
 
@@ -619,8 +625,10 @@ export class AISdkClient implements LLMClient {
               delta.delta,
             );
             aguiEvents.push(...componentEvents);
-          } else {
-            // V1: emit TOOL_CALL_ARGS immediately — delta.id is the toolCallId
+          } else if (!isProviderSkillTool) {
+            // V1: emit TOOL_CALL_ARGS immediately — delta.id is the toolCallId.
+            // Suppress for provider skill tools so internal arguments
+            // (like SKILL.md paths) aren't exposed to clients.
             aguiEvents.push({
               type: EventType.TOOL_CALL_ARGS,
               toolCallId: delta.id,
