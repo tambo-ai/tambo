@@ -29,9 +29,7 @@ export const ProjectTableContainerSchema = z.object({
 export function ProjectTableContainer({
   compact = true,
 }: ProjectTableContainerProps) {
-  const [selectedProjects, setSelectedProjects] = useState<Set<string>>(
-    new Set(),
-  );
+  const [selectedProjects, setSelectedProjects] = useState(new Set<string>());
 
   // Fetch projects with default sorting by most recent thread update
   const { data: projects } = api.project.getUserProjects.useQuery(undefined, {

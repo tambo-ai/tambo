@@ -163,9 +163,7 @@ export const ElicitationProvider = ({
       return initial;
     },
   );
-  const [touchedFields, setTouchedFields] = React.useState<Set<string>>(
-    new Set(),
-  );
+  const [touchedFields, setTouchedFields] = React.useState(new Set<string>());
 
   React.useEffect(() => {
     const initial: Record<string, unknown> = {};

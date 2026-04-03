@@ -78,12 +78,12 @@ export function McpServerEditor({
   projectId,
   redirectToAuth,
 }: McpServerEditorProps) {
-  const [mcpTransport, setMcpTransport] = useState<MCPTransport>(
+  const [mcpTransport, setMcpTransport] = useState(
     server.mcpTransport || MCPTransport.HTTP,
   );
   const [url, setUrl] = useState(server.url || (isNew ? "https://" : ""));
   const [serverKey, setServerKey] = useState(server.serverKey || "");
-  const [headers, setHeaders] = useState<HeaderKV[]>(
+  const [headers, setHeaders] = useState(
     Object.entries(server.customHeaders ?? {}).map(([header, value]) => ({
       header,
       value,

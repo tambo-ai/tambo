@@ -15,7 +15,7 @@ const contentRoot = join(__dirname, "content", "docs");
  * Recursively collect .mdx files under content/docs and derive URLs.
  * Uses the same base URL structure used by Fumadocs app route.
  */
-function collectDocPaths(dir, baseSegments = []) {
+function _collectDocPaths(dir, baseSegments = []) {
   const entries = readdirSync(dir);
   /** @type {string[]} */
   const paths = [];
@@ -23,7 +23,7 @@ function collectDocPaths(dir, baseSegments = []) {
     const full = join(dir, entry);
     const stats = statSync(full);
     if (stats.isDirectory()) {
-      paths.push(...collectDocPaths(full, [...baseSegments, entry]));
+      paths.push(..._collectDocPaths(full, [...baseSegments, entry]));
     } else if (entry.endsWith(".mdx")) {
       const name = entry.replace(/\.mdx$/, "");
       const segments =

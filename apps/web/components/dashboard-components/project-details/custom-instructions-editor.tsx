@@ -20,7 +20,7 @@ import { z } from "zod/v3";
 
 const COMPONENT_NAME = "CustomInstructions";
 
-const customInstructionsEditorSuggestions: Suggestion[] = [
+const _customInstructionsEditorSuggestions: Suggestion[] = [
   {
     id: "add-custom-instructions",
     title: "Add Custom Instructions",
@@ -94,14 +94,12 @@ export function CustomInstructionsEditor({
   const [savedValue, setSavedValue] = useState(customInstructions ?? "");
   const [displayValue, setDisplayValue] = useState(customInstructions ?? "");
   const { toast } = useToast();
-  const [allowSystemPromptOverride, setAllowSystemPromptOverride] = useState<
-    boolean | undefined
-  >(
+  const [allowSystemPromptOverride, setAllowSystemPromptOverride] = useState(
     allowSystemPromptOverrideProp === undefined
       ? undefined
       : Boolean(allowSystemPromptOverrideProp),
   );
-  const [savedToggleValue, setSavedToggleValue] = useState<boolean | undefined>(
+  const [savedToggleValue, setSavedToggleValue] = useState(
     allowSystemPromptOverrideProp === undefined
       ? undefined
       : Boolean(allowSystemPromptOverrideProp),

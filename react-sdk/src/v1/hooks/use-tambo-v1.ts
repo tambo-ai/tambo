@@ -217,7 +217,7 @@ export function useTambo(): UseTamboReturn {
 
   // Cache for rendered component wrappers - maintains stable element references
   // across renders when props haven't changed
-  const componentCacheRef = useRef<Map<string, ComponentCacheEntry>>(new Map());
+  const componentCacheRef = useRef(new Map<string, ComponentCacheEntry>());
 
   // Get thread state for the current thread
   const threadState = streamState.threadMap[streamState.currentThreadId];

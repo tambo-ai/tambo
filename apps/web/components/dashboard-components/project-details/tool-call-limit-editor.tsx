@@ -21,7 +21,7 @@ import { z } from "zod/v3";
 
 const COMPONENT_NAME = "ToolCallLimit";
 
-const toolCallLimitEditorSuggestions: Suggestion[] = [
+const _toolCallLimitEditorSuggestions: Suggestion[] = [
   {
     id: "fetch-tool-call-limit",
     title: "Fetch Tool Call Limit",

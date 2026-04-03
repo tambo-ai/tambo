@@ -54,18 +54,14 @@ export function useThreadList({
   projectId,
   onThreadsDeleted,
 }: UseThreadListProps): UseThreadListReturn {
-  const [selectedThreads, setSelectedThreads] = useState<Set<string>>(
-    new Set(),
-  );
+  const [selectedThreads, setSelectedThreads] = useState(new Set<string>());
   const [alertState, setAlertState] = useState<AlertState>({
     show: false,
     title: "",
     description: "",
   });
   const [isDeletingThreads, setIsDeletingThreads] = useState(false);
-  const [deletingThreadIds, setDeletingThreadIds] = useState<Set<string>>(
-    new Set(),
-  );
+  const [deletingThreadIds, setDeletingThreadIds] = useState(new Set<string>());
 
   const { toast } = useToast();
   const utils = api.useUtils();
