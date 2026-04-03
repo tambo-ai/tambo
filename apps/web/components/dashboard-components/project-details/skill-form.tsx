@@ -204,7 +204,7 @@ export function SkillForm({
           maxLength={200}
         />
         {showSlugPreview && (
-          <p className="mt-4 text-xs text-muted-foreground">
+          <p className="mt-1 text-xs text-muted-foreground">
             Will be saved as: <span className="font-mono">{slugifiedName}</span>
           </p>
         )}

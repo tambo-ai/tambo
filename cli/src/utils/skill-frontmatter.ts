@@ -13,22 +13,6 @@ import { load as parseYaml, dump as dumpYaml } from "js-yaml";
 // Duplicated from packages/core/src/skills.ts (same constraint as above).
 const SKILL_NAME_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
-/**
- * Convert a human-readable string into a valid kebab-case skill name.
- * Lowercases, replaces non-alphanumeric runs with a single hyphen,
- * and trims leading/trailing hyphens.
- * @returns A kebab-case slug suitable for use as a skill name, or an empty
- *   string if the input contains no alphanumeric characters.
- */
-export function toSkillSlug(input: string): string {
-  const slugged = input.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-  // Trim hyphens without regex to avoid CodeQL polynomial-backtracking warnings.
-  let start = 0;
-  while (start < slugged.length && slugged[start] === "-") start++;
-  let end = slugged.length;
-  while (end > start && slugged[end - 1] === "-") end--;
-  return slugged.slice(start, end);
-}
 const SKILL_NAME_MAX_LENGTH = 200;
 const SKILL_DESCRIPTION_MAX_LENGTH = 2000;
 const SKILL_INSTRUCTIONS_MAX_LENGTH = 100_000;
