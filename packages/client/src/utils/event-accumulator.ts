@@ -73,6 +73,12 @@ export interface ThreadState {
    * and thread re-fetch).
    */
   lastCompletedRunId?: string;
+  /**
+   * Index for O(1) content lookups.
+   * Maps content ID to {messageIndex, contentIndex}.
+   * Built incrementally as content blocks are created during streaming.
+   */
+  contentIndex: Map<string, ContentLocation>;
 }
 
 /**
@@ -203,6 +209,7 @@ export function createInitialThreadState(threadId: string): ThreadState {
     },
     streaming: initialStreamingState,
     accumulatingToolArgs: {},
+    contentIndex: new Map<string, ContentLocation>(),
   };
 }
 
@@ -325,12 +332,9 @@ function updateContentAtIndex(
 
 /**
  * Find a content block by ID across all messages, searching from most recent.
+ * Uses the contentIndex map for O(1) lookups when available.
  *
- * TODO: This is O(n*m) where n = messages and m = content blocks per message.
- * For high-frequency streaming with many messages, consider maintaining an
- * index map of contentId -> {messageIndex, contentIndex} that gets updated
- * when content blocks are created.
- * @param messages - Messages to search
+ * @param threadState - Current thread state containing the contentIndex
  * @param contentType - Type of content to find ("component" or "tool_use")
  * @param contentId - ID of the content block
  * @param eventName - Name of the event (for error messages)
@@ -338,11 +342,27 @@ function updateContentAtIndex(
  * @throws {Error} If content not found
  */
 function findContentById(
-  messages: TamboThreadMessage[],
+  threadState: ThreadState,
   contentType: "component" | "tool_use",
   contentId: string,
   eventName: string,
 ): ContentLocation {
+  // Try O(1) lookup first using the index
+  const indexedLocation = threadState.contentIndex.get(contentId);
+  if (indexedLocation) {
+    // Verify the content still exists and matches type
+    const messages = threadState.thread.messages;
+    const message = messages[indexedLocation.messageIndex];
+    if (message) {
+      const content = message.content[indexedLocation.contentIndex];
+      if (content && content.type === contentType && content.id === contentId) {
+        return indexedLocation;
+      }
+    }
+  }
+
+  // Fallback to linear search (for backwards compatibility or index miss)
+  const messages = threadState.thread.messages;
   for (let i = messages.length - 1; i >= 0; i--) {
     const idx = messages[i].content.findIndex(
       (c) => c.type === contentType && c.id === contentId,
@@ -975,6 +995,13 @@ function handleToolCallStart(
       createdAt: new Date().toISOString(),
     };
 
+    // Update content index with the new tool_use
+    const newIndex = new Map(threadState.contentIndex);
+    newIndex.set(event.toolCallId, {
+      messageIndex: messages.length,
+      contentIndex: 0,
+    });
+
     return {
       ...threadState,
       thread: {
@@ -986,6 +1013,7 @@ function handleToolCallStart(
         ...threadState.streaming,
         messageId: syntheticMessageId,
       },
+      contentIndex: newIndex,
     };
   }
 
@@ -995,6 +1023,13 @@ function handleToolCallStart(
     ...message,
     content: [...message.content, newContent],
   };
+
+  // Update content index with the new tool_use
+  const newIndex = new Map(threadState.contentIndex);
+  newIndex.set(event.toolCallId, {
+    messageIndex,
+    contentIndex: message.content.length,
+  });
 
   return updateThreadMessages(
     threadState,
@@ -1057,7 +1092,7 @@ function handleToolCallArgs(
   // Update the tool_use content block with partially parsed input
   const messages = threadState.thread.messages;
   const { messageIndex, contentIndex } = findContentById(
-    messages,
+    threadState,
     "tool_use",
     toolCallId,
     "TOOL_CALL_ARGS event",
@@ -1139,7 +1174,7 @@ function handleToolCallEnd(
 
   // Find the tool_use content block
   const { messageIndex, contentIndex } = findContentById(
-    messages,
+    threadState,
     "tool_use",
     toolCallId,
     "TOOL_CALL_END event",
@@ -1333,10 +1368,20 @@ function handleComponentStart(
     content: [...message.content, newContent],
   };
 
-  return updateThreadMessages(
-    threadState,
-    updateMessageAtIndex(messages, messageIndex, updatedMessage),
-  );
+  // Update content index with the new component
+  const newIndex = new Map(threadState.contentIndex);
+  newIndex.set(event.value.componentId, {
+    messageIndex,
+    contentIndex: message.content.length,
+  });
+
+  return {
+    ...updateThreadMessages(
+      threadState,
+      updateMessageAtIndex(messages, messageIndex, updatedMessage),
+    ),
+    contentIndex: newIndex,
+  };
 }
 
 /**
@@ -1359,7 +1404,7 @@ function handleComponentDelta(
 
   // Find the component content block
   const { messageIndex, contentIndex } = findContentById(
-    messages,
+    threadState,
     "component",
     componentId,
     `${eventName} event`,
@@ -1421,7 +1466,7 @@ function handleComponentEnd(
 
   // Find the component content block
   const { messageIndex, contentIndex } = findContentById(
-    messages,
+    threadState,
     "component",
     componentId,
     "tambo.component.end event",
@@ -1813,6 +1858,25 @@ function handleLoadThreadMessages(
     },
   );
 
+  // Rebuild content index from merged messages (API-loaded messages have content blocks)
+  const newContentIndex = new Map<string, ContentLocation>();
+  for (let msgIdx = 0; msgIdx < mergedMessages.length; msgIdx++) {
+    const message = mergedMessages[msgIdx];
+    for (
+      let contentIdx = 0;
+      contentIdx < message.content.length;
+      contentIdx++
+    ) {
+      const block = message.content[contentIdx];
+      if (block.type === "component" || block.type === "tool_use") {
+        newContentIndex.set(block.id, {
+          messageIndex: msgIdx,
+          contentIndex: contentIdx,
+        });
+      }
+    }
+  }
+
   const updatedThreadState: ThreadState = {
     ...threadState,
     thread: {
@@ -1820,6 +1884,7 @@ function handleLoadThreadMessages(
       messages: mergedMessages,
       updatedAt: new Date().toISOString(),
     },
+    contentIndex: newContentIndex,
   };
 
   return {
