@@ -108,14 +108,14 @@ export function SkillsSection({
   defaultLlmModelName,
   defaultNewSkill,
 }: SkillsSectionProps) {
-  const isModelSupported =
-    !defaultLlmProviderName ||
-    !defaultLlmModelName ||
-    modelSupportsSkills(defaultLlmProviderName, defaultLlmModelName);
   const isProviderSupported =
     !defaultLlmProviderName ||
     SKILLS_SUPPORTED_PROVIDERS.has(defaultLlmProviderName);
-  const isSkillsSupported = isProviderSupported && isModelSupported;
+  const isSkillsSupported =
+    isProviderSupported &&
+    (!defaultLlmProviderName ||
+      !defaultLlmModelName ||
+      modelSupportsSkills(defaultLlmProviderName, defaultLlmModelName));
   const { toast } = useToast();
   const utils = api.useUtils();
   const fileInputRef = useRef<HTMLInputElement>(null);

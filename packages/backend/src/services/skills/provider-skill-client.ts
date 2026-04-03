@@ -1,7 +1,6 @@
 import {
   type ProviderSkillReference,
   SKILLS_SUPPORTED_PROVIDERS,
-  modelSupportsSkills,
 } from "@tambo-ai-cloud/core";
 import Anthropic from "@anthropic-ai/sdk";
 import OpenAI from "openai";
@@ -13,8 +12,6 @@ import OpenAI from "openai";
 export function providerSupportsSkills(providerName: string): boolean {
   return SKILLS_SUPPORTED_PROVIDERS.has(providerName);
 }
-
-export { modelSupportsSkills };
 
 /**
  * Format a skill as SKILL.md content for upload to a provider.

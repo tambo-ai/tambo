@@ -67,6 +67,10 @@ type AICompleteParams = Parameters<typeof streamText<ToolSet, never>>[0] &
   Parameters<typeof generateText<ToolSet, never>>[0];
 type TextStreamResponse = ReturnType<typeof streamText<ToolSet, never>>;
 
+// Track provider/model combos that have already warned about missing skills
+// support to avoid per-request log spam.
+const warnedSkillsCombos = new Set<string>();
+
 // Common provider configuration interface
 interface ProviderConfig {
   apiKey?: string;
@@ -302,9 +306,13 @@ export class AISdkClient implements LLMClient {
       hasSkills && modelSupportsSkills(this.provider, this.model);
 
     if (hasSkills && !skillsSupported) {
-      console.warn(
-        `[Skills] Model "${this.model}" (provider: ${this.provider}) does not support skills, skipping skill injection`,
-      );
+      const key = `${this.provider}:${this.model}`;
+      if (!warnedSkillsCombos.has(key)) {
+        warnedSkillsCombos.add(key);
+        console.warn(
+          `[Skills] Model "${this.model}" (provider: ${this.provider}) does not support skills, skipping skill injection`,
+        );
+      }
     }
 
     const finalConfig = skillsSupported

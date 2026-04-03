@@ -113,6 +113,7 @@ export const openaiModels: Partial<LlmModelConfig<OpenAIModelId>> = {
       reasoningSummary: "auto",
     },
     isDefaultModel: true,
+    supportsSkills: false,
   },
   "gpt-5.1-chat-latest": {
     apiName: "gpt-5.1-chat-latest",
@@ -124,6 +125,7 @@ export const openaiModels: Partial<LlmModelConfig<OpenAIModelId>> = {
     tamboDocLink:
       "https://docs.tambo.co/reference/llm-providers/openai#gpt-51-chat-latest",
     inputTokenLimit: 400000,
+    supportsSkills: false,
     modelSpecificParams: reasoningParameters,
     modelParamsDefaults: {
       reasoningEffort: "medium",
@@ -138,6 +140,7 @@ export const openaiModels: Partial<LlmModelConfig<OpenAIModelId>> = {
     docLink: "https://platform.openai.com/docs/models/gpt-5",
     tamboDocLink: "https://docs.tambo.co/reference/llm-providers/openai#gpt-5",
     inputTokenLimit: 400000,
+    supportsSkills: false,
     modelSpecificParams: reasoningParameters,
     modelParamsDefaults: {
       reasoningEffort: "low",
@@ -154,6 +157,7 @@ export const openaiModels: Partial<LlmModelConfig<OpenAIModelId>> = {
     tamboDocLink:
       "https://docs.tambo.co/reference/llm-providers/openai#gpt-5-mini",
     inputTokenLimit: 400000,
+    supportsSkills: false,
     modelSpecificParams: reasoningParameters,
     modelParamsDefaults: {
       reasoningEffort: "low",
@@ -169,6 +173,7 @@ export const openaiModels: Partial<LlmModelConfig<OpenAIModelId>> = {
     tamboDocLink:
       "https://docs.tambo.co/reference/llm-providers/openai#gpt-5-nano",
     inputTokenLimit: 400000,
+    supportsSkills: false,
     modelSpecificParams: reasoningParameters,
     modelParamsDefaults: {
       reasoningEffort: "low",
@@ -183,6 +188,7 @@ export const openaiModels: Partial<LlmModelConfig<OpenAIModelId>> = {
     docLink: "https://platform.openai.com/docs/models/gpt-4.1",
     tamboDocLink: "https://docs.tambo.co/reference/llm-providers/openai#gpt-41",
     inputTokenLimit: 1047576,
+    supportsSkills: false,
   },
   "gpt-4.1-nano-2025-04-14": {
     apiName: "gpt-4.1-nano-2025-04-14",
@@ -193,6 +199,7 @@ export const openaiModels: Partial<LlmModelConfig<OpenAIModelId>> = {
     tamboDocLink:
       "https://docs.tambo.co/reference/llm-providers/openai#gpt-41-nano",
     inputTokenLimit: 1047576,
+    supportsSkills: false,
   },
   "gpt-4.1-mini-2025-04-14": {
     apiName: "gpt-4.1-mini-2025-04-14",
@@ -203,6 +210,7 @@ export const openaiModels: Partial<LlmModelConfig<OpenAIModelId>> = {
     tamboDocLink:
       "https://docs.tambo.co/reference/llm-providers/openai#gpt-41-mini",
     inputTokenLimit: 1047576,
+    supportsSkills: false,
   },
   "o3-2025-04-16": {
     apiName: "o3-2025-04-16",
@@ -212,6 +220,7 @@ export const openaiModels: Partial<LlmModelConfig<OpenAIModelId>> = {
     docLink: "https://platform.openai.com/docs/models/o3",
     tamboDocLink: "https://docs.tambo.co/reference/llm-providers/openai#o3",
     inputTokenLimit: 200000,
+    supportsSkills: false,
     modelSpecificParams: reasoningParameters,
     modelParamsDefaults: {
       reasoningEffort: "medium",
@@ -227,6 +236,7 @@ export const openaiModels: Partial<LlmModelConfig<OpenAIModelId>> = {
     docLink: "https://platform.openai.com/docs/models/gpt-4o",
     tamboDocLink: "https://docs.tambo.co/reference/llm-providers/openai#gpt-4o",
     inputTokenLimit: 128000,
+    supportsSkills: false,
   },
   "gpt-4o-mini-2024-07-18": {
     apiName: "gpt-4o-mini-2024-07-18",
@@ -238,5 +248,6 @@ export const openaiModels: Partial<LlmModelConfig<OpenAIModelId>> = {
     tamboDocLink:
       "https://docs.tambo.co/reference/llm-providers/openai#gpt-4o-mini",
     inputTokenLimit: 128000,
+    supportsSkills: false,
   },
 };

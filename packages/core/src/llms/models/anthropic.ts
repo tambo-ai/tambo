@@ -78,6 +78,7 @@ export const anthropicModels: Partial<LlmModelConfig<AnthropicModelId>> = {
     tamboDocLink:
       "https://docs.tambo.co/reference/llm-providers/anthropic#claude-opus-4-1",
     inputTokenLimit: 200000,
+    supportsSkills: false,
   },
   "claude-opus-4-20250514": {
     apiName: "claude-opus-4-20250514",
@@ -89,6 +90,7 @@ export const anthropicModels: Partial<LlmModelConfig<AnthropicModelId>> = {
     tamboDocLink:
       "https://docs.tambo.co/reference/llm-providers/anthropic#claude-opus-4",
     inputTokenLimit: 200000,
+    supportsSkills: false,
   },
   "claude-sonnet-4-20250514": {
     apiName: "claude-sonnet-4-20250514",
@@ -100,5 +102,6 @@ export const anthropicModels: Partial<LlmModelConfig<AnthropicModelId>> = {
     tamboDocLink:
       "https://docs.tambo.co/reference/llm-providers/anthropic#claude-sonnet-4",
     inputTokenLimit: 200000,
+    supportsSkills: false,
   },
 };

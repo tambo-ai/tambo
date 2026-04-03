@@ -32,9 +32,6 @@ function readApiKeyFromEnv(): string | null {
   return null;
 }
 
-// Skills support is computed server-side by resolveProjectFromApiKey.
-// The CLI no longer needs to duplicate the provider/model allowlists.
-
 /**
  * Thrown by resolveProjectId when the error has already been printed to stderr.
  * The catch block in handleSkills uses this to avoid double-printing.
@@ -94,7 +91,7 @@ async function resolveProjectId(): Promise<ResolvedProject> {
   const { projectId, skillsSupported } =
     await api.project.resolveProjectFromApiKey.mutate({ apiKey });
 
-  return { projectId, skillsSupported: skillsSupported ?? true };
+  return { projectId, skillsSupported };
 }
 
 // ============================================================================

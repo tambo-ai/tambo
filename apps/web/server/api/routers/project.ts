@@ -50,7 +50,6 @@ import {
   MCPTransport,
   modelSupportsSkills,
   OAuthValidationMode,
-  SKILLS_SUPPORTED_PROVIDERS,
   validateMcpServer,
 } from "@tambo-ai-cloud/core";
 import type { HydraDb } from "@tambo-ai-cloud/db";
@@ -1263,13 +1262,10 @@ export const projectRouter = createTRPCRouter({
 
       const providerName = project?.defaultLlmProviderName ?? null;
       const modelName = project?.defaultLlmModelName ?? null;
-      const providerSupported =
-        !providerName || SKILLS_SUPPORTED_PROVIDERS.has(providerName);
       const skillsSupported =
-        providerSupported &&
-        (!providerName ||
-          !modelName ||
-          modelSupportsSkills(providerName, modelName));
+        !providerName ||
+        !modelName ||
+        modelSupportsSkills(providerName, modelName);
 
       return {
         projectId,

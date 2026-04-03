@@ -108,8 +108,12 @@ export interface LlmModelConfigInfo<ModelId extends string = string> {
   isDefaultModel?: boolean;
   /** Input token limit of the model */
   inputTokenLimit?: number;
-  /** Whether the model supports provider skills (OpenAI shell tool, Anthropic code_execution with skills container) */
-  supportsSkills?: boolean;
+  /**
+   * Whether the model supports provider skills (OpenAI shell tool, Anthropic
+   * code_execution with skills container). Required so new models are
+   * explicitly evaluated for skills support.
+   */
+  supportsSkills: boolean;
 }
 
 export type LlmModelConfig<ModelId extends string = string> = {

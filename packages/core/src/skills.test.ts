@@ -4,6 +4,7 @@ import {
   SKILL_DESCRIPTION_MAX_LENGTH,
   SKILL_INSTRUCTIONS_MAX_LENGTH,
   toSkillSlug,
+  modelSupportsSkills,
 } from "./skills";
 
 describe("skill validation constants", () => {
@@ -67,5 +68,28 @@ describe("toSkillSlug", () => {
       const slug = toSkillSlug(input);
       expect(SKILL_NAME_PATTERN.test(slug)).toBe(true);
     }
+  });
+});
+
+describe("modelSupportsSkills", () => {
+  it("returns true for a model flagged with supportsSkills: true", () => {
+    expect(modelSupportsSkills("openai", "gpt-5.2")).toBe(true);
+    expect(modelSupportsSkills("anthropic", "claude-sonnet-4-6")).toBe(true);
+  });
+
+  it("returns false for a model flagged with supportsSkills: false", () => {
+    expect(modelSupportsSkills("openai", "gpt-4o-2024-11-20")).toBe(false);
+    expect(modelSupportsSkills("anthropic", "claude-sonnet-4-20250514")).toBe(
+      false,
+    );
+  });
+
+  it("returns false for a model not in the config", () => {
+    expect(modelSupportsSkills("openai", "nonexistent-model")).toBe(false);
+  });
+
+  it("returns false for an unsupported provider", () => {
+    expect(modelSupportsSkills("gemini", "gemini-2.0-flash")).toBe(false);
+    expect(modelSupportsSkills("unknown-provider", "some-model")).toBe(false);
   });
 });
