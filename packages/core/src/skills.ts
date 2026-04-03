@@ -12,11 +12,13 @@ export const SKILL_NAME_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
  *   string if the input contains no alphanumeric characters.
  */
 export function toSkillSlug(input: string): string {
-  return input
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+/, "")
-    .replace(/-+$/, "");
+  const slugged = input.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+  // Trim hyphens without regex to avoid CodeQL polynomial-backtracking warnings.
+  let start = 0;
+  while (start < slugged.length && slugged[start] === "-") start++;
+  let end = slugged.length;
+  while (end > start && slugged[end - 1] === "-") end--;
+  return slugged.slice(start, end);
 }
 
 /** Validation limits for skill fields. Shared across tRPC and any future entry points. */
