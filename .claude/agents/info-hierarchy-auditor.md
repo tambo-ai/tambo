@@ -44,7 +44,7 @@ Search for all conditional rendering in dashboard components:
 - Provider capability checks (like `SKILLS_SUPPORTED_PROVIDERS`)
 - Mode-dependent rendering (LLM vs Agent mode)
 
-Cross-reference against the `feature-dependency-graph` skill. Flag any dependencies not documented there.
+Cross-reference against the `tambo-cloud-feature-builder` skill's Feature Dependencies section. Flag any dependencies not documented there.
 
 ### 5. Drift Detection
 
@@ -52,7 +52,7 @@ Compare the current state against what's documented in:
 
 - `apps/web/AGENTS.md`
 - `apps/web/README.md`
-- `.claude/skills/feature-dependency-graph/SKILL.md`
+- `.claude/skills/tambo-cloud-feature-builder/SKILL.md`
 
 Flag any discrepancies: new routes not documented, settings sections added without updating the feature placement skill, new dependencies not in the graph.
 

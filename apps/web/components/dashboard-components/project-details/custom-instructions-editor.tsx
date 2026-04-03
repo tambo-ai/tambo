@@ -311,7 +311,7 @@ export function CustomInstructionsEditor({
                   <Button
                     size="sm"
                     variant="ghost"
-                    className="font-sans bg-transparent text-red-500 hover:bg-red-500/10 hover:text-red-500"
+                    className="font-sans bg-transparent text-muted-foreground hover:bg-accent"
                     onClick={handleCancel}
                     disabled={updateInstructions.isPending}
                   >

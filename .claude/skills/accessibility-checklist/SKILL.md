@@ -5,7 +5,7 @@ description: >-
   the user doesn't mention "accessibility." Covers semantic HTML, aria labels, navigation landmarks,
   forms, dialogs, and keyboard navigation. Trigger on: adding buttons, links, toggles, icons, or
   any interactive element; building or editing forms; adding dialogs or modals; reviewing UI code.
-  Includes a scan script that finds violations automatically. Not for styling or layout changes
+  Includes inline verification patterns for scanning violations. Not for styling or layout changes
   that don't involve interactive elements.
 metadata:
   internal: true
@@ -15,19 +15,10 @@ metadata:
 
 Every UI component in `apps/web` must meet these standards. No partial compliance.
 
-## Available scripts
-
-- **`scripts/scan-a11y.sh`** -- scans `apps/web/components` for common a11y violations (role="button" divs, div onClick, positive tabIndex, icon buttons missing aria-label). Run from repo root:
-
-```bash
-bash devdocs/skills/accessibility-checklist/scripts/scan-a11y.sh
-```
-
 ## Gotchas
 
-- **`role="button"` divs exist in the codebase** -- fix them when touching these files (all in `apps/web/components/observability/`):
-  - `thread-table-header.tsx` (7 instances), `tool-response-section.tsx`, `tool-arguments-section.tsx`
-  - Also in `apps/web/components/ui/tambo/message-thread-panel.tsx`
+- **`role="button"` divs may exist in the codebase** -- fix them when touching affected files. `<TableHead>` elements with `role="button"` for sortable columns are acceptable.
+- **Nested interactive elements** -- when replacing a `<div role="button">` that contains a child `<button>` (e.g., a copy button inside a collapsible toggle), do not just swap the outer div to `<button>`. That creates invalid nested buttons. Instead, restructure into sibling elements: a toggle `<button>` and a separate action `<button>` side by side in a flex container.
 - **Standalone inputs outside react-hook-form need manual ID pairing** -- use `useId()` with `htmlFor`/`id`. The shadcn `<FormField>` handles this automatically, but raw `<Input>` does not.
 - **AlertDialog vs Dialog** -- use `AlertDialog` for destructive confirmations (requires `AlertDialogTitle` + `AlertDialogDescription`). Use `Dialog` for content/forms. Never build custom modal overlays.
 - **Icon-only buttons without `aria-label`** are common in new code. Every icon-only button needs one, and it must include context: `Delete API key ${keyName}`, not just "Delete".
@@ -76,18 +67,39 @@ For standalone inputs outside react-hook-form, pair `useId()` with `htmlFor`/`id
 - Never remove focus outlines
 - Prefer `<button>` over manual Enter/Space handlers
 
-## Validation
+## Verification
 
-1. Run the scan script:
+Scan `apps/web/components` for common violations. For each check, grep for the pattern and fix any matches found.
 
-   ```bash
-   bash devdocs/skills/accessibility-checklist/scripts/scan-a11y.sh
-   ```
+### Check 1: `role="button"` on non-button elements
 
-2. If violations are found, fix them.
-3. Re-run until the script exits clean.
-4. Manually verify items the script cannot check:
-   - [ ] Form inputs have associated `<label>` elements
-   - [ ] Navigation groups use `<nav>` with unique `aria-label`
-   - [ ] Dialogs use Radix-based components (AlertDialog or Dialog)
-   - [ ] Focus outlines intact
+Search for `role="button"` in `.tsx` files. Flag `<div` or `<span` elements with this attribute; they should be `<button>` or `<Button>` instead. `<TableHead>` elements with `role="button"` for sortable columns are acceptable.
+
+**Pattern:** `role="button"`
+
+### Check 2: `<div onClick>` patterns
+
+Search for `<div` elements with `onClick` handlers. These should use `<button>` instead for proper keyboard support.
+
+**Pattern:** `<div[^>]*onClick`
+
+### Check 3: Positive tabIndex values
+
+Search for `tabIndex` with values greater than 0. Only `tabIndex={0}` and `tabIndex={-1}` are allowed.
+
+**Pattern:** `tabIndex={[1-9]`
+
+### Check 4: Icon buttons missing aria-label
+
+Search for `size="icon"` in `.tsx` files. For each match, check surrounding lines (5-10 above and below) for `aria-label` on the same `<Button>` element or an `sr-only` span. Flag buttons that have neither.
+
+**Pattern:** `size="icon"` without nearby `aria-label`
+
+### Manual checks
+
+These cannot be detected by pattern matching:
+
+- [ ] Form inputs have associated `<label>` elements
+- [ ] Navigation groups use `<nav>` with unique `aria-label`
+- [ ] Dialogs use Radix-based components (AlertDialog or Dialog)
+- [ ] Focus outlines intact

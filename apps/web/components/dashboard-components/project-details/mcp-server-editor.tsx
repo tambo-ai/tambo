@@ -283,7 +283,7 @@ export function McpServerEditor({
                     size="sm"
                     onClick={onCancel}
                     disabled={isSaving}
-                    className="font-sans bg-transparent text-red-500 hover:bg-red-500/10 hover:text-red-500 text-sm"
+                    className="font-sans bg-transparent text-muted-foreground hover:bg-accent text-sm"
                   >
                     Cancel
                   </Button>
@@ -314,7 +314,7 @@ export function McpServerEditor({
                     size="sm"
                     onClick={onDelete}
                     disabled={isDeleting}
-                    className="font-sans hover:bg-red-500/10 text-red-500 hover:text-red-500 text-sm"
+                    className="font-sans hover:bg-destructive/10 text-destructive hover:text-destructive text-sm"
                   >
                     {isDeleting ? (
                       <Loader2 className="h-3 w-3 animate-spin" />
