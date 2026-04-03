@@ -462,6 +462,47 @@ describe("handleInit", () => {
       const output = logs.join("\n");
       expect(output).toContain("Authentication successful");
     });
+
+    it("should surface error when device auth fails", async () => {
+      mockDeviceAuthShouldFail = true;
+
+      await expect(handleInit({ projectName: "my-app" })).rejects.toThrow();
+
+      const output = [...logs, ...errorLogs].join("\n");
+      expect(output).toContain("Authentication failed");
+    });
+
+    it("should re-authenticate when session is expired/revoked", async () => {
+      mockIsTokenValid = true;
+      mockVerifySession = false;
+
+      await handleInit({ projectName: "my-app" });
+
+      const output = logs.join("\n");
+      expect(output).toContain("Session expired");
+      expect(output).toContain("Authentication successful");
+    });
+  });
+
+  describe("non-interactive --project-id", () => {
+    beforeEach(() => {
+      mockIsInteractive = false;
+      vol.fromJSON(createNextProject());
+    });
+
+    it("should authenticate and use existing project", async () => {
+      mockRunDeviceAuthFlowResult = {
+        sessionToken: "test-token",
+        user: { id: "u1", email: "test@test.com", name: "Test" },
+      };
+      mockProjects = [{ id: "proj-123", name: "my-project" }];
+
+      await handleInit({ projectId: "proj-123" });
+
+      const output = logs.join("\n");
+      expect(output).toContain("Authentication successful");
+      expect(output).toContain("Initialization complete");
+    });
   });
 
   describe("basic init (without fullSend)", () => {
