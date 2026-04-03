@@ -7,31 +7,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import type { RouterOutputs } from "@/trpc/react";
 import { api } from "@/trpc/react";
+import { extractErrorMessage } from "@/lib/extract-error-message";
 import { parseSkillContent, toSkillSlug } from "@tambo-ai-cloud/core";
 import { Loader2 } from "lucide-react";
-import { useCallback, useMemo, useState } from "react";
-
-/**
- * Extract a human-readable message from a tRPC/zod error.
- * tRPC wraps zod validation errors as a JSON-stringified array of issues;
- * this parses the first message out. Falls back to the raw string if
- * parsing fails.
- * @returns A single error message string.
- */
-export function extractErrorMessage(error: { message: string }): string {
-  try {
-    const parsed: unknown = JSON.parse(error.message);
-    if (Array.isArray(parsed) && parsed.length > 0) {
-      const first = parsed[0] as { message?: string };
-      if (typeof first.message === "string") {
-        return first.message;
-      }
-    }
-  } catch {
-    // Not JSON -- use as-is
-  }
-  return error.message;
-}
+import { useCallback, useState } from "react";
 
 export type SkillSummary = RouterOutputs["skills"]["list"][number];
 
@@ -145,7 +124,7 @@ export function SkillForm({
     setInstructions(result.instructions);
   }, []);
 
-  const slugifiedName = useMemo(() => toSkillSlug(name), [name]);
+  const slugifiedName = toSkillSlug(name);
   const showSlugPreview = name.trim().length > 0 && slugifiedName !== name;
 
   const isValid = slugifiedName.length > 0 && description.trim().length > 0;
