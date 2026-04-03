@@ -24,6 +24,8 @@ import {
   getToolName,
   llmProviderConfig,
   PARAMETER_METADATA,
+  PROVIDER_SKILL_TOOL_NAMES,
+  SKILL_TOOL_DISPLAY_NAME,
   ThreadMessage,
   type LlmProviderConfigInfo,
 } from "@tambo-ai-cloud/core";
@@ -65,14 +67,6 @@ type AICompleteParams = Parameters<typeof streamText<ToolSet, never>>[0] &
 type TextStreamResponse = ReturnType<typeof streamText<ToolSet, never>>;
 
 /**
- * Provider-managed tool names used for skill execution.
- * These internal names are replaced with a user-friendly display name
- * in streaming events so the UI doesn't show "code_execution" or "shell".
- */
-export const PROVIDER_SKILL_TOOL_NAMES = new Set(["code_execution", "shell"]);
-export const SKILL_TOOL_DISPLAY_NAME = "skill";
-
-/**
  * Extract a skill name from raw provider tool arguments and return
  * sanitized JSON that shows activity without exposing internals.
  *
@@ -82,7 +76,7 @@ export const SKILL_TOOL_DISPLAY_NAME = "skill";
  * The skill name is extracted from the path segment between /skills/ and /SKILL.md.
  * @returns The extracted skill name, or undefined if not found.
  */
-function extractSkillName(rawArgs: string): string | undefined {
+export function extractSkillName(rawArgs: string): string | undefined {
   try {
     const parsed = JSON.parse(rawArgs) as Record<string, unknown>;
     const path = typeof parsed.path === "string" ? parsed.path : "";
@@ -97,10 +91,9 @@ function extractSkillName(rawArgs: string): string | undefined {
  * Build sanitized JSON args from accumulated skill names.
  * @returns JSON string like { "skills": ["skill-a", "skill-b"] } or "{}".
  */
-function buildSanitizedSkillArgs(skillNames: string[]): string {
+export function buildSanitizedSkillArgs(skillNames: string[]): string {
   const unique = [...new Set(skillNames)];
   if (unique.length === 0) return "{}";
-  if (unique.length === 1) return JSON.stringify({ skill: unique[0] });
   return JSON.stringify({ skills: unique });
 }
 
@@ -577,6 +570,10 @@ export class AISdkClient implements LLMClient {
     // Accumulate skill names across multiple provider tool calls so all
     // invocations are captured in the single toolCallRequest per message.
     const accumulatedSkillNames: string[] = [];
+    // Track whether the first skill TOOL_CALL_START has been emitted so
+    // subsequent calls update args rather than creating new tool call events.
+    let skillToolCallStarted = false;
+    let skillToolCallId: string | undefined;
 
     for await (const delta of result.fullStream) {
       // Collect AG-UI events for this delta
@@ -584,6 +581,16 @@ export class AISdkClient implements LLMClient {
 
       switch (delta.type) {
         case "text-start":
+          // If a skill tool call is open, close it now that text is starting
+          if (skillToolCallStarted && skillToolCallId) {
+            aguiEvents.push({
+              type: EventType.TOOL_CALL_END,
+              toolCallId: skillToolCallId,
+              timestamp: Date.now(),
+            } as ToolCallEndEvent);
+            skillToolCallStarted = false;
+            skillToolCallId = undefined;
+          }
           accumulatedMessage = "";
           // Generate message ID for this text stream
           textMessageId = generateMessageId();
@@ -641,6 +648,10 @@ export class AISdkClient implements LLMClient {
               componentId,
               componentName,
             );
+          } else if (isProviderSkillTool && skillToolCallStarted) {
+            // Subsequent skill calls reuse the first TOOL_CALL_START so the
+            // client sees one unified tool call, matching the refresh view.
+            componentTracker = undefined;
           } else {
             componentTracker = undefined;
             // V1: emit TOOL_CALL_START immediately — delta.id is the toolCallId
@@ -651,6 +662,10 @@ export class AISdkClient implements LLMClient {
               parentMessageId: textMessageId,
               timestamp: Date.now(),
             } as ToolCallStartEvent);
+            if (isProviderSkillTool) {
+              skillToolCallStarted = true;
+              skillToolCallId = delta.id;
+            }
           }
           break;
         }
@@ -700,6 +715,8 @@ export class AISdkClient implements LLMClient {
           } else if (accumulatedToolCall.name) {
             // For skill tools, extract the skill name from raw args and
             // emit sanitized args with all accumulated skill names.
+            // Use the original toolCallId from the first START event so
+            // the client sees one unified tool call across multiple provider calls.
             if (isProviderSkillTool) {
               const skillName = extractSkillName(skillToolRawArgs);
               if (skillName) {
@@ -709,20 +726,24 @@ export class AISdkClient implements LLMClient {
                 accumulatedSkillNames,
               );
               accumulatedToolCall.arguments = sanitizedArgs;
+              const effectiveToolCallId = skillToolCallId ?? delta.toolCallId;
               aguiEvents.push({
                 type: EventType.TOOL_CALL_ARGS,
-                toolCallId: delta.toolCallId,
+                toolCallId: effectiveToolCallId,
                 delta: sanitizedArgs,
                 timestamp: Date.now(),
               } as ToolCallArgsEvent);
+              // Don't emit TOOL_CALL_END for skill tools here - it will be
+              // emitted when text streaming begins or when the stream ends,
+              // so the client sees one continuous tool call.
+            } else {
+              // V1: only emit TOOL_CALL_END for non-skill tools
+              aguiEvents.push({
+                type: EventType.TOOL_CALL_END,
+                toolCallId: delta.toolCallId,
+                timestamp: Date.now(),
+              } as ToolCallEndEvent);
             }
-
-            // V1: only emit TOOL_CALL_END — START and ARGS already emitted above
-            aguiEvents.push({
-              type: EventType.TOOL_CALL_END,
-              toolCallId: delta.toolCallId,
-              timestamp: Date.now(),
-            } as ToolCallEndEvent);
           }
           break;
         case "tool-result":

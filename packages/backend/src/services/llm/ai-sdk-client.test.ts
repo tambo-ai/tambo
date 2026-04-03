@@ -1,8 +1,12 @@
 import { EventType } from "@ag-ui/core";
 import {
-  AISdkClient,
   PROVIDER_SKILL_TOOL_NAMES,
   SKILL_TOOL_DISPLAY_NAME,
+} from "@tambo-ai-cloud/core";
+import {
+  AISdkClient,
+  buildSanitizedSkillArgs,
+  extractSkillName,
 } from "./ai-sdk-client";
 
 // Mock the message ID generator
@@ -579,6 +583,71 @@ describe("AISdkClient", () => {
 
     it("has a user-friendly display name", () => {
       expect(SKILL_TOOL_DISPLAY_NAME).toBe("skill");
+    });
+  });
+
+  describe("extractSkillName", () => {
+    it("extracts skill name from a valid provider args path", () => {
+      const args = JSON.stringify({
+        type: "text_editor_code_execution",
+        path: "/skills/my-skill/SKILL.md",
+        command: "view",
+      });
+      expect(extractSkillName(args)).toBe("my-skill");
+    });
+
+    it("extracts skill name from nested path", () => {
+      const args = JSON.stringify({
+        path: "/skills/data-analyzer/src/index.ts",
+      });
+      expect(extractSkillName(args)).toBe("data-analyzer");
+    });
+
+    it("returns undefined when path has no /skills/ segment", () => {
+      const args = JSON.stringify({ path: "/tmp/foo.txt" });
+      expect(extractSkillName(args)).toBeUndefined();
+    });
+
+    it("returns undefined when path is missing", () => {
+      const args = JSON.stringify({ command: "view" });
+      expect(extractSkillName(args)).toBeUndefined();
+    });
+
+    it("returns undefined for malformed JSON", () => {
+      expect(extractSkillName("not json")).toBeUndefined();
+    });
+
+    it("returns undefined for empty string", () => {
+      expect(extractSkillName("")).toBeUndefined();
+    });
+
+    it("returns undefined when path is not a string", () => {
+      const args = JSON.stringify({ path: 123 });
+      expect(extractSkillName(args)).toBeUndefined();
+    });
+  });
+
+  describe("buildSanitizedSkillArgs", () => {
+    it("returns {} for empty skill names", () => {
+      expect(buildSanitizedSkillArgs([])).toBe("{}");
+    });
+
+    it("returns skills array for a single skill", () => {
+      expect(buildSanitizedSkillArgs(["my-skill"])).toBe(
+        JSON.stringify({ skills: ["my-skill"] }),
+      );
+    });
+
+    it("returns skills array for multiple skills", () => {
+      expect(buildSanitizedSkillArgs(["a", "b", "c"])).toBe(
+        JSON.stringify({ skills: ["a", "b", "c"] }),
+      );
+    });
+
+    it("deduplicates skill names", () => {
+      expect(buildSanitizedSkillArgs(["a", "b", "a"])).toBe(
+        JSON.stringify({ skills: ["a", "b"] }),
+      );
     });
   });
 });

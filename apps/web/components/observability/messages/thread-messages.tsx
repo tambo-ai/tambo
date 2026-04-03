@@ -5,6 +5,7 @@ import {
 } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
 import { type RouterOutputs } from "@/trpc/react";
+import { isSkillToolName } from "@tambo-ai-cloud/core";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 import { FC, ReactNode, useCallback, useMemo, useState } from "react";
@@ -180,8 +181,9 @@ export function ThreadMessages({
       // Provider-managed tools (e.g. skill execution) run BEFORE the text
       // response, so the tool call card should appear first. Regular tools
       // are called AFTER the assistant's message text.
-      const isProviderManagedTool =
-        message.toolCallRequest?.toolName === "skill";
+      const isProviderManagedTool = isSkillToolName(
+        message.toolCallRequest?.toolName,
+      );
 
       if (message.toolCallRequest && isProviderManagedTool) {
         groups.push({

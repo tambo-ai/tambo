@@ -22,6 +22,7 @@ export * from "./threads";
 export * from "./thread-message-validation";
 export * from "./tools";
 export * from "./ui-tools";
+export * from "./skill-tools";
 export type * from "./typeutils";
 // Auth helpers
 export * from "./agent-registry";

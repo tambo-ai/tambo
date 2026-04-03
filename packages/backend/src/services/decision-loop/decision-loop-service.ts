@@ -2,6 +2,7 @@ import { EventType, type BaseEvent } from "@ag-ui/core";
 import {
   ContentPartType,
   getToolName,
+  isSkillToolName,
   isUiToolName,
   LegacyComponentDecision,
   MessageRole,
@@ -270,16 +271,19 @@ export async function* runDecisionLoop(
           ? (componentId ?? accumulatedDecision.componentId)
           : undefined,
         props: isUITool ? filteredToolArgs : null,
-        // Only update toolCallRequest/toolCallId when we have new values.
-        // Provider-managed tools (skills) may fire multiple calls within one
-        // turn, causing intermediate yields with undefined tool call data
-        // that would overwrite previously accumulated values.
-        ...(clientToolRequest && {
-          toolCallRequest: clientToolRequest,
-        }),
-        ...(toolCall && {
-          toolCallId: getLLMResponseToolCallId(llmResponse),
-        }),
+        // For skill tools, only update toolCallRequest/toolCallId when we
+        // have new values. Skills may fire multiple provider calls within
+        // one turn, causing intermediate yields with undefined tool call
+        // data that would overwrite previously accumulated values.
+        // Regular tools always set these fields unconditionally.
+        toolCallRequest: getToolCallRequestForChunk(
+          clientToolRequest,
+          accumulatedDecision,
+        ),
+        toolCallId: getToolCallIdForChunk(
+          toolCall ? getLLMResponseToolCallId(llmResponse) : undefined,
+          accumulatedDecision,
+        ),
         statusMessage,
         completionStatusMessage,
         reasoning: llmResponse.reasoning ?? undefined,
@@ -357,6 +361,38 @@ function buildToolCallRequest(
     toolName: toolCall.function.name,
     parameters: filteredArgs,
   };
+}
+
+/**
+ * Resolve the toolCallRequest for a streaming chunk.
+ * For skill tools, preserves the previously accumulated value when the
+ * current chunk has no new tool call (avoids overwriting with undefined).
+ * Regular tools always use the current chunk's value.
+ */
+function getToolCallRequestForChunk(
+  clientToolRequest: ToolCallRequest | undefined,
+  accumulatedDecision: LegacyComponentDecision,
+): ToolCallRequest | undefined {
+  if (clientToolRequest) return clientToolRequest;
+  if (isSkillToolName(accumulatedDecision.toolCallRequest?.toolName)) {
+    return accumulatedDecision.toolCallRequest;
+  }
+  return undefined;
+}
+
+/**
+ * Resolve the toolCallId for a streaming chunk.
+ * Same preservation logic as getToolCallRequestForChunk.
+ */
+function getToolCallIdForChunk(
+  currentToolCallId: string | undefined,
+  accumulatedDecision: LegacyComponentDecision,
+): string | undefined {
+  if (currentToolCallId) return currentToolCallId;
+  if (isSkillToolName(accumulatedDecision.toolCallRequest?.toolName)) {
+    return accumulatedDecision.toolCallId;
+  }
+  return undefined;
 }
 
 /**
