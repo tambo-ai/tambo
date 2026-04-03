@@ -15,7 +15,8 @@ export function toSkillSlug(input: string): string {
   return input
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
+    .replace(/^-+/, "")
+    .replace(/-+$/, "");
 }
 
 /** Validation limits for skill fields. Shared across tRPC and any future entry points. */

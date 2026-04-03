@@ -24,7 +24,8 @@ export function toSkillSlug(input: string): string {
   return input
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
+    .replace(/^-+/, "")
+    .replace(/-+$/, "");
 }
 const SKILL_NAME_MAX_LENGTH = 200;
 const SKILL_DESCRIPTION_MAX_LENGTH = 2000;
