@@ -80,18 +80,28 @@ export const SKILL_TOOL_DISPLAY_NAME = "skill";
  *   { "type": "text_editor_code_execution", "path": "/skills/my-skill/SKILL.md", ... }
  *
  * The skill name is extracted from the path segment between /skills/ and /SKILL.md.
- * @returns Sanitized JSON string with skill name.
+ * @returns The extracted skill name, or undefined if not found.
  */
-function buildSanitizedSkillArgs(rawArgs: string): string {
+function extractSkillName(rawArgs: string): string | undefined {
   try {
     const parsed = JSON.parse(rawArgs) as Record<string, unknown>;
     const path = typeof parsed.path === "string" ? parsed.path : "";
     const match = path.match(/\/skills\/([^/]+)\//);
-    const skillName = match?.[1];
-    return skillName ? JSON.stringify({ skill: skillName }) : "{}";
+    return match?.[1];
   } catch {
-    return "{}";
+    return undefined;
   }
+}
+
+/**
+ * Build sanitized JSON args from accumulated skill names.
+ * @returns JSON string like { "skills": ["skill-a", "skill-b"] } or "{}".
+ */
+function buildSanitizedSkillArgs(skillNames: string[]): string {
+  const unique = [...new Set(skillNames)];
+  if (unique.length === 0) return "{}";
+  if (unique.length === 1) return JSON.stringify({ skill: unique[0] });
+  return JSON.stringify({ skills: unique });
 }
 
 // Common provider configuration interface
@@ -564,6 +574,9 @@ export class AISdkClient implements LLMClient {
     // without exposing internal provider details.
     let isProviderSkillTool = false;
     let skillToolRawArgs = "";
+    // Accumulate skill names across multiple provider tool calls so all
+    // invocations are captured in the single toolCallRequest per message.
+    const accumulatedSkillNames: string[] = [];
 
     for await (const delta of result.fullStream) {
       // Collect AG-UI events for this delta
@@ -685,10 +698,16 @@ export class AISdkClient implements LLMClient {
             aguiEvents.push(...endEvents);
             componentTracker = undefined;
           } else if (accumulatedToolCall.name) {
-            // For skill tools, emit sanitized args now that raw args are
-            // fully accumulated and we can extract the skill name.
+            // For skill tools, extract the skill name from raw args and
+            // emit sanitized args with all accumulated skill names.
             if (isProviderSkillTool) {
-              const sanitizedArgs = buildSanitizedSkillArgs(skillToolRawArgs);
+              const skillName = extractSkillName(skillToolRawArgs);
+              if (skillName) {
+                accumulatedSkillNames.push(skillName);
+              }
+              const sanitizedArgs = buildSanitizedSkillArgs(
+                accumulatedSkillNames,
+              );
               accumulatedToolCall.arguments = sanitizedArgs;
               aguiEvents.push({
                 type: EventType.TOOL_CALL_ARGS,
