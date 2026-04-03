@@ -1,0 +1,82 @@
+---
+title: Skills
+description: Extend your Tambo agent with reusable instruction sets that run inside the LLM provider's sandbox
+---
+
+Skills are reusable instruction sets that extend your Tambo agent's capabilities. When you create a skill, Tambo uploads it to your LLM provider (OpenAI or Anthropic), where it runs inside the provider's sandboxed execution environment alongside your agent's responses.
+
+## How Skills Work
+
+A skill is a markdown document with a name, description, and set of instructions. When a user sends a message, Tambo passes the skill to the LLM provider, which can execute code and follow the instructions to produce better responses.
+
+Behind the scenes, each provider handles skills differently:
+
+- **OpenAI** uses a shell tool with skill references in a containerized environment
+- **Anthropic** uses code execution with a skills container
+
+Your agent does not need to know these details. Tambo handles the provider-specific wiring automatically.
+
+## Skill File Format
+
+Skills use YAML frontmatter with `name` and `description` fields, followed by markdown instructions:
+
+```markdown
+---
+name: data-analyst
+description: "Analyze datasets, generate charts, and summarize statistical findings"
+---
+
+You are a data analysis assistant. When the user provides data:
+
+1. Identify the data format and structure
+2. Compute descriptive statistics (mean, median, mode, standard deviation)
+3. Generate visualizations when appropriate
+4. Summarize key findings in plain language
+```
+
+**Name requirements:**
+
+- Kebab-case only (lowercase letters, numbers, hyphens)
+- Maximum 200 characters
+
+**Limits:**
+
+- Description: 2,000 characters
+- Instructions: 100,000 characters
+
+## Model Support
+
+Skills are supported by OpenAI and Anthropic, but not all models within those providers support them. Tambo automatically checks model compatibility and skips skill injection for unsupported models.
+
+**OpenAI models with skills support:**
+
+- GPT-5.2, GPT-5.2 Pro
+- GPT-5.3 Chat Latest
+- GPT-5.4, GPT-5.4 Pro
+
+**Anthropic models with skills support:**
+
+- Claude Haiku 4.5
+- Claude Sonnet 4.5, Claude Sonnet 4.6
+- Claude Opus 4.5, Claude Opus 4.6
+
+Older models (GPT-4o, GPT-4.1, GPT-5, GPT-5.1, Claude Sonnet 4, Claude Opus 4, Claude Opus 4.1) and other providers (Google, Mistral, Groq, Cerebras) do not support skills. If your project uses an unsupported model with skills enabled, the skills are stored but not active at inference time.
+
+## Skills vs Custom Instructions
+
+Skills and custom instructions both influence agent behavior, but they serve different purposes:
+
+| | Custom Instructions | Skills |
+|---|---|---|
+| **Scope** | Global system prompt for all conversations | Modular, toggleable instruction sets |
+| **Execution** | Injected as text in the system prompt | Executed in the provider's sandbox with code execution |
+| **Management** | Single text field in project settings | Individual files you can enable, disable, import, and export |
+| **Use case** | Agent personality and general behavior | Specialized capabilities (data analysis, code review, etc.) |
+
+You can use both together. Custom instructions define who the agent is, while skills define what it can do.
+
+## Next Steps
+
+- [Manage Skills](/guides/manage-skills) - Create, import, and toggle skills in your project
+- [CLI Skills Commands](/reference/cli/commands/skills) - Manage skills from the terminal
+- [Configure LLM Provider](/guides/setup-project/llm-provider) - Choose a model that supports skills

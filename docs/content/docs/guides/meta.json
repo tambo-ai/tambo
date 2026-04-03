@@ -2,6 +2,7 @@
   "title": "Guides",
   "pages": [
     "coding-agent-skills",
+    "manage-skills",
     "setup-project",
     "enable-generative-ui",
     "build-interfaces",
