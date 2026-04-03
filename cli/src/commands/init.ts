@@ -60,13 +60,6 @@ async function createTamboTsFile(installPath: string): Promise<void> {
   }
 }
 
-class AuthenticationError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "AuthenticationError";
-  }
-}
-
 interface InitOptions {
   fullSend?: boolean;
   legacyPeerDeps?: boolean;
@@ -268,8 +261,7 @@ export async function getInstallationPath(yes = false): Promise<string> {
   }
 
   if (yes) {
-    // Auto-answer yes - use src if available, otherwise create it
-    const useSrcDir = hasSrcDir;
+    // Auto-answer yes - always default to src/components
     if (!hasSrcDir) {
       console.log(
         chalk.blue(
@@ -283,7 +275,7 @@ export async function getInstallationPath(yes = false): Promise<string> {
         ),
       );
     }
-    return useSrcDir ? "src/components" : "src/components";
+    return "src/components";
   }
 
   const { useSrcDir } = await interactivePrompt<{ useSrcDir: boolean }>(
@@ -332,7 +324,6 @@ async function ensureAuthenticated(): Promise<void> {
 /**
  * Handles the authentication flow with Tambo using device auth
  * @returns Promise<boolean> Returns true if authentication was successful
- * @throws AuthenticationError
  */
 async function handleAuthentication(): Promise<boolean> {
   try {
@@ -375,8 +366,6 @@ async function handleAuthentication(): Promise<boolean> {
     if (error instanceof DeviceAuthError) {
       console.error(chalk.red(`\n✖ Authentication failed`));
       console.error(chalk.gray(`  ${error.message}`));
-    } else if (error instanceof AuthenticationError) {
-      console.error(chalk.red(`\nAuthentication error: ${error.message}`));
     } else {
       console.error(chalk.red(`\nFailed to authenticate: ${error}`));
     }

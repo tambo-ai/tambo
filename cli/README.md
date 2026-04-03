@@ -39,6 +39,19 @@ npx tambo full-send
 npx tambo init
 ```
 
+### `auth`
+
+Manage authentication:
+
+```bash
+npx tambo auth login              # Opens browser to authenticate
+npx tambo auth status             # Show current auth status
+npx tambo auth status --quiet     # Exit code 0 if authenticated, 1 otherwise
+npx tambo auth logout             # Clear stored credentials
+npx tambo auth sessions           # List active CLI sessions
+npx tambo auth revoke-session     # Revoke a specific session
+```
+
 ### `add <component-name>`
 
 Add a Tambo component to your project:

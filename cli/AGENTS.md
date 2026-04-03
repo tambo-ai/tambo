@@ -104,6 +104,7 @@ Override with `FORCE_INTERACTIVE=1` if needed (requires real TTY).
 - **Entry point**: `src/cli.ts` - Main CLI setup with meow
 - **Commands**: `src/commands/` - Individual command implementations
   - `init.ts` - Project initialization
+  - `auth.ts` - Authentication (device auth login, logout, sessions)
   - `add/` - Component installation system
   - `create-app.ts` - New app creation
   - `list/` - Component listing

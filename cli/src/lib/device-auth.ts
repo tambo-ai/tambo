@@ -39,6 +39,24 @@ async function sleep(ms: number): Promise<void> {
 }
 
 /**
+ * Initiates the device auth flow with the server.
+ * @returns The initiation response with device code, user code, and verification URLs
+ */
+async function initiateDeviceAuth() {
+  try {
+    return await api.deviceAuth.initiate.mutate();
+  } catch (error) {
+    if (error instanceof ApiError) {
+      throw new DeviceAuthError(
+        `Failed to initiate device auth: ${error.message}`,
+        error.code,
+      );
+    }
+    throw error;
+  }
+}
+
+/**
  * Run the device authentication flow
  *
  * 1. Calls api.deviceAuth.initiate to get device code and user code
@@ -53,26 +71,13 @@ export async function runDeviceAuthFlow(): Promise<DeviceAuthResult> {
   // Step 1: Initiate the device auth flow
   console.log(chalk.gray("\nInitiating device authentication..."));
 
-  let initResponse;
-  try {
-    initResponse = await api.deviceAuth.initiate.mutate();
-  } catch (error) {
-    if (error instanceof ApiError) {
-      throw new DeviceAuthError(
-        `Failed to initiate device auth: ${error.message}`,
-        error.code,
-      );
-    }
-    throw error;
-  }
-
   const {
     deviceCode,
     userCode,
     verificationUri,
     verificationUriComplete,
     interval,
-  } = initResponse;
+  } = await initiateDeviceAuth();
 
   // Step 2: Display instructions to user
   console.log(chalk.cyan("\n📱 Please authorize this device:\n"));

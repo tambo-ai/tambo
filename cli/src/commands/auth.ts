@@ -520,24 +520,27 @@ export async function handleAuth(
 ): Promise<void> {
   let exitCode = 0;
 
-  // No subcommand or 'status' - show status
-  if (!subcommand || subcommand === "status") {
-    exitCode = await handleAuthStatus({ quiet: flags.quiet });
-  } else if (subcommand === "login") {
-    exitCode = await handleAuthLogin();
-  } else if (subcommand === "logout") {
-    exitCode = await handleAuthLogout({ force: flags.force });
-  } else if (subcommand === "sessions") {
-    exitCode = await handleAuthSessions();
-  } else if (subcommand === "revoke-session") {
-    exitCode = await handleAuthRevokeSession({
-      all: flags.all,
-    });
-  } else {
-    // Unknown subcommand
-    console.log(chalk.red(`Unknown auth subcommand: ${subcommand}`));
-    showAuthHelp();
-    exitCode = 1;
+  switch (subcommand) {
+    case undefined:
+    case "status":
+      exitCode = await handleAuthStatus({ quiet: flags.quiet });
+      break;
+    case "login":
+      exitCode = await handleAuthLogin();
+      break;
+    case "logout":
+      exitCode = await handleAuthLogout({ force: flags.force });
+      break;
+    case "sessions":
+      exitCode = await handleAuthSessions();
+      break;
+    case "revoke-session":
+      exitCode = await handleAuthRevokeSession({ all: flags.all });
+      break;
+    default:
+      console.log(chalk.red(`Unknown auth subcommand: ${subcommand}`));
+      showAuthHelp();
+      exitCode = 1;
   }
 
   if (exitCode !== 0) {

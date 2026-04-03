@@ -900,10 +900,9 @@ describe("handleInit", () => {
     });
 
     it("should auto-answer with --yes flag", async () => {
-      // Execute with --yes (no inquirer needed)
+      // Execute with --yes (no inquirer needed) -- always defaults to src/components
       const path = await getInstallationPath(true);
 
-      // Verify
       expect(path).toBe("src/components");
 
       // Verify auto-proceed message
@@ -1013,13 +1012,6 @@ describe("handleInit", () => {
 
       // Verify tambo.ts was created at project-root lib (not components/lib)
       expect(vol.existsSync("/mock-project/lib/tambo.ts")).toBe(true);
-    });
-
-    it("should handle nested paths correctly", async () => {
-      // This would require custom installPath, but we'll test the path logic
-      // by checking that it extracts first segment correctly
-      // The default behavior uses src/components or components
-      // so tambo.ts goes to src/lib or components/lib
     });
   });
 
