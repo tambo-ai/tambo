@@ -91,10 +91,10 @@ function buildSanitizedSkillArgs(rawArgs: string): string {
     return JSON.stringify(
       skillName
         ? { skill: skillName, status: "running" }
-        : { status: "running" },
+        : { status: "completed" },
     );
   } catch {
-    return JSON.stringify({ status: "running" });
+    return JSON.stringify({ status: "completed" });
   }
 }
 
