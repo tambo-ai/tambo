@@ -537,9 +537,7 @@ export class AISdkClient implements LLMClient {
     // Track component streaming for UI tools (show_component_*)
     let componentTracker: ComponentStreamTracker | undefined;
 
-    // Track whether the current tool call is a provider skill tool.
-    // Used to suppress TOOL_CALL_ARGS events so internal provider
-    // arguments (like SKILL.md paths) aren't exposed to clients.
+    // Track whether the current tool call is a provider skill tool
     let isProviderSkillTool = false;
 
     for await (const delta of result.fullStream) {
@@ -625,10 +623,8 @@ export class AISdkClient implements LLMClient {
               delta.delta,
             );
             aguiEvents.push(...componentEvents);
-          } else if (!isProviderSkillTool) {
-            // V1: emit TOOL_CALL_ARGS immediately — delta.id is the toolCallId.
-            // Suppress for provider skill tools so internal arguments
-            // (like SKILL.md paths) aren't exposed to clients.
+          } else {
+            // V1: emit TOOL_CALL_ARGS immediately — delta.id is the toolCallId
             aguiEvents.push({
               type: EventType.TOOL_CALL_ARGS,
               toolCallId: delta.id,

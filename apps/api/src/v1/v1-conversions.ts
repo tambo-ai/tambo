@@ -270,14 +270,12 @@ export function contentToV1Blocks(
     // is being used for _tambo_* status messages, not for rendering a component.
   }
 
-  // Add tool_use content block if present (assistant messages with tool calls).
-  // Skip UI tools (show_component_*) and provider-managed skill tools -
-  // both are internal implementation details that the client shouldn't render.
+  // Add tool_use content block if present (assistant messages with tool calls)
+  // Skip UI tools (show_component_*) - they're internal implementation details
   if (
     message.toolCallRequest &&
     message.toolCallId &&
-    !isUiToolName(message.toolCallRequest.toolName) &&
-    message.toolCallRequest.toolName !== "skill"
+    !isUiToolName(message.toolCallRequest.toolName)
   ) {
     const toolCallRequest = message.toolCallRequest;
     // Convert parameters array to input object
