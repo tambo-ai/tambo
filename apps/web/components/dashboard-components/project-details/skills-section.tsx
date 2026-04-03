@@ -25,6 +25,7 @@ import {
   parseSkillContent,
   SKILLS_SUPPORTED_PROVIDERS,
   modelSupportsSkills,
+  llmProviderConfig,
 } from "@tambo-ai-cloud/core";
 import { api } from "@/trpc/react";
 import { withTamboInteractable } from "@tambo-ai/react";
@@ -116,6 +117,15 @@ export function SkillsSection({
     (!defaultLlmProviderName ||
       !defaultLlmModelName ||
       modelSupportsSkills(defaultLlmProviderName, defaultLlmModelName));
+
+  function getModelDisplayName(): string {
+    if (!defaultLlmProviderName || !defaultLlmModelName) {
+      return defaultLlmModelName ?? "";
+    }
+    const modelCfg =
+      llmProviderConfig[defaultLlmProviderName]?.models?.[defaultLlmModelName];
+    return modelCfg?.displayName ?? defaultLlmModelName;
+  }
   const { toast } = useToast();
   const utils = api.useUtils();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -450,13 +460,22 @@ export function SkillsSection({
                 </p>
               </div>
             ) : null}
-            {!isSkillsSupported ? (
+            {!isSkillsSupported && !isProviderSupported ? (
               <Alert variant="warning" className="mb-4">
                 <AlertTriangle />
                 <AlertDescription>
-                  {!isProviderSupported
-                    ? `Skills are currently supported with OpenAI and Anthropic models. Your project uses ${defaultLlmProviderName}. Switch to a supported provider to enable skills.`
-                    : `Skills are not supported by ${defaultLlmModelName}. Switch to a newer model to enable skills.`}
+                  Skills are currently supported with OpenAI and Anthropic
+                  models. Your project uses {defaultLlmProviderName}. Switch to
+                  a supported provider to enable skills.
+                </AlertDescription>
+              </Alert>
+            ) : null}
+            {!isSkillsSupported && isProviderSupported ? (
+              <Alert variant="warning" className="mb-4">
+                <AlertTriangle />
+                <AlertDescription>
+                  Skills are not supported by {getModelDisplayName()}. Switch to
+                  a supported model to enable skills.
                 </AlertDescription>
               </Alert>
             ) : null}

@@ -20,13 +20,10 @@ export function modelSupportsSkills(
   const modelCfg = providerCfg?.models?.[modelName];
 
   if (!modelCfg) {
-    console.warn(
-      `[Skills] Model "${modelName}" not found in ${providerName} config, assuming skills unsupported`,
-    );
     return false;
   }
 
-  return modelCfg.supportsSkills === true;
+  return modelCfg.supportsSkills;
 }
 
 /** Kebab-case pattern for skill names (e.g. "scheduling-assistant"). */
