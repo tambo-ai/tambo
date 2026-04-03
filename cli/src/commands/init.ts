@@ -311,10 +311,17 @@ export async function getInstallationPath(yes = false): Promise<string> {
  */
 async function ensureAuthenticated(): Promise<void> {
   if (isTokenValid()) {
-    const isValid = await verifySession();
-    if (isValid) {
-      console.log(chalk.green("\n✔ Already authenticated"));
-      return;
+    try {
+      const isValid = await verifySession();
+      if (isValid) {
+        console.log(chalk.green("\n✔ Already authenticated"));
+        return;
+      }
+      console.log(chalk.yellow("\n⚠ Session expired, re-authenticating..."));
+    } catch {
+      console.log(
+        chalk.yellow("\n⚠ Could not verify session, re-authenticating..."),
+      );
     }
   }
 
