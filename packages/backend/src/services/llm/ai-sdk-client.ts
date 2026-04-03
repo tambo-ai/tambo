@@ -615,15 +615,19 @@ export class AISdkClient implements LLMClient {
           break;
         }
         case "tool-input-delta":
-          accumulatedToolCall.arguments += delta.delta;
-
           // Emit component streaming events for UI tools
           if (componentTracker) {
+            accumulatedToolCall.arguments += delta.delta;
             const componentEvents = componentTracker.processJsonDelta(
               delta.delta,
             );
             aguiEvents.push(...componentEvents);
+          } else if (isProviderSkillTool) {
+            // Mask provider skill tool arguments - don't accumulate raw
+            // provider internals (SKILL.md paths, command types, etc.)
+            // and don't stream them to clients.
           } else {
+            accumulatedToolCall.arguments += delta.delta;
             // V1: emit TOOL_CALL_ARGS immediately — delta.id is the toolCallId
             aguiEvents.push({
               type: EventType.TOOL_CALL_ARGS,
