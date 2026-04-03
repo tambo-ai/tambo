@@ -89,6 +89,9 @@ export async function runDeviceAuthFlow(): Promise<DeviceAuthResult> {
 
   // In non-interactive mode (agents, CI), output raw URL for machine parsing
   if (!isInteractive()) {
+    console.error(
+      "tambo: auth URL below contains a one-time code (expires in 15 min):",
+    );
     console.log(verificationUriComplete);
   }
 

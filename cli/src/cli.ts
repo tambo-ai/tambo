@@ -52,7 +52,6 @@ interface CLIFlags extends Record<string, any> {
   apiKey?: Flag<"string", string>;
   projectName?: Flag<"string", string>;
   projectId?: Flag<"string", string>;
-  browser?: Flag<"boolean", boolean>;
 }
 
 // Command help configuration (defined before CLI setup so we can generate help text)
