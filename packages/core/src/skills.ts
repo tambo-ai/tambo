@@ -4,6 +4,23 @@ export const SKILLS_SUPPORTED_PROVIDERS = new Set(["openai", "anthropic"]);
 /** Kebab-case pattern for skill names (e.g. "scheduling-assistant"). */
 export const SKILL_NAME_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
+/**
+ * Convert a human-readable string into a valid kebab-case skill name.
+ * Lowercases, replaces non-alphanumeric runs with a single hyphen,
+ * and trims leading/trailing hyphens.
+ * @returns A kebab-case slug suitable for use as a skill name, or an empty
+ *   string if the input contains no alphanumeric characters.
+ */
+export function toSkillSlug(input: string): string {
+  const slugged = input.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+  // Trim hyphens without regex to avoid CodeQL polynomial-backtracking warnings.
+  let start = 0;
+  while (start < slugged.length && slugged[start] === "-") start++;
+  let end = slugged.length;
+  while (end > start && slugged[end - 1] === "-") end--;
+  return slugged.slice(start, end);
+}
+
 /** Validation limits for skill fields. Shared across tRPC and any future entry points. */
 export const SKILL_NAME_MAX_LENGTH = 200;
 export const SKILL_DESCRIPTION_MAX_LENGTH = 2000;

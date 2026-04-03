@@ -7,7 +7,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import type { RouterOutputs } from "@/trpc/react";
 import { api } from "@/trpc/react";
-import { parseSkillContent } from "@tambo-ai-cloud/core";
+import { extractErrorMessage } from "@/lib/extract-error-message";
+import { parseSkillContent, toSkillSlug } from "@tambo-ai-cloud/core";
 import { Loader2 } from "lucide-react";
 import { useCallback, useState } from "react";
 
@@ -123,7 +124,10 @@ export function SkillForm({
     setInstructions(result.instructions);
   }, []);
 
-  const isValid = name.trim().length > 0 && description.trim().length > 0;
+  const slugifiedName = toSkillSlug(name);
+  const showSlugPreview = name.trim().length > 0 && slugifiedName !== name;
+
+  const isValid = slugifiedName.length > 0 && description.trim().length > 0;
   const saveButtonLabel = skill ? "Save changes" : "Create skill";
 
   const mutationOptions = {
@@ -135,7 +139,7 @@ export function SkillForm({
     onError: (error: { message: string }) => {
       toast({
         title: "Error",
-        description: error.message,
+        description: extractErrorMessage(error),
         variant: "destructive" as const,
       });
     },
@@ -148,21 +152,17 @@ export function SkillForm({
   const handleSave = () => {
     if (!isValid) return;
 
+    const payload = {
+      projectId,
+      name: slugifiedName,
+      description: description.trim(),
+      instructions: instructions.trim(),
+    };
+
     if (skill) {
-      updateMutation.mutate({
-        projectId,
-        skillId: skill.id,
-        name: name.trim(),
-        description: description.trim(),
-        instructions: instructions.trim(),
-      });
+      updateMutation.mutate({ ...payload, skillId: skill.id });
     } else {
-      createMutation.mutate({
-        projectId,
-        name: name.trim(),
-        description: description.trim(),
-        instructions: instructions.trim(),
-      });
+      createMutation.mutate(payload);
     }
   };
 
@@ -179,9 +179,14 @@ export function SkillForm({
           value={name}
           onChange={(e) => setName(e.target.value)}
           onPaste={handlePasteWithFrontmatter}
-          placeholder="e.g. Code Review Assistant"
+          placeholder="e.g. code-review-assistant"
           maxLength={200}
         />
+        {showSlugPreview && (
+          <p className="mt-1 text-xs text-muted-foreground">
+            Will be saved as: <span className="font-mono">{slugifiedName}</span>
+          </p>
+        )}
       </div>
 
       <div className="space-y-1">

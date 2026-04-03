@@ -186,6 +186,25 @@ describe("SkillForm", () => {
     ).toBe("Do stuff");
   });
 
+  it("shows slug preview when name is not already kebab-case", async () => {
+    const user = userEvent.setup();
+    render(<SkillForm {...defaultProps} />);
+
+    await user.type(screen.getByLabelText("Name"), "My Cool Skill");
+
+    expect(screen.getByText("my-cool-skill")).toBeInTheDocument();
+    expect(screen.getByText(/Will be saved as:/)).toBeInTheDocument();
+  });
+
+  it("does not show slug preview when name is already kebab-case", async () => {
+    const user = userEvent.setup();
+    render(<SkillForm {...defaultProps} />);
+
+    await user.type(screen.getByLabelText("Name"), "my-skill");
+
+    expect(screen.queryByText(/Will be saved as:/)).not.toBeInTheDocument();
+  });
+
   it("has spellCheck disabled on instructions textarea", () => {
     render(<SkillForm {...defaultProps} />);
     expect(screen.getByLabelText("Instructions")).toHaveAttribute(
@@ -202,7 +221,7 @@ describe("SkillForm", () => {
     expect(defaultProps.onClose).toHaveBeenCalled();
   });
 
-  it("calls create mutation with separate fields when saving in create mode", async () => {
+  it("calls create mutation with slugified name when saving in create mode", async () => {
     const user = userEvent.setup();
     render(<SkillForm {...defaultProps} skill={null} />);
 
@@ -215,7 +234,7 @@ describe("SkillForm", () => {
     expect(mockMutate).toHaveBeenCalledWith(
       expect.objectContaining({
         projectId: "proj_1",
-        name: "New Skill",
+        name: "new-skill",
         description: "A new one",
         instructions: "Body here",
       }),
@@ -257,7 +276,7 @@ describe("SkillForm", () => {
       expect.objectContaining({
         projectId: "proj_1",
         skillId: "sk_1",
-        name: "Updated",
+        name: "updated",
         description: "New desc",
         instructions: "New body",
       }),

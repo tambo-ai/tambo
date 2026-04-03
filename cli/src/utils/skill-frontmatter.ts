@@ -12,6 +12,7 @@ import { load as parseYaml, dump as dumpYaml } from "js-yaml";
 
 // Duplicated from packages/core/src/skills.ts (same constraint as above).
 const SKILL_NAME_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
 const SKILL_NAME_MAX_LENGTH = 200;
 const SKILL_DESCRIPTION_MAX_LENGTH = 2000;
 const SKILL_INSTRUCTIONS_MAX_LENGTH = 100_000;
