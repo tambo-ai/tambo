@@ -107,9 +107,13 @@ export async function runDeviceAuthFlow(): Promise<DeviceAuthResult> {
           `   Could not open browser automatically. Please visit the URL above.\n`,
         ),
       );
+    } else {
+      console.log(
+        chalk.gray(
+          "   Could not open browser. Use the URL above to authenticate.\n",
+        ),
+      );
     }
-    // In non-interactive mode, failing to open is expected (e.g. headless CI).
-    // The URL was already printed above.
   }
 
   // Step 3: Poll for completion
