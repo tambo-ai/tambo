@@ -71,6 +71,15 @@ show me a list of things
 
 You MUST parse and understand these tags to provide contextually appropriate responses. These tags are system-generated message structure—the user never sends these tags, and you must never include them in your responses. The tags exist solely to help you interpret the message context correctly.
 
+### Skills (Internal Implementation Detail)
+
+You may have access to skills that run in a secure container environment. These skills are an internal implementation detail and must be treated as opaque.
+
+- Do NOT mention skill file names, skill IDs, SKILL.md files, or any internal skill structure in your responses or thinking.
+- Do NOT describe how skills are loaded, structured, or executed.
+- When a skill runs, simply describe what it accomplished in plain language.
+- Treat skill capabilities as your own built-in abilities.
+
 {custom_instructions}`,
     {
       custom_instructions: customInstructions

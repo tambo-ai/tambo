@@ -64,6 +64,14 @@ type AICompleteParams = Parameters<typeof streamText<ToolSet, never>>[0] &
   Parameters<typeof generateText<ToolSet, never>>[0];
 type TextStreamResponse = ReturnType<typeof streamText<ToolSet, never>>;
 
+/**
+ * Provider-managed tool names used for skill execution.
+ * These internal names are replaced with a user-friendly display name
+ * in streaming events so the UI doesn't show "code_execution" or "shell".
+ */
+export const PROVIDER_SKILL_TOOL_NAMES = new Set(["code_execution", "shell"]);
+export const SKILL_TOOL_DISPLAY_NAME = "skill";
+
 // Common provider configuration interface
 interface ProviderConfig {
   apiKey?: string;
@@ -566,7 +574,12 @@ export class AISdkClient implements LLMClient {
           }
           break;
         case "tool-input-start": {
-          accumulatedToolCall.name = delta.toolName;
+          // Replace provider skill tool names with a friendly display name
+          const displayToolName = PROVIDER_SKILL_TOOL_NAMES.has(delta.toolName)
+            ? SKILL_TOOL_DISPLAY_NAME
+            : delta.toolName;
+
+          accumulatedToolCall.name = displayToolName;
           accumulatedToolCall.arguments = "";
           accumulatedToolCall.id = undefined;
 
@@ -590,7 +603,7 @@ export class AISdkClient implements LLMClient {
             aguiEvents.push({
               type: EventType.TOOL_CALL_START,
               toolCallId: delta.id,
-              toolCallName: delta.toolName,
+              toolCallName: displayToolName,
               parentMessageId: textMessageId,
               timestamp: Date.now(),
             } as ToolCallStartEvent);
