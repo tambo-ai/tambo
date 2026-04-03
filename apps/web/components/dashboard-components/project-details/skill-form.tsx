@@ -7,9 +7,31 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import type { RouterOutputs } from "@/trpc/react";
 import { api } from "@/trpc/react";
-import { parseSkillContent } from "@tambo-ai-cloud/core";
+import { parseSkillContent, toSkillSlug } from "@tambo-ai-cloud/core";
 import { Loader2 } from "lucide-react";
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
+
+/**
+ * Extract a human-readable message from a tRPC/zod error.
+ * tRPC wraps zod validation errors as a JSON-stringified array of issues;
+ * this parses the first message out. Falls back to the raw string if
+ * parsing fails.
+ * @returns A single error message string.
+ */
+export function extractErrorMessage(error: { message: string }): string {
+  try {
+    const parsed: unknown = JSON.parse(error.message);
+    if (Array.isArray(parsed) && parsed.length > 0) {
+      const first = parsed[0] as { message?: string };
+      if (typeof first.message === "string") {
+        return first.message;
+      }
+    }
+  } catch {
+    // Not JSON -- use as-is
+  }
+  return error.message;
+}
 
 export type SkillSummary = RouterOutputs["skills"]["list"][number];
 
@@ -123,7 +145,10 @@ export function SkillForm({
     setInstructions(result.instructions);
   }, []);
 
-  const isValid = name.trim().length > 0 && description.trim().length > 0;
+  const slugifiedName = useMemo(() => toSkillSlug(name), [name]);
+  const showSlugPreview = name.trim().length > 0 && slugifiedName !== name;
+
+  const isValid = slugifiedName.length > 0 && description.trim().length > 0;
   const saveButtonLabel = skill ? "Save changes" : "Create skill";
 
   const mutationOptions = {
@@ -135,7 +160,7 @@ export function SkillForm({
     onError: (error: { message: string }) => {
       toast({
         title: "Error",
-        description: error.message,
+        description: extractErrorMessage(error),
         variant: "destructive" as const,
       });
     },
@@ -148,21 +173,17 @@ export function SkillForm({
   const handleSave = () => {
     if (!isValid) return;
 
+    const payload = {
+      projectId,
+      name: slugifiedName,
+      description: description.trim(),
+      instructions: instructions.trim(),
+    };
+
     if (skill) {
-      updateMutation.mutate({
-        projectId,
-        skillId: skill.id,
-        name: name.trim(),
-        description: description.trim(),
-        instructions: instructions.trim(),
-      });
+      updateMutation.mutate({ ...payload, skillId: skill.id });
     } else {
-      createMutation.mutate({
-        projectId,
-        name: name.trim(),
-        description: description.trim(),
-        instructions: instructions.trim(),
-      });
+      createMutation.mutate(payload);
     }
   };
 
@@ -179,9 +200,14 @@ export function SkillForm({
           value={name}
           onChange={(e) => setName(e.target.value)}
           onPaste={handlePasteWithFrontmatter}
-          placeholder="e.g. Code Review Assistant"
+          placeholder="e.g. code-review-assistant"
           maxLength={200}
         />
+        {showSlugPreview && (
+          <p className="mt-4 text-xs text-muted-foreground">
+            Will be saved as: <span className="font-mono">{slugifiedName}</span>
+          </p>
+        )}
       </div>
 
       <div className="space-y-1">

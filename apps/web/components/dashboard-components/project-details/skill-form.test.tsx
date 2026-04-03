@@ -1,4 +1,4 @@
-import { SkillForm, readFileAsText } from "./skill-form";
+import { SkillForm, readFileAsText, extractErrorMessage } from "./skill-form";
 import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
@@ -69,6 +69,40 @@ describe("readFileAsText", () => {
     const file = new File([content], "SKILL.md", { type: "text/markdown" });
     const result = await readFileAsText(file);
     expect(result).toBe(content);
+  });
+});
+
+describe("extractErrorMessage", () => {
+  it("extracts message from a JSON zod error array", () => {
+    const zodError = JSON.stringify([
+      {
+        validation: "regex",
+        code: "invalid_string",
+        message: "Name must be kebab-case (e.g. scheduling-assistant)",
+        path: ["name"],
+      },
+    ]);
+    expect(extractErrorMessage({ message: zodError })).toBe(
+      "Name must be kebab-case (e.g. scheduling-assistant)",
+    );
+  });
+
+  it("returns the raw message when it is not JSON", () => {
+    expect(extractErrorMessage({ message: "Something went wrong" })).toBe(
+      "Something went wrong",
+    );
+  });
+
+  it("returns the raw message when JSON is not an array", () => {
+    expect(
+      extractErrorMessage({ message: JSON.stringify({ error: "oops" }) }),
+    ).toBe(JSON.stringify({ error: "oops" }));
+  });
+
+  it("returns the raw message when the array has no message field", () => {
+    expect(
+      extractErrorMessage({ message: JSON.stringify([{ code: "custom" }]) }),
+    ).toBe(JSON.stringify([{ code: "custom" }]));
   });
 });
 
@@ -186,6 +220,25 @@ describe("SkillForm", () => {
     ).toBe("Do stuff");
   });
 
+  it("shows slug preview when name is not already kebab-case", async () => {
+    const user = userEvent.setup();
+    render(<SkillForm {...defaultProps} />);
+
+    await user.type(screen.getByLabelText("Name"), "My Cool Skill");
+
+    expect(screen.getByText("my-cool-skill")).toBeInTheDocument();
+    expect(screen.getByText(/Will be saved as:/)).toBeInTheDocument();
+  });
+
+  it("does not show slug preview when name is already kebab-case", async () => {
+    const user = userEvent.setup();
+    render(<SkillForm {...defaultProps} />);
+
+    await user.type(screen.getByLabelText("Name"), "my-skill");
+
+    expect(screen.queryByText(/Will be saved as:/)).not.toBeInTheDocument();
+  });
+
   it("has spellCheck disabled on instructions textarea", () => {
     render(<SkillForm {...defaultProps} />);
     expect(screen.getByLabelText("Instructions")).toHaveAttribute(
@@ -202,7 +255,7 @@ describe("SkillForm", () => {
     expect(defaultProps.onClose).toHaveBeenCalled();
   });
 
-  it("calls create mutation with separate fields when saving in create mode", async () => {
+  it("calls create mutation with slugified name when saving in create mode", async () => {
     const user = userEvent.setup();
     render(<SkillForm {...defaultProps} skill={null} />);
 
@@ -215,7 +268,7 @@ describe("SkillForm", () => {
     expect(mockMutate).toHaveBeenCalledWith(
       expect.objectContaining({
         projectId: "proj_1",
-        name: "New Skill",
+        name: "new-skill",
         description: "A new one",
         instructions: "Body here",
       }),
@@ -257,7 +310,7 @@ describe("SkillForm", () => {
       expect.objectContaining({
         projectId: "proj_1",
         skillId: "sk_1",
-        name: "Updated",
+        name: "updated",
         description: "New desc",
         instructions: "New body",
       }),
