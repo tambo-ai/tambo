@@ -429,6 +429,11 @@ async function handleToggle(
 
     if (!skill) {
       spinner.fail(`Skill not found: ${chalk.cyan(name)}`);
+      console.error(
+        chalk.gray(
+          `Run ${chalk.cyan("tambo skills list")} to see available skills.`,
+        ),
+      );
       return 1;
     }
 
