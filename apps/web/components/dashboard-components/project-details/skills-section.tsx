@@ -460,22 +460,13 @@ export function SkillsSection({
                 </p>
               </div>
             ) : null}
-            {!isSkillsSupported && !isProviderSupported ? (
+            {!isSkillsSupported ? (
               <Alert variant="warning" className="mb-4">
                 <AlertTriangle />
                 <AlertDescription>
-                  Skills are currently supported with OpenAI and Anthropic
-                  models. Your project uses {defaultLlmProviderName}. Switch to
-                  a supported provider to enable skills.
-                </AlertDescription>
-              </Alert>
-            ) : null}
-            {!isSkillsSupported && isProviderSupported ? (
-              <Alert variant="warning" className="mb-4">
-                <AlertTriangle />
-                <AlertDescription>
-                  Skills are not supported by {getModelDisplayName()}. Switch to
-                  a supported model to enable skills.
+                  {!isProviderSupported
+                    ? `Skills are currently supported with OpenAI and Anthropic models. Your project uses ${defaultLlmProviderName}. Switch to a supported provider to enable skills.`
+                    : `Skills are not supported by ${getModelDisplayName()}. Switch to a supported model to enable skills.`}
                 </AlertDescription>
               </Alert>
             ) : null}
