@@ -80,7 +80,7 @@ export const SKILL_TOOL_DISPLAY_NAME = "skill";
  *   { "type": "text_editor_code_execution", "path": "/skills/my-skill/SKILL.md", ... }
  *
  * The skill name is extracted from the path segment between /skills/ and /SKILL.md.
- * @returns Sanitized JSON string with skill name and status.
+ * @returns Sanitized JSON string with skill name.
  */
 function buildSanitizedSkillArgs(rawArgs: string): string {
   try {
@@ -88,13 +88,9 @@ function buildSanitizedSkillArgs(rawArgs: string): string {
     const path = typeof parsed.path === "string" ? parsed.path : "";
     const match = path.match(/\/skills\/([^/]+)\//);
     const skillName = match?.[1];
-    return JSON.stringify(
-      skillName
-        ? { skill: skillName, status: "running" }
-        : { status: "completed" },
-    );
+    return skillName ? JSON.stringify({ skill: skillName }) : "{}";
   } catch {
-    return JSON.stringify({ status: "completed" });
+    return "{}";
   }
 }
 
