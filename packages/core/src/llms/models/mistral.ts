@@ -14,6 +14,7 @@ export const mistralModels: Partial<LlmModelConfig<MistralModelId>> = {
     tamboDocLink:
       "https://docs.tambo.co/reference/llm-providers/mistral#mistral-medium-3",
     inputTokenLimit: 128000,
+    supportsSkills: false,
   },
   "mistral-large-latest": {
     apiName: "mistral-large-latest",
@@ -25,5 +26,6 @@ export const mistralModels: Partial<LlmModelConfig<MistralModelId>> = {
     tamboDocLink:
       "https://docs.tambo.co/reference/llm-providers/mistral#mistral-large-21",
     inputTokenLimit: 128000,
+    supportsSkills: false,
   },
 };

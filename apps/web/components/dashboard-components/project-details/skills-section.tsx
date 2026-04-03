@@ -24,6 +24,8 @@ import { useToast } from "@/hooks/use-toast";
 import {
   parseSkillContent,
   SKILLS_SUPPORTED_PROVIDERS,
+  modelSupportsSkills,
+  llmProviderConfig,
 } from "@tambo-ai-cloud/core";
 import { api } from "@/trpc/react";
 import { withTamboInteractable } from "@tambo-ai/react";
@@ -48,6 +50,7 @@ import {
 interface SkillsSectionProps {
   projectId: string;
   defaultLlmProviderName?: string;
+  defaultLlmModelName?: string;
   defaultNewSkill?: {
     name: string;
     description: string;
@@ -103,11 +106,26 @@ function SkillsSkeleton() {
 export function SkillsSection({
   projectId,
   defaultLlmProviderName,
+  defaultLlmModelName,
   defaultNewSkill,
 }: SkillsSectionProps) {
   const isProviderSupported =
     !defaultLlmProviderName ||
     SKILLS_SUPPORTED_PROVIDERS.has(defaultLlmProviderName);
+  const isSkillsSupported =
+    isProviderSupported &&
+    (!defaultLlmProviderName ||
+      !defaultLlmModelName ||
+      modelSupportsSkills(defaultLlmProviderName, defaultLlmModelName));
+
+  function getModelDisplayName(): string {
+    if (!defaultLlmProviderName || !defaultLlmModelName) {
+      return defaultLlmModelName ?? "";
+    }
+    const modelCfg =
+      llmProviderConfig[defaultLlmProviderName]?.models?.[defaultLlmModelName];
+    return modelCfg?.displayName ?? defaultLlmModelName;
+  }
   const { toast } = useToast();
   const utils = api.useUtils();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -350,7 +368,7 @@ export function SkillsSection({
   const isReady = !isLoading && !isError;
   const hasSkills = isReady && !!skills && skills.length > 0;
   const isEmpty = isReady && skills?.length === 0;
-  const enableCardDrop = isProviderSupported;
+  const enableCardDrop = isSkillsSupported;
 
   return (
     <>
@@ -406,14 +424,14 @@ export function SkillsSection({
                   <Button
                     variant="outline"
                     onClick={handleImportClick}
-                    disabled={!isProviderSupported}
+                    disabled={!isSkillsSupported}
                   >
                     <Import className="h-4 w-4 mr-1" aria-hidden="true" />
                     Import
                   </Button>
                   <Button
                     onClick={openCreateForm}
-                    disabled={!isProviderSupported}
+                    disabled={!isSkillsSupported}
                   >
                     <Plus className="h-4 w-4 mr-1" aria-hidden="true" />
                     Create Skill
@@ -442,13 +460,13 @@ export function SkillsSection({
                 </p>
               </div>
             ) : null}
-            {!isProviderSupported ? (
+            {!isSkillsSupported ? (
               <Alert variant="warning" className="mb-4">
                 <AlertTriangle />
                 <AlertDescription>
-                  Skills are currently supported with OpenAI and Anthropic
-                  models. Your project uses {defaultLlmProviderName}. Switch to
-                  a supported model to enable skills.
+                  {!isProviderSupported
+                    ? `Skills are currently supported with OpenAI and Anthropic models. Your project uses ${defaultLlmProviderName}. Switch to a supported provider to enable skills.`
+                    : `Skills are not supported by ${getModelDisplayName()}. Switch to a supported model to enable skills.`}
                 </AlertDescription>
               </Alert>
             ) : null}
@@ -493,7 +511,7 @@ export function SkillsSection({
                     isDeleting={
                       deleteMutation.isPending && deleteTargetId === skill.id
                     }
-                    disabled={!isProviderSupported}
+                    disabled={!isSkillsSupported}
                     onToggle={handleToggle}
                     onEdit={handleEdit}
                     onDelete={handleDelete}
@@ -546,6 +564,10 @@ const InteractableSkillsSectionProps = z.object({
     .string()
     .optional()
     .describe("The default LLM provider name for the project."),
+  defaultLlmModelName: z
+    .string()
+    .optional()
+    .describe("The default LLM model name for the project."),
   defaultNewSkill: z
     .object({
       name: z.string().describe("The default name for a new skill."),

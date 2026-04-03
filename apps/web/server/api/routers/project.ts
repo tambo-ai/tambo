@@ -48,7 +48,9 @@ import {
   hashKey,
   llmProviderConfig,
   MCPTransport,
+  modelSupportsSkills,
   OAuthValidationMode,
+  SKILLS_SUPPORTED_PROVIDERS,
   validateMcpServer,
 } from "@tambo-ai-cloud/core";
 import type { HydraDb } from "@tambo-ai-cloud/db";
@@ -1253,12 +1255,25 @@ export const projectRouter = createTRPCRouter({
 
       const project = await ctx.db.query.projects.findFirst({
         where: eq(schema.projects.id, projectId),
-        columns: { defaultLlmProviderName: true },
+        columns: {
+          defaultLlmProviderName: true,
+          defaultLlmModelName: true,
+        },
       });
+
+      const providerName = project?.defaultLlmProviderName ?? null;
+      const modelName = project?.defaultLlmModelName ?? null;
+      const skillsSupported =
+        !providerName ||
+        (modelName
+          ? modelSupportsSkills(providerName, modelName)
+          : SKILLS_SUPPORTED_PROVIDERS.has(providerName));
 
       return {
         projectId,
-        defaultLlmProviderName: project?.defaultLlmProviderName ?? null,
+        defaultLlmProviderName: providerName,
+        defaultLlmModelName: modelName,
+        skillsSupported,
       };
     }),
 });
