@@ -1086,10 +1086,12 @@ export class ThreadsService {
         (skillProviderName === "openai"
           ? process.env.FALLBACK_OPENAI_API_KEY
           : undefined);
+      const skillModelName = project?.defaultLlmModelName ?? null;
       const providerSkills = skillApiKey
         ? await this.skillsService.ensureProviderSkillsForRun({
             projectId,
             providerName: skillProviderName,
+            modelName: skillModelName,
             apiKey: skillApiKey,
           })
         : undefined;

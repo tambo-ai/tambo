@@ -11,15 +11,12 @@ import { SkillsService } from "./skills.service";
 // Mock backend helpers
 let mockUploadSkillToProvider: jest.Mock;
 let mockDeleteSkillFromProvider: jest.Mock;
-let mockProviderSupportsSkills: jest.Mock;
 
 jest.mock("@tambo-ai-cloud/backend", () => ({
   uploadSkillToProvider: (...args: unknown[]) =>
     mockUploadSkillToProvider(...args),
   deleteSkillFromProvider: (...args: unknown[]) =>
     mockDeleteSkillFromProvider(...args),
-  providerSupportsSkills: (...args: unknown[]) =>
-    mockProviderSupportsSkills(...args),
 }));
 
 // Mock DB operations
@@ -67,9 +64,6 @@ describe("SkillsService", () => {
     mockDb = {} as HydraDatabase;
     mockUploadSkillToProvider = jest.fn();
     mockDeleteSkillFromProvider = jest.fn();
-    mockProviderSupportsSkills = jest.fn((name: string) =>
-      ["openai", "anthropic"].includes(name),
-    );
   });
 
   async function createService(): Promise<{

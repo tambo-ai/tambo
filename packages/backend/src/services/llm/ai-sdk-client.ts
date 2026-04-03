@@ -49,10 +49,7 @@ import {
 } from "../../util/component-streaming";
 import { formatTemplate, ObjectTemplate } from "../../util/template";
 import { threadMessagesToModelMessages } from "../../util/thread-to-model-message-conversion";
-import {
-  type ProviderSkillConfig,
-  modelSupportsSkills,
-} from "@tambo-ai-cloud/core";
+import type { ProviderSkillConfig } from "@tambo-ai-cloud/core";
 import {
   CompleteParams,
   LLMClient,
@@ -66,11 +63,6 @@ import { limitTokens } from "./token-limiter";
 type AICompleteParams = Parameters<typeof streamText<ToolSet, never>>[0] &
   Parameters<typeof generateText<ToolSet, never>>[0];
 type TextStreamResponse = ReturnType<typeof streamText<ToolSet, never>>;
-
-// Track provider/model combos that have already warned about missing skills
-// support to avoid per-request log spam. Bounded by the finite set of
-// distinct provider:model pairs in deployment (~30 known models).
-const warnedSkillsCombos = new Set<string>();
 
 // Common provider configuration interface
 interface ProviderConfig {
@@ -301,29 +293,11 @@ export class AISdkClient implements LLMClient {
       ...filteredCustomParams, // Custom parameters override all, but exclude model-specific provider params
     };
 
-    // Merge provider-specific skills into config if present and model supports them
-    const hasSkills = !!params.providerSkills?.skills.length;
-    const skillsSupported =
-      hasSkills && modelSupportsSkills(this.provider, this.model);
-
-    if (hasSkills && !skillsSupported) {
-      const key = `${this.provider}:${this.model}`;
-      if (!warnedSkillsCombos.has(key)) {
-        warnedSkillsCombos.add(key);
-        const safeModel = this.model.replace(/\n|\r|\t/g, "");
-        const safeProvider = this.provider.replace(/\n|\r|\t/g, "");
-        console.warn(
-          `[Skills] Model "${safeModel}" (provider: ${safeProvider}) does not support skills, skipping skill injection`,
-        );
-      }
-    }
-
-    const finalConfig = skillsSupported
-      ? this.mergeProviderSkills(
-          baseConfig,
-          params.providerSkills!,
-          providerKey,
-        )
+    // Merge provider-specific skills into config if present.
+    // Model-level support is checked upstream in ensureProviderSkillsForRun,
+    // so any skills passed here are valid for this model.
+    const finalConfig = params.providerSkills?.skills.length
+      ? this.mergeProviderSkills(baseConfig, params.providerSkills, providerKey)
       : baseConfig;
 
     if (params.stream) {

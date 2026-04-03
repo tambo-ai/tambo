@@ -2,12 +2,13 @@ import { Inject, Injectable, Logger } from "@nestjs/common";
 import {
   type ProviderSkillConfig,
   type ProviderSkillReference,
+  modelSupportsSkills,
+  SKILLS_SUPPORTED_PROVIDERS,
 } from "@tambo-ai-cloud/core";
 import { type HydraDatabase, operations, schema } from "@tambo-ai-cloud/db";
 import {
   deleteSkillFromProvider,
   uploadSkillToProvider,
-  providerSupportsSkills,
 } from "@tambo-ai-cloud/backend";
 import { DATABASE } from "../common/database-provider";
 
@@ -26,11 +27,11 @@ export class SkillsService {
   ) {}
 
   /**
-   * Check if a provider supports the skills API.
+   * Check if a provider supports the skills API (upload-level check).
    * @returns Whether the provider has a skills upload endpoint.
    */
   supportsSkills(providerName: string): boolean {
-    return providerSupportsSkills(providerName);
+    return SKILLS_SUPPORTED_PROVIDERS.has(providerName);
   }
 
   /**
@@ -92,13 +93,17 @@ export class SkillsService {
   async ensureProviderSkillsForRun({
     projectId,
     providerName,
+    modelName,
     apiKey,
   }: {
     projectId: string;
     providerName: string;
+    modelName: string | null;
     apiKey: string;
   }): Promise<ProviderSkillConfig | undefined> {
-    if (!this.supportsSkills(providerName)) return undefined;
+    if (!modelName || !modelSupportsSkills(providerName, modelName)) {
+      return undefined;
+    }
 
     const enabledSkills = await operations.listSkillsForProject(
       this.db,
