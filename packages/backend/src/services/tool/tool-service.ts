@@ -199,9 +199,20 @@ export function filterOutStandardToolParameters(
       tool.type === "function" && tool.function.name === toolCall.function.name,
   );
 
+  // For tools not in the registry (e.g. provider-managed skill tools),
+  // keep all parameters since we have no schema to filter against.
+  if (!toolDef) {
+    return Object.entries(parsedArguments).map(
+      ([parameterName, parameterValue]) => ({
+        parameterName,
+        parameterValue,
+      }),
+    );
+  }
+
   // Get the defined parameter names from the tool's schema. Note that the tool might not take any arguments.
   const definedParamNames = Object.keys(
-    toolDef?.function.parameters?.properties ?? {},
+    toolDef.function.parameters?.properties ?? {},
   );
 
   // Transform the tool args into array of {parameterName, parameterValue} objects

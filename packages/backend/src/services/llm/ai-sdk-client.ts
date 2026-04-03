@@ -71,6 +71,7 @@ type TextStreamResponse = ReturnType<typeof streamText<ToolSet, never>>;
  */
 export const PROVIDER_SKILL_TOOL_NAMES = new Set(["code_execution", "shell"]);
 export const SKILL_TOOL_DISPLAY_NAME = "skill";
+const SKILL_TOOL_SANITIZED_ARGS = JSON.stringify({ status: "running" });
 
 // Common provider configuration interface
 interface ProviderConfig {
@@ -584,8 +585,13 @@ export class AISdkClient implements LLMClient {
             : delta.toolName;
 
           accumulatedToolCall.name = displayToolName;
-          accumulatedToolCall.arguments = "";
           accumulatedToolCall.id = undefined;
+
+          // For provider skill tools, set sanitized args up front instead
+          // of accumulating raw provider internals during tool-input-delta.
+          accumulatedToolCall.arguments = isProviderSkillTool
+            ? SKILL_TOOL_SANITIZED_ARGS
+            : "";
 
           // Initialize component tracker for UI tools (show_component_* tools).
           // Component tools emit tambo.component.* custom events instead of
@@ -611,6 +617,17 @@ export class AISdkClient implements LLMClient {
               parentMessageId: textMessageId,
               timestamp: Date.now(),
             } as ToolCallStartEvent);
+
+            // For skill tools, emit the sanitized args immediately since
+            // we won't be streaming the raw provider deltas.
+            if (isProviderSkillTool) {
+              aguiEvents.push({
+                type: EventType.TOOL_CALL_ARGS,
+                toolCallId: delta.id,
+                delta: SKILL_TOOL_SANITIZED_ARGS,
+                timestamp: Date.now(),
+              } as ToolCallArgsEvent);
+            }
           }
           break;
         }
@@ -623,9 +640,10 @@ export class AISdkClient implements LLMClient {
             );
             aguiEvents.push(...componentEvents);
           } else if (isProviderSkillTool) {
-            // Mask provider skill tool arguments - don't accumulate raw
-            // provider internals (SKILL.md paths, command types, etc.)
-            // and don't stream them to clients.
+            // Don't accumulate or stream raw provider arguments for skill
+            // tools - they contain internal details (SKILL.md paths, provider
+            // command types) that shouldn't be exposed. Sanitized args are
+            // set once at tool-input-start instead.
           } else {
             accumulatedToolCall.arguments += delta.delta;
             // V1: emit TOOL_CALL_ARGS immediately — delta.id is the toolCallId
