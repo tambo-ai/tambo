@@ -71,7 +71,32 @@ type TextStreamResponse = ReturnType<typeof streamText<ToolSet, never>>;
  */
 export const PROVIDER_SKILL_TOOL_NAMES = new Set(["code_execution", "shell"]);
 export const SKILL_TOOL_DISPLAY_NAME = "skill";
-const SKILL_TOOL_SANITIZED_ARGS = JSON.stringify({ status: "running" });
+
+/**
+ * Extract a skill name from raw provider tool arguments and return
+ * sanitized JSON that shows activity without exposing internals.
+ *
+ * Provider args look like:
+ *   { "type": "text_editor_code_execution", "path": "/skills/my-skill/SKILL.md", ... }
+ *
+ * The skill name is extracted from the path segment between /skills/ and /SKILL.md.
+ * @returns Sanitized JSON string with skill name and status.
+ */
+function buildSanitizedSkillArgs(rawArgs: string): string {
+  try {
+    const parsed = JSON.parse(rawArgs) as Record<string, unknown>;
+    const path = typeof parsed.path === "string" ? parsed.path : "";
+    const match = path.match(/\/skills\/([^/]+)\//);
+    const skillName = match?.[1];
+    return JSON.stringify(
+      skillName
+        ? { skill: skillName, status: "running" }
+        : { status: "running" },
+    );
+  } catch {
+    return JSON.stringify({ status: "running" });
+  }
+}
 
 // Common provider configuration interface
 interface ProviderConfig {
@@ -538,8 +563,11 @@ export class AISdkClient implements LLMClient {
     // Track component streaming for UI tools (show_component_*)
     let componentTracker: ComponentStreamTracker | undefined;
 
-    // Track whether the current tool call is a provider skill tool
+    // Track whether the current tool call is a provider skill tool.
+    // Raw args are buffered separately so we can extract the skill name
+    // without exposing internal provider details.
     let isProviderSkillTool = false;
+    let skillToolRawArgs = "";
 
     for await (const delta of result.fullStream) {
       // Collect AG-UI events for this delta
@@ -587,11 +615,8 @@ export class AISdkClient implements LLMClient {
           accumulatedToolCall.name = displayToolName;
           accumulatedToolCall.id = undefined;
 
-          // For provider skill tools, set sanitized args up front instead
-          // of accumulating raw provider internals during tool-input-delta.
-          accumulatedToolCall.arguments = isProviderSkillTool
-            ? SKILL_TOOL_SANITIZED_ARGS
-            : "";
+          accumulatedToolCall.arguments = "";
+          skillToolRawArgs = "";
 
           // Initialize component tracker for UI tools (show_component_* tools).
           // Component tools emit tambo.component.* custom events instead of
@@ -617,17 +642,6 @@ export class AISdkClient implements LLMClient {
               parentMessageId: textMessageId,
               timestamp: Date.now(),
             } as ToolCallStartEvent);
-
-            // For skill tools, emit the sanitized args immediately since
-            // we won't be streaming the raw provider deltas.
-            if (isProviderSkillTool) {
-              aguiEvents.push({
-                type: EventType.TOOL_CALL_ARGS,
-                toolCallId: delta.id,
-                delta: SKILL_TOOL_SANITIZED_ARGS,
-                timestamp: Date.now(),
-              } as ToolCallArgsEvent);
-            }
           }
           break;
         }
@@ -640,10 +654,9 @@ export class AISdkClient implements LLMClient {
             );
             aguiEvents.push(...componentEvents);
           } else if (isProviderSkillTool) {
-            // Don't accumulate or stream raw provider arguments for skill
-            // tools - they contain internal details (SKILL.md paths, provider
-            // command types) that shouldn't be exposed. Sanitized args are
-            // set once at tool-input-start instead.
+            // Buffer raw args silently - we'll extract the skill name at
+            // tool-call time and emit sanitized args then.
+            skillToolRawArgs += delta.delta;
           } else {
             accumulatedToolCall.arguments += delta.delta;
             // V1: emit TOOL_CALL_ARGS immediately — delta.id is the toolCallId
@@ -676,6 +689,19 @@ export class AISdkClient implements LLMClient {
             aguiEvents.push(...endEvents);
             componentTracker = undefined;
           } else if (accumulatedToolCall.name) {
+            // For skill tools, emit sanitized args now that raw args are
+            // fully accumulated and we can extract the skill name.
+            if (isProviderSkillTool) {
+              const sanitizedArgs = buildSanitizedSkillArgs(skillToolRawArgs);
+              accumulatedToolCall.arguments = sanitizedArgs;
+              aguiEvents.push({
+                type: EventType.TOOL_CALL_ARGS,
+                toolCallId: delta.toolCallId,
+                delta: sanitizedArgs,
+                timestamp: Date.now(),
+              } as ToolCallArgsEvent);
+            }
+
             // V1: only emit TOOL_CALL_END — START and ARGS already emitted above
             aguiEvents.push({
               type: EventType.TOOL_CALL_END,
