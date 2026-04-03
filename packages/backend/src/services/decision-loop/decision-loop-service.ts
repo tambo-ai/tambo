@@ -2,7 +2,6 @@ import { EventType, type BaseEvent } from "@ag-ui/core";
 import {
   ContentPartType,
   getToolName,
-  isSkillToolName,
   isUiToolName,
   LegacyComponentDecision,
   MessageRole,
@@ -52,6 +51,9 @@ export interface DecisionStreamItem {
 
   /** Provider options to persist on tool calls (e.g. Gemini thought signatures). */
   toolCallProviderOptionsById?: Record<string, ProviderOptions>;
+
+  /** Skill names from provider-managed tool calls, passed through for metadata storage. */
+  skillExecutions?: string[];
 }
 
 const TOOL_CHOICE_KEYWORDS = ["auto", "required", "none"] as const;
@@ -271,19 +273,10 @@ export async function* runDecisionLoop(
           ? (componentId ?? accumulatedDecision.componentId)
           : undefined,
         props: isUITool ? filteredToolArgs : null,
-        // For skill tools, only update toolCallRequest/toolCallId when we
-        // have new values. Skills may fire multiple provider calls within
-        // one turn, causing intermediate yields with undefined tool call
-        // data that would overwrite previously accumulated values.
-        // Regular tools always set these fields unconditionally.
-        toolCallRequest: getToolCallRequestForChunk(
-          clientToolRequest,
-          accumulatedDecision,
-        ),
-        toolCallId: getToolCallIdForChunk(
-          toolCall ? getLLMResponseToolCallId(llmResponse) : undefined,
-          accumulatedDecision,
-        ),
+        toolCallRequest: clientToolRequest,
+        toolCallId: toolCall
+          ? getLLMResponseToolCallId(llmResponse)
+          : undefined,
         statusMessage,
         completionStatusMessage,
         reasoning: llmResponse.reasoning ?? undefined,
@@ -299,6 +292,7 @@ export async function* runDecisionLoop(
         decision: accumulatedDecision,
         aguiEvents: streamItem.aguiEvents,
         toolCallProviderOptionsById: streamItem.toolCallProviderOptionsById,
+        skillExecutions: streamItem.skillExecutions,
       };
     } catch (e) {
       console.error("Error parsing stream chunk:", e);
@@ -361,38 +355,6 @@ function buildToolCallRequest(
     toolName: toolCall.function.name,
     parameters: filteredArgs,
   };
-}
-
-/**
- * Resolve the toolCallRequest for a streaming chunk.
- * For skill tools, preserves the previously accumulated value when the
- * current chunk has no new tool call (avoids overwriting with undefined).
- * Regular tools always use the current chunk's value.
- */
-function getToolCallRequestForChunk(
-  clientToolRequest: ToolCallRequest | undefined,
-  accumulatedDecision: LegacyComponentDecision,
-): ToolCallRequest | undefined {
-  if (clientToolRequest) return clientToolRequest;
-  if (isSkillToolName(accumulatedDecision.toolCallRequest?.toolName)) {
-    return accumulatedDecision.toolCallRequest;
-  }
-  return undefined;
-}
-
-/**
- * Resolve the toolCallId for a streaming chunk.
- * Same preservation logic as getToolCallRequestForChunk.
- */
-function getToolCallIdForChunk(
-  currentToolCallId: string | undefined,
-  accumulatedDecision: LegacyComponentDecision,
-): string | undefined {
-  if (currentToolCallId) return currentToolCallId;
-  if (isSkillToolName(accumulatedDecision.toolCallRequest?.toolName)) {
-    return accumulatedDecision.toolCallId;
-  }
-  return undefined;
 }
 
 /**

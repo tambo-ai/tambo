@@ -3,11 +3,7 @@ import {
   PROVIDER_SKILL_TOOL_NAMES,
   SKILL_TOOL_DISPLAY_NAME,
 } from "@tambo-ai-cloud/core";
-import {
-  AISdkClient,
-  buildSanitizedSkillArgs,
-  extractSkillName,
-} from "./ai-sdk-client";
+import { AISdkClient, extractSkillName } from "./ai-sdk-client";
 
 // Mock the message ID generator
 let messageIdCounter = 0;
@@ -624,30 +620,6 @@ describe("AISdkClient", () => {
     it("returns undefined when path is not a string", () => {
       const args = JSON.stringify({ path: 123 });
       expect(extractSkillName(args)).toBeUndefined();
-    });
-  });
-
-  describe("buildSanitizedSkillArgs", () => {
-    it("returns {} for empty skill names", () => {
-      expect(buildSanitizedSkillArgs([])).toBe("{}");
-    });
-
-    it("returns skills array for a single skill", () => {
-      expect(buildSanitizedSkillArgs(["my-skill"])).toBe(
-        JSON.stringify({ skills: ["my-skill"] }),
-      );
-    });
-
-    it("returns skills array for multiple skills", () => {
-      expect(buildSanitizedSkillArgs(["a", "b", "c"])).toBe(
-        JSON.stringify({ skills: ["a", "b", "c"] }),
-      );
-    });
-
-    it("deduplicates skill names", () => {
-      expect(buildSanitizedSkillArgs(["a", "b", "a"])).toBe(
-        JSON.stringify({ skills: ["a", "b"] }),
-      );
     });
   });
 });
