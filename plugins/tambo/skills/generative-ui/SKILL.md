@@ -248,7 +248,6 @@ Templates already include chat UI. These are only needed if the user wants addit
 ```bash
 npx tambo add message-thread-full --yes    # Complete chat interface
 npx tambo add control-bar --yes            # Controls and actions
-npx tambo add canvas-space --yes           # Rendered component display area
 npx tambo add thread-history --yes         # Conversation history sidebar
 ```
 

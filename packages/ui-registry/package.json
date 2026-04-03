@@ -11,7 +11,6 @@
     "./styles/tailwind": "./src/styles/tailwind.config.ts",
     "./utils": "./src/utils.ts",
     "./lib/thread-hooks": "./src/lib/thread-hooks.ts",
-    "./components/canvas-space": "./src/components/canvas-space/index.tsx",
     "./components/control-bar": "./src/components/control-bar/index.tsx",
     "./components/edit-with-tambo-button": "./src/components/edit-with-tambo-button/index.tsx",
     "./components/elicitation-ui": "./src/components/elicitation-ui/index.tsx",

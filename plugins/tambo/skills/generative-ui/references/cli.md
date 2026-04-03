@@ -98,7 +98,6 @@ Browse and preview all components at [ui.tambo.co](https://ui.tambo.co).
 | `graph`                        | Visualizes graph-based data structures                    |
 | `form`                         | Collects user input with validation support               |
 | `map`                          | Interactive map with clustering and heatmap support       |
-| `canvas-space`                 | Displays rendered components from chat messages           |
 | `thread-history`               | Chronological history of a conversation thread            |
 | `thread-dropdown`              | Dropdown menu for collapsible chat threads                |
 | `thread-content`               | Displays messages within a thread                         |
