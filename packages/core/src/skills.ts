@@ -1,5 +1,28 @@
+import { llmProviderConfig } from "./llms/llm.config";
+import type { LlmProviderConfigInfo } from "./llm-config-types";
+
 /** Providers that support the skills API. */
 export const SKILLS_SUPPORTED_PROVIDERS = new Set(["openai", "anthropic"]);
+
+/**
+ * Check whether a specific model supports provider skills at inference time.
+ * A model supports skills only if both its provider has a skills API and the
+ * model itself is flagged with `supportsSkills: true` in the model config.
+ * @returns Whether the model can use provider skills.
+ */
+export function modelSupportsSkills(
+  providerName: string,
+  modelName: string,
+): boolean {
+  if (!SKILLS_SUPPORTED_PROVIDERS.has(providerName)) return false;
+
+  const providerCfg = (
+    llmProviderConfig as Partial<Record<string, LlmProviderConfigInfo>>
+  )[providerName];
+  const modelCfg = providerCfg?.models?.[modelName];
+
+  return modelCfg?.supportsSkills === true;
+}
 
 /** Kebab-case pattern for skill names (e.g. "scheduling-assistant"). */
 export const SKILL_NAME_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;

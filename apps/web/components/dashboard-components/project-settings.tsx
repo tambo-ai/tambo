@@ -511,6 +511,7 @@ export function ProjectSettings({ projectId }: ProjectSettingsProps) {
                   defaultLlmProviderName={
                     project.defaultLlmProviderName ?? undefined
                   }
+                  defaultLlmModelName={project.defaultLlmModelName ?? undefined}
                 />
               </div>
 

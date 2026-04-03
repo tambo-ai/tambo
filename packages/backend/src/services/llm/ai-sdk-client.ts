@@ -49,7 +49,10 @@ import {
 } from "../../util/component-streaming";
 import { formatTemplate, ObjectTemplate } from "../../util/template";
 import { threadMessagesToModelMessages } from "../../util/thread-to-model-message-conversion";
-import type { ProviderSkillConfig } from "@tambo-ai-cloud/core";
+import {
+  type ProviderSkillConfig,
+  modelSupportsSkills,
+} from "@tambo-ai-cloud/core";
 import {
   CompleteParams,
   LLMClient,
@@ -293,9 +296,23 @@ export class AISdkClient implements LLMClient {
       ...filteredCustomParams, // Custom parameters override all, but exclude model-specific provider params
     };
 
-    // Merge provider-specific skills into config if present
-    const finalConfig = params.providerSkills?.skills.length
-      ? this.mergeProviderSkills(baseConfig, params.providerSkills, providerKey)
+    // Merge provider-specific skills into config if present and model supports them
+    const hasSkills = !!params.providerSkills?.skills.length;
+    const skillsSupported =
+      hasSkills && modelSupportsSkills(this.provider, this.model);
+
+    if (hasSkills && !skillsSupported) {
+      console.warn(
+        `[Skills] Model "${this.model}" (provider: ${this.provider}) does not support skills, skipping skill injection`,
+      );
+    }
+
+    const finalConfig = skillsSupported
+      ? this.mergeProviderSkills(
+          baseConfig,
+          params.providerSkills!,
+          providerKey,
+        )
       : baseConfig;
 
     if (params.stream) {

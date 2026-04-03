@@ -32,8 +32,8 @@ function readApiKeyFromEnv(): string | null {
   return null;
 }
 
-// Duplicated from packages/core/src/skills.ts (CLI can't import raw TS from core).
-const SKILLS_SUPPORTED_PROVIDERS = new Set(["openai", "anthropic"]);
+// Skills support is computed server-side by resolveProjectFromApiKey.
+// The CLI no longer needs to duplicate the provider/model allowlists.
 
 /**
  * Thrown by resolveProjectId when the error has already been printed to stderr.
@@ -91,14 +91,10 @@ async function resolveProjectId(): Promise<ResolvedProject> {
     throw new ProjectResolutionError("No API key found");
   }
 
-  const { projectId, defaultLlmProviderName } =
+  const { projectId, skillsSupported } =
     await api.project.resolveProjectFromApiKey.mutate({ apiKey });
 
-  const skillsSupported =
-    !defaultLlmProviderName ||
-    SKILLS_SUPPORTED_PROVIDERS.has(defaultLlmProviderName);
-
-  return { projectId, skillsSupported };
+  return { projectId, skillsSupported: skillsSupported ?? true };
 }
 
 // ============================================================================
@@ -508,7 +504,7 @@ export async function handleSkills(
   if (!project.skillsSupported) {
     console.error(
       chalk.yellow(
-        "\n⚠ Your current LLM provider does not support skills. Skills will be stored but won't be active until you switch to OpenAI or Anthropic.",
+        "\n⚠ Your current model does not support skills. Skills will be stored but won't be active until you switch to a supported model.",
       ),
     );
   }

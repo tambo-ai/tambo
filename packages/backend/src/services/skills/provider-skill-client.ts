@@ -1,17 +1,20 @@
-import type { ProviderSkillReference } from "@tambo-ai-cloud/core";
+import {
+  type ProviderSkillReference,
+  SKILLS_SUPPORTED_PROVIDERS,
+  modelSupportsSkills,
+} from "@tambo-ai-cloud/core";
 import Anthropic from "@anthropic-ai/sdk";
 import OpenAI from "openai";
-
-/** Providers that support the skills API. */
-const SKILL_PROVIDERS = new Set(["openai", "anthropic"]);
 
 /**
  * Check if a provider supports the skills API.
  * @returns Whether the provider has a skills upload endpoint.
  */
 export function providerSupportsSkills(providerName: string): boolean {
-  return SKILL_PROVIDERS.has(providerName);
+  return SKILLS_SUPPORTED_PROVIDERS.has(providerName);
 }
+
+export { modelSupportsSkills };
 
 /**
  * Format a skill as SKILL.md content for upload to a provider.

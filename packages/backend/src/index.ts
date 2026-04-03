@@ -41,5 +41,6 @@ export {
   updateSkillOnProvider,
   formatSkillMd,
   providerSupportsSkills,
+  modelSupportsSkills,
 } from "./services/skills/provider-skill-client";
 export * from "./util/tambo-custom-events";

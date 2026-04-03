@@ -33,6 +33,7 @@ export const openaiModels: Partial<LlmModelConfig<OpenAIModelId>> = {
     docLink: "https://platform.openai.com/docs/models/gpt-5.4",
     tamboDocLink: "https://docs.tambo.co",
     inputTokenLimit: 1050000,
+    supportsSkills: true,
     modelSpecificParams: reasoningParameters,
     modelParamsDefaults: {
       reasoningEffort: "low",
@@ -48,6 +49,7 @@ export const openaiModels: Partial<LlmModelConfig<OpenAIModelId>> = {
     docLink: "https://platform.openai.com/docs/models/gpt-5.4-pro",
     tamboDocLink: "https://docs.tambo.co",
     inputTokenLimit: 1050000,
+    supportsSkills: true,
     modelSpecificParams: reasoningParameters,
     modelParamsDefaults: {
       reasoningEffort: "medium",
@@ -63,6 +65,7 @@ export const openaiModels: Partial<LlmModelConfig<OpenAIModelId>> = {
     docLink: "https://platform.openai.com/docs/models/gpt-5.3-chat-latest",
     tamboDocLink: "https://docs.tambo.co",
     inputTokenLimit: 128000,
+    supportsSkills: true,
   },
   "gpt-5.2": {
     apiName: "gpt-5.2",
@@ -72,6 +75,7 @@ export const openaiModels: Partial<LlmModelConfig<OpenAIModelId>> = {
     docLink: "https://platform.openai.com/docs/models/gpt-5.2",
     tamboDocLink: "https://docs.tambo.co/reference/llm-providers/openai#gpt-52",
     inputTokenLimit: 400000,
+    supportsSkills: true,
     modelSpecificParams: reasoningParameters,
     modelParamsDefaults: {
       reasoningEffort: "low",
@@ -87,6 +91,7 @@ export const openaiModels: Partial<LlmModelConfig<OpenAIModelId>> = {
     docLink: "https://platform.openai.com/docs/models/gpt-5.2-pro",
     tamboDocLink: "https://docs.tambo.co",
     inputTokenLimit: 400000,
+    supportsSkills: true,
     modelSpecificParams: reasoningParameters,
     modelParamsDefaults: {
       reasoningEffort: "medium",

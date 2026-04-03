@@ -92,6 +92,8 @@ interface StubRouter {
       mutate: (input: { apiKey: string }) => Promise<{
         projectId: string;
         defaultLlmProviderName: string | null;
+        defaultLlmModelName: string | null;
+        skillsSupported: boolean;
       }>;
     };
   };
