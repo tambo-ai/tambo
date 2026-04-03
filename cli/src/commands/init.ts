@@ -303,18 +303,14 @@ export async function getInstallationPath(yes = false): Promise<string> {
  */
 async function ensureAuthenticated(): Promise<void> {
   if (isTokenValid()) {
-    try {
-      const isValid = await verifySession();
-      if (isValid) {
-        console.log(chalk.green("\n✔ Already authenticated"));
-        return;
-      }
-      console.log(chalk.yellow("\n⚠ Session expired, re-authenticating..."));
-    } catch {
-      console.log(
-        chalk.yellow("\n⚠ Could not verify session, re-authenticating..."),
-      );
+    // verifySession() catches all errors internally and returns false,
+    // so this covers both revoked sessions and transient network failures.
+    const isValid = await verifySession();
+    if (isValid) {
+      console.log(chalk.green("\n✔ Already authenticated"));
+      return;
     }
+    console.log(chalk.yellow("\n⚠ Session expired, re-authenticating..."));
   }
 
   await runDeviceAuthFlow();
