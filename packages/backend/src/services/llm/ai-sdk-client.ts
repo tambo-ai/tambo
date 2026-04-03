@@ -93,9 +93,15 @@ function getProviderFromModel(model: string, provider: Provider): string {
     case "cerebras":
       // Cerebras uses openai-compatible provider with custom base URL
       return "openai-compatible";
-    default:
-      // Fallback to OpenAI for unknown providers
-      return "openai";
+    case "bedrock":
+    case "openrouter":
+      throw new Error(
+        `Provider "${provider}" is not yet supported. Supported providers: openai, anthropic, mistral, groq, gemini, cerebras, openai-compatible.`,
+      );
+    default: {
+      const _exhaustive: never = provider;
+      throw new Error(`Unknown provider: ${_exhaustive}`);
+    }
   }
 }
 

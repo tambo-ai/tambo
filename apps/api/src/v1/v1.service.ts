@@ -915,37 +915,44 @@ export class V1Service {
           this.emitEvent(response, runErrorEvent);
 
           // Store full error details in database for debugging
-          const errorInfo = {
-            code: "INTERNAL_ERROR",
-            message: errorMessage,
-          };
+          try {
+            const errorInfo = {
+              code: "INTERNAL_ERROR",
+              message: errorMessage,
+            };
 
-          // Update run and thread with error
-          const didReleaseLock = await this.db.transaction(async (tx) => {
-            await operations.completeRun(tx, runId, { error: errorInfo });
-            // Reset generationStage so the thread isn't stuck in a processing state
-            await operations.updateThreadGenerationStatus(
-              tx,
-              threadId,
-              GenerationStage.ERROR,
-            );
-            return await operations.releaseRunLockIfCurrent(
-              tx,
-              threadId,
-              runId,
-              {
-                error: errorInfo,
-              },
-            );
-          });
+            // Update run and thread with error
+            const didReleaseLock = await this.db.transaction(async (tx) => {
+              await operations.completeRun(tx, runId, { error: errorInfo });
+              // Reset generationStage so the thread isn't stuck in a processing state
+              await operations.updateThreadGenerationStatus(
+                tx,
+                threadId,
+                GenerationStage.ERROR,
+              );
+              return await operations.releaseRunLockIfCurrent(
+                tx,
+                threadId,
+                runId,
+                {
+                  error: errorInfo,
+                },
+              );
+            });
 
-          if (!didReleaseLock) {
-            this.logger.warn(
-              `Skipped releasing run lock for run ${runId} on thread ${threadId} after error (no longer current run)`,
+            if (!didReleaseLock) {
+              this.logger.warn(
+                `Skipped releasing run lock for run ${runId} on thread ${threadId} after error (no longer current run)`,
+              );
+            }
+          } catch (dbError) {
+            this.logger.error(
+              `Failed to persist error state for run ${runId}: ${dbError instanceof Error ? dbError.message : dbError}`,
             );
+            Sentry.captureException(dbError, {
+              tags: { threadId, runId, projectId, phase: "error_cleanup" },
+            });
           }
-
-          throw error;
         }
       },
     );
