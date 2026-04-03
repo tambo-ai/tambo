@@ -73,6 +73,13 @@ npx tambo skills get code-reviewer > code-reviewer.md
 npx tambo skills update code-reviewer.md
 ```
 
+### Enable or disable a skill
+
+```bash
+npx tambo skills enable code-reviewer
+npx tambo skills disable code-reviewer
+```
+
 ### Delete a skill
 
 ```bash
@@ -83,7 +90,7 @@ For the full CLI reference, see [CLI Skills Commands](/reference/cli/commands/sk
 
 ## Enable and Disable Skills
 
-Toggle individual skills on or off from the Skills section in your project settings. Disabled skills remain stored but are not passed to the LLM at inference time.
+Toggle individual skills on or off from the Skills section in your project settings or with `npx tambo skills enable/disable`. Disabled skills remain stored but are not passed to the LLM at inference time.
 
 This is useful for A/B testing skill configurations or temporarily disabling a skill without deleting it.
 

@@ -409,6 +409,53 @@ async function handleDelete(
   }
 }
 
+async function handleToggle(
+  projectId: string,
+  name: string | undefined,
+  enabled: boolean,
+): Promise<number> {
+  const action = enabled ? "enable" : "disable";
+
+  if (!name) {
+    console.error(chalk.red(`\nUsage: tambo skills ${action} <name>`));
+    return 1;
+  }
+
+  const spinner = ora(`Looking up skill "${name}"...`).start();
+
+  try {
+    const skills = await api.skills.list.query({ projectId });
+    const skill = skills.find((s) => s.name === name);
+
+    if (!skill) {
+      spinner.fail(`Skill not found: ${chalk.cyan(name)}`);
+      return 1;
+    }
+
+    if (skill.enabled === enabled) {
+      spinner.info(
+        `Skill ${chalk.cyan(name)} is already ${enabled ? "enabled" : "disabled"}`,
+      );
+      return 0;
+    }
+
+    spinner.text = `${enabled ? "Enabling" : "Disabling"} skill "${name}"...`;
+    await api.skills.update.mutate({
+      projectId,
+      skillId: skill.id,
+      enabled,
+    });
+    spinner.succeed(
+      `${enabled ? "Enabled" : "Disabled"} skill: ${chalk.cyan(name)}`,
+    );
+    return 0;
+  } catch (error) {
+    spinner.fail(`Failed to ${action} skill`);
+    logApiError(error);
+    return 1;
+  }
+}
+
 // ============================================================================
 // Error Helpers
 // ============================================================================
@@ -446,6 +493,10 @@ async function dispatchSubcommand(
       return await handleUpdate(projectId, args);
     case "delete":
       return await handleDelete(projectId, args[0], { force: flags.force });
+    case "enable":
+      return await handleToggle(projectId, args[0], true);
+    case "disable":
+      return await handleToggle(projectId, args[0], false);
     default:
       console.log(chalk.red(`Unknown skills subcommand: ${subcommand}`));
       showSkillsHelp();
@@ -533,6 +584,8 @@ ${chalk.bold("Subcommands")}
   ${chalk.yellow("add")} <file.md>     Create a skill from a markdown file
   ${chalk.yellow("get")} <name>        Print a skill as markdown to stdout
   ${chalk.yellow("update")} <file.md>  Update an existing skill from a file
+  ${chalk.yellow("enable")} <name>     Enable a skill by name
+  ${chalk.yellow("disable")} <name>    Disable a skill by name
   ${chalk.yellow("delete")} <name>     Delete a skill by name
 
 ${chalk.bold("Options")}
@@ -554,6 +607,8 @@ ${chalk.bold("Examples")}
   $ ${chalk.cyan("tambo skills get my-skill-name")}
   $ ${chalk.cyan("tambo skills get my-skill-name > my-skill.md")}
   $ ${chalk.cyan("tambo skills update my-skill.md")}
+  $ ${chalk.cyan("tambo skills enable my-skill-name")}
+  $ ${chalk.cyan("tambo skills disable my-skill-name")}
   $ ${chalk.cyan("tambo skills delete my-skill-name")}
   $ ${chalk.cyan("tambo skills delete my-skill-name --force")}
 

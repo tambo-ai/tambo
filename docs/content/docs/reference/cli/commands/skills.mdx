@@ -70,6 +70,26 @@ npx tambo skills get my-skill > my-skill.md
 npx tambo skills update my-skill.md
 ```
 
+### enable
+
+Enable a skill by name.
+
+```bash
+npx tambo skills enable <name>
+```
+
+If the skill is already enabled, the command exits with no changes.
+
+### disable
+
+Disable a skill by name. Disabled skills remain stored but are not passed to the LLM at inference time.
+
+```bash
+npx tambo skills disable <name>
+```
+
+If the skill is already disabled, the command exits with no changes.
+
 ### delete
 
 Delete a skill by name.

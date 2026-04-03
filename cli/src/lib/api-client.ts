@@ -114,6 +114,7 @@ interface StubRouter {
         name?: string;
         description?: string;
         instructions?: string;
+        enabled?: boolean;
       }) => Promise<Skill>;
     };
     delete: {
