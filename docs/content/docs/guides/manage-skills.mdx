@@ -1,9 +1,9 @@
 ---
-title: Configure Tambo Agent Skills
-description: Create, import, and toggle skills for your Tambo agent through the dashboard or CLI
+title: Add a Skill to Your Agent
+description: Create a skill, test it, and manage your skills through the dashboard or CLI
 ---
 
-This guide walks you through creating and managing skills for your Tambo project. You can manage skills through the Tambo dashboard or the CLI.
+This guide walks you through adding a skill to your Tambo agent, testing it, and managing skills over time.
 
 ## Prerequisites
 
@@ -12,27 +12,21 @@ This guide walks you through creating and managing skills for your Tambo project
 
 If your project uses an unsupported provider or model, the skills section in your project settings shows a warning with instructions to switch.
 
-## Create a Skill in the Dashboard
+## Step 1: Create a Skill
+
+You can create a skill from the dashboard, from a file, or via the CLI.
+
+### From the dashboard
 
 1. Open your project in the Tambo dashboard
-2. Navigate to **Settings**
-3. Scroll to the **Skills** section
-4. Click **Create Skill**
-5. Fill in the name (kebab-case), description, and instructions
-6. Click **Save**
+2. Navigate to **Settings** and scroll to the **Skills** section
+3. Click **Create Skill**
+4. Fill in the name (kebab-case), description, and instructions
+5. Click **Save**
 
-The skill is automatically uploaded to your LLM provider and enabled for all new conversations.
+### From a markdown file via CLI
 
-## Import a Skill File
-
-You can import skills from markdown files with YAML frontmatter.
-
-1. In the Skills section, click **Import** or drag and drop a `.md` file
-2. Tambo parses the frontmatter for the name and description
-3. Review and confirm the imported content
-4. Click **Save**
-
-### Skill file example
+Write a markdown file with YAML frontmatter:
 
 ```markdown
 ---
@@ -49,23 +43,44 @@ You are a code review assistant. When the user shares code:
 5. Explain your reasoning for each suggestion
 ```
 
-## Configure Skills via CLI
-
-The Tambo CLI provides full skill management from the terminal. All commands require authentication (`npx tambo auth login`) and a project API key in `.env.local`.
-
-### List skills
-
-```bash
-npx tambo skills list
-```
-
-### Add a skill from a file
+Then upload it:
 
 ```bash
 npx tambo skills add code-reviewer.md
 ```
 
-### Export a skill to edit locally
+### Import a file via the dashboard
+
+In the Skills section, click **Import** or drag and drop a `.md` file. Tambo parses the frontmatter and creates the skill.
+
+### Tips for writing good instructions
+
+- Be specific about what the skill should do and how
+- Use numbered steps for multi-step workflows
+- Include examples of expected input and output
+- Define boundaries (what the skill should NOT do)
+- Keep instructions focused on a single domain
+
+## Step 2: Test the Skill
+
+Send a message that matches the skill's domain. If you created a `code-reviewer` skill, paste a code snippet and ask for a review. Verify the response follows your instructions rather than giving a generic answer.
+
+If the response does not reflect your instructions, check that the skill is enabled in your project settings and that your model [supports skills](/concepts/skills#model-support).
+
+## Step 3: Manage Skills
+
+### Enable and disable
+
+Toggle individual skills on or off from the Skills section in your project settings, or via the CLI:
+
+```bash
+npx tambo skills enable code-reviewer
+npx tambo skills disable code-reviewer
+```
+
+Disabled skills remain stored but are not passed to the LLM at inference time. This is useful for A/B testing skill configurations or temporarily disabling a skill without deleting it.
+
+### Export, edit, and update
 
 ```bash
 npx tambo skills get code-reviewer > code-reviewer.md
@@ -73,26 +88,13 @@ npx tambo skills get code-reviewer > code-reviewer.md
 npx tambo skills update code-reviewer.md
 ```
 
-### Enable or disable a skill
-
-```bash
-npx tambo skills enable code-reviewer
-npx tambo skills disable code-reviewer
-```
-
-### Delete a skill
+### Delete
 
 ```bash
 npx tambo skills delete code-reviewer
 ```
 
 For the full CLI reference, see [CLI Skills Commands](/reference/cli/commands/skills).
-
-## Enable and Disable Skills
-
-Toggle individual skills on or off from the Skills section in your project settings or with `npx tambo skills enable/disable`. Disabled skills remain stored but are not passed to the LLM at inference time.
-
-This is useful for A/B testing skill configurations or temporarily disabling a skill without deleting it.
 
 ## Next Steps
 
