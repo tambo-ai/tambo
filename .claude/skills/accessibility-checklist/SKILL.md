@@ -5,8 +5,7 @@ description: >-
   the user doesn't mention "accessibility." Covers semantic HTML, aria labels, navigation landmarks,
   forms, dialogs, and keyboard navigation. Trigger on: adding buttons, links, toggles, icons, or
   any interactive element; building or editing forms; adding dialogs or modals; reviewing UI code.
-  Includes a scan script that finds violations automatically. Not for styling or layout changes
-  that don't involve interactive elements.
+  Not for styling or layout changes that don't involve interactive elements.
 metadata:
   internal: true
 ---
@@ -14,14 +13,6 @@ metadata:
 # Accessibility Checklist
 
 Every UI component in `apps/web` must meet these standards. No partial compliance.
-
-## Available scripts
-
-- **`scripts/scan-a11y.sh`** -- scans `apps/web/components` for common a11y violations (role="button" divs, div onClick, positive tabIndex, icon buttons missing aria-label). Run from repo root:
-
-```bash
-bash devdocs/skills/accessibility-checklist/scripts/scan-a11y.sh
-```
 
 ## Gotchas
 
@@ -78,16 +69,16 @@ For standalone inputs outside react-hook-form, pair `useId()` with `htmlFor`/`id
 
 ## Validation
 
-1. Run the scan script:
+Search `apps/web/components` for these violations using Grep on `.tsx` files:
 
-   ```bash
-   bash devdocs/skills/accessibility-checklist/scripts/scan-a11y.sh
-   ```
+1. `role="button"` on non-button elements (should use `<button>`)
+2. `<div` with `onClick` (should use `<button>`)
+3. Positive `tabIndex` values (only 0 or -1 allowed)
+4. `size="icon"` buttons missing `aria-label` (read surrounding lines for context)
 
-2. If violations are found, fix them.
-3. Re-run until the script exits clean.
-4. Manually verify items the script cannot check:
-   - [ ] Form inputs have associated `<label>` elements
-   - [ ] Navigation groups use `<nav>` with unique `aria-label`
-   - [ ] Dialogs use Radix-based components (AlertDialog or Dialog)
-   - [ ] Focus outlines intact
+Then verify these items which require reading comprehension, not pattern matching:
+
+- [ ] Form inputs have associated `<label>` elements
+- [ ] Navigation groups use `<nav>` with unique `aria-label`
+- [ ] Dialogs use Radix-based components (AlertDialog or Dialog)
+- [ ] Focus outlines intact
