@@ -176,14 +176,28 @@ export function ThreadMessages({
         continue;
       }
 
-      // Always add the message first (user or assistant)
+      // If this message has a tool call, add the entries in the correct order.
+      // Provider-managed tools (e.g. skill execution) run BEFORE the text
+      // response, so the tool call card should appear first. Regular tools
+      // are called AFTER the assistant's message text.
+      const isProviderManagedTool =
+        message.toolCallRequest?.toolName === "skill";
+
+      if (message.toolCallRequest && isProviderManagedTool) {
+        groups.push({
+          type: "tool_call",
+          message,
+        });
+      }
+
+      // Add the message content
       groups.push({
         type: "message",
         message,
       });
 
-      // If this message has a tool call, add a separate tool call entry
-      if (message.toolCallRequest) {
+      // If this message has a regular (non-provider) tool call, add it after
+      if (message.toolCallRequest && !isProviderManagedTool) {
         // Look for the corresponding tool response
         const toolResponse = messages.find(
           (msg, idx) =>
