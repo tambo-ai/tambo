@@ -19,7 +19,11 @@ import type {
 } from "./model/component-metadata";
 import type { McpServerInfo } from "./model/mcp-server-info";
 import { getMcpServerUniqueKey } from "./model/mcp-server-info";
-import { MCPClient } from "./mcp/mcp-client";
+import {
+  MCPClient,
+  type McpConnectionStatus,
+  type McpClientInfo,
+} from "./mcp/mcp-client";
 import {
   streamReducer,
   createInitialState,
@@ -50,6 +54,15 @@ export interface BeforeRunContext {
   tools: Readonly<Record<string, TamboTool>>;
 }
 
+ // Callback invoked when MCP server connection status changes.
+export interface McpConnectionChangeEvent {
+  key: string;
+  url: string;
+  status: McpConnectionStatus;
+  error?: string;
+  client: MCPClient | null;
+}
+
 /**
  * Options for configuring TamboClient.
  */
@@ -70,6 +83,8 @@ export interface TamboClientOptions {
   mcpServers?: McpServerInfo[];
   /** Callback invoked before each run. */
   beforeRun?: (context: BeforeRunContext) => void | Promise<void>;
+  /** Callback invoked when MCP server connection status changes. */
+  onMcpConnectionChange?: (event: McpConnectionChangeEvent) => void;
 }
 
 /**
@@ -135,9 +150,13 @@ export class TamboClient {
   private toolRegistry: TamboToolRegistry = {};
   private componentList: ComponentRegistry = {};
   private mcpClients = new Map<string, MCPClient>();
+  private mcpFailedConnections = new Map<string, string>();
   private activeRuns: ActiveRuns = {};
   private contextHelpers = new Map<string, ContextHelperFn>();
   private readonly options: TamboClientOptions;
+  private readonly onMcpConnectionChange?: (
+    event: McpConnectionChangeEvent,
+  ) => void;
 
   /**
    * Create a new TamboClient.
@@ -157,6 +176,7 @@ export class TamboClient {
     }
 
     this.options = options;
+    this.onMcpConnectionChange = options.onMcpConnectionChange;
     this.state = createInitialState();
 
     // Resolve base URL
@@ -178,7 +198,10 @@ export class TamboClient {
     // Connect MCP servers (fire-and-forget)
     if (options.mcpServers) {
       for (const server of options.mcpServers) {
+        const key = getMcpServerUniqueKey(server);
         void this.connectMcpServer(server).catch((err) => {
+          this.mcpFailedConnections.set(key, err.message);
+          this.emitMcpConnectionChange(key, server.url, "failed", err.message);
           console.error(`[TamboClient] Failed to connect MCP server:`, err);
         });
       }
@@ -522,15 +545,33 @@ export class TamboClient {
       return existing;
     }
 
-    const mcpClient = await MCPClient.create(
-      serverInfo.url,
-      serverInfo.transport,
-      serverInfo.customHeaders,
-      undefined, // authProvider
-      undefined, // sessionId
-    );
-    this.mcpClients.set(key, mcpClient);
-    return mcpClient;
+    // Clear any previous failure for this key to allow retry
+    this.mcpFailedConnections.delete(key);
+
+    try {
+      const mcpClient = await MCPClient.create(
+        serverInfo.url,
+        serverInfo.transport,
+        serverInfo.customHeaders,
+        undefined, // authProvider
+        undefined, // sessionId
+      );
+      this.mcpClients.set(key, mcpClient);
+      this.emitMcpConnectionChange(
+        key,
+        serverInfo.url,
+        "connected",
+        undefined,
+        mcpClient,
+      );
+      return mcpClient;
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      this.mcpFailedConnections.set(key, errorMessage);
+      this.emitMcpConnectionChange(key, serverInfo.url, "failed", errorMessage);
+      throw error;
+    }
   }
 
   /**
@@ -546,11 +587,39 @@ export class TamboClient {
   }
 
   /**
-   * Get all connected MCP clients.
-   * @returns Record of server key to MCPClient.
+   * Get all MCP clients with their connection status.
+   * @returns Record of server key to McpClientInfo.
    */
-  getMcpClients(): Record<string, MCPClient> {
-    return Object.fromEntries(this.mcpClients.entries());
+  getMcpClients(): Record<string, McpClientInfo> {
+    const result: Record<string, McpClientInfo> = {};
+
+    for (const [key, client] of this.mcpClients.entries()) {
+      const url = client["endpoint" as keyof typeof client] as string;
+      result[key] = {
+        key,
+        url,
+        status: client.status,
+        error: client.connectionError,
+        client,
+      };
+    }
+
+    for (const [key, error] of this.mcpFailedConnections.entries()) {
+      if (!result[key]) {
+        const serverInfo = this.options.mcpServers?.find(
+          (s) => getMcpServerUniqueKey(s) === key,
+        );
+        result[key] = {
+          key,
+          url: serverInfo?.url ?? "unknown",
+          status: "failed" as McpConnectionStatus,
+          error,
+          client: null as unknown as MCPClient,
+        };
+      }
+    }
+
+    return result;
   }
 
   /**
@@ -706,5 +775,23 @@ export class TamboClient {
     // be awaited in the stream processing loop via beforeRun.
     const merged: Record<string, unknown> = { ...additionalContext };
     return merged;
+  }
+
+  private emitMcpConnectionChange(
+    key: string,
+    url: string,
+    status: McpConnectionChangeEvent["status"],
+    error?: string,
+    client: MCPClient | null = null,
+  ): void {
+    if (this.onMcpConnectionChange) {
+      this.onMcpConnectionChange({
+        key,
+        url,
+        status,
+        error,
+        client,
+      });
+    }
   }
 }

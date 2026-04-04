@@ -81,6 +81,10 @@ export interface MCPHandlers {
   sampling: MCPSamplingHandler;
 }
 
+
+// MCP client connection status
+export type McpConnectionStatus = "connecting" | "connected" | "failed";
+
 /**
  * A client for interacting with MCP (Model Context Protocol) servers.
  * Provides a simple interface for listing and calling tools exposed by the server.
@@ -105,6 +109,13 @@ export class MCPClient {
   private headers: Record<string, string>;
   private authProvider?: OAuthClientProvider;
   private handlers: Partial<MCPHandlers>;
+
+
+  // Current connection status
+  status: McpConnectionStatus = "connecting";
+
+  // Error message if connection failed
+  connectionError?: string;
 
   /**
    * Private constructor to enforce using the static create method.
@@ -158,9 +169,17 @@ export class MCPClient {
       sessionId,
       handlers,
     );
-    await mcpClient.client.connect(mcpClient.transport);
-    if ("sessionId" in mcpClient.transport) {
-      mcpClient.sessionId = mcpClient.transport.sessionId;
+    try {
+      await mcpClient.client.connect(mcpClient.transport);
+      mcpClient.status = "connected";
+      if ("sessionId" in mcpClient.transport) {
+        mcpClient.sessionId = mcpClient.transport.sessionId;
+      }
+    } catch (error) {
+      mcpClient.status = "failed";
+      mcpClient.connectionError =
+        error instanceof Error ? error.message : String(error);
+      throw error;
     }
     return mcpClient;
   }
@@ -340,6 +359,15 @@ export class MCPClient {
     await this.transport.close();
     await this.client.close();
   }
+}
+
+ // Information about an MCP client connection.
+export interface McpClientInfo {
+  key: string;
+  url: string;
+  status: McpConnectionStatus;
+  error?: string;
+  client: MCPClient;
 }
 
 /**
