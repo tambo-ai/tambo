@@ -9,6 +9,36 @@ export enum MCPTransport {
 }
 
 /**
+ * Connection status for an MCP server.
+ */
+export type MCPConnectionStatus =
+  | "connecting"
+  | "connected"
+  | "disconnected"
+  | "error";
+
+/**
+ * Info about the connection state of an MCP server — returned by
+ * `TamboClient.getMcpConnectionStatuses()`.
+ */
+export interface MCPConnectionInfo {
+  /** The server URL. */
+  url: string;
+  /** Current connection status. */
+  status: MCPConnectionStatus;
+  /** Error message when `status` is `"error"`. */
+  error?: string;
+}
+
+/**
+ * Callback invoked when an MCP server's connection status changes.
+ */
+export type MCPConnectionChangeCallback = (
+  serverKey: string,
+  info: MCPConnectionInfo,
+) => void;
+
+/**
  * User-provided configuration for an MCP server.
  *
  * This is the type accepted by `TamboProvider` / `TamboRegistryProvider` in
