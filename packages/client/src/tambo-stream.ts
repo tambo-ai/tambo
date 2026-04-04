@@ -437,10 +437,12 @@ export class TamboStream implements AsyncIterable<StreamEvent> {
       if (actualThreadId) {
         const errorMessage =
           error instanceof Error ? error.message : "Unknown streaming error";
-        const errorEvent: RunErrorEvent = {
+        const errorEvent = {
           type: EventType.RUN_ERROR,
           message: errorMessage,
-        };
+          category: "server_error",
+          isRetryable: true,
+        } as RunErrorEvent;
         dispatch({
           type: "EVENT",
           event: errorEvent,

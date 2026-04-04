@@ -53,6 +53,12 @@ export const V1ErrorCodes = {
   VALIDATION_ERROR: "VALIDATION_ERROR",
   /** Internal server error */
   INTERNAL_ERROR: "INTERNAL_ERROR",
+  /** 400-level error from LLM provider (e.g. bad API key, invalid request) */
+  LLM_CLIENT_ERROR: "LLM_CLIENT_ERROR",
+  /** 500-level error from LLM provider (e.g. provider outage) */
+  LLM_SERVER_ERROR: "LLM_SERVER_ERROR",
+  /** Unknown error communicating with LLM provider */
+  LLM_ERROR: "LLM_ERROR",
 } as const;
 
 export type V1ErrorCode = (typeof V1ErrorCodes)[keyof typeof V1ErrorCodes];
@@ -112,6 +118,18 @@ const errorMetadata: Record<V1ErrorCode, { title: string; status: number }> = {
   [V1ErrorCodes.INTERNAL_ERROR]: {
     title: "Internal Error",
     status: 500,
+  },
+  [V1ErrorCodes.LLM_CLIENT_ERROR]: {
+    title: "LLM Client Error",
+    status: 400,
+  },
+  [V1ErrorCodes.LLM_SERVER_ERROR]: {
+    title: "LLM Server Error",
+    status: 502,
+  },
+  [V1ErrorCodes.LLM_ERROR]: {
+    title: "LLM Error",
+    status: 502,
   },
 };
 

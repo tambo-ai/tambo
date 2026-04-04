@@ -47,6 +47,7 @@
     "@react-email/components": "^1.0.8",
     "@sentry/nestjs": "^10.46.0",
     "@sentry/profiling-node": "^10.46.0",
+    "@ai-sdk/provider": "^2.0.1",
     "@tambo-ai-cloud/backend": "*",
     "@tambo-ai-cloud/core": "*",
     "@tambo-ai-cloud/db": "*",
