@@ -9,7 +9,6 @@ CREATE TABLE "memories" (
 	"deleted_at" timestamp with time zone,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
-	CONSTRAINT "memories_id_unique" UNIQUE("id"),
 	CONSTRAINT "chk_memories_content_length" CHECK (length("memories"."content") <= 1000),
 	CONSTRAINT "chk_memories_importance_range" CHECK ("memories"."importance" >= 1 AND "memories"."importance" <= 5),
 	CONSTRAINT "chk_memories_superseded_not_self" CHECK ("memories"."superseded_by" IS NULL OR "memories"."superseded_by" <> "memories"."id")
@@ -23,4 +22,5 @@ ALTER TABLE "memories" ADD CONSTRAINT "memories_superseded_by_fk" FOREIGN KEY ("
 CREATE INDEX "memories_active_project_context_idx" ON "memories" USING btree ("project_id","context_key") WHERE deleted_at IS NULL;--> statement-breakpoint
 CREATE POLICY "memories_api_key_policy" ON "memories" AS PERMISSIVE FOR ALL TO "project_api_key" USING ("memories"."project_id" = (select current_setting('request.apikey.project_id')));--> statement-breakpoint
 CREATE POLICY "memories_user_select_policy" ON "memories" AS PERMISSIVE FOR SELECT TO "authenticated" USING (exists (select 1 from project_members where project_members.project_id = "memories"."project_id" and project_members.user_id = (select auth.uid())));--> statement-breakpoint
+CREATE POLICY "memories_user_update_policy" ON "memories" AS PERMISSIVE FOR UPDATE TO "authenticated" USING (exists (select 1 from project_members where project_members.project_id = "memories"."project_id" and project_members.user_id = (select auth.uid())));--> statement-breakpoint
 CREATE POLICY "memories_user_delete_policy" ON "memories" AS PERMISSIVE FOR DELETE TO "authenticated" USING (exists (select 1 from project_members where project_members.project_id = "memories"."project_id" and project_members.user_id = (select auth.uid())));

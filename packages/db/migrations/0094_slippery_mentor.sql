@@ -1,1 +1,0 @@
-CREATE POLICY "memories_user_update_policy" ON "memories" AS PERMISSIVE FOR UPDATE TO "authenticated" USING (exists (select 1 from project_members where project_members.project_id = "memories"."project_id" and project_members.user_id = (select auth.uid())));

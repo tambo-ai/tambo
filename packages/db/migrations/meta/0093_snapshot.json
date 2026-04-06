@@ -1,5 +1,5 @@
 {
-  "id": "534dc966-6ec7-4fc8-9beb-9246e8b2aead",
+  "id": "c8b7ce7e-fc56-4371-868d-e22f091842f8",
   "prevId": "fd1e6b01-8226-42c6-a8ef-f592624a833e",
   "version": "7",
   "dialect": "postgresql",
@@ -1006,13 +1006,7 @@
         }
       },
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "memories_id_unique": {
-          "name": "memories_id_unique",
-          "nullsNotDistinct": false,
-          "columns": ["id"]
-        }
-      },
+      "uniqueConstraints": {},
       "policies": {
         "memories_api_key_policy": {
           "name": "memories_api_key_policy",
@@ -1025,6 +1019,13 @@
           "name": "memories_user_select_policy",
           "as": "PERMISSIVE",
           "for": "SELECT",
+          "to": ["authenticated"],
+          "using": "exists (select 1 from project_members where project_members.project_id = \"memories\".\"project_id\" and project_members.user_id = (select auth.uid()))"
+        },
+        "memories_user_update_policy": {
+          "name": "memories_user_update_policy",
+          "as": "PERMISSIVE",
+          "for": "UPDATE",
           "to": ["authenticated"],
           "using": "exists (select 1 from project_members where project_members.project_id = \"memories\".\"project_id\" and project_members.user_id = (select auth.uid()))"
         },
