@@ -692,6 +692,7 @@ export class AISdkClient implements LLMClient {
         case "tool-input-end":
           break;
         case "tool-call":
+          if (isProviderSkillTool) break;
           if (delta.providerMetadata?.google?.thoughtSignature) {
             toolCallProviderOptionsById = {
               ...(toolCallProviderOptionsById ?? {}),
@@ -703,7 +704,6 @@ export class AISdkClient implements LLMClient {
               },
             };
           }
-          if (isProviderSkillTool) break;
           accumulatedToolCall.id = delta.toolCallId;
           if (componentTracker) {
             // Finalize component tracker and emit end event
