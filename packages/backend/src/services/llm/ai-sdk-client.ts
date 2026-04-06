@@ -64,6 +64,18 @@ type AICompleteParams = Parameters<typeof streamText<ToolSet, never>>[0] &
   Parameters<typeof generateText<ToolSet, never>>[0];
 type TextStreamResponse = ReturnType<typeof streamText<ToolSet, never>>;
 
+/**
+ * Provider-specific tool names used for skill execution.
+ * Each provider uses a different tool name for its skill container.
+ * Only the tool name for the active provider is suppressed, so a user
+ * tool named "shell" on Anthropic (or "code_execution" on OpenAI) is
+ * not accidentally swallowed.
+ */
+const PROVIDER_SKILL_TOOL_NAME: Record<string, string> = {
+  anthropic: "code_execution",
+  openai: "shell",
+};
+
 // Common provider configuration interface
 interface ProviderConfig {
   apiKey?: string;
@@ -306,7 +318,10 @@ export class AISdkClient implements LLMClient {
         ...finalConfig,
         abortSignal: params.abortSignal,
       });
-      return this.handleStreamingResponse(result);
+      const skillToolName = params.providerSkills?.skills.length
+        ? PROVIDER_SKILL_TOOL_NAME[providerKey]
+        : undefined;
+      return this.handleStreamingResponse(result, skillToolName);
     } else {
       const result = await generateText(finalConfig);
       return this.convertToLLMResponse(result);
@@ -509,6 +524,7 @@ export class AISdkClient implements LLMClient {
 
   private async *handleStreamingResponse(
     result: TextStreamResponse,
+    skillToolName: string | undefined,
   ): AsyncIterableIterator<LLMStreamItem> {
     let accumulatedMessage = "";
     let accumulatedReasoning: string[] = [];
@@ -529,22 +545,61 @@ export class AISdkClient implements LLMClient {
     // Track component streaming for UI tools (show_component_*)
     let componentTracker: ComponentStreamTracker | undefined;
 
+    // Provider-managed skill tools are completely ignored during streaming.
+    // The provider handles execution internally; the LLM describes what
+    // the skill accomplished in its text response.
+    let isProviderSkillTool = false;
+
     for await (const delta of result.fullStream) {
       // Collect AG-UI events for this delta
       const aguiEvents: BaseEvent[] = [];
 
       switch (delta.type) {
-        case "text-start":
-          accumulatedMessage = "";
-          // Generate message ID for this text stream
-          textMessageId = generateMessageId();
-          aguiEvents.push({
-            type: EventType.TEXT_MESSAGE_START,
-            messageId: textMessageId,
-            role: "assistant",
-            timestamp: Date.now(),
-          } as TextMessageStartEvent);
+        case "text-start": {
+          const wasProviderSkillTool = isProviderSkillTool;
+          isProviderSkillTool = false;
+          if (accumulatedMessage.length > 0 && textMessageId) {
+            if (!wasProviderSkillTool) {
+              console.warn(
+                "Unexpected second text-start with existing message outside skill tool context",
+              );
+            }
+            // Text resumed after a provider-managed skill tool call.
+            // This branch only triggers for skills because regular tool
+            // calls end the stream entirely (the decision loop restarts
+            // a new complete() call for the next turn). Only provider-
+            // executed tools (skills) return results inline and let the
+            // LLM continue generating text in the same stream.
+            //
+            // Reuse the same message ID so the client appends to the
+            // existing message bubble. The client handles duplicate
+            // TEXT_MESSAGE_START for an existing ID by just updating
+            // streaming state (no new message).
+            accumulatedMessage += "\n\n";
+            aguiEvents.push({
+              type: EventType.TEXT_MESSAGE_START,
+              messageId: textMessageId,
+              role: "assistant",
+              timestamp: Date.now(),
+            } as TextMessageStartEvent);
+            aguiEvents.push({
+              type: EventType.TEXT_MESSAGE_CONTENT,
+              messageId: textMessageId,
+              delta: "\n\n",
+              timestamp: Date.now(),
+            } as TextMessageContentEvent);
+          } else {
+            accumulatedMessage = "";
+            textMessageId = generateMessageId();
+            aguiEvents.push({
+              type: EventType.TEXT_MESSAGE_START,
+              messageId: textMessageId,
+              role: "assistant",
+              timestamp: Date.now(),
+            } as TextMessageStartEvent);
+          }
           break;
+        }
         case "text-delta":
           accumulatedMessage += delta.text;
           if (textMessageId) {
@@ -564,8 +619,27 @@ export class AISdkClient implements LLMClient {
               timestamp: Date.now(),
             } as TextMessageEndEvent);
           }
+          // textMessageId is deliberately NOT cleared here so it can be
+          // reused if text resumes after a provider-managed skill tool call.
           break;
         case "tool-input-start": {
+          // Only suppress the specific tool name injected by the active
+          // provider for skills. This avoids silently swallowing a user
+          // tool that shares a name with a different provider's skill tool
+          // (e.g. user tool "shell" on Anthropic, or "code_execution" on OpenAI).
+          isProviderSkillTool =
+            !!skillToolName && delta.toolName === skillToolName;
+          if (isProviderSkillTool) {
+            // Skill tools are fully handled by the provider. Ignore.
+            // Clear accumulated tool state to prevent stale data from a
+            // previous tool call leaking if tool-result doesn't fire.
+            componentTracker = undefined;
+            accumulatedToolCall.name = undefined;
+            accumulatedToolCall.arguments = "";
+            accumulatedToolCall.id = undefined;
+            break;
+          }
+
           accumulatedToolCall.name = delta.toolName;
           accumulatedToolCall.arguments = "";
           accumulatedToolCall.id = undefined;
@@ -598,9 +672,8 @@ export class AISdkClient implements LLMClient {
           break;
         }
         case "tool-input-delta":
+          if (isProviderSkillTool) break;
           accumulatedToolCall.arguments += delta.delta;
-
-          // Emit component streaming events for UI tools
           if (componentTracker) {
             const componentEvents = componentTracker.processJsonDelta(
               delta.delta,
@@ -619,6 +692,7 @@ export class AISdkClient implements LLMClient {
         case "tool-input-end":
           break;
         case "tool-call":
+          if (isProviderSkillTool) break;
           if (delta.providerMetadata?.google?.thoughtSignature) {
             toolCallProviderOptionsById = {
               ...(toolCallProviderOptionsById ?? {}),
