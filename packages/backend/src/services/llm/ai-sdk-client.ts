@@ -47,7 +47,7 @@ import {
   ComponentStreamTracker,
   tryExtractComponentName,
 } from "../../util/component-streaming";
-import { formatTemplate, ObjectTemplate } from "../../util/template";
+import { formatTemplate, objectTemplate } from "../../util/template";
 import { threadMessagesToModelMessages } from "../../util/thread-to-model-message-conversion";
 import type { ProviderSkillConfig } from "@tambo-ai-cloud/core";
 import {
@@ -881,36 +881,9 @@ function tryFormatTemplate(
   promptTemplateParams: Record<string, string | ThreadMessage[]>,
 ): ThreadMessage[] {
   try {
-    return formatTemplate(
-      messages as ObjectTemplate<ThreadMessage[]>,
-      promptTemplateParams,
-    );
+    return formatTemplate(objectTemplate(messages), promptTemplateParams);
   } catch (_e) {
-    // The messages aren't ObjectTemplate instances (they lack the format symbol),
-    // so formatTemplate will throw. Fall back to manual string substitution on
-    // text content parts, which is where template variables like {user_memories}
-    // and {custom_instructions} live.
-    const stringParams = Object.fromEntries(
-      Object.entries(promptTemplateParams).filter(
-        (entry): entry is [string, string] => typeof entry[1] === "string",
-      ),
-    );
-    if (Object.keys(stringParams).length === 0) {
-      return messages;
-    }
-    return messages.map((msg) => ({
-      ...msg,
-      content: msg.content.map((part) => {
-        if (part.type === "text" && typeof part.text === "string") {
-          let text = part.text;
-          for (const [key, value] of Object.entries(stringParams)) {
-            text = text.replaceAll(`{${key}}`, value);
-          }
-          return { ...part, text };
-        }
-        return part;
-      }),
-    }));
+    return messages;
   }
 }
 

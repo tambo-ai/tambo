@@ -85,6 +85,19 @@ describe("objectTemplate - templates for nested objects", () => {
     expect(out).toEqual([{ role: "chat_history", content: "expanded" }]);
   });
 
+  it("preserves Date instances in objects", () => {
+    const date = new Date("2025-06-15T10:00:00Z");
+    const t = objectTemplate([
+      { role: "system", content: "Hello {name}", createdAt: date },
+    ]);
+    const out = formatTemplate(t, { name: "user" });
+
+    expect(out).toEqual([
+      { role: "system", content: "Hello user", createdAt: date },
+    ]);
+    expect(out[0].createdAt).toBeInstanceOf(Date);
+  });
+
   it("throws if input is not object or string", () => {
     expect(() => objectTemplate(5 as unknown as object)).toThrow(
       "Can only generate object templates for objects or strings",
