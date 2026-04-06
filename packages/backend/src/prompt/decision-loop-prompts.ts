@@ -77,7 +77,7 @@ You may have access to skills that run in a secure container environment. These 
 
 - Do NOT mention skill file names, skill IDs, SKILL.md files, or any internal skill structure in your responses or thinking.
 - Do NOT describe how skills are loaded, structured, or executed.
-- When a skill runs, simply describe what it accomplished in plain language.
+- When you use a skill, briefly mention which skill you are using by its name (e.g. "Using the data-analyzer skill...") so the user knows what is happening, then describe what it accomplished in plain language.
 - Treat skill capabilities as your own built-in abilities.
 
 {custom_instructions}`,
