@@ -1,12 +1,12 @@
 import {
   parseSkillContent,
   reconstructSkillContent,
-} from "./parse-skill-frontmatter";
+} from "./skills-frontmatter";
 
 describe("parseSkillContent", () => {
-  it("parses valid SKILL.md with name, description, and body", () => {
+  it("parses valid SKILL.md with name, description, and instructions", () => {
     const content = `---
-name: My Skill
+name: my-skill
 description: A brief description
 ---
 Some instructions here.`;
@@ -14,9 +14,9 @@ Some instructions here.`;
     const result = parseSkillContent(content);
     expect(result).toEqual({
       success: true,
-      name: "My Skill",
+      name: "my-skill",
       description: "A brief description",
-      body: "Some instructions here.",
+      instructions: "Some instructions here.",
     });
   });
 
@@ -35,7 +35,7 @@ Body`;
 
   it("returns failure when description is missing", () => {
     const content = `---
-name: My Skill
+name: my-skill
 ---
 Body`;
 
@@ -55,6 +55,23 @@ Body`;
 
     const result = parseSkillContent(content);
     expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error).toContain("string");
+    }
+  });
+
+  it("returns failure for non-kebab-case name", () => {
+    const content = `---
+name: My Skill
+description: A brief description
+---
+Body`;
+
+    const result = parseSkillContent(content);
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error).toContain("kebab-case");
+    }
   });
 
   it("returns failure for invalid YAML syntax", () => {
@@ -86,7 +103,7 @@ Body`;
 
   it("ignores extra frontmatter fields and still extracts name/description", () => {
     const content = `---
-name: My Skill
+name: my-skill
 description: A brief description
 author: jane
 version: 1.0
@@ -96,44 +113,28 @@ Body`;
     const result = parseSkillContent(content);
     expect(result).toEqual({
       success: true,
-      name: "My Skill",
+      name: "my-skill",
       description: "A brief description",
-      body: "Body",
-    });
-  });
-
-  it("handles YAML-special characters in name and description", () => {
-    const content = `---
-name: "Step 1: Do the thing"
-description: "It's a 'quoted' description with: colons"
----
-Body`;
-
-    const result = parseSkillContent(content);
-    expect(result).toEqual({
-      success: true,
-      name: "Step 1: Do the thing",
-      description: "It's a 'quoted' description with: colons",
-      body: "Body",
+      instructions: "Body",
     });
   });
 
   it("handles \\r\\n line endings from Windows paste", () => {
     const content =
-      "---\r\nname: My Skill\r\ndescription: A brief description\r\n---\r\nBody";
+      "---\r\nname: my-skill\r\ndescription: A brief description\r\n---\r\nBody";
 
     const result = parseSkillContent(content);
     expect(result).toEqual({
       success: true,
-      name: "My Skill",
+      name: "my-skill",
       description: "A brief description",
-      body: "Body",
+      instructions: "Body",
     });
   });
 
-  it("handles empty body after frontmatter", () => {
+  it("handles empty instructions after frontmatter", () => {
     const content = `---
-name: My Skill
+name: my-skill
 description: A brief description
 ---
 `;
@@ -141,7 +142,37 @@ description: A brief description
     const result = parseSkillContent(content);
     expect(result.success).toBe(true);
     if (result.success) {
-      expect(result.body).toBe("");
+      expect(result.instructions).toBe("");
+    }
+  });
+
+  it("rejects name exceeding max length", () => {
+    const longName = "a".repeat(201);
+    const content = `---
+name: ${longName}
+description: A brief description
+---
+Body`;
+
+    const result = parseSkillContent(content);
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error).toContain("200");
+    }
+  });
+
+  it("rejects description exceeding max length", () => {
+    const longDesc = "a".repeat(2001);
+    const content = `---
+name: my-skill
+description: "${longDesc}"
+---
+Body`;
+
+    const result = parseSkillContent(content);
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error).toContain("2000");
     }
   });
 });
@@ -149,7 +180,7 @@ description: A brief description
 describe("reconstructSkillContent", () => {
   it("produces valid SKILL.md format", () => {
     const content = reconstructSkillContent(
-      "My Skill",
+      "my-skill",
       "A brief description",
       "Some instructions here.",
     );
@@ -161,7 +192,7 @@ describe("reconstructSkillContent", () => {
   });
 
   it("round-trips: reconstruct then parse yields same values", () => {
-    const name = "My Skill";
+    const name = "my-skill";
     const description = "A brief description";
     const instructions = "Some instructions here.";
 
@@ -172,12 +203,12 @@ describe("reconstructSkillContent", () => {
     if (result.success) {
       expect(result.name).toBe(name);
       expect(result.description).toBe(description);
-      expect(result.body).toBe(instructions);
+      expect(result.instructions).toBe(instructions);
     }
   });
 
-  it("round-trips with YAML-special characters", () => {
-    const name = "Step 1: Do the thing";
+  it("round-trips with special characters in description", () => {
+    const name = "my-skill";
     const description = 'It\'s a "quoted" description with: colons & newlines';
     const instructions = "Body content";
 
@@ -188,7 +219,7 @@ describe("reconstructSkillContent", () => {
     if (result.success) {
       expect(result.name).toBe(name);
       expect(result.description).toBe(description);
-      expect(result.body).toBe(instructions);
+      expect(result.instructions).toBe(instructions);
     }
   });
 });

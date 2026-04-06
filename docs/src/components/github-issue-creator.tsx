@@ -31,9 +31,7 @@ export const GitHubIssueCreator = React.forwardRef<
   GitHubIssueCreatorProps
 >(({ className, ...props }, ref) => {
   const [issueTitle, setIssueTitle] = React.useState("");
-  const [selectedRepo, setSelectedRepo] = React.useState<Repository>(
-    repositories[0],
-  );
+  const [selectedRepo, setSelectedRepo] = React.useState(repositories[0]);
 
   const handleCreateIssue = () => {
     if (!issueTitle.trim()) {

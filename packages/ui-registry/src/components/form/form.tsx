@@ -189,13 +189,14 @@ export const FormComponent = React.forwardRef<HTMLFormElement, FormProps>(
      * Component state managed by Tambo
      * Stores all form values, dropdown states, selections, and other UI state
      */
-    const [state, setState] = useTamboComponentState<FormState>(formId, {
+    const initialFormState: FormState = {
       values: {},
       openDropdowns: {},
       selectedValues: {},
       yesNoSelections: {},
       checkboxSelections: {},
-    });
+    };
+    const [state, setState] = useTamboComponentState(formId, initialFormState);
 
     /**
      * References to dropdown DOM elements for handling click-outside behavior

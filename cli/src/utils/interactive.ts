@@ -9,10 +9,7 @@ import spawn from "cross-spawn";
 import type { Answers, DistinctQuestion, PromptSession } from "inquirer";
 import inquirer from "inquirer";
 
-type InquirerPromptQuestions = PromptSession<
-  Answers,
-  DistinctQuestion<Answers>
->;
+type InquirerPromptQuestions = PromptSession<Answers, DistinctQuestion>;
 
 /**
  * Checks if the current environment is interactive.

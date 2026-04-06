@@ -28,6 +28,7 @@ import {
   V1RunStatus,
   type UnsavedThreadToolMessage,
 } from "@tambo-ai-cloud/core";
+import { classifyStreamingError } from "./v1-error-classifier";
 import {
   sanitizeEvent,
   createMessageParentEvent,
@@ -894,29 +895,48 @@ export class V1Service {
           };
           this.emitEvent(response, runFinishedEvent);
         } catch (error) {
-          // 8. Handle error - emit RUN_ERROR and update state
+          // 8. Handle error - classify, emit RUN_ERROR, and update state
           const errorMessage =
             error instanceof Error ? error.message : "Unknown error";
-          this.logger.error(`Run ${runId} failed: ${errorMessage}`);
+          const classified = classifyStreamingError(error);
 
-          // Capture exception with Sentry context
-          Sentry.captureException(error, {
-            tags: { threadId, runId, projectId },
-            extra: { model: dto.model, contextKey },
-          });
+          if (classified.category === "server_error") {
+            this.logger.error(
+              `Run ${runId} failed [${classified.code}]: ${errorMessage}`,
+            );
+            Sentry.captureException(error, {
+              tags: {
+                threadId,
+                runId,
+                projectId,
+                errorCode: classified.code,
+                errorCategory: classified.category,
+              },
+              extra: { model: dto.model, contextKey },
+            });
+          } else {
+            this.logger.warn(
+              `Run ${runId} client error [${classified.code}]: ${errorMessage}`,
+            );
+          }
 
-          // Use generic message for client to avoid exposing internal details
+          // Emit classified error event — category and isRetryable pass through
+          // AG-UI's Zod passthrough schema and sanitizeEvent
           const runErrorEvent: RunErrorEvent = {
             type: EventType.RUN_ERROR,
-            message: "An internal error occurred",
-            code: "INTERNAL_ERROR",
+            message: classified.message,
+            code: classified.code,
+            category: classified.category,
+            isRetryable: classified.isRetryable,
+            status: classified.status,
             timestamp: Date.now(),
-          };
+          } as RunErrorEvent;
           this.emitEvent(response, runErrorEvent);
 
           // Store full error details in database for debugging
           const errorInfo = {
-            code: "INTERNAL_ERROR",
+            code: classified.code,
+            category: classified.category,
             message: errorMessage,
           };
 

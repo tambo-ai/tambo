@@ -21,6 +21,7 @@ export const cerebrasModels: Partial<LlmModelConfig<CerebrasModelId>> = {
     tamboDocLink:
       "https://docs.tambo.co/reference/llm-providers/cerebras#llama31-8b",
     inputTokenLimit: 128000,
+    supportsSkills: false,
   },
   "gpt-oss-120b": {
     apiName: "gpt-oss-120b",
@@ -32,6 +33,7 @@ export const cerebrasModels: Partial<LlmModelConfig<CerebrasModelId>> = {
     tamboDocLink:
       "https://docs.tambo.co/reference/llm-providers/cerebras#gpt-oss-120b",
     inputTokenLimit: 8192,
+    supportsSkills: false,
   },
   "qwen-3-235b-a22b-instruct-2507": {
     apiName: "qwen-3-235b-a22b-instruct-2507",
@@ -43,6 +45,7 @@ export const cerebrasModels: Partial<LlmModelConfig<CerebrasModelId>> = {
     tamboDocLink:
       "https://docs.tambo.co/reference/llm-providers/cerebras#qwen-3-235b-a22b-instruct-2507",
     inputTokenLimit: 32768,
+    supportsSkills: false,
   },
   "zai-glm-4.7": {
     apiName: "zai-glm-4.7",
@@ -54,5 +57,6 @@ export const cerebrasModels: Partial<LlmModelConfig<CerebrasModelId>> = {
     tamboDocLink:
       "https://docs.tambo.co/reference/llm-providers/cerebras#zai-glm-47",
     inputTokenLimit: 128000,
+    supportsSkills: false,
   },
 };

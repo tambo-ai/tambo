@@ -293,7 +293,9 @@ export class AISdkClient implements LLMClient {
       ...filteredCustomParams, // Custom parameters override all, but exclude model-specific provider params
     };
 
-    // Merge provider-specific skills into config if present
+    // Merge provider-specific skills into config if present.
+    // Model-level support is checked upstream in ensureProviderSkillsForRun,
+    // so any skills passed here are valid for this model.
     const finalConfig = params.providerSkills?.skills.length
       ? this.mergeProviderSkills(baseConfig, params.providerSkills, providerKey)
       : baseConfig;

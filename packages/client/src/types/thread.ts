@@ -71,9 +71,15 @@ export interface StreamingState {
   /** When reasoning started (for duration calculation) */
   reasoningStartTime?: number;
 
-  /** Error information if status is 'error' */
+  /** Error information from the last failed run */
   error?: {
     message: string;
     code?: string;
+    /** "client_error" (user's fault, e.g. bad API key) or "server_error" (transient/provider issue) */
+    category?: "client_error" | "server_error";
+    /** Whether retrying the request is likely to succeed */
+    isRetryable?: boolean;
+    /** HTTP status code from the original error (e.g. 401, 429, 500) */
+    status?: number;
   };
 }

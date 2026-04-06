@@ -15,6 +15,7 @@ export const groqModels: Partial<LlmModelConfig<GroqModelId>> = {
     tamboDocLink:
       "https://docs.tambo.co/reference/llm-providers/groq#llama-4-scout-17b-16e-instruct",
     inputTokenLimit: 131072,
+    supportsSkills: false,
   },
   "meta-llama/llama-4-maverick-17b-128e-instruct": {
     apiName: "meta-llama/llama-4-maverick-17b-128e-instruct",
@@ -27,6 +28,7 @@ export const groqModels: Partial<LlmModelConfig<GroqModelId>> = {
     tamboDocLink:
       "https://docs.tambo.co/reference/llm-providers/groq#llama-4-maverick-17b-128e-instruct",
     inputTokenLimit: 131072,
+    supportsSkills: false,
   },
   "llama-3.3-70b-versatile": {
     apiName: "llama-3.3-70b-versatile",
@@ -38,6 +40,7 @@ export const groqModels: Partial<LlmModelConfig<GroqModelId>> = {
     tamboDocLink:
       "https://docs.tambo.co/reference/llm-providers/groq#llama-3-3-70b-versatile",
     inputTokenLimit: 131072,
+    supportsSkills: false,
   },
   "llama-3.1-8b-instant": {
     apiName: "llama-3.1-8b-instant",
@@ -49,5 +52,6 @@ export const groqModels: Partial<LlmModelConfig<GroqModelId>> = {
     tamboDocLink:
       "https://docs.tambo.co/reference/llm-providers/groq#llama-3-1-8b-instant",
     inputTokenLimit: 131072,
+    supportsSkills: false,
   },
 };

@@ -800,7 +800,7 @@ export const TextEditor = React.forwardRef<TamboEditor, TextEditorProps>(
       };
     }, [editor]);
 
-    const lastSyncedValueRef = React.useRef<string>(value);
+    const lastSyncedValueRef = React.useRef(value);
 
     React.useEffect(() => {
       if (!editor) return;

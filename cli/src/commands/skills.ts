@@ -1,0 +1,624 @@
+import { confirm } from "@inquirer/prompts";
+import chalk from "chalk";
+import Table from "cli-table3";
+import fs from "fs";
+import ora from "ora";
+import {
+  parseSkillContent,
+  reconstructSkillContent,
+} from "../utils/skill-frontmatter.js";
+import type { Skill } from "../lib/api-client.js";
+import { api, isAuthError, isConflictError } from "../lib/api-client.js";
+import { hasStoredToken, isTokenValid } from "../lib/token-storage.js";
+import { GuidanceError, isInteractive } from "../utils/interactive.js";
+import { findTamboApiKey } from "../utils/dotenv-utils.js";
+
+// ============================================================================
+// Project Resolution
+// ============================================================================
+
+/**
+ * Read the Tambo API key from .env.local or .env in the current directory.
+ * @returns The API key string, or null if not found.
+ */
+function readApiKeyFromEnv(): string | null {
+  const envFiles = [".env.local", ".env"];
+  for (const envFile of envFiles) {
+    if (!fs.existsSync(envFile)) continue;
+    const content = fs.readFileSync(envFile, "utf-8");
+    const found = findTamboApiKey(content);
+    if (found) return found.value;
+  }
+  return null;
+}
+
+/**
+ * Thrown by resolveProjectId when the error has already been printed to stderr.
+ * The catch block in handleSkills uses this to avoid double-printing.
+ */
+class ProjectResolutionError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "ProjectResolutionError";
+  }
+}
+
+interface ResolvedProject {
+  projectId: string;
+  skillsSupported: boolean;
+}
+
+/**
+ * Resolve the project ID for the current directory.
+ * Requires both a valid session token and an API key in .env.local.
+ * @returns The project ID and whether skills are supported by the provider.
+ */
+async function resolveProjectId(): Promise<ResolvedProject> {
+  const apiKey = readApiKeyFromEnv();
+  const hasToken = hasStoredToken() && isTokenValid();
+
+  if (!apiKey && !hasToken) {
+    console.error(
+      chalk.red("\nCannot resolve project. Two things are needed:"),
+    );
+    console.error(
+      chalk.gray(
+        `  1. Run ${chalk.cyan("tambo auth login")} to authenticate\n` +
+          `  2. Run ${chalk.cyan("tambo init")} to set up a new Tambo project and generate an API key`,
+      ),
+    );
+    throw new ProjectResolutionError("Missing both session token and API key");
+  }
+
+  if (!hasToken) {
+    console.error(chalk.red("\nNot authenticated."));
+    console.error(
+      chalk.gray(`Run ${chalk.cyan("tambo auth login")} to authenticate.`),
+    );
+    throw new ProjectResolutionError("Not authenticated");
+  }
+
+  if (!apiKey) {
+    console.error(chalk.red("\nNo Tambo API key found in .env.local or .env."));
+    console.error(
+      chalk.gray(
+        `Run this command from your project root (where .env.local lives),\nor run ${chalk.cyan("tambo init")} to set up a new Tambo project and generate an API key.`,
+      ),
+    );
+    throw new ProjectResolutionError("No API key found");
+  }
+
+  const { projectId, skillsSupported } =
+    await api.project.resolveProjectFromApiKey.mutate({ apiKey });
+
+  return { projectId, skillsSupported };
+}
+
+// ============================================================================
+// Subcommand Handlers (each returns exit code: 0 success, 1 failure)
+// ============================================================================
+
+async function handleList(projectId: string): Promise<number> {
+  const spinner = ora("Fetching skills...").start();
+
+  try {
+    const skills = await api.skills.list.query({ projectId });
+    spinner.stop();
+
+    if (skills.length === 0) {
+      console.log(
+        chalk.gray(
+          `\nNo skills found. Use ${chalk.cyan("tambo skills add <file.md>")} to create one.\n`,
+        ),
+      );
+      return 0;
+    }
+
+    const table = new Table({
+      head: [
+        chalk.bold("Name"),
+        chalk.bold("Description"),
+        chalk.bold("Enabled"),
+      ],
+    });
+
+    for (const skill of skills) {
+      const desc =
+        skill.description.length > 40
+          ? `${skill.description.slice(0, 37)}...`
+          : skill.description;
+      table.push([
+        skill.name,
+        desc,
+        skill.enabled ? chalk.green("yes") : chalk.gray("no"),
+      ]);
+    }
+
+    console.log(`\n${table.toString()}\n`);
+    return 0;
+  } catch (error) {
+    spinner.fail("Failed to fetch skills");
+    logApiError(error);
+    return 1;
+  }
+}
+
+async function handleAdd(
+  projectId: string,
+  filePaths: string[],
+): Promise<number> {
+  if (filePaths.length === 0) {
+    console.error(chalk.red("\nNo files specified."));
+    console.error(
+      chalk.gray(
+        `Usage: ${chalk.cyan("tambo skills add <file.md> [file2.md] [...]")}`,
+      ),
+    );
+    return 1;
+  }
+
+  let successCount = 0;
+  let failCount = 0;
+
+  for (const filePath of filePaths) {
+    const spinner = ora(`Adding skill from ${filePath}...`).start();
+
+    if (!fs.existsSync(filePath)) {
+      spinner.fail(`File not found: ${filePath}`);
+      failCount++;
+      continue;
+    }
+
+    const content = fs.readFileSync(filePath, "utf-8");
+    const parsed = parseSkillContent(content);
+
+    if (!parsed.success) {
+      spinner.fail(`Invalid frontmatter in ${filePath}: ${parsed.error}`);
+      failCount++;
+      continue;
+    }
+
+    try {
+      await api.skills.create.mutate({
+        projectId,
+        name: parsed.name,
+        description: parsed.description,
+        instructions: parsed.instructions,
+      });
+      spinner.succeed(`Created skill: ${chalk.cyan(parsed.name)}`);
+      successCount++;
+    } catch (error) {
+      if (isConflictError(error)) {
+        spinner.fail(
+          `Skill '${parsed.name}' already exists. Use ${chalk.cyan("tambo skills update")} instead.`,
+        );
+      } else {
+        spinner.fail(`Failed to create skill '${parsed.name}'`);
+        logApiError(error);
+      }
+      failCount++;
+    }
+  }
+
+  if (filePaths.length > 1) {
+    const summary =
+      failCount > 0
+        ? chalk.yellow(
+            `\nCreated ${successCount} of ${filePaths.length} skills (${failCount} failed)`,
+          )
+        : chalk.green(`\nCreated ${successCount} skills`);
+    console.log(summary);
+  }
+
+  return failCount > 0 && successCount === 0 ? 1 : 0;
+}
+
+async function handleGet(
+  projectId: string,
+  name: string | undefined,
+): Promise<number> {
+  if (!name) {
+    console.error(chalk.red("\nNo skill name specified."));
+    console.error(
+      chalk.gray(`Usage: ${chalk.cyan("tambo skills get <name>")}`),
+    );
+    return 1;
+  }
+
+  const spinner = ora("Fetching skill...").start();
+
+  try {
+    const skills = await api.skills.list.query({ projectId });
+    const skill = skills.find((s) => s.name === name);
+
+    if (!skill) {
+      spinner.fail(`Skill '${name}' not found.`);
+      console.error(
+        chalk.gray(
+          `Run ${chalk.cyan("tambo skills list")} to see available skills.`,
+        ),
+      );
+      return 1;
+    }
+
+    spinner.stop();
+    const content = reconstructSkillContent(
+      skill.name,
+      skill.description,
+      skill.instructions,
+    );
+    process.stdout.write(content);
+    return 0;
+  } catch (error) {
+    spinner.fail("Failed to fetch skill");
+    logApiError(error);
+    return 1;
+  }
+}
+
+async function handleUpdate(
+  projectId: string,
+  filePaths: string[],
+): Promise<number> {
+  if (filePaths.length === 0) {
+    console.error(chalk.red("\nNo files specified."));
+    console.error(
+      chalk.gray(
+        `Usage: ${chalk.cyan("tambo skills update <file.md> [file2.md] [...]")}`,
+      ),
+    );
+    return 1;
+  }
+
+  // Fetch skills list once for name-to-ID lookup
+  const spinner = ora("Fetching current skills...").start();
+  let existingSkills: Skill[];
+  try {
+    existingSkills = await api.skills.list.query({ projectId });
+    spinner.stop();
+  } catch (error) {
+    spinner.fail("Failed to fetch skills");
+    logApiError(error);
+    return 1;
+  }
+
+  let successCount = 0;
+  let failCount = 0;
+
+  for (const filePath of filePaths) {
+    const updateSpinner = ora(`Updating skill from ${filePath}...`).start();
+
+    if (!fs.existsSync(filePath)) {
+      updateSpinner.fail(`File not found: ${filePath}`);
+      failCount++;
+      continue;
+    }
+
+    const content = fs.readFileSync(filePath, "utf-8");
+    const parsed = parseSkillContent(content);
+
+    if (!parsed.success) {
+      updateSpinner.fail(`Invalid frontmatter in ${filePath}: ${parsed.error}`);
+      failCount++;
+      continue;
+    }
+
+    const existing = existingSkills.find((s) => s.name === parsed.name);
+    if (!existing) {
+      updateSpinner.fail(
+        `Skill '${parsed.name}' not found. Use ${chalk.cyan("tambo skills add")} to create it.`,
+      );
+      failCount++;
+      continue;
+    }
+
+    try {
+      await api.skills.update.mutate({
+        projectId,
+        skillId: existing.id,
+        name: parsed.name,
+        description: parsed.description,
+        instructions: parsed.instructions,
+      });
+      updateSpinner.succeed(`Updated skill: ${chalk.cyan(parsed.name)}`);
+      successCount++;
+    } catch (error) {
+      updateSpinner.fail(`Failed to update skill '${parsed.name}'`);
+      logApiError(error);
+      failCount++;
+    }
+  }
+
+  if (filePaths.length > 1) {
+    const summary =
+      failCount > 0
+        ? chalk.yellow(
+            `\nUpdated ${successCount} of ${filePaths.length} skills (${failCount} failed)`,
+          )
+        : chalk.green(`\nUpdated ${successCount} skills`);
+    console.log(summary);
+  }
+
+  return failCount > 0 && successCount === 0 ? 1 : 0;
+}
+
+async function handleDelete(
+  projectId: string,
+  name: string | undefined,
+  flags: { force?: boolean },
+): Promise<number> {
+  if (!name) {
+    console.error(chalk.red("\nNo skill name specified."));
+    console.error(
+      chalk.gray(`Usage: ${chalk.cyan("tambo skills delete <name>")}`),
+    );
+    return 1;
+  }
+
+  const spinner = ora("Fetching skill...").start();
+
+  let skill: Skill | undefined;
+  try {
+    const skills = await api.skills.list.query({ projectId });
+    skill = skills.find((s) => s.name === name);
+  } catch (error) {
+    spinner.fail("Failed to fetch skills");
+    logApiError(error);
+    return 1;
+  }
+
+  if (!skill) {
+    spinner.fail(`Skill '${name}' not found.`);
+    console.error(
+      chalk.gray(
+        `Run ${chalk.cyan("tambo skills list")} to see available skills.`,
+      ),
+    );
+    return 1;
+  }
+
+  spinner.stop();
+
+  if (!flags.force) {
+    if (!isInteractive()) {
+      throw new GuidanceError("Deleting a skill requires confirmation.", [
+        `npx tambo skills delete ${name} --force  # Delete without confirmation`,
+      ]);
+    }
+
+    const confirmed = await confirm({
+      message: `Delete skill '${name}'? This cannot be undone.`,
+      default: false,
+    });
+
+    if (!confirmed) {
+      console.log(chalk.gray("Cancelled."));
+      return 0;
+    }
+  }
+
+  const deleteSpinner = ora("Deleting skill...").start();
+  try {
+    await api.skills.delete.mutate({ projectId, skillId: skill.id });
+    deleteSpinner.succeed(`Deleted skill: ${chalk.cyan(name)}`);
+    return 0;
+  } catch (error) {
+    deleteSpinner.fail("Failed to delete skill");
+    logApiError(error);
+    return 1;
+  }
+}
+
+async function handleToggle(
+  projectId: string,
+  name: string | undefined,
+  enabled: boolean,
+): Promise<number> {
+  const action = enabled ? "enable" : "disable";
+
+  if (!name) {
+    console.error(chalk.red(`\nUsage: tambo skills ${action} <name>`));
+    return 1;
+  }
+
+  const spinner = ora(`Looking up skill "${name}"...`).start();
+
+  try {
+    const skills = await api.skills.list.query({ projectId });
+    const skill = skills.find((s) => s.name === name);
+
+    if (!skill) {
+      spinner.fail(`Skill not found: ${chalk.cyan(name)}`);
+      console.error(
+        chalk.gray(
+          `Run ${chalk.cyan("tambo skills list")} to see available skills.`,
+        ),
+      );
+      return 1;
+    }
+
+    if (skill.enabled === enabled) {
+      spinner.info(
+        `Skill ${chalk.cyan(name)} is already ${enabled ? "enabled" : "disabled"}`,
+      );
+      return 0;
+    }
+
+    spinner.text = `${enabled ? "Enabling" : "Disabling"} skill "${name}"...`;
+    await api.skills.update.mutate({
+      projectId,
+      skillId: skill.id,
+      enabled,
+    });
+    spinner.succeed(
+      `${enabled ? "Enabled" : "Disabled"} skill: ${chalk.cyan(name)}`,
+    );
+    return 0;
+  } catch (error) {
+    spinner.fail(`Failed to ${action} skill`);
+    logApiError(error);
+    return 1;
+  }
+}
+
+// ============================================================================
+// Error Helpers
+// ============================================================================
+
+function logApiError(error: unknown): void {
+  if (isAuthError(error)) {
+    console.error(
+      chalk.gray(
+        `Session expired. Run ${chalk.cyan("tambo auth login")} to re-authenticate.`,
+      ),
+    );
+  } else if (error instanceof Error) {
+    console.error(chalk.gray(`  ${error.message}`));
+  }
+}
+
+// ============================================================================
+// Main Handler & Help
+// ============================================================================
+
+async function dispatchSubcommand(
+  subcommand: string,
+  projectId: string,
+  args: string[],
+  flags: { force?: boolean },
+): Promise<number> {
+  switch (subcommand) {
+    case "list":
+      return await handleList(projectId);
+    case "add":
+      return await handleAdd(projectId, args);
+    case "get":
+      return await handleGet(projectId, args[0]);
+    case "update":
+      return await handleUpdate(projectId, args);
+    case "delete":
+      return await handleDelete(projectId, args[0], { force: flags.force });
+    case "enable":
+      return await handleToggle(projectId, args[0], true);
+    case "disable":
+      return await handleToggle(projectId, args[0], false);
+    default:
+      console.log(chalk.red(`Unknown skills subcommand: ${subcommand}`));
+      showSkillsHelp();
+      return 1;
+  }
+}
+
+/**
+ * Main skills command handler -- routes to subcommands.
+ * Telemetry is handled by main() in cli.ts -- do not track here.
+ * @returns Calls process.exit on non-zero exit code.
+ */
+export async function handleSkills(
+  subcommand: string | undefined,
+  args: string[],
+  flags: {
+    force?: boolean;
+  },
+): Promise<void> {
+  if (!subcommand || subcommand === "help") {
+    showSkillsHelp();
+    return;
+  }
+
+  // Resolve project ID upfront (all subcommands need it)
+  let project: ResolvedProject;
+  try {
+    project = await resolveProjectId();
+  } catch (error) {
+    // ProjectResolutionError means resolveProjectId already printed a
+    // user-facing message. For anything else, show a generic message --
+    // don't surface internal tRPC details to end users.
+    if (error instanceof ProjectResolutionError) {
+      // Already printed, nothing to add.
+    } else if (isAuthError(error)) {
+      console.error(
+        chalk.gray(
+          `Session expired. Run ${chalk.cyan("tambo auth login")} to re-authenticate.`,
+        ),
+      );
+    } else {
+      console.error(chalk.red("\nFailed to resolve project."));
+      console.error(
+        chalk.gray(
+          `Check your internet connection and try again. If the problem persists, run ${chalk.cyan("tambo init")} to reconfigure.`,
+        ),
+      );
+    }
+    process.exit(1);
+    return;
+  }
+
+  if (!project.skillsSupported) {
+    console.error(
+      chalk.yellow(
+        "\n⚠ Your current model does not support skills. Skills will be stored but won't be active until you switch to a supported model.",
+      ),
+    );
+  }
+
+  const exitCode = await dispatchSubcommand(
+    subcommand,
+    project.projectId,
+    args,
+    flags,
+  );
+
+  if (exitCode !== 0) {
+    process.exit(exitCode);
+  }
+}
+
+/**
+ * Show skills command help
+ */
+export function showSkillsHelp(): void {
+  console.log(`
+${chalk.bold("tambo skills")} - Manage project skills
+
+${chalk.bold("Usage")}
+  $ ${chalk.cyan("tambo skills")} <subcommand> [options]
+
+${chalk.bold("Subcommands")}
+  ${chalk.yellow("list")}              List all skills in the project
+  ${chalk.yellow("add")} <file.md>     Create a skill from a markdown file
+  ${chalk.yellow("get")} <name>        Print a skill as markdown to stdout
+  ${chalk.yellow("update")} <file.md>  Update an existing skill from a file
+  ${chalk.yellow("enable")} <name>     Enable a skill by name
+  ${chalk.yellow("disable")} <name>    Disable a skill by name
+  ${chalk.yellow("delete")} <name>     Delete a skill by name
+
+${chalk.bold("Options")}
+  ${chalk.yellow("--force, -f")}       Skip confirmation prompts (delete only)
+
+${chalk.bold("Skill File Format")}
+  Files use YAML frontmatter with a name and description:
+
+  ${chalk.gray("---")}
+  ${chalk.gray("name: my-skill-name")}
+  ${chalk.gray('description: "A brief description"')}
+  ${chalk.gray("---")}
+  ${chalk.gray("Instructions content here...")}
+
+${chalk.bold("Examples")}
+  $ ${chalk.cyan("tambo skills list")}
+  $ ${chalk.cyan("tambo skills add my-skill.md")}
+  $ ${chalk.cyan("tambo skills add skill1.md skill2.md")}
+  $ ${chalk.cyan("tambo skills get my-skill-name")}
+  $ ${chalk.cyan("tambo skills get my-skill-name > my-skill.md")}
+  $ ${chalk.cyan("tambo skills update my-skill.md")}
+  $ ${chalk.cyan("tambo skills enable my-skill-name")}
+  $ ${chalk.cyan("tambo skills disable my-skill-name")}
+  $ ${chalk.cyan("tambo skills delete my-skill-name")}
+  $ ${chalk.cyan("tambo skills delete my-skill-name --force")}
+
+${chalk.bold("Requirements")}
+  Requires authentication (${chalk.cyan("tambo auth login")}) and a project
+  API key (${chalk.cyan("tambo init")}).
+`);
+}

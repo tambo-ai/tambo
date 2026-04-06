@@ -389,10 +389,10 @@ export const TamboMcpProvider: FC<{
     handlers?.elicitation ?? defaultElicitationHandler;
 
   // Stable reference to track active clients by server key
-  const clientMapRef = useRef<Map<string, McpServer>>(new Map());
+  const clientMapRef = useRef(new Map<string, McpServer>());
   // Track tool ownership to prevent duplicate registrations across servers
-  const toolOwnerRef = useRef<Map<string, string>>(new Map());
-  const keyToToolsRef = useRef<Map<string, Set<string>>>(new Map());
+  const toolOwnerRef = useRef(new Map<string, string>());
+  const keyToToolsRef = useRef(new Map<string, Set<string>>());
   const ownershipRefs: ToolOwnershipRefs = { toolOwnerRef, keyToToolsRef };
 
   // State for exposing connected servers to consumers

@@ -12,7 +12,7 @@ import { McpServerRow } from "./mcp-server-row";
 
 const COMPONENT_NAME = "McpServers";
 
-const availableMcpServersSuggestions: Suggestion[] = [
+const _availableMcpServersSuggestions: Suggestion[] = [
   {
     id: "fetch-mcp-servers",
     title: "Fetch MCP Servers",
