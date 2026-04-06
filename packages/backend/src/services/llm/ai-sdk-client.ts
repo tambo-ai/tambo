@@ -65,11 +65,16 @@ type AICompleteParams = Parameters<typeof streamText<ToolSet, never>>[0] &
 type TextStreamResponse = ReturnType<typeof streamText<ToolSet, never>>;
 
 /**
- * Provider-managed tool names used for skill execution.
- * These are completely suppressed during streaming - skill tools are
- * handled by the provider and don't flow through Tambo's tool pipeline.
+ * Provider-specific tool names used for skill execution.
+ * Each provider uses a different tool name for its skill container.
+ * Only the tool name for the active provider is suppressed, so a user
+ * tool named "shell" on Anthropic (or "code_execution" on OpenAI) is
+ * not accidentally swallowed.
  */
-const PROVIDER_SKILL_TOOL_NAMES = new Set(["code_execution", "shell"]);
+const PROVIDER_SKILL_TOOL_NAME: Record<string, string> = {
+  anthropic: "code_execution",
+  openai: "shell",
+};
 
 // Common provider configuration interface
 interface ProviderConfig {
@@ -313,8 +318,10 @@ export class AISdkClient implements LLMClient {
         ...finalConfig,
         abortSignal: params.abortSignal,
       });
-      const hasProviderSkills = !!params.providerSkills?.skills.length;
-      return this.handleStreamingResponse(result, hasProviderSkills);
+      const skillToolName = params.providerSkills?.skills.length
+        ? PROVIDER_SKILL_TOOL_NAME[providerKey]
+        : undefined;
+      return this.handleStreamingResponse(result, skillToolName);
     } else {
       const result = await generateText(finalConfig);
       return this.convertToLLMResponse(result);
@@ -517,7 +524,7 @@ export class AISdkClient implements LLMClient {
 
   private async *handleStreamingResponse(
     result: TextStreamResponse,
-    hasProviderSkills: boolean,
+    skillToolName: string | undefined,
   ): AsyncIterableIterator<LLMStreamItem> {
     let accumulatedMessage = "";
     let accumulatedReasoning: string[] = [];
@@ -611,11 +618,12 @@ export class AISdkClient implements LLMClient {
           }
           break;
         case "tool-input-start": {
-          // Only suppress provider skill tools when skills are actually
-          // configured. This avoids silently swallowing a user-registered
-          // tool that happens to be named "shell" or "code_execution".
+          // Only suppress the specific tool name injected by the active
+          // provider for skills. This avoids silently swallowing a user
+          // tool that shares a name with a different provider's skill tool
+          // (e.g. user tool "shell" on Anthropic, or "code_execution" on OpenAI).
           isProviderSkillTool =
-            hasProviderSkills && PROVIDER_SKILL_TOOL_NAMES.has(delta.toolName);
+            !!skillToolName && delta.toolName === skillToolName;
           if (isProviderSkillTool) {
             // Skill tools are fully handled by the provider. Ignore.
             // Clear accumulated tool state to prevent stale data from a

@@ -89,7 +89,7 @@ These skills are an internal implementation detail and must be treated as opaque
 
 - Do NOT mention skill file names, skill IDs, SKILL.md files, or any internal skill structure
 - Do NOT describe how skills are loaded, structured, or executed
-- When a skill runs, simply describe what it accomplished in plain language
+- When you use a skill, briefly mention which skill you are using by its name (e.g. "Using the data-analyzer skill...") so the user knows what is happening, then describe what it accomplished in plain language
 - Treat skill capabilities as your own built-in abilities
 ```
 
@@ -101,5 +101,5 @@ When provider internals leak into your pipeline, the answer is almost always "su
 
 When new provider-managed tools are added (beyond `code_execution` and `shell`):
 
-1. Add the tool name to `PROVIDER_SKILL_TOOL_NAMES`
+1. Add the provider and tool name to `PROVIDER_SKILL_TOOL_NAME` in `ai-sdk-client.ts`
 2. That's it. The flag handles the rest.

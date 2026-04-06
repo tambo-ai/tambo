@@ -577,12 +577,12 @@ describe("AISdkClient", () => {
     function callHandleStreamingResponse(
       client: AISdkClient,
       mockStream: { fullStream: AsyncIterable<StreamDelta> },
-      hasProviderSkills: boolean,
+      skillToolName: string | undefined,
     ) {
       return (client as any).handleStreamingResponse.call(
         client,
         mockStream,
-        hasProviderSkills,
+        skillToolName,
       );
     }
 
@@ -624,7 +624,7 @@ describe("AISdkClient", () => {
       for await (const chunk of callHandleStreamingResponse(
         client,
         mockStream,
-        true,
+        "code_execution",
       )) {
         chunks.push(chunk);
       }
@@ -643,7 +643,7 @@ describe("AISdkClient", () => {
       expect(lastChunk.llmResponse.message?.content).toContain("\n\n");
     });
 
-    it("does NOT suppress tools named 'shell' when no skills are configured", async () => {
+    it("does NOT suppress tools named 'shell' when skill tool is 'code_execution'", async () => {
       const client = createClient();
       const mockDeltas: StreamDelta[] = [
         { type: "tool-input-start", id: "call-1", toolName: "shell" },
@@ -661,19 +661,19 @@ describe("AISdkClient", () => {
       for await (const chunk of callHandleStreamingResponse(
         client,
         mockStream,
-        false,
+        "code_execution",
       )) {
         chunks.push(chunk);
       }
 
-      // Should have tool call data since skills are not configured
+      // "shell" is not the active provider's skill tool, so it passes through
       const lastChunk = chunks[chunks.length - 1];
       expect(
         lastChunk.llmResponse.message?.tool_calls?.[0]?.function.name,
       ).toBe("shell");
     });
 
-    it("emits TOOL_CALL events for skill tools with hasProviderSkills=false", async () => {
+    it("does NOT suppress tools when no skill tool name is set", async () => {
       const client = createClient();
       const mockDeltas: StreamDelta[] = [
         {
@@ -695,7 +695,7 @@ describe("AISdkClient", () => {
       for await (const chunk of callHandleStreamingResponse(
         client,
         mockStream,
-        false,
+        undefined,
       )) {
         allEvents.push(...chunk.aguiEvents);
       }
@@ -708,7 +708,7 @@ describe("AISdkClient", () => {
       expect(startEvents[0].toolCallName).toBe("code_execution");
     });
 
-    it("suppresses all TOOL_CALL events for skill tools with hasProviderSkills=true", async () => {
+    it("suppresses all TOOL_CALL events for the matching skill tool name", async () => {
       const client = createClient();
       const mockDeltas: StreamDelta[] = [
         {
@@ -736,7 +736,7 @@ describe("AISdkClient", () => {
       for await (const chunk of callHandleStreamingResponse(
         client,
         mockStream,
-        true,
+        "code_execution",
       )) {
         allEvents.push(...chunk.aguiEvents);
       }
@@ -784,7 +784,7 @@ describe("AISdkClient", () => {
       for await (const chunk of callHandleStreamingResponse(
         client,
         mockStream,
-        true,
+        "code_execution",
       )) {
         chunks.push(chunk);
       }
