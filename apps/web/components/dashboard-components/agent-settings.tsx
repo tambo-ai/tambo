@@ -56,7 +56,8 @@ export function AgentSettings({ projectId }: AgentSettingsProps) {
         animate="visible"
         variants={containerVariants}
       >
-        <div className="space-y-6 py-4">
+        <h1 className="text-2xl sm:text-4xl font-semibold mb-4 pt-2">Agent</h1>
+        <div className="space-y-6">
           {/* Model */}
           <InteractableProviderKeySection
             projectId={project.id}
