@@ -57,12 +57,20 @@ A boolean flag and three `break` statements in `ai-sdk-client.ts`. Skill tool ev
 ### `ai-sdk-client.ts` (streaming handler)
 
 ```typescript
-const PROVIDER_SKILL_TOOL_NAMES = new Set(["code_execution", "shell"]);
-let isProviderSkillTool = false;
+// Provider-specific: only suppress the tool name injected by the active provider
+const PROVIDER_SKILL_TOOL_NAME: Record<string, string> = {
+  anthropic: "code_execution",
+  openai: "shell",
+};
+
+// In callLLM(), resolve the skill tool name for this request:
+const skillToolName = params.providerSkills?.skills.length
+  ? PROVIDER_SKILL_TOOL_NAME[providerKey]
+  : undefined;
 
 // In the streaming loop:
 case "tool-input-start":
-  isProviderSkillTool = PROVIDER_SKILL_TOOL_NAMES.has(delta.toolName);
+  isProviderSkillTool = !!skillToolName && delta.toolName === skillToolName;
   if (isProviderSkillTool) {
     componentTracker = undefined;
     break; // Skip entirely
