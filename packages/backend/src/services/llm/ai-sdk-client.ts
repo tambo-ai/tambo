@@ -547,19 +547,34 @@ export class AISdkClient implements LLMClient {
 
       switch (delta.type) {
         case "text-start":
-          // Don't reset - append with separator so text before and after
-          // provider-managed tool calls (skills) is preserved together.
-          if (accumulatedMessage.length > 0) {
+          if (accumulatedMessage.length > 0 && textMessageId) {
+            // Text resumed after a skill tool call. Reuse the same message
+            // ID so the client appends to the existing message bubble.
+            // The client handles duplicate TEXT_MESSAGE_START for an
+            // existing ID by just updating streaming state (no new message).
             accumulatedMessage += "\n\n";
+            aguiEvents.push({
+              type: EventType.TEXT_MESSAGE_START,
+              messageId: textMessageId,
+              role: "assistant",
+              timestamp: Date.now(),
+            } as TextMessageStartEvent);
+            aguiEvents.push({
+              type: EventType.TEXT_MESSAGE_CONTENT,
+              messageId: textMessageId,
+              delta: "\n\n",
+              timestamp: Date.now(),
+            } as TextMessageContentEvent);
+          } else {
+            accumulatedMessage = "";
+            textMessageId = generateMessageId();
+            aguiEvents.push({
+              type: EventType.TEXT_MESSAGE_START,
+              messageId: textMessageId,
+              role: "assistant",
+              timestamp: Date.now(),
+            } as TextMessageStartEvent);
           }
-          // Generate message ID for this text stream
-          textMessageId = generateMessageId();
-          aguiEvents.push({
-            type: EventType.TEXT_MESSAGE_START,
-            messageId: textMessageId,
-            role: "assistant",
-            timestamp: Date.now(),
-          } as TextMessageStartEvent);
           break;
         case "text-delta":
           accumulatedMessage += delta.text;
