@@ -32,7 +32,7 @@
     "@langfuse/otel": "^4.5.1",
     "@nestjs/common": "^11.1.17",
     "@nestjs/config": "^4.0.3",
-    "@nestjs/core": "^11.1.17",
+    "@nestjs/core": "^11.1.18",
     "@nestjs/platform-express": "^11.1.17",
     "@nestjs/schedule": "^6.1.1",
     "@nestjs/swagger": "^11.2.6",
