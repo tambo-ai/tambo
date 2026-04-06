@@ -1,6 +1,6 @@
 {
   "apps/api": "0.145.0",
-  "apps/web": "0.133.0",
+  "apps/web": "0.134.0",
   "cli": "0.56.0",
   "create-tambo-app": "0.3.2",
   "docs": "1.32.2",
