@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.1](https://github.com/tambo-ai/tambo/compare/client-v1.1.0...client-v1.1.1) (2026-04-06)
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump ts-jest from 29.4.6 to 29.4.9 in the testing group ([#2760](https://github.com/tambo-ai/tambo/issues/2760)) ([801bbc9](https://github.com/tambo-ai/tambo/commit/801bbc92828cc338e169e762776f9bd74abe49ac))
+* **deps:** bump @tambo-ai/typescript-sdk from 0.94.1 to 0.95.0 in the tambo-ai group ([#2762](https://github.com/tambo-ai/tambo/issues/2762)) ([f577b82](https://github.com/tambo-ai/tambo/commit/f577b821d12eed5dca94b10efbf86591824b47db))
+
 ## [1.1.0](https://github.com/tambo-ai/tambo/compare/client-v1.0.5...client-v1.1.0) (2026-04-06)
 
 
