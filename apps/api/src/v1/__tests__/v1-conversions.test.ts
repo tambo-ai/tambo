@@ -393,6 +393,170 @@ describe("v1-conversions", () => {
         state: undefined,
       });
     });
+
+    it("should preserve inline tool_use blocks in their natural position", () => {
+      const message = {
+        ...baseMessage,
+        role: "assistant",
+        content: [
+          { type: "text", text: "Let me search for that." },
+          {
+            type: "tool_use",
+            id: "call_abc",
+            name: "search",
+            input: { query: "weather" },
+          },
+          { type: "text", text: "Here are the results." },
+        ],
+        toolCallRequest: {
+          toolName: "search",
+          parameters: [{ parameterName: "query", parameterValue: "weather" }],
+        },
+        toolCallId: "call_abc",
+      } as unknown as DbMessage;
+
+      const result = contentToV1Blocks(message);
+
+      expect(result).toHaveLength(3);
+      expect(result[0]).toEqual({
+        type: "text",
+        text: "Let me search for that.",
+      });
+      expect(result[1]).toEqual({
+        type: "tool_use",
+        id: "call_abc",
+        name: "search",
+        input: { query: "weather" },
+      });
+      expect(result[2]).toEqual({
+        type: "text",
+        text: "Here are the results.",
+      });
+    });
+
+    it("should not duplicate tool_use when already present in content", () => {
+      const message = {
+        ...baseMessage,
+        role: "assistant",
+        content: [
+          { type: "text", text: "Searching..." },
+          {
+            type: "tool_use",
+            id: "call_xyz",
+            name: "get_data",
+            input: { id: "123" },
+          },
+        ],
+        toolCallRequest: {
+          toolName: "get_data",
+          parameters: [{ parameterName: "id", parameterValue: "123" }],
+        },
+        toolCallId: "call_xyz",
+      } as unknown as DbMessage;
+
+      const result = contentToV1Blocks(message);
+
+      // Should have 2 blocks (text + tool_use), NOT 3 (text + tool_use + duplicate tool_use)
+      expect(result).toHaveLength(2);
+      expect(result[0]).toEqual({ type: "text", text: "Searching..." });
+      expect(result[1].type).toBe("tool_use");
+    });
+
+    it("should fall back to toolCallRequest when no tool_use in content (legacy messages)", () => {
+      const message = {
+        ...baseMessage,
+        role: "assistant",
+        content: [{ type: "text", text: "Let me check." }],
+        toolCallRequest: {
+          toolName: "check_status",
+          parameters: [{ parameterName: "target", parameterValue: "server" }],
+        },
+        toolCallId: "call_legacy",
+      } as unknown as DbMessage;
+
+      const result = contentToV1Blocks(message);
+
+      expect(result).toHaveLength(2);
+      expect(result[0]).toEqual({ type: "text", text: "Let me check." });
+      expect(result[1]).toEqual({
+        type: "tool_use",
+        id: "call_legacy",
+        name: "check_status",
+        input: { target: "server" },
+      });
+    });
+
+    it("should preserve inline tool_result blocks in their natural position", () => {
+      const message = {
+        ...baseMessage,
+        role: "assistant",
+        content: [
+          { type: "text", text: "Before" },
+          {
+            type: "tool_result",
+            toolUseId: "call_abc",
+            content: [{ type: "text", text: "Result data" }],
+          },
+          { type: "text", text: "After" },
+        ],
+      } as unknown as DbMessage;
+
+      const result = contentToV1Blocks(message);
+
+      expect(result).toHaveLength(3);
+      expect(result[0]).toEqual({ type: "text", text: "Before" });
+      expect(result[1]).toEqual({
+        type: "tool_result",
+        toolUseId: "call_abc",
+        content: [{ type: "text", text: "Result data" }],
+        isError: undefined,
+      });
+      expect(result[2]).toEqual({ type: "text", text: "After" });
+    });
+
+    it("should enrich inline tool_use with _tambo_ display properties from componentDecision", () => {
+      const message = {
+        ...baseMessage,
+        role: "assistant",
+        content: [
+          {
+            type: "tool_use",
+            id: "call_enriched",
+            name: "fetch_data",
+            input: { url: "https://example.com" },
+          },
+        ],
+        toolCallRequest: {
+          toolName: "fetch_data",
+          parameters: [
+            { parameterName: "url", parameterValue: "https://example.com" },
+          ],
+        },
+        toolCallId: "call_enriched",
+        componentDecision: {
+          componentName: null,
+          statusMessage: "Fetching data...",
+          completionStatusMessage: "Done fetching",
+          props: {},
+          message: "",
+          componentState: null,
+        },
+      } as unknown as DbMessage;
+
+      const result = contentToV1Blocks(message);
+
+      expect(result).toHaveLength(1);
+      expect(result[0]).toEqual({
+        type: "tool_use",
+        id: "call_enriched",
+        name: "fetch_data",
+        input: {
+          url: "https://example.com",
+          _tambo_statusMessage: "Fetching data...",
+          _tambo_completionStatusMessage: "Done fetching",
+        },
+      });
+    });
   });
 
   describe("messageToDto", () => {
