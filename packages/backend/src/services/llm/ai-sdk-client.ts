@@ -313,7 +313,8 @@ export class AISdkClient implements LLMClient {
         ...finalConfig,
         abortSignal: params.abortSignal,
       });
-      return this.handleStreamingResponse(result);
+      const hasProviderSkills = !!params.providerSkills?.skills.length;
+      return this.handleStreamingResponse(result, hasProviderSkills);
     } else {
       const result = await generateText(finalConfig);
       return this.convertToLLMResponse(result);
@@ -516,6 +517,7 @@ export class AISdkClient implements LLMClient {
 
   private async *handleStreamingResponse(
     result: TextStreamResponse,
+    hasProviderSkills: boolean,
   ): AsyncIterableIterator<LLMStreamItem> {
     let accumulatedMessage = "";
     let accumulatedReasoning: string[] = [];
@@ -548,6 +550,11 @@ export class AISdkClient implements LLMClient {
       switch (delta.type) {
         case "text-start":
           if (accumulatedMessage.length > 0 && textMessageId) {
+            if (!isProviderSkillTool) {
+              console.warn(
+                "Unexpected second text-start with existing message outside skill tool context",
+              );
+            }
             // Text resumed after a provider-managed skill tool call.
             // This branch only triggers for skills because regular tool
             // calls end the stream entirely (the decision loop restarts
@@ -604,10 +611,19 @@ export class AISdkClient implements LLMClient {
           }
           break;
         case "tool-input-start": {
-          isProviderSkillTool = PROVIDER_SKILL_TOOL_NAMES.has(delta.toolName);
+          // Only suppress provider skill tools when skills are actually
+          // configured. This avoids silently swallowing a user-registered
+          // tool that happens to be named "shell" or "code_execution".
+          isProviderSkillTool =
+            hasProviderSkills && PROVIDER_SKILL_TOOL_NAMES.has(delta.toolName);
           if (isProviderSkillTool) {
             // Skill tools are fully handled by the provider. Ignore.
+            // Clear accumulated tool state to prevent stale data from a
+            // previous tool call leaking if tool-result doesn't fire.
             componentTracker = undefined;
+            accumulatedToolCall.name = undefined;
+            accumulatedToolCall.arguments = "";
+            accumulatedToolCall.id = undefined;
             break;
           }
 
@@ -644,14 +660,13 @@ export class AISdkClient implements LLMClient {
         }
         case "tool-input-delta":
           if (isProviderSkillTool) break;
+          accumulatedToolCall.arguments += delta.delta;
           if (componentTracker) {
-            accumulatedToolCall.arguments += delta.delta;
             const componentEvents = componentTracker.processJsonDelta(
               delta.delta,
             );
             aguiEvents.push(...componentEvents);
           } else {
-            accumulatedToolCall.arguments += delta.delta;
             // V1: emit TOOL_CALL_ARGS immediately — delta.id is the toolCallId
             aguiEvents.push({
               type: EventType.TOOL_CALL_ARGS,
