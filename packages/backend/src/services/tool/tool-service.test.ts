@@ -1,6 +1,21 @@
 import type { JSONSchema7 } from "json-schema";
+import type OpenAI from "openai";
 import { ComponentContextToolMetadata } from "../../model/component-metadata";
 import { convertMetadataToTools } from "./tool-service";
+
+/** Narrow to the function tool variant (all tools from convertMetadataToTools are function tools). */
+function asFunctionTool(
+  tool: OpenAI.Chat.Completions.ChatCompletionTool & { maxCalls?: number },
+): OpenAI.Chat.Completions.ChatCompletionFunctionTool & {
+  maxCalls?: number;
+} {
+  if (tool.type !== "function") {
+    throw new Error(`Expected function tool, got ${tool.type}`);
+  }
+  return tool as OpenAI.Chat.Completions.ChatCompletionFunctionTool & {
+    maxCalls?: number;
+  };
+}
 
 /**
  * Simulates what the client-side `createParametersFromSchema` does:
@@ -67,7 +82,8 @@ describe("convertMetadataToTools", () => {
       ],
     };
 
-    const [tool] = convertMetadataToTools([toolMetadata]);
+    const [rawTool] = convertMetadataToTools([toolMetadata]);
+    const tool = asFunctionTool(rawTool);
     const params = tool.function.parameters as {
       properties: Record<string, unknown>;
     };
@@ -104,7 +120,8 @@ describe("convertMetadataToTools", () => {
       ],
     };
 
-    const [tool] = convertMetadataToTools([toolMetadata]);
+    const [rawTool] = convertMetadataToTools([toolMetadata]);
+    const tool = asFunctionTool(rawTool);
     const params = tool.function.parameters as {
       properties: Record<string, unknown>;
     };
@@ -138,7 +155,8 @@ describe("convertMetadataToTools", () => {
       ],
     };
 
-    const [tool] = convertMetadataToTools([toolMetadata]);
+    const [rawTool] = convertMetadataToTools([toolMetadata]);
+    const tool = asFunctionTool(rawTool);
     const params = tool.function.parameters as {
       properties: Record<string, unknown>;
     };
@@ -180,7 +198,8 @@ describe("convertMetadataToTools", () => {
       ],
     };
 
-    const [tool] = convertMetadataToTools([toolMetadata]);
+    const [rawTool] = convertMetadataToTools([toolMetadata]);
+    const tool = asFunctionTool(rawTool);
     const params = tool.function.parameters as {
       properties: Record<string, unknown>;
     };
@@ -218,7 +237,8 @@ describe("convertMetadataToTools", () => {
       ],
     };
 
-    const [tool] = convertMetadataToTools([toolMetadata]);
+    const [rawTool] = convertMetadataToTools([toolMetadata]);
+    const tool = asFunctionTool(rawTool);
     const params = tool.function.parameters as { required: string[] };
 
     expect(params.required).toEqual(["required_field"]);
@@ -287,7 +307,8 @@ describe("convertMetadataToTools integration: JSON Schema → ParameterSpec → 
     };
 
     // Step 3: Convert to OpenAI tool (what the LLM actually sees)
-    const [tool] = convertMetadataToTools([metadata]);
+    const [rawTool] = convertMetadataToTools([metadata]);
+    const tool = asFunctionTool(rawTool);
     const toolParams = tool.function.parameters as JSONSchema7;
     const props = toolParams.properties as Record<string, JSONSchema7>;
 
@@ -343,10 +364,10 @@ describe("convertMetadataToTools integration: JSON Schema → ParameterSpec → 
     };
 
     const parameters = simulateClientParameterExtraction(inputJsonSchema);
-    const [tool] = convertMetadataToTools([
+    const [rawTool] = convertMetadataToTools([
       { name: "configure", description: "Configure", parameters },
     ]);
-
+    const tool = asFunctionTool(rawTool);
     const toolParams = tool.function.parameters as JSONSchema7;
     const configProp = (toolParams.properties as Record<string, JSONSchema7>)[
       "config"
@@ -376,10 +397,10 @@ describe("convertMetadataToTools integration: JSON Schema → ParameterSpec → 
     };
 
     const parameters = simulateClientParameterExtraction(inputJsonSchema);
-    const [tool] = convertMetadataToTools([
+    const [rawTool] = convertMetadataToTools([
       { name: "set_priority", description: "Set priority", parameters },
     ]);
-
+    const tool = asFunctionTool(rawTool);
     const toolParams = tool.function.parameters as JSONSchema7;
     const priorityProp = (toolParams.properties as Record<string, JSONSchema7>)[
       "priority"
