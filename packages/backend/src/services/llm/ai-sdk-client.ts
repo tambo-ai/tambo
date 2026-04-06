@@ -555,9 +555,11 @@ export class AISdkClient implements LLMClient {
       const aguiEvents: BaseEvent[] = [];
 
       switch (delta.type) {
-        case "text-start":
+        case "text-start": {
+          const wasProviderSkillTool = isProviderSkillTool;
+          isProviderSkillTool = false;
           if (accumulatedMessage.length > 0 && textMessageId) {
-            if (!isProviderSkillTool) {
+            if (!wasProviderSkillTool) {
               console.warn(
                 "Unexpected second text-start with existing message outside skill tool context",
               );
@@ -597,6 +599,7 @@ export class AISdkClient implements LLMClient {
             } as TextMessageStartEvent);
           }
           break;
+        }
         case "text-delta":
           accumulatedMessage += delta.text;
           if (textMessageId) {
