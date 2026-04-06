@@ -24,44 +24,36 @@ export function ToolArgumentsSection({
 
   return (
     <div className="border border-border rounded-lg overflow-hidden">
-      <div
-        role="button"
-        tabIndex={0}
-        onClick={() => setShowArguments(!showArguments)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            setShowArguments((s) => !s);
-          }
-        }}
-        className="w-full flex items-center justify-between p-2 sm:p-3 bg-muted/30 hover:bg-muted/50 transition-colors cursor-pointer"
-      >
-        <span className="font-medium text-xs sm:text-sm text-primary">
-          View Arguments
-        </span>
-        <div className="flex items-center gap-1 sm:gap-2">
-          <button
-            type="button"
-            aria-label="Copy tool arguments"
-            onClick={async (e) => {
-              e.stopPropagation();
-              await copy();
-            }}
-            className="bg-transparent m-0 border-0 p-0 text-inherit font-inherit leading-[inherit] appearance-none h-5 w-5 sm:h-6 sm:w-6 flex items-center justify-center cursor-pointer hover:bg-muted rounded-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          >
-            {copied ? (
-              <Check className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-green-500" />
-            ) : (
-              <Copy className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-primary" />
-            )}
-          </button>
+      <div className="flex items-center bg-muted/30 hover:bg-muted/50 transition-colors">
+        <button
+          type="button"
+          onClick={() => setShowArguments(!showArguments)}
+          className="flex-1 flex items-center justify-between p-2 sm:p-3"
+        >
+          <span className="font-medium text-xs sm:text-sm text-primary">
+            View Arguments
+          </span>
           <ChevronDown
             className={cn(
               "h-3 w-3 sm:h-4 sm:w-4 transition-transform duration-200 text-primary",
               showArguments && "rotate-180",
             )}
           />
-        </div>
+        </button>
+        <button
+          type="button"
+          aria-label="Copy tool arguments"
+          onClick={async () => {
+            await copy();
+          }}
+          className="h-5 w-5 sm:h-6 sm:w-6 flex items-center justify-center hover:bg-muted rounded-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring mr-2 sm:mr-3"
+        >
+          {copied ? (
+            <Check className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-green-500" />
+          ) : (
+            <Copy className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-primary" />
+          )}
+        </button>
       </div>
 
       <motion.div
