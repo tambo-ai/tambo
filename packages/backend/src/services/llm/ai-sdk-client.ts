@@ -876,8 +876,7 @@ export class AISdkClient implements LLMClient {
   }
 }
 
-/** @internal Exported for testing only */
-export function tryFormatTemplate(
+function tryFormatTemplate(
   messages: ThreadMessage[],
   promptTemplateParams: Record<string, string | ThreadMessage[]>,
 ): ThreadMessage[] {

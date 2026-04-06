@@ -1,4 +1,10 @@
 import { EventType } from "@ag-ui/core";
+import {
+  ContentPartType,
+  MessageRole,
+  ThreadMessage,
+} from "@tambo-ai-cloud/core";
+import { streamText } from "ai";
 import { AISdkClient } from "./ai-sdk-client";
 
 // Mock the message ID generator
@@ -30,6 +36,13 @@ jest.mock("@ai-sdk/openai", () => ({
     return provider;
   }),
 }));
+
+// Mock streamText from "ai" so we can inspect what messages reach the LLM
+jest.mock("ai", () => {
+  const actual = jest.requireActual("ai");
+  return { ...actual, streamText: jest.fn() };
+});
+const mockStreamText = jest.mocked(streamText);
 
 jest.mock("@ai-sdk/anthropic", () => ({
   createAnthropic: jest.fn(() => {
@@ -798,6 +811,99 @@ describe("AISdkClient", () => {
         .filter((e: any) => e.type === EventType.TEXT_MESSAGE_START);
       const uniqueIds = new Set(startEvents.map((e: any) => e.messageId));
       expect(uniqueIds.size).toBe(1);
+    });
+  });
+
+  describe("template substitution via complete()", () => {
+    function createClient() {
+      const client = new AISdkClient(
+        "test-api-key",
+        "gpt-4",
+        "openai",
+        "test-chain",
+        "test-user",
+      );
+      jest.spyOn(client as never, "getModelInstance").mockReturnValue({
+        supportedUrls: Promise.resolve({}),
+        provider: "openai",
+        modelId: "gpt-4",
+      } as never);
+      return client;
+    }
+
+    function setupMockStream() {
+      mockStreamText.mockResolvedValue({
+        fullStream: (async function* () {
+          yield { type: "text-start" as const };
+          yield { type: "text-delta" as const, text: "hi" };
+          yield { type: "finish" as const };
+        })(),
+      } as never);
+    }
+
+    it("injects memory content into the system prompt sent to the LLM", async () => {
+      const client = createClient();
+      setupMockStream();
+
+      const memoryBlock =
+        "<memory_data>\n- [mem_abc] (importance: 5) The user prefers dark mode\n- [mem_def] (importance: 3) The user is a backend engineer\n</memory_data>";
+
+      const messages: ThreadMessage[] = [
+        {
+          id: "sys-1",
+          threadId: "thread-1",
+          role: MessageRole.System,
+          content: [
+            {
+              type: ContentPartType.Text,
+              text: "You are a helpful assistant.\n\n{user_memories}\n\n{custom_instructions}",
+            },
+          ],
+          createdAt: new Date(),
+          componentState: {},
+        },
+        {
+          id: "msg-1",
+          threadId: "thread-1",
+          role: MessageRole.User,
+          content: [
+            { type: ContentPartType.Text, text: "What do you know about me?" },
+          ],
+          createdAt: new Date(),
+          componentState: {},
+        },
+      ];
+
+      const stream = await client.complete({
+        messages,
+        stream: true as const,
+        promptTemplateName: "decision-loop",
+        promptTemplateParams: {
+          user_memories: `## User Context\n${memoryBlock}`,
+          custom_instructions: "",
+        },
+      });
+
+      for await (const _chunk of stream) {
+        // drain
+      }
+
+      expect(mockStreamText).toHaveBeenCalledTimes(1);
+      const callArgs = mockStreamText.mock.calls[0][0] as {
+        messages: Array<{ role: string; content: unknown }>;
+      };
+
+      const systemMsg = callArgs.messages.find(
+        (m: { role: string }) => m.role === "system",
+      );
+      expect(systemMsg).toBeDefined();
+
+      const systemContent = systemMsg!.content as string;
+      expect(systemContent).toContain("The user prefers dark mode");
+      expect(systemContent).toContain("The user is a backend engineer");
+      expect(systemContent).toContain("<memory_data>");
+      expect(systemContent).not.toContain("{user_memories}");
+      expect(systemContent).not.toContain("{custom_instructions}");
     });
   });
 });
