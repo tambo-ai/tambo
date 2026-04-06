@@ -876,8 +876,8 @@ export class AISdkClient implements LLMClient {
   }
 }
 
-/** We have to manually format this because objectTemplate doesn't seem to support chat_history */
-function tryFormatTemplate(
+/** @internal Exported for testing only */
+export function tryFormatTemplate(
   messages: ThreadMessage[],
   promptTemplateParams: Record<string, string | ThreadMessage[]>,
 ): ThreadMessage[] {
@@ -887,7 +887,31 @@ function tryFormatTemplate(
       promptTemplateParams,
     );
   } catch (_e) {
-    return messages;
+    // The messages aren't ObjectTemplate instances (they lack the format symbol),
+    // so formatTemplate will throw. Fall back to manual string substitution on
+    // text content parts, which is where template variables like {user_memories}
+    // and {custom_instructions} live.
+    const stringParams = Object.fromEntries(
+      Object.entries(promptTemplateParams).filter(
+        (entry): entry is [string, string] => typeof entry[1] === "string",
+      ),
+    );
+    if (Object.keys(stringParams).length === 0) {
+      return messages;
+    }
+    return messages.map((msg) => ({
+      ...msg,
+      content: msg.content.map((part) => {
+        if (part.type === "text" && typeof part.text === "string") {
+          let text = part.text;
+          for (const [key, value] of Object.entries(stringParams)) {
+            text = text.replaceAll(`{${key}}`, value);
+          }
+          return { ...part, text };
+        }
+        return part;
+      }),
+    }));
   }
 }
 
