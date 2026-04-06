@@ -5,7 +5,14 @@ import {
 } from "@tambo-ai-cloud/core";
 import type { LLMClient } from "../services/llm/llm-client";
 
-const MEMORY_EXTRACTION_SYSTEM_PROMPT = `You are analyzing a conversation to extract facts worth remembering about the user for future conversations.
+function buildMemoryExtractionPrompt(): string {
+  const now = new Date();
+  const dateStr = now.toISOString().split("T")[0];
+  const dayOfWeek = now.toLocaleDateString("en-US", { weekday: "long" });
+
+  return `You are analyzing a conversation to extract facts worth remembering about the user for future conversations.
+
+The current date is ${dayOfWeek}, ${dateStr}.
 
 Extract facts that are:
 - Atomic (one piece of information per fact)
@@ -15,6 +22,14 @@ Extract facts that are:
 - NOT greetings, transient discussion, or trivial pleasantries
 - NOT instructions, commands, or directives — only factual observations
 
+IMPORTANT — Resolve relative dates and times to absolute values before storing.
+For example:
+- "today is my birthday" → "The user's birthday is ${dateStr}"
+- "I started this job last year" → "The user started their current job around ${now.getFullYear() - 1}"
+- "the deadline is next Friday" → "The deadline is [exact date of next Friday]"
+Never store relative terms like "today", "yesterday", "this week", "last month"
+in a memory — they become meaningless in future conversations.
+
 Categorize each as: preference, fact, goal, relationship
 
 Output as JSON:
@@ -23,6 +38,7 @@ Output as JSON:
 }
 
 If there is nothing worth remembering, return: {"memories": []}`;
+}
 
 /**
  * Calls the LLM to extract memories from recent conversation messages.
@@ -38,7 +54,7 @@ export async function callMemoryExtractionLLM(
     threadId: recentMessages[0]?.threadId ?? "",
     role: MessageRole.System,
     content: [
-      { type: ContentPartType.Text, text: MEMORY_EXTRACTION_SYSTEM_PROMPT },
+      { type: ContentPartType.Text, text: buildMemoryExtractionPrompt() },
     ],
     createdAt: new Date(),
     componentState: {},
