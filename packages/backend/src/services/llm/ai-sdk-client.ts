@@ -47,7 +47,7 @@ import {
   ComponentStreamTracker,
   tryExtractComponentName,
 } from "../../util/component-streaming";
-import { formatTemplate, objectTemplate } from "../../util/template";
+import { formatTemplate, ObjectTemplate } from "../../util/template";
 import { threadMessagesToModelMessages } from "../../util/thread-to-model-message-conversion";
 import type { ProviderSkillConfig } from "@tambo-ai-cloud/core";
 import {
@@ -881,7 +881,10 @@ function tryFormatTemplate(
   promptTemplateParams: Record<string, string | ThreadMessage[]>,
 ): ThreadMessage[] {
   try {
-    return formatTemplate(objectTemplate(messages), promptTemplateParams);
+    return formatTemplate(
+      messages as ObjectTemplate<ThreadMessage[]>,
+      promptTemplateParams,
+    );
   } catch (_e) {
     return messages;
   }

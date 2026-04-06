@@ -5,6 +5,8 @@ import {
   ThreadMessage,
 } from "@tambo-ai-cloud/core";
 import { streamText } from "ai";
+import { generateDecisionLoopPrompt } from "../../prompt/decision-loop-prompts";
+import { formatTemplate, objectTemplate } from "../../util/template";
 import { AISdkClient } from "./ai-sdk-client";
 
 // Mock the message ID generator
@@ -848,17 +850,25 @@ describe("AISdkClient", () => {
       const memoryBlock =
         "<memory_data>\n- [mem_abc] (importance: 5) The user prefers dark mode\n- [mem_def] (importance: 3) The user is a backend engineer\n</memory_data>";
 
+      // Mirror the real flow in decision-loop-service.ts:
+      // 1. Generate the prompt template
+      // 2. Substitute variables into the template string eagerly
+      // 3. Build the system message with the final string
+      const { template, args: systemPromptArgs } = generateDecisionLoopPrompt(
+        undefined,
+        memoryBlock,
+      );
+      const systemPrompt = formatTemplate(
+        objectTemplate(template),
+        systemPromptArgs,
+      );
+
       const messages: ThreadMessage[] = [
         {
           id: "sys-1",
           threadId: "thread-1",
           role: MessageRole.System,
-          content: [
-            {
-              type: ContentPartType.Text,
-              text: "You are a helpful assistant.\n\n{user_memories}\n\n{custom_instructions}",
-            },
-          ],
+          content: [{ type: ContentPartType.Text, text: systemPrompt }],
           createdAt: new Date(),
           componentState: {},
         },
@@ -867,7 +877,10 @@ describe("AISdkClient", () => {
           threadId: "thread-1",
           role: MessageRole.User,
           content: [
-            { type: ContentPartType.Text, text: "What do you know about me?" },
+            {
+              type: ContentPartType.Text,
+              text: "My config is {name: 'test'} - what do you know about me?",
+            },
           ],
           createdAt: new Date(),
           componentState: {},
@@ -878,10 +891,7 @@ describe("AISdkClient", () => {
         messages,
         stream: true as const,
         promptTemplateName: "decision-loop",
-        promptTemplateParams: {
-          user_memories: `## User Context\n${memoryBlock}`,
-          custom_instructions: "",
-        },
+        promptTemplateParams: systemPromptArgs,
       });
 
       for await (const _chunk of stream) {
