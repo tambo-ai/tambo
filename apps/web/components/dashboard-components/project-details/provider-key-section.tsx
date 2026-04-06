@@ -32,7 +32,7 @@ import { CustomLlmParametersEditor } from "./custom-llm-parameters/editor";
 
 const COMPONENT_NAME = "LLMProviders";
 
-const providerKeySectionSuggestions: Suggestion[] = [
+const _providerKeySectionSuggestions: Suggestion[] = [
   {
     id: "change-model",
     title: "Change Model",
@@ -262,21 +262,19 @@ export function ProviderKeySectionBase({
     );
 
   // --- State Management ---
-  const [mode, setMode] = useState<AiProviderType>(AiProviderType.LLM);
-  const [combinedSelectValue, setCombinedSelectValue] = useState<string>("");
-  const [customModelName, setCustomModelName] = useState<string>("");
-  const [baseUrl, setBaseUrl] = useState<string>("");
-  const [maxInputTokens, setMaxInputTokens] = useState<string>("");
-  const [apiKeyInput, setApiKeyInput] = useState<string>("");
-  const [isEditingApiKey, setIsEditingApiKey] = useState<boolean>(false);
+  const [mode, setMode] = useState(AiProviderType.LLM);
+  const [combinedSelectValue, setCombinedSelectValue] = useState("");
+  const [customModelName, setCustomModelName] = useState("");
+  const [baseUrl, setBaseUrl] = useState("");
+  const [maxInputTokens, setMaxInputTokens] = useState("");
+  const [apiKeyInput, setApiKeyInput] = useState("");
+  const [isEditingApiKey, setIsEditingApiKey] = useState(false);
   const [showValidationErrors, setShowValidationErrors] = useState(false);
 
   // Agent settings state
-  const [agentProvider, setAgentProvider] = useState<AgentProviderType>(
-    AgentProviderType.CREWAI,
-  );
-  const [agentUrl, setAgentUrl] = useState<string>("");
-  const [agentName, setAgentName] = useState<string>("");
+  const [agentProvider, setAgentProvider] = useState(AgentProviderType.CREWAI);
+  const [agentUrl, setAgentUrl] = useState("");
+  const [agentName, setAgentName] = useState("");
   const [agentHeaders, setAgentHeaders] = useState<
     { header: string; value: string }[]
   >([]);

@@ -40,7 +40,7 @@ function HeaderRow({
   onCancelRow,
   onDeleteRow,
 }: HeaderRowProps) {
-  const [local, setLocal] = useState<HeaderKV>(item);
+  const [local, setLocal] = useState(item);
   const [touched, setTouched] = useState(false);
 
   const trimmedHeader = useMemo(() => local.header.trim(), [local.header]);
@@ -139,7 +139,7 @@ export function HeadersEditor({
   title,
 }: HeadersEditorProps) {
   const [activeEditIndex, setActiveEditIndex] = useState<number | null>(null);
-  const [working, setWorking] = useState<HeaderKV[]>(headers);
+  const [working, setWorking] = useState(headers);
 
   // Keep local working copy in sync with parent when not actively editing
   useEffect(() => {

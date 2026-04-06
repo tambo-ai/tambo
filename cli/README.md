@@ -39,6 +39,19 @@ npx tambo full-send
 npx tambo init
 ```
 
+### `auth`
+
+Manage authentication:
+
+```bash
+npx tambo auth login              # Opens browser to authenticate
+npx tambo auth status             # Show current auth status
+npx tambo auth status --quiet     # Exit code 0 if authenticated, 1 otherwise
+npx tambo auth logout             # Clear stored credentials
+npx tambo auth sessions           # List active CLI sessions
+npx tambo auth revoke-session     # Revoke a specific session
+```
+
 ### `add <component-name>`
 
 Add a Tambo component to your project:
@@ -135,8 +148,8 @@ The CLI automatically detects non-interactive environments (CI/CD, AI coding ass
 # Initialize with direct API key
 npx tambo init --api-key="$TAMBO_API_KEY"
 
-# Create new project (prints auth URL for headless CI)
-npx tambo init --project-name=myapp --no-browser
+# Create new project (opens browser for auth, polls until complete)
+npx tambo init --project-name=myapp
 
 # Add components without prompts
 npx tambo add form graph --yes --prefix=src/components/tambo

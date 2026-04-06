@@ -22,6 +22,7 @@ import { ConfigServiceSingleton } from "./config.service";
 import { OAuthModule } from "./oauth/oauth.module";
 import { ProjectsModule } from "./projects/projects.module";
 import { RegistryModule } from "./registry/registry.module";
+import { SkillsModule } from "./skills/skills.module";
 import { SchedulerModule } from "./scheduler/scheduler.module";
 import { StorageModule } from "./storage/storage.module";
 import { ThreadsModule } from "./threads/threads.module";
@@ -47,6 +48,7 @@ export class GlobalModule {}
     ThreadsModule,
     AudioModule,
     GlobalModule,
+    SkillsModule,
     UsersModule,
     SchedulerModule,
     StorageModule,

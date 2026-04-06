@@ -9,7 +9,7 @@ import { InteractableAvailableMcpServers } from "@/components/dashboard-componen
 import { InteractableCustomInstructionsEditor } from "@/components/dashboard-components/project-details/custom-instructions-editor";
 import { InteractableOAuthSettings } from "@/components/dashboard-components/project-details/oauth-settings";
 import { InteractableProviderKeySection } from "@/components/dashboard-components/project-details/provider-key-section";
-import { SkillsSection } from "@/components/dashboard-components/project-details/skills-section";
+import { InteractableSkillsSection } from "@/components/dashboard-components/project-details/skills-section";
 import { InteractableToolCallLimitEditor } from "@/components/dashboard-components/project-details/tool-call-limit-editor";
 import { SettingsPageSkeleton } from "@/components/skeletons/settings-skeletons";
 import { Button } from "@/components/ui/button";
@@ -506,11 +506,12 @@ export function ProjectSettings({ projectId }: ProjectSettingsProps) {
               </div>
 
               <div ref={skillsRef} className="p-2">
-                <SkillsSection
+                <InteractableSkillsSection
                   projectId={project.id}
                   defaultLlmProviderName={
                     project.defaultLlmProviderName ?? undefined
                   }
+                  defaultLlmModelName={project.defaultLlmModelName ?? undefined}
                 />
               </div>
 

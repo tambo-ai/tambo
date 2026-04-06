@@ -9,7 +9,7 @@ tags:
     yaml-parsing,
     drag-and-drop,
     postgres-constraints,
-    sheet,
+    inline-form,
   ]
 module: apps/web, packages/db
 created: 2026-03-26
@@ -82,29 +82,26 @@ The parser:
 
 The reconstructor uses `js-yaml` `dump()` with `{ lineWidth: -1 }` for proper YAML escaping on round-trip (handles colons, quotes, newlines in values).
 
-## 4. Sheet with Key-Based State Reset
+## 4. Inline Form with Key-Based State Reset
 
-**Problem:** A Sheet (side drawer) needs to reset its form state when switching between create mode and different skills in edit mode.
+**Problem:** An inline form needs to reset its state when switching between create mode and different skills in edit mode.
 
 **Solution:** Use React's `key` prop to force remount instead of `useEffect` for state sync.
 
 ```tsx
-<SkillSheet
-  key={isSheetOpen ? (editingSkill?.id ?? "new") : "closed"}
+<SkillForm
+  key={isFormOpen ? `${editingSkill?.id ?? "new"}-${importedFields ? "import" : "manual"}` : "closed"}
   skill={editingSkill}
-  isOpen={isSheetOpen}
   ...
 />
 ```
 
-Include `isSheetOpen` in the key so that reopening "Create" mode (same key `"new"`) after closing still remounts. Without it, the old textarea content persists.
+Include the form open state and import mode in the key so that switching between create/edit/import modes always remounts. Without it, stale field values persist.
 
-Inside the Sheet, use `useState` with an initializer function — it runs fresh on each mount:
+Inside the form, use `useState` with an initializer function -- it runs fresh on each mount:
 
 ```tsx
-const [content, setContent] = useState(() =>
-  skill ? reconstructSkillContent(skill.name, ...) : ""
-);
+const [name, setName] = useState(initialFields?.name ?? skill?.name ?? "");
 ```
 
 No `useEffect` needed for form initialization.
@@ -117,19 +114,18 @@ No `useEffect` needed for form initialization.
 2. Parse the content to extract the identifying field (e.g., skill name from frontmatter)
 3. Check against the cached list for conflicts
 4. If conflict: show an `AlertDialog` asking to overwrite
-5. If user confirms: open edit sheet for the existing item with the imported content
-6. If no conflict: open create sheet with the imported content
+5. If user confirms: open edit form for the existing item with the imported content
+6. If no conflict: open create form with the imported content
 
-The overwrite check is a **UX convenience** (client-side, uses cached data). The real enforcement is server-side (unique constraint → domain error → toast).
+The overwrite check is a **UX convenience** (client-side, uses cached data). The real enforcement is server-side (unique constraint -> domain error -> toast).
 
-The Sheet accepts an `initialContent` prop that overrides the normal reconstruction from DB fields, used for both import and drag-and-drop flows.
+The inline form accepts an `initialFields` prop that overrides the normal field values from DB, used for both import and drag-and-drop flows.
 
 ## 6. Drag-and-Drop Zones
 
-Two separate drop zones:
+Drop zone on the Card component:
 
 - **Card-level** (the skill list): drops trigger the import flow (with overwrite check)
-- **Textarea-level** (inside the open Sheet): drops replace the textarea content directly
 
 Visual feedback: `ring-2 ring-primary ring-offset-2` on the drop target, with a dashed border overlay showing "Drop SKILL.md file here".
 
@@ -151,8 +147,8 @@ const isSupported = !providerName || SUPPORTED_PROVIDERS.has(providerName);
 ## 8. Testing Patterns for Settings Components
 
 - **SkillCard** (presentational): No mocks needed. Test rendering, click handlers, aria-labels directly.
-- **SkillSheet** (form with mutations): Mock `@/trpc/react` and `@/hooks/use-toast`. Use a `shouldFailWith` variable to toggle between success/error paths in the mock.
-- **SkillsSection** (orchestrator): Mock the Sheet component entirely to isolate orchestration logic. Test list states, import flow, overwrite dialog, provider notice.
+- **SkillForm** (form with mutations): Mock `@/trpc/react` and `@/hooks/use-toast`. Use a `shouldFailWith` variable to toggle between success/error paths in the mock.
+- **SkillsSection** (orchestrator): Mock `@tambo-ai/react` and `EditWithTamboButton`. Test list states, import flow, overwrite dialog, provider notice.
 - **Frontmatter parser**: Pure function — no mocks. Test all edge cases including YAML special characters, Windows line endings, round-trip fidelity.
 - **Drag-and-drop**: Skip in jsdom tests — `DragEvent`/`DataTransfer` are not properly supported. These need Playwright/e2e testing.
 - **Mutation error paths**: Valuable to test — verify destructive toasts show correct messages for name conflicts.

@@ -225,7 +225,7 @@ describe("Interactables AdditionalContext (provider-based)", () => {
 
     const TestComponent = () => {
       const snapshot = useCurrentInteractablesSnapshot();
-      const [testResult, setTestResult] = React.useState<string>("pending");
+      const [testResult, setTestResult] = React.useState("pending");
 
       React.useEffect(() => {
         if (snapshot.length > 0) {

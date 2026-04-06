@@ -93,16 +93,6 @@ export const navigation: NavigationItem[] = [
           },
         ],
       },
-      {
-        title: "Canvas",
-        href: "#",
-        children: [
-          {
-            title: "Canvas Space",
-            href: "/components/canvas-space",
-          },
-        ],
-      },
     ],
   },
 ];

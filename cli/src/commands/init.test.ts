@@ -285,8 +285,9 @@ jest.unstable_mockModule("chalk", () => ({
 }));
 
 // Mock the interactive module to make tests think they're in an interactive environment
+let mockIsInteractive = true;
 jest.unstable_mockModule("../utils/interactive.js", () => ({
-  isInteractive: () => true, // Always return true in tests
+  isInteractive: () => mockIsInteractive,
   interactivePrompt: mockPrompt, // Use the same mockPrompt as inquirer
   execSync: mockExecSync, // Use the same mockExecSync as child_process
   execFileSync: mockExecFileSync, // Use the same mockExecFileSync as child_process
@@ -343,6 +344,7 @@ describe("handleInit", () => {
     clipboardContent = null;
 
     // Reset device auth mocks
+    mockIsInteractive = true;
     mockIsTokenValid = false;
     mockVerifySession = true;
     mockDeviceAuthShouldFail = false;
@@ -396,6 +398,7 @@ describe("handleInit", () => {
     shouldOpenFail = false;
     clipboardContent = null;
     // Reset device auth mocks
+    mockIsInteractive = true;
     mockIsTokenValid = false;
     mockVerifySession = true;
     mockDeviceAuthShouldFail = false;
@@ -428,6 +431,77 @@ describe("handleInit", () => {
       // Verify error message
       const output = logs.join("\n");
       expect(output).toContain("Could not find a valid package.json");
+    });
+  });
+
+  describe("non-interactive --project-name", () => {
+    beforeEach(() => {
+      mockIsInteractive = false;
+      vol.fromJSON(createNextProject());
+    });
+
+    it("should skip auth when already authenticated", async () => {
+      mockIsTokenValid = true;
+      mockVerifySession = true;
+
+      await handleInit({ projectName: "my-app" });
+
+      const output = logs.join("\n");
+      expect(output).toContain("Already authenticated");
+      expect(output).toContain("Initialization complete");
+    });
+
+    it("should complete auth and continue when device auth succeeds", async () => {
+      mockRunDeviceAuthFlowResult = {
+        sessionToken: "test-token",
+        user: { id: "u1", email: "test@test.com", name: "Test" },
+      };
+
+      await handleInit({ projectName: "my-app" });
+
+      const output = logs.join("\n");
+      expect(output).toContain("Authentication successful");
+    });
+
+    it("should surface error when device auth fails", async () => {
+      mockDeviceAuthShouldFail = true;
+
+      await expect(handleInit({ projectName: "my-app" })).rejects.toThrow();
+
+      const output = [...logs, ...errorLogs].join("\n");
+      expect(output).toContain("Authentication failed");
+    });
+
+    it("should re-authenticate when session is expired/revoked", async () => {
+      mockIsTokenValid = true;
+      mockVerifySession = false;
+
+      await handleInit({ projectName: "my-app" });
+
+      const output = logs.join("\n");
+      expect(output).toContain("Session expired");
+      expect(output).toContain("Authentication successful");
+    });
+  });
+
+  describe("non-interactive --project-id", () => {
+    beforeEach(() => {
+      mockIsInteractive = false;
+      vol.fromJSON(createNextProject());
+    });
+
+    it("should authenticate and use existing project", async () => {
+      mockRunDeviceAuthFlowResult = {
+        sessionToken: "test-token",
+        user: { id: "u1", email: "test@test.com", name: "Test" },
+      };
+      mockProjects = [{ id: "proj-123", name: "my-project" }];
+
+      await handleInit({ projectId: "proj-123" });
+
+      const output = logs.join("\n");
+      expect(output).toContain("Authentication successful");
+      expect(output).toContain("Initialization complete");
     });
   });
 
@@ -826,10 +900,9 @@ describe("handleInit", () => {
     });
 
     it("should auto-answer with --yes flag", async () => {
-      // Execute with --yes (no inquirer needed)
+      // Execute with --yes (no inquirer needed) -- always defaults to src/components
       const path = await getInstallationPath(true);
 
-      // Verify
       expect(path).toBe("src/components");
 
       // Verify auto-proceed message
@@ -939,13 +1012,6 @@ describe("handleInit", () => {
 
       // Verify tambo.ts was created at project-root lib (not components/lib)
       expect(vol.existsSync("/mock-project/lib/tambo.ts")).toBe(true);
-    });
-
-    it("should handle nested paths correctly", async () => {
-      // This would require custom installPath, but we'll test the path logic
-      // by checking that it extracts first segment correctly
-      // The default behavior uses src/components or components
-      // so tambo.ts goes to src/lib or components/lib
     });
   });
 

@@ -29,6 +29,8 @@ export const env = createEnv({
     RESEND_AUDIENCE_ID: z.string().transform(allowEmptyString).optional(),
     // for smoketesting
     WEATHER_API_KEY: z.string().transform(allowEmptyString).optional(),
+    // Fallback OpenAI API key for free-tier projects without a user key
+    FALLBACK_OPENAI_API_KEY: z.string().transform(allowEmptyString).optional(),
     // Dev-only, allow testing server-side MCP servers running locally
     ALLOW_LOCAL_MCP_SERVERS: z.string().min(1).optional(),
     GITHUB_TOKEN: z.string().transform(allowEmptyString).optional(),
@@ -135,6 +137,7 @@ export const env = createEnv({
     NEXT_PUBLIC_TAMBO_WHITELABEL_ORG_LOGO:
       process.env.NEXT_PUBLIC_TAMBO_WHITELABEL_ORG_LOGO ??
       process.env.TAMBO_WHITELABEL_ORG_LOGO,
+    FALLBACK_OPENAI_API_KEY: process.env.FALLBACK_OPENAI_API_KEY,
     ALLOW_LOCAL_MCP_SERVERS: process.env.ALLOW_LOCAL_MCP_SERVERS,
     GITHUB_TOKEN: process.env.GITHUB_TOKEN,
     // NextAuth OAuth providers

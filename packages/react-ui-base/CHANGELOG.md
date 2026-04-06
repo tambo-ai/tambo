@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.1.8](https://github.com/tambo-ai/tambo/compare/@tambo-ai/react-ui-base-v0.1.7...@tambo-ai/react-ui-base-v0.1.8) (2026-04-06)
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump the eslint group across 1 directory with 4 updates ([#2703](https://github.com/tambo-ai/tambo/issues/2703)) ([61278a0](https://github.com/tambo-ai/tambo/commit/61278a05de431b9ff4e14e92a3d0433d2bf1d80d))
+* **deps-dev:** bump ts-jest from 29.4.6 to 29.4.9 in the testing group ([#2760](https://github.com/tambo-ai/tambo/issues/2760)) ([801bbc9](https://github.com/tambo-ai/tambo/commit/801bbc92828cc338e169e762776f9bd74abe49ac))
+* **deps-dev:** bump vite from 7.3.1 to 7.3.2 ([#2754](https://github.com/tambo-ai/tambo/issues/2754)) ([d3ee65a](https://github.com/tambo-ai/tambo/commit/d3ee65ab5c56838c5fd244c3a42c625f0f5d8d74))
+* **deps:** bump @tambo-ai/typescript-sdk from 0.94.0 to 0.94.1 in the tambo-ai group ([#2706](https://github.com/tambo-ai/tambo/issues/2706)) ([6842afa](https://github.com/tambo-ai/tambo/commit/6842afa3f2b9f0e0be4be46b5def319b10f4f784))
+* **deps:** bump @tambo-ai/typescript-sdk from 0.94.1 to 0.95.0 in the tambo-ai group ([#2762](https://github.com/tambo-ai/tambo/issues/2762)) ([f577b82](https://github.com/tambo-ai/tambo/commit/f577b821d12eed5dca94b10efbf86591824b47db))
+
 ## [0.1.7](https://github.com/tambo-ai/tambo/compare/@tambo-ai/react-ui-base-v0.1.6...@tambo-ai/react-ui-base-v0.1.7) (2026-03-30)
 
 

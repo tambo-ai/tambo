@@ -11,7 +11,6 @@
     "./styles/tailwind": "./src/styles/tailwind.config.ts",
     "./utils": "./src/utils.ts",
     "./lib/thread-hooks": "./src/lib/thread-hooks.ts",
-    "./components/canvas-space": "./src/components/canvas-space/index.tsx",
     "./components/control-bar": "./src/components/control-bar/index.tsx",
     "./components/edit-with-tambo-button": "./src/components/edit-with-tambo-button/index.tsx",
     "./components/elicitation-ui": "./src/components/elicitation-ui/index.tsx",
@@ -48,7 +47,7 @@
     "@tambo-ai/react": "*",
     "@tambo-ai/react-ui-base": "*",
     "@tambo-ai/typescript-config": "*",
-    "@tambo-ai/typescript-sdk": "^0.94.0",
+    "@tambo-ai/typescript-sdk": "^0.95.0",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.3.2",
     "@types/jest": "^30.0.0",
@@ -68,7 +67,7 @@
     "tailwind-merge": "^2.6.1",
     "tailwindcss": "^4.1.18",
     "tailwindcss-animate": "^1.0.7",
-    "ts-jest": "^29.4.6",
+    "ts-jest": "^29.4.9",
     "typescript": "^5.9.3"
   }
 }

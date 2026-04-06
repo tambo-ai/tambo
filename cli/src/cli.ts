@@ -10,6 +10,7 @@ import { fileURLToPath } from "url";
 import { handleAddComponents } from "./commands/add/index.js";
 import { getComponentList } from "./commands/add/utils.js";
 import { handleAuth, showAuthHelp } from "./commands/auth.js";
+import { handleSkills, showSkillsHelp } from "./commands/skills.js";
 import { handleCreateApp } from "./commands/create-app.js";
 import { handleInit } from "./commands/init.js";
 import { handleListComponents } from "./commands/list/index.js";
@@ -52,7 +53,6 @@ interface CLIFlags extends Record<string, any> {
   apiKey?: Flag<"string", string>;
   projectName?: Flag<"string", string>;
   projectId?: Flag<"string", string>;
-  browser?: Flag<"boolean", boolean>;
 }
 
 // Command help configuration (defined before CLI setup so we can generate help text)
@@ -83,7 +83,6 @@ const OPTION_DOCS: Record<string, string> = {
   "api-key": `${chalk.yellow("--api-key <key>")}      Direct API key input (skips auth)`,
   "project-name": `${chalk.yellow("--project-name <name>")} Create new project with this name`,
   "project-id": `${chalk.yellow("--project-id <id>")}    Use existing project by ID`,
-  "no-browser": `${chalk.yellow("--no-browser")}         Print auth URL instead of opening browser`,
 };
 
 const COMMAND_HELP_CONFIGS: Record<string, CommandHelp> = {
@@ -100,7 +99,6 @@ const COMMAND_HELP_CONFIGS: Record<string, CommandHelp> = {
       "api-key",
       "project-name",
       "project-id",
-      "no-browser",
       "skip-agent-docs",
       "legacy-peer-deps",
     ],
@@ -268,11 +266,10 @@ ${chalk.bold("Templates")}
     command: "auth-login",
     syntax: "auth login",
     description: "Authenticate via browser",
-    usage: [`$ ${chalk.cyan("tambo auth login")} [options]`],
-    options: ["no-browser"],
+    usage: [`$ ${chalk.cyan("tambo auth login")}`],
+    options: [],
     examples: [
       `$ ${chalk.cyan("tambo auth login")}              # Opens browser to authenticate`,
-      `$ ${chalk.cyan("tambo auth login --no-browser")} # Print URL for manual opening (CI/agents)`,
     ],
   },
   "auth-logout": {
@@ -309,6 +306,32 @@ ${chalk.bold("Templates")}
       `$ ${chalk.cyan("tambo auth revoke-session")}       # Interactive session picker`,
       `$ ${chalk.cyan("tambo auth revoke-session --all")} # Revoke all sessions`,
     ],
+  },
+  skills: {
+    command: "skills",
+    syntax: "skills [subcommand]",
+    description:
+      "Manage project skills (list, add, get, update, enable, disable, delete)",
+    usage: [
+      `$ ${chalk.cyan("tambo skills")} <subcommand> [options]`,
+      `$ ${chalk.cyan("tambo skills list")}             ${chalk.dim("List all skills")}`,
+      `$ ${chalk.cyan("tambo skills add")} <file.md>    ${chalk.dim("Create skill from file")}`,
+      `$ ${chalk.cyan("tambo skills get")} <name>       ${chalk.dim("Print skill as markdown")}`,
+      `$ ${chalk.cyan("tambo skills update")} <file.md> ${chalk.dim("Update skill from file")}`,
+      `$ ${chalk.cyan("tambo skills enable")} <name>    ${chalk.dim("Enable a skill")}`,
+      `$ ${chalk.cyan("tambo skills disable")} <name>   ${chalk.dim("Disable a skill")}`,
+      `$ ${chalk.cyan("tambo skills delete")} <name>    ${chalk.dim("Delete a skill")}`,
+    ],
+    options: ["force"],
+    examples: [
+      `$ ${chalk.cyan("tambo skills list")}                        # List all skills`,
+      `$ ${chalk.cyan("tambo skills add my-skill.md")}             # Create a skill`,
+      `$ ${chalk.cyan("tambo skills get my-skill > my-skill.md")}  # Save skill to file`,
+      `$ ${chalk.cyan("tambo skills enable my-skill")}             # Enable a skill`,
+      `$ ${chalk.cyan("tambo skills disable my-skill")}            # Disable a skill`,
+      `$ ${chalk.cyan("tambo skills delete my-skill --force")}     # Delete without prompt`,
+    ],
+    exampleTitle: "Skills Management",
   },
 };
 
@@ -450,12 +473,6 @@ const cli = meow(generateGlobalHelp(), {
       type: "string",
       description: "Project ID for init (uses existing project)",
     },
-    browser: {
-      type: "boolean",
-      default: true,
-      description:
-        "Open browser for auth (use --no-browser to print URL instead)",
-    },
   },
   importMeta: import.meta,
 });
@@ -507,7 +524,6 @@ async function handleCommand(cmd: string, flags: Result<CLIFlags>["flags"]) {
       apiKey: flags.apiKey as string | undefined,
       projectName: flags.projectName as string | undefined,
       projectId: flags.projectId as string | undefined,
-      noBrowser: flags.browser === false,
     });
     return;
   }
@@ -634,7 +650,19 @@ async function handleCommand(cmd: string, flags: Result<CLIFlags>["flags"]) {
       quiet: Boolean(flags.quiet ?? flags.q),
       force: Boolean(flags.force ?? flags.f),
       all: Boolean(flags.all),
-      noBrowser: flags.browser === false,
+    });
+    return;
+  }
+
+  if (cmd === "skills") {
+    if (flags.help) {
+      showSkillsHelp();
+      return;
+    }
+    const subcommand = cli.input[1];
+    const fileArgs = cli.input.slice(2);
+    await handleSkills(subcommand, fileArgs, {
+      force: Boolean(flags.force ?? flags.f),
     });
     return;
   }
@@ -761,10 +789,8 @@ async function main() {
 
   // Collect active flag names (not values — those could contain secrets like API keys)
   const activeFlags = Object.entries(flags)
-    .filter(([key, val]) => {
+    .filter(([_key, val]) => {
       if (val === false || val === undefined) return false;
-      // browser defaults to true — only track if explicitly set to false (--no-browser)
-      if (key === "browser" && val === true) return false;
       return true;
     })
     .map(([key]) => key)

@@ -20,7 +20,7 @@ import { z } from "zod/v3";
 
 const COMPONENT_NAME = "CustomInstructions";
 
-const customInstructionsEditorSuggestions: Suggestion[] = [
+const _customInstructionsEditorSuggestions: Suggestion[] = [
   {
     id: "add-custom-instructions",
     title: "Add Custom Instructions",
@@ -94,14 +94,12 @@ export function CustomInstructionsEditor({
   const [savedValue, setSavedValue] = useState(customInstructions ?? "");
   const [displayValue, setDisplayValue] = useState(customInstructions ?? "");
   const { toast } = useToast();
-  const [allowSystemPromptOverride, setAllowSystemPromptOverride] = useState<
-    boolean | undefined
-  >(
+  const [allowSystemPromptOverride, setAllowSystemPromptOverride] = useState(
     allowSystemPromptOverrideProp === undefined
       ? undefined
       : Boolean(allowSystemPromptOverrideProp),
   );
-  const [savedToggleValue, setSavedToggleValue] = useState<boolean | undefined>(
+  const [savedToggleValue, setSavedToggleValue] = useState(
     allowSystemPromptOverrideProp === undefined
       ? undefined
       : Boolean(allowSystemPromptOverrideProp),
@@ -311,7 +309,7 @@ export function CustomInstructionsEditor({
                   <Button
                     size="sm"
                     variant="ghost"
-                    className="font-sans bg-transparent text-red-500 hover:bg-red-500/10 hover:text-red-500"
+                    className="font-sans bg-transparent text-muted-foreground hover:bg-accent"
                     onClick={handleCancel}
                     disabled={updateInstructions.isPending}
                   >

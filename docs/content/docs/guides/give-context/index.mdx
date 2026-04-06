@@ -1,0 +1,28 @@
+---
+title: Give Tambo Extra Context
+description: Provide Tambo with application state, user-attached context, and referenceable resources.
+---
+
+import LearnMore from "@/components/learn-more";
+
+The AI produces better results when it knows what's happening in your application. Tambo provides three mechanisms for sharing context: automatic state that gets sent with every message, user-attached context that's explicitly added to specific messages, and referenceable resources that users can mention with @ syntax.
+
+Each mechanism serves a different purpose. Automatic state is best for things like the current page or selected item. Attachments work well for files or data the user wants to discuss. Referenceable resources let users pull in specific entities from your app.
+
+<LearnMore
+  title="Make Tambo Aware of State"
+  description="Automatically include information about the user's current state on every message"
+  href="/guides/give-context/make-ai-aware-of-state"
+/>
+
+<LearnMore
+  title="Let Users Attach Context"
+  description="Stage temporary context that users explicitly add to messages"
+  href="/guides/give-context/let-users-attach-context"
+/>
+
+<LearnMore
+  title="Make Context Referenceable"
+  description="Register resources that users can @ mention in messages"
+  href="/guides/give-context/make-context-referenceable"
+/>

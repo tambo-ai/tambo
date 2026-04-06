@@ -1,5 +1,34 @@
 # Changelog
 
+## [1.33.0](https://github.com/tambo-ai/tambo/compare/docs-v1.32.2...docs-v1.33.0) (2026-04-06)
+
+
+### Features
+
+* **api:** add skills management, provider upload, and runtime integration ([#2690](https://github.com/tambo-ai/tambo/issues/2690)) ([c486010](https://github.com/tambo-ai/tambo/commit/c486010bd41774283cc69988988c6c0b730aef67))
+* **cli:** add skills management commands ([#2728](https://github.com/tambo-ai/tambo/issues/2728)) ([2bfedff](https://github.com/tambo-ai/tambo/commit/2bfedff3c818b0fe31a786f74b109cbd6376e85a))
+* **cli:** auto-detect non-interactive auth and always open browser ([#2727](https://github.com/tambo-ai/tambo/issues/2727)) ([7ce2530](https://github.com/tambo-ai/tambo/commit/7ce25300c00960964bbb3132ae9a662d40a6009a))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump the eslint group across 1 directory with 4 updates ([#2703](https://github.com/tambo-ai/tambo/issues/2703)) ([61278a0](https://github.com/tambo-ai/tambo/commit/61278a05de431b9ff4e14e92a3d0433d2bf1d80d))
+* **deps:** bump @tambo-ai/typescript-sdk from 0.94.0 to 0.94.1 in the tambo-ai group ([#2706](https://github.com/tambo-ai/tambo/issues/2706)) ([6842afa](https://github.com/tambo-ai/tambo/commit/6842afa3f2b9f0e0be4be46b5def319b10f4f784))
+* **deps:** bump @tambo-ai/typescript-sdk from 0.94.1 to 0.95.0 in the tambo-ai group ([#2762](https://github.com/tambo-ai/tambo/issues/2762)) ([f577b82](https://github.com/tambo-ai/tambo/commit/f577b821d12eed5dca94b10efbf86591824b47db))
+* **deps:** bump posthog-js from 1.364.6 to 1.364.7 in the small-safe-packages group ([#2763](https://github.com/tambo-ai/tambo/issues/2763)) ([12aa854](https://github.com/tambo-ai/tambo/commit/12aa854c7bd0bb631ce861890b742182cfdc5ce7))
+* **deps:** bump the small-safe-packages group across 1 directory with 8 updates ([#2720](https://github.com/tambo-ai/tambo/issues/2720)) ([320e141](https://github.com/tambo-ai/tambo/commit/320e141cffd2ce8a5d5d948290d2601dce4dde67))
+
+
+### Documentation
+
+* add index.mdx files to all docs folders missing them ([#2731](https://github.com/tambo-ai/tambo/issues/2731)) ([41e0b12](https://github.com/tambo-ai/tambo/commit/41e0b128e84553415f64de111f0611461aabc9aa))
+* add skills documentation and CLI enable/disable commands ([#2741](https://github.com/tambo-ai/tambo/issues/2741)) ([2dc34e6](https://github.com/tambo-ai/tambo/commit/2dc34e61954998ab72bddef894031cf43e4d52e9))
+
+
+### Code Refactoring
+
+* **showcase:** remove Canvas Space component ([#2745](https://github.com/tambo-ai/tambo/issues/2745)) ([565cf28](https://github.com/tambo-ai/tambo/commit/565cf28be2d1b6af3655616b3d72959cd4551d59))
+
 ## [1.32.2](https://github.com/tambo-ai/tambo/compare/docs-v1.32.1...docs-v1.32.2) (2026-03-30)
 
 

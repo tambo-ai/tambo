@@ -36,7 +36,8 @@
     "@ai-sdk/openai": "^3.0.48",
     "@ai-sdk/openai-compatible": "^2.0.37",
     "@ai-sdk/provider": "^3.0.8",
-    "@ai-sdk/provider-utils": "^4.0.21",
+    "@ai-sdk/provider-utils": "^4.0.23",
+    "@anthropic-ai/sdk": "^0.82.0",
     "@aws-sdk/client-s3": "^3.700.0",
     "@aws-sdk/s3-request-presigner": "^3.700.0",
     "@mastra/client-js": "^1.1.0",
@@ -49,7 +50,7 @@
     "langfuse": "^3.38.6",
     "mime-types": "^3.0.2",
     "nanoid": "^3.3.11",
-    "openai": "^6.16.0",
+    "openai": "^6.33.0",
     "partial-json": "^0.1.7",
     "rxjs": "7.8.1",
     "zod": "^3.25.76",
@@ -64,7 +65,7 @@
     "@types/node": "^22.19.15",
     "jest": "^30.3.0",
     "prettier-2": "npm:prettier@^2",
-    "ts-jest": "^29.4.6",
+    "ts-jest": "^29.4.9",
     "typescript": "^5.9.3"
   }
 }
