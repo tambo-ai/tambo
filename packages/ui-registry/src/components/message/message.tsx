@@ -1,6 +1,9 @@
 "use client";
 
-import { ReactTamboThreadMessage, TamboToolUseContent } from "@tambo-ai/react";
+import type {
+  ReactTamboThreadMessage,
+  TamboToolUseContent,
+} from "@tambo-ai/react";
 import {
   Message as MessageBase,
   type MessageContentProps as MessageBaseContentProps,
