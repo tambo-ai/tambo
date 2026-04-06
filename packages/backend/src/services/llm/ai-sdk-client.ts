@@ -619,6 +619,8 @@ export class AISdkClient implements LLMClient {
               timestamp: Date.now(),
             } as TextMessageEndEvent);
           }
+          // textMessageId is deliberately NOT cleared here so it can be
+          // reused if text resumes after a provider-managed skill tool call.
           break;
         case "tool-input-start": {
           // Only suppress the specific tool name injected by the active
