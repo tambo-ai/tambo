@@ -547,7 +547,11 @@ export class AISdkClient implements LLMClient {
 
       switch (delta.type) {
         case "text-start":
-          accumulatedMessage = "";
+          // Don't reset - append with separator so text before and after
+          // provider-managed tool calls (skills) is preserved together.
+          if (accumulatedMessage.length > 0) {
+            accumulatedMessage += "\n\n";
+          }
           // Generate message ID for this text stream
           textMessageId = generateMessageId();
           aguiEvents.push({
