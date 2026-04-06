@@ -109,7 +109,7 @@
     "tailwind-merge": "^2.6.1",
     "tailwindcss-animate": "^1.0.7",
     "tippy.js": "^6.3.7",
-    "tldts": "^7.0.19",
+    "tldts": "^7.0.28",
     "unified": "^11.0.5",
     "unist-util-visit": "5.1.0",
     "use-debounce": "^10.0.6",
