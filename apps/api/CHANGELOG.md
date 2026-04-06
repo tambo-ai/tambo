@@ -1,5 +1,30 @@
 # Changelog
 
+## [0.145.0](https://github.com/tambo-ai/tambo/compare/api-v0.144.5...api-v0.145.0) (2026-04-06)
+
+
+### Features
+
+* **api, client:** classify streaming errors as client vs server errors ([#2681](https://github.com/tambo-ai/tambo/issues/2681)) ([34c22db](https://github.com/tambo-ai/tambo/commit/34c22db24ee6bff9f94b352b58ea43ba948c19b5))
+* **api:** add skills management, provider upload, and runtime integration ([#2690](https://github.com/tambo-ai/tambo/issues/2690)) ([c486010](https://github.com/tambo-ai/tambo/commit/c486010bd41774283cc69988988c6c0b730aef67))
+
+
+### Bug Fixes
+
+* **core:** skip skill injection for models that don't support skills ([#2740](https://github.com/tambo-ai/tambo/issues/2740)) ([b7456ed](https://github.com/tambo-ai/tambo/commit/b7456ed57d0159c5afcade288b897b19908d9abe))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump ts-jest from 29.4.6 to 29.4.9 in the testing group ([#2760](https://github.com/tambo-ai/tambo/issues/2760)) ([801bbc9](https://github.com/tambo-ai/tambo/commit/801bbc92828cc338e169e762776f9bd74abe49ac))
+* **deps:** bump @anthropic-ai/sdk from 0.80.0 to 0.81.0 ([#2723](https://github.com/tambo-ai/tambo/issues/2723)) ([15f66b6](https://github.com/tambo-ai/tambo/commit/15f66b6852cacf54d59c6f895ff37b4e16750a1f))
+* **deps:** bump @anthropic-ai/sdk from 0.81.0 to 0.82.0 ([#2737](https://github.com/tambo-ai/tambo/issues/2737)) ([c61c4b9](https://github.com/tambo-ai/tambo/commit/c61c4b9e77bc99ab789c6713d45f0494d87fe334))
+* **deps:** bump @nestjs/core from 11.1.17 to 11.1.18 ([#2753](https://github.com/tambo-ai/tambo/issues/2753)) ([e3ff2ca](https://github.com/tambo-ai/tambo/commit/e3ff2ca69def3f9ccfe12c15d5a8ba8e59d932da))
+* **deps:** bump drizzle-orm from 0.45.1 to 0.45.2 in the drizzle group ([#2702](https://github.com/tambo-ai/tambo/issues/2702)) ([cce9764](https://github.com/tambo-ai/tambo/commit/cce9764695856d2840d8dd2427285788881845f7))
+* **deps:** bump the sentry group with 3 updates ([#2708](https://github.com/tambo-ai/tambo/issues/2708)) ([89804c9](https://github.com/tambo-ai/tambo/commit/89804c97adb9d7b0bf5cdbc2be431475ee67f970))
+* **deps:** bump the small-safe-packages group across 1 directory with 8 updates ([#2720](https://github.com/tambo-ai/tambo/issues/2720)) ([320e141](https://github.com/tambo-ai/tambo/commit/320e141cffd2ce8a5d5d948290d2601dce4dde67))
+* **test:** bump coverage thresholds (2026-03-30) ([#2695](https://github.com/tambo-ai/tambo/issues/2695)) ([80bf835](https://github.com/tambo-ai/tambo/commit/80bf83553325f36781847c89c3caffd85cc0b542))
+
 ## [0.144.5](https://github.com/tambo-ai/tambo/compare/api-v0.144.4...api-v0.144.5) (2026-03-20)
 
 
