@@ -5,8 +5,7 @@ import {
 } from "@tambo-ai-cloud/core";
 import type { LLMClient } from "../services/llm/llm-client";
 
-function buildMemoryExtractionPrompt(): string {
-  const now = new Date();
+function buildMemoryExtractionPrompt(now: Date): string {
   const dateStr = now.toISOString().split("T")[0];
   const dayOfWeek = now.toLocaleDateString("en-US", { weekday: "long" });
 
@@ -54,7 +53,12 @@ export async function callMemoryExtractionLLM(
     threadId: recentMessages[0]?.threadId ?? "",
     role: MessageRole.System,
     content: [
-      { type: ContentPartType.Text, text: buildMemoryExtractionPrompt() },
+      {
+        type: ContentPartType.Text,
+        text: buildMemoryExtractionPrompt(
+          recentMessages.at(-1)?.createdAt ?? new Date(),
+        ),
+      },
     ],
     createdAt: new Date(),
     componentState: {},
