@@ -79,28 +79,28 @@ export default async function RootLayout({
         <link rel="alternate" type="text/plain" href={llmsUrl} />
         <link rel="alternate" type="text/plain" href={llmsFullUrl} />
       </head>
-      <TamboProviderWrapper userToken={session?.user?.userToken}>
-        <Suspense>
-          <PostHogPageview />
-        </Suspense>
-        <Suspense>
-          <WebVitalsReporter />
-        </Suspense>
-        <TRPCReactProvider>
-          <PHProvider>
-            <body
-              suppressHydrationWarning
-              className={cn(
-                "min-h-screen bg-background antialiased w-full scroll-smooth font-sans",
-              )}
+      <Suspense>
+        <PostHogPageview />
+      </Suspense>
+      <Suspense>
+        <WebVitalsReporter />
+      </Suspense>
+      <TRPCReactProvider>
+        <PHProvider>
+          <body
+            suppressHydrationWarning
+            className={cn(
+              "min-h-screen bg-background antialiased w-full scroll-smooth font-sans",
+            )}
+          >
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="light"
+              enableSystem={false}
+              forcedTheme="light"
             >
-              <ThemeProvider
-                attribute="class"
-                defaultTheme="light"
-                enableSystem={false}
-                forcedTheme="light"
-              >
-                <NextAuthProvider session={session}>
+              <NextAuthProvider session={session}>
+                <TamboProviderWrapper>
                   <PostHogIdentify />
                   <MessageThreadPanelProvider>
                     <div className="flex h-screen overflow-hidden w-full">
@@ -113,15 +113,15 @@ export default async function RootLayout({
                     </div>
                     <TailwindIndicator />
                   </MessageThreadPanelProvider>
-                </NextAuthProvider>
-              </ThemeProvider>
-              <Toaster />
-              <Analytics />
-              <Schema jsonLd={[websiteSchema, organizationSchema]} />
-            </body>
-          </PHProvider>
-        </TRPCReactProvider>
-      </TamboProviderWrapper>
+                </TamboProviderWrapper>
+              </NextAuthProvider>
+            </ThemeProvider>
+            <Toaster />
+            <Analytics />
+            <Schema jsonLd={[websiteSchema, organizationSchema]} />
+          </body>
+        </PHProvider>
+      </TRPCReactProvider>
     </html>
   );
 }

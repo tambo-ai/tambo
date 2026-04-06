@@ -1,5 +1,25 @@
 # Changelog
 
+## [1.32.2](https://github.com/tambo-ai/tambo/compare/docs-v1.32.1...docs-v1.32.2) (2026-03-30)
+
+
+### Bug Fixes
+
+* **docs:** add redirects and llms.txt improvements to prevent AI agent 404s ([#2697](https://github.com/tambo-ai/tambo/issues/2697)) ([b801f8a](https://github.com/tambo-ai/tambo/commit/b801f8ac248394d5a9e87fcc8765fa9d0f3544f6))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump @tailwindcss/postcss from 4.2.1 to 4.2.2 in the tailwind group ([#2679](https://github.com/tambo-ai/tambo/issues/2679)) ([06cc75a](https://github.com/tambo-ai/tambo/commit/06cc75a9e3945eb237b22de08f3b4b004fecf58e))
+* **deps:** bump @tambo-ai/typescript-sdk from 0.93.1 to 0.94.0 in the tambo-ai group ([#2632](https://github.com/tambo-ai/tambo/issues/2632)) ([83a0bf8](https://github.com/tambo-ai/tambo/commit/83a0bf8d8ccc0a0fe0c738a69cd0fc77d92211d9))
+* **deps:** bump the next group with 2 updates ([#2676](https://github.com/tambo-ai/tambo/issues/2676)) ([23c84e0](https://github.com/tambo-ai/tambo/commit/23c84e0eb9f325b1127b59738f6b1185852be00e))
+* **deps:** bump the small-safe-packages group with 3 updates ([#2677](https://github.com/tambo-ai/tambo/issues/2677)) ([e74f770](https://github.com/tambo-ai/tambo/commit/e74f770e2d84995ae2ef154237ac9edf0e2be65e))
+
+
+### Dependencies
+
+* **backend:** upgrade AI SDK to v6 + provider packages to v3 ([#2688](https://github.com/tambo-ai/tambo/issues/2688)) ([06f665e](https://github.com/tambo-ai/tambo/commit/06f665ec18f582953cde21c69bacafaa461d339c))
+
 ## [1.32.1](https://github.com/tambo-ai/tambo/compare/docs-v1.32.0...docs-v1.32.1) (2026-03-19)
 
 

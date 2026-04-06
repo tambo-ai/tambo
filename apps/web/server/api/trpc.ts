@@ -191,13 +191,19 @@ const transactionMiddleware = t.middleware<Context>(async ({ next, ctx }) => {
       console.error("error setting config: ", error);
       throw error;
     } finally {
-      await tx.execute(
-        sql`select set_config('request.jwt.claims', NULL, TRUE)`,
-      );
-      await tx.execute(
-        sql`select set_config('request.jwt.claim.sub', NULL, TRUE)`,
-      );
-      await tx.execute(sql`reset role`);
+      try {
+        await tx.execute(
+          sql`select set_config('request.jwt.claims', NULL, TRUE)`,
+        );
+        await tx.execute(
+          sql`select set_config('request.jwt.claim.sub', NULL, TRUE)`,
+        );
+        await tx.execute(sql`reset role`);
+      } catch {
+        // Cleanup may fail if the transaction was aborted (e.g. unique
+        // constraint violation). Safe to ignore -- Postgres rolls back
+        // the transaction and resets the connection automatically.
+      }
     }
   });
 });

@@ -8,7 +8,7 @@ export interface TamboInteractableComponent<
   id: string;
   /** Current props for the component */
   props: Props;
-  /** Whether the component is currently selected for interaction, meaning Tambo should interact with it when responding to the next message*/
+  /** Whether the component is currently selected for interaction. When set, Tambo focuses on this component when responding to the next message. Automatically cleared after the message is sent. */
   isSelected?: boolean;
   /** Current state for the component */
   state?: State;
@@ -53,7 +53,10 @@ export interface TamboInteractableContext {
   getInteractableComponentState: (
     componentId: string,
   ) => Record<string, unknown> | undefined;
-  /** Set whether an interactable component is selected for interaction */
+  /**
+   * Set whether an interactable component is selected for interaction.
+   * Selections are one-shot: they are automatically cleared after the next message is sent.
+   */
   setInteractableSelected: (componentId: string, isSelected: boolean) => void;
   /** Clear all interactable component selections */
   clearInteractableSelections: () => void;

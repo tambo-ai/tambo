@@ -15,7 +15,7 @@ export default function HeaderBar() {
       const data = await res.json();
       setStars(data.stars);
     }
-    fetchStars();
+    void fetchStars();
   }, []);
 
   return (

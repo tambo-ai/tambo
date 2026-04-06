@@ -60,6 +60,7 @@ import {
   V1ListSuggestionsResponseDto,
 } from "./dto/suggestion.dto";
 import { V1Service } from "./v1.service";
+import { classifyStreamingError } from "./v1-error-classifier";
 
 @ApiTags("v1")
 @ApiSecurity("apiKey")
@@ -408,17 +409,27 @@ export class V1Controller {
       // Headers already sent — we can't return an HTTP error response, so
       // emit an SSE error event instead and log. Re-throwing here would just
       // cause "Cannot set headers after they are sent" in the exception filter.
+      const classified = classifyStreamingError(error);
       const errorEvent = {
         type: "RUN_ERROR",
-        message: "An internal error occurred",
-        code: "INTERNAL_ERROR",
+        message: classified.message,
+        code: classified.code,
+        category: classified.category,
+        isRetryable: classified.isRetryable,
+        status: classified.status,
         timestamp: Date.now(),
       };
       response.write(`data: ${JSON.stringify(errorEvent)}\n\n`);
-      this.logger.error(
-        `Error during run ${startResult.runId} on thread ${thread.id}`,
-        error instanceof Error ? error.stack : String(error),
-      );
+      if (classified.category === "server_error") {
+        this.logger.error(
+          `Error during run ${startResult.runId} on thread ${thread.id}`,
+          error instanceof Error ? error.stack : String(error),
+        );
+      } else {
+        this.logger.warn(
+          `Client error during run ${startResult.runId} on thread ${thread.id}: ${error instanceof Error ? error.message : String(error)}`,
+        );
+      }
     } finally {
       response.end();
     }
@@ -520,17 +531,27 @@ export class V1Controller {
       // Headers already sent — we can't return an HTTP error response, so
       // emit an SSE error event instead and log. Re-throwing here would just
       // cause "Cannot set headers after they are sent" in the exception filter.
+      const classified = classifyStreamingError(error);
       const errorEvent = {
         type: "RUN_ERROR",
-        message: "An internal error occurred",
-        code: "INTERNAL_ERROR",
+        message: classified.message,
+        code: classified.code,
+        category: classified.category,
+        isRetryable: classified.isRetryable,
+        status: classified.status,
         timestamp: Date.now(),
       };
       response.write(`data: ${JSON.stringify(errorEvent)}\n\n`);
-      this.logger.error(
-        `Error during run ${startResult.runId} on thread ${threadId}`,
-        error instanceof Error ? error.stack : String(error),
-      );
+      if (classified.category === "server_error") {
+        this.logger.error(
+          `Error during run ${startResult.runId} on thread ${threadId}`,
+          error instanceof Error ? error.stack : String(error),
+        );
+      } else {
+        this.logger.warn(
+          `Client error during run ${startResult.runId} on thread ${threadId}: ${error instanceof Error ? error.message : String(error)}`,
+        );
+      }
     } finally {
       response.end();
     }

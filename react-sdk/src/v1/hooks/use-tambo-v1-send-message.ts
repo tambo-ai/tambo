@@ -30,6 +30,7 @@ import {
 import { useTamboConfig } from "../providers/tambo-v1-provider";
 import { useTamboAuthState } from "./use-tambo-v1-auth-state";
 import { useTamboContextHelpers } from "../../providers/tambo-context-helpers-provider";
+import { useTamboInteractable } from "../../providers/tambo-interactable-provider";
 import type { InitialInputMessage, InputMessage } from "../types/message";
 import type { ToolChoice } from "@tambo-ai/client";
 import { isPlaceholderThreadId, type StreamAction } from "@tambo-ai/client";
@@ -479,6 +480,7 @@ export function useTamboSendMessage(threadId?: string) {
   const registry = useContext(TamboRegistryContext);
   const queryClient = useTamboQueryClient();
   const { getAdditionalContext } = useTamboContextHelpers();
+  const { clearInteractableSelections } = useTamboInteractable();
   const authState = useTamboAuthState();
 
   if (!registry) {
@@ -555,6 +557,10 @@ export function useTamboSendMessage(threadId?: string) {
       for (const helperContext of helperContexts) {
         additionalContext[helperContext.name] = helperContext.context;
       }
+
+      // Clear interactable selections after capturing context so they only
+      // apply to this single message send.
+      clearInteractableSelections();
 
       // Create the run stream
       // Include initialMessages only on first send (new thread creation)

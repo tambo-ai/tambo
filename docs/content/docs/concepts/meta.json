@@ -5,6 +5,7 @@
     "tools",
     "additional-context",
     "conversation-storage",
+    "skills",
     "agent-configuration",
     "model-context-protocol",
     "user-authentication"

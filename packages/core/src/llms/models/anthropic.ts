@@ -19,6 +19,7 @@ export const anthropicModels: Partial<LlmModelConfig<AnthropicModelId>> = {
     tamboDocLink:
       "https://docs.tambo.co/reference/llm-providers/anthropic#claude-opus-4-6",
     inputTokenLimit: 200000,
+    supportsSkills: true,
   },
   "claude-sonnet-4-6": {
     apiName: "claude-sonnet-4-6",
@@ -30,6 +31,7 @@ export const anthropicModels: Partial<LlmModelConfig<AnthropicModelId>> = {
     tamboDocLink:
       "https://docs.tambo.co/reference/llm-providers/anthropic#claude-sonnet-4-6",
     inputTokenLimit: 200000,
+    supportsSkills: true,
   },
   "claude-opus-4-5-20251101": {
     apiName: "claude-opus-4-5-20251101",
@@ -41,6 +43,7 @@ export const anthropicModels: Partial<LlmModelConfig<AnthropicModelId>> = {
     tamboDocLink:
       "https://docs.tambo.co/reference/llm-providers/anthropic#claude-opus-4-5",
     inputTokenLimit: 200000,
+    supportsSkills: true,
   },
   "claude-sonnet-4-5-20250929": {
     apiName: "claude-sonnet-4-5-20250929",
@@ -52,6 +55,7 @@ export const anthropicModels: Partial<LlmModelConfig<AnthropicModelId>> = {
     tamboDocLink:
       "https://docs.tambo.co/reference/llm-providers/anthropic#claude-sonnet-4-5",
     inputTokenLimit: 200000,
+    supportsSkills: true,
   },
   "claude-haiku-4-5-20251001": {
     apiName: "claude-haiku-4-5-20251001",
@@ -62,6 +66,7 @@ export const anthropicModels: Partial<LlmModelConfig<AnthropicModelId>> = {
     tamboDocLink:
       "https://docs.tambo.co/reference/llm-providers/anthropic#claude-haiku-4-5",
     inputTokenLimit: 200000,
+    supportsSkills: true,
   },
   "claude-opus-4-1-20250805": {
     apiName: "claude-opus-4-1-20250805",
@@ -73,6 +78,7 @@ export const anthropicModels: Partial<LlmModelConfig<AnthropicModelId>> = {
     tamboDocLink:
       "https://docs.tambo.co/reference/llm-providers/anthropic#claude-opus-4-1",
     inputTokenLimit: 200000,
+    supportsSkills: false,
   },
   "claude-opus-4-20250514": {
     apiName: "claude-opus-4-20250514",
@@ -84,6 +90,7 @@ export const anthropicModels: Partial<LlmModelConfig<AnthropicModelId>> = {
     tamboDocLink:
       "https://docs.tambo.co/reference/llm-providers/anthropic#claude-opus-4",
     inputTokenLimit: 200000,
+    supportsSkills: false,
   },
   "claude-sonnet-4-20250514": {
     apiName: "claude-sonnet-4-20250514",
@@ -95,27 +102,6 @@ export const anthropicModels: Partial<LlmModelConfig<AnthropicModelId>> = {
     tamboDocLink:
       "https://docs.tambo.co/reference/llm-providers/anthropic#claude-sonnet-4",
     inputTokenLimit: 200000,
-  },
-  "claude-3-7-sonnet-20250219": {
-    apiName: "claude-3-7-sonnet-20250219",
-    displayName: "Claude Sonnet 3.7",
-    status: "tested",
-    notes:
-      "Claude Sonnet 3.7 is Anthropic's smartest model yet, with fast or step-by-step thinking. Great for coding and front-end development.",
-    docLink: "https://docs.anthropic.com/en/docs/about-claude/models/overview",
-    tamboDocLink:
-      "https://docs.tambo.co/reference/llm-providers/anthropic#claude-sonnet-3-7",
-    inputTokenLimit: 200000,
-  },
-  "claude-3-5-haiku-20241022": {
-    apiName: "claude-3-5-haiku-20241022",
-    displayName: "Claude Haiku 3.5",
-    status: "known-issues",
-    notes:
-      "Claude Haiku 3.5 is Anthropic's fastest and most affordable model. Great for real-time tasks like chatbots, coding, and data extraction.",
-    docLink: "https://docs.anthropic.com/en/docs/about-claude/models/overview",
-    tamboDocLink:
-      "https://docs.tambo.co/reference/llm-providers/anthropic#claude-haiku-3-5",
-    inputTokenLimit: 200000,
+    supportsSkills: false,
   },
 };

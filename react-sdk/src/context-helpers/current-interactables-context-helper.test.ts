@@ -24,7 +24,7 @@ describe("createInteractablesContextHelper", () => {
         props: { city: "NYC" },
         propsSchema: { type: "object" },
         state: { temp: 72 },
-        isSelectedForInteraction: true,
+        isSelected: true,
         stateSchema: { type: "object" },
       },
     ];
@@ -40,7 +40,7 @@ describe("createInteractablesContextHelper", () => {
           props: { city: "NYC" },
           propsSchema: "Available - use component-specific update tools",
           state: { temp: 72 },
-          isSelectedForInteraction: true,
+          isSelected: true,
           stateSchema: "Available - use component-specific update tools",
         },
       ],
@@ -71,7 +71,7 @@ describe("createInteractablesContextHelper", () => {
       props: undefined,
       propsSchema: "Not specified",
       state: undefined,
-      isSelectedForInteraction: false,
+      isSelected: false,
       stateSchema: "Not specified",
     });
   });

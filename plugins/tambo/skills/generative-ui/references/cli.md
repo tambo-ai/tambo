@@ -98,7 +98,6 @@ Browse and preview all components at [ui.tambo.co](https://ui.tambo.co).
 | `graph`                        | Visualizes graph-based data structures                    |
 | `form`                         | Collects user input with validation support               |
 | `map`                          | Interactive map with clustering and heatmap support       |
-| `canvas-space`                 | Displays rendered components from chat messages           |
 | `thread-history`               | Chronological history of a conversation thread            |
 | `thread-dropdown`              | Dropdown menu for collapsible chat threads                |
 | `thread-content`               | Displays messages within a thread                         |
@@ -144,7 +143,7 @@ npx tambo create-app my-app --template=standard
 ### Authentication
 
 ```bash
-npx tambo auth login --no-browser   # Prints URL instead of opening browser
+npx tambo auth login                # Opens browser, polls until auth completes
 npx tambo auth status               # Check current auth (no prompts)
 ```
 
@@ -166,12 +165,11 @@ The generated section includes CLI commands formatted for non-interactive use.
 
 ## Key Flags Summary
 
-| Flag             | Commands        | Purpose                       |
-| ---------------- | --------------- | ----------------------------- |
-| `--yes`, `-y`    | init, add, list | Skip all prompts              |
-| `--api-key`      | init            | Direct API key input          |
-| `--project-name` | init            | Create new project            |
-| `--project-id`   | init            | Use existing project          |
-| `--no-browser`   | auth login      | Output URL instead of opening |
-| `--dry-run`      | add             | Preview without installing    |
-| `--prefix`       | add, list       | Custom component directory    |
+| Flag             | Commands        | Purpose                    |
+| ---------------- | --------------- | -------------------------- |
+| `--yes`, `-y`    | init, add, list | Skip all prompts           |
+| `--api-key`      | init            | Direct API key input       |
+| `--project-name` | init            | Create new project         |
+| `--project-id`   | init            | Use existing project       |
+| `--dry-run`      | add             | Preview without installing |
+| `--prefix`       | add, list       | Custom component directory |

@@ -78,26 +78,20 @@ The smoketest page is the primary integration surface. It exercises ThreadConten
 - [ ] Go to `/components/map` — see markers, pan/zoom
 - Covers: generative component rendering, component prop streaming
 
-**10. Test CanvasSpace**
-
-- [ ] Go to `/components/canvas-space` — ask for a component, see it render
-- [ ] Switch to a new thread, confirm canvas clears
-- Covers: canvas-space event API, thread switching
-
-**11. Test collapsible, panel, and ControlBar variants**
+**10. Test collapsible, panel, and ControlBar variants**
 
 - [ ] `/components/message-thread-collapsible` — expand, chat, collapse
 - [ ] `/components/message-thread-panel` — split layout, send a message
 - [ ] `/components/control-bar` — Cmd+K to open, send message, close
 - Covers: block variant orchestration, hotkey binding, modal overlay
 
-**12. Test EditWithTambo button**
+**11. Test EditWithTambo button**
 
 - [ ] Go to `/components/edit-with-tambo-button`
 - [ ] Hover, click edit, type an instruction, send
 - Covers: interactable component detection, inline edit flow
 
-**13. Test Elicitation UI**
+**12. Test Elicitation UI**
 
 - [ ] Go to `/components/elicitation`
 - [ ] Single-field boolean (should auto-respond, no submit)
@@ -105,20 +99,20 @@ The smoketest page is the primary integration surface. It exercises ThreadConten
 - [ ] Decline an elicitation
 - Covers: Elicitation mode switching, form field types, submit/decline/cancel
 
-**14. Test MCP pickers (if MCP servers configured)**
+**13. Test MCP pickers (if MCP servers configured)**
 
 - [ ] Click MCP config button in any MessageInput
 - [ ] Browse prompts, select one — text inserts
 - [ ] Browse resources, search/filter, select
 - Covers: McpPrompts and McpResources picker lifecycle
 
-**15. Test thread history and switching**
+**14. Test thread history and switching**
 
 - [ ] After several conversations, open ThreadHistory
 - [ ] Search/filter, click a different thread, click "New"
 - Covers: ThreadHistory list/search/select, ThreadDropdown new-thread
 
-**16. Verify MessageInput and Message display variants**
+**15. Verify MessageInput and Message display variants**
 
 - [ ] `/components/message-input` — all variants render, auto-resize works
 - [ ] `/components/message` — all 7 examples display correctly
@@ -126,20 +120,20 @@ The smoketest page is the primary integration surface. It exercises ThreadConten
 
 ### apps/web Dashboard
 
-**17. Open Tambo Cloud chat panel (Cmd+K)**
+**16. Open Tambo Cloud chat panel (Cmd+K)**
 
 - [ ] Send a message, see panel stream a response with tools
 - [ ] Drag the resize handle
 - Covers: panel integration, tool execution, MessageThreadPanel, resize
 
-**18. Mobile nav**
+**17. Mobile nav**
 
 - [ ] Shrink to mobile width, open hamburger, tap "Ask Tambo"
 - Covers: mobile trigger, responsive layout
 
 ### Docs Site
 
-**19. Visit each react-ui-base reference page**
+**18. Visit each react-ui-base reference page**
 
 - [ ] Navigate to reference section, open each primitive page (MessageInput, Elicitation, Message, ToolcallInfo, ReasoningInfo, ThreadHistory, ThreadDropdown, ThreadContent, McpPrompts, McpResources)
 - [ ] Confirm Demo, Anatomy, Examples, API reference sections present
@@ -161,7 +155,7 @@ The smoketest page is the primary integration surface. It exercises ThreadConten
 ## 2. CLI Authentication
 
 - [ ] **`tambo auth login`** — opens browser, completes device code flow, stores token
-- [ ] **`tambo auth login --no-browser`** — prints URL instead of opening browser
+- [ ] **`tambo auth login` (non-interactive)** — prints raw URL to stdout, opens browser, polls in foreground
 - [ ] **`tambo auth status`** — shows authenticated user info
 - [ ] **`tambo auth status --quiet`** — exit code 0 if authenticated, 1 otherwise
 - [ ] **`tambo auth logout`** — clears stored credentials
@@ -368,7 +362,6 @@ The smoketest page is the primary integration surface. It exercises ThreadConten
 - [ ] **MessageThreadCollapsible** — expands/collapses correctly
 - [ ] **MessageThreadPanel** — split-view layout works
 - [ ] **ControlBar** — floating button opens chat, Cmd+K shortcut works
-- [ ] **CanvasSpace** — shows latest generated component, clears on thread switch
 - [ ] **EditWithTamboButton** — spawns AI editor modal
 
 ## 27. SDK — Error States

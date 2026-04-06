@@ -290,14 +290,14 @@ export const MessageThreadPanel = forwardRef<
         </div>
         <div className="flex items-center gap-2">
           <ThreadDropdown className="components-theme" />
-          <div
-            role="button"
-            className="p-1 rounded-full hover:bg-muted/70 transition-colors cursor-pointer"
+          <button
+            type="button"
+            className="p-1 rounded-full hover:bg-muted/70 transition-colors"
             onClick={() => setIsOpen(false)}
-            aria-label="Close"
+            aria-label="Close thread panel"
           >
             <XIcon className="h-4 w-4" />
-          </div>
+          </button>
         </div>
       </div>
 

@@ -1,5 +1,6 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
+import { decryptProviderKey } from "@tambo-ai-cloud/core";
 import { type HydraDatabase, operations } from "@tambo-ai-cloud/db";
 import { DATABASE } from "../common/database-provider";
 import { APIKeyResponse } from "./dto/api-key-response.dto";
@@ -264,6 +265,33 @@ export class ProjectsService {
       agentUrl: result.agentUrl ?? undefined,
       customLlmParameters: result.customLlmParameters ?? undefined,
     };
+  }
+
+  /**
+   * Get the decrypted provider API key for a project and provider.
+   * @returns The decrypted API key, or undefined if not available.
+   */
+  async getDecryptedProviderKey(
+    projectId: string,
+    providerName: string,
+  ): Promise<string | undefined> {
+    const providerKeys = await operations.getProviderKeys(
+      this.getDb(),
+      projectId,
+    );
+    const providerKey = providerKeys.find(
+      (k) => k.providerName === providerName,
+    );
+    if (!providerKey?.providerKeyEncrypted) return undefined;
+
+    const secret = this.config.get<string>("PROVIDER_KEY_SECRET");
+    if (!secret) return undefined;
+
+    const { providerKey: decryptedKey } = decryptProviderKey(
+      providerKey.providerKeyEncrypted,
+      secret,
+    );
+    return decryptedKey;
   }
 
   async findAllProviderKeys(projectId: string): Promise<ProviderKeyResponse[]> {

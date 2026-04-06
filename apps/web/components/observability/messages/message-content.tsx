@@ -129,55 +129,45 @@ const AdditionalContextSection: FC<AdditionalContextSectionProps> = ({
   );
   const [copied, copy] = useClipboard(contextString);
 
-  const handleCopyContext = async (e: React.MouseEvent) => {
-    e.stopPropagation();
-    await copy();
-  };
-
   const toggleContext = () => {
     setShowAdditionalContext(!showAdditionalContext);
   };
 
   return (
     <div className="mt-3 border border-border rounded-lg overflow-hidden">
-      <div
-        role="button"
-        tabIndex={0}
-        onClick={toggleContext}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            toggleContext();
-          }
-        }}
-        className="w-full flex items-center justify-between p-2 sm:p-3 bg-muted/30 hover:bg-muted/50 transition-colors cursor-pointer"
-      >
-        <div className="flex items-center gap-2">
-          <Info className="h-3 w-3 sm:h-4 sm:w-4" />
-          <span className="font-medium text-xs sm:text-sm text-primary">
-            Additional Context
-          </span>
-        </div>
-        <div className="flex items-center gap-1 sm:gap-2">
-          <button
-            type="button"
-            aria-label="Copy additional context"
-            onClick={handleCopyContext}
-            className="bg-transparent m-0 border-0 p-0 text-inherit font-inherit leading-[inherit] appearance-none h-5 w-5 sm:h-6 sm:w-6 flex items-center justify-center cursor-pointer hover:bg-muted rounded-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          >
-            {copied ? (
-              <Check className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-green-500" />
-            ) : (
-              <Copy className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-primary" />
-            )}
-          </button>
+      <div className="flex items-center bg-muted/30 hover:bg-muted/50 transition-colors">
+        <button
+          type="button"
+          onClick={toggleContext}
+          className="flex-1 flex items-center justify-between p-2 sm:p-3"
+        >
+          <div className="flex items-center gap-2">
+            <Info className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="font-medium text-xs sm:text-sm text-primary">
+              Additional Context
+            </span>
+          </div>
           <ChevronDown
             className={cn(
               "h-3 w-3 sm:h-4 sm:w-4 transition-transform duration-200 text-primary",
               showAdditionalContext && "rotate-180",
             )}
           />
-        </div>
+        </button>
+        <button
+          type="button"
+          aria-label="Copy additional context"
+          onClick={async () => {
+            await copy();
+          }}
+          className="h-5 w-5 sm:h-6 sm:w-6 flex items-center justify-center hover:bg-muted rounded-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring mr-2 sm:mr-3"
+        >
+          {copied ? (
+            <Check className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-green-500" />
+          ) : (
+            <Copy className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-primary" />
+          )}
+        </button>
       </div>
 
       <motion.div
