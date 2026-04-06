@@ -118,13 +118,6 @@ export interface LLMStreamItem {
    * in a follow-up request.
    */
   toolCallProviderOptionsById?: Record<string, ProviderOptions>;
-
-  /**
-   * Skill names extracted from provider-managed tool calls during streaming.
-   * These are tracked separately from regular tool calls because skill
-   * execution is handled by the provider, not the client.
-   */
-  skillExecutions?: string[];
 }
 
 /** Get the string response from the LLM response */

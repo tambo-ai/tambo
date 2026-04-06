@@ -51,9 +51,6 @@ export interface DecisionStreamItem {
 
   /** Provider options to persist on tool calls (e.g. Gemini thought signatures). */
   toolCallProviderOptionsById?: Record<string, ProviderOptions>;
-
-  /** Skill names from provider-managed tool calls, passed through for metadata storage. */
-  skillExecutions?: string[];
 }
 
 const TOOL_CHOICE_KEYWORDS = ["auto", "required", "none"] as const;
@@ -292,7 +289,6 @@ export async function* runDecisionLoop(
         decision: accumulatedDecision,
         aguiEvents: streamItem.aguiEvents,
         toolCallProviderOptionsById: streamItem.toolCallProviderOptionsById,
-        skillExecutions: streamItem.skillExecutions,
       };
     } catch (e) {
       console.error("Error parsing stream chunk:", e);

@@ -1,9 +1,5 @@
 import { EventType } from "@ag-ui/core";
-import {
-  PROVIDER_SKILL_TOOL_NAMES,
-  SKILL_TOOL_DISPLAY_NAME,
-} from "@tambo-ai-cloud/core";
-import { AISdkClient, extractSkillName } from "./ai-sdk-client";
+import { AISdkClient } from "./ai-sdk-client";
 
 // Mock the message ID generator
 let messageIdCounter = 0;
@@ -558,68 +554,6 @@ describe("AISdkClient", () => {
       // Original config should not be mutated
       expect(baseConfig.tools).toEqual(originalTools);
       expect(baseConfig.providerOptions).toEqual(originalProviderOptions);
-    });
-  });
-
-  describe("PROVIDER_SKILL_TOOL_NAMES", () => {
-    it("includes Anthropic code_execution tool name", () => {
-      expect(PROVIDER_SKILL_TOOL_NAMES.has("code_execution")).toBe(true);
-    });
-
-    it("includes OpenAI shell tool name", () => {
-      expect(PROVIDER_SKILL_TOOL_NAMES.has("shell")).toBe(true);
-    });
-
-    it("does not include regular tool names", () => {
-      expect(PROVIDER_SKILL_TOOL_NAMES.has("show_component_Weather")).toBe(
-        false,
-      );
-      expect(PROVIDER_SKILL_TOOL_NAMES.has("get_weather")).toBe(false);
-    });
-
-    it("has a user-friendly display name", () => {
-      expect(SKILL_TOOL_DISPLAY_NAME).toBe("skill");
-    });
-  });
-
-  describe("extractSkillName", () => {
-    it("extracts skill name from a valid provider args path", () => {
-      const args = JSON.stringify({
-        type: "text_editor_code_execution",
-        path: "/skills/my-skill/SKILL.md",
-        command: "view",
-      });
-      expect(extractSkillName(args)).toBe("my-skill");
-    });
-
-    it("extracts skill name from nested path", () => {
-      const args = JSON.stringify({
-        path: "/skills/data-analyzer/src/index.ts",
-      });
-      expect(extractSkillName(args)).toBe("data-analyzer");
-    });
-
-    it("returns undefined when path has no /skills/ segment", () => {
-      const args = JSON.stringify({ path: "/tmp/foo.txt" });
-      expect(extractSkillName(args)).toBeUndefined();
-    });
-
-    it("returns undefined when path is missing", () => {
-      const args = JSON.stringify({ command: "view" });
-      expect(extractSkillName(args)).toBeUndefined();
-    });
-
-    it("returns undefined for malformed JSON", () => {
-      expect(extractSkillName("not json")).toBeUndefined();
-    });
-
-    it("returns undefined for empty string", () => {
-      expect(extractSkillName("")).toBeUndefined();
-    });
-
-    it("returns undefined when path is not a string", () => {
-      const args = JSON.stringify({ path: 123 });
-      expect(extractSkillName(args)).toBeUndefined();
     });
   });
 });

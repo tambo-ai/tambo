@@ -24,7 +24,6 @@ import {
   getToolName,
   llmProviderConfig,
   PARAMETER_METADATA,
-  PROVIDER_SKILL_TOOL_NAMES,
   ThreadMessage,
   type LlmProviderConfigInfo,
 } from "@tambo-ai-cloud/core";
@@ -66,21 +65,11 @@ type AICompleteParams = Parameters<typeof streamText<ToolSet, never>>[0] &
 type TextStreamResponse = ReturnType<typeof streamText<ToolSet, never>>;
 
 /**
- * Extract a skill name from raw provider tool arguments.
- *
- * Provider args contain a path like "/skills/my-skill/SKILL.md".
- * @returns The extracted skill name, or undefined if not found.
+ * Provider-managed tool names used for skill execution.
+ * These are completely suppressed during streaming - skill tools are
+ * handled by the provider and don't flow through Tambo's tool pipeline.
  */
-export function extractSkillName(rawArgs: string): string | undefined {
-  try {
-    const parsed = JSON.parse(rawArgs) as Record<string, unknown>;
-    const path = typeof parsed.path === "string" ? parsed.path : "";
-    const match = path.match(/\/skills\/([^/]+)\//);
-    return match?.[1];
-  } catch {
-    return undefined;
-  }
-}
+const PROVIDER_SKILL_TOOL_NAMES = new Set(["code_execution", "shell"]);
 
 // Common provider configuration interface
 interface ProviderConfig {
@@ -547,11 +536,10 @@ export class AISdkClient implements LLMClient {
     // Track component streaming for UI tools (show_component_*)
     let componentTracker: ComponentStreamTracker | undefined;
 
-    // Track provider-managed skill tool calls separately from regular tools.
-    // Skill executions are stored as metadata, not as tool calls.
+    // Provider-managed skill tools are completely ignored during streaming.
+    // The provider handles execution internally; the LLM describes what
+    // the skill accomplished in its text response.
     let isProviderSkillTool = false;
-    let skillToolRawArgs = "";
-    const accumulatedSkillNames: string[] = [];
 
     for await (const delta of result.fullStream) {
       // Collect AG-UI events for this delta
@@ -591,50 +579,46 @@ export class AISdkClient implements LLMClient {
           break;
         case "tool-input-start": {
           isProviderSkillTool = PROVIDER_SKILL_TOOL_NAMES.has(delta.toolName);
-
           if (isProviderSkillTool) {
-            // Skill tools are tracked as metadata, not as tool calls.
-            // Don't set accumulatedToolCall - just reset the raw args buffer.
-            skillToolRawArgs = "";
+            // Skill tools are fully handled by the provider. Ignore.
             componentTracker = undefined;
-          } else {
-            accumulatedToolCall.name = delta.toolName;
-            accumulatedToolCall.arguments = "";
-            accumulatedToolCall.id = undefined;
+            break;
+          }
 
-            // Initialize component tracker for UI tools (show_component_* tools).
-            // Component tools emit tambo.component.* custom events instead of
-            // TOOL_CALL_* events - the tool mechanism is an internal detail.
-            const componentName = tryExtractComponentName(delta.toolName);
-            if (componentName) {
-              // Generate a message ID for component events. The SDK will create
-              // the message on-demand when it receives tambo.component.start.
-              const componentMessageId = generateMessageId();
-              const componentId = generateMessageId();
-              componentTracker = new ComponentStreamTracker(
-                componentMessageId,
-                componentId,
-                componentName,
-              );
-            } else {
-              componentTracker = undefined;
-              // V1: emit TOOL_CALL_START immediately — delta.id is the toolCallId
-              aguiEvents.push({
-                type: EventType.TOOL_CALL_START,
-                toolCallId: delta.id,
-                toolCallName: delta.toolName,
-                parentMessageId: textMessageId,
-                timestamp: Date.now(),
-              } as ToolCallStartEvent);
-            }
+          accumulatedToolCall.name = delta.toolName;
+          accumulatedToolCall.arguments = "";
+          accumulatedToolCall.id = undefined;
+
+          // Initialize component tracker for UI tools (show_component_* tools).
+          // Component tools emit tambo.component.* custom events instead of
+          // TOOL_CALL_* events - the tool mechanism is an internal detail.
+          const componentName = tryExtractComponentName(delta.toolName);
+          if (componentName) {
+            // Generate a message ID for component events. The SDK will create
+            // the message on-demand when it receives tambo.component.start.
+            const componentMessageId = generateMessageId();
+            const componentId = generateMessageId();
+            componentTracker = new ComponentStreamTracker(
+              componentMessageId,
+              componentId,
+              componentName,
+            );
+          } else {
+            componentTracker = undefined;
+            // V1: emit TOOL_CALL_START immediately — delta.id is the toolCallId
+            aguiEvents.push({
+              type: EventType.TOOL_CALL_START,
+              toolCallId: delta.id,
+              toolCallName: delta.toolName,
+              parentMessageId: textMessageId,
+              timestamp: Date.now(),
+            } as ToolCallStartEvent);
           }
           break;
         }
         case "tool-input-delta":
-          if (isProviderSkillTool) {
-            // Buffer raw args to extract skill name at tool-call time.
-            skillToolRawArgs += delta.delta;
-          } else if (componentTracker) {
+          if (isProviderSkillTool) break;
+          if (componentTracker) {
             accumulatedToolCall.arguments += delta.delta;
             const componentEvents = componentTracker.processJsonDelta(
               delta.delta,
@@ -665,27 +649,20 @@ export class AISdkClient implements LLMClient {
               },
             };
           }
-          if (isProviderSkillTool) {
-            // Extract skill name from buffered raw args for metadata.
-            const skillName = extractSkillName(skillToolRawArgs);
-            if (skillName && !accumulatedSkillNames.includes(skillName)) {
-              accumulatedSkillNames.push(skillName);
-            }
-          } else {
-            accumulatedToolCall.id = delta.toolCallId;
-            if (componentTracker) {
-              // Finalize component tracker and emit end event
-              const endEvents = componentTracker.finalize();
-              aguiEvents.push(...endEvents);
-              componentTracker = undefined;
-            } else if (accumulatedToolCall.name) {
-              // V1: only emit TOOL_CALL_END — START and ARGS already emitted above
-              aguiEvents.push({
-                type: EventType.TOOL_CALL_END,
-                toolCallId: delta.toolCallId,
-                timestamp: Date.now(),
-              } as ToolCallEndEvent);
-            }
+          if (isProviderSkillTool) break;
+          accumulatedToolCall.id = delta.toolCallId;
+          if (componentTracker) {
+            // Finalize component tracker and emit end event
+            const endEvents = componentTracker.finalize();
+            aguiEvents.push(...endEvents);
+            componentTracker = undefined;
+          } else if (accumulatedToolCall.name) {
+            // V1: only emit TOOL_CALL_END — START and ARGS already emitted above
+            aguiEvents.push({
+              type: EventType.TOOL_CALL_END,
+              toolCallId: delta.toolCallId,
+              timestamp: Date.now(),
+            } as ToolCallEndEvent);
           }
           break;
         case "tool-result":
@@ -784,8 +761,6 @@ export class AISdkClient implements LLMClient {
         },
         aguiEvents,
         toolCallProviderOptionsById,
-        skillExecutions:
-          accumulatedSkillNames.length > 0 ? accumulatedSkillNames : undefined,
       };
     }
 

@@ -8,7 +8,7 @@ import { getSafeContent } from "@/lib/thread-hooks";
 import { cn } from "@/lib/utils";
 import { type RouterOutputs } from "@/trpc/react";
 import { motion } from "framer-motion";
-import { Check, ChevronDown, Copy, Info, Settings } from "lucide-react";
+import { Check, ChevronDown, Copy, Info } from "lucide-react";
 import { FC, isValidElement, memo, ReactNode, useMemo, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import rehypeRaw from "rehype-raw";
@@ -21,35 +21,6 @@ import { MessageIdCopyButton } from "./message-id-copy-button";
 
 type ThreadType = RouterOutputs["thread"]["getThread"];
 type MessageType = ThreadType["messages"][0];
-
-/** Shows which skills were used, read from message metadata. */
-function SkillExecutionBadge({
-  metadata,
-}: {
-  metadata?: Record<string, unknown> | null;
-}) {
-  const tambo = metadata?.["_tambo"];
-  const skillExecutions =
-    typeof tambo === "object" && tambo !== null
-      ? (tambo as Record<string, unknown>)["skillExecutions"]
-      : undefined;
-  if (!Array.isArray(skillExecutions) || skillExecutions.length === 0) {
-    return null;
-  }
-  return (
-    <div className="flex flex-wrap gap-1.5 mb-1">
-      {skillExecutions.map((name) => (
-        <span
-          key={String(name)}
-          className="inline-flex items-center gap-1 rounded-md bg-muted px-2 py-0.5 text-xs text-muted-foreground"
-        >
-          <Settings className="h-3 w-3" />
-          {String(name)}
-        </span>
-      ))}
-    </div>
-  );
-}
 
 // Helper function to render markdown content with or without search highlighting
 const renderMarkdownContent = (
@@ -304,9 +275,6 @@ export const MessageContent = memo(
           >
             <div className="flex flex-col gap-2">
               <span className="text-xs text-foreground/50">{message.role}</span>
-
-              {/* Skill execution indicator */}
-              <SkillExecutionBadge metadata={message.metadata} />
 
               {/* Image and context attachments */}
               <ContextAttachmentBadgeList

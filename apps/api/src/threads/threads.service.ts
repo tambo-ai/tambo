@@ -1796,29 +1796,6 @@ export class ThreadsService {
           };
         }
 
-        // Store skill execution metadata if present
-        if (
-          currentThreadMessage.role === MessageRole.Assistant &&
-          streamItem.skillExecutions &&
-          streamItem.skillExecutions.length > 0
-        ) {
-          const existingMetadata = currentThreadMessage.metadata ?? {};
-          const existingTamboMetadata = existingMetadata["_tambo"];
-          const tamboMetadata =
-            typeof existingTamboMetadata === "object" &&
-            existingTamboMetadata !== null
-              ? (existingTamboMetadata as Record<string, unknown>)
-              : {};
-
-          currentThreadMessage.metadata = {
-            ...existingMetadata,
-            _tambo: {
-              ...tamboMetadata,
-              skillExecutions: streamItem.skillExecutions,
-            },
-          };
-        }
-
         // Unstrictify the tool call request immediately if present, before saving to DB
         const toolCallRequest = currentThreadMessage.toolCallRequest;
         if (toolCallRequest) {
