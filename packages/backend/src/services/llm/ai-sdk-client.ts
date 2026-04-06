@@ -548,10 +548,17 @@ export class AISdkClient implements LLMClient {
       switch (delta.type) {
         case "text-start":
           if (accumulatedMessage.length > 0 && textMessageId) {
-            // Text resumed after a skill tool call. Reuse the same message
-            // ID so the client appends to the existing message bubble.
-            // The client handles duplicate TEXT_MESSAGE_START for an
-            // existing ID by just updating streaming state (no new message).
+            // Text resumed after a provider-managed skill tool call.
+            // This branch only triggers for skills because regular tool
+            // calls end the stream entirely (the decision loop restarts
+            // a new complete() call for the next turn). Only provider-
+            // executed tools (skills) return results inline and let the
+            // LLM continue generating text in the same stream.
+            //
+            // Reuse the same message ID so the client appends to the
+            // existing message bubble. The client handles duplicate
+            // TEXT_MESSAGE_START for an existing ID by just updating
+            // streaming state (no new message).
             accumulatedMessage += "\n\n";
             aguiEvents.push({
               type: EventType.TEXT_MESSAGE_START,
