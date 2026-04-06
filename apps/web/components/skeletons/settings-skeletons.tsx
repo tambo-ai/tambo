@@ -11,54 +11,48 @@ export function SettingsPageSkeleton() {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="flex flex-col pl-4 pr-4"
+      className="flex flex-col px-2 sm:px-4 max-w-4xl"
     >
-      {/* Header skeleton */}
-      <div className="bg-background w-full">
-        <div className="flex items-center justify-between py-2 px-2">
-          <h1 className="text-4xl font-semibold min-h-[3.5rem] flex items-center">
-            <Skeleton className="h-10 w-48" />
-          </h1>
-          <div className="flex gap-3">
-            <SkeletonButton className="w-16" />
-            <SkeletonButton className="w-16" />
-          </div>
-        </div>
-      </div>
-
-      {/* Main Layout skeleton */}
-      <div className="flex gap-48 w-full">
-        {/* Sidebar Navigation skeleton */}
-        <div className="py-6 w-1/5">
-          <div className="flex flex-col gap-1">
-            {[...Array(5)].map((_, i) => (
-              <Skeleton key={i} className="h-9 w-full rounded-full" />
-            ))}
-          </div>
-        </div>
-
-        {/* Scrollable Content skeleton */}
-        <div className="h-[calc(100vh-200px)] w-full overflow-y-auto pt-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:none]">
-          <div className="space-y-4">
-            <div className="p-2">
-              <APIKeyListSkeleton />
-            </div>
-            <div className="p-2">
-              <ProviderKeySectionSkeleton />
-            </div>
-            <div className="p-2">
-              <CustomInstructionsEditorSkeleton />
-            </div>
-            <div className="p-2">
-              <AvailableMcpServersSkeleton />
-            </div>
-            <div className="p-2">
-              <OAuthSettingsSkeleton />
-            </div>
-          </div>
-        </div>
+      <div className="space-y-6 py-4">
+        <ProjectNameSkeleton />
+        <APIKeyListSkeleton />
+        <OAuthSettingsSkeleton />
+        <DangerZoneSkeleton />
       </div>
     </motion.div>
+  );
+}
+
+export function AgentPageSkeleton() {
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="flex flex-col px-2 sm:px-4 max-w-4xl"
+    >
+      <div className="space-y-6 py-4">
+        <ProviderKeySectionSkeleton />
+        <CustomInstructionsEditorSkeleton />
+        <AvailableMcpServersSkeleton />
+      </div>
+    </motion.div>
+  );
+}
+
+function ProjectNameSkeleton() {
+  return (
+    <Card className="border rounded-md overflow-hidden">
+      <CardHeader>
+        <Skeleton className="h-5 w-28" />
+        <Skeleton className="h-3 w-56 mt-1" />
+      </CardHeader>
+      <CardContent>
+        <div className="flex items-center justify-between">
+          <Skeleton className="h-4 w-40" />
+          <SkeletonButton className="w-16" />
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -67,9 +61,7 @@ function APIKeyListSkeleton() {
     <Card className="border rounded-md overflow-hidden">
       <CardContent className="p-6 space-y-4">
         <div className="flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <Skeleton className="h-5 w-20" />
-          </div>
+          <Skeleton className="h-5 w-20" />
           <SkeletonButton className="w-20" />
         </div>
         <Skeleton className="h-4 w-96" />
@@ -83,6 +75,20 @@ function APIKeyListSkeleton() {
             </div>
           ))}
         </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function DangerZoneSkeleton() {
+  return (
+    <Card className="border-destructive/50 border rounded-md overflow-hidden">
+      <CardHeader>
+        <Skeleton className="h-5 w-28" />
+        <Skeleton className="h-3 w-80 mt-1" />
+      </CardHeader>
+      <CardContent>
+        <SkeletonButton className="w-36" />
       </CardContent>
     </Card>
   );
@@ -193,11 +199,8 @@ function OAuthSettingsSkeleton() {
         <Skeleton className="h-4 w-80 mt-2" />
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Validation Mode Label */}
         <div className="space-y-4">
           <Skeleton className="h-5 w-32" />
-
-          {/* Radio Group Options */}
           <div className="space-y-3">
             {[...Array(4)].map((_, i) => (
               <div
@@ -213,15 +216,11 @@ function OAuthSettingsSkeleton() {
             ))}
           </div>
         </div>
-
-        {/* Conditional Input Field Area */}
         <div className="space-y-2">
           <Skeleton className="h-4 w-24" />
           <Skeleton className="h-10 w-full" />
           <Skeleton className="h-3 w-64" />
         </div>
-
-        {/* Save Button Area */}
         <div className="flex justify-end pt-4 border-t">
           <SkeletonButton className="w-24" />
         </div>

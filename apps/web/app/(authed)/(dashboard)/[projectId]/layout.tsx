@@ -48,9 +48,11 @@ export default function ProjectLayout({
   // Determine active tab value
   const activeTab = pathname.includes("/observability")
     ? "observability"
-    : pathname.includes("/settings")
-      ? "settings"
-      : "overview";
+    : pathname.includes("/agent")
+      ? "agent"
+      : pathname.includes("/settings")
+        ? "settings"
+        : "overview";
 
   return (
     <div className="flex flex-col bg-background">
@@ -111,6 +113,13 @@ export default function ProjectLayout({
                   <Link href={`/${projectId}/observability`}>
                     Observability
                   </Link>
+                </TabsTrigger>
+                <TabsTrigger
+                  value="agent"
+                  className="text-xs sm:text-sm rounded-full data-[state=active]:bg-accent data-[state=active]:text-primary data-[state=inactive]:border-transparent data-[state=inactive]:text-foreground px-3 sm:px-4"
+                  asChild
+                >
+                  <Link href={`/${projectId}/agent`}>Agent</Link>
                 </TabsTrigger>
                 <TabsTrigger
                   value="settings"
