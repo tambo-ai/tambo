@@ -100,6 +100,24 @@ const defaultContentConversionOptions: Required<ContentConversionOptions> = {
   onInvalidContentPart: () => undefined,
 };
 
+/**
+ * Enrich a tool_use input object with _tambo_* display properties from componentDecision.
+ * Used by both the inline V1 path and the legacy fallback path to keep them in sync.
+ */
+function enrichInputWithTamboProperties(
+  input: Record<string, unknown>,
+  componentDecision: DbMessage["componentDecision"],
+): void {
+  if (!componentDecision) return;
+  const decision = componentDecision as unknown as Record<string, unknown>;
+  if (typeof decision.statusMessage === "string") {
+    input._tambo_statusMessage = decision.statusMessage;
+  }
+  if (typeof decision.completionStatusMessage === "string") {
+    input._tambo_completionStatusMessage = decision.completionStatusMessage;
+  }
+}
+
 function getContentPartType(part: ChatCompletionContentPart): string {
   const type = (part as { type?: unknown }).type;
   return typeof type === "string" ? type : "<non-string type>";
@@ -230,28 +248,18 @@ export function contentToV1Blocks(
       // These are not part of ChatCompletionContentPart, so we handle them
       // before calling contentPartToV1Block.
       if (partType === "tool_use") {
-        foundToolUseInContent = true;
         const toolUsePart = part as unknown as {
           id: string;
           name: string;
           input: Record<string, unknown>;
         };
-        const input: Record<string, unknown> = { ...toolUsePart.input };
-        // Enrich with _tambo_* display properties from componentDecision
-        // if present (same as the fallback path for legacy messages).
-        if (message.componentDecision) {
-          const decision = message.componentDecision as unknown as Record<
-            string,
-            unknown
-          >;
-          if (typeof decision.statusMessage === "string") {
-            input._tambo_statusMessage = decision.statusMessage;
-          }
-          if (typeof decision.completionStatusMessage === "string") {
-            input._tambo_completionStatusMessage =
-              decision.completionStatusMessage;
-          }
+        // Skip UI tools (show_component_*), same as the legacy fallback path
+        if (isUiToolName(toolUsePart.name)) {
+          continue;
         }
+        foundToolUseInContent = true;
+        const input: Record<string, unknown> = { ...toolUsePart.input };
+        enrichInputWithTamboProperties(input, message.componentDecision);
         const toolUseBlock: V1ToolUseContentDto = {
           type: "tool_use",
           id: toolUsePart.id,
@@ -262,6 +270,8 @@ export function contentToV1Blocks(
         continue;
       }
 
+      // Content is already in V1 format since it was stored by V1 streaming;
+      // no need to run sub-parts through contentPartToV1Block.
       if (partType === "tool_result") {
         const toolResultPart = part as unknown as {
           toolUseId: string;
@@ -345,22 +355,7 @@ export function contentToV1Blocks(
       input[param.parameterName] = param.parameterValue;
     }
 
-    // Add _tambo_* display properties from componentDecision if present.
-    // These are stored in componentDecision (via LegacyComponentDecision spread)
-    // but not typed in ComponentDecisionV2, so we access them with type assertions.
-    // The SDK uses these to display status messages during tool execution.
-    if (message.componentDecision) {
-      const decision = message.componentDecision as unknown as Record<
-        string,
-        unknown
-      >;
-      if (typeof decision.statusMessage === "string") {
-        input._tambo_statusMessage = decision.statusMessage;
-      }
-      if (typeof decision.completionStatusMessage === "string") {
-        input._tambo_completionStatusMessage = decision.completionStatusMessage;
-      }
-    }
+    enrichInputWithTamboProperties(input, message.componentDecision);
 
     const toolUseBlock: V1ToolUseContentDto = {
       type: "tool_use",
