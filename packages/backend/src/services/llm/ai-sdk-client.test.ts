@@ -49,6 +49,12 @@ type StreamDelta =
   | { type: "tool-input-start"; id: string; toolName: string }
   | { type: "tool-input-delta"; id: string; delta: string }
   | { type: "tool-call"; toolCallId: string; toolName: string; args: unknown }
+  | {
+      type: "tool-result";
+      toolCallId: string;
+      result: unknown;
+      providerExecuted: boolean;
+    }
   | { type: "text-start" }
   | { type: "text-delta"; text: string }
   | { type: "text-end" }
@@ -554,6 +560,244 @@ describe("AISdkClient", () => {
       // Original config should not be mutated
       expect(baseConfig.tools).toEqual(originalTools);
       expect(baseConfig.providerOptions).toEqual(originalProviderOptions);
+    });
+  });
+
+  describe("handleStreamingResponse - skill tool suppression", () => {
+    function createClient() {
+      return new AISdkClient(
+        "test-api-key",
+        "claude-sonnet",
+        "anthropic",
+        "test-chain",
+        "test-user",
+      );
+    }
+
+    function callHandleStreamingResponse(
+      client: AISdkClient,
+      mockStream: { fullStream: AsyncIterable<StreamDelta> },
+      hasProviderSkills: boolean,
+    ) {
+      return (client as any).handleStreamingResponse.call(
+        client,
+        mockStream,
+        hasProviderSkills,
+      );
+    }
+
+    it("suppresses skill tool calls when provider skills are configured", async () => {
+      const client = createClient();
+      const mockDeltas: StreamDelta[] = [
+        { type: "text-start" },
+        { type: "text-delta", text: "Using skill..." },
+        { type: "text-end" },
+        {
+          type: "tool-input-start",
+          id: "call-skill",
+          toolName: "code_execution",
+        },
+        {
+          type: "tool-input-delta",
+          id: "call-skill",
+          delta: '{"path":"/skills/foo/SKILL.md"}',
+        },
+        {
+          type: "tool-call",
+          toolCallId: "call-skill",
+          toolName: "code_execution",
+          args: {},
+        },
+        {
+          type: "tool-result",
+          toolCallId: "call-skill",
+          result: "ok",
+          providerExecuted: true,
+        },
+        { type: "text-start" },
+        { type: "text-delta", text: "Done." },
+        { type: "text-end" },
+      ];
+
+      const mockStream = createMockStreamResponse(mockDeltas);
+      const chunks = [];
+      for await (const chunk of callHandleStreamingResponse(
+        client,
+        mockStream,
+        true,
+      )) {
+        chunks.push(chunk);
+      }
+
+      // No chunk should have tool_calls set
+      for (const chunk of chunks) {
+        expect(chunk.llmResponse.message?.tool_calls).toBeUndefined();
+      }
+
+      // The final accumulated message should contain both text segments
+      const lastChunk = chunks[chunks.length - 1];
+      expect(lastChunk.llmResponse.message?.content).toContain(
+        "Using skill...",
+      );
+      expect(lastChunk.llmResponse.message?.content).toContain("Done.");
+      expect(lastChunk.llmResponse.message?.content).toContain("\n\n");
+    });
+
+    it("does NOT suppress tools named 'shell' when no skills are configured", async () => {
+      const client = createClient();
+      const mockDeltas: StreamDelta[] = [
+        { type: "tool-input-start", id: "call-1", toolName: "shell" },
+        { type: "tool-input-delta", id: "call-1", delta: '{"cmd":"ls"}' },
+        {
+          type: "tool-call",
+          toolCallId: "call-1",
+          toolName: "shell",
+          args: { cmd: "ls" },
+        },
+      ];
+
+      const mockStream = createMockStreamResponse(mockDeltas);
+      const chunks = [];
+      for await (const chunk of callHandleStreamingResponse(
+        client,
+        mockStream,
+        false,
+      )) {
+        chunks.push(chunk);
+      }
+
+      // Should have tool call data since skills are not configured
+      const lastChunk = chunks[chunks.length - 1];
+      expect(
+        lastChunk.llmResponse.message?.tool_calls?.[0]?.function.name,
+      ).toBe("shell");
+    });
+
+    it("emits TOOL_CALL events for skill tools with hasProviderSkills=false", async () => {
+      const client = createClient();
+      const mockDeltas: StreamDelta[] = [
+        {
+          type: "tool-input-start",
+          id: "call-1",
+          toolName: "code_execution",
+        },
+        { type: "tool-input-delta", id: "call-1", delta: '{"x":1}' },
+        {
+          type: "tool-call",
+          toolCallId: "call-1",
+          toolName: "code_execution",
+          args: { x: 1 },
+        },
+      ];
+
+      const mockStream = createMockStreamResponse(mockDeltas);
+      const allEvents: any[] = [];
+      for await (const chunk of callHandleStreamingResponse(
+        client,
+        mockStream,
+        false,
+      )) {
+        allEvents.push(...chunk.aguiEvents);
+      }
+
+      // Should have TOOL_CALL_START since no provider skills
+      const startEvents = allEvents.filter(
+        (e: any) => e.type === EventType.TOOL_CALL_START,
+      );
+      expect(startEvents.length).toBe(1);
+      expect(startEvents[0].toolCallName).toBe("code_execution");
+    });
+
+    it("suppresses all TOOL_CALL events for skill tools with hasProviderSkills=true", async () => {
+      const client = createClient();
+      const mockDeltas: StreamDelta[] = [
+        {
+          type: "tool-input-start",
+          id: "call-1",
+          toolName: "code_execution",
+        },
+        { type: "tool-input-delta", id: "call-1", delta: '{"x":1}' },
+        {
+          type: "tool-call",
+          toolCallId: "call-1",
+          toolName: "code_execution",
+          args: { x: 1 },
+        },
+        {
+          type: "tool-result",
+          toolCallId: "call-1",
+          result: "ok",
+          providerExecuted: true,
+        },
+      ];
+
+      const mockStream = createMockStreamResponse(mockDeltas);
+      const allEvents: any[] = [];
+      for await (const chunk of callHandleStreamingResponse(
+        client,
+        mockStream,
+        true,
+      )) {
+        allEvents.push(...chunk.aguiEvents);
+      }
+
+      // No TOOL_CALL events at all
+      const toolEvents = allEvents.filter(
+        (e: any) =>
+          e.type === EventType.TOOL_CALL_START ||
+          e.type === EventType.TOOL_CALL_ARGS ||
+          e.type === EventType.TOOL_CALL_END,
+      );
+      expect(toolEvents.length).toBe(0);
+    });
+
+    it("stitches text segments with separator when text resumes after skill", async () => {
+      const client = createClient();
+      const mockDeltas: StreamDelta[] = [
+        { type: "text-start" },
+        { type: "text-delta", text: "Before" },
+        { type: "text-end" },
+        {
+          type: "tool-input-start",
+          id: "call-1",
+          toolName: "code_execution",
+        },
+        {
+          type: "tool-call",
+          toolCallId: "call-1",
+          toolName: "code_execution",
+          args: {},
+        },
+        {
+          type: "tool-result",
+          toolCallId: "call-1",
+          result: "ok",
+          providerExecuted: true,
+        },
+        { type: "text-start" },
+        { type: "text-delta", text: "After" },
+        { type: "text-end" },
+      ];
+
+      const mockStream = createMockStreamResponse(mockDeltas);
+      const chunks = [];
+      for await (const chunk of callHandleStreamingResponse(
+        client,
+        mockStream,
+        true,
+      )) {
+        chunks.push(chunk);
+      }
+
+      const lastChunk = chunks[chunks.length - 1];
+      expect(lastChunk.llmResponse.message?.content).toBe("Before\n\nAfter");
+
+      // Should reuse the same message ID (only one TEXT_MESSAGE_START with a new ID)
+      const startEvents = chunks
+        .flatMap((c: any) => c.aguiEvents)
+        .filter((e: any) => e.type === EventType.TEXT_MESSAGE_START);
+      const uniqueIds = new Set(startEvents.map((e: any) => e.messageId));
+      expect(uniqueIds.size).toBe(1);
     });
   });
 });
