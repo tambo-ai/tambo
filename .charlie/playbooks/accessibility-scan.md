@@ -2,7 +2,7 @@
 
 ## Overview
 
-**Source of truth for accessibility rules and scan patterns:** `.claude/skills/accessibility-checklist/SKILL.md`. If scan patterns are updated, update the skill first, then update this playbook to match.
+**Source of truth for accessibility rules and scan patterns:** `.claude/skills/validating-accessibility/SKILL.md`. If scan patterns are updated, update the skill first, then update this playbook to match.
 
 Scan `apps/web` component files for two categories of accessibility issues, then open a PR that fixes them:
 
