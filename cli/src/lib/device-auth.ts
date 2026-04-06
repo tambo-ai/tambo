@@ -8,25 +8,14 @@ import {
   setInMemoryToken,
   type StoredToken,
 } from "./token-storage.js";
+import { isInteractive } from "../utils/interactive.js";
 
 /**
- * Options for the device auth flow
- */
-export interface DeviceAuthOptions {
-  /** If true, print the auth URL instead of opening browser (for CI/agents) */
-  noBrowser?: boolean;
-}
-
-/**
- * Result of a successful device auth flow
+ * Result of a completed device auth flow.
  */
 export interface DeviceAuthResult {
   sessionToken: string;
-  user: {
-    id: string;
-    email: string | null;
-    name: string | null;
-  };
+  user: { id: string; email: string | null; name: string | null };
 }
 
 /**
@@ -50,26 +39,12 @@ async function sleep(ms: number): Promise<void> {
 }
 
 /**
- * Run the device authentication flow
- *
- * 1. Calls api.deviceAuth.initiate to get device code and user code
- * 2. Displays the user code and opens browser to verification page
- * 3. Polls api.deviceAuth.poll until user verifies or code expires
- * 4. Saves the session token to disk
- *
- * @param options - Options for the auth flow
- * @returns The auth result with session token and user info
- * @throws DeviceAuthError if auth fails
+ * Initiates the device auth flow with the server.
+ * @returns The initiation response with device code, user code, and verification URLs
  */
-export async function runDeviceAuthFlow(
-  options: DeviceAuthOptions = {},
-): Promise<DeviceAuthResult> {
-  // Step 1: Initiate the device auth flow
-  console.log(chalk.gray("\nInitiating device authentication..."));
-
-  let initResponse;
+async function initiateDeviceAuth() {
   try {
-    initResponse = await api.deviceAuth.initiate.mutate();
+    return await api.deviceAuth.initiate.mutate();
   } catch (error) {
     if (error instanceof ApiError) {
       throw new DeviceAuthError(
@@ -79,6 +54,22 @@ export async function runDeviceAuthFlow(
     }
     throw error;
   }
+}
+
+/**
+ * Run the device authentication flow
+ *
+ * 1. Calls api.deviceAuth.initiate to get device code and user code
+ * 2. Displays the user code and opens browser to verification page
+ * 3. Polls api.deviceAuth.poll until user verifies or code expires
+ * 4. Saves the session token to disk
+ *
+ * @returns The auth result with session token and user info
+ * @throws DeviceAuthError if auth fails
+ */
+export async function runDeviceAuthFlow(): Promise<DeviceAuthResult> {
+  // Step 1: Initiate the device auth flow
+  console.log(chalk.gray("\nInitiating device authentication..."));
 
   const {
     deviceCode,
@@ -86,41 +77,45 @@ export async function runDeviceAuthFlow(
     verificationUri,
     verificationUriComplete,
     interval,
-  } = initResponse;
+  } = await initiateDeviceAuth();
 
   // Step 2: Display instructions to user
   console.log(chalk.cyan("\n📱 Please authorize this device:\n"));
   console.log(chalk.white(`   Visit: ${chalk.bold(verificationUri)}`));
   console.log(chalk.white(`   Enter code: ${chalk.bold.green(userCode)}\n`));
 
-  // Copy code to clipboard (skip in no-browser mode as it may not be available)
-  if (!options.noBrowser) {
-    try {
-      await clipboard.write(userCode);
-      console.log(chalk.gray("   ✓ User code copied to clipboard!\n"));
-    } catch {
-      // Clipboard might not be available in all environments
-    }
+  // Copy code to clipboard
+  try {
+    await clipboard.write(userCode);
+    console.log(chalk.gray("   ✓ User code copied to clipboard!\n"));
+  } catch {
+    // Clipboard might not be available in all environments (e.g. headless CI)
   }
 
-  // Open browser with pre-filled code URL (or print it in no-browser mode)
-  if (options.noBrowser) {
-    // For CI/agents: output raw URL first for machine parsing (no styling, no prefix)
-    console.log(verificationUriComplete);
-    // Then add human-readable guidance
-    console.log(
-      chalk.gray(
-        "\n   Open this URL in a browser and complete authentication.\n",
-      ),
+  // In non-interactive mode (agents, CI), output raw URL for machine parsing
+  if (!isInteractive()) {
+    console.error(
+      "tambo: auth URL below contains a one-time code (expires in 15 min):",
     );
-  } else {
-    try {
-      await open(verificationUriComplete);
-      console.log(chalk.gray("   Browser opened for authentication\n"));
-    } catch {
+    console.log(verificationUriComplete);
+  }
+
+  // Always try to open the browser. Agents (e.g. Claude Code) run CLI
+  // commands on the user's machine, so the browser lets them authenticate.
+  try {
+    await open(verificationUriComplete);
+    console.log(chalk.gray("   Browser opened for authentication\n"));
+  } catch {
+    if (isInteractive()) {
       console.log(
         chalk.yellow(
           `   Could not open browser automatically. Please visit the URL above.\n`,
+        ),
+      );
+    } else {
+      console.log(
+        chalk.gray(
+          "   Could not open browser. Use the URL above to authenticate.\n",
         ),
       );
     }
@@ -167,36 +162,18 @@ export async function runDeviceAuthFlow(
           );
         }
 
-        // Step 4a: Set in-memory token for the upcoming getUser request.
-        // We don't persist to disk yet to avoid saving an incomplete token.
-        setInMemoryToken(pollResponse.sessionToken);
-
-        // Step 4b: Fetch user info using the new token (two-step auth flow)
-        // The poll endpoint runs as 'anon' and can't access user data, so we
-        // fetch it separately via an authenticated endpoint.
+        // Exchange session token for user info and save to disk
         const userSpinner = ora({
           text: "Fetching user info...",
           color: "cyan",
         }).start();
 
         try {
-          const userInfo = await api.user.getUser.query();
+          const completeTokenData = await exchangeAndSaveToken(
+            pollResponse.sessionToken,
+            pollResponse.expiresAt,
+          );
           userSpinner.stop();
-
-          // Step 4c: Save complete token to disk (only after we have user info)
-          const completeTokenData: StoredToken = {
-            sessionToken: pollResponse.sessionToken,
-            expiresAt: pollResponse.expiresAt,
-            user: {
-              id: userInfo.id,
-              email: userInfo.email,
-              name: userInfo.name,
-            },
-            storedAt: new Date().toISOString(),
-          };
-
-          await saveToken(completeTokenData);
-          setInMemoryToken(null); // Clear in-memory token now that we've persisted
 
           return {
             sessionToken: pollResponse.sessionToken,
@@ -204,7 +181,6 @@ export async function runDeviceAuthFlow(
           };
         } catch (userError) {
           userSpinner.fail(chalk.red("Failed to fetch user info"));
-          setInMemoryToken(null); // Clear in-memory token on failure
           throw new DeviceAuthError(
             `Failed to fetch user info after authentication. Please try again. (${userError instanceof Error ? userError.message : String(userError)})`,
             "USER_INFO_FAILED",
@@ -312,6 +288,40 @@ export async function runDeviceAuthFlow(
     "Authentication timed out. Please try again.",
     "TIMEOUT",
   );
+}
+
+/**
+ * Exchanges a session token for user info and persists the complete token to disk.
+ * Used by the main device auth flow after polling completes.
+ * @param sessionToken - The session token from the poll response
+ * @param expiresAt - The token expiry timestamp
+ * @returns The saved token data
+ */
+async function exchangeAndSaveToken(
+  sessionToken: string,
+  expiresAt: string,
+): Promise<StoredToken> {
+  setInMemoryToken(sessionToken);
+
+  try {
+    const userInfo = await api.user.getUser.query();
+
+    const tokenData: StoredToken = {
+      sessionToken,
+      expiresAt,
+      user: {
+        id: userInfo.id,
+        email: userInfo.email,
+        name: userInfo.name,
+      },
+      storedAt: new Date().toISOString(),
+    };
+
+    await saveToken(tokenData);
+    return tokenData;
+  } finally {
+    setInMemoryToken(null);
+  }
 }
 
 /**

@@ -60,13 +60,6 @@ async function createTamboTsFile(installPath: string): Promise<void> {
   }
 }
 
-class AuthenticationError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "AuthenticationError";
-  }
-}
-
 interface InitOptions {
   fullSend?: boolean;
   legacyPeerDeps?: boolean;
@@ -75,7 +68,6 @@ interface InitOptions {
   apiKey?: string;
   projectName?: string;
   projectId?: string;
-  noBrowser?: boolean;
 }
 
 /**
@@ -269,8 +261,7 @@ export async function getInstallationPath(yes = false): Promise<string> {
   }
 
   if (yes) {
-    // Auto-answer yes - use src if available, otherwise create it
-    const useSrcDir = hasSrcDir;
+    // Auto-answer yes - always default to src/components
     if (!hasSrcDir) {
       console.log(
         chalk.blue(
@@ -284,7 +275,7 @@ export async function getInstallationPath(yes = false): Promise<string> {
         ),
       );
     }
-    return useSrcDir ? "src/components" : "src/components";
+    return "src/components";
   }
 
   const { useSrcDir } = await interactivePrompt<{ useSrcDir: boolean }>(
@@ -307,9 +298,28 @@ export async function getInstallationPath(yes = false): Promise<string> {
 }
 
 /**
+ * Ensures the user is authenticated, running device auth if needed.
+ * Always opens the browser and polls in the foreground.
+ */
+async function ensureAuthenticated(): Promise<void> {
+  if (isTokenValid()) {
+    // verifySession() catches all errors internally and returns false,
+    // so this covers both revoked sessions and transient network failures.
+    const isValid = await verifySession();
+    if (isValid) {
+      console.log(chalk.green("\n✔ Already authenticated"));
+      return;
+    }
+    console.log(chalk.yellow("\n⚠ Session expired, re-authenticating..."));
+  }
+
+  await runDeviceAuthFlow();
+  console.log(chalk.green("\n✔ Authentication successful"));
+}
+
+/**
  * Handles the authentication flow with Tambo using device auth
  * @returns Promise<boolean> Returns true if authentication was successful
- * @throws AuthenticationError
  */
 async function handleAuthentication(): Promise<boolean> {
   try {
@@ -337,7 +347,7 @@ async function handleAuthentication(): Promise<boolean> {
       console.log(chalk.yellow("\n⚠ Session expired, please re-authenticate"));
     }
 
-    // Run device auth flow
+    // Run device auth flow (throws on failure)
     const authResult = await runDeviceAuthFlow();
 
     console.log(
@@ -352,8 +362,6 @@ async function handleAuthentication(): Promise<boolean> {
     if (error instanceof DeviceAuthError) {
       console.error(chalk.red(`\n✖ Authentication failed`));
       console.error(chalk.gray(`  ${error.message}`));
-    } else if (error instanceof AuthenticationError) {
-      console.error(chalk.red(`\nAuthentication error: ${error.message}`));
     } else {
       console.error(chalk.red(`\nFailed to authenticate: ${error}`));
     }
@@ -1106,7 +1114,6 @@ export async function handleInit({
   apiKey,
   projectName,
   projectId,
-  noBrowser = false,
 }: InitOptions): Promise<void> {
   // In non-interactive mode, check if we have what we need
   if (!isInteractive()) {
@@ -1141,9 +1148,7 @@ export async function handleInit({
       );
 
       try {
-        // Run device auth with noBrowser option
-        await runDeviceAuthFlow({ noBrowser });
-        console.log(chalk.green("\n✔ Authentication successful"));
+        await ensureAuthenticated();
 
         // Create project and generate key
         const success = await createProjectAndGenerateKey(projectName);
@@ -1179,9 +1184,7 @@ export async function handleInit({
       );
 
       try {
-        // Run device auth with noBrowser option
-        await runDeviceAuthFlow({ noBrowser });
-        console.log(chalk.green("\n✔ Authentication successful"));
+        await ensureAuthenticated();
 
         // Use existing project and generate key
         const success = await useExistingProjectAndGenerateKey(projectId);

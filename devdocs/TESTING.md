@@ -155,7 +155,7 @@ The smoketest page is the primary integration surface. It exercises ThreadConten
 ## 2. CLI Authentication
 
 - [ ] **`tambo auth login`** — opens browser, completes device code flow, stores token
-- [ ] **`tambo auth login --no-browser`** — prints URL instead of opening browser
+- [ ] **`tambo auth login` (non-interactive)** — prints raw URL to stdout, opens browser, polls in foreground
 - [ ] **`tambo auth status`** — shows authenticated user info
 - [ ] **`tambo auth status --quiet`** — exit code 0 if authenticated, 1 otherwise
 - [ ] **`tambo auth logout`** — clears stored credentials

@@ -79,8 +79,13 @@ tambo list --yes
 **Authenticate (for --project-name/--project-id flows):**
 
 ```bash
-tambo auth login --no-browser  # Prints URL instead of opening browser
+tambo auth login  # Opens browser, polls until auth completes
 ```
+
+In non-interactive mode (agents, CI), the CLI automatically prints the raw
+verification URL to stdout. The browser opens regardless. The CLI polls in the
+foreground until auth completes (up to 15 minutes). Use a long timeout when
+running this from an agent.
 
 ### Detection Logic
 
@@ -100,6 +105,7 @@ Override with `FORCE_INTERACTIVE=1` if needed (requires real TTY).
 - **Entry point**: `src/cli.ts` - Main CLI setup with meow
 - **Commands**: `src/commands/` - Individual command implementations
   - `init.ts` - Project initialization
+  - `auth.ts` - Authentication (device auth login, logout, sessions)
   - `add/` - Component installation system
   - `create-app.ts` - New app creation
   - `list/` - Component listing
