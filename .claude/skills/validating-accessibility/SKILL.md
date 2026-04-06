@@ -1,5 +1,5 @@
 ---
-name: accessibility-checklist
+name: validating-accessibility
 description: >-
   Use this skill when creating, modifying, or reviewing any .tsx component in apps/web, even if
   the user doesn't mention "accessibility." Covers semantic HTML, aria labels, navigation landmarks,

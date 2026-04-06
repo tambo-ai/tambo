@@ -129,11 +129,6 @@ const AdditionalContextSection: FC<AdditionalContextSectionProps> = ({
   );
   const [copied, copy] = useClipboard(contextString);
 
-  const handleCopyContext = async (e: React.MouseEvent) => {
-    e.stopPropagation();
-    await copy();
-  };
-
   const toggleContext = () => {
     setShowAdditionalContext(!showAdditionalContext);
   };
@@ -162,7 +157,9 @@ const AdditionalContextSection: FC<AdditionalContextSectionProps> = ({
         <button
           type="button"
           aria-label="Copy additional context"
-          onClick={handleCopyContext}
+          onClick={async () => {
+            await copy();
+          }}
           className="h-5 w-5 sm:h-6 sm:w-6 flex items-center justify-center hover:bg-muted rounded-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring mr-2 sm:mr-3"
         >
           {copied ? (
