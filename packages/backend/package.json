@@ -65,7 +65,7 @@
     "@types/node": "^22.19.15",
     "jest": "^30.3.0",
     "prettier-2": "npm:prettier@^2",
-    "ts-jest": "^29.4.6",
+    "ts-jest": "^29.4.9",
     "typescript": "^5.9.3"
   }
 }

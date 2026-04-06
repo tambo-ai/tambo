@@ -114,7 +114,7 @@
     "prettier-2": "npm:prettier@^2",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "ts-jest": "^29.4.6",
+    "ts-jest": "^29.4.9",
     "tsc-esm-fix": "^3.1.2",
     "typescript": "^5.9.3",
     "type-fest": "^5.4.3",

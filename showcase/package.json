@@ -88,7 +88,7 @@
     "next-sitemap": "^4.2.3",
     "rimraf": "^6.1.2",
     "tailwind-merge": "^2.6.1",
-    "ts-jest": "^29.4.5",
+    "ts-jest": "^29.4.9",
     "typescript": "^5"
   }
 }
