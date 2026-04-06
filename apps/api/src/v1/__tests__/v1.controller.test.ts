@@ -27,6 +27,8 @@ describe("V1Controller", () => {
       getMessage: jest.fn(),
       updateComponentState: jest.fn(),
       cancelRun: jest.fn(),
+      startRun: jest.fn(),
+      executeRun: jest.fn(),
     } as unknown as jest.Mocked<V1Service>;
 
     // Create controller directly with mocked service
@@ -751,6 +753,107 @@ describe("V1Controller", () => {
             {},
           ),
         ).rejects.toThrow(BadRequestException);
+      });
+    });
+  });
+
+  describe("SSE streaming endpoints", () => {
+    function createMockSseResponse(headersSent: boolean) {
+      return {
+        setHeader: jest.fn(),
+        flushHeaders: jest.fn(),
+        write: jest.fn(),
+        end: jest.fn(),
+        on: jest.fn(),
+        headersSent,
+      };
+    }
+
+    beforeEach(() => {
+      // Return no contextKey so getV1ContextInfo picks up userKey from the DTO
+      mockExtractContextInfo.mockReturnValue({
+        projectId: "prj_123",
+        contextKey: undefined,
+        sdkVersion: "1.0.0",
+      });
+    });
+
+    describe("createThreadWithRun", () => {
+      const dto = { thread: { userKey: "test-context" } } as any;
+
+      beforeEach(() => {
+        mockV1Service.createThread.mockResolvedValue({ id: "thr_1" } as any);
+        mockV1Service.startRun.mockResolvedValue({
+          success: true,
+          runId: "run_1",
+        } as any);
+      });
+
+      it("should re-throw when executeRun fails before headers are sent", async () => {
+        const response = createMockSseResponse(false);
+        mockV1Service.executeRun.mockRejectedValue(new Error("early failure"));
+
+        await expect(
+          controller.createThreadWithRun({} as Request, dto, response as any),
+        ).rejects.toThrow("early failure");
+
+        expect(response.write).not.toHaveBeenCalled();
+        expect(response.end).toHaveBeenCalled();
+      });
+
+      it("should emit SSE error event and not re-throw when executeRun fails after headers are sent", async () => {
+        const response = createMockSseResponse(true);
+        mockV1Service.executeRun.mockRejectedValue(
+          new Error("mid-stream failure"),
+        );
+
+        await expect(
+          controller.createThreadWithRun({} as Request, dto, response as any),
+        ).resolves.toBeUndefined();
+
+        expect(response.write).toHaveBeenCalledWith(
+          expect.stringContaining('"type":"RUN_ERROR"'),
+        );
+        expect(response.end).toHaveBeenCalled();
+      });
+    });
+
+    describe("createRun", () => {
+      const dto = { userKey: "test-context" } as any;
+
+      beforeEach(() => {
+        mockV1Service.startRun.mockResolvedValue({
+          success: true,
+          runId: "run_1",
+        } as any);
+      });
+
+      it("should re-throw when executeRun fails before headers are sent", async () => {
+        const response = createMockSseResponse(false);
+        mockV1Service.executeRun.mockRejectedValue(new Error("early failure"));
+
+        await expect(
+          controller.createRun({} as Request, "thr_1", dto, response as any),
+        ).rejects.toThrow("early failure");
+
+        expect(response.write).not.toHaveBeenCalled();
+        expect(response.end).toHaveBeenCalled();
+      });
+
+      it("should emit SSE error event and not re-throw when executeRun fails after headers are sent", async () => {
+        const response = createMockSseResponse(true);
+        mockV1Service.executeRun.mockRejectedValue(
+          new Error("mid-stream failure"),
+        );
+
+        await expect(
+          controller.createRun({} as Request, "thr_1", dto, response as any),
+        ).resolves.toBeUndefined();
+
+        expect(response.write).toHaveBeenCalledWith(
+          expect.stringContaining('"type":"RUN_ERROR"'),
+        );
+        expect(response.end).toHaveBeenCalled();
       });
     });
   });

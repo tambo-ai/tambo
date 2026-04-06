@@ -26,6 +26,7 @@ import { EmailService } from "../common/services/email.service";
 import { CorrelationLoggerService } from "../common/services/logger.service";
 import { StorageConfigService } from "../common/services/storage-config.service";
 import { ProjectsService } from "../projects/projects.service";
+import { SkillsService } from "../skills/skills.service";
 import { AdvanceThreadDto } from "./dto/advance-thread.dto";
 import { StreamQueueItem } from "./dto/stream-queue-item";
 import { ThreadsService } from "./threads.service";
@@ -380,6 +381,7 @@ describe("ThreadsService.advanceThread initialization", () => {
         {
           provide: ProjectsService,
           useValue: {
+            getDecryptedProviderKey: jest.fn().mockResolvedValue(undefined),
             findOneWithKeys: jest
               .fn()
               .mockResolvedValue({ getProviderKeys: () => [] }),
@@ -411,6 +413,14 @@ describe("ThreadsService.advanceThread initialization", () => {
             capture: jest.fn(),
             identify: jest.fn(),
             isEnabled: jest.fn().mockReturnValue(false),
+          },
+        },
+        {
+          provide: SkillsService,
+          useValue: {
+            supportsSkills: jest.fn().mockReturnValue(false),
+            ensureSkillUploaded: jest.fn(),
+            ensureProviderSkillsForRun: jest.fn().mockResolvedValue(undefined),
           },
         },
       ],

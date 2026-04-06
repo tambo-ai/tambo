@@ -733,6 +733,13 @@ function handleRunError(
 ): ThreadState {
   const isCancelled = event.code === "CANCELLED";
 
+  // Access category and isRetryable which pass through AG-UI's Zod passthrough
+  const extendedEvent = event as RunErrorEvent & {
+    category?: "client_error" | "server_error";
+    isRetryable?: boolean;
+    status?: number;
+  };
+
   return {
     ...threadState,
     thread: {
@@ -749,6 +756,9 @@ function handleRunError(
         : {
             message: event.message,
             code: event.code,
+            category: extendedEvent.category,
+            isRetryable: extendedEvent.isRetryable,
+            status: extendedEvent.status,
           },
     },
   };

@@ -72,7 +72,22 @@ export function EditWithTamboButton({
   // NOTE: Using isIdle from useTambo() instead of tracking error/pending state locally.
   // The useTambo() hook already manages generation state and error handling through sendThreadMessage,
   // so tracking them separately here would cause states to get out of sync or mask errors.
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpenRaw] = useState(false);
+
+  // Select the interactable on open, deselect on close (unless a send already happened).
+  const setIsOpen = useCallback(
+    (open: boolean) => {
+      setIsOpenRaw(open);
+      const interactableId = component?.interactableId ?? "";
+      if (!interactableId) return;
+      if (open) {
+        setInteractableSelected(interactableId, true);
+      } else {
+        setInteractableSelected(interactableId, false);
+      }
+    },
+    [component?.interactableId, setInteractableSelected],
+  );
   const [sendMode, setSendMode] = useState<"send" | "thread">("send");
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [shouldCloseOnComplete, setShouldCloseOnComplete] = useState(false);
@@ -102,7 +117,7 @@ export function EditWithTamboButton({
       setIsOpen(false);
       setPrompt("");
     }
-  }, [shouldCloseOnComplete, isGenerating]);
+  }, [shouldCloseOnComplete, isGenerating, setIsOpen]);
 
   const handleSend = useCallback(async () => {
     if (!prompt.trim() || isGenerating) {
@@ -128,9 +143,6 @@ export function EditWithTamboButton({
 
     const componentName = component?.componentName ?? "Unknown Component";
     const interactableId = component?.interactableId ?? "";
-    if (interactableId) {
-      setInteractableSelected(interactableId, true);
-    }
 
     // Open the thread panel first
     onOpenThread();
@@ -152,7 +164,7 @@ export function EditWithTamboButton({
         editor.appendText(messageToInsert);
       }
     }
-  }, [prompt, component, setInteractableSelected, onOpenThread, editorRef]);
+  }, [prompt, component, setIsOpen, onOpenThread, editorRef]);
 
   const handleMainAction = useCallback(() => {
     if (sendMode === "thread") {

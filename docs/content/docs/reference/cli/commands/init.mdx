@@ -14,6 +14,7 @@ After obtaining your API key, you'll need to set it up in your project:
   key. The variable name depends on your framework:
 
 - **Next.js:** `NEXT_PUBLIC_TAMBO_API_KEY=your_api_key_here`
+- **Expo:** `EXPO_PUBLIC_TAMBO_API_KEY=your_api_key_here`
 - **Vite:** `VITE_TAMBO_API_KEY=your_api_key_here`
 - **Other:** `TAMBO_API_KEY=your_api_key_here`
 
@@ -63,13 +64,15 @@ Use an existing project by ID and generate an API key. Requires authentication:
 npx tambo init --project-id=abc123
 ```
 
-### `--no-browser`
+### Non-Interactive Auth
 
-When authentication is needed but you can't open a browser (headless CI), this flag prints the auth URL instead:
+In non-interactive environments (agents, CI), the CLI automatically prints the
+raw auth URL to stdout. The browser opens
+regardless. The CLI polls in the foreground until auth completes (up to 15 minutes):
 
 ```bash
-npx tambo init --project-name=myapp --no-browser
-# Prints: Visit https://tambo.co/device?code=XXXX to authenticate
+npx tambo init --project-name=myapp
+# In non-interactive mode, prints: https://console.tambo.co/device?user_code=XXXX
 ```
 
 ### CI/CD Examples

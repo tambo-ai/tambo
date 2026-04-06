@@ -28,36 +28,45 @@ jobs:
     outputs:
       should-push: ${{ steps.should-push.outputs.should-push }}
       release-tag: ${{ steps.should-push.outputs.release-tag }}
+      release-service: ${{ steps.should-push.outputs.release-service }}
     steps:
       - name: Determine if we should push to GHCR
         id: should-push
         run: |
           # Push to GHCR only when a release is published
           if [[ "${{ github.event_name }}" == "release" ]]; then
+            TAG="${{ github.event.release.tag_name }}"
             echo "should-push=true" >> $GITHUB_OUTPUT
-            echo "release-tag=${{ github.event.release.tag_name }}" >> $GITHUB_OUTPUT
-            echo "Pushing to GHCR with release tag: ${{ github.event.release.tag_name }}"
+            echo "release-tag=$TAG" >> $GITHUB_OUTPUT
+
+            # Determine which service this release is for (e.g., "api-v0.144.3" -> "api")
+            if [[ "$TAG" =~ ^(api|web)-v ]]; then
+              echo "release-service=${BASH_REMATCH[1]}" >> $GITHUB_OUTPUT
+              echo "Release is for ${BASH_REMATCH[1]} service"
+            else
+              echo "release-service=all" >> $GITHUB_OUTPUT
+              echo "Release is for all services"
+            fi
           else
             echo "should-push=false" >> $GITHUB_OUTPUT
             echo "release-tag=" >> $GITHUB_OUTPUT
+            echo "release-service=" >> $GITHUB_OUTPUT
             echo "Building locally for testing (no GHCR push)"
           fi
 
-  build-and-push:
+  build:
     name: Build (${{ matrix.images.name }})
     needs: [meta]
     runs-on: ubuntu-latest
     permissions:
       contents: read
       actions: read
-      checks: write
-      packages: write
     env:
-      # Use GitHub's Docker layer caching
       DOCKER_BUILDKIT: 1
       COMPOSE_DOCKER_CLI_BUILD: 1
     strategy:
       matrix:
+        # Keep in sync with push job matrix
         images:
           - name: web
             context: .
@@ -78,48 +87,18 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v4
-
       - name: Set up Docker Buildx
         id: setup-buildx
         uses: docker/setup-buildx-action@v4
 
-      - name: Login to GitHub Container Registry
-        if: needs.meta.outputs.should-push == 'true'
-        uses: docker/login-action@v4
-        with:
-          registry: ghcr.io
-          username: tambo-bot
-          password: ${{ secrets.RELEASE_PACKAGES }}
-
-      - name: Extract metadata for web image
-        id: meta
-        uses: docker/metadata-action@v6
-        with:
-          images: ${{ matrix.images.repo }}/${{ matrix.images.image }}
-          tags: |
-            type=raw,value=latest,enable={{is_default_branch}}
-            type=sha,enable=true,priority=100,prefix=sha-,format=short
-            type=semver,pattern={{version}},value=${{ needs.meta.outputs.release-tag }}
-          labels: |
-            org.opencontainers.image.title=${{ matrix.images.title }}
-            org.opencontainers.image.description=${{ matrix.images.description }}
-            org.opencontainers.image.vendor=Tambo AI
-            org.opencontainers.image.licenses=MIT
-            org.opencontainers.image.source=https://github.com/tambo-ai/tambo/blob/${{ github.sha }}/${{ matrix.images.path }}
-            org.opencontainers.image.documentation=https://docs.tambo.co
-
-      - name: Build and push web image
+      - name: Build image for testing
         uses: docker/build-push-action@v7
         with:
           builder: ${{ steps.setup-buildx.outputs.name }}
           context: .
           file: ./${{ matrix.images.path }}/Dockerfile
           outputs: type=docker,dest=${{ runner.temp }}/docker-${{ matrix.images.name }}.tar
-          platforms: ${{ needs.meta.outputs.should-push == 'true' && 'linux/amd64,linux/arm64' || '' }}
-          tags: ${{ needs.meta.outputs.should-push == 'true' && steps.meta.outputs.tags || 'tambo-web:latest' }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: tambo-${{ matrix.images.name }}:latest
           cache-from: |
             type=gha,scope=buildx-${{ matrix.images.name }}-${{ github.ref_name }}
             type=gha,scope=buildx-${{ matrix.images.name }}-main
@@ -141,7 +120,7 @@ jobs:
           retention-days: 1
 
   test:
-    needs: [meta, build-and-push]
+    needs: [meta, build]
     name: Test
     runs-on: ubuntu-latest
     env:
@@ -226,8 +205,108 @@ jobs:
         if: failure()
         run: ./scripts/cloud/tambo-logs.sh
 
+  push:
+    name: Push (${{ matrix.images.name }})
+    needs: [meta, build, test]
+    if: needs.meta.outputs.should-push == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      matrix:
+        # Keep in sync with build job matrix
+        images:
+          - name: web
+            path: apps/web
+            repo: ghcr.io/tambo-ai
+            image: tambo-web-server
+            description: Next.js web frontend for Tambo AI platform
+
+          - name: api
+            path: apps/api
+            repo: ghcr.io/tambo-ai
+            image: tambo-api-server
+            description: NestJS backend API for Tambo AI platform
+    steps:
+      - name: Check if this image should be pushed
+        id: should-push-image
+        run: |
+          SERVICE="${{ needs.meta.outputs.release-service }}"
+          IMAGE_NAME="${{ matrix.images.name }}"
+          if [[ "$SERVICE" == "all" || "$SERVICE" == "$IMAGE_NAME" ]]; then
+            echo "push=true" >> $GITHUB_OUTPUT
+            echo "Pushing $IMAGE_NAME (release-service=$SERVICE)"
+          else
+            echo "push=false" >> $GITHUB_OUTPUT
+            echo "Skipping $IMAGE_NAME (release-service=$SERVICE)"
+          fi
+
+      - name: Checkout repository
+        if: steps.should-push-image.outputs.push == 'true'
+        uses: actions/checkout@v6
+
+      - name: Set up QEMU
+        if: steps.should-push-image.outputs.push == 'true'
+        uses: docker/setup-qemu-action@v4
+
+      - name: Set up Docker Buildx
+        if: steps.should-push-image.outputs.push == 'true'
+        id: setup-buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Login to GitHub Container Registry
+        if: steps.should-push-image.outputs.push == 'true'
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: tambo-bot
+          password: ${{ secrets.RELEASE_PACKAGES }}
+
+      - name: Extract metadata for image
+        if: steps.should-push-image.outputs.push == 'true'
+        id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: ${{ matrix.images.repo }}/${{ matrix.images.image }}
+          tags: |
+            type=raw,value=latest
+            type=sha,enable=true,priority=100,prefix=sha-,format=short
+            type=match,pattern=\w+-v(.*),group=1,value=${{ needs.meta.outputs.release-tag }}
+            type=match,pattern=v(.*),group=1,value=${{ needs.meta.outputs.release-tag }}
+          labels: |
+            org.opencontainers.image.description=${{ matrix.images.description }}
+            org.opencontainers.image.vendor=Tambo AI
+            org.opencontainers.image.licenses=MIT
+            org.opencontainers.image.source=https://github.com/tambo-ai/tambo/blob/${{ github.sha }}/${{ matrix.images.path }}
+            org.opencontainers.image.documentation=https://docs.tambo.co
+
+      - name: Build and push to GHCR
+        if: steps.should-push-image.outputs.push == 'true'
+        uses: docker/build-push-action@v7
+        with:
+          builder: ${{ steps.setup-buildx.outputs.name }}
+          context: .
+          file: ./${{ matrix.images.path }}/Dockerfile
+          push: true
+          platforms: linux/amd64,linux/arm64
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: |
+            type=gha,scope=buildx-${{ matrix.images.name }}-${{ github.ref_name }}
+            type=gha,scope=buildx-${{ matrix.images.name }}-main
+          cache-to: |
+            type=gha,scope=buildx-${{ matrix.images.name }}-${{ github.ref_name }},mode=max
+          build-args: |
+            NODE_ENV=production
+            TURBO_TEAM=${{ vars.TURBO_TEAM }}
+          secrets: |
+            TURBO_TOKEN=${{ secrets.TURBO_TOKEN }}
+          allow: network.host
+          network: host
+
   docker-status:
-    needs: [meta, build-and-push, test]
+    needs: [meta, build, test, push]
     if: ${{ always() }}
     uses: ./.github/workflows/workflow-check.yml
     with:

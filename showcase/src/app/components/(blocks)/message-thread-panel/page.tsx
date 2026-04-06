@@ -9,18 +9,21 @@ export default function MessageThreadPanelPage() {
     {
       id: "panel-suggestion-1",
       title: "Summarize KPIs",
+      description: "Summarize KPIs",
       detailedSuggestion: "Summarize today’s KPI movement from this dashboard.",
       messageId: "panel-summarize-kpis",
     },
     {
       id: "panel-suggestion-2",
       title: "Find risks",
+      description: "Find risks",
       detailedSuggestion: "Which metrics need attention right now, and why?",
       messageId: "panel-find-risks",
     },
     {
       id: "panel-suggestion-3",
       title: "Recommend actions",
+      description: "Recommend actions",
       detailedSuggestion:
         "Suggest next actions for the team based on this data.",
       messageId: "panel-recommend-actions",
@@ -73,6 +76,7 @@ export function DashboardWithChat() {
     {
       id: "suggestion-1",
       title: "Summarize KPIs",
+      description: "Summarize KPIs",
       detailedSuggestion: "Summarize the key trends on this dashboard.",
       messageId: "summary-query",
     },

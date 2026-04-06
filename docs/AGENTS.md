@@ -99,7 +99,7 @@ In general, try to fit changes into the following categories. If you can't find 
    - integrate - Adding Tambo to existing projects
    - components - Understanding registration patterns
 
-2. **Concepts** (10 pages across subsections)
+2. **Concepts** (11 pages across subsections)
    - **generative-interfaces/** (4 pages including index)
      - generative-components
      - interactable-components
@@ -111,10 +111,13 @@ In general, try to fit changes into the following categories. If you can't find 
    - tools - Function calling, schemas, orchestration
    - additional-context - Configuration, custom helpers, context attachments
    - conversation-storage - Message threads, history management, status tracking
+   - skills - Reusable instruction sets that run in the provider's sandbox
    - agent-configuration - AI personality and behavior
    - user-authentication - OAuth providers, session management, context keys
 
-3. **Guides** (26 pages across 8 subsections)
+3. **Guides** (27 pages across 8 subsections)
+   - coding-agent-skills - Install Tambo skills for AI coding agents
+   - manage-skills - Create, import, and toggle project skills
    - **setup-project/** (3 pages)
      - create-project
      - agent-behavior
@@ -172,8 +175,9 @@ In general, try to fit changes into the following categories. If you can't find 
      - labels - Model status labels and observed behaviors
      - reasoning-models - Advanced reasoning capabilities for OpenAI and Gemini
 
-6. **Examples and Templates** (2 pages)
+6. **Examples and Templates** (3 pages)
    - chat-starter-app - Chat starter applications
+   - expo-mobile-app - Expo/React Native mobile app guide
    - supabase-mcp-client - Integration examples
 
 7. **Tambo MCP Server** (1 page)
@@ -397,6 +401,12 @@ When adding custom components:
 Never delete doc pages that exist on main. This breaks external links.
 
 Instead, remove the page from `meta.json` (delists from nav) and replace content with pointers to the new/better pages. Old URLs keep working, users find current content.
+
+### Folder Index Pages
+
+Every docs folder that contains child pages **must** have an `index.mdx` file. Without one, the folder URL (e.g. `/guides/setup-project`) returns a 404, which breaks AI agents and anyone who guesses the URL.
+
+If a folder genuinely has no standalone overview content, create an `index.mdx` that redirects or briefly introduces the section and links to its children. Alternatively, add a redirect entry in `docs/next.config.mjs` pointing the folder URL to the first child page. Either way, the folder URL must never 404.
 
 ### General Rules
 

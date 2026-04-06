@@ -1,6 +1,6 @@
 ---
 name: generative-ui
-description: Creates a new Tambo generative UI React app from scratch with AI-powered components, chat interface, and Zod schemas. Scaffolds with tambo create-app, wires TamboProvider, and registers starter components. Use for brand-new projects where users describe UI in natural language. For existing apps, use building-with-tambo.
+description: Creates a new Tambo generative UI app from scratch. Scaffolds with tambo create-app, wires TamboProvider, registers starter components. Triggers on "new Tambo app", "create a generative UI app", "build an AI app from scratch", "start a new project with Tambo". For existing apps, use building-with-tambo.
 ---
 
 # Generative UI
@@ -9,13 +9,13 @@ Build generative UI apps with Tambo — create rich, interactive React component
 
 ## Reference Guides
 
-For deeper implementation details beyond bootstrap flow, load:
+Load these when you need deeper implementation details beyond the bootstrap flow:
 
-- [Components](references/components.md) - Create and register Tambo components (generative and interactable).
-- [Component Rendering](references/component-rendering.md) - Handle streaming props, loading states, and persistent component state.
-- [Threads and Input](references/threads.md) - Manage conversations, suggestions, voice input, image attachments, and thread switching.
-- [Tools and Context](references/tools-and-context.md) - Add custom tools, MCP servers, context helpers, and resources.
-- [CLI Reference](references/cli.md) - Use `tambo init`, `tambo add`, and `create-app` with non-interactive flags and exit codes.
+- [Components](references/components.md) - **Load when creating custom components.** Generative vs interactable, propsSchema, ComponentRenderer.
+- [Component Rendering](references/component-rendering.md) - Streaming props, loading states, persistent state. Load when customizing rendering.
+- [Threads and Input](references/threads.md) - **Load when building custom chat UI.** useTambo(), useTamboThreadInput(), userKey/userToken auth, suggestions, voice.
+- [Tools and Context](references/tools-and-context.md) - **Load when adding tools or MCP.** defineTool(), MCP servers, contextHelpers.
+- [CLI Reference](references/cli.md) - **Load for `tambo add` components.** Component library, non-interactive flags, exit codes.
 
 These shared references are duplicated from building-with-tambo so each skill works independently.
 
@@ -25,7 +25,7 @@ The goal is to get the user from zero to a running app in a single prompt. Ask a
 
 ### Step 1: Gather All Non-Sensitive Preferences (Single AskUserQuestion Call)
 
-Use AskUserQuestion with up to 4 questions in ONE call. The API key is collected as free-text input here — no follow-up needed.
+Use AskUserQuestion with up to 3 questions in ONE call. Authentication is handled by the CLI in a later step.
 
 **Question 1: What do you want to build?**
 
@@ -38,27 +38,17 @@ Options:
 - Next.js (Recommended) - Full-stack React with App Router
 - Vite - Fast, lightweight React setup
 
-**Question 3: API Key**
-
-Do NOT use AskUserQuestion for the API key. Instead, after collecting the other preferences, explicitly ask the user in a plain text message to paste their API key. Say something like:
-
-"Paste your Tambo API key below (get one at https://console.tambo.co). This is a client-side public key (like NEXT_PUBLIC_TAMBO_API_KEY) — not a secret, safe to share here. Or just say 'skip' if you don't have one yet."
-
-Then wait for their response. If they paste a key (starts with `tambo_`), use it. If they say "skip" or similar, move on without it.
-
-**This means Step 1 only has 3 questions in AskUserQuestion** (app idea, framework, app name). The API key is collected as a plain message exchange right after.
-
-**Question 4: App name**
+**Question 3: App name**
 
 Let the user pick a name for their project directory. Default suggestion: derive from what they want to build (e.g., "my-dashboard", "my-chatbot"). Use kebab-case (letters, numbers, hyphens only). If the user gives a non-slug name like "Sales Dashboard", propose `sales-dashboard` instead.
 
-**Skip questions when the user already told you the answer.** If they said "build me a Next.js dashboard app called analytics", you already know the framework, the app idea, and the name — just ask for the API key.
+**Skip questions when the user already told you the answer.** If they said "build me a Next.js dashboard app called analytics", you already know the framework, the app idea, and the name.
 
 ### Step 2: Execute Everything (No Stopping)
 
 Run all of these sequentially without asking for confirmation between steps. If any command fails, stop the flow, surface the error, and ask the user how to proceed — do not continue to later steps.
 
-All templates (`standard`, `vite`, `analytics`) come with chat UI, TamboProvider wiring, component registry, and starter components already included. You do NOT need to add chat UI or wire up the app — just scaffold, configure the API key, add custom components, and start the server.
+All templates (`standard`, `vite`, `analytics`, `expo`) come with chat UI, TamboProvider wiring, component registry, and starter components already included. You do NOT need to add chat UI or wire up the app — just scaffold, configure the API key, add custom components, and start the server.
 
 #### 2a. Scaffold the project
 
@@ -76,21 +66,17 @@ npx tambo create-app <app-name> --template=vite --skip-tambo-init
 cd <app-name>
 ```
 
-Use `--skip-tambo-init` since `create-app` normally tries to run `tambo init` interactively, which won't work in non-interactive environments like coding agents. We handle the API key in the next step.
+Use `--skip-tambo-init` since `create-app` normally tries to run `tambo init` interactively, which won't work in non-interactive environments like coding agents. We handle authentication in the next step.
 
-#### 2b. Set up API key
-
-If the user provided a key:
+#### 2b. Authenticate and initialize Tambo
 
 ```bash
-npx tambo init --api-key=<USER_PROVIDED_KEY>
+npx tambo init --project-name=<app-name>
 ```
 
-This writes the key to the correct `.env` file with the framework-appropriate variable name (`NEXT_PUBLIC_TAMBO_API_KEY`, `VITE_TAMBO_API_KEY`, etc.).
+This opens the browser for authentication and polls until the user completes auth (up to 15 minutes). Use a long timeout (at least 15 minutes) when running this command. Once auth completes, the CLI creates the project and writes the API key to `.env.local` with the correct env var for the framework (`NEXT_PUBLIC_TAMBO_API_KEY`, `VITE_TAMBO_API_KEY`, etc.).
 
-If the user skipped, tell them once at the end to run `npx tambo init` when ready. Don't nag about it during setup.
-
-**IMPORTANT:** Do NOT hardcode `--api-key=sk_...` in commands you run. The `--api-key` flag should only be used with an actual key the user has provided.
+**IMPORTANT:** Do NOT ask the user to paste an API key manually. Always use the CLI auth flow.
 
 #### 2c. Create custom starter components
 
@@ -178,7 +164,7 @@ After everything is running, give a brief summary:
 - What was set up
 - What components were created and what they do
 - The URL where the app is running (typically `http://localhost:3000` for Next.js, `http://localhost:5173` for Vite)
-- If they skipped the API key: remind them once to run `npx tambo init` to set it up
+- If auth was skipped: remind them once to run `npx tambo init` to authenticate
 - A suggestion for what to try first (e.g., "Try asking it to show you a stats card for monthly revenue")
 
 ## Technology Stacks Reference
@@ -248,7 +234,6 @@ Templates already include chat UI. These are only needed if the user wants addit
 ```bash
 npx tambo add message-thread-full --yes    # Complete chat interface
 npx tambo add control-bar --yes            # Controls and actions
-npx tambo add canvas-space --yes           # Rendered component display area
 npx tambo add thread-history --yes         # Conversation history sidebar
 ```
 

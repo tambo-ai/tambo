@@ -95,7 +95,7 @@ function usePropsStreamingStatus<Props extends object>(
   componentStreamingState: TamboComponentContent["streamingState"] | undefined,
 ): Partial<Record<keyof Props, PropStatus>> {
   /** Track which props have received content */
-  const [startedProps, setStartedProps] = useState<Set<string>>(new Set());
+  const [startedProps, setStartedProps] = useState(new Set<string>());
 
   /** Update started props when content arrives */
   useEffect(() => {

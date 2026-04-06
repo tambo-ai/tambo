@@ -28,6 +28,7 @@ import {
 import {
   detectFramework,
   getTamboApiKeyEnvVar,
+  isNativeFramework,
 } from "../utils/framework-detection.js";
 import { EVENTS, trackEvent } from "../lib/telemetry.js";
 import { handleAddComponent } from "./add/index.js";
@@ -59,13 +60,6 @@ async function createTamboTsFile(installPath: string): Promise<void> {
   }
 }
 
-class AuthenticationError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "AuthenticationError";
-  }
-}
-
 interface InitOptions {
   fullSend?: boolean;
   legacyPeerDeps?: boolean;
@@ -74,7 +68,6 @@ interface InitOptions {
   apiKey?: string;
   projectName?: string;
   projectId?: string;
-  noBrowser?: boolean;
 }
 
 /**
@@ -268,8 +261,7 @@ export async function getInstallationPath(yes = false): Promise<string> {
   }
 
   if (yes) {
-    // Auto-answer yes - use src if available, otherwise create it
-    const useSrcDir = hasSrcDir;
+    // Auto-answer yes - always default to src/components
     if (!hasSrcDir) {
       console.log(
         chalk.blue(
@@ -283,7 +275,7 @@ export async function getInstallationPath(yes = false): Promise<string> {
         ),
       );
     }
-    return useSrcDir ? "src/components" : "src/components";
+    return "src/components";
   }
 
   const { useSrcDir } = await interactivePrompt<{ useSrcDir: boolean }>(
@@ -306,9 +298,28 @@ export async function getInstallationPath(yes = false): Promise<string> {
 }
 
 /**
+ * Ensures the user is authenticated, running device auth if needed.
+ * Always opens the browser and polls in the foreground.
+ */
+async function ensureAuthenticated(): Promise<void> {
+  if (isTokenValid()) {
+    // verifySession() catches all errors internally and returns false,
+    // so this covers both revoked sessions and transient network failures.
+    const isValid = await verifySession();
+    if (isValid) {
+      console.log(chalk.green("\n✔ Already authenticated"));
+      return;
+    }
+    console.log(chalk.yellow("\n⚠ Session expired, re-authenticating..."));
+  }
+
+  await runDeviceAuthFlow();
+  console.log(chalk.green("\n✔ Authentication successful"));
+}
+
+/**
  * Handles the authentication flow with Tambo using device auth
  * @returns Promise<boolean> Returns true if authentication was successful
- * @throws AuthenticationError
  */
 async function handleAuthentication(): Promise<boolean> {
   try {
@@ -336,7 +347,7 @@ async function handleAuthentication(): Promise<boolean> {
       console.log(chalk.yellow("\n⚠ Session expired, please re-authenticate"));
     }
 
-    // Run device auth flow
+    // Run device auth flow (throws on failure)
     const authResult = await runDeviceAuthFlow();
 
     console.log(
@@ -351,8 +362,6 @@ async function handleAuthentication(): Promise<boolean> {
     if (error instanceof DeviceAuthError) {
       console.error(chalk.red(`\n✖ Authentication failed`));
       console.error(chalk.gray(`  ${error.message}`));
-    } else if (error instanceof AuthenticationError) {
-      console.error(chalk.red(`\nAuthentication error: ${error.message}`));
     } else {
       console.error(chalk.red(`\nFailed to authenticate: ${error}`));
     }
@@ -757,6 +766,32 @@ async function handleFullSendInit(options: InitOptions): Promise<void> {
     prefix: installPath,
   });
 
+  const framework = detectFramework();
+
+  // Skip component installation and Tailwind for native frameworks (Expo)
+  // since the registry components are web-only (DOM + Tailwind CSS)
+  if (isNativeFramework(framework)) {
+    console.log(
+      chalk.blue(
+        "\nℹ Expo project detected — skipping web component installation.",
+      ),
+    );
+    console.log(
+      chalk.gray(
+        "  The component registry contains web-only components (DOM + Tailwind).\n" +
+          "  Use @tambo-ai/react hooks directly to build your native UI.",
+      ),
+    );
+
+    trackEvent(EVENTS.INIT_COMPLETED, {
+      method: "cloud",
+      is_full_send: true,
+    });
+
+    displayFullSendInstructions([]);
+    return;
+  }
+
   // Install required components
   console.log(chalk.cyan("\nStep 2: Choose starter components to install"));
 
@@ -859,14 +894,89 @@ function displayFullSendInstructions(selectedComponents: string[] = []): void {
   console.log(chalk.blue("\nNext steps:"));
   const framework = detectFramework();
   const isVite = framework?.name === "vite";
+  const isExpo = framework?.name === "expo";
+  const envVarName = getTamboApiKeyEnvVar();
 
+  // Expo projects don't use web components — show a simpler provider-only snippet
+  if (isExpo) {
+    console.log(chalk.bold("\n1. Add the TamboProvider to your app"));
+
+    const possibleExpoPaths = [
+      "App.tsx",
+      "App.jsx",
+      "app/_layout.tsx",
+      "src/App.tsx",
+    ];
+    const expoEntryFile =
+      possibleExpoPaths.find((p) => fs.existsSync(p)) ?? "App.tsx";
+    console.log(chalk.gray(`\n   📁 File location: ${expoEntryFile}`));
+    console.log(chalk.gray(`\n   Add the following code:`));
+
+    // Compute relative import path from entry file to lib/tambo.ts
+    const entryDir = path.dirname(expoEntryFile);
+    const hasSrcDir = fs.existsSync("src");
+    const tamboLibPath = hasSrcDir ? "src/lib/tambo" : "lib/tambo";
+    let tamboImportPath = path.relative(entryDir, tamboLibPath);
+    if (!tamboImportPath.startsWith(".")) {
+      tamboImportPath = `./${tamboImportPath}`;
+    }
+
+    const providerSnippet = `import { TamboProvider } from "@tambo-ai/react";
+import { components } from "${tamboImportPath}";
+
+export default function App() {
+  return (
+    <TamboProvider
+      apiKey={process.env.${envVarName} ?? ""}
+      components={components}
+    >
+      {/* Your app content */}
+    </TamboProvider>
+  );
+}`;
+
+    try {
+      clipboard.writeSync(providerSnippet);
+      console.log(chalk.cyan("\n" + providerSnippet + "\n"));
+      console.log(
+        chalk.green("\n   ✓ TamboProvider snippet copied to clipboard!"),
+      );
+    } catch (error) {
+      console.log(chalk.cyan("\n" + providerSnippet + "\n"));
+      console.log(
+        chalk.yellow("\n   ⚠️ Failed to copy to clipboard: " + error),
+      );
+    }
+
+    console.log(chalk.bold("\n2. Build your native UI"));
+    console.log(
+      chalk.gray(
+        "   Use @tambo-ai/react hooks (useTamboThread, useTamboComponentState, etc.)",
+      ),
+    );
+    console.log(
+      chalk.gray(
+        "   to build React Native components that interact with Tambo.",
+      ),
+    );
+
+    console.log(chalk.bold("\n3. Documentation"));
+    console.log(
+      chalk.gray("   Visit https://docs.tambo.co for detailed usage examples"),
+    );
+
+    console.log(chalk.bold("\n4. Start your app"));
+    console.log(chalk.gray("   Run 'npx expo start' to launch your app"));
+    return;
+  }
+
+  // Web frameworks (Next.js, Vite, etc.)
   if (isVite) {
     console.log(chalk.bold("\n1. Add the TamboProvider to your app"));
   } else {
     console.log(chalk.bold("\n1. Add the TamboProvider to your layout file"));
   }
 
-  // Determine the likely entry file paths
   const possiblePaths = isVite
     ? ["src/App.tsx", "src/App.jsx", "src/main.tsx", "src/main.jsx"]
     : [
@@ -875,7 +985,6 @@ function displayFullSendInstructions(selectedComponents: string[] = []): void {
         "src/app/layout.tsx",
         "src/app/layout.jsx",
       ];
-
   const defaultEntryFile = isVite ? "src/App.tsx" : "app/layout.tsx";
   const layoutPath =
     possiblePaths.find((p) => fs.existsSync(p)) ?? defaultEntryFile;
@@ -909,7 +1018,6 @@ function displayFullSendInstructions(selectedComponents: string[] = []): void {
     .join("\n");
 
   // Just the TamboProvider part for clipboard with all selected components
-  const envVarName = getTamboApiKeyEnvVar();
 
   const useClientDirective = isVite ? "" : '"use client"; // Important!\n';
   const envAccess = isVite
@@ -1006,7 +1114,6 @@ export async function handleInit({
   apiKey,
   projectName,
   projectId,
-  noBrowser = false,
 }: InitOptions): Promise<void> {
   // In non-interactive mode, check if we have what we need
   if (!isInteractive()) {
@@ -1041,9 +1148,7 @@ export async function handleInit({
       );
 
       try {
-        // Run device auth with noBrowser option
-        await runDeviceAuthFlow({ noBrowser });
-        console.log(chalk.green("\n✔ Authentication successful"));
+        await ensureAuthenticated();
 
         // Create project and generate key
         const success = await createProjectAndGenerateKey(projectName);
@@ -1079,9 +1184,7 @@ export async function handleInit({
       );
 
       try {
-        // Run device auth with noBrowser option
-        await runDeviceAuthFlow({ noBrowser });
-        console.log(chalk.green("\n✔ Authentication successful"));
+        await ensureAuthenticated();
 
         // Use existing project and generate key
         const success = await useExistingProjectAndGenerateKey(projectId);

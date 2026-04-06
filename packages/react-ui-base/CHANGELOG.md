@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.1.7](https://github.com/tambo-ai/tambo/compare/@tambo-ai/react-ui-base-v0.1.6...@tambo-ai/react-ui-base-v0.1.7) (2026-03-30)
+
+
+### Miscellaneous Chores
+
+* **deps:** bump @tambo-ai/typescript-sdk from 0.93.1 to 0.94.0 in the tambo-ai group ([#2632](https://github.com/tambo-ai/tambo/issues/2632)) ([83a0bf8](https://github.com/tambo-ai/tambo/commit/83a0bf8d8ccc0a0fe0c738a69cd0fc77d92211d9))
+
+## [0.1.6](https://github.com/tambo-ai/tambo/compare/@tambo-ai/react-ui-base-v0.1.5...@tambo-ai/react-ui-base-v0.1.6) (2026-03-18)
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump the testing group with 3 updates ([#2630](https://github.com/tambo-ai/tambo/issues/2630)) ([7a0aca6](https://github.com/tambo-ai/tambo/commit/7a0aca603d843ec4f7962e4a9ccb31a1d56e8189))
+
 ## [0.1.5](https://github.com/tambo-ai/tambo/compare/@tambo-ai/react-ui-base-v0.1.4...@tambo-ai/react-ui-base-v0.1.5) (2026-03-13)
 
 

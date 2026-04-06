@@ -354,7 +354,7 @@ export function SupabaseAdapter(): Adapter {
       return data;
     },
 
-    async useVerificationToken({ identifier, token }) {
+    async useVerificationToken({ identifier: _identifier, token: _token }) {
       // console.log("AUTH: Using verification token", identifier, token);
       // This would typically use the one_time_tokens table
       // For simplicity, we'll skip this for now

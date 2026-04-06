@@ -21,22 +21,25 @@ import { z } from "zod/v3";
 
 const COMPONENT_NAME = "ToolCallLimit";
 
-const toolCallLimitEditorSuggestions: Suggestion[] = [
+const _toolCallLimitEditorSuggestions: Suggestion[] = [
   {
     id: "fetch-tool-call-limit",
     title: "Fetch Tool Call Limit",
+    description: "Fetch Tool Call Limit",
     detailedSuggestion: "What is the current tool call limit for this project?",
     messageId: "fetch-tool-call-limit",
   },
   {
     id: "update-tool-call-limit",
     title: "Update Tool Call Limit",
+    description: "Update Tool Call Limit",
     detailedSuggestion: "Update the tool call limit for this project to 100",
     messageId: "update-tool-call-limit",
   },
   {
     id: "how-to-use-tool-call-limit",
     title: "How to Use Tool Call Limit?",
+    description: "How to Use Tool Call Limit?",
     detailedSuggestion: "What is the tool call limit and how to use it?",
     messageId: "how-to-use-tool-call-limit",
   },

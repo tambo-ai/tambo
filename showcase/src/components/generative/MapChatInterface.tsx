@@ -9,12 +9,14 @@ const mapThreadSuggestions = [
   {
     id: "map-suggestion-1",
     title: "Plot offices",
+    description: "Plot offices",
     detailedSuggestion: "Plot offices in New York, Austin, and Seattle.",
     messageId: "map-plot-offices",
   },
   {
     id: "map-suggestion-2",
     title: "Cluster stores",
+    description: "Cluster stores",
     detailedSuggestion:
       "Add clustered markers for 20 mock store locations around London.",
     messageId: "map-cluster-stores",
@@ -22,6 +24,7 @@ const mapThreadSuggestions = [
   {
     id: "map-suggestion-3",
     title: "Heatmap hotspots",
+    description: "Heatmap hotspots",
     detailedSuggestion:
       "Create a heatmap for support ticket hotspots in San Francisco.",
     messageId: "map-heatmap-hotspots",

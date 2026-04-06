@@ -1,5 +1,62 @@
 # Changelog
 
+## [0.56.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.55.1...tambo-v0.56.0) (2026-04-06)
+
+
+### Features
+
+* **cli:** add skills management commands ([#2728](https://github.com/tambo-ai/tambo/issues/2728)) ([2bfedff](https://github.com/tambo-ai/tambo/commit/2bfedff3c818b0fe31a786f74b109cbd6376e85a))
+* **cli:** auto-detect non-interactive auth and always open browser ([#2727](https://github.com/tambo-ai/tambo/issues/2727)) ([7ce2530](https://github.com/tambo-ai/tambo/commit/7ce25300c00960964bbb3132ae9a662d40a6009a))
+
+
+### Bug Fixes
+
+* **cli:** surface git errors instead of swallowing them in create-app ([#2699](https://github.com/tambo-ai/tambo/issues/2699)) ([55891b1](https://github.com/tambo-ai/tambo/commit/55891b1fff0bbebe156742601f943cad2cf4116e))
+* **core:** skip skill injection for models that don't support skills ([#2740](https://github.com/tambo-ai/tambo/issues/2740)) ([b7456ed](https://github.com/tambo-ai/tambo/commit/b7456ed57d0159c5afcade288b897b19908d9abe))
+* **web:** auto-slugify skill names and show readable validation errors ([#2738](https://github.com/tambo-ai/tambo/issues/2738)) ([0630719](https://github.com/tambo-ai/tambo/commit/0630719889a7254d6884f74c8d10503f7a3f0d28))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump the eslint group across 1 directory with 4 updates ([#2703](https://github.com/tambo-ai/tambo/issues/2703)) ([61278a0](https://github.com/tambo-ai/tambo/commit/61278a05de431b9ff4e14e92a3d0433d2bf1d80d))
+* **deps-dev:** bump ts-jest from 29.4.6 to 29.4.9 in the testing group ([#2760](https://github.com/tambo-ai/tambo/issues/2760)) ([801bbc9](https://github.com/tambo-ai/tambo/commit/801bbc92828cc338e169e762776f9bd74abe49ac))
+* **deps:** bump @tambo-ai/typescript-sdk from 0.94.0 to 0.94.1 in the tambo-ai group ([#2706](https://github.com/tambo-ai/tambo/issues/2706)) ([6842afa](https://github.com/tambo-ai/tambo/commit/6842afa3f2b9f0e0be4be46b5def319b10f4f784))
+* **deps:** bump @tambo-ai/typescript-sdk from 0.94.1 to 0.95.0 in the tambo-ai group ([#2762](https://github.com/tambo-ai/tambo/issues/2762)) ([f577b82](https://github.com/tambo-ai/tambo/commit/f577b821d12eed5dca94b10efbf86591824b47db))
+* **deps:** bump the trpc group with 3 updates ([#2701](https://github.com/tambo-ai/tambo/issues/2701)) ([0f551a8](https://github.com/tambo-ai/tambo/commit/0f551a8e7215b173d2e76287a1831cb49c294711))
+
+
+### Documentation
+
+* add skills documentation and CLI enable/disable commands ([#2741](https://github.com/tambo-ai/tambo/issues/2741)) ([2dc34e6](https://github.com/tambo-ai/tambo/commit/2dc34e61954998ab72bddef894031cf43e4d52e9))
+
+## [0.55.1](https://github.com/tambo-ai/tambo/compare/tambo-v0.55.0...tambo-v0.55.1) (2026-03-19)
+
+
+### Documentation
+
+* add Expo support mentions across docs, CLI, and onboarding ([#2651](https://github.com/tambo-ai/tambo/issues/2651)) ([94a6679](https://github.com/tambo-ai/tambo/commit/94a66798327cc989d6e7d9c1f6e0a74f53a613a9))
+
+## [0.55.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.54.2...tambo-v0.55.0) (2026-03-18)
+
+
+### Features
+
+* **cli:** add Expo framework detection and support ([#2638](https://github.com/tambo-ai/tambo/issues/2638)) ([5f50040](https://github.com/tambo-ai/tambo/commit/5f500401b3fcf7d45bebaebecb94d0eed1ce6950))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump the testing group with 3 updates ([#2630](https://github.com/tambo-ai/tambo/issues/2630)) ([7a0aca6](https://github.com/tambo-ai/tambo/commit/7a0aca603d843ec4f7962e4a9ccb31a1d56e8189))
+* **deps:** bump inquirer from 13.2.4 to 13.3.0 ([#2637](https://github.com/tambo-ai/tambo/issues/2637)) ([ef5bd0b](https://github.com/tambo-ai/tambo/commit/ef5bd0b410a7652770a8736edf9882687cdf375f))
+
+## [0.54.2](https://github.com/tambo-ai/tambo/compare/tambo-v0.54.1...tambo-v0.54.2) (2026-03-13)
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump @types/node from 22.19.8 to 22.19.15 ([#2606](https://github.com/tambo-ai/tambo/issues/2606)) ([1159b8c](https://github.com/tambo-ai/tambo/commit/1159b8cc0be23165d2d6ae5e409f5eb1867c62af))
+* **deps:** bump the trpc group with 3 updates ([#2598](https://github.com/tambo-ai/tambo/issues/2598)) ([7905418](https://github.com/tambo-ai/tambo/commit/79054186be0128c535f835a2f7ff6219067f18fa))
+
 ## [0.54.1](https://github.com/tambo-ai/tambo/compare/tambo-v0.54.0...tambo-v0.54.1) (2026-03-09)
 
 

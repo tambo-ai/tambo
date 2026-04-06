@@ -7,7 +7,6 @@
  */
 
 import TamboAI from "@tambo-ai/typescript-sdk";
-import type { Suggestion } from "@tambo-ai/typescript-sdk/resources/beta/threads/suggestions";
 
 import type { TamboThread } from "./types/thread";
 import type { TamboAuthState } from "./types/auth";
@@ -590,7 +589,7 @@ export class TamboClient {
   async listSuggestions(
     messageId: string,
     threadId: string,
-  ): Promise<Suggestion[]> {
+  ): Promise<TamboAI.Beta.Threads.Suggestion[]> {
     const response = await this.sdkClient.beta.threads.suggestions.list(
       messageId,
       { id: threadId },
@@ -610,7 +609,7 @@ export class TamboClient {
     messageId: string,
     threadId: string,
     options?: { maxSuggestions?: number },
-  ): Promise<Suggestion[]> {
+  ): Promise<TamboAI.Beta.Threads.Suggestion[]> {
     const response = await this.sdkClient.beta.threads.suggestions.generate(
       messageId,
       {

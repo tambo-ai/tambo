@@ -47,9 +47,7 @@ export const McpConfigModal = ({
   });
   const [serverUrl, setServerUrl] = React.useState("");
   const [serverName, setServerName] = React.useState("");
-  const [transportType, setTransportType] = React.useState<MCPTransport>(
-    MCPTransport.HTTP,
-  );
+  const [transportType, setTransportType] = React.useState(MCPTransport.HTTP);
   const [savedSuccess, setSavedSuccess] = React.useState(false);
   const [showInstructions, setShowInstructions] = React.useState(false);
 

@@ -20,22 +20,25 @@ import { APIKeyListItem } from "./api-key-list-item";
 
 const COMPONENT_NAME = "APIKeys";
 
-const apiKeyListSuggestions: Suggestion[] = [
+const _apiKeyListSuggestions: Suggestion[] = [
   {
     id: "fetch-api-keys",
     title: "Fetch API Keys",
+    description: "Fetch API Keys",
     detailedSuggestion: "Fetch all API keys for this project",
     messageId: "fetch-api-keys",
   },
   {
     id: "delete-api-key",
     title: "Delete API Key",
+    description: "Delete API Key",
     detailedSuggestion: "Delete an API key from this project",
     messageId: "delete-api-key",
   },
   {
     id: "generate-api-key",
     title: "Generate New API Key",
+    description: "Generate New API Key",
     detailedSuggestion: "Generate a new API key for this project",
     messageId: "generate-api-key",
   },

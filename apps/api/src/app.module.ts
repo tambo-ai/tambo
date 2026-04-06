@@ -14,6 +14,7 @@ import { LoggerModule } from "./common/logger.module";
 import { DATABASE, DatabaseProvider } from "./common/database-provider";
 import { RequestLoggerMiddleware } from "./common/middleware/request-logger.middleware";
 import { SdkVersionMiddleware } from "./common/middleware/sdk-version.middleware";
+import { SentryFlushMiddleware } from "./common/middleware/sentry-flush.middleware";
 import { AuthService } from "./common/services/auth.service";
 import { EmailService } from "./common/services/email.service";
 import { StorageConfigService } from "./common/services/storage-config.service";
@@ -21,6 +22,7 @@ import { ConfigServiceSingleton } from "./config.service";
 import { OAuthModule } from "./oauth/oauth.module";
 import { ProjectsModule } from "./projects/projects.module";
 import { RegistryModule } from "./registry/registry.module";
+import { SkillsModule } from "./skills/skills.module";
 import { SchedulerModule } from "./scheduler/scheduler.module";
 import { StorageModule } from "./storage/storage.module";
 import { ThreadsModule } from "./threads/threads.module";
@@ -46,6 +48,7 @@ export class GlobalModule {}
     ThreadsModule,
     AudioModule,
     GlobalModule,
+    SkillsModule,
     UsersModule,
     SchedulerModule,
     StorageModule,
@@ -63,7 +66,11 @@ export class AppModule implements OnModuleInit {
 
   configure(consumer: MiddlewareConsumer) {
     consumer
-      .apply(RequestLoggerMiddleware, SdkVersionMiddleware)
+      .apply(
+        RequestLoggerMiddleware,
+        SdkVersionMiddleware,
+        SentryFlushMiddleware,
+      )
       .forRoutes("*");
   }
 }

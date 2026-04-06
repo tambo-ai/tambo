@@ -26,15 +26,17 @@
     "@tambo-ai/eslint-config": "*",
     "@tambo-ai/typescript-config": "*",
     "@types/jest": "^30.0.0",
+    "@types/js-yaml": "^4.0.9",
     "@types/node": "^22.19.15",
-    "jest": "^30.2.0",
+    "jest": "^30.3.0",
     "prettier-2": "npm:prettier@^2",
-    "ts-jest": "^29.4.6",
+    "ts-jest": "^29.4.9",
     "zod": "^3.25.76",
     "zod-to-json-schema": "^3.25.1"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.27.1",
+    "js-yaml": "^4.1.0",
     "jose": "^5.10.0",
     "openai": "^6.16.0",
     "resend": "^6.9.1"
