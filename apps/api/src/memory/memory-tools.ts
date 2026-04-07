@@ -1,9 +1,12 @@
-import type { MemoryImportance } from "@tambo-ai-cloud/core";
 import { MEMORY_CATEGORIES } from "@tambo-ai-cloud/core";
 import { operations } from "@tambo-ai-cloud/db";
 import type { HydraDatabase } from "@tambo-ai-cloud/db";
 import type OpenAI from "openai";
 import { z } from "zod/v3";
+import {
+  memoryCategorySchema,
+  memoryImportanceSchema,
+} from "./memory-extraction-schema";
 
 export const SAVE_MEMORY_TOOL_NAME = "save_memory";
 export const DELETE_MEMORY_TOOL_NAME = "delete_memory";
@@ -78,8 +81,8 @@ export function isMemoryToolCall(toolName: string): boolean {
 
 const saveMemoryArgsSchema = z.object({
   content: z.string().min(1).max(1000),
-  category: z.enum(MEMORY_CATEGORIES),
-  importance: z.number().int().min(1).max(5).optional().default(3),
+  category: memoryCategorySchema,
+  importance: memoryImportanceSchema,
 });
 
 const deleteMemoryArgsSchema = z.object({
@@ -110,7 +113,7 @@ export async function executeMemoryToolCall(
       contextKey,
       content: parsed.data.content,
       category: parsed.data.category,
-      importance: parsed.data.importance as MemoryImportance,
+      importance: parsed.data.importance,
     });
 
     return JSON.stringify({
@@ -132,6 +135,7 @@ export async function executeMemoryToolCall(
       db,
       projectId,
       parsed.data.memory_id,
+      contextKey,
     );
 
     if (!deleted) {

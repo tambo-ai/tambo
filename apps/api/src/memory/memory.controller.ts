@@ -20,11 +20,11 @@ import {
   ApiSecurity,
   ApiTags,
 } from "@nestjs/swagger";
-import type { MemoryImportance } from "@tambo-ai-cloud/core";
 import { type HydraDatabase, operations } from "@tambo-ai-cloud/db";
 import type { Request } from "express";
 import { DATABASE } from "../common/database-provider";
 import { CreateMemoryDto } from "./dto/create-memory.dto";
+import { memoryImportanceSchema } from "./memory-extraction-schema";
 import { ApiKeyGuard } from "../projects/guards/apikey.guard";
 import { BearerTokenGuard } from "../projects/guards/bearer-token.guard";
 import { getV1ContextInfo } from "../v1/utils/get-v1-context-info";
@@ -77,7 +77,7 @@ export class MemoryController {
       contextKey,
       content: body.content,
       category: body.category,
-      importance: (body.importance ?? 3) as MemoryImportance,
+      importance: memoryImportanceSchema.parse(body.importance),
     });
     return { memory };
   }
@@ -94,8 +94,8 @@ export class MemoryController {
     @Param("memoryId") memoryId: string,
     @Query("userKey") userKey?: string,
   ) {
-    const { projectId } = getV1ContextInfo(request, userKey);
-    await operations.softDeleteMemory(this.db, projectId, memoryId);
+    const { projectId, contextKey } = getV1ContextInfo(request, userKey);
+    await operations.softDeleteMemory(this.db, projectId, memoryId, contextKey);
   }
 
   @Delete()

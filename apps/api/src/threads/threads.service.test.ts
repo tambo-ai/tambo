@@ -2118,7 +2118,7 @@ describe("ThreadsService.advanceThread initialization", () => {
           content: "Prefers dark mode",
           category: "preference",
           importance: 5,
-          supersededBy: null,
+
           deletedAt: null,
           createdAt: new Date(),
           updatedAt: new Date(),
@@ -2130,7 +2130,7 @@ describe("ThreadsService.advanceThread initialization", () => {
           content: "Works at Acme Corp",
           category: "fact",
           importance: 3,
-          supersededBy: null,
+
           deletedAt: null,
           createdAt: new Date(),
           updatedAt: new Date(),

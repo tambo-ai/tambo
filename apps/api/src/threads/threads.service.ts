@@ -96,16 +96,14 @@ import {
 } from "./util/tool-call-tracking";
 import { createAttachmentFetcher } from "./util/attachment-fetcher";
 import { MemoryExtractionService } from "../memory/memory-extraction.service";
+import { memoryImportanceSchema } from "../memory/memory-extraction-schema";
 import {
   executeMemoryToolCall,
   isMemoryToolCall,
   memoryToolDefinitions,
 } from "../memory/memory-tools";
 import { SkillsService } from "../skills/skills.service";
-import type {
-  MemoryImportance,
-  ProviderSkillConfig,
-} from "@tambo-ai-cloud/core";
+import type { ProviderSkillConfig } from "@tambo-ai-cloud/core";
 import {
   formatMemoriesForPrompt,
   MEMORY_TOKEN_BUDGET,
@@ -1106,7 +1104,7 @@ export class ThreadsService {
               id: m.id,
               content: m.content,
               category: m.category,
-              importance: m.importance as MemoryImportance,
+              importance: memoryImportanceSchema.parse(m.importance),
             })),
             MEMORY_TOKEN_BUDGET,
           );
@@ -1501,9 +1499,10 @@ export class ThreadsService {
             allTools,
             advanceRequestDto.availableComponents ?? [],
           );
-        const strictTools = memoryToolsEnabled
-          ? [...baseStrictTools, ...memoryToolDefinitions]
-          : baseStrictTools;
+        const strictTools =
+          memoryToolsEnabled && contextInfo.contextKey
+            ? [...baseStrictTools, ...memoryToolDefinitions]
+            : baseStrictTools;
 
         // Track decision loop execution
         const decisionLoopSpan = Sentry.startInactiveSpan({
@@ -1582,9 +1581,10 @@ export class ThreadsService {
           allTools,
           advanceRequestDto.availableComponents ?? [],
         );
-      const strictTools = memoryToolsEnabled
-        ? [...baseStrictTools2, ...memoryToolDefinitions]
-        : baseStrictTools2;
+      const strictTools =
+        memoryToolsEnabled && contextInfo.contextKey
+          ? [...baseStrictTools2, ...memoryToolDefinitions]
+          : baseStrictTools2;
 
       // Track available tools
       Sentry.setContext("availableTools", {
@@ -2156,13 +2156,17 @@ export class ThreadsService {
           toolArgs[param.parameterName] = param.parameterValue;
         }
 
+        if (!contextInfo.contextKey) {
+          throw new Error("Memory tools require a contextKey");
+        }
+
         // Execute the memory tool server-side
         const result = await executeMemoryToolCall(
           db,
           toolCallRequest.toolName,
           toolArgs,
           projectId,
-          contextInfo.contextKey ?? "",
+          contextInfo.contextKey,
         );
 
         // Yield the assistant message with the tool call stripped (handled server-side)

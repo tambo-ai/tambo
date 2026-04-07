@@ -53,21 +53,58 @@ export async function createMemory(
       importance: params.importance ?? 3,
     })
     .returning();
+  if (!memory) {
+    throw new Error("Failed to create memory");
+  }
   return memory;
 }
 
 /**
- * Soft-delete a memory by setting deletedAt. Scoped to projectId for auth safety.
+ * Batch-create multiple memories in a single insert.
+ * @returns The created memory rows.
+ */
+export async function createMemories(
+  db: HydraDb,
+  rows: {
+    projectId: string;
+    contextKey: string;
+    content: string;
+    category: MemoryCategory;
+    importance?: MemoryImportance;
+  }[],
+): Promise<DBMemory[]> {
+  if (rows.length === 0) {
+    return [];
+  }
+  return await db
+    .insert(schema.memories)
+    .values(
+      rows.map((r) => ({
+        projectId: r.projectId,
+        contextKey: r.contextKey,
+        content: r.content,
+        category: r.category,
+        importance: r.importance ?? 3,
+      })),
+    )
+    .returning();
+}
+
+/**
+ * Soft-delete a memory by setting deletedAt. Scoped to projectId + contextKey for auth safety.
+ * Content is scrubbed to "[deleted]" for GDPR compliance.
  * @returns The updated memory, or undefined if not found.
  */
 export async function softDeleteMemory(
   db: HydraDb,
   projectId: string,
   memoryId: string,
+  contextKey: string,
 ): Promise<DBMemory | undefined> {
   const [updated] = await db
     .update(schema.memories)
     .set({
+      content: "[deleted]",
       deletedAt: sql`now()`,
       updatedAt: sql`now()`,
     })
@@ -75,6 +112,7 @@ export async function softDeleteMemory(
       and(
         eq(schema.memories.id, memoryId),
         eq(schema.memories.projectId, projectId),
+        eq(schema.memories.contextKey, contextKey),
         isNull(schema.memories.deletedAt),
       ),
     )
@@ -95,6 +133,7 @@ export async function softDeleteAllMemoriesForContextKey(
   const result = await db
     .update(schema.memories)
     .set({
+      content: "[deleted]",
       deletedAt: sql`now()`,
       updatedAt: sql`now()`,
     })
