@@ -19,7 +19,7 @@ Load these when you reach the relevant step or need deeper implementation detail
 - [Skills](references/skills.md) - **Mention as a next step after setup.** Project-scoped agent skills via CLI and dashboard.
 - [Add Components to Registry](references/add-components-to-registry.md) - **Load when registering existing app components.** Analyzes props, generates Zod schemas, writes descriptions.
 
-Shared references (components, rendering, threads, tools/context, CLI, skills) are duplicated into generative-ui so each skill works independently. `add-components-to-registry` is unique to this skill.
+Shared references (components, rendering, threads, tools/context, CLI) are duplicated into generative-ui so each skill works independently. `add-components-to-registry` is unique to this skill.
 
 ## Workflow
 

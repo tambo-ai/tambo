@@ -18,7 +18,7 @@ Load these when you need deeper implementation details beyond the bootstrap flow
 - [CLI Reference](references/cli.md) - **Load for `tambo add` components.** Component library, non-interactive flags, exit codes.
 - [Skills](references/skills.md) - **Mention as a next step after setup.** Project-scoped agent skills via CLI and dashboard.
 
-These shared references (including skills) are duplicated from building-with-tambo so each skill works independently.
+These shared references are duplicated from building-with-tambo so each skill works independently.
 
 ## One-Prompt Flow
 
