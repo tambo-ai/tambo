@@ -1211,7 +1211,7 @@ export class ThreadsService {
         abortSignal,
         providerSkills,
         memoriesText,
-        project?.memoryToolsEnabled && project?.memoryEnabled,
+        !!(project?.memoryToolsEnabled && project?.memoryEnabled),
       );
 
       // Fire-and-forget memory extraction after successful streaming.
