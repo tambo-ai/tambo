@@ -9,16 +9,10 @@ function buildMemoryExtractionPrompt(now: Date): string {
   // Use UTC to avoid server timezone leaking into memories. The user's local
   // timezone is not available here — a known limitation.
   const dateStr = now.toISOString().split("T")[0];
-  const days = [
-    "Sunday",
-    "Monday",
-    "Tuesday",
-    "Wednesday",
-    "Thursday",
-    "Friday",
-    "Saturday",
-  ];
-  const dayOfWeek = days[now.getUTCDay()];
+  const dayOfWeek = new Intl.DateTimeFormat("en-US", {
+    weekday: "long",
+    timeZone: "UTC",
+  }).format(now);
 
   return `You are analyzing a conversation to extract facts worth remembering about the user for future conversations.
 
