@@ -3,6 +3,12 @@
 import { ComponentCodePreview } from "@/components/component-code-preview";
 import { InstallationSection } from "@/components/installation-section";
 import { MapChatInterface } from "@/components/generative/MapChatInterface";
+import dynamic from "next/dynamic";
+
+const Map = dynamic(
+  async () => (await import("@tambo-ai/ui-registry/components/map")).Map,
+  { ssr: false },
+);
 
 export default function MapPage() {
   return (
@@ -19,23 +25,51 @@ export default function MapPage() {
         </p>
       </header>
 
-      {/* Examples Section */}
+      {/* Example Section */}
       <section className="space-y-6">
-        <h2 className="text-2xl font-semibold">Examples</h2>
-
-        <p className="text-sm text-muted-foreground">
-          This interactive demo runs inside the showcase&apos;s app-level
-          TamboProvider, which sets a per-user context key (persisted in
-          localStorage).
-        </p>
+        <h2 className="text-2xl font-semibold">Example</h2>
 
         <div className="space-y-6">
           <ComponentCodePreview
-            title="Seattle Coffee Map"
-            component={<MapChatInterface />}
+            title="Seattle Landmarks"
+            component={
+              <Map
+                center={{ lat: 47.6062, lng: -122.3321 }}
+                zoom={12}
+                markers={[
+                  {
+                    lat: 47.6097,
+                    lng: -122.3417,
+                    label: "Pike Place Market",
+                  },
+                  {
+                    lat: 47.6205,
+                    lng: -122.3493,
+                    label: "Space Needle",
+                  },
+                  {
+                    lat: 47.6553,
+                    lng: -122.3035,
+                    label: "University of Washington",
+                  },
+                  {
+                    lat: 47.6247,
+                    lng: -122.3207,
+                    label: "Capitol Hill",
+                  },
+                  {
+                    lat: 47.6513,
+                    lng: -122.3471,
+                    label: "Fremont Troll",
+                  },
+                ]}
+                size="lg"
+                zoomControl={true}
+              />
+            }
             code={`import { Map } from "@/components/tambo/map";
 
-export function SeattleCoffeeMap() {
+export function SeattleLandmarks() {
   return (
     <Map
       center={{ lat: 47.6062, lng: -122.3321 }}
@@ -52,8 +86,47 @@ export function SeattleCoffeeMap() {
         { lat: 47.6513, lng: -122.3471, label: "Fremont Troll" },
       ]}
       size="lg"
+      zoomControl={true}
     />
   );
+}`}
+            previewClassName="p-8"
+          />
+        </div>
+      </section>
+
+      {/* Interactive Demo Section */}
+      <section className="space-y-6">
+        <h2 className="text-2xl font-semibold">Interactive Demo</h2>
+
+        <p className="text-sm text-muted-foreground">
+          Use natural language to generate and modify maps in real time. This
+          interactive demo runs inside the showcase&apos;s app-level
+          TamboProvider, which sets a per-user context key (persisted in
+          localStorage).
+        </p>
+
+        <div className="space-y-6">
+          <ComponentCodePreview
+            title="AI-Generated Map"
+            component={<MapChatInterface />}
+            code={`import { Map, mapSchema } from "@/components/tambo/map";
+import { useTambo } from "@tambo-ai/react";
+import { useEffect } from "react";
+
+export function MapDemo() {
+  const { registerComponent } = useTambo();
+
+  useEffect(() => {
+    registerComponent({
+      name: "Map",
+      description: "Interactive map for visualizing geographic data.",
+      component: Map,
+      propsSchema: mapSchema,
+    });
+  }, [registerComponent]);
+
+  return <MessageThreadFull />;
 }`}
             previewClassName="p-0"
             minHeight={700}
@@ -64,6 +137,71 @@ export function SeattleCoffeeMap() {
       {/* Installation */}
       <section>
         <InstallationSection cliCommand="npx tambo add map" />
+      </section>
+
+      {/* Try It Yourself */}
+      <section className="space-y-6">
+        <h2 className="text-2xl font-semibold">Try It Yourself</h2>
+
+        <div className="not-prose space-y-6">
+          {/* Step 1 */}
+          <div className="space-y-3">
+            <h3 className="text-lg font-500 text-foreground">
+              1. Install the component
+            </h3>
+            <pre className="rounded-md border border-border bg-muted/40 p-4">
+              <code className="text-sm text-foreground">npx tambo add map</code>
+            </pre>
+          </div>
+
+          {/* Step 2 */}
+          <div className="space-y-3">
+            <h3 className="text-lg font-500 text-foreground">
+              2. Register with Tambo
+            </h3>
+            <pre className="rounded-md border border-border bg-muted/40 p-4">
+              <code className="text-sm text-foreground">
+                {`import { Map, mapSchema } from "@/components/tambo/map";
+import { useTambo } from "@tambo-ai/react";
+import { useEffect } from "react";
+
+const { registerComponent } = useTambo();
+
+useEffect(() => {
+  registerComponent({
+    name: "Map",
+    description: "Interactive map for visualizing geographic data.",
+    component: Map,
+    propsSchema: mapSchema,
+  });
+}, [registerComponent]);`}
+              </code>
+            </pre>
+          </div>
+
+          {/* Step 3 */}
+          <div className="space-y-3">
+            <h3 className="text-lg font-500 text-foreground">
+              3. Send a prompt
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              Try these example prompts:
+            </p>
+            <ul className="space-y-2 text-sm text-muted-foreground">
+              <li>
+                &rarr; &quot;Plot offices in New York, Austin, and Seattle&quot;
+              </li>
+              <li>
+                &rarr; &quot;Show a map of coffee shops around downtown
+                Portland&quot;
+              </li>
+              <li>
+                &rarr; &quot;Create a heatmap of support ticket hotspots in San
+                Francisco&quot;
+              </li>
+            </ul>
+          </div>
+        </div>
       </section>
 
       {/* Component API */}
