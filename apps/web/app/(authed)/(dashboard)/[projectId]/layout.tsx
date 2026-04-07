@@ -33,6 +33,13 @@ const fadeInVariants = {
   },
 };
 
+function getActiveTab(pathname: string) {
+  if (pathname.includes("/observability")) return "observability";
+  if (pathname.includes("/agent")) return "agent";
+  if (pathname.includes("/settings")) return "settings";
+  return "overview";
+}
+
 export default function ProjectLayout({
   children,
   params,
@@ -45,14 +52,7 @@ export default function ProjectLayout({
     select: (projects) => projects.find((p) => p.id === projectId),
   });
 
-  // Determine active tab value
-  const activeTab = pathname.includes("/observability")
-    ? "observability"
-    : pathname.includes("/agent")
-      ? "agent"
-      : pathname.includes("/settings")
-        ? "settings"
-        : "overview";
+  const activeTab = getActiveTab(pathname);
 
   return (
     <div className="flex flex-col bg-background">

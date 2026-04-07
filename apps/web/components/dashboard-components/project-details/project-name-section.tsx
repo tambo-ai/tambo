@@ -44,12 +44,12 @@ export function ProjectNameSection({
         projectId,
         name: editedName.trim(),
       });
+      onEdited();
       toast({
         title: "Success",
         description: "Project name updated successfully",
       });
       setIsEditing(false);
-      onEdited();
     } catch {
       toast({
         title: "Error",

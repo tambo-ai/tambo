@@ -33,6 +33,8 @@ export function AgentPageSkeleton() {
       <div className="space-y-6 py-4">
         <ProviderKeySectionSkeleton />
         <CustomInstructionsEditorSkeleton />
+        <SkillsSectionSkeleton />
+        <ToolCallLimitSkeleton />
         <AvailableMcpServersSkeleton />
       </div>
     </motion.div>
@@ -182,6 +184,62 @@ export function AvailableMcpServersSkeleton() {
               </div>
             </div>
           </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function SkillsSectionSkeleton() {
+  return (
+    <Card className="border rounded-md overflow-hidden">
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <div className="space-y-1">
+            <Skeleton className="h-5 w-16" />
+            <Skeleton className="h-3 w-64" />
+          </div>
+          <div className="flex gap-2">
+            <SkeletonButton className="w-24" />
+            <SkeletonButton className="w-24" />
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-3">
+          {[...Array(2)].map((_, i) => (
+            <div
+              key={i}
+              className="flex items-center gap-3 p-3 border rounded-lg"
+            >
+              <Skeleton className="h-8 w-8 rounded" />
+              <div className="flex-1 space-y-1">
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-3 w-48" />
+              </div>
+              <Skeleton className="h-8 w-8" />
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function ToolCallLimitSkeleton() {
+  return (
+    <Card className="border rounded-md overflow-hidden">
+      <CardHeader>
+        <Skeleton className="h-5 w-28" />
+        <Skeleton className="h-3 w-72 mt-1" />
+      </CardHeader>
+      <CardContent>
+        <div className="flex items-end gap-3">
+          <div className="flex-1 space-y-2">
+            <Skeleton className="h-4 w-24" />
+            <Skeleton className="h-10 w-full" />
+          </div>
+          <SkeletonButton className="w-16" />
         </div>
       </CardContent>
     </Card>
