@@ -293,107 +293,6 @@ describe("v1-conversions", () => {
       });
     });
 
-    it("should add component block when componentDecision exists", () => {
-      const message = {
-        ...baseMessage,
-        content: [{ type: "text", text: "Here is a card" }],
-        componentDecision: {
-          componentName: "WeatherCard",
-          props: { temperature: 72 },
-          message: "",
-          componentState: null,
-        },
-        componentState: { expanded: true },
-      } as unknown as DbMessage;
-
-      const result = contentToV1Blocks(message);
-
-      expect(result).toHaveLength(2);
-      expect(result[0]).toEqual({ type: "text", text: "Here is a card" });
-      expect(result[1]).toEqual({
-        type: "component",
-        id: "comp_msg_123",
-        name: "WeatherCard",
-        props: { temperature: 72 },
-        state: { expanded: true },
-      });
-    });
-
-    it("should warn when componentDecision has no componentName and no toolCallRequest", () => {
-      const warnSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
-
-      const message = {
-        ...baseMessage,
-        componentDecision: {
-          componentName: null,
-          props: { foo: "bar" },
-          message: "",
-          componentState: null,
-        },
-        toolCallRequest: null, // No tool call - this is a data integrity issue
-      } as unknown as DbMessage;
-
-      // Should not throw, but should warn
-      const result = contentToV1Blocks(message);
-      expect(result).toEqual([]); // No blocks generated
-      expect(warnSpy).toHaveBeenCalledWith(
-        expect.stringMatching(/has no componentName.*data integrity issue/),
-      );
-
-      warnSpy.mockRestore();
-    });
-
-    it("should NOT throw when componentDecision has no componentName but has toolCallRequest", () => {
-      // componentDecision without componentName is valid for tool call messages
-      // because it stores _tambo_* status messages
-      const message = {
-        ...baseMessage,
-        role: "assistant",
-        componentDecision: {
-          componentName: null,
-          props: {},
-          message: "Fetching data...",
-          statusMessage: "Working...",
-          componentState: null,
-        },
-        toolCallRequest: {
-          toolName: "getData",
-          parameters: [{ parameterName: "id", parameterValue: "123" }],
-        },
-        toolCallId: "call_123",
-      } as unknown as DbMessage;
-
-      // Should not throw
-      const result = contentToV1Blocks(message);
-
-      // Should have a tool_use block but no component block
-      expect(result).toHaveLength(1);
-      expect(result[0].type).toBe("tool_use");
-    });
-
-    it("should handle component with null props", () => {
-      const message = {
-        ...baseMessage,
-        componentDecision: {
-          componentName: "SimpleCard",
-          props: null,
-          message: "",
-          componentState: null,
-        },
-      } as unknown as DbMessage;
-
-      const result = contentToV1Blocks(message);
-
-      expect(result).toHaveLength(1);
-      expect(result[0]).toEqual({
-        type: "component",
-        id: "comp_msg_123",
-        name: "SimpleCard",
-        props: {},
-        state: undefined,
-      });
-    });
-
     it("should preserve inline tool_use blocks in their natural position", () => {
       const message = {
         ...baseMessage,
@@ -431,67 +330,6 @@ describe("v1-conversions", () => {
       expect(result[2]).toEqual({
         type: "text",
         text: "Here are the results.",
-      });
-    });
-
-    it("should not duplicate tool_use when already present in content", () => {
-      const message = {
-        ...baseMessage,
-        role: "assistant",
-        content: [
-          { type: "text", text: "Searching..." },
-          {
-            type: "tool_use",
-            id: "call_xyz",
-            name: "get_data",
-            input: { id: "123" },
-          },
-        ],
-        toolCallRequest: {
-          toolName: "get_data",
-          parameters: [{ parameterName: "id", parameterValue: "123" }],
-        },
-        toolCallId: "call_xyz",
-      } as unknown as DbMessage;
-
-      const result = contentToV1Blocks(message);
-
-      // Should have 2 blocks (text + tool_use), NOT 3 (text + tool_use + duplicate tool_use)
-      expect(result).toHaveLength(2);
-      expect(result[0]).toEqual({ type: "text", text: "Searching..." });
-      expect(result[1].type).toBe("tool_use");
-    });
-
-    it("should suppress legacy fallback even when inline tool_use name differs from toolCallRequest", () => {
-      const message = {
-        ...baseMessage,
-        role: "assistant",
-        content: [
-          { type: "text", text: "Searching..." },
-          {
-            type: "tool_use",
-            id: "call_inline",
-            name: "search_items",
-            input: { query: "test" },
-          },
-        ],
-        toolCallRequest: {
-          toolName: "different_tool",
-          parameters: [{ parameterName: "id", parameterValue: "456" }],
-        },
-        toolCallId: "call_legacy",
-      } as unknown as DbMessage;
-
-      const result = contentToV1Blocks(message);
-
-      // Should only have the inline tool_use, not the legacy fallback
-      expect(result).toHaveLength(2);
-      expect(result[0]).toEqual({ type: "text", text: "Searching..." });
-      expect(result[1]).toEqual({
-        type: "tool_use",
-        id: "call_inline",
-        name: "search_items",
-        input: { query: "test" },
       });
     });
 
@@ -536,30 +374,6 @@ describe("v1-conversions", () => {
         id: "call_bad_input",
         name: "get_data",
         input: {},
-      });
-    });
-
-    it("should fall back to toolCallRequest when no tool_use in content (legacy messages)", () => {
-      const message = {
-        ...baseMessage,
-        role: "assistant",
-        content: [{ type: "text", text: "Let me check." }],
-        toolCallRequest: {
-          toolName: "check_status",
-          parameters: [{ parameterName: "target", parameterValue: "server" }],
-        },
-        toolCallId: "call_legacy",
-      } as unknown as DbMessage;
-
-      const result = contentToV1Blocks(message);
-
-      expect(result).toHaveLength(2);
-      expect(result[0]).toEqual({ type: "text", text: "Let me check." });
-      expect(result[1]).toEqual({
-        type: "tool_use",
-        id: "call_legacy",
-        name: "check_status",
-        input: { target: "server" },
       });
     });
 

@@ -11,7 +11,6 @@ import { V1InitialContent, V1InputContent } from "./dto/message.dto";
 import { schema } from "@tambo-ai-cloud/db";
 import {
   V1ContentBlock,
-  V1ComponentContentDto,
   V1TextContentDto,
   V1ResourceContentDto,
   V1ToolUseContentDto,
@@ -104,8 +103,7 @@ const defaultContentConversionOptions: Required<ContentConversionOptions> = {
 };
 
 /**
- * Enrich a tool_use input object with _tambo_* display properties from componentDecision.
- * Used by both the inline V1 path and the legacy fallback path to keep them in sync.
+ * Extract _tambo_* display properties from componentDecision for tool_use enrichment.
  */
 function getTamboDisplayProperties(
   componentDecision: DbMessage["componentDecision"],
@@ -124,7 +122,6 @@ function getTamboDisplayProperties(
 
 /**
  * Build a V1 tool_use content block with Tambo display properties merged in.
- * Shared by the inline content path and the legacy fallback path.
  */
 function buildToolUseBlock(
   id: string,
@@ -220,21 +217,15 @@ export function contentPartToV1Block(
 
 /**
  * Convert internal message content to V1 content blocks.
- * Handles OpenAI-style content parts + component decision to V1 unified format.
+ * Handles OpenAI-style content parts to V1 unified format.
  *
  * For tool role messages, wraps content in a tool_result block.
- *
- * @throws Error if componentDecision exists with no componentName and no toolCallRequest
- *         (data integrity issue - componentDecision without componentName is only valid
- *         for tool call messages where it stores _tambo_* status messages)
  */
 export function contentToV1Blocks(
   message: DbMessage,
   options?: ContentConversionOptions,
 ): V1ContentBlock[] {
   const blocks: V1ContentBlock[] = [];
-  let foundComponentInContent = false;
-  let foundToolUseInContent = false;
 
   // For tool role messages, wrap content in a tool_result block
   if (message.role === "tool" && message.toolCallId) {
@@ -283,7 +274,6 @@ export function contentToV1Blocks(
         if (isUiToolName(name)) {
           continue;
         }
-        foundToolUseInContent = true;
         const input =
           toolUsePart.input != null &&
           typeof toolUsePart.input === "object" &&
@@ -319,7 +309,6 @@ export function contentToV1Blocks(
         // For component blocks, merge the message's componentState which may be
         // more up-to-date than what's stored in the content array
         if (block.type === "component") {
-          foundComponentInContent = true;
           if (message.componentState) {
             block.state = message.componentState;
           }
@@ -327,69 +316,6 @@ export function contentToV1Blocks(
         blocks.push(block);
       }
     }
-  }
-
-  // Backwards compatibility: If no component was found in the content array but
-  // componentDecision exists, generate a component block from it. This handles
-  // messages created before component blocks were stored in the content array.
-  // Tool messages may have componentDecision copied from the assistant message,
-  // but we don't want to duplicate the component block - it belongs on the
-  // assistant message that decided to render it.
-  if (
-    !foundComponentInContent &&
-    message.componentDecision &&
-    message.role !== "tool"
-  ) {
-    const component = message.componentDecision;
-    if (component.componentName) {
-      const componentBlock: V1ComponentContentDto = {
-        type: "component",
-        id: `comp_${message.id}`, // Generate stable ID from message ID
-        name: component.componentName,
-        props: component.props ?? {},
-        state: message.componentState ?? undefined,
-      };
-      blocks.push(componentBlock);
-    } else if (!message.toolCallRequest) {
-      // componentDecision without componentName is only valid for tool call messages
-      // (where it stores _tambo_* status messages). For non-tool-call messages,
-      // this indicates a data integrity issue - but we don't want to fail the
-      // entire request over it.
-      console.warn(
-        `Component decision in message ${message.id} has no componentName. ` +
-          `This indicates a data integrity issue.`,
-      );
-    }
-    // If componentName is null but toolCallRequest exists, the componentDecision
-    // is being used for _tambo_* status messages, not for rendering a component.
-  }
-
-  // Add tool_use content block if present (assistant messages with tool calls).
-  // Skip if a tool_use block was already found in the content array (V1 messages
-  // store tool_use inline to preserve interleaved ordering).
-  // Skip UI tools (show_component_*) - they're internal implementation details.
-  if (
-    !foundToolUseInContent &&
-    message.toolCallRequest &&
-    message.toolCallId &&
-    !isUiToolName(message.toolCallRequest.toolName)
-  ) {
-    const toolCallRequest = message.toolCallRequest;
-    // Convert parameters array to input object
-    const input: Record<string, unknown> = Object.fromEntries(
-      toolCallRequest.parameters.map((p) => [
-        p.parameterName,
-        p.parameterValue,
-      ]),
-    );
-    blocks.push(
-      buildToolUseBlock(
-        message.toolCallId,
-        toolCallRequest.toolName,
-        input,
-        message.componentDecision,
-      ),
-    );
   }
 
   return blocks;
