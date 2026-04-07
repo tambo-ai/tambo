@@ -4,20 +4,10 @@ import { Button } from "@/components/ui/button";
 import { SearchInput } from "@/components/ui/search-input";
 import { useToast } from "@/hooks/use-toast";
 import { type RouterOutputs } from "@/trpc/react";
-import { motion } from "framer-motion";
 import { useMemo, useState } from "react";
 import { DeleteConfirmationDialog } from "./delete-confirmation-dialog";
 import { ProjectTable } from "./project-table";
 import { Loader2 } from "lucide-react";
-
-const itemVariants = {
-  hidden: { y: 20, opacity: 0 },
-  visible: {
-    y: 0,
-    opacity: 1,
-    transition: { duration: 0.5 },
-  },
-};
 
 interface ProjectsManagerProps {
   projects: RouterOutputs["project"]["getUserProjects"] | undefined;
@@ -84,13 +74,10 @@ export function ProjectsManager({
 
   return (
     <>
-      <motion.div
-        className="flex items-center justify-between py-8"
-        variants={itemVariants}
-      >
+      <div className="flex items-center justify-between py-4">
         <h1 className="text-4xl font-bold">Projects</h1>
-      </motion.div>
-      <motion.div variants={itemVariants} className="mb-6">
+      </div>
+      <div className="mb-6">
         <div className="relative flex items-center justify-between gap-2">
           <SearchInput
             variant="rounded"
@@ -134,14 +121,14 @@ export function ProjectsManager({
             </Button>
           </div>
         </div>
-      </motion.div>
-      <motion.div variants={itemVariants}>
+      </div>
+      <div>
         <ProjectTable
           projects={filteredProjects || []}
           selectedProjects={selectedProjects}
           onSelectedProjectsChange={setSelectedProjects}
         />
-      </motion.div>
+      </div>
       <DeleteConfirmationDialog
         mode="multiple"
         open={showDeleteDialog}

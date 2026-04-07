@@ -1102,6 +1102,11 @@ export const tamboUsers = pgTable(
     // Referral source tracking
     referralSource: text("referral_source"),
 
+    // Onboarding tracking
+    onboardingCompletedAt: timestamp("onboarding_completed_at", {
+      withTimezone: true,
+    }),
+
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),

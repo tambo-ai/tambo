@@ -8,6 +8,7 @@ export default async function AuthedLayout({
 }) {
   await Promise.all([
     trpc.user.hasAcceptedLegal.prefetch(),
+    trpc.user.hasCompletedOnboarding.prefetch(),
     trpc.user.getUser.prefetch(),
   ]);
   return (

@@ -35,12 +35,16 @@ jest.mock("@/lib/auth-preferences", () => ({
 }));
 
 let mockLegalStatus: unknown = undefined;
+let mockHasCompletedOnboarding: unknown = undefined;
 
 jest.mock("@/trpc/react", () => ({
   api: {
     user: {
       hasAcceptedLegal: {
         useQuery: () => ({ data: mockLegalStatus }),
+      },
+      hasCompletedOnboarding: {
+        useQuery: () => ({ data: mockHasCompletedOnboarding }),
       },
     },
   },
@@ -52,6 +56,7 @@ describe("NextAuthLayoutWrapper", () => {
     mockSession = null;
     mockStatus = "loading";
     mockLegalStatus = undefined;
+    mockHasCompletedOnboarding = undefined;
   });
 
   it("redirects to login when there is no session", () => {
@@ -70,6 +75,7 @@ describe("NextAuthLayoutWrapper", () => {
     mockSession = { user: { id: "1", userToken: "valid-token" } };
     mockStatus = "authenticated";
     mockLegalStatus = { accepted: true, version: 1 };
+    mockHasCompletedOnboarding = true;
 
     render(
       <NextAuthLayoutWrapper>
@@ -124,6 +130,7 @@ describe("NextAuthLayoutWrapper", () => {
     mockSession = { user: { id: "1", userToken: "valid-token" } };
     mockStatus = "authenticated";
     mockLegalStatus = { accepted: true, version: 1 };
+    mockHasCompletedOnboarding = true;
 
     render(
       <NextAuthLayoutWrapper>
@@ -153,5 +160,24 @@ describe("NextAuthLayoutWrapper", () => {
         }),
       );
     });
+  });
+
+  it("redirects to /onboarding when legal is accepted but onboarding is not complete", async () => {
+    mockSession = { user: { id: "1", userToken: "valid-token" } };
+    mockStatus = "authenticated";
+    mockLegalStatus = { accepted: true, version: 1 };
+    mockHasCompletedOnboarding = false;
+
+    render(
+      <NextAuthLayoutWrapper>
+        <p>Dashboard</p>
+      </NextAuthLayoutWrapper>,
+    );
+
+    await waitFor(() => {
+      expect(mockPush).toHaveBeenCalledWith("/onboarding");
+    });
+
+    expect(screen.queryByText("Dashboard")).not.toBeInTheDocument();
   });
 });

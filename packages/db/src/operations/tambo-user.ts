@@ -93,6 +93,31 @@ export async function saveReferralSource(
 }
 
 /**
+ * Mark the onboarding survey as completed for a user.
+ * @returns the updated user record with onboarding completion timestamp
+ */
+export async function completeOnboarding(
+  db: HydraDb,
+  userId: string,
+): Promise<typeof schema.tamboUsers.$inferSelect> {
+  return await updateTamboUser(db, userId, {
+    onboardingCompletedAt: new Date(),
+  });
+}
+
+/**
+ * Check if a user has completed the onboarding survey.
+ * @returns true if the user has completed onboarding, false otherwise
+ */
+export async function hasCompletedOnboarding(
+  db: HydraDb,
+  userId: string,
+): Promise<boolean> {
+  const user = await getTamboUser(db, userId);
+  return !!user?.onboardingCompletedAt;
+}
+
+/**
  * Track a welcome email sent to a user.
  */
 export async function trackWelcomeEmail(

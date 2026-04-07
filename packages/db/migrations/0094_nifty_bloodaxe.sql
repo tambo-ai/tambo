@@ -1,0 +1,1 @@
+ALTER TABLE "tambo_users" DROP COLUMN "getting_started_dismissed_at";

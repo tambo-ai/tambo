@@ -1,0 +1,2 @@
+ALTER TABLE "tambo_users" ADD COLUMN "onboarding_completed_at" timestamp with time zone;--> statement-breakpoint
+ALTER TABLE "tambo_users" ADD COLUMN "getting_started_dismissed_at" timestamp with time zone;

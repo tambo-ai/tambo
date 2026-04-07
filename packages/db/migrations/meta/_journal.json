@@ -652,6 +652,20 @@
       "when": 1774481160804,
       "tag": "0092_married_rhino",
       "breakpoints": true
+    },
+    {
+      "idx": 93,
+      "version": "7",
+      "when": 1774926163479,
+      "tag": "0093_curious_iron_fist",
+      "breakpoints": true
+    },
+    {
+      "idx": 94,
+      "version": "7",
+      "when": 1774986583073,
+      "tag": "0094_nifty_bloodaxe",
+      "breakpoints": true
     }
   ]
 }
