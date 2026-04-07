@@ -81,6 +81,47 @@ All section components live in `apps/web/components/dashboard-components/project
 5. **High-level summary or status?** -> **Overview tab**
 6. **None of the above?** -> Ask the user.
 
+### Conditional and Dependent Settings
+
+Some settings only apply when another setting is in a specific state. Follow these patterns:
+
+**Show but warn (soft dependency).** The section renders normally but displays an `Alert` when the dependency isn't met. The user can still see and configure the setting. Use this when the feature exists but won't work at runtime.
+
+Example: Skills section shows a provider compatibility notice when the selected provider doesn't support skills:
+
+```tsx
+// skills-section.tsx
+const isProviderSupported = SKILLS_SUPPORTED_PROVIDERS.has(
+  defaultLlmProviderName,
+);
+// Renders full skills UI + warning Alert if !isProviderSupported
+```
+
+**Conditionally pass props (data dependency).** The parent reads one setting and passes it as a prop so the child can adapt its behavior. Use this when the child's content or options change based on the parent's state.
+
+Example: MCP servers section receives `providerType` to toggle agent-mode-specific UI:
+
+```tsx
+// agent-settings.tsx
+<AvailableMcpServers providerType={projectData?.providerType} />;
+// available-mcp-servers.tsx
+const isAgentMode = providerType === AiProviderType.AGENT;
+```
+
+Example: Custom LLM parameters change available suggestions based on provider and model:
+
+```tsx
+// provider-key-section.tsx passes selectedProvider to the parameter editor
+<CustomLlmParametersEditor selectedProvider={selectedProvider} />
+```
+
+**Rules for new dependent settings:**
+
+1. Never hide a section entirely based on another setting's state. Always render the card; use an Alert or disabled state to communicate the dependency.
+2. The warning message must name the dependency and tell the user what to change (e.g., "Switch to a supported provider to enable skills").
+3. Keep dependency checks in the section component, not the container. The container (`agent-settings.tsx`, `project-settings.tsx`) should pass data, not make visibility decisions.
+4. If a setting depends on state from a different tab, pass it through the shared project query (`api.project.getProject`) rather than cross-tab state.
+
 ### Adding a New Section
 
 1. **Create the component** in `project-details/` following the Card layout pattern below.
