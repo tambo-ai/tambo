@@ -11,13 +11,24 @@ export function SettingsPageSkeleton() {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="flex flex-col px-2 sm:px-4 max-w-4xl"
+      className="flex gap-8 px-2 sm:px-4 max-w-6xl mx-auto"
     >
-      <div className="space-y-6 py-4">
-        <ProjectNameSkeleton />
-        <APIKeyListSkeleton />
-        <OAuthSettingsSkeleton />
-        <DangerZoneSkeleton />
+      <div className="hidden lg:block w-48 shrink-0 pt-2">
+        <Skeleton className="h-4 w-20 mb-3" />
+        <div className="space-y-2">
+          <Skeleton className="h-4 w-28" />
+          <Skeleton className="h-4 w-20" />
+          <Skeleton className="h-4 w-32" />
+          <Skeleton className="h-4 w-28" />
+        </div>
+      </div>
+      <div className="flex-1 min-w-0 max-w-4xl">
+        <div className="space-y-6 py-4">
+          <ProjectNameSkeleton />
+          <APIKeyListSkeleton />
+          <OAuthSettingsSkeleton />
+          <DangerZoneSkeleton />
+        </div>
       </div>
     </motion.div>
   );
@@ -28,14 +39,26 @@ export function AgentPageSkeleton() {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="flex flex-col px-2 sm:px-4 max-w-4xl"
+      className="flex gap-8 px-2 sm:px-4 max-w-6xl mx-auto"
     >
-      <div className="space-y-6 py-4">
-        <ProviderKeySectionSkeleton />
-        <CustomInstructionsEditorSkeleton />
-        <SkillsSectionSkeleton />
-        <ToolCallLimitSkeleton />
-        <AvailableMcpServersSkeleton />
+      <div className="hidden lg:block w-48 shrink-0 pt-2">
+        <Skeleton className="h-4 w-20 mb-3" />
+        <div className="space-y-2">
+          <Skeleton className="h-4 w-36" />
+          <Skeleton className="h-4 w-16" />
+          <Skeleton className="h-4 w-28" />
+          <Skeleton className="h-4 w-28" />
+          <Skeleton className="h-4 w-32" />
+        </div>
+      </div>
+      <div className="flex-1 min-w-0 max-w-4xl">
+        <div className="space-y-6 py-4">
+          <CustomInstructionsEditorSkeleton />
+          <SkillsSectionSkeleton />
+          <ToolCallLimitSkeleton />
+          <AvailableMcpServersSkeleton />
+          <ProviderKeySectionSkeleton />
+        </div>
       </div>
     </motion.div>
   );

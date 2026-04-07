@@ -131,6 +131,10 @@ html {
 
     --header-height: 3.5rem;
     --dashboard-header-height: 3rem;
+    --project-nav-height: 7.5rem;
+    --sticky-offset: calc(
+      var(--dashboard-header-height) + var(--project-nav-height)
+    );
     font-family: Inter, sans-serif;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11", "salt";
   }

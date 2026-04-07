@@ -89,58 +89,92 @@ export function ProjectSettings({ projectId }: ProjectSettingsProps) {
     );
   }
 
+  const sections = [
+    { id: "project-name", label: "Project Name" },
+    { id: "api-keys", label: "API Keys" },
+    { id: "authentication", label: "Authentication" },
+    { id: "danger-zone", label: "Danger Zone" },
+  ];
+
   return (
     <TooltipProvider>
       <motion.div
-        className="flex flex-col px-2 sm:px-4 max-w-4xl"
+        className="flex gap-8 px-2 sm:px-4 max-w-6xl mx-auto"
         initial="hidden"
         animate="visible"
         variants={containerVariants}
       >
-        <h1 className="text-2xl sm:text-4xl font-semibold mb-4 pt-2">
-          Settings
-        </h1>
-        <div className="space-y-6">
-          {/* Name */}
-          <ProjectNameSection
-            projectId={project.id}
-            projectName={project.name}
-            onEdited={handleRefreshProject}
-          />
+        <nav className="hidden lg:block w-48 shrink-0 sticky top-[var(--sticky-offset)] pt-2 self-start bg-background">
+          <p className="text-sm font-medium text-muted-foreground mb-3">
+            On this page
+          </p>
+          <ul className="space-y-1">
+            {sections.map((section) => (
+              <li key={section.id}>
+                <a
+                  href={`#${section.id}`}
+                  className="block text-sm text-muted-foreground py-1 hover:text-foreground transition-colors"
+                >
+                  {section.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </nav>
 
-          {/* API Keys */}
-          <InteractableAPIKeyList
-            projectId={project.id}
-            onEdited={handleRefreshProject}
-          />
+        <div className="flex-1 min-w-0 max-w-4xl">
+          <p className="text-muted-foreground mb-4 pt-2">
+            Manage your project name, API keys, and webhooks.
+          </p>
+          <div className="space-y-6">
+            <div id="project-name" className="scroll-mt-[var(--sticky-offset)]">
+              <ProjectNameSection
+                projectId={project.id}
+                projectName={project.name}
+                onEdited={handleRefreshProject}
+              />
+            </div>
 
-          {/* Authentication */}
-          <InteractableOAuthSettings
-            projectId={project.id}
-            isTokenRequired={project.isTokenRequired ?? false}
-            onEdited={handleRefreshProject}
-          />
+            <div id="api-keys" className="scroll-mt-[var(--sticky-offset)]">
+              <InteractableAPIKeyList
+                projectId={project.id}
+                onEdited={handleRefreshProject}
+              />
+            </div>
 
-          {/* Danger Zone */}
-          <DangerZoneSection
-            onRequestDelete={() =>
-              setAlertState({
-                show: true,
-                title: "Delete Project",
-                description:
-                  "Are you sure you want to delete this project? This action cannot be undone.",
-              })
-            }
-            isDeleting={isDeleting}
+            <div
+              id="authentication"
+              className="scroll-mt-[var(--sticky-offset)]"
+            >
+              <InteractableOAuthSettings
+                projectId={project.id}
+                isTokenRequired={project.isTokenRequired ?? false}
+                onEdited={handleRefreshProject}
+              />
+            </div>
+
+            <div id="danger-zone" className="scroll-mt-[var(--sticky-offset)]">
+              <DangerZoneSection
+                onRequestDelete={() =>
+                  setAlertState({
+                    show: true,
+                    title: "Delete Project",
+                    description:
+                      "Are you sure you want to delete this project? This action cannot be undone.",
+                  })
+                }
+                isDeleting={isDeleting}
+              />
+            </div>
+          </div>
+
+          <DeleteConfirmationDialog
+            mode="single"
+            alertState={alertState}
+            setAlertState={setAlertState}
+            onConfirm={handleDeleteProject}
           />
         </div>
-
-        <DeleteConfirmationDialog
-          mode="single"
-          alertState={alertState}
-          setAlertState={setAlertState}
-          onConfirm={handleDeleteProject}
-        />
       </motion.div>
     </TooltipProvider>
   );

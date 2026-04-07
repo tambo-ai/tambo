@@ -57,7 +57,7 @@ export default function ProjectLayout({
   return (
     <div className="flex flex-col bg-background">
       {/* Sticky Navigation Section */}
-      <div className="sticky top-[var(--header-height)] z-40 bg-background">
+      <div className="sticky top-[var(--dashboard-header-height)] z-40 bg-background">
         <div className="container mx-auto px-4 md:px-6 pb-0">
           {/* Navigation Row */}
           <motion.div
