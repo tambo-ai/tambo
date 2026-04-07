@@ -7,7 +7,6 @@
  */
 
 import TamboAI from "@tambo-ai/typescript-sdk";
-import { MemoryClient } from "./memory-client";
 
 import type { TamboThread } from "./types/thread";
 import type { TamboAuthState } from "./types/auth";
@@ -140,9 +139,6 @@ export class TamboClient {
   private contextHelpers = new Map<string, ContextHelperFn>();
   private readonly options: TamboClientOptions;
 
-  /** Client for memory CRUD operations (list, create, delete, deleteAll). */
-  public readonly memories: MemoryClient;
-
   /**
    * Create a new TamboClient.
    * @param options - Client configuration.
@@ -171,13 +167,6 @@ export class TamboClient {
       apiKey: options.apiKey,
       baseURL,
     });
-
-    this.memories = new MemoryClient(
-      baseURL,
-      options.apiKey,
-      options.userKey,
-      options.userToken,
-    );
 
     // Register initial tools
     if (options.tools) {
