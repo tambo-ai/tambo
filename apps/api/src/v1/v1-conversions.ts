@@ -19,6 +19,9 @@ import {
 } from "./dto/content.dto";
 import { V1MessageDto, V1MessageRole } from "./dto/message.dto";
 import { V1ThreadDto } from "./dto/thread.dto";
+import { Logger } from "@nestjs/common";
+
+const logger = new Logger("V1Conversions");
 
 /**
  * Database thread type alias for cleaner function signatures.
@@ -104,21 +107,40 @@ const defaultContentConversionOptions: Required<ContentConversionOptions> = {
  * Enrich a tool_use input object with _tambo_* display properties from componentDecision.
  * Used by both the inline V1 path and the legacy fallback path to keep them in sync.
  */
-function enrichInputWithTamboProperties(
-  input: Record<string, unknown>,
+function getTamboDisplayProperties(
   componentDecision: DbMessage["componentDecision"],
-): void {
-  if (!componentDecision) return;
+): Record<string, string> {
+  if (!componentDecision) return {};
   const decision = componentDecision as unknown as Record<string, unknown>;
+  const props: Record<string, string> = {};
   if (typeof decision.statusMessage === "string") {
-    input._tambo_statusMessage = decision.statusMessage;
+    props._tambo_statusMessage = decision.statusMessage;
   }
   if (typeof decision.completionStatusMessage === "string") {
-    input._tambo_completionStatusMessage = decision.completionStatusMessage;
+    props._tambo_completionStatusMessage = decision.completionStatusMessage;
   }
+  return props;
 }
 
-function getContentPartType(part: ChatCompletionContentPart): string {
+/**
+ * Build a V1 tool_use content block with Tambo display properties merged in.
+ * Shared by the inline content path and the legacy fallback path.
+ */
+function buildToolUseBlock(
+  id: string,
+  name: string,
+  input: Record<string, unknown>,
+  componentDecision: DbMessage["componentDecision"],
+): V1ToolUseContentDto {
+  return {
+    type: "tool_use",
+    id,
+    name,
+    input: { ...input, ...getTamboDisplayProperties(componentDecision) },
+  };
+}
+
+function getContentPartType(part: { type?: unknown }): string {
   const type = (part as { type?: unknown }).type;
   return typeof type === "string" ? type : "<non-string type>";
 }
@@ -242,31 +264,35 @@ export function contentToV1Blocks(
   // maintain interleaved ordering (e.g., text -> tool_use -> text).
   if (Array.isArray(message.content)) {
     for (const part of message.content) {
-      const partType = (part as { type?: unknown }).type;
+      const partType = getContentPartType(part as { type?: unknown });
 
       // Handle V1-specific content types stored inline in the DB content array.
       // These are not part of ChatCompletionContentPart, so we handle them
       // before calling contentPartToV1Block.
       if (partType === "tool_use") {
-        const toolUsePart = part as unknown as {
-          id: string;
-          name: string;
-          input: Record<string, unknown>;
-        };
+        const toolUsePart = part as unknown as Record<string, unknown>;
+        const id = toolUsePart.id;
+        const name = toolUsePart.name;
+        if (typeof id !== "string" || typeof name !== "string") {
+          logger.warn(
+            `Skipping malformed tool_use block (id: ${typeof id}, name: ${typeof name})`,
+          );
+          continue;
+        }
         // Skip UI tools (show_component_*), same as the legacy fallback path
-        if (isUiToolName(toolUsePart.name)) {
+        if (isUiToolName(name)) {
           continue;
         }
         foundToolUseInContent = true;
-        const input: Record<string, unknown> = { ...toolUsePart.input };
-        enrichInputWithTamboProperties(input, message.componentDecision);
-        const toolUseBlock: V1ToolUseContentDto = {
-          type: "tool_use",
-          id: toolUsePart.id,
-          name: toolUsePart.name,
-          input,
-        };
-        blocks.push(toolUseBlock);
+        const input =
+          toolUsePart.input != null &&
+          typeof toolUsePart.input === "object" &&
+          !Array.isArray(toolUsePart.input)
+            ? (toolUsePart.input as Record<string, unknown>)
+            : {};
+        blocks.push(
+          buildToolUseBlock(id, name, input, message.componentDecision),
+        );
         continue;
       }
 
@@ -350,20 +376,20 @@ export function contentToV1Blocks(
   ) {
     const toolCallRequest = message.toolCallRequest;
     // Convert parameters array to input object
-    const input: Record<string, unknown> = {};
-    for (const param of toolCallRequest.parameters) {
-      input[param.parameterName] = param.parameterValue;
-    }
-
-    enrichInputWithTamboProperties(input, message.componentDecision);
-
-    const toolUseBlock: V1ToolUseContentDto = {
-      type: "tool_use",
-      id: message.toolCallId,
-      name: toolCallRequest.toolName,
-      input,
-    };
-    blocks.push(toolUseBlock);
+    const input: Record<string, unknown> = Object.fromEntries(
+      toolCallRequest.parameters.map((p) => [
+        p.parameterName,
+        p.parameterValue,
+      ]),
+    );
+    blocks.push(
+      buildToolUseBlock(
+        message.toolCallId,
+        toolCallRequest.toolName,
+        input,
+        message.componentDecision,
+      ),
+    );
   }
 
   return blocks;

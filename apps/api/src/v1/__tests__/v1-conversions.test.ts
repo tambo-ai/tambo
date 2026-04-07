@@ -462,6 +462,83 @@ describe("v1-conversions", () => {
       expect(result[1].type).toBe("tool_use");
     });
 
+    it("should suppress legacy fallback even when inline tool_use name differs from toolCallRequest", () => {
+      const message = {
+        ...baseMessage,
+        role: "assistant",
+        content: [
+          { type: "text", text: "Searching..." },
+          {
+            type: "tool_use",
+            id: "call_inline",
+            name: "search_items",
+            input: { query: "test" },
+          },
+        ],
+        toolCallRequest: {
+          toolName: "different_tool",
+          parameters: [{ parameterName: "id", parameterValue: "456" }],
+        },
+        toolCallId: "call_legacy",
+      } as unknown as DbMessage;
+
+      const result = contentToV1Blocks(message);
+
+      // Should only have the inline tool_use, not the legacy fallback
+      expect(result).toHaveLength(2);
+      expect(result[0]).toEqual({ type: "text", text: "Searching..." });
+      expect(result[1]).toEqual({
+        type: "tool_use",
+        id: "call_inline",
+        name: "search_items",
+        input: { query: "test" },
+      });
+    });
+
+    it("should skip malformed tool_use blocks with non-string id or name", () => {
+      const message = {
+        ...baseMessage,
+        role: "assistant",
+        content: [
+          { type: "text", text: "Before" },
+          { type: "tool_use", id: 123, name: "get_data", input: {} },
+          { type: "text", text: "After" },
+        ],
+      } as unknown as DbMessage;
+
+      const result = contentToV1Blocks(message);
+
+      // Malformed tool_use is skipped, only text blocks remain
+      expect(result).toHaveLength(2);
+      expect(result[0]).toEqual({ type: "text", text: "Before" });
+      expect(result[1]).toEqual({ type: "text", text: "After" });
+    });
+
+    it("should default to empty input when tool_use input is not an object", () => {
+      const message = {
+        ...baseMessage,
+        role: "assistant",
+        content: [
+          {
+            type: "tool_use",
+            id: "call_bad_input",
+            name: "get_data",
+            input: "not-an-object",
+          },
+        ],
+      } as unknown as DbMessage;
+
+      const result = contentToV1Blocks(message);
+
+      expect(result).toHaveLength(1);
+      expect(result[0]).toEqual({
+        type: "tool_use",
+        id: "call_bad_input",
+        name: "get_data",
+        input: {},
+      });
+    });
+
     it("should fall back to toolCallRequest when no tool_use in content (legacy messages)", () => {
       const message = {
         ...baseMessage,
