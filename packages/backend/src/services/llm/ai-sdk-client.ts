@@ -17,7 +17,7 @@ import { createGroq } from "@ai-sdk/groq";
 import { createMistral } from "@ai-sdk/mistral";
 import { createOpenAI } from "@ai-sdk/openai";
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
-import { LanguageModelV2 } from "@ai-sdk/provider";
+import { type LanguageModelV3 } from "@ai-sdk/provider";
 import {
   CustomLlmParameters,
   getToolDescription,
@@ -49,6 +49,7 @@ import {
 } from "../../util/component-streaming";
 import { formatTemplate, ObjectTemplate } from "../../util/template";
 import { threadMessagesToModelMessages } from "../../util/thread-to-model-message-conversion";
+import type { ProviderSkillConfig } from "@tambo-ai-cloud/core";
 import {
   CompleteParams,
   LLMClient,
@@ -63,43 +64,27 @@ type AICompleteParams = Parameters<typeof streamText<ToolSet, never>>[0] &
   Parameters<typeof generateText<ToolSet, never>>[0];
 type TextStreamResponse = ReturnType<typeof streamText<ToolSet, never>>;
 
+/**
+ * Provider-specific tool names used for skill execution.
+ * Each provider uses a different tool name for its skill container.
+ * Only the tool name for the active provider is suppressed, so a user
+ * tool named "shell" on Anthropic (or "code_execution" on OpenAI) is
+ * not accidentally swallowed.
+ */
+const PROVIDER_SKILL_TOOL_NAME: Record<string, string> = {
+  anthropic: "code_execution",
+  openai: "shell",
+};
+
 // Common provider configuration interface
 interface ProviderConfig {
   apiKey?: string;
   baseURL?: string;
-  headers?: Record<string, string>;
   providerName?: string;
-  [key: string]: unknown;
 }
 
-// Type for a configured provider instance that can create language models
-type ConfiguredProvider = (modelId: string) => LanguageModelV2;
-
-// Provider factory function type - creates configured provider instances
-type ProviderFactory = (config?: ProviderConfig) => ConfiguredProvider;
-
-// Provider instances mapping - these are factory functions
-const PROVIDER_FACTORIES: Record<string, ProviderFactory> = {
-  openai: createOpenAI,
-  anthropic: createAnthropic,
-  mistral: createMistral,
-  google: createGoogleGenerativeAI,
-  groq: createGroq,
-  // Cerebras uses openai-compatible provider with custom base URL (see getModelInstance)
-  "openai-compatible": (config) =>
-    createOpenAICompatible({
-      name: config?.providerName || "openai-compatible",
-      baseURL: config?.baseURL || "",
-      apiKey: config?.apiKey,
-      ...config,
-    }),
-} as const;
-
 // Model to provider mapping based on our config
-function getProviderFromModel(
-  model: string,
-  provider: Provider,
-): keyof typeof PROVIDER_FACTORIES {
+function getProviderFromModel(model: string, provider: Provider): string {
   // For openai-compatible, always use openai instance
   if (provider === "openai-compatible") {
     return "openai-compatible";
@@ -320,43 +305,145 @@ export class AISdkClient implements LLMClient {
       ...filteredCustomParams, // Custom parameters override all, but exclude model-specific provider params
     };
 
+    // Merge provider-specific skills into config if present.
+    // Model-level support is checked upstream in ensureProviderSkillsForRun,
+    // so any skills passed here are valid for this model.
+    const finalConfig = params.providerSkills?.skills.length
+      ? this.mergeProviderSkills(baseConfig, params.providerSkills, providerKey)
+      : baseConfig;
+
     if (params.stream) {
       // added explicit await even though types say it isn't necessary
       const result = await streamText({
-        ...baseConfig,
+        ...finalConfig,
         abortSignal: params.abortSignal,
       });
-      return this.handleStreamingResponse(result);
+      const skillToolName = params.providerSkills?.skills.length
+        ? PROVIDER_SKILL_TOOL_NAME[providerKey]
+        : undefined;
+      return this.handleStreamingResponse(result, skillToolName);
     } else {
-      const result = await generateText(baseConfig);
+      const result = await generateText(finalConfig);
       return this.convertToLLMResponse(result);
     }
   }
 
-  private getModelInstance(providerKey: string): LanguageModelV2 {
+  /**
+   * Merge provider-specific skills into the AI SDK config.
+   * For OpenAI: adds a shell tool with skillReference entries and switches to responses model.
+   * For Anthropic: adds codeExecution tool and container.skills providerOptions.
+   */
+  private mergeProviderSkills(
+    config: AICompleteParams,
+    skillConfig: ProviderSkillConfig,
+    providerKey: string,
+  ): AICompleteParams {
+    if (providerKey === "openai") {
+      const openai = createOpenAI({ apiKey: this.apiKey });
+      const shellTool = openai.tools.shell({
+        environment: {
+          type: "containerAuto",
+          skills: skillConfig.skills.map((s) => ({
+            type: "skillReference" as const,
+            skillId: s.skillId,
+            version: s.version,
+          })),
+        },
+      });
+
+      console.log(
+        `[Skills] Switching OpenAI model to responses API for skills support (model: ${this.model})`,
+      );
+
+      if (config.tools && "shell" in config.tools) {
+        console.warn(
+          "[Skills] Overwriting existing 'shell' tool with skills shell tool",
+        );
+      }
+
+      return {
+        ...config,
+        model: openai.responses(this.model),
+        tools: {
+          ...config.tools,
+          shell: shellTool,
+        },
+      };
+    }
+
+    if (providerKey === "anthropic") {
+      const anthropic = createAnthropic({ apiKey: this.apiKey });
+      const codeExecutionTool = anthropic.tools.codeExecution_20260120();
+
+      if (config.tools && "code_execution" in config.tools) {
+        console.warn(
+          "[Skills] Overwriting existing 'code_execution' tool with skills code execution tool",
+        );
+      }
+
+      const existingAnthropicOptions =
+        (config.providerOptions?.[providerKey] as Record<string, unknown>) ??
+        {};
+
+      return {
+        ...config,
+        tools: {
+          ...config.tools,
+          code_execution: codeExecutionTool,
+        },
+        providerOptions: {
+          ...config.providerOptions,
+          anthropic: {
+            ...existingAnthropicOptions,
+            container: {
+              skills: skillConfig.skills.map((s) => ({
+                type: "custom" as const,
+                skillId: s.skillId,
+                version: s.version,
+              })),
+            },
+          },
+        },
+      };
+    }
+
+    return config;
+  }
+
+  private getModelInstance(providerKey: string): LanguageModelV3 {
     const config: ProviderConfig = {};
 
     if (this.apiKey) {
       config.apiKey = this.apiKey;
     }
 
-    // Handle openai-compatible providers (including Cerebras)
-    if (providerKey === "openai-compatible") {
-      if (this.provider === "cerebras") {
-        // Cerebras uses openai-compatible with their API endpoint
-        config.baseURL = "https://api.cerebras.ai/v1";
-        config.providerName = "cerebras";
-      } else if (this.baseURL) {
-        config.baseURL = this.baseURL;
+    switch (providerKey) {
+      case "openai":
+        return createOpenAI(config)(this.model);
+      case "anthropic":
+        return createAnthropic(config)(this.model);
+      case "mistral":
+        return createMistral(config)(this.model);
+      case "google":
+        return createGoogleGenerativeAI(config)(this.model);
+      case "groq":
+        return createGroq(config)(this.model);
+      case "openai-compatible": {
+        if (this.provider === "cerebras") {
+          config.baseURL = "https://api.cerebras.ai/v1";
+          config.providerName = "cerebras";
+        } else if (this.baseURL) {
+          config.baseURL = this.baseURL;
+        }
+        return createOpenAICompatible({
+          name: config.providerName || "openai-compatible",
+          baseURL: config.baseURL || "",
+          apiKey: config.apiKey,
+        })(this.model);
       }
+      default:
+        throw new Error(`Unknown provider: ${providerKey}`);
     }
-
-    // Create the configured provider instance
-    const providerFactory = PROVIDER_FACTORIES[providerKey];
-    const configuredProvider = providerFactory(config);
-
-    // Now call the configured provider with the model ID
-    return configuredProvider(this.model);
   }
 
   private convertTools(tools: OpenAI.Chat.Completions.ChatCompletionTool[]) {
@@ -437,6 +524,7 @@ export class AISdkClient implements LLMClient {
 
   private async *handleStreamingResponse(
     result: TextStreamResponse,
+    skillToolName: string | undefined,
   ): AsyncIterableIterator<LLMStreamItem> {
     let accumulatedMessage = "";
     let accumulatedReasoning: string[] = [];
@@ -457,22 +545,61 @@ export class AISdkClient implements LLMClient {
     // Track component streaming for UI tools (show_component_*)
     let componentTracker: ComponentStreamTracker | undefined;
 
+    // Provider-managed skill tools are completely ignored during streaming.
+    // The provider handles execution internally; the LLM describes what
+    // the skill accomplished in its text response.
+    let isProviderSkillTool = false;
+
     for await (const delta of result.fullStream) {
       // Collect AG-UI events for this delta
       const aguiEvents: BaseEvent[] = [];
 
       switch (delta.type) {
-        case "text-start":
-          accumulatedMessage = "";
-          // Generate message ID for this text stream
-          textMessageId = generateMessageId();
-          aguiEvents.push({
-            type: EventType.TEXT_MESSAGE_START,
-            messageId: textMessageId,
-            role: "assistant",
-            timestamp: Date.now(),
-          } as TextMessageStartEvent);
+        case "text-start": {
+          const wasProviderSkillTool = isProviderSkillTool;
+          isProviderSkillTool = false;
+          if (accumulatedMessage.length > 0 && textMessageId) {
+            if (!wasProviderSkillTool) {
+              console.warn(
+                "Unexpected second text-start with existing message outside skill tool context",
+              );
+            }
+            // Text resumed after a provider-managed skill tool call.
+            // This branch only triggers for skills because regular tool
+            // calls end the stream entirely (the decision loop restarts
+            // a new complete() call for the next turn). Only provider-
+            // executed tools (skills) return results inline and let the
+            // LLM continue generating text in the same stream.
+            //
+            // Reuse the same message ID so the client appends to the
+            // existing message bubble. The client handles duplicate
+            // TEXT_MESSAGE_START for an existing ID by just updating
+            // streaming state (no new message).
+            accumulatedMessage += "\n\n";
+            aguiEvents.push({
+              type: EventType.TEXT_MESSAGE_START,
+              messageId: textMessageId,
+              role: "assistant",
+              timestamp: Date.now(),
+            } as TextMessageStartEvent);
+            aguiEvents.push({
+              type: EventType.TEXT_MESSAGE_CONTENT,
+              messageId: textMessageId,
+              delta: "\n\n",
+              timestamp: Date.now(),
+            } as TextMessageContentEvent);
+          } else {
+            accumulatedMessage = "";
+            textMessageId = generateMessageId();
+            aguiEvents.push({
+              type: EventType.TEXT_MESSAGE_START,
+              messageId: textMessageId,
+              role: "assistant",
+              timestamp: Date.now(),
+            } as TextMessageStartEvent);
+          }
           break;
+        }
         case "text-delta":
           accumulatedMessage += delta.text;
           if (textMessageId) {
@@ -492,8 +619,27 @@ export class AISdkClient implements LLMClient {
               timestamp: Date.now(),
             } as TextMessageEndEvent);
           }
+          // textMessageId is deliberately NOT cleared here so it can be
+          // reused if text resumes after a provider-managed skill tool call.
           break;
         case "tool-input-start": {
+          // Only suppress the specific tool name injected by the active
+          // provider for skills. This avoids silently swallowing a user
+          // tool that shares a name with a different provider's skill tool
+          // (e.g. user tool "shell" on Anthropic, or "code_execution" on OpenAI).
+          isProviderSkillTool =
+            !!skillToolName && delta.toolName === skillToolName;
+          if (isProviderSkillTool) {
+            // Skill tools are fully handled by the provider. Ignore.
+            // Clear accumulated tool state to prevent stale data from a
+            // previous tool call leaking if tool-result doesn't fire.
+            componentTracker = undefined;
+            accumulatedToolCall.name = undefined;
+            accumulatedToolCall.arguments = "";
+            accumulatedToolCall.id = undefined;
+            break;
+          }
+
           accumulatedToolCall.name = delta.toolName;
           accumulatedToolCall.arguments = "";
           accumulatedToolCall.id = undefined;
@@ -526,9 +672,8 @@ export class AISdkClient implements LLMClient {
           break;
         }
         case "tool-input-delta":
+          if (isProviderSkillTool) break;
           accumulatedToolCall.arguments += delta.delta;
-
-          // Emit component streaming events for UI tools
           if (componentTracker) {
             const componentEvents = componentTracker.processJsonDelta(
               delta.delta,
@@ -547,6 +692,7 @@ export class AISdkClient implements LLMClient {
         case "tool-input-end":
           break;
         case "tool-call":
+          if (isProviderSkillTool) break;
           if (delta.providerMetadata?.google?.thoughtSignature) {
             toolCallProviderOptionsById = {
               ...(toolCallProviderOptionsById ?? {}),
@@ -574,8 +720,19 @@ export class AISdkClient implements LLMClient {
           }
           break;
         case "tool-result":
-          // Tambo should be handling all tool results, not operating like an agent
-          throw new Error("Tool result should not be emitted during streaming");
+          // Provider-managed tools (e.g. OpenAI shell for skills) return results
+          // inline in the stream. These are handled by the provider, not Tambo.
+          if (!("providerExecuted" in delta) || !delta.providerExecuted) {
+            throw new Error(
+              "Tool result should not be emitted during streaming",
+            );
+          }
+          // Clear accumulated tool call so subsequent chunks don't carry
+          // the provider-executed tool as an unresolved client tool call.
+          accumulatedToolCall.name = undefined;
+          accumulatedToolCall.arguments = "";
+          accumulatedToolCall.id = undefined;
+          break;
         case "tool-error":
           throw delta.error;
         case "reasoning-start":
@@ -612,6 +769,8 @@ export class AISdkClient implements LLMClient {
         case "start-step": // for capturing round-trips when behaving like an agent
         case "finish-step": // for capturing round-trips when behaving like an agent
         case "raw":
+        case "tool-approval-request":
+        case "tool-output-denied":
           // Fine to ignore these, but we put them in here to make sure we don't
           // miss any new additions to the streamText API
           break;
@@ -692,7 +851,7 @@ export class AISdkClient implements LLMClient {
   }
 
   private convertToLLMResponse(
-    result: GenerateTextResult<Record<string, Tool>, undefined>,
+    result: GenerateTextResult<Record<string, Tool>, never>,
   ): LLMResponse {
     const toolCalls = result.toolCalls.map((call) => ({
       function: {
@@ -741,7 +900,7 @@ function warnUnknownMessageType(message: never) {
  * Exported for testing purposes.
  */
 export async function getSupportedMimeTypePredicate(
-  model: LanguageModelV2,
+  model: LanguageModelV3,
 ): Promise<(mimeType: string) => boolean> {
   const supportedUrls = await model.supportedUrls;
   const mimeTypePatterns = Object.keys(supportedUrls);

@@ -30,7 +30,7 @@ export function DashboardCard({
   periodOptions = [],
   isLoading = false,
 }: DashboardCardProps) {
-  const [selectedPeriod, setSelectedPeriod] = useState<string>(defaultPeriod);
+  const [selectedPeriod, setSelectedPeriod] = useState(defaultPeriod);
 
   const handlePeriodChange = (period: string) => {
     setSelectedPeriod(period);

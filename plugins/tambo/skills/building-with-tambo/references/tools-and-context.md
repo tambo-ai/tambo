@@ -59,9 +59,89 @@ const fetchUserTool = defineTool({
 ### Tool Key Points
 
 - **inputSchema**: Zod object for parameters, use `.describe()` on fields
-- **outputSchema**: Zod schema for return value (optional)
+- **outputSchema**: Zod schema for return value. Required when using `registerTool()`, optional with `defineTool()`.
 - **tool**: Function receives single object with input params
 - **transformToContent**: Enable rich content responses (images, formatted text)
+- **Null handling**: The AI often sends null for optional fields. Strip nulls before passing to APIs that reject them:
+  ```tsx
+  const cleaned = Object.fromEntries(
+    Object.entries(input).filter(([, v]) => v != null),
+  );
+  ```
+
+### Dynamic Tool Registration (for apps with existing API clients)
+
+When integrating with an existing app that has its own API client (tRPC, GraphQL, REST), use `registerTool()` inside a React component instead of `defineTool()` at module level. This lets you access the app's client via hooks.
+
+```tsx
+import { useTambo } from "@tambo-ai/react";
+import { trpc } from "./trpc";
+
+function MyChat() {
+  const { registerTool } = useTambo();
+  const utils = trpc.useUtils();
+  const registered = useRef(false);
+
+  useEffect(() => {
+    if (registered.current) return;
+    registered.current = true;
+    registerTools(registerTool, utils.client, utils);
+  }, [registerTool, utils.client, utils]);
+
+  return <MessageThreadPanel />;
+}
+```
+
+The `useRef` guard prevents infinite re-renders since `registerTool` updates state.
+
+In the tools file, accept the client and utils as arguments:
+
+```tsx
+type RegisterToolFn = UseTamboReturn["registerTool"];
+
+export function registerTools(
+  registerTool: RegisterToolFn,
+  client: TrpcClient,
+  utils: TrpcUtils,
+) {
+  registerTool({
+    name: "getBookings",
+    description: "Get user bookings",
+    inputSchema: z.object({
+      status: z.enum(["upcoming", "past"]).optional(),
+    }),
+    outputSchema: z.object({ bookings: z.array(z.unknown()) }),
+    tool: async (input) => client.viewer.bookings.get.query(input),
+  });
+
+  registerTool({
+    name: "cancelBooking",
+    description: "Cancel a booking by ID",
+    inputSchema: z.object({ id: z.number() }),
+    outputSchema: z.object({ success: z.boolean() }),
+    tool: async (input) => {
+      const result = await client.viewer.bookings.cancel.mutate(input);
+      // Invalidate cache so the UI updates immediately
+      await utils.viewer.bookings.invalidate();
+      return result;
+    },
+  });
+}
+```
+
+### Cache Invalidation After Mutations
+
+When a tool modifies data, the host app's UI won't update unless you invalidate the relevant query cache. After each mutation, call `utils.{router}.invalidate()` to refresh the UI:
+
+```tsx
+tool: async (input) => {
+  const result = await client.project.create.mutate(input);
+  await utils.project.list.invalidate(); // UI refreshes
+  return result;
+},
+```
+
+This works with tRPC/React Query. For other data-fetching libraries (SWR, Apollo), use their equivalent cache invalidation.
 
 ## MCP Servers
 

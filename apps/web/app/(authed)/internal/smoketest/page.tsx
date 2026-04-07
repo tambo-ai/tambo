@@ -57,7 +57,7 @@ export default function SmokePage() {
   const [errors, setErrors] = useState<(TRPCClientErrorLike<any> | Error)[]>(
     [],
   );
-  const { registerComponent, streamingState, currentThreadId } = useTambo();
+  const { registerComponent, currentThreadId } = useTambo();
 
   const { mutateAsync: getAirQuality } = api.demo.aqi.useMutation({
     onError: (error) => setErrors((prev) => [...prev, error]),

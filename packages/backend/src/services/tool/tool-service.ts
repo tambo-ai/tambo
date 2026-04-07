@@ -46,6 +46,10 @@ export function convertMetadataToTools(
       properties: {
         ...Object.fromEntries(
           tool.parameters.map((parameter) => {
+            if (parameter.schema) {
+              return [parameter.name, parameter.schema];
+            }
+            // Legacy fallback for parameters without schema
             if (parameter.type === "enum") {
               return [
                 parameter.name,
@@ -54,7 +58,8 @@ export function convertMetadataToTools(
                   enum: parameter.enumValues || [],
                 },
               ];
-            } else if (parameter.type === "array") {
+            }
+            if (parameter.type === "array") {
               return [
                 parameter.name,
                 {
@@ -62,14 +67,8 @@ export function convertMetadataToTools(
                   items: { type: parameter.items?.type || "string" },
                 },
               ];
-            } else if (parameter.type === "object") {
-              return [parameter.name, { type: "object", ...parameter.schema }];
-            } else {
-              return [
-                parameter.name,
-                parameter.schema || { type: parameter.type },
-              ];
             }
+            return [parameter.name, { type: parameter.type }];
           }),
         ),
       },

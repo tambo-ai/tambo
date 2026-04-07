@@ -41,22 +41,25 @@ import { z } from "zod/v3";
 
 const COMPONENT_NAME = "OAuthTokenValidation";
 
-const oauthSettingsSuggestions: Suggestion[] = [
+const _oauthSettingsSuggestions: Suggestion[] = [
   {
     id: "fetch-oauth-settings",
     title: "Fetch OAuth Settings",
+    description: "Fetch OAuth Settings",
     detailedSuggestion: "Fetch the OAuth settings for this project",
     messageId: "fetch-oauth-settings",
   },
   {
     id: "update-oauth-settings",
     title: "Update OAuth Settings",
+    description: "Update OAuth Settings",
     detailedSuggestion: "Update the OAuth settings for this project",
     messageId: "update-oauth-settings",
   },
   {
     id: "make-token-required-true",
     title: "Make Token Required True",
+    description: "Make Token Required True",
     detailedSuggestion: "Make the token required for this project to be true",
     messageId: "make-token-required-true",
   },
@@ -185,9 +188,7 @@ export function OAuthSettings({
   const { toast } = useToast();
 
   // State management
-  const [selectedMode, setSelectedMode] = useState<OAuthValidationMode>(
-    OAuthValidationMode.NONE,
-  );
+  const [selectedMode, setSelectedMode] = useState(OAuthValidationMode.NONE);
   const [secretKey, setSecretKey] = useState("");
   const [publicKey, setPublicKey] = useState("");
   const [userinfoEndpoint, setUserinfoEndpoint] = useState("");

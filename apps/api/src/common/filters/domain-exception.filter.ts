@@ -57,6 +57,13 @@ export class DomainExceptionFilter implements ExceptionFilter {
 
     this.logger.log(`Domain error [${exception.kind}]: ${exception.message}`);
 
+    if (response.headersSent) {
+      this.logger.warn(
+        `Cannot send problem response for [${exception.kind}]: headers already sent for ${request.originalUrl ?? request.url}`,
+      );
+      return;
+    }
+
     response
       .status(status)
       .header("Content-Type", "application/problem+json")

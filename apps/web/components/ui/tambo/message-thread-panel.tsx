@@ -259,12 +259,14 @@ export const MessageThreadPanel = forwardRef<
     {
       id: "suggestion-1",
       title: "View Project Details",
+      description: "View Project Details",
       detailedSuggestion: "How can I see the details of one of my projects?",
       messageId: "view-project-details-query",
     },
     {
       id: "suggestion-2",
       title: "Generate API Key",
+      description: "Generate API Key",
       detailedSuggestion:
         "How do I create a new API key for one of my projects?",
       messageId: "generate-apikey-query",
@@ -272,6 +274,7 @@ export const MessageThreadPanel = forwardRef<
     {
       id: "suggestion-3",
       title: "Modify Project Config",
+      description: "Modify Project Config",
       detailedSuggestion:
         "How can I change the configuration or settings for one of my projects?",
       messageId: "modify-project-config-query",
@@ -287,14 +290,14 @@ export const MessageThreadPanel = forwardRef<
         </div>
         <div className="flex items-center gap-2">
           <ThreadDropdown className="components-theme" />
-          <div
-            role="button"
-            className="p-1 rounded-full hover:bg-muted/70 transition-colors cursor-pointer"
+          <button
+            type="button"
+            className="p-1 rounded-full hover:bg-muted/70 transition-colors"
             onClick={() => setIsOpen(false)}
-            aria-label="Close"
+            aria-label="Close thread panel"
           >
             <XIcon className="h-4 w-4" />
-          </div>
+          </button>
         </div>
       </div>
 

@@ -7,7 +7,7 @@ interface InteractableComponentMetadata {
   props: unknown;
   propsSchema: string;
   state: unknown;
-  isSelectedForInteraction: boolean;
+  isSelected: boolean;
   stateSchema: string;
 }
 
@@ -64,7 +64,7 @@ export const createInteractablesContextHelper = (
             props: undefined,
             propsSchema: "Not specified",
             state: undefined,
-            isSelectedForInteraction: false,
+            isSelected: false,
             stateSchema: "Not specified",
           };
         }
@@ -79,8 +79,7 @@ export const createInteractablesContextHelper = (
             ? "Available - use component-specific update tools"
             : "Not specified",
           state: comp.state,
-          isSelectedForInteraction:
-            (comp.isSelectedForInteraction as boolean | undefined) ?? false,
+          isSelected: (comp.isSelected as boolean | undefined) ?? false,
           stateSchema: comp.stateSchema
             ? "Available - use component-specific update tools"
             : "Not specified",

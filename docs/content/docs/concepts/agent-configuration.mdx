@@ -40,6 +40,16 @@ If you need to adjust model-specific behavior, you can configure custom paramete
 
 For detailed instructions on configuring LLM providers and parameters, see the [Configure LLM Provider guide](/guides/setup-project/llm-provider).
 
+## Skills
+
+Skills are reusable, toggleable instruction sets that extend your agent's capabilities. Unlike custom instructions which define general behavior, skills are modular and run inside the LLM provider's sandboxed execution environment with code execution support.
+
+You can create skills through the dashboard or import them from markdown files. Each skill has a name, description, and instructions. Skills can be individually enabled or disabled without affecting other skills or custom instructions.
+
+Skills are supported by select OpenAI (GPT-5.2 and newer) and Anthropic (Claude Haiku 4.5, Sonnet 4.5+, Opus 4.5+) models. If your project uses an unsupported model, skills are stored but not active at inference time. See the [full model support list](/concepts/skills#model-support).
+
+For details on how skills work, supported models, and how to manage them, see the [Skills concept page](/concepts/skills) and the [Add a Skill to Your Agent guide](/guides/manage-skills).
+
 ## MCP Server Connection
 
 Model Context Protocol servers extend your Tambo agent's capabilities by providing access to external tools, data sources, and services. You can connect MCP servers directly from your project settings page, making their capabilities available to all users of your application.

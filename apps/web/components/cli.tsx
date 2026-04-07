@@ -28,7 +28,7 @@ export function CLI({
   defaultActiveItemId,
   onItemChange,
 }: CLIProps) {
-  const [activeItemId, setActiveItemId] = useState<string>(
+  const [activeItemId, setActiveItemId] = useState(
     defaultActiveItemId || (items.length > 0 ? items[0].id : ""),
   );
 

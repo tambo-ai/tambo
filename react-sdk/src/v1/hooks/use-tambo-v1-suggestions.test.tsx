@@ -1,7 +1,7 @@
 import { renderHook, act, waitFor } from "@testing-library/react";
 import React from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import type { Suggestion } from "@tambo-ai/typescript-sdk/resources/beta/threads/suggestions";
+import type TamboAI from "@tambo-ai/typescript-sdk";
 import { useTamboSuggestions } from "./use-tambo-v1-suggestions";
 import { useTamboThreadInput } from "./use-tambo-v1-thread-input";
 import { useTambo } from "./use-tambo-v1";
@@ -41,17 +41,19 @@ describe("useTamboSuggestions", () => {
   const mockListSuggestions = jest.fn();
   const mockCreateSuggestions = jest.fn();
 
-  const mockSuggestions: Suggestion[] = [
+  const mockSuggestions: TamboAI.Beta.Threads.Suggestion[] = [
     {
       id: "suggestion_1",
       messageId: "msg_1",
       title: "What's the weather?",
+      description: "Ask for today's weather",
       detailedSuggestion: "What's the weather like today?",
     },
     {
       id: "suggestion_2",
       messageId: "msg_1",
       title: "Tell me a joke",
+      description: "Request a funny joke",
       detailedSuggestion: "Can you tell me a funny joke?",
     },
   ];
@@ -634,6 +636,98 @@ describe("useTamboSuggestions", () => {
       expect(result.current.error).toBeDefined();
       expect(result.current.isAccepting).toBe(false);
       expect(result.current.isGenerating).toBe(false);
+    });
+  });
+
+  describe("Retry on 404", () => {
+    it("retries list query on 404 and succeeds on subsequent attempt", async () => {
+      // Use a plain object with status to verify structural check works
+      // (simulates duplicate SDK copy where instanceof would fail)
+      const notFoundError = Object.assign(new Error("Message not found"), {
+        status: 404,
+      });
+
+      // First call: 404, second call: success with empty suggestions
+      mockListSuggestions
+        .mockRejectedValueOnce(notFoundError)
+        .mockResolvedValueOnce({ suggestions: [], hasMore: false });
+
+      jest.mocked(useTambo).mockReturnValue({
+        messages: [
+          {
+            id: "msg_1",
+            role: "assistant",
+            content: [],
+            createdAt: "2024-01-01T00:00:00Z",
+          },
+        ],
+        thread: undefined,
+        isIdle: true,
+        isStreaming: false,
+        currentThreadId: "thread_123",
+        startNewThread: jest.fn(),
+        switchThread: jest.fn(),
+        initThread: jest.fn(),
+        streamingState: { status: "idle" },
+      } as any);
+
+      const { result } = renderHook(() => useTamboSuggestions(), {
+        wrapper: createWrapper(),
+      });
+
+      // Should eventually succeed after retry and trigger auto-generate
+      await waitFor(() => {
+        expect(mockListSuggestions).toHaveBeenCalledTimes(2);
+      });
+
+      // After successful list (empty), auto-generate fires
+      await waitFor(() => {
+        expect(mockCreateSuggestions).toHaveBeenCalled();
+      });
+
+      await waitFor(() => {
+        expect(result.current.suggestions).toHaveLength(2);
+      });
+    });
+
+    it("does not retry on non-404 errors", async () => {
+      const serverError = Object.assign(new Error("Internal server error"), {
+        status: 500,
+      });
+
+      mockListSuggestions.mockRejectedValue(serverError);
+
+      jest.mocked(useTambo).mockReturnValue({
+        messages: [
+          {
+            id: "msg_1",
+            role: "assistant",
+            content: [],
+            createdAt: "2024-01-01T00:00:00Z",
+          },
+        ],
+        thread: undefined,
+        isIdle: true,
+        isStreaming: false,
+        currentThreadId: "thread_123",
+        startNewThread: jest.fn(),
+        switchThread: jest.fn(),
+        initThread: jest.fn(),
+        streamingState: { status: "idle" },
+      } as any);
+
+      renderHook(() => useTamboSuggestions(), {
+        wrapper: createWrapper(),
+      });
+
+      // Wait for the query to settle - 500 errors should not be retried
+      await waitFor(() => {
+        expect(mockListSuggestions).toHaveBeenCalledTimes(1);
+      });
+
+      // Give it a moment to ensure no additional retries happen
+      await new Promise((resolve) => setTimeout(resolve, 100));
+      expect(mockListSuggestions).toHaveBeenCalledTimes(1);
     });
   });
 

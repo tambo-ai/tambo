@@ -81,6 +81,7 @@ async function closeDb() {
 
 export * from "./converters/message-converters";
 export * from "./oauth/OAuthLocalProvider";
+export { SkillNameConflictError } from "./operations/skills";
 export { ThreadNotFoundError } from "./operations/thread";
 export * from "./types";
 export { closeDb, getDb, operations, schema }; // `withDbClient` exported above

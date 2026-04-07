@@ -11,7 +11,7 @@ interface SchemaProps {
  * Usage: <Schema jsonLd={generateWebsiteSchema()} />
  */
 export function Schema({ jsonLd }: SchemaProps) {
-  const [markup, setMarkup] = useState<string>("");
+  const [markup, setMarkup] = useState("");
 
   useEffect(() => {
     // Only set the markup on the client side to avoid hydration issues

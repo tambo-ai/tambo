@@ -426,7 +426,7 @@ export interface MessageWithContext {
 
 /**
  * Extracts selected interactables from the message's additionalContext.
- * Looks for interactables in additionalContext.interactables.components where isSelectedForInteraction is true.
+ * Looks for interactables in additionalContext.interactables.components where isSelected is true.
  * @param message - The thread message or minimal message data
  * @returns Array of component contexts (empty if none)
  */
@@ -465,7 +465,7 @@ export function extractSelectedInteractablesFromAdditionalContext(
     if (
       component &&
       typeof component === "object" &&
-      component.isSelectedForInteraction === true &&
+      component.isSelected === true &&
       component.componentName &&
       typeof component.componentName === "string"
     ) {

@@ -20,22 +20,25 @@ import { z } from "zod/v3";
 
 const COMPONENT_NAME = "CustomInstructions";
 
-const customInstructionsEditorSuggestions: Suggestion[] = [
+const _customInstructionsEditorSuggestions: Suggestion[] = [
   {
     id: "add-custom-instructions",
     title: "Add Custom Instructions",
+    description: "Add Custom Instructions",
     detailedSuggestion: "Add custom instructions to the project",
     messageId: "add-custom-instructions",
   },
   {
     id: "edit-custom-instructions",
     title: "Edit Custom Instructions",
+    description: "Edit Custom Instructions",
     detailedSuggestion: "Make the custom instructions more detailed",
     messageId: "edit-custom-instructions",
   },
   {
     id: "update-prompt-to-greet-with-howdy",
     title: "Update Prompt to Greet with Howdy",
+    description: "Update Prompt to Greet with Howdy",
     detailedSuggestion: "Update the prompt to always greet with howdy",
     messageId: "update-prompt-to-greet-with-howdy",
   },
@@ -91,14 +94,12 @@ export function CustomInstructionsEditor({
   const [savedValue, setSavedValue] = useState(customInstructions ?? "");
   const [displayValue, setDisplayValue] = useState(customInstructions ?? "");
   const { toast } = useToast();
-  const [allowSystemPromptOverride, setAllowSystemPromptOverride] = useState<
-    boolean | undefined
-  >(
+  const [allowSystemPromptOverride, setAllowSystemPromptOverride] = useState(
     allowSystemPromptOverrideProp === undefined
       ? undefined
       : Boolean(allowSystemPromptOverrideProp),
   );
-  const [savedToggleValue, setSavedToggleValue] = useState<boolean | undefined>(
+  const [savedToggleValue, setSavedToggleValue] = useState(
     allowSystemPromptOverrideProp === undefined
       ? undefined
       : Boolean(allowSystemPromptOverrideProp),
@@ -308,7 +309,7 @@ export function CustomInstructionsEditor({
                   <Button
                     size="sm"
                     variant="ghost"
-                    className="font-sans bg-transparent text-red-500 hover:bg-red-500/10 hover:text-red-500"
+                    className="font-sans bg-transparent text-muted-foreground hover:bg-accent"
                     onClick={handleCancel}
                     disabled={updateInstructions.isPending}
                   >

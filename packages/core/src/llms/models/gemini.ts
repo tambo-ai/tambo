@@ -30,6 +30,7 @@ export const geminiModels: Partial<LlmModelConfig<GeminiModelId>> = {
     tamboDocLink:
       "https://docs.tambo.co/reference/llm-providers/google#gemini-3-pro-preview",
     inputTokenLimit: 1048576,
+    supportsSkills: false,
     modelSpecificParams: reasoningParameters,
   },
   "gemini-2.5-pro": {
@@ -43,6 +44,7 @@ export const geminiModels: Partial<LlmModelConfig<GeminiModelId>> = {
     tamboDocLink:
       "https://docs.tambo.co/reference/llm-providers/google#gemini-2-5-pro",
     inputTokenLimit: 1048576,
+    supportsSkills: false,
     modelSpecificParams: reasoningParameters,
   },
   "gemini-2.5-flash": {
@@ -56,6 +58,7 @@ export const geminiModels: Partial<LlmModelConfig<GeminiModelId>> = {
     tamboDocLink:
       "https://docs.tambo.co/reference/llm-providers/google#gemini-2-5-flash",
     inputTokenLimit: 1048576,
+    supportsSkills: false,
     modelSpecificParams: reasoningParameters,
   },
   "gemini-2.0-flash": {
@@ -69,6 +72,7 @@ export const geminiModels: Partial<LlmModelConfig<GeminiModelId>> = {
     tamboDocLink:
       "https://docs.tambo.co/reference/llm-providers/google#gemini-2-0-flash",
     inputTokenLimit: 1048576,
+    supportsSkills: false,
   },
   "gemini-2.0-flash-lite": {
     apiName: "gemini-2.0-flash-lite",
@@ -81,5 +85,6 @@ export const geminiModels: Partial<LlmModelConfig<GeminiModelId>> = {
     tamboDocLink:
       "https://docs.tambo.co/reference/llm-providers/google#gemini-2-0-flash-lite",
     inputTokenLimit: 1048576,
+    supportsSkills: false,
   },
 };

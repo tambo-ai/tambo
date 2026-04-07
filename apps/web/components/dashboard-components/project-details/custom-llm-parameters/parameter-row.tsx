@@ -45,7 +45,7 @@ export function ParameterRow({
   onParameterChange,
   allowCustomParameters = true,
 }: ParameterRowProps) {
-  const [local, setLocal] = useState<ParameterEntry>(param);
+  const [local, setLocal] = useState(param);
   const [validationError, setValidationError] = useState<string | null>(null);
 
   // Reset local state when param changes from parent

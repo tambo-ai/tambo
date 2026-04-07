@@ -126,6 +126,80 @@ const config = {
         destination: "/reference/llm-providers/:path*",
         permanent: true,
       },
+
+      // --- Group A: Top-level shortcut aliases (common AI agent guesses) ---
+      {
+        source: "/quickstart",
+        destination: "/getting-started/quickstart",
+        permanent: true,
+      },
+      {
+        source: "/integrate",
+        destination: "/getting-started/integrate",
+        permanent: true,
+      },
+      {
+        source: "/generative-interfaces",
+        destination: "/concepts/generative-interfaces",
+        permanent: true,
+      },
+      {
+        source: "/mcp",
+        destination: "/concepts/model-context-protocol",
+        permanent: true,
+      },
+      {
+        source: "/user-authentication",
+        destination: "/concepts/user-authentication",
+        permanent: true,
+      },
+      {
+        source: "/authentication",
+        destination: "/concepts/user-authentication",
+        permanent: true,
+      },
+      {
+        source: "/tools",
+        destination: "/concepts/tools",
+        permanent: true,
+      },
+      {
+        source: "/conversation-storage",
+        destination: "/concepts/conversation-storage",
+        permanent: true,
+      },
+      {
+        source: "/self-hosting",
+        destination: "/guides/self-hosting",
+        permanent: true,
+      },
+
+      // --- Group B: Wrong-slug / synonym redirects ---
+      {
+        source: "/concepts/component-state",
+        destination: "/concepts/generative-interfaces/component-state",
+        permanent: true,
+      },
+      {
+        source: "/concepts/state",
+        destination: "/concepts/generative-interfaces/component-state",
+        permanent: true,
+      },
+      {
+        source: "/concepts/conversation-persistence",
+        destination: "/concepts/conversation-storage",
+        permanent: true,
+      },
+      {
+        source: "/concepts/authentication",
+        destination: "/concepts/user-authentication",
+        permanent: true,
+      },
+      {
+        source: "/guides/component-registration",
+        destination: "/guides/enable-generative-ui/register-components",
+        permanent: true,
+      },
     ];
   },
   async rewrites() {

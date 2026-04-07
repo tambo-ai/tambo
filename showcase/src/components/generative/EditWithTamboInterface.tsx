@@ -16,6 +16,7 @@ const editWithTamboThreadSuggestions = [
   {
     id: "edit-with-tambo-suggestion-1",
     title: "Convert to support",
+    description: "Convert to support",
     detailedSuggestion:
       "Turn this into a support request form with an urgency field.",
     messageId: "edit-with-tambo-support-form",
@@ -23,6 +24,7 @@ const editWithTamboThreadSuggestions = [
   {
     id: "edit-with-tambo-suggestion-2",
     title: "Polish copy",
+    description: "Polish copy",
     detailedSuggestion:
       "Rewrite all labels to sound professional and enterprise-ready.",
     messageId: "edit-with-tambo-polish-copy",
@@ -30,6 +32,7 @@ const editWithTamboThreadSuggestions = [
   {
     id: "edit-with-tambo-suggestion-3",
     title: "Update defaults",
+    description: "Update defaults",
     detailedSuggestion:
       "Change the prefilled values for a startup founder inquiry.",
     messageId: "edit-with-tambo-update-defaults",

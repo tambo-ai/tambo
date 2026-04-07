@@ -9,12 +9,14 @@ const homeThreadSuggestions = [
   {
     id: "home-suggestion-1",
     title: "Add a thread",
+    description: "Add a thread",
     detailedSuggestion: "Show me how to add MessageThreadFull to a page.",
     messageId: "home-add-thread",
   },
   {
     id: "home-suggestion-2",
     title: "Pick a variant",
+    description: "Pick a variant",
     detailedSuggestion:
       "What should I use for my app: full, collapsible, or panel thread?",
     messageId: "home-pick-variant",
@@ -22,6 +24,7 @@ const homeThreadSuggestions = [
   {
     id: "home-suggestion-3",
     title: "Starter prompts",
+    description: "Starter prompts",
     detailedSuggestion:
       "Give me three prompts I can use to test components quickly.",
     messageId: "home-starter-prompts",
