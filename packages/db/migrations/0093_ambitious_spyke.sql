@@ -1,0 +1,1 @@
+ALTER TABLE "mcp_oauth_clients" ADD CONSTRAINT "mcp_oauth_clients_session_id_unique" UNIQUE("session_id");

@@ -1,4 +1,11 @@
-import { MCPTransport, isValidServerKey } from "@tambo-ai-cloud/core";
+import {
+  MCPTransport,
+  MCP_OAUTH_AUTHORIZATION_STATUS_AUTHORIZED,
+  MCP_OAUTH_AUTHORIZATION_STATUS_MANUAL_CLIENT_REGISTRATION_REQUIRED,
+  MCP_OAUTH_AUTHORIZATION_STATUS_REDIRECT,
+  MCP_OAUTH_MANUAL_CLIENT_REGISTRATION_REASON_VALUES,
+  isValidServerKey,
+} from "@tambo-ai-cloud/core";
 import { z } from "zod/v3";
 
 /**
@@ -64,6 +71,22 @@ export const deleteMcpServerInput = z.object({
 export const inspectMcpServerInput = z.object({
   projectId: z.string().describe("The project ID"),
   serverId: z.string().describe("The ID of the MCP server to inspect"),
+});
+
+export const mcpManualClientRegistrationInput = z.object({
+  clientId: z
+    .string()
+    .trim()
+    .min(1)
+    .describe(
+      "A pre-registered OAuth client ID for the MCP authorization server",
+    ),
+  clientSecret: z
+    .string()
+    .trim()
+    .min(1)
+    .optional()
+    .describe("Optional OAuth client secret for the MCP authorization server"),
 });
 
 // Output schemas
@@ -144,3 +167,46 @@ export const inspectMcpServerOutputSchema = z.object({
     .describe("List of tools available from the MCP server"),
   serverInfo: mcpServerInfoSchema.describe("Information about the MCP server"),
 });
+
+export const mcpSuggestedClientMetadataSchema = z.object({
+  clientName: z.string().describe("Suggested OAuth client display name"),
+  clientUri: z.string().url().describe("Suggested OAuth client homepage URL"),
+  redirectUris: z
+    .array(z.string().url())
+    .describe("Redirect URIs that should be registered with the provider"),
+  grantTypes: z
+    .array(z.string())
+    .describe("Grant types Tambo Cloud expects for MCP OAuth"),
+  responseTypes: z
+    .array(z.string())
+    .describe("Response types Tambo Cloud expects for MCP OAuth"),
+  tokenEndpointAuthMethod: z
+    .string()
+    .describe("Preferred token endpoint client authentication method"),
+  applicationType: z
+    .string()
+    .describe("Suggested OAuth application type for registration"),
+  clientMetadataUrl: z
+    .string()
+    .url()
+    .optional()
+    .describe("Optional hosted client metadata document URL"),
+});
+
+export const authorizeMcpServerOutputSchema = z.discriminatedUnion("status", [
+  z.object({
+    status: z.literal(MCP_OAUTH_AUTHORIZATION_STATUS_AUTHORIZED),
+  }),
+  z.object({
+    status: z.literal(MCP_OAUTH_AUTHORIZATION_STATUS_REDIRECT),
+    redirectUrl: z.string().url(),
+  }),
+  z.object({
+    status: z.literal(
+      MCP_OAUTH_AUTHORIZATION_STATUS_MANUAL_CLIENT_REGISTRATION_REQUIRED,
+    ),
+    authorizationServer: z.string().url(),
+    reason: z.enum(MCP_OAUTH_MANUAL_CLIENT_REGISTRATION_REASON_VALUES),
+    suggestedClientMetadata: mcpSuggestedClientMetadataSchema,
+  }),
+]);

@@ -1,8 +1,30 @@
-import { MCPTransport } from "@tambo-ai-cloud/core";
+import {
+  MCPTransport,
+  MCP_OAUTH_AUTHORIZATION_STATUS_MANUAL_CLIENT_REGISTRATION_REQUIRED,
+  MCP_OAUTH_MANUAL_CLIENT_REGISTRATION_REASON_DCR_FAILED,
+  type McpOAuthManualClientRegistrationReason,
+} from "@tambo-ai-cloud/core";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { McpServerEditor, type MCPServerInfo } from "./mcp-server-editor";
+
+const authorizeMutateAsync = jest.fn();
+let authorizeData: {
+  status: typeof MCP_OAUTH_AUTHORIZATION_STATUS_MANUAL_CLIENT_REGISTRATION_REQUIRED;
+  authorizationServer: string;
+  reason: McpOAuthManualClientRegistrationReason;
+  suggestedClientMetadata: {
+    clientName: string;
+    clientUri: string;
+    redirectUris: string[];
+    grantTypes: string[];
+    responseTypes: string[];
+    tokenEndpointAuthMethod: string;
+    applicationType: string;
+    clientMetadataUrl?: string;
+  };
+} | null = null;
 
 // Mock tRPC api
 jest.mock("@/trpc/react", () => ({
@@ -10,10 +32,17 @@ jest.mock("@/trpc/react", () => ({
     tools: {
       authorizeMcpServer: {
         useMutation: () => ({
-          mutateAsync: jest.fn(),
+          mutateAsync: authorizeMutateAsync,
           isPending: false,
           error: null,
+          data: authorizeData,
+        }),
+      },
+      inspectMcpServer: {
+        useQuery: () => ({
           data: null,
+          isLoading: false,
+          error: null,
         }),
       },
     },
@@ -89,6 +118,7 @@ function renderEditor(
 describe("McpServerEditor", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    authorizeData = null;
   });
 
   it("renders server URL and headers", () => {
@@ -164,6 +194,92 @@ describe("McpServerEditor", () => {
         customHeaders: { Authorization: "Bearer token123" },
         mcpTransport: MCPTransport.HTTP,
       });
+    });
+  });
+
+  it("renders manual OAuth client registration details when automatic registration fails", () => {
+    authorizeData = {
+      status:
+        MCP_OAUTH_AUTHORIZATION_STATUS_MANUAL_CLIENT_REGISTRATION_REQUIRED,
+      authorizationServer: "https://mcp.mapbox.com",
+      reason: MCP_OAUTH_MANUAL_CLIENT_REGISTRATION_REASON_DCR_FAILED,
+      suggestedClientMetadata: {
+        clientName: "Tambo Cloud",
+        clientUri: "https://console.tambo.co/",
+        redirectUris: ["https://console.tambo.co/oauth/callback"],
+        grantTypes: ["authorization_code", "refresh_token"],
+        responseTypes: ["code"],
+        tokenEndpointAuthMethod: "none",
+        applicationType: "web",
+        clientMetadataUrl: "https://console.tambo.co/oauth/client-metadata",
+      },
+    };
+
+    renderEditor({
+      isEditing: false,
+      projectId: "proj_123",
+      redirectToAuth: jest.fn(),
+      server: {
+        ...baseServer,
+        mcpRequiresAuth: true,
+      },
+    });
+
+    expect(
+      screen.getByText("Manual OAuth Client Registration Required"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("https://console.tambo.co/oauth/callback"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("https://console.tambo.co/oauth/client-metadata"),
+    ).toBeInTheDocument();
+  });
+
+  it("submits manual client registration details when provided", async () => {
+    const user = userEvent.setup();
+    authorizeData = {
+      status:
+        MCP_OAUTH_AUTHORIZATION_STATUS_MANUAL_CLIENT_REGISTRATION_REQUIRED,
+      authorizationServer: "https://mcp.mapbox.com",
+      reason: MCP_OAUTH_MANUAL_CLIENT_REGISTRATION_REASON_DCR_FAILED,
+      suggestedClientMetadata: {
+        clientName: "Tambo Cloud",
+        clientUri: "https://console.tambo.co/",
+        redirectUris: ["https://console.tambo.co/oauth/callback"],
+        grantTypes: ["authorization_code", "refresh_token"],
+        responseTypes: ["code"],
+        tokenEndpointAuthMethod: "none",
+        applicationType: "web",
+      },
+    };
+
+    renderEditor({
+      isEditing: false,
+      projectId: "proj_123",
+      redirectToAuth: jest.fn(),
+      server: {
+        ...baseServer,
+        mcpRequiresAuth: true,
+      },
+    });
+
+    await user.type(screen.getByLabelText("Client ID"), "mapbox-client-id");
+    await user.type(
+      screen.getByLabelText("Client Secret"),
+      "mapbox-client-secret",
+    );
+    await user.click(
+      screen.getByRole("button", { name: "Continue Authorization" }),
+    );
+
+    expect(authorizeMutateAsync).toHaveBeenCalledWith({
+      contextKey: null,
+      toolProviderId: "tp_123",
+      clientRegistration: {
+        clientId: "mapbox-client-id",
+        clientSecret: "mapbox-client-secret",
+      },
     });
   });
 });

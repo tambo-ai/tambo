@@ -1,39 +1,30 @@
-import { getBaseUrl } from "@/lib/base-url";
-import { createFetchWithTimeout } from "@/lib/fetch-with-timeout";
 import { customHeadersSchema } from "@/lib/headerValidation";
 import {
+  authorizeMcpServerOutputSchema,
   deleteMcpServerInput,
   inspectMcpServerInput,
   inspectMcpServerOutputSchema,
   listMcpServersInput,
+  mcpManualClientRegistrationInput,
   mcpServerDetailSchema,
   mcpServerSchema,
 } from "@/lib/schemas/mcp";
+import {
+  authorizeMcpServer,
+  getOAuthProvider,
+  getServerValidity,
+} from "../services/mcp-authorization";
 import { validateSafeURL, validateServerUrl } from "@/lib/urlSecurity";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
-import { auth } from "@modelcontextprotocol/sdk/client/auth.js";
 import {
   MCPClient,
   MCPTransport,
-  ToolProviderType,
   isValidServerKey,
   validateMcpServer,
 } from "@tambo-ai-cloud/core";
-import {
-  HydraDb,
-  OAuthLocalProvider,
-  operations,
-  schema,
-} from "@tambo-ai-cloud/db";
+import { HydraDb, operations } from "@tambo-ai-cloud/db";
 import { TRPCError } from "@trpc/server";
-import { and, eq, isNotNull } from "drizzle-orm";
 import { z } from "zod/v3";
-
-type McpServer = Awaited<
-  ReturnType<typeof operations.getProjectMcpServers>
->[number];
-
-type OAuthClientProvider = OAuthLocalProvider;
 
 /**
  * Get all existing serverKeys for a project to validate uniqueness
@@ -176,67 +167,17 @@ export const toolsRouter = createTRPCRouter({
       z.object({
         toolProviderId: z.string(),
         contextKey: z.string().nullable(),
+        clientRegistration: mcpManualClientRegistrationInput.optional(),
       }),
     )
+    .output(authorizeMcpServerOutputSchema)
     .mutation(async ({ input, ctx }) => {
-      const { contextKey, toolProviderId } = input;
-
-      const db = ctx.db;
-      const toolProvider = await db.query.toolProviders.findFirst({
-        where: and(
-          eq(schema.toolProviders.id, toolProviderId),
-          eq(schema.toolProviders.type, ToolProviderType.MCP),
-          isNotNull(schema.toolProviders.url),
-        ),
-      });
-      if (!toolProvider) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Tool provider not found",
-        });
-      }
-      const { url, projectId } = toolProvider;
-      await operations.ensureProjectAccess(ctx.db, projectId, ctx.user.id);
-
-      if (!url) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Tool provider missing MCP URL",
-        });
-      }
-      const toolProviderUserContextId = await upsertToolProviderUserContext(
-        db,
-        toolProviderId,
-        contextKey,
-      );
-
-      const localProvider = new OAuthLocalProvider(
-        db,
-        toolProviderUserContextId,
-        {
-          baseUrl: getBaseUrl(),
-          serverUrl: url,
-        },
-      );
-
-      const result = await auth(localProvider, {
-        serverUrl: url,
-        fetchFn: createFetchWithTimeout(5_000),
-      });
-      if (result === "AUTHORIZED") {
-        return {
-          success: true,
-        };
-      }
-      if (result === "REDIRECT") {
-        return {
-          success: true,
-          redirectUrl: localProvider.redirectStartAuthUrl?.toString(),
-        };
-      }
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Unexpected auth result",
+      return await authorizeMcpServer({
+        db: ctx.db,
+        userId: ctx.user.id,
+        toolProviderId: input.toolProviderId,
+        contextKey: input.contextKey,
+        clientRegistration: input.clientRegistration,
       });
     }),
   deleteMcpServer: protectedProcedure
@@ -427,125 +368,3 @@ export const toolsRouter = createTRPCRouter({
       };
     }),
 });
-
-/** Get the auth provider for an MCP server or user context */
-async function getOAuthProvider(
-  db: HydraDb,
-  input: {
-    mcpServer?: McpServer;
-    userContext?: typeof schema.toolProviderUserContexts.$inferSelect;
-    url: string;
-  },
-): Promise<OAuthClientProvider | undefined> {
-  const { mcpServer, userContext, url } = input;
-
-  // If we have a user context with client info, use that directly
-  if (userContext?.mcpOauthClientInfo) {
-    return new OAuthLocalProvider(db, userContext.id, {
-      baseUrl: getBaseUrl(),
-      serverUrl: url,
-      clientInformation: userContext.mcpOauthClientInfo,
-    });
-  }
-
-  // Otherwise try to get client info from the MCP server context
-  if (!mcpServer?.contexts.length) {
-    return undefined;
-  }
-
-  if (mcpServer.contexts.length > 1) {
-    console.warn(
-      `MCP server ${mcpServer.id} has multiple contexts, using the first one`,
-    );
-  }
-
-  if (!mcpServer.mcpRequiresAuth) {
-    // this is fine, just means this server is not using OAuth
-    return undefined;
-  }
-
-  const context = mcpServer.contexts[0];
-  const client = await db.query.mcpOauthClients.findFirst({
-    where: eq(schema.mcpOauthClients.toolProviderUserContextId, context.id),
-  });
-
-  if (!client) {
-    return undefined;
-  }
-
-  return new OAuthLocalProvider(db, context.id, {
-    baseUrl: getBaseUrl(),
-    serverUrl: url,
-    clientInformation: client.sessionInfo.clientInformation,
-    sessionId: client.sessionId,
-  });
-}
-
-/** Validate the MCP server, leveraging the oauth info in the db if available */
-async function getServerValidity(
-  db: HydraDb,
-  projectId: string,
-  serverId: string,
-  url: string,
-  customHeaders: Record<string, string> | undefined,
-  mcpTransport: MCPTransport,
-) {
-  const currentServer = await operations.getMcpServer(
-    db,
-    projectId,
-    serverId,
-    null,
-  );
-  if (!currentServer) {
-    throw new TRPCError({
-      code: "NOT_FOUND",
-      message: "MCP server not found",
-    });
-  }
-  const oauthProvider = await getOAuthProvider(db, {
-    userContext: currentServer.contexts[0],
-    url,
-  });
-  const validity = await validateMcpServer({
-    url,
-    customHeaders,
-    mcpTransport,
-    oauthProvider,
-  });
-  return {
-    ...validity,
-    // fake out that the server requires auth if we have an oauth provider
-    requiresAuth: validity.requiresAuth || !!oauthProvider,
-  };
-}
-
-/** Create a tool provider user context for the given tool provider id,
- * returning the id of the created or existing tool provider user context */
-async function upsertToolProviderUserContext(
-  db: HydraDb,
-  toolProviderId: string,
-  contextKey: string | null,
-) {
-  return await db.transaction(async (tx) => {
-    const toolProviderUserContext =
-      await tx.query.toolProviderUserContexts.findFirst({
-        where: eq(
-          schema.toolProviderUserContexts.toolProviderId,
-          toolProviderId,
-        ),
-      });
-    if (toolProviderUserContext) {
-      return toolProviderUserContext.id;
-    }
-
-    const [newToolProviderUserContext] = await tx
-      .insert(schema.toolProviderUserContexts)
-      .values({
-        toolProviderId,
-        contextKey,
-      })
-      .returning();
-
-    return newToolProviderUserContext.id;
-  });
-}

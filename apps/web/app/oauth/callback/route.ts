@@ -1,6 +1,7 @@
 import { getBaseUrl } from "@/lib/base-url";
 import { env } from "@/lib/env";
 import { createFetchWithTimeout } from "@/lib/fetch-with-timeout";
+import { OAuthErrorCode, oauthErrorCodeSchema } from "@/lib/oauth-error";
 import { auth } from "@modelcontextprotocol/sdk/client/auth.js";
 import { getDb, OAuthLocalProvider, schema } from "@tambo-ai-cloud/db";
 import { eq } from "drizzle-orm";
@@ -8,15 +9,20 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod/v3";
 
 // Define schema for validating query parameters
-const callbackParamsSchema = z
-  .object({
-    code: z.string().min(1, "Authorization code is required"),
-    state: z.string().optional(),
-    error: z.string().optional(),
-    redirect_uri: z.string().url().optional(),
-    sessionId: z.string(),
-  })
-  .passthrough();
+export const callbackParamsSchema = z.object({
+  code: z.string().min(1, "Authorization code is required").optional(),
+  state: z.string().min(1).optional(),
+  error: z.string().min(1).optional(),
+  redirect_uri: z.string().url().optional(),
+  sessionId: z.string().min(1).optional(),
+});
+
+class OAuthCallbackRouteError extends Error {
+  constructor(readonly code: OAuthErrorCode) {
+    super(code);
+    this.name = "OAuthCallbackRouteError";
+  }
+}
 
 /**
  * Handler for OAuth callback
@@ -25,13 +31,29 @@ const callbackParamsSchema = z
 export async function GET(request: NextRequest) {
   // Get query parameters from URL
   const url = new URL(request.url);
-  console.log("--> /oauth/callback", url.toString());
   const queryParams = Object.fromEntries(url.searchParams.entries());
 
   try {
     // Validate query parameters
     const validatedParams = callbackParamsSchema.parse(queryParams);
-    const { sessionId, code } = validatedParams;
+    const sessionId = validatedParams.state ?? validatedParams.sessionId;
+    if (validatedParams.error) {
+      console.error("OAuth callback returned provider error", {
+        sessionId,
+        error: validatedParams.error,
+      });
+      return redirectToOAuthError(request, "ProviderDenied");
+    }
+
+    if (!sessionId) {
+      throw new OAuthCallbackRouteError("SessionExpired");
+    }
+
+    if (!validatedParams.code) {
+      throw new OAuthCallbackRouteError("MissingAuthorizationCode");
+    }
+
+    const { code } = validatedParams;
     const db = getDb(env.DATABASE_URL);
     const oauthClient = await db.query.mcpOauthClients.findFirst({
       where: eq(schema.mcpOauthClients.sessionId, sessionId),
@@ -49,7 +71,7 @@ export async function GET(request: NextRequest) {
     });
 
     if (!oauthClient) {
-      throw new Error("Session not found");
+      throw new OAuthCallbackRouteError("SessionExpired");
     }
 
     const oauthProvider = new OAuthLocalProvider(
@@ -62,17 +84,6 @@ export async function GET(request: NextRequest) {
         baseUrl: getBaseUrl(),
       },
     );
-
-    // Check for errors returned from OAuth provider before attempting token exchange
-    if (validatedParams.error) {
-      console.error("OAuth error:", validatedParams.error);
-      return NextResponse.redirect(
-        new URL(
-          `/auth/error?error=${encodeURIComponent(validatedParams.error)}`,
-          request.url,
-        ),
-      );
-    }
 
     await auth(oauthProvider, {
       serverUrl: oauthClient.sessionInfo.serverUrl,
@@ -89,30 +100,20 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.redirect(redirectUrl);
   } catch (error) {
-    console.error("Error handling OAuth callback:", error);
-    console.trace();
+    console.error("OAuth callback failed", {
+      sessionId: queryParams.state ?? queryParams.sessionId,
+      error,
+    });
 
     if (error instanceof z.ZodError) {
-      // Format validation errors
-      const errorMessage = error.errors
-        .map((err) => `${err.path}: ${err.message}`)
-        .join(", ");
-      return NextResponse.redirect(
-        new URL(
-          `/auth/error?error=${encodeURIComponent(errorMessage)}`,
-          request.url,
-        ),
-      );
+      return redirectToOAuthError(request, "InvalidCallback");
     }
 
-    const errorMessage =
-      error instanceof Error ? error.message : "unknown_error";
-    return NextResponse.redirect(
-      new URL(
-        `/auth/error?error=${encodeURIComponent(errorMessage)}`,
-        request.url,
-      ),
-    );
+    if (error instanceof OAuthCallbackRouteError) {
+      return redirectToOAuthError(request, error.code);
+    }
+
+    return redirectToOAuthError(request, "TokenExchangeFailed");
   }
 }
 
@@ -131,4 +132,15 @@ function getPostAuthRedirect(
   }
   // fall back to the project settings page where MCP servers are configured
   return new URL(`/${projectId}/settings`, baseUrl).toString();
+}
+
+function redirectToOAuthError(request: NextRequest, code: OAuthErrorCode) {
+  const validatedCode = oauthErrorCodeSchema.parse(code);
+
+  return NextResponse.redirect(
+    new URL(
+      `/oauth/error?code=${encodeURIComponent(validatedCode)}`,
+      request.url,
+    ),
+  );
 }
