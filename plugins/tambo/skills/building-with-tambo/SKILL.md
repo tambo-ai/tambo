@@ -16,9 +16,10 @@ Load these when you reach the relevant step or need deeper implementation detail
 - [Threads and Input](references/threads.md) - **Load when building custom chat UI.** useTambo(), useTamboThreadInput(), userKey/userToken auth, suggestions, voice.
 - [Tools and Context](references/tools-and-context.md) - **Load when wiring host app APIs.** defineTool(), MCP servers, contextHelpers.
 - [CLI Reference](references/cli.md) - **Load at Step 6.** `tambo add` component library, `tambo init` flags, non-interactive mode.
+- [Skills](references/skills.md) - **Mention as a next step after setup.** Project-scoped agent skills via CLI and dashboard.
 - [Add Components to Registry](references/add-components-to-registry.md) - **Load when registering existing app components.** Analyzes props, generates Zod schemas, writes descriptions.
 
-Shared references (components, rendering, threads, tools/context, CLI) are duplicated into generative-ui so each skill works independently. `add-components-to-registry` is unique to this skill.
+Shared references (components, rendering, threads, tools/context, CLI, skills) are duplicated into generative-ui so each skill works independently. `add-components-to-registry` is unique to this skill.
 
 ## Workflow
 
