@@ -8,11 +8,18 @@ import type { LLMClient } from "../services/llm/llm-client";
 function buildMemoryExtractionPrompt(now: Date): string {
   // Use UTC to avoid server timezone leaking into memories. The user's local
   // timezone is not available here — a known limitation.
-  const dateStr = now.toISOString().split("T")[0];
-  const dayOfWeek = new Intl.DateTimeFormat("en-US", {
+  const utcFormatter = new Intl.DateTimeFormat("en-US", {
     weekday: "long",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
     timeZone: "UTC",
-  }).format(now);
+  });
+  const parts = Object.fromEntries(
+    utcFormatter.formatToParts(now).map((p) => [p.type, p.value]),
+  );
+  const dateStr = `${parts.year}-${parts.month}-${parts.day}`;
+  const dayOfWeek = parts.weekday;
 
   return `You are analyzing a conversation to extract facts worth remembering about the user for future conversations.
 
