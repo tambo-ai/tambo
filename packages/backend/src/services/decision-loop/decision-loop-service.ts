@@ -13,6 +13,7 @@ import {
 import OpenAI from "openai";
 import { parse } from "partial-json";
 import { generateDecisionLoopPrompt } from "../../prompt/decision-loop-prompts";
+import { formatTemplate, objectTemplate } from "../../util/template";
 import {
   prefetchAndCacheResources,
   ResourceFetcherMap,
@@ -117,6 +118,7 @@ export async function* runDecisionLoop(
   strictTools: OpenAI.Chat.Completions.ChatCompletionTool[],
   providerSkills: ProviderSkillConfig | undefined,
   customInstructions: string | undefined,
+  memories: string | undefined,
   forceToolChoice: string | undefined,
   resourceFetchers: ResourceFetcherMap,
   abortSignal?: AbortSignal,
@@ -140,8 +142,19 @@ export async function* runDecisionLoop(
     throw new Error(`Tool ${forceToolChoice} not found in provided tools`);
   }
 
-  const { template: systemPrompt, args: systemPromptArgs } =
-    generateDecisionLoopPrompt(customInstructions);
+  const { template, args: systemPromptArgs } = generateDecisionLoopPrompt(
+    customInstructions,
+    memories,
+  );
+
+  // Substitute template variables (e.g. {user_memories}) into the prompt string
+  // eagerly, before it becomes part of the messages array. We can't defer this
+  // to tryFormatTemplate because that would also process user messages, which
+  // may contain arbitrary {curly braces} that aren't template variables.
+  const systemPrompt = formatTemplate(
+    objectTemplate(template),
+    systemPromptArgs,
+  );
 
   // Pre-fetch and cache all resources before sending to LLM
   const messagesWithCachedResources = await prefetchAndCacheResources(

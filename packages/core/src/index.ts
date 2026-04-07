@@ -36,3 +36,5 @@ export * from "./referral-sources";
 export * from "./resend/audience";
 export * from "./skills";
 export * from "./skills-frontmatter";
+export * from "./memory";
+export * from "./memory-budget";

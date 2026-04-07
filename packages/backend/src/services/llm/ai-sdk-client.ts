@@ -876,7 +876,6 @@ export class AISdkClient implements LLMClient {
   }
 }
 
-/** We have to manually format this because objectTemplate doesn't seem to support chat_history */
 function tryFormatTemplate(
   messages: ThreadMessage[],
   promptTemplateParams: Record<string, string | ThreadMessage[]>,
@@ -886,7 +885,11 @@ function tryFormatTemplate(
       messages as ObjectTemplate<ThreadMessage[]>,
       promptTemplateParams,
     );
-  } catch (_e) {
+  } catch (e) {
+    console.warn(
+      "tryFormatTemplate: template substitution failed, returning original messages:",
+      e,
+    );
     return messages;
   }
 }

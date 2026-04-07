@@ -9,6 +9,7 @@ import { InteractableAvailableMcpServers } from "@/components/dashboard-componen
 import { InteractableCustomInstructionsEditor } from "@/components/dashboard-components/project-details/custom-instructions-editor";
 import { InteractableOAuthSettings } from "@/components/dashboard-components/project-details/oauth-settings";
 import { InteractableProviderKeySection } from "@/components/dashboard-components/project-details/provider-key-section";
+import { MemorySettings } from "@/components/dashboard-components/project-details/memory-settings";
 import { InteractableSkillsSection } from "@/components/dashboard-components/project-details/skills-section";
 import { InteractableToolCallLimitEditor } from "@/components/dashboard-components/project-details/tool-call-limit-editor";
 import { SettingsPageSkeleton } from "@/components/skeletons/settings-skeletons";
@@ -58,6 +59,7 @@ export function ProjectSettings({ projectId }: ProjectSettingsProps) {
   const customInstructionsRef = useRef<HTMLDivElement>(null);
   const oauthSettingsRef = useRef<HTMLDivElement>(null);
   const skillsRef = useRef<HTMLDivElement>(null);
+  const memoryRef = useRef<HTMLDivElement>(null);
   const mcpServersRef = useRef<HTMLDivElement>(null);
   const toolCallLimitRef = useRef<HTMLDivElement>(null);
 
@@ -152,6 +154,7 @@ export function ProjectSettings({ projectId }: ProjectSettingsProps) {
       "llm-providers": llmProvidersRef,
       "custom-instructions": customInstructionsRef,
       skills: skillsRef,
+      memory: memoryRef,
       "oauth-settings": oauthSettingsRef,
       "mcp-servers": mcpServersRef,
       "tool-call-limit": toolCallLimitRef,
@@ -352,6 +355,18 @@ export function ProjectSettings({ projectId }: ProjectSettingsProps) {
               <Button
                 variant="ghost"
                 className={`w-full justify-start gap-2 rounded-full ${
+                  activeSection === "memory" ? "bg-accent" : "hover:bg-accent"
+                }`}
+                onClick={() => {
+                  scrollToSection("memory");
+                  setIsMobileMenuOpen(false);
+                }}
+              >
+                Memory
+              </Button>
+              <Button
+                variant="ghost"
+                className={`w-full justify-start gap-2 rounded-full ${
                   activeSection === "mcp-servers"
                     ? "bg-accent"
                     : "hover:bg-accent"
@@ -443,6 +458,15 @@ export function ProjectSettings({ projectId }: ProjectSettingsProps) {
               <Button
                 variant="ghost"
                 className={`justify-start gap-2 rounded-full text-sm ${
+                  activeSection === "memory" ? "bg-accent" : "hover:bg-accent"
+                }`}
+                onClick={() => scrollToSection("memory")}
+              >
+                Memory
+              </Button>
+              <Button
+                variant="ghost"
+                className={`justify-start gap-2 rounded-full text-sm ${
                   activeSection === "mcp-servers"
                     ? "bg-accent"
                     : "hover:bg-accent"
@@ -512,6 +536,15 @@ export function ProjectSettings({ projectId }: ProjectSettingsProps) {
                     project.defaultLlmProviderName ?? undefined
                   }
                   defaultLlmModelName={project.defaultLlmModelName ?? undefined}
+                />
+              </div>
+
+              <div ref={memoryRef} className="p-2">
+                <MemorySettings
+                  projectId={project.id}
+                  memoryEnabled={project.memoryEnabled}
+                  memoryToolsEnabled={project.memoryToolsEnabled}
+                  onEdited={handleRefreshProject}
                 />
               </div>
 

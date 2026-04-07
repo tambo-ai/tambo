@@ -2,6 +2,7 @@ import {
   ActionType,
   AgentProviderType,
   AiProviderType,
+  MEMORY_CATEGORIES,
   ChatCompletionContentPart,
   ComponentDecisionV2,
   DeprecatedComposioAuthMode,
@@ -350,6 +351,12 @@ export const projects = pgTable(
       "custom_llm_parameters",
     ),
     agentHeaders: customJsonb<Record<string, string>>("agent_headers"),
+    /** Enables background memory extraction + injection into system prompt */
+    memoryEnabled: boolean("memory_enabled").default(false).notNull(),
+    /** Enables agent-visible save_memory / delete_memory tools (requires memoryEnabled) */
+    memoryToolsEnabled: boolean("memory_tools_enabled")
+      .default(false)
+      .notNull(),
   }),
   (table) => {
     return [
@@ -1230,6 +1237,80 @@ export type DBSkill = typeof skills.$inferSelect;
 export const skillRelations = relations(skills, ({ one }) => ({
   project: one(projects, {
     fields: [skills.projectId],
+    references: [projects.id],
+  }),
+}));
+
+// ---------------------------------------------------------------------------
+// Memories
+// ---------------------------------------------------------------------------
+
+export const memories = pgTable(
+  "memories",
+  ({ text, integer, timestamp }) => ({
+    id: text("id")
+      .primaryKey()
+      .notNull()
+      .default(sql`generate_custom_id('mem_')`),
+    projectId: text("project_id")
+      .references(() => projects.id, { onDelete: "cascade" })
+      .notNull(),
+    contextKey: text("context_key").notNull(),
+    content: text("content").notNull(),
+    category: text("category", {
+      enum: MEMORY_CATEGORIES,
+    }).notNull(),
+    importance: integer("importance").notNull().default(3),
+    deletedAt: timestamp("deleted_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  }),
+  (table) => [
+    index("memories_active_project_context_idx")
+      .on(table.projectId, table.contextKey)
+      .where(sql`deleted_at IS NULL`),
+    check("chk_memories_content_length", sql`length(${table.content}) <= 1000`),
+    check(
+      "chk_memories_importance_range",
+      sql`${table.importance} >= 1 AND ${table.importance} <= 5`,
+    ),
+    pgPolicy("memories_api_key_policy", {
+      to: projectApiKeyRole,
+      for: "all",
+      using: sql`${table.projectId} = (select ${projectApiKeyVariable})`,
+    }),
+    pgPolicy("memories_user_select_policy", {
+      to: authenticatedRole,
+      for: "select",
+      using: sql`exists (select 1 from project_members where project_members.project_id = ${table.projectId} and project_members.user_id = ${authUid})`,
+    }),
+    pgPolicy("memories_user_update_policy", {
+      to: authenticatedRole,
+      for: "update",
+      using: sql`exists (select 1 from project_members where project_members.project_id = ${table.projectId} and project_members.user_id = ${authUid})`,
+    }),
+    pgPolicy("memories_user_delete_policy", {
+      to: authenticatedRole,
+      for: "delete",
+      using: sql`exists (select 1 from project_members where project_members.project_id = ${table.projectId} and project_members.user_id = ${authUid})`,
+    }),
+    pgPolicy("memories_user_insert_policy", {
+      to: authenticatedRole,
+      for: "insert",
+      withCheck: sql`exists (select 1 from project_members where project_members.project_id = ${table.projectId} and project_members.user_id = ${authUid})`,
+    }),
+  ],
+).enableRLS();
+
+export type DBMemory = typeof memories.$inferSelect;
+
+export const memoryRelations = relations(memories, ({ one }) => ({
+  project: one(projects, {
+    fields: [memories.projectId],
     references: [projects.id],
   }),
 }));
