@@ -1261,7 +1261,6 @@ export const memories = pgTable(
       enum: MEMORY_CATEGORIES,
     }).notNull(),
     importance: integer("importance").notNull().default(3),
-    supersededBy: text("superseded_by"),
     deletedAt: timestamp("deleted_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .defaultNow()
@@ -1271,11 +1270,6 @@ export const memories = pgTable(
       .notNull(),
   }),
   (table) => [
-    foreignKey({
-      columns: [table.supersededBy],
-      foreignColumns: [table.id],
-      name: "memories_superseded_by_fk",
-    }).onDelete("set null"),
     index("memories_active_project_context_idx")
       .on(table.projectId, table.contextKey)
       .where(sql`deleted_at IS NULL`),
@@ -1283,10 +1277,6 @@ export const memories = pgTable(
     check(
       "chk_memories_importance_range",
       sql`${table.importance} >= 1 AND ${table.importance} <= 5`,
-    ),
-    check(
-      "chk_memories_superseded_not_self",
-      sql`${table.supersededBy} IS NULL OR ${table.supersededBy} <> ${table.id}`,
     ),
     pgPolicy("memories_api_key_policy", {
       to: projectApiKeyRole,
@@ -1307,6 +1297,11 @@ export const memories = pgTable(
       to: authenticatedRole,
       for: "delete",
       using: sql`exists (select 1 from project_members where project_members.project_id = ${table.projectId} and project_members.user_id = ${authUid})`,
+    }),
+    pgPolicy("memories_user_insert_policy", {
+      to: authenticatedRole,
+      for: "insert",
+      withCheck: sql`exists (select 1 from project_members where project_members.project_id = ${table.projectId} and project_members.user_id = ${authUid})`,
     }),
   ],
 ).enableRLS();

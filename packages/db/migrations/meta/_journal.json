@@ -659,6 +659,13 @@
       "when": 1775503028124,
       "tag": "0093_daffy_daredevil",
       "breakpoints": true
+    },
+    {
+      "idx": 94,
+      "version": "7",
+      "when": 1775583082814,
+      "tag": "0094_stiff_sentinel",
+      "breakpoints": true
     }
   ]
 }
