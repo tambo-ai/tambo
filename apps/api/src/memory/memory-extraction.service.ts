@@ -1,5 +1,6 @@
 import { Inject, Injectable, Logger } from "@nestjs/common";
-import type { MemoryImportance, ThreadMessage } from "@tambo-ai-cloud/core";
+import * as Sentry from "@sentry/nestjs";
+import type { ThreadMessage } from "@tambo-ai-cloud/core";
 import {
   type ITamboBackend,
   callMemoryExtractionLLM,
@@ -29,7 +30,7 @@ const lastExtractionTimestamps = new Map<string, number>();
  * Returns true if the extraction should proceed, false if rate-limited.
  * Encapsulates all knowledge of the in-memory rate limiting map.
  */
-function shouldExtract(rateLimitKey: string): boolean {
+function tryAcquireExtractionSlot(rateLimitKey: string): boolean {
   const lastExtraction = lastExtractionTimestamps.get(rateLimitKey);
   if (lastExtraction && Date.now() - lastExtraction < EXTRACTION_COOLDOWN_MS) {
     return false;
@@ -71,7 +72,7 @@ export class MemoryExtractionService {
     const rateLimitKey = `${projectId}:${contextKey}`;
 
     try {
-      if (!shouldExtract(rateLimitKey)) {
+      if (!tryAcquireExtractionSlot(rateLimitKey)) {
         this.logger.debug(
           `Skipping extraction for ${rateLimitKey}: rate limited`,
         );
@@ -132,49 +133,55 @@ export class MemoryExtractionService {
         return;
       }
 
-      // Dedup: load existing memories and skip exact matches
-      const existingMemories = await operations.getActiveMemories(
-        this.db,
-        projectId,
-        contextKey,
-        MEMORY_CAP,
-      );
-      const existingContentLower = new Set(
-        existingMemories.map((m) => m.content.toLowerCase()),
-      );
-
-      let insertedCount = 0;
-      for (const extracted of extractedMemories) {
-        if (existingContentLower.has(extracted.content.toLowerCase())) {
-          continue;
-        }
-
-        await operations.createMemory(this.db, {
+      // Wrap read-dedup-insert-evict in a transaction for consistency
+      await this.db.transaction(async (tx) => {
+        // Dedup: load existing memories and skip exact matches
+        const existingMemories = await operations.getActiveMemories(
+          tx,
           projectId,
           contextKey,
-          content: extracted.content,
-          category: extracted.category,
-          importance: extracted.importance as MemoryImportance,
-        });
-        insertedCount++;
-        // Add to dedup set so subsequent memories in this batch don't duplicate
-        existingContentLower.add(extracted.content.toLowerCase());
-      }
-
-      if (insertedCount > 0) {
-        this.logger.log(
-          `Extracted ${insertedCount} new memories for ${rateLimitKey}`,
+          MEMORY_CAP,
         );
-      }
+        const existingContentLower = new Set(
+          existingMemories.map((m) => m.content.toLowerCase()),
+        );
 
-      // Enforce cap: evict excess if over limit
-      await operations.evictExcessMemories(
-        this.db,
-        projectId,
-        contextKey,
-        MEMORY_CAP,
-      );
+        // Filter out duplicates, deduping within the batch as well
+        const newMemories = extractedMemories.filter((extracted) => {
+          const lower = extracted.content.toLowerCase();
+          if (existingContentLower.has(lower)) {
+            return false;
+          }
+          existingContentLower.add(lower);
+          return true;
+        });
+
+        if (newMemories.length > 0) {
+          await operations.createMemories(
+            tx,
+            newMemories.map((m) => ({
+              projectId,
+              contextKey,
+              content: m.content,
+              category: m.category,
+              importance: m.importance,
+            })),
+          );
+          this.logger.log(
+            `Extracted ${newMemories.length} new memories for ${rateLimitKey}`,
+          );
+        }
+
+        // Enforce cap: evict excess if over limit
+        await operations.evictExcessMemories(
+          tx,
+          projectId,
+          contextKey,
+          MEMORY_CAP,
+        );
+      });
     } catch (error: unknown) {
+      Sentry.captureException(error);
       this.logger.error(
         `Memory extraction failed for ${rateLimitKey}: ${
           error instanceof Error ? error.message : String(error)
@@ -193,7 +200,12 @@ function extractJsonFromResponse(raw: string): string | undefined {
   if (codeBlockMatch) {
     return codeBlockMatch[1].trim();
   }
-  // Try to find a JSON object directly
+  // Try to find a JSON object directly.
+  // Uses a greedy match (not lazy) to capture from the first `{` to the last `}`.
+  // This is intentional: lazy matching would stop at the first `}`, breaking
+  // valid nested JSON like `{"a": {"b": 1}}`. The greedy approach correctly
+  // captures the full object. If trailing text contains extra curlies, the
+  // subsequent JSON.parse will reject the invalid match.
   const objectMatch = raw.match(/\{[\s\S]*\}/);
   if (objectMatch) {
     return objectMatch[0];

@@ -28,6 +28,7 @@ jest.mock("@tambo-ai-cloud/db", () => {
     operations: {
       getActiveMemories: jest.fn(),
       createMemory: jest.fn(),
+      createMemories: jest.fn(),
       evictExcessMemories: jest.fn(),
     } satisfies Partial<typeof dbOperations>,
   };
@@ -39,7 +40,10 @@ const {
   operations: jest.Mocked<
     Pick<
       typeof dbOperations,
-      "getActiveMemories" | "createMemory" | "evictExcessMemories"
+      | "getActiveMemories"
+      | "createMemory"
+      | "createMemories"
+      | "evictExcessMemories"
     >
   >;
 } = jest.requireMock("@tambo-ai-cloud/db");
@@ -76,7 +80,15 @@ describe("MemoryExtractionService", () => {
     const module = await Test.createTestingModule({
       providers: [
         MemoryExtractionService,
-        { provide: DATABASE, useValue: {} }, // Fake DB - operations are mocked at module level
+        {
+          provide: DATABASE,
+          useValue: {
+            // Mock transaction to just execute the callback with the db itself
+            transaction: jest.fn(
+              async (cb: (tx: unknown) => Promise<unknown>) => await cb({}),
+            ),
+          },
+        },
       ],
     }).compile();
 
@@ -112,18 +124,7 @@ describe("MemoryExtractionService", () => {
 
     callMemoryExtractionLLM.mockResolvedValue(extractedResponse);
     operations.getActiveMemories.mockResolvedValue([]);
-    operations.createMemory.mockResolvedValue({
-      id: "mem_new",
-      projectId,
-      contextKey,
-      content: "test",
-      category: "fact",
-      importance: 3,
-      supersededBy: null,
-      deletedAt: null,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
+    operations.createMemories.mockResolvedValue([]);
     operations.evictExcessMemories.mockResolvedValue(0);
 
     await service.extractAndSaveMemories(
@@ -134,16 +135,25 @@ describe("MemoryExtractionService", () => {
     );
 
     expect(callMemoryExtractionLLM).toHaveBeenCalledTimes(1);
-    expect(operations.createMemory).toHaveBeenCalledTimes(2);
-    expect(operations.createMemory).toHaveBeenCalledWith(
+    expect(operations.createMemories).toHaveBeenCalledTimes(1);
+    expect(operations.createMemories).toHaveBeenCalledWith(
       expect.anything(),
-      expect.objectContaining({
-        projectId,
-        contextKey,
-        content: "The user prefers dark mode",
-        category: "preference",
-        importance: 4,
-      }),
+      expect.arrayContaining([
+        expect.objectContaining({
+          projectId,
+          contextKey,
+          content: "The user prefers dark mode",
+          category: "preference",
+          importance: 4,
+        }),
+        expect.objectContaining({
+          projectId,
+          contextKey,
+          content: "The user works at Acme Corp",
+          category: "fact",
+          importance: 3,
+        }),
+      ]),
     );
     expect(operations.evictExcessMemories).toHaveBeenCalled();
   });
@@ -171,24 +181,13 @@ describe("MemoryExtractionService", () => {
         content: "THE USER PREFERS DARK MODE",
         category: "preference",
         importance: 4,
-        supersededBy: null,
+
         deletedAt: null,
         createdAt: new Date(),
         updatedAt: new Date(),
       },
     ]);
-    operations.createMemory.mockResolvedValue({
-      id: "mem_new",
-      projectId,
-      contextKey,
-      content: "A new fact",
-      category: "fact",
-      importance: 3,
-      supersededBy: null,
-      deletedAt: null,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
+    operations.createMemories.mockResolvedValue([]);
     operations.evictExcessMemories.mockResolvedValue(0);
 
     await service.extractAndSaveMemories(
@@ -199,11 +198,16 @@ describe("MemoryExtractionService", () => {
     );
 
     // Only the non-duplicate should be created
-    expect(operations.createMemory).toHaveBeenCalledTimes(1);
-    expect(operations.createMemory).toHaveBeenCalledWith(
+    expect(operations.createMemories).toHaveBeenCalledTimes(1);
+    expect(operations.createMemories).toHaveBeenCalledWith(
       expect.anything(),
-      expect.objectContaining({ content: "A new fact" }),
+      expect.arrayContaining([
+        expect.objectContaining({ content: "A new fact" }),
+      ]),
     );
+    // Should NOT contain the duplicate
+    const batchArg = operations.createMemories.mock.calls[0][1];
+    expect(batchArg).toHaveLength(1);
   });
 
   test("handles LLM returning nothing gracefully", async () => {
@@ -216,7 +220,7 @@ describe("MemoryExtractionService", () => {
       mockBackend,
     );
 
-    expect(operations.createMemory).not.toHaveBeenCalled();
+    expect(operations.createMemories).not.toHaveBeenCalled();
   });
 
   test("handles LLM returning invalid JSON gracefully", async () => {
@@ -229,7 +233,7 @@ describe("MemoryExtractionService", () => {
       mockBackend,
     );
 
-    expect(operations.createMemory).not.toHaveBeenCalled();
+    expect(operations.createMemories).not.toHaveBeenCalled();
   });
 
   test("handles LLM returning JSON that fails Zod validation", async () => {
@@ -248,7 +252,7 @@ describe("MemoryExtractionService", () => {
       mockBackend,
     );
 
-    expect(operations.createMemory).not.toHaveBeenCalled();
+    expect(operations.createMemories).not.toHaveBeenCalled();
   });
 
   test("extracts JSON from markdown code blocks", async () => {
@@ -256,18 +260,7 @@ describe("MemoryExtractionService", () => {
       '```json\n{"memories": [{"content": "Likes TypeScript", "category": "preference", "importance": 3}]}\n```';
     callMemoryExtractionLLM.mockResolvedValue(wrappedResponse);
     operations.getActiveMemories.mockResolvedValue([]);
-    operations.createMemory.mockResolvedValue({
-      id: "mem_1",
-      projectId,
-      contextKey,
-      content: "Likes TypeScript",
-      category: "preference",
-      importance: 3,
-      supersededBy: null,
-      deletedAt: null,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
+    operations.createMemories.mockResolvedValue([]);
     operations.evictExcessMemories.mockResolvedValue(0);
 
     await service.extractAndSaveMemories(
@@ -277,10 +270,12 @@ describe("MemoryExtractionService", () => {
       mockBackend,
     );
 
-    expect(operations.createMemory).toHaveBeenCalledTimes(1);
-    expect(operations.createMemory).toHaveBeenCalledWith(
+    expect(operations.createMemories).toHaveBeenCalledTimes(1);
+    expect(operations.createMemories).toHaveBeenCalledWith(
       expect.anything(),
-      expect.objectContaining({ content: "Likes TypeScript" }),
+      expect.arrayContaining([
+        expect.objectContaining({ content: "Likes TypeScript" }),
+      ]),
     );
   });
 
@@ -294,7 +289,7 @@ describe("MemoryExtractionService", () => {
       mockBackend,
     );
 
-    expect(operations.createMemory).not.toHaveBeenCalled();
+    expect(operations.createMemories).not.toHaveBeenCalled();
     expect(operations.evictExcessMemories).not.toHaveBeenCalled();
   });
 });
