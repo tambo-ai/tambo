@@ -149,13 +149,15 @@ export function SkillsSection({
     { name: string; description: string; instructions: string } | undefined
   >(defaultNewSkill);
 
-  // Track whether Tambo-driven forms have been dismissed so we don't reopen them
-  const dismissedNewSkillRef = useRef(false);
-  const dismissedEditSkillIdRef = useRef<string | null>(null);
+  // Track the prop reference that was dismissed so we skip re-renders from cache
+  // invalidation but allow new requests from Tambo (which create new object references)
+  const dismissedNewSkillRef = useRef<typeof defaultNewSkill>(undefined);
+  const dismissedEditSkillRef = useRef<typeof defaultEditSkill>(undefined);
 
   // When Tambo streams in a new defaultNewSkill, open the create form automatically
   useEffect(() => {
-    if (!defaultNewSkill || dismissedNewSkillRef.current) return;
+    if (!defaultNewSkill || defaultNewSkill === dismissedNewSkillRef.current)
+      return;
     setEditingSkill(null);
     setImportedFields(defaultNewSkill);
     setIsFormOpen(true);
@@ -164,7 +166,7 @@ export function SkillsSection({
   // When Tambo streams in a defaultEditSkill, find the existing skill and open the edit form
   useEffect(() => {
     if (!defaultEditSkill || !skills) return;
-    if (dismissedEditSkillIdRef.current === defaultEditSkill.skillId) return;
+    if (defaultEditSkill === dismissedEditSkillRef.current) return;
     const existing = skills.find((s) => s.id === defaultEditSkill.skillId);
     if (!existing) return;
     setEditingSkill(existing);
@@ -246,13 +248,10 @@ export function SkillsSection({
   };
 
   const closeForm = () => {
-    // Mark Tambo-driven forms as dismissed so the useEffects don't reopen them
-    if (defaultNewSkill) {
-      dismissedNewSkillRef.current = true;
-    }
-    if (defaultEditSkill) {
-      dismissedEditSkillIdRef.current = defaultEditSkill.skillId;
-    }
+    // Store the current prop references so the useEffects skip re-renders
+    // from cache invalidation but still allow new Tambo requests
+    dismissedNewSkillRef.current = defaultNewSkill;
+    dismissedEditSkillRef.current = defaultEditSkill;
     setIsFormOpen(false);
     setEditingSkill(null);
     setImportedFields(undefined);
