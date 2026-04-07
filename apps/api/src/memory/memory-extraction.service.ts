@@ -12,41 +12,8 @@ import { memoryExtractionResponseSchema } from "./memory-extraction-schema";
 /** Maximum number of recent message pairs to send for extraction */
 const MAX_EXTRACTION_MESSAGES = 20; // 10 pairs of user+assistant
 
-/** Minimum conversation length to bother extracting */
-
 /** Hard cap on active memories per (projectId, contextKey) */
 const MEMORY_CAP = 200;
-
-// TODO: Replace this in-memory rate limiting with Redis or a DB-based approach
-// as part of a larger rate-limiting effort. This Map doesn't survive restarts
-// and doesn't work across multiple server instances.
-const EXTRACTION_COOLDOWN_MS = 15_000;
-const RATE_LIMIT_MAP_MAX_SIZE = 10_000;
-const lastExtractionTimestamps = new Map<string, number>();
-
-/**
- * Check if extraction is allowed for the given key and record the attempt.
- * Returns true if the extraction should proceed, false if rate-limited.
- * Encapsulates all knowledge of the in-memory rate limiting map.
- */
-function tryAcquireExtractionSlot(rateLimitKey: string): boolean {
-  const lastExtraction = lastExtractionTimestamps.get(rateLimitKey);
-  if (lastExtraction && Date.now() - lastExtraction < EXTRACTION_COOLDOWN_MS) {
-    return false;
-  }
-  // Evict oldest half of entries if the map grows too large
-  if (lastExtractionTimestamps.size >= RATE_LIMIT_MAP_MAX_SIZE) {
-    const entries = [...lastExtractionTimestamps.entries()].sort(
-      (a, b) => a[1] - b[1],
-    );
-    const deleteCount = Math.floor(entries.length / 2);
-    for (let i = 0; i < deleteCount; i++) {
-      lastExtractionTimestamps.delete(entries[i][0]);
-    }
-  }
-  lastExtractionTimestamps.set(rateLimitKey, Date.now());
-  return true;
-}
 
 @Injectable()
 export class MemoryExtractionService {
@@ -68,16 +35,9 @@ export class MemoryExtractionService {
     messages: ThreadMessage[],
     tamboBackend: ITamboBackend,
   ): Promise<void> {
-    const rateLimitKey = `${projectId}:${contextKey}`;
+    const logKey = `${projectId}:${contextKey}`;
 
     try {
-      if (!tryAcquireExtractionSlot(rateLimitKey)) {
-        this.logger.debug(
-          `Skipping extraction for ${rateLimitKey}: rate limited`,
-        );
-        return;
-      }
-
       // Take only recent messages for extraction
       const recentMessages = messages.slice(-MAX_EXTRACTION_MESSAGES);
 
@@ -88,9 +48,7 @@ export class MemoryExtractionService {
       );
 
       if (!rawResponse) {
-        this.logger.warn(
-          `Memory extraction returned no content for ${rateLimitKey}`,
-        );
+        this.logger.warn(`Memory extraction returned no content for ${logKey}`);
         return;
       }
 
@@ -98,7 +56,7 @@ export class MemoryExtractionService {
       const jsonStr = extractJsonFromResponse(rawResponse);
       if (!jsonStr) {
         this.logger.warn(
-          `Memory extraction returned unparseable response for ${rateLimitKey}`,
+          `Memory extraction returned unparseable response for ${logKey}`,
         );
         return;
       }
@@ -108,7 +66,7 @@ export class MemoryExtractionService {
         parsed = JSON.parse(jsonStr);
       } catch {
         this.logger.warn(
-          `Memory extraction returned invalid JSON for ${rateLimitKey}`,
+          `Memory extraction returned invalid JSON for ${logKey}`,
         );
         return;
       }
@@ -117,7 +75,7 @@ export class MemoryExtractionService {
       const result = memoryExtractionResponseSchema.safeParse(parsed);
       if (!result.success) {
         this.logger.warn(
-          `Memory extraction response failed validation for ${rateLimitKey}: ${result.error.message}`,
+          `Memory extraction response failed validation for ${logKey}: ${result.error.message}`,
         );
         return;
       }
@@ -162,7 +120,7 @@ export class MemoryExtractionService {
             })),
           );
           this.logger.log(
-            `Extracted ${newMemories.length} new memories for ${rateLimitKey}`,
+            `Extracted ${newMemories.length} new memories for ${logKey}`,
           );
         }
 
@@ -177,7 +135,7 @@ export class MemoryExtractionService {
     } catch (error: unknown) {
       Sentry.captureException(error);
       this.logger.error(
-        `Memory extraction failed for ${rateLimitKey}: ${
+        `Memory extraction failed for ${logKey}: ${
           error instanceof Error ? error.message : String(error)
         }`,
       );

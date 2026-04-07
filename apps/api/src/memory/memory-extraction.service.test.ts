@@ -67,15 +67,10 @@ const mockBackend = {
 describe("MemoryExtractionService", () => {
   let service: MemoryExtractionService;
   const projectId = "proj_1";
-  // Use a unique contextKey per test to avoid rate limiting collisions
-  // from the module-level Map that persists across tests
-  let contextKey: string;
-  let testCounter = 0;
+  const contextKey = "user_1";
 
   beforeEach(async () => {
     jest.clearAllMocks();
-    testCounter++;
-    contextKey = `user_${testCounter}`;
 
     const module = await Test.createTestingModule({
       providers: [
@@ -93,17 +88,6 @@ describe("MemoryExtractionService", () => {
     }).compile();
 
     service = module.get(MemoryExtractionService);
-  });
-
-  test("skips extraction when conversation is too short", async () => {
-    await service.extractAndSaveMemories(
-      projectId,
-      contextKey,
-      makeMessages(2), // Only 2 messages, below minimum of 4
-      mockBackend,
-    );
-
-    expect(callMemoryExtractionLLM).not.toHaveBeenCalled();
   });
 
   test("calls LLM and creates memories from valid extraction", async () => {
