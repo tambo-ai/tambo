@@ -31,7 +31,7 @@ import { api } from "@/trpc/react";
 import { withTamboInteractable } from "@tambo-ai/react";
 import { AnimatePresence, motion } from "framer-motion";
 import { AlertTriangle, FileText, Import, Plus } from "lucide-react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { z } from "zod/v3";
 import {
   type AlertState,
@@ -55,6 +55,12 @@ interface SkillsSectionProps {
     name: string;
     description: string;
     instructions: string;
+  };
+  defaultEditSkill?: {
+    skillId: string;
+    name?: string;
+    description?: string;
+    instructions?: string;
   };
 }
 
@@ -108,6 +114,7 @@ export function SkillsSection({
   defaultLlmProviderName,
   defaultLlmModelName,
   defaultNewSkill,
+  defaultEditSkill,
 }: SkillsSectionProps) {
   const isProviderSupported =
     !defaultLlmProviderName ||
@@ -140,7 +147,34 @@ export function SkillsSection({
   const [editingSkill, setEditingSkill] = useState<SkillSummary | null>(null);
   const [importedFields, setImportedFields] = useState<
     { name: string; description: string; instructions: string } | undefined
-  >(undefined);
+  >(defaultNewSkill);
+
+  // Track whether Tambo-driven forms have been dismissed so we don't reopen them
+  const dismissedNewSkillRef = useRef(false);
+  const dismissedEditSkillIdRef = useRef<string | null>(null);
+
+  // When Tambo streams in a new defaultNewSkill, open the create form automatically
+  useEffect(() => {
+    if (!defaultNewSkill || dismissedNewSkillRef.current) return;
+    setEditingSkill(null);
+    setImportedFields(defaultNewSkill);
+    setIsFormOpen(true);
+  }, [defaultNewSkill]);
+
+  // When Tambo streams in a defaultEditSkill, find the existing skill and open the edit form
+  useEffect(() => {
+    if (!defaultEditSkill || !skills) return;
+    if (dismissedEditSkillIdRef.current === defaultEditSkill.skillId) return;
+    const existing = skills.find((s) => s.id === defaultEditSkill.skillId);
+    if (!existing) return;
+    setEditingSkill(existing);
+    setImportedFields({
+      name: defaultEditSkill.name ?? existing.name,
+      description: defaultEditSkill.description ?? existing.description,
+      instructions: defaultEditSkill.instructions ?? existing.instructions,
+    });
+    setIsFormOpen(true);
+  }, [defaultEditSkill, skills]);
   const [togglingSkillId, setTogglingSkillId] = useState<string | null>(null);
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
   const [alertState, setAlertState] = useState<AlertState>({
@@ -212,6 +246,13 @@ export function SkillsSection({
   };
 
   const closeForm = () => {
+    // Mark Tambo-driven forms as dismissed so the useEffects don't reopen them
+    if (defaultNewSkill) {
+      dismissedNewSkillRef.current = true;
+    }
+    if (defaultEditSkill) {
+      dismissedEditSkillIdRef.current = defaultEditSkill.skillId;
+    }
     setIsFormOpen(false);
     setEditingSkill(null);
     setImportedFields(undefined);
@@ -558,7 +599,7 @@ export function SkillsSection({
   );
 }
 
-const InteractableSkillsSectionProps = z.object({
+export const InteractableSkillsSectionProps = z.object({
   projectId: z.string().describe("The unique identifier for the project."),
   defaultLlmProviderName: z
     .string()
@@ -581,6 +622,23 @@ const InteractableSkillsSectionProps = z.object({
     .optional()
     .describe(
       "Optional default fields for a new skill, used when creating a skill via Tambo.",
+    ),
+  defaultEditSkill: z
+    .object({
+      skillId: z.string().describe("The ID of the existing skill to edit."),
+      name: z.string().optional().describe("The updated name for the skill."),
+      description: z
+        .string()
+        .optional()
+        .describe("The updated description for the skill."),
+      instructions: z
+        .string()
+        .optional()
+        .describe("The updated instructions for the skill."),
+    })
+    .optional()
+    .describe(
+      "Optional fields to edit an existing skill. When set, the edit form opens pre-filled with the updated values. Use fetchProjectSkills first to get the skill ID.",
     ),
 });
 
