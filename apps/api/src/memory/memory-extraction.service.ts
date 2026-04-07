@@ -13,7 +13,6 @@ import { memoryExtractionResponseSchema } from "./memory-extraction-schema";
 const MAX_EXTRACTION_MESSAGES = 20; // 10 pairs of user+assistant
 
 /** Minimum conversation length to bother extracting */
-const MIN_MESSAGES_FOR_EXTRACTION = 4; // At least 2 exchanges
 
 /** Hard cap on active memories per (projectId, contextKey) */
 const MEMORY_CAP = 200;
@@ -76,11 +75,6 @@ export class MemoryExtractionService {
         this.logger.debug(
           `Skipping extraction for ${rateLimitKey}: rate limited`,
         );
-        return;
-      }
-
-      // Only extract from conversations with enough substance
-      if (messages.length < MIN_MESSAGES_FOR_EXTRACTION) {
         return;
       }
 
