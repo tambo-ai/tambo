@@ -116,17 +116,15 @@ export function SkillForm({
   // Sync form fields as Tambo streams in updated initialFields
   useEffect(() => {
     if (initialFields?.name !== undefined) setName(initialFields.name);
-  }, [initialFields?.name]);
-
-  useEffect(() => {
     if (initialFields?.description !== undefined)
       setDescription(initialFields.description);
-  }, [initialFields?.description]);
-
-  useEffect(() => {
     if (initialFields?.instructions !== undefined)
       setInstructions(initialFields.instructions);
-  }, [initialFields?.instructions]);
+  }, [
+    initialFields?.name,
+    initialFields?.description,
+    initialFields?.instructions,
+  ]);
 
   const handlePasteWithFrontmatter = useCallback((e: React.ClipboardEvent) => {
     const text = e.clipboardData.getData("text/plain");

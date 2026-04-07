@@ -143,21 +143,21 @@ export function SkillsSection({
     isError,
   } = api.skills.list.useQuery({ projectId });
 
-  const [isFormOpen, setIsFormOpen] = useState(!!defaultNewSkill);
+  const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingSkill, setEditingSkill] = useState<SkillSummary | null>(null);
   const [importedFields, setImportedFields] = useState<
     { name: string; description: string; instructions: string } | undefined
-  >(defaultNewSkill);
+  >(undefined);
 
-  // Track the prop reference that was dismissed so we skip re-renders from cache
-  // invalidation but allow new requests from Tambo (which create new object references)
-  const dismissedNewSkillRef = useRef<typeof defaultNewSkill>(undefined);
-  const dismissedEditSkillRef = useRef<typeof defaultEditSkill>(undefined);
+  // Track dismissed Tambo-driven forms by stable string IDs so cache
+  // invalidations (which produce new array refs) don't reopen the form
+  const dismissedNewSkillNameRef = useRef<string | null>(null);
+  const dismissedEditSkillIdRef = useRef<string | null>(null);
 
   // When Tambo streams in a new defaultNewSkill, open the create form automatically
   useEffect(() => {
-    if (!defaultNewSkill || defaultNewSkill === dismissedNewSkillRef.current)
-      return;
+    if (!defaultNewSkill) return;
+    if (dismissedNewSkillNameRef.current === defaultNewSkill.name) return;
     setEditingSkill(null);
     setImportedFields(defaultNewSkill);
     setIsFormOpen(true);
@@ -165,8 +165,8 @@ export function SkillsSection({
 
   // When Tambo streams in a defaultEditSkill, find the existing skill and open the edit form
   useEffect(() => {
-    if (!defaultEditSkill || !skills) return;
-    if (defaultEditSkill === dismissedEditSkillRef.current) return;
+    if (!defaultEditSkill || !skills || isFormOpen) return;
+    if (dismissedEditSkillIdRef.current === defaultEditSkill.skillId) return;
     const existing = skills.find((s) => s.id === defaultEditSkill.skillId);
     if (!existing) return;
     setEditingSkill(existing);
@@ -176,7 +176,8 @@ export function SkillsSection({
       instructions: defaultEditSkill.instructions ?? existing.instructions,
     });
     setIsFormOpen(true);
-  }, [defaultEditSkill, skills]);
+  }, [defaultEditSkill, skills, isFormOpen]);
+
   const [togglingSkillId, setTogglingSkillId] = useState<string | null>(null);
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
   const [alertState, setAlertState] = useState<AlertState>({
@@ -248,10 +249,14 @@ export function SkillsSection({
   };
 
   const closeForm = () => {
-    // Store the current prop references so the useEffects skip re-renders
-    // from cache invalidation but still allow new Tambo requests
-    dismissedNewSkillRef.current = defaultNewSkill;
-    dismissedEditSkillRef.current = defaultEditSkill;
+    // Mark Tambo-driven forms as dismissed by stable string IDs so
+    // cache invalidations don't reopen the form
+    if (defaultNewSkill) {
+      dismissedNewSkillNameRef.current = defaultNewSkill.name;
+    }
+    if (defaultEditSkill) {
+      dismissedEditSkillIdRef.current = defaultEditSkill.skillId;
+    }
     setIsFormOpen(false);
     setEditingSkill(null);
     setImportedFields(undefined);
