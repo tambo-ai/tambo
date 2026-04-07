@@ -111,6 +111,7 @@ export function SeattleLandmarks() {
             title="AI-Generated Map"
             component={<MapChatInterface />}
             code={`import { Map, mapSchema } from "@/components/tambo/map";
+import { MessageThreadFull } from "@/components/tambo/message-thread-full";
 import { useTambo } from "@tambo-ai/react";
 import { useEffect } from "react";
 
@@ -162,19 +163,24 @@ export function MapDemo() {
             <pre className="rounded-md border border-border bg-muted/40 p-4">
               <code className="text-sm text-foreground">
                 {`import { Map, mapSchema } from "@/components/tambo/map";
+import { MessageThreadFull } from "@/components/tambo/message-thread-full";
 import { useTambo } from "@tambo-ai/react";
 import { useEffect } from "react";
 
-const { registerComponent } = useTambo();
+export function App() {
+  const { registerComponent } = useTambo();
 
-useEffect(() => {
-  registerComponent({
-    name: "Map",
-    description: "Interactive map for visualizing geographic data.",
-    component: Map,
-    propsSchema: mapSchema,
-  });
-}, [registerComponent]);`}
+  useEffect(() => {
+    registerComponent({
+      name: "Map",
+      description: "Interactive map for visualizing geographic data.",
+      component: Map,
+      propsSchema: mapSchema,
+    });
+  }, [registerComponent]);
+
+  return <MessageThreadFull />;
+}`}
               </code>
             </pre>
           </div>

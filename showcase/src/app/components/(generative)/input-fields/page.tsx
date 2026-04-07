@@ -154,6 +154,7 @@ export function UserRegistrationFields() {
   InputFields,
   inputFieldsSchema,
 } from "@/components/tambo/input-fields";
+import { MessageThreadFull } from "@/components/tambo/message-thread-full";
 import { useTambo } from "@tambo-ai/react";
 import { useEffect } from "react";
 
@@ -207,19 +208,24 @@ export function InputFieldsDemo() {
             <pre className="rounded-md border border-border bg-muted/40 p-4">
               <code className="text-sm text-foreground">
                 {`import { InputFields, inputFieldsSchema } from "@/components/tambo/input-fields";
+import { MessageThreadFull } from "@/components/tambo/message-thread-full";
 import { useTambo } from "@tambo-ai/react";
 import { useEffect } from "react";
 
-const { registerComponent } = useTambo();
+export function App() {
+  const { registerComponent } = useTambo();
 
-useEffect(() => {
-  registerComponent({
-    name: "InputFields",
-    description: "A focused collection of input fields.",
-    component: InputFields,
-    propsSchema: inputFieldsSchema,
-  });
-}, [registerComponent]);`}
+  useEffect(() => {
+    registerComponent({
+      name: "InputFields",
+      description: "A focused collection of input fields.",
+      component: InputFields,
+      propsSchema: inputFieldsSchema,
+    });
+  }, [registerComponent]);
+
+  return <MessageThreadFull />;
+}`}
               </code>
             </pre>
           </div>

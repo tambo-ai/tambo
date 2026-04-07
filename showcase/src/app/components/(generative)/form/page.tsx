@@ -136,6 +136,7 @@ export function ContactForm() {
             title="AI-Generated Form"
             component={<FormChatInterface />}
             code={`import { FormComponent, formSchema } from "@/components/tambo/form";
+import { MessageThreadFull } from "@/components/tambo/message-thread-full";
 import { useTambo } from "@tambo-ai/react";
 import { useEffect } from "react";
 
@@ -189,19 +190,24 @@ export function FormDemo() {
             <pre className="rounded-md border border-border bg-muted/40 p-4">
               <code className="text-sm text-foreground">
                 {`import { FormComponent, formSchema } from "@/components/tambo/form";
+import { MessageThreadFull } from "@/components/tambo/message-thread-full";
 import { useTambo } from "@tambo-ai/react";
 import { useEffect } from "react";
 
-const { registerComponent } = useTambo();
+export function App() {
+  const { registerComponent } = useTambo();
 
-useEffect(() => {
-  registerComponent({
-    name: "FormComponent",
-    description: "A dynamic form builder component.",
-    component: FormComponent,
-    propsSchema: formSchema,
-  });
-}, [registerComponent]);`}
+  useEffect(() => {
+    registerComponent({
+      name: "FormComponent",
+      description: "A dynamic form builder component.",
+      component: FormComponent,
+      propsSchema: formSchema,
+    });
+  }, [registerComponent]);
+
+  return <MessageThreadFull />;
+}`}
               </code>
             </pre>
           </div>

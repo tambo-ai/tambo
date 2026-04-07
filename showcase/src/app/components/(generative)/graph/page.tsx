@@ -100,6 +100,7 @@ export function QuarterlySalesChart() {
             title="AI-Generated Chart"
             component={<GraphChatInterface />}
             code={`import { Graph, graphSchema } from "@/components/tambo/graph";
+import { MessageThreadFull } from "@/components/tambo/message-thread-full";
 import { useTambo } from "@tambo-ai/react";
 import { useEffect } from "react";
 
@@ -153,19 +154,24 @@ export function GraphDemo() {
             <pre className="rounded-md border border-border bg-muted/40 p-4">
               <code className="text-sm text-foreground">
                 {`import { Graph, graphSchema } from "@/components/tambo/graph";
+import { MessageThreadFull } from "@/components/tambo/message-thread-full";
 import { useTambo } from "@tambo-ai/react";
 import { useEffect } from "react";
 
-const { registerComponent } = useTambo();
+export function App() {
+  const { registerComponent } = useTambo();
 
-useEffect(() => {
-  registerComponent({
-    name: "Graph",
-    description: "A versatile data visualization component.",
-    component: Graph,
-    propsSchema: graphSchema,
-  });
-}, [registerComponent]);`}
+  useEffect(() => {
+    registerComponent({
+      name: "Graph",
+      description: "A versatile data visualization component.",
+      component: Graph,
+      propsSchema: graphSchema,
+    });
+  }, [registerComponent]);
+
+  return <MessageThreadFull />;
+}`}
               </code>
             </pre>
           </div>
