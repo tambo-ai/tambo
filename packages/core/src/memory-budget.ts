@@ -10,7 +10,7 @@ export const MEMORY_TOKEN_BUDGET = 1000;
  * Selects memories that fit within the given token budget.
  * Assumes input is already sorted by the caller (e.g., importance DESC, createdAt DESC).
  * Uses a conservative chars-per-token heuristic for estimation.
- * Fills greedily in order — stops at the first memory that would exceed the budget.
+ * Fills greedily in order — skips any single memory that would exceed the remaining budget.
  * @returns The subset of memories that fit within the budget, preserving input order.
  */
 export function selectMemoriesWithinBudget(
@@ -21,7 +21,7 @@ export function selectMemoriesWithinBudget(
   let usedChars = 0;
   const selected: Memory[] = [];
   for (const memory of memories) {
-    if (usedChars + memory.content.length > maxChars) break;
+    if (usedChars + memory.content.length > maxChars) continue;
     usedChars += memory.content.length;
     selected.push(memory);
   }

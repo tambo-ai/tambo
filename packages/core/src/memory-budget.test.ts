@@ -37,6 +37,18 @@ describe("selectMemoriesWithinBudget", () => {
     expect(result).toHaveLength(0);
   });
 
+  it("skips oversized memory and includes smaller subsequent ones", () => {
+    const memories = [
+      makeMemory("1", "a".repeat(10)), // fits (10 chars, budget ~30 chars)
+      makeMemory("2", "b".repeat(100)), // too big, skip
+      makeMemory("3", "c".repeat(10)), // fits
+    ];
+    const result = selectMemoriesWithinBudget(memories, 10);
+    expect(result).toHaveLength(2);
+    expect(result[0].id).toBe("1");
+    expect(result[1].id).toBe("3");
+  });
+
   it("returns empty array for empty input", () => {
     const result = selectMemoriesWithinBudget([], 1000);
     expect(result).toHaveLength(0);

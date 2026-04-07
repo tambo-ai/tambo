@@ -885,7 +885,11 @@ function tryFormatTemplate(
       messages as ObjectTemplate<ThreadMessage[]>,
       promptTemplateParams,
     );
-  } catch (_e) {
+  } catch (e) {
+    console.warn(
+      "tryFormatTemplate: template substitution failed, returning original messages:",
+      e,
+    );
     return messages;
   }
 }
