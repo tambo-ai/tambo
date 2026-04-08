@@ -9,3 +9,4 @@ export * from "./tambo-user";
 export * from "./mcp-usage";
 export * from "./runs";
 export * from "./skills";
+export * from "./memory";

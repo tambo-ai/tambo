@@ -59,6 +59,8 @@ export function createMockDBProject(
     creatorId: overrides.creatorId ?? null,
     members: overrides.members ?? [],
     agentHeaders: overrides.agentHeaders ?? null,
+    memoryEnabled: overrides.memoryEnabled ?? false,
+    memoryToolsEnabled: overrides.memoryToolsEnabled ?? false,
   };
 
   return project;

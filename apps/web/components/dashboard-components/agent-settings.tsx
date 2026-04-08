@@ -2,6 +2,7 @@
 
 import { InteractableAvailableMcpServers } from "@/components/dashboard-components/project-details/available-mcp-servers";
 import { InteractableCustomInstructionsEditor } from "@/components/dashboard-components/project-details/custom-instructions-editor";
+import { MemorySettings } from "@/components/dashboard-components/project-details/memory-settings";
 import { InteractableProviderKeySection } from "@/components/dashboard-components/project-details/provider-key-section";
 import { InteractableSkillsSection } from "@/components/dashboard-components/project-details/skills-section";
 import { InteractableToolCallLimitEditor } from "@/components/dashboard-components/project-details/tool-call-limit-editor";
@@ -76,6 +77,13 @@ export function AgentSettings({ projectId }: AgentSettingsProps) {
           <InteractableToolCallLimitEditor
             projectId={project.id}
             maxToolCallLimit={project.maxToolCallLimit}
+            onEdited={handleRefreshProject}
+          />
+
+          <MemorySettings
+            projectId={project.id}
+            memoryEnabled={project.memoryEnabled}
+            memoryToolsEnabled={project.memoryToolsEnabled}
             onEdited={handleRefreshProject}
           />
 
