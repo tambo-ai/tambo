@@ -18,17 +18,21 @@ export function registerSkillTools(
 ) {
   /**
    * Registers a tool to fetch all skills for a project.
-   * @returns Array of skills for the project
+   * @returns Object with skills array and count
    */
   registerTool({
     name: "fetchProjectSkills",
     description:
       "Fetches all skills for a project. Returns an array of skills with their IDs, names, descriptions, enabled status, and usage counts.",
     tool: async (params) => {
-      return await ctx.trpcClient.skills.list.query(params);
+      const skills = await ctx.trpcClient.skills.list.query(params);
+      return { skills, count: skills.length };
     },
     inputSchema: listSkillsInput,
-    outputSchema: z.array(skillSchema),
+    outputSchema: z.object({
+      skills: z.array(skillSchema),
+      count: z.number().describe("Total number of skills"),
+    }),
   });
 
   /**
@@ -40,12 +44,15 @@ export function registerSkillTools(
     description:
       "Creates a new skill for a project. The name must be kebab-case (e.g. scheduling-assistant). Returns the created skill.",
     tool: async (params) => {
-      const result = await ctx.trpcClient.skills.create.mutate(params);
+      const skill = await ctx.trpcClient.skills.create.mutate(params);
       await invalidateSkillsCache(ctx, params.projectId);
-      return result;
+      return { success: true, skill };
     },
     inputSchema: createSkillInput,
-    outputSchema: skillSchema,
+    outputSchema: z.object({
+      success: z.boolean(),
+      skill: skillSchema,
+    }),
   });
 
   /**
@@ -57,18 +64,21 @@ export function registerSkillTools(
     description:
       "Updates an existing skill for a project. Can update name, description, instructions, or enabled status. Returns the updated skill.",
     tool: async (params) => {
-      const result = await ctx.trpcClient.skills.update.mutate(params);
+      const skill = await ctx.trpcClient.skills.update.mutate(params);
       await invalidateSkillsCache(ctx, params.projectId);
-      return result;
+      return { success: true, skill };
     },
     inputSchema: updateSkillInput,
-    outputSchema: skillSchema.nullable(),
+    outputSchema: z.object({
+      success: z.boolean(),
+      skill: skillSchema.nullable(),
+    }),
   });
 
   /**
    * Registers a tool to delete a skill.
    * IMPORTANT: Always call fetchProjectSkills first to get the correct skill ID.
-   * @returns void
+   * @returns Confirmation of deletion
    */
   registerTool({
     name: "deleteSkill",
@@ -77,8 +87,9 @@ export function registerSkillTools(
     tool: async (params) => {
       await ctx.trpcClient.skills.delete.mutate(params);
       await invalidateSkillsCache(ctx, params.projectId);
+      return { success: true };
     },
     inputSchema: deleteSkillInput,
-    outputSchema: z.void(),
+    outputSchema: z.object({ success: z.boolean() }),
   });
 }
