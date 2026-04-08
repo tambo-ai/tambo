@@ -68,16 +68,16 @@ export function AgentSettings({ projectId }: AgentSettingsProps) {
             onEdited={handleRefreshProject}
           />
 
+          <InteractableAvailableMcpServers
+            projectId={project.id}
+            providerType={project.providerType}
+            onEdited={handleRefreshProject}
+          />
+
           <InteractableSkillsSection
             projectId={project.id}
             defaultLlmProviderName={project.defaultLlmProviderName ?? undefined}
             defaultLlmModelName={project.defaultLlmModelName ?? undefined}
-          />
-
-          <InteractableToolCallLimitEditor
-            projectId={project.id}
-            maxToolCallLimit={project.maxToolCallLimit}
-            onEdited={handleRefreshProject}
           />
 
           <MemorySettings
@@ -87,9 +87,9 @@ export function AgentSettings({ projectId }: AgentSettingsProps) {
             onEdited={handleRefreshProject}
           />
 
-          <InteractableAvailableMcpServers
+          <InteractableToolCallLimitEditor
             projectId={project.id}
-            providerType={project.providerType}
+            maxToolCallLimit={project.maxToolCallLimit}
             onEdited={handleRefreshProject}
           />
 
