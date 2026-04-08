@@ -154,6 +154,11 @@ export function SkillsSection({
   const dismissedNewSkillRef = useRef<typeof defaultNewSkill>(undefined);
   const dismissedEditSkillRef = useRef<typeof defaultEditSkill>(undefined);
 
+  // Keep a ref to the latest skills so the edit effect can look up skills
+  // without re-firing on every cache invalidation
+  const skillsRef = useRef(skills);
+  skillsRef.current = skills;
+
   // When Tambo streams in a new defaultNewSkill, open the create form automatically
   useEffect(() => {
     if (!defaultNewSkill || defaultNewSkill === dismissedNewSkillRef.current)
@@ -164,11 +169,15 @@ export function SkillsSection({
   }, [defaultNewSkill]);
 
   // When Tambo streams in a defaultEditSkill, find the existing skill and open the edit form.
-  // Keep updating importedFields for the active skillId so streamed field values propagate.
+  // Uses skillsRef to avoid re-firing on cache invalidation of the skills list.
   useEffect(() => {
-    if (!defaultEditSkill || !skills) return;
+    if (!defaultEditSkill) return;
     if (defaultEditSkill === dismissedEditSkillRef.current) return;
-    const existing = skills.find((s) => s.id === defaultEditSkill.skillId);
+    const currentSkills = skillsRef.current;
+    if (!currentSkills) return;
+    const existing = currentSkills.find(
+      (s) => s.id === defaultEditSkill.skillId,
+    );
     if (!existing) return;
     setEditingSkill(existing);
     setImportedFields({
@@ -179,7 +188,7 @@ export function SkillsSection({
     if (!isFormOpen) {
       setIsFormOpen(true);
     }
-  }, [defaultEditSkill, skills, isFormOpen]);
+  }, [defaultEditSkill, isFormOpen]);
 
   const [togglingSkillId, setTogglingSkillId] = useState<string | null>(null);
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
