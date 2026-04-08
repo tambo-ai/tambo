@@ -83,7 +83,6 @@ export function AgentSettings({ projectId }: AgentSettingsProps) {
           <MemorySettings
             projectId={project.id}
             memoryEnabled={project.memoryEnabled}
-            memoryToolsEnabled={project.memoryToolsEnabled}
             onEdited={handleRefreshProject}
           />
 
