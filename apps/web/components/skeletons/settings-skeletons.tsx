@@ -33,12 +33,12 @@ export function AgentPageSkeleton() {
     >
       <Skeleton className="h-4 w-64 mb-4 mt-2" />
       <div className="space-y-6">
-        <ProviderKeySectionSkeleton />
         <CustomInstructionsEditorSkeleton />
         <AvailableMcpServersSkeleton />
         <SkillsSectionSkeleton />
         <MemorySettingsSkeleton />
         <ToolCallLimitSkeleton />
+        <ProviderKeySectionSkeleton />
       </div>
     </motion.div>
   );

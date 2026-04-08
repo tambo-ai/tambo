@@ -61,11 +61,6 @@ export function AgentSettings({ projectId }: AgentSettingsProps) {
           Configure the behavior of your Tambo agent.
         </p>
         <div className="space-y-6">
-          <InteractableProviderKeySection
-            projectId={project.id}
-            onEdited={handleRefreshProject}
-          />
-
           <InteractableCustomInstructionsEditor
             projectId={project.id}
             customInstructions={project.customInstructions}
@@ -95,6 +90,11 @@ export function AgentSettings({ projectId }: AgentSettingsProps) {
           <InteractableToolCallLimitEditor
             projectId={project.id}
             maxToolCallLimit={project.maxToolCallLimit}
+            onEdited={handleRefreshProject}
+          />
+
+          <InteractableProviderKeySection
+            projectId={project.id}
             onEdited={handleRefreshProject}
           />
         </div>
