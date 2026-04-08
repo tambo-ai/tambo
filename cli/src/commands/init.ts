@@ -80,14 +80,19 @@ async function writeApiKeyToEnv(
   { force = false }: { force?: boolean } = {},
 ): Promise<boolean> {
   try {
-    // use `.env.local` by default or fall back to .env if it exists and .env.local does not
-    let targetEnvFile = ".env.local";
-    if (fs.existsSync(".env") && !fs.existsSync(".env.local")) {
-      targetEnvFile = ".env";
-    }
-
     // Detect framework and get appropriate env var name
     const framework = detectFramework();
+
+    // Expo only reads from .env (doesn't support .env.local)
+    // For other frameworks, use .env.local by default or fall back to .env if it exists and .env.local does not
+    let targetEnvFile: string;
+    if (framework?.name === "expo") {
+      targetEnvFile = ".env";
+    } else if (fs.existsSync(".env") && !fs.existsSync(".env.local")) {
+      targetEnvFile = ".env";
+    } else {
+      targetEnvFile = ".env.local";
+    }
     const envVarName = getTamboApiKeyEnvVar() as TamboApiKeyName;
 
     if (framework) {
