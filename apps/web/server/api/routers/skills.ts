@@ -1,4 +1,10 @@
 import { env } from "@/lib/env";
+import {
+  createSkillInput,
+  deleteSkillInput,
+  listSkillsInput,
+  updateSkillInput,
+} from "@/lib/schemas/skills";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import {
   deleteSkillFromProvider,
@@ -6,17 +12,10 @@ import {
   updateSkillOnProvider,
   providerSupportsSkills,
 } from "@tambo-ai-cloud/backend";
-import {
-  decryptProviderKey,
-  SKILL_NAME_MAX_LENGTH,
-  SKILL_NAME_PATTERN,
-  SKILL_DESCRIPTION_MAX_LENGTH,
-  SKILL_INSTRUCTIONS_MAX_LENGTH,
-} from "@tambo-ai-cloud/core";
+import { decryptProviderKey } from "@tambo-ai-cloud/core";
 import { operations, schema, SkillNameConflictError } from "@tambo-ai-cloud/db";
 import { eq } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
-import { z } from "zod/v3";
 
 /**
  * Get the decrypted provider API key for the project's default LLM provider.
@@ -108,9 +107,11 @@ async function updateSkillOnProviderAndPersist(
   existingRef:
     | { skillId: string; uploadedAt: string; version: string }
     | undefined,
+  provider?: { providerName: string; apiKey: string },
 ): Promise<void> {
-  const provider = await getProjectProviderKey(db, projectId);
-  if (!provider) return;
+  const resolvedProvider =
+    provider ?? (await getProjectProviderKey(db, projectId));
+  if (!resolvedProvider) return;
 
   try {
     // If we have an existing provider reference, update via versions.create().
@@ -118,18 +119,18 @@ async function updateSkillOnProviderAndPersist(
     const metadata = existingRef
       ? await updateSkillOnProvider({
           skill: { ...skill, projectId },
-          providerName: provider.providerName,
-          apiKey: provider.apiKey,
+          providerName: resolvedProvider.providerName,
+          apiKey: resolvedProvider.apiKey,
           existingRef,
         })
       : await uploadSkillToProvider({
           skill: { ...skill, projectId },
-          providerName: provider.providerName,
-          apiKey: provider.apiKey,
+          providerName: resolvedProvider.providerName,
+          apiKey: resolvedProvider.apiKey,
         });
 
     await operations.mergeSkillMetadata(db, projectId, skill.id, {
-      [provider.providerName]: metadata,
+      [resolvedProvider.providerName]: metadata,
     });
   } catch (error) {
     throw new TRPCError({
@@ -141,7 +142,7 @@ async function updateSkillOnProviderAndPersist(
 
 export const skillsRouter = createTRPCRouter({
   list: protectedProcedure
-    .input(z.object({ projectId: z.string() }))
+    .input(listSkillsInput)
     .query(async ({ ctx, input }) => {
       await operations.ensureProjectAccess(
         ctx.db,
@@ -152,24 +153,7 @@ export const skillsRouter = createTRPCRouter({
     }),
 
   create: protectedProcedure
-    .input(
-      z.object({
-        projectId: z.string(),
-        name: z
-          .string()
-          .min(1, "Name is required")
-          .max(SKILL_NAME_MAX_LENGTH)
-          .regex(
-            SKILL_NAME_PATTERN,
-            "Name must be kebab-case (e.g. scheduling-assistant)",
-          ),
-        description: z
-          .string()
-          .min(1, "Description is required")
-          .max(SKILL_DESCRIPTION_MAX_LENGTH),
-        instructions: z.string().max(SKILL_INSTRUCTIONS_MAX_LENGTH),
-      }),
-    )
+    .input(createSkillInput)
     .mutation(async ({ ctx, input }) => {
       await operations.ensureProjectAccess(
         ctx.db,
@@ -205,28 +189,7 @@ export const skillsRouter = createTRPCRouter({
     }),
 
   update: protectedProcedure
-    .input(
-      z.object({
-        projectId: z.string(),
-        skillId: z.string(),
-        name: z
-          .string()
-          .min(1)
-          .max(SKILL_NAME_MAX_LENGTH)
-          .regex(
-            SKILL_NAME_PATTERN,
-            "Name must be kebab-case (e.g. scheduling-assistant)",
-          )
-          .optional(),
-        description: z
-          .string()
-          .min(1)
-          .max(SKILL_DESCRIPTION_MAX_LENGTH)
-          .optional(),
-        instructions: z.string().max(SKILL_INSTRUCTIONS_MAX_LENGTH).optional(),
-        enabled: z.boolean().optional(),
-      }),
-    )
+    .input(updateSkillInput)
     .mutation(async ({ ctx, input }) => {
       await operations.ensureProjectAccess(
         ctx.db,
@@ -282,6 +245,7 @@ export const skillsRouter = createTRPCRouter({
             input.projectId,
             updated,
             existingRef,
+            provider ?? undefined,
           );
         } catch (error) {
           // Log but don't throw -- the DB update and metadata clear should
@@ -298,7 +262,7 @@ export const skillsRouter = createTRPCRouter({
     }),
 
   delete: protectedProcedure
-    .input(z.object({ projectId: z.string(), skillId: z.string() }))
+    .input(deleteSkillInput)
     .mutation(async ({ ctx, input }) => {
       await operations.ensureProjectAccess(
         ctx.db,

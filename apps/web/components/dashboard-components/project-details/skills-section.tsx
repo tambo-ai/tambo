@@ -31,7 +31,7 @@ import { api } from "@/trpc/react";
 import { withTamboInteractable } from "@tambo-ai/react";
 import { AnimatePresence, motion } from "framer-motion";
 import { AlertTriangle, FileText, Import, Plus } from "lucide-react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { z } from "zod/v3";
 import {
   type AlertState,
@@ -55,6 +55,12 @@ interface SkillsSectionProps {
     name: string;
     description: string;
     instructions: string;
+  };
+  defaultEditSkill?: {
+    skillId: string;
+    name?: string;
+    description?: string;
+    instructions?: string;
   };
 }
 
@@ -108,6 +114,7 @@ export function SkillsSection({
   defaultLlmProviderName,
   defaultLlmModelName,
   defaultNewSkill,
+  defaultEditSkill,
 }: SkillsSectionProps) {
   const isProviderSupported =
     !defaultLlmProviderName ||
@@ -136,11 +143,54 @@ export function SkillsSection({
     isError,
   } = api.skills.list.useQuery({ projectId });
 
-  const [isFormOpen, setIsFormOpen] = useState(!!defaultNewSkill);
+  const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingSkill, setEditingSkill] = useState<SkillSummary | null>(null);
   const [importedFields, setImportedFields] = useState<
     { name: string; description: string; instructions: string } | undefined
   >(undefined);
+
+  // Track the last-seen prop so we only react to genuine changes, not re-mounts
+  // with stale props from a previous Tambo response
+  const prevNewSkillRef = useRef(defaultNewSkill);
+  const prevEditSkillRef = useRef(defaultEditSkill);
+
+  // Keep a ref to the latest skills so the edit effect can look up skills
+  // without re-firing on every cache invalidation
+  const skillsRef = useRef(skills);
+  skillsRef.current = skills;
+
+  // When Tambo streams in a new defaultNewSkill, open the create form automatically
+  useEffect(() => {
+    if (!defaultNewSkill || defaultNewSkill === prevNewSkillRef.current) return;
+    setEditingSkill(null);
+    setImportedFields(defaultNewSkill);
+    setIsFormOpen(true);
+    prevNewSkillRef.current = defaultNewSkill;
+  }, [defaultNewSkill]);
+
+  // When Tambo streams in a defaultEditSkill, find the existing skill and open the edit form.
+  // Uses skillsRef to avoid re-firing on cache invalidation of the skills list.
+  // The ref is only updated after the success path so that if skills haven't
+  // loaded yet, the effect retries on the next render.
+  useEffect(() => {
+    if (!defaultEditSkill || defaultEditSkill === prevEditSkillRef.current)
+      return;
+    const currentSkills = skillsRef.current;
+    if (!currentSkills) return;
+    const existing = currentSkills.find(
+      (s) => s.id === defaultEditSkill.skillId,
+    );
+    if (!existing) return;
+    setEditingSkill(existing);
+    setImportedFields({
+      name: defaultEditSkill.name ?? existing.name,
+      description: defaultEditSkill.description ?? existing.description,
+      instructions: defaultEditSkill.instructions ?? existing.instructions,
+    });
+    setIsFormOpen(true);
+    prevEditSkillRef.current = defaultEditSkill;
+  }, [defaultEditSkill]);
+
   const [togglingSkillId, setTogglingSkillId] = useState<string | null>(null);
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
   const [alertState, setAlertState] = useState<AlertState>({
@@ -151,15 +201,16 @@ export function SkillsSection({
   const [cardDragState, setCardDragState] = useState<DragState>("none");
 
   // Overwrite confirmation state
+  const overwriteDialogClosed = {
+    isOpen: false as const,
+    existingSkill: null,
+    fields: { name: "", description: "", instructions: "" },
+  };
   const [overwriteDialog, setOverwriteDialog] = useState<{
     isOpen: boolean;
     existingSkill: SkillSummary | null;
     fields: { name: string; description: string; instructions: string };
-  }>({
-    isOpen: false,
-    existingSkill: null,
-    fields: { name: "", description: "", instructions: "" },
-  });
+  }>(overwriteDialogClosed);
 
   const toggleMutation = api.skills.update.useMutation({
     onMutate: ({ skillId }) => {
@@ -265,19 +316,11 @@ export function SkillsSection({
 
   const handleOverwriteConfirm = () => {
     openFormWithFields(overwriteDialog.fields, overwriteDialog.existingSkill);
-    setOverwriteDialog({
-      isOpen: false,
-      existingSkill: null,
-      fields: { name: "", description: "", instructions: "" },
-    });
+    setOverwriteDialog(overwriteDialogClosed);
   };
 
   const handleOverwriteCancel = () => {
-    setOverwriteDialog({
-      isOpen: false,
-      existingSkill: null,
-      fields: { name: "", description: "", instructions: "" },
-    });
+    setOverwriteDialog(overwriteDialogClosed);
   };
 
   const handleImportClick = () => {
@@ -558,7 +601,7 @@ export function SkillsSection({
   );
 }
 
-const InteractableSkillsSectionProps = z.object({
+export const InteractableSkillsSectionProps = z.object({
   projectId: z.string().describe("The unique identifier for the project."),
   defaultLlmProviderName: z
     .string()
@@ -581,6 +624,23 @@ const InteractableSkillsSectionProps = z.object({
     .optional()
     .describe(
       "Optional default fields for a new skill, used when creating a skill via Tambo.",
+    ),
+  defaultEditSkill: z
+    .object({
+      skillId: z.string().describe("The ID of the existing skill to edit."),
+      name: z.string().optional().describe("The updated name for the skill."),
+      description: z
+        .string()
+        .optional()
+        .describe("The updated description for the skill."),
+      instructions: z
+        .string()
+        .optional()
+        .describe("The updated instructions for the skill."),
+    })
+    .optional()
+    .describe(
+      "Optional fields to edit an existing skill. When set, the edit form opens pre-filled with the updated values. Use fetchProjectSkills first to get the skill ID.",
     ),
 });
 

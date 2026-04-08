@@ -4,6 +4,7 @@ import { registerDashboardTools } from "./dashboard-tools";
 import { registerLlmTools } from "./llm-tools";
 import { registerMcpTools } from "./mcp-tools";
 import { registerProjectTools } from "./project-tools";
+import { registerSkillTools } from "./skills-tools";
 import type { RegisterToolFn, ToolContext } from "./types";
 import { registerUserTools } from "./user-tools";
 
@@ -38,4 +39,7 @@ export function registerAllTools(
 
   // Agent-specific settings
   registerAgentTools(registerTool, ctx);
+
+  // Skill management
+  registerSkillTools(registerTool, ctx);
 }
