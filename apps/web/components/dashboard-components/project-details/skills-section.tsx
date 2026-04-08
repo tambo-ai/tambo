@@ -163,9 +163,10 @@ export function SkillsSection({
     setIsFormOpen(true);
   }, [defaultNewSkill]);
 
-  // When Tambo streams in a defaultEditSkill, find the existing skill and open the edit form
+  // When Tambo streams in a defaultEditSkill, find the existing skill and open the edit form.
+  // Keep updating importedFields for the active skillId so streamed field values propagate.
   useEffect(() => {
-    if (!defaultEditSkill || !skills || isFormOpen) return;
+    if (!defaultEditSkill || !skills) return;
     if (dismissedEditSkillIdRef.current === defaultEditSkill.skillId) return;
     const existing = skills.find((s) => s.id === defaultEditSkill.skillId);
     if (!existing) return;
@@ -175,7 +176,9 @@ export function SkillsSection({
       description: defaultEditSkill.description ?? existing.description,
       instructions: defaultEditSkill.instructions ?? existing.instructions,
     });
-    setIsFormOpen(true);
+    if (!isFormOpen) {
+      setIsFormOpen(true);
+    }
   }, [defaultEditSkill, skills, isFormOpen]);
 
   const [togglingSkillId, setTogglingSkillId] = useState<string | null>(null);
