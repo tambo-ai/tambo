@@ -834,14 +834,19 @@ describe("V1Service", () => {
       expect(result.content[0].type).toBe("resource");
     });
 
-    it("should include component content block when componentDecision exists", async () => {
+    it("should include component content block when stored in content array", async () => {
       const messageWithComponent = {
         ...mockMessage,
-        content: [{ type: "text", text: "Here is a weather card" }],
-        componentDecision: {
-          componentName: "WeatherCard",
-          props: { temperature: 72 },
-        },
+        content: [
+          { type: "text", text: "Here is a weather card" },
+          {
+            type: "component",
+            id: "comp_1",
+            name: "WeatherCard",
+            props: { temperature: 72 },
+            state: { expanded: false },
+          },
+        ],
         componentState: { expanded: true },
       };
       mockOperations.getMessageByIdInThread.mockResolvedValue(
@@ -855,6 +860,7 @@ describe("V1Service", () => {
       expect(componentBlock).toBeDefined();
       expect((componentBlock as any).name).toBe("WeatherCard");
       expect((componentBlock as any).props).toEqual({ temperature: 72 });
+      // componentState on the message overrides the inline state
       expect((componentBlock as any).state).toEqual({ expanded: true });
     });
 
@@ -920,18 +926,19 @@ describe("V1Service", () => {
       );
     });
 
-    it("should include tool_use content block when toolCallRequest exists", async () => {
+    it("should include tool_use content block when stored in content array", async () => {
       const messageWithToolCall = {
         ...mockMessage,
         role: "assistant",
-        content: [{ type: "text", text: "Let me fetch the weather" }],
-        toolCallRequest: {
-          toolName: "getWeather",
-          parameters: [
-            { parameterName: "location", parameterValue: "San Francisco" },
-            { parameterName: "unit", parameterValue: "celsius" },
-          ],
-        },
+        content: [
+          { type: "text", text: "Let me fetch the weather" },
+          {
+            type: "tool_use",
+            id: "call_abc123",
+            name: "getWeather",
+            input: { location: "San Francisco", unit: "celsius" },
+          },
+        ],
         toolCallId: "call_abc123",
       };
       mockOperations.getMessageByIdInThread.mockResolvedValue(
@@ -978,13 +985,15 @@ describe("V1Service", () => {
       const messageWithToolCallAndStatus = {
         ...mockMessage,
         role: "assistant",
-        content: [{ type: "text", text: "Let me fetch the weather" }],
-        toolCallRequest: {
-          toolName: "getWeather",
-          parameters: [
-            { parameterName: "location", parameterValue: "San Francisco" },
-          ],
-        },
+        content: [
+          { type: "text", text: "Let me fetch the weather" },
+          {
+            type: "tool_use",
+            id: "call_abc123",
+            name: "getWeather",
+            input: { location: "San Francisco" },
+          },
+        ],
         toolCallId: "call_abc123",
         componentDecision: {
           componentName: null, // Not a UI tool
@@ -1013,11 +1022,15 @@ describe("V1Service", () => {
       const messageWithToolCallNoDecision = {
         ...mockMessage,
         role: "assistant",
-        content: [{ type: "text", text: "Let me fetch the weather" }],
-        toolCallRequest: {
-          toolName: "getWeather",
-          parameters: [{ parameterName: "location", parameterValue: "NYC" }],
-        },
+        content: [
+          { type: "text", text: "Let me fetch the weather" },
+          {
+            type: "tool_use",
+            id: "call_xyz789",
+            name: "getWeather",
+            input: { location: "NYC" },
+          },
+        ],
         toolCallId: "call_xyz789",
         componentDecision: null,
       };
@@ -1039,11 +1052,15 @@ describe("V1Service", () => {
       const messageWithEmptyDisplayMessage = {
         ...mockMessage,
         role: "assistant",
-        content: [{ type: "text", text: "Let me fetch the weather" }],
-        toolCallRequest: {
-          toolName: "getWeather",
-          parameters: [{ parameterName: "location", parameterValue: "LA" }],
-        },
+        content: [
+          { type: "text", text: "Let me fetch the weather" },
+          {
+            type: "tool_use",
+            id: "call_empty",
+            name: "getWeather",
+            input: { location: "LA" },
+          },
+        ],
         toolCallId: "call_empty",
         componentDecision: {
           componentName: null,
@@ -1074,11 +1091,21 @@ describe("V1Service", () => {
       const messageWithUiToolCall = {
         ...mockMessage,
         role: "assistant",
-        content: [{ type: "text", text: "Here's the weather" }],
-        toolCallRequest: {
-          toolName: "show_component_WeatherCard",
-          parameters: [{ parameterName: "temperature", parameterValue: 72 }],
-        },
+        content: [
+          { type: "text", text: "Here's the weather" },
+          {
+            type: "tool_use",
+            id: "call_ui_123",
+            name: "show_component_WeatherCard",
+            input: { temperature: 72 },
+          },
+          {
+            type: "component",
+            id: "comp_1",
+            name: "WeatherCard",
+            props: { temperature: 72 },
+          },
+        ],
         toolCallId: "call_ui_123",
         componentDecision: {
           componentName: "WeatherCard",
@@ -1127,32 +1154,25 @@ describe("V1Service", () => {
       warnSpy.mockRestore();
     });
 
-    it("should warn when componentDecision has no componentName and no toolCallRequest", async () => {
-      const warnSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
-
-      const messageWithBadComponent = {
+    it("should ignore componentDecision with no componentName when no inline blocks exist", async () => {
+      // componentDecision without componentName and no inline tool_use/component
+      // blocks should not affect the output (legacy fallback was removed)
+      const messageWithOrphanedDecision = {
         ...mockMessage,
         content: [{ type: "text", text: "Hello" }],
         componentDecision: {
           componentName: null,
           props: { foo: "bar" },
         },
-        toolCallRequest: null, // No tool call - this is a data integrity issue
       };
       mockOperations.getMessageByIdInThread.mockResolvedValue(
-        messageWithBadComponent as any,
+        messageWithOrphanedDecision as any,
       );
 
-      // Should succeed but log a warning
       const result = await service.getMessage("thr_123", "msg_123");
       expect(result).toBeDefined();
-      expect(warnSpy).toHaveBeenCalledWith(
-        expect.stringMatching(
-          /Component decision in message msg_123 has no componentName/,
-        ),
-      );
-
-      warnSpy.mockRestore();
+      expect(result.content).toHaveLength(1);
+      expect(result.content[0].type).toBe("text");
     });
   });
 
