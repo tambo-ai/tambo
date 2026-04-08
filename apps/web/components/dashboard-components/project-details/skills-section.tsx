@@ -188,15 +188,16 @@ export function SkillsSection({
   const [cardDragState, setCardDragState] = useState<DragState>("none");
 
   // Overwrite confirmation state
+  const overwriteDialogClosed = {
+    isOpen: false as const,
+    existingSkill: null,
+    fields: { name: "", description: "", instructions: "" },
+  };
   const [overwriteDialog, setOverwriteDialog] = useState<{
     isOpen: boolean;
     existingSkill: SkillSummary | null;
     fields: { name: string; description: string; instructions: string };
-  }>({
-    isOpen: false,
-    existingSkill: null,
-    fields: { name: "", description: "", instructions: "" },
-  });
+  }>(overwriteDialogClosed);
 
   const toggleMutation = api.skills.update.useMutation({
     onMutate: ({ skillId }) => {
@@ -310,19 +311,11 @@ export function SkillsSection({
 
   const handleOverwriteConfirm = () => {
     openFormWithFields(overwriteDialog.fields, overwriteDialog.existingSkill);
-    setOverwriteDialog({
-      isOpen: false,
-      existingSkill: null,
-      fields: { name: "", description: "", instructions: "" },
-    });
+    setOverwriteDialog(overwriteDialogClosed);
   };
 
   const handleOverwriteCancel = () => {
-    setOverwriteDialog({
-      isOpen: false,
-      existingSkill: null,
-      fields: { name: "", description: "", instructions: "" },
-    });
+    setOverwriteDialog(overwriteDialogClosed);
   };
 
   const handleImportClick = () => {

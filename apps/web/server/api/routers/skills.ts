@@ -107,9 +107,11 @@ async function updateSkillOnProviderAndPersist(
   existingRef:
     | { skillId: string; uploadedAt: string; version: string }
     | undefined,
+  provider?: { providerName: string; apiKey: string },
 ): Promise<void> {
-  const provider = await getProjectProviderKey(db, projectId);
-  if (!provider) return;
+  const resolvedProvider =
+    provider ?? (await getProjectProviderKey(db, projectId));
+  if (!resolvedProvider) return;
 
   try {
     // If we have an existing provider reference, update via versions.create().
@@ -117,18 +119,18 @@ async function updateSkillOnProviderAndPersist(
     const metadata = existingRef
       ? await updateSkillOnProvider({
           skill: { ...skill, projectId },
-          providerName: provider.providerName,
-          apiKey: provider.apiKey,
+          providerName: resolvedProvider.providerName,
+          apiKey: resolvedProvider.apiKey,
           existingRef,
         })
       : await uploadSkillToProvider({
           skill: { ...skill, projectId },
-          providerName: provider.providerName,
-          apiKey: provider.apiKey,
+          providerName: resolvedProvider.providerName,
+          apiKey: resolvedProvider.apiKey,
         });
 
     await operations.mergeSkillMetadata(db, projectId, skill.id, {
-      [provider.providerName]: metadata,
+      [resolvedProvider.providerName]: metadata,
     });
   } catch (error) {
     throw new TRPCError({
@@ -243,6 +245,7 @@ export const skillsRouter = createTRPCRouter({
             input.projectId,
             updated,
             existingRef,
+            provider ?? undefined,
           );
         } catch (error) {
           // Log but don't throw -- the DB update and metadata clear should

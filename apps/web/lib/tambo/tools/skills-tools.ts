@@ -10,46 +10,6 @@ import { invalidateSkillsCache } from "./helpers";
 import type { RegisterToolFn, ToolContext } from "./types";
 
 /**
- * Input schema for the `fetchProjectSkills` tool.
- */
-export const fetchProjectSkillsInputSchema = listSkillsInput;
-
-/**
- * Output schema for the `fetchProjectSkills` tool.
- */
-export const fetchProjectSkillsOutputSchema = z.array(skillSchema);
-
-/**
- * Input schema for the `createSkill` tool.
- */
-export const createSkillInputSchema = createSkillInput;
-
-/**
- * Output schema for the `createSkill` tool.
- */
-export const createSkillOutputSchema = skillSchema;
-
-/**
- * Input schema for the `updateSkill` tool.
- */
-export const updateSkillInputSchema = updateSkillInput;
-
-/**
- * Output schema for the `updateSkill` tool.
- */
-export const updateSkillOutputSchema = skillSchema.nullable();
-
-/**
- * Input schema for the `deleteSkill` tool.
- */
-export const deleteSkillInputSchema = deleteSkillInput;
-
-/**
- * Output schema for the `deleteSkill` tool.
- */
-export const deleteSkillOutputSchema = z.void();
-
-/**
  * Register skill management tools
  */
 export function registerSkillTools(
@@ -67,8 +27,8 @@ export function registerSkillTools(
     tool: async (params) => {
       return await ctx.trpcClient.skills.list.query(params);
     },
-    inputSchema: fetchProjectSkillsInputSchema,
-    outputSchema: fetchProjectSkillsOutputSchema,
+    inputSchema: listSkillsInput,
+    outputSchema: z.array(skillSchema),
   });
 
   /**
@@ -84,8 +44,8 @@ export function registerSkillTools(
       await invalidateSkillsCache(ctx, params.projectId);
       return result;
     },
-    inputSchema: createSkillInputSchema,
-    outputSchema: createSkillOutputSchema,
+    inputSchema: createSkillInput,
+    outputSchema: skillSchema,
   });
 
   /**
@@ -101,8 +61,8 @@ export function registerSkillTools(
       await invalidateSkillsCache(ctx, params.projectId);
       return result;
     },
-    inputSchema: updateSkillInputSchema,
-    outputSchema: updateSkillOutputSchema,
+    inputSchema: updateSkillInput,
+    outputSchema: skillSchema.nullable(),
   });
 
   /**
@@ -118,7 +78,7 @@ export function registerSkillTools(
       await ctx.trpcClient.skills.delete.mutate(params);
       await invalidateSkillsCache(ctx, params.projectId);
     },
-    inputSchema: deleteSkillInputSchema,
-    outputSchema: deleteSkillOutputSchema,
+    inputSchema: deleteSkillInput,
+    outputSchema: z.void(),
   });
 }
