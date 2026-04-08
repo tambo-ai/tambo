@@ -48,96 +48,47 @@ export function AgentSettings({ projectId }: AgentSettingsProps) {
     );
   }
 
-  const sections = [
-    { id: "custom-instructions", label: "Custom Instructions" },
-    { id: "skills", label: "Skills" },
-    { id: "tool-call-limit", label: "Tool Call Limit" },
-    { id: "mcp-servers", label: "MCP Servers" },
-    { id: "llm-providers", label: "LLM Providers" },
-  ];
-
   return (
     <TooltipProvider>
       <motion.div
-        className="flex gap-8 px-2 sm:px-4 max-w-6xl mx-auto"
+        className="px-2 sm:px-4 max-w-4xl mx-auto"
         initial="hidden"
         animate="visible"
         variants={containerVariants}
       >
-        <nav className="hidden lg:block w-48 shrink-0 sticky top-[var(--sticky-offset)] pt-2 self-start bg-background">
-          <p className="text-sm font-medium text-muted-foreground mb-3">
-            On this page
-          </p>
-          <ul className="space-y-1">
-            {sections.map((section) => (
-              <li key={section.id}>
-                <a
-                  href={`#${section.id}`}
-                  className="block text-sm text-muted-foreground py-1 hover:text-foreground transition-colors"
-                >
-                  {section.label}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </nav>
+        <p className="text-muted-foreground mb-4 pt-2">
+          Configure the behavior of your Tambo agent.
+        </p>
+        <div className="space-y-6">
+          <InteractableCustomInstructionsEditor
+            projectId={project.id}
+            customInstructions={project.customInstructions}
+            allowSystemPromptOverride={project.allowSystemPromptOverride}
+            onEdited={handleRefreshProject}
+          />
 
-        <div className="flex-1 min-w-0 max-w-4xl">
-          <p className="text-muted-foreground mb-4 pt-2">
-            Configure the behavior of your Tambo agent.
-          </p>
-          <div className="space-y-6">
-            <div
-              id="custom-instructions"
-              className="scroll-mt-[var(--sticky-offset)]"
-            >
-              <InteractableCustomInstructionsEditor
-                projectId={project.id}
-                customInstructions={project.customInstructions}
-                allowSystemPromptOverride={project.allowSystemPromptOverride}
-                onEdited={handleRefreshProject}
-              />
-            </div>
+          <InteractableSkillsSection
+            projectId={project.id}
+            defaultLlmProviderName={project.defaultLlmProviderName ?? undefined}
+            defaultLlmModelName={project.defaultLlmModelName ?? undefined}
+          />
 
-            <div id="skills" className="scroll-mt-[var(--sticky-offset)]">
-              <InteractableSkillsSection
-                projectId={project.id}
-                defaultLlmProviderName={
-                  project.defaultLlmProviderName ?? undefined
-                }
-                defaultLlmModelName={project.defaultLlmModelName ?? undefined}
-              />
-            </div>
+          <InteractableToolCallLimitEditor
+            projectId={project.id}
+            maxToolCallLimit={project.maxToolCallLimit}
+            onEdited={handleRefreshProject}
+          />
 
-            <div
-              id="tool-call-limit"
-              className="scroll-mt-[var(--sticky-offset)]"
-            >
-              <InteractableToolCallLimitEditor
-                projectId={project.id}
-                maxToolCallLimit={project.maxToolCallLimit}
-                onEdited={handleRefreshProject}
-              />
-            </div>
+          <InteractableAvailableMcpServers
+            projectId={project.id}
+            providerType={project.providerType}
+            onEdited={handleRefreshProject}
+          />
 
-            <div id="mcp-servers" className="scroll-mt-[var(--sticky-offset)]">
-              <InteractableAvailableMcpServers
-                projectId={project.id}
-                providerType={project.providerType}
-                onEdited={handleRefreshProject}
-              />
-            </div>
-
-            <div
-              id="llm-providers"
-              className="scroll-mt-[var(--sticky-offset)]"
-            >
-              <InteractableProviderKeySection
-                projectId={project.id}
-                onEdited={handleRefreshProject}
-              />
-            </div>
-          </div>
+          <InteractableProviderKeySection
+            projectId={project.id}
+            onEdited={handleRefreshProject}
+          />
         </div>
       </motion.div>
     </TooltipProvider>
