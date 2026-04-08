@@ -9,6 +9,7 @@ Project-scoped instructions that customize your Tambo agent's behavior.
 - [Managing Skills via CLI](#managing-skills-via-cli) -- list, add, get, update, enable/disable, delete
 - [Managing Skills via Dashboard](#managing-skills-via-dashboard)
 - [Provider Support](#provider-support) -- OpenAI, Anthropic, model-level requirements
+- [Writing Better Skills](#writing-better-skills) -- use skill-creator to review instructions
 - [When to Use Skills](#when-to-use-skills)
 
 ## Quick Start
