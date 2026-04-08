@@ -1049,6 +1049,37 @@ describe("handleInit", () => {
       expect(output).toContain("Created new .env.local file");
     });
 
+    it("should write to .env instead of .env.local for Expo projects", async () => {
+      // Override framework to Expo
+      mockDetectedFramework = {
+        name: "expo",
+        displayName: "Expo",
+        envPrefix: "EXPO_PUBLIC_",
+      };
+
+      // Setup: basic project with no env files
+      vol.fromJSON(createBasicProject());
+
+      // Set up device auth mock
+      mockGeneratedApiKey = "expo-key-123";
+
+      // Set inquirer responses
+      inquirerResponses = {
+        hostingChoice: "cloud",
+        projectName: "test-project",
+        confirmReplace: true,
+      };
+
+      // Execute
+      await handleInit({});
+
+      // Verify .env was created (not .env.local)
+      expect(vol.existsSync("/mock-project/.env")).toBe(true);
+      expect(vol.existsSync("/mock-project/.env.local")).toBe(false);
+      const content = vol.readFileSync("/mock-project/.env", "utf-8") as string;
+      expect(content).toContain("EXPO_PUBLIC_TAMBO_API_KEY=expo-key-123");
+    });
+
     it("should use .env.local over .env when both exist", async () => {
       // Setup: Next.js project with both env files (uses NEXT_PUBLIC_TAMBO_API_KEY)
       vol.fromJSON({

@@ -71,7 +71,7 @@ interface InitOptions {
 }
 
 /**
- * Writes the provided API key to .env.local, creating the file if necessary
+ * Writes the provided API key to the appropriate env file (.env for Expo, .env.local for others)
  * Handles overwrite confirmation when a key already exists
  * Automatically detects framework and uses appropriate env var prefix
  */
