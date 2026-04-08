@@ -149,10 +149,10 @@ export function SkillsSection({
     { name: string; description: string; instructions: string } | undefined
   >(undefined);
 
-  // Track the dismissed prop reference so cache invalidations (same ref) are
-  // suppressed but new Tambo requests (new ref, even for the same skill) reopen
-  const dismissedNewSkillRef = useRef<typeof defaultNewSkill>(undefined);
-  const dismissedEditSkillRef = useRef<typeof defaultEditSkill>(undefined);
+  // Track the last-seen prop so we only react to genuine changes, not re-mounts
+  // with stale props from a previous Tambo response
+  const prevNewSkillRef = useRef(defaultNewSkill);
+  const prevEditSkillRef = useRef(defaultEditSkill);
 
   // Keep a ref to the latest skills so the edit effect can look up skills
   // without re-firing on every cache invalidation
@@ -161,8 +161,8 @@ export function SkillsSection({
 
   // When Tambo streams in a new defaultNewSkill, open the create form automatically
   useEffect(() => {
-    if (!defaultNewSkill || defaultNewSkill === dismissedNewSkillRef.current)
-      return;
+    if (!defaultNewSkill || defaultNewSkill === prevNewSkillRef.current) return;
+    prevNewSkillRef.current = defaultNewSkill;
     setEditingSkill(null);
     setImportedFields(defaultNewSkill);
     setIsFormOpen(true);
@@ -171,8 +171,9 @@ export function SkillsSection({
   // When Tambo streams in a defaultEditSkill, find the existing skill and open the edit form.
   // Uses skillsRef to avoid re-firing on cache invalidation of the skills list.
   useEffect(() => {
-    if (!defaultEditSkill) return;
-    if (defaultEditSkill === dismissedEditSkillRef.current) return;
+    if (!defaultEditSkill || defaultEditSkill === prevEditSkillRef.current)
+      return;
+    prevEditSkillRef.current = defaultEditSkill;
     const currentSkills = skillsRef.current;
     if (!currentSkills) return;
     const existing = currentSkills.find(
@@ -262,10 +263,6 @@ export function SkillsSection({
   };
 
   const closeForm = () => {
-    // Store the current prop references so cache invalidation re-renders
-    // (same ref) are suppressed, but new Tambo requests (new ref) reopen
-    dismissedNewSkillRef.current = defaultNewSkill;
-    dismissedEditSkillRef.current = defaultEditSkill;
     setIsFormOpen(false);
     setEditingSkill(null);
     setImportedFields(undefined);
