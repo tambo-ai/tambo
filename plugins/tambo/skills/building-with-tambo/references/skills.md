@@ -137,6 +137,10 @@ Skills are uploaded to LLM providers and injected at inference time. They requir
 
 Currently supported providers: **OpenAI** and **Anthropic**. Not all models from these providers support skills -- the model must have skills support enabled. If the project's model does not support skills, the CLI warns on creation and the skills are stored but not active until the model is switched.
 
+## Writing Better Skills
+
+If the `skill-creator` skill is available, use it to review and suggest improvements to the user's skill instructions -- it has guidance on writing effective descriptions, structuring instructions, and avoiding common pitfalls. Do not use it to create the skill file from scratch (it scaffolds a Claude Code skill directory, which is a different format).
+
 ## When to Use Skills
 
 Skills are the right tool when you want to:
