@@ -61,29 +61,15 @@ export function AgentSettings({ projectId }: AgentSettingsProps) {
           Configure the behavior of your Tambo agent.
         </p>
         <div className="space-y-6">
+          <InteractableProviderKeySection
+            projectId={project.id}
+            onEdited={handleRefreshProject}
+          />
+
           <InteractableCustomInstructionsEditor
             projectId={project.id}
             customInstructions={project.customInstructions}
             allowSystemPromptOverride={project.allowSystemPromptOverride}
-            onEdited={handleRefreshProject}
-          />
-
-          <InteractableSkillsSection
-            projectId={project.id}
-            defaultLlmProviderName={project.defaultLlmProviderName ?? undefined}
-            defaultLlmModelName={project.defaultLlmModelName ?? undefined}
-          />
-
-          <InteractableToolCallLimitEditor
-            projectId={project.id}
-            maxToolCallLimit={project.maxToolCallLimit}
-            onEdited={handleRefreshProject}
-          />
-
-          <MemorySettings
-            projectId={project.id}
-            memoryEnabled={project.memoryEnabled}
-            memoryToolsEnabled={project.memoryToolsEnabled}
             onEdited={handleRefreshProject}
           />
 
@@ -93,8 +79,22 @@ export function AgentSettings({ projectId }: AgentSettingsProps) {
             onEdited={handleRefreshProject}
           />
 
-          <InteractableProviderKeySection
+          <InteractableSkillsSection
             projectId={project.id}
+            defaultLlmProviderName={project.defaultLlmProviderName ?? undefined}
+            defaultLlmModelName={project.defaultLlmModelName ?? undefined}
+          />
+
+          <MemorySettings
+            projectId={project.id}
+            memoryEnabled={project.memoryEnabled}
+            memoryToolsEnabled={project.memoryToolsEnabled}
+            onEdited={handleRefreshProject}
+          />
+
+          <InteractableToolCallLimitEditor
+            projectId={project.id}
+            maxToolCallLimit={project.maxToolCallLimit}
             onEdited={handleRefreshProject}
           />
         </div>

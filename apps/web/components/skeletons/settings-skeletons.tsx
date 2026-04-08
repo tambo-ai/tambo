@@ -11,24 +11,14 @@ export function SettingsPageSkeleton() {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="flex gap-8 px-2 sm:px-4 max-w-6xl mx-auto"
+      className="px-2 sm:px-4 max-w-4xl mx-auto"
     >
-      <div className="hidden lg:block w-48 shrink-0 pt-2">
-        <Skeleton className="h-4 w-20 mb-3" />
-        <div className="space-y-2">
-          <Skeleton className="h-4 w-28" />
-          <Skeleton className="h-4 w-20" />
-          <Skeleton className="h-4 w-32" />
-          <Skeleton className="h-4 w-28" />
-        </div>
-      </div>
-      <div className="flex-1 min-w-0 max-w-4xl">
-        <div className="space-y-6 py-4">
-          <ProjectNameSkeleton />
-          <APIKeyListSkeleton />
-          <OAuthSettingsSkeleton />
-          <DangerZoneSkeleton />
-        </div>
+      <Skeleton className="h-4 w-72 mb-4 mt-2" />
+      <div className="space-y-6">
+        <ProjectNameSkeleton />
+        <APIKeyListSkeleton />
+        <OAuthSettingsSkeleton />
+        <DangerZoneSkeleton />
       </div>
     </motion.div>
   );
@@ -39,26 +29,16 @@ export function AgentPageSkeleton() {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="flex gap-8 px-2 sm:px-4 max-w-6xl mx-auto"
+      className="px-2 sm:px-4 max-w-4xl mx-auto"
     >
-      <div className="hidden lg:block w-48 shrink-0 pt-2">
-        <Skeleton className="h-4 w-20 mb-3" />
-        <div className="space-y-2">
-          <Skeleton className="h-4 w-36" />
-          <Skeleton className="h-4 w-16" />
-          <Skeleton className="h-4 w-28" />
-          <Skeleton className="h-4 w-28" />
-          <Skeleton className="h-4 w-32" />
-        </div>
-      </div>
-      <div className="flex-1 min-w-0 max-w-4xl">
-        <div className="space-y-6 py-4">
-          <CustomInstructionsEditorSkeleton />
-          <SkillsSectionSkeleton />
-          <ToolCallLimitSkeleton />
-          <AvailableMcpServersSkeleton />
-          <ProviderKeySectionSkeleton />
-        </div>
+      <Skeleton className="h-4 w-64 mb-4 mt-2" />
+      <div className="space-y-6">
+        <ProviderKeySectionSkeleton />
+        <CustomInstructionsEditorSkeleton />
+        <AvailableMcpServersSkeleton />
+        <SkillsSectionSkeleton />
+        <MemorySettingsSkeleton />
+        <ToolCallLimitSkeleton />
       </div>
     </motion.div>
   );
@@ -263,6 +243,32 @@ function ToolCallLimitSkeleton() {
             <Skeleton className="h-10 w-full" />
           </div>
           <SkeletonButton className="w-16" />
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function MemorySettingsSkeleton() {
+  return (
+    <Card className="border rounded-md overflow-hidden">
+      <CardHeader>
+        <Skeleton className="h-5 w-20" />
+      </CardHeader>
+      <CardContent className="flex flex-col gap-6">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex flex-col gap-1">
+            <Skeleton className="h-4 w-28" />
+            <Skeleton className="h-3 w-80" />
+          </div>
+          <Skeleton className="h-5 w-9 rounded-full" />
+        </div>
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex flex-col gap-1">
+            <Skeleton className="h-4 w-36" />
+            <Skeleton className="h-3 w-72" />
+          </div>
+          <Skeleton className="h-5 w-9 rounded-full" />
         </div>
       </CardContent>
     </Card>
