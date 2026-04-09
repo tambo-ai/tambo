@@ -8,11 +8,13 @@ import { HighlightedJson } from "./highlight";
 interface ComponentPropsSectionProps {
   componentProps: Record<string, unknown>;
   searchQuery?: string;
+  label?: string;
 }
 
 export function ComponentPropsSection({
   componentProps,
   searchQuery,
+  label = "View Props",
 }: ComponentPropsSectionProps) {
   const [showProps, setShowProps] = useState(false);
 
@@ -34,7 +36,7 @@ export function ComponentPropsSection({
         className="w-full flex items-center justify-between p-2 sm:p-3 bg-muted/30 hover:bg-muted/50 transition-colors text-primary"
       >
         <span className="font-medium text-xs sm:text-sm text-primary">
-          View Props
+          {label}
         </span>
         <div className="flex items-center gap-1 sm:gap-2">
           <span

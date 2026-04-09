@@ -3,7 +3,7 @@ import { type RouterOutputs } from "@/trpc/react";
 import { motion } from "framer-motion";
 import { Monitor } from "lucide-react";
 import { memo } from "react";
-import { formatTime } from "../utils";
+import { type ExtractedComponent, formatTime } from "../utils";
 import { ComponentPropsSection } from "./component-props-section";
 import { HighlightText } from "./highlight";
 import { MessageIdCopyButton } from "./message-id-copy-button";
@@ -13,15 +13,21 @@ type MessageType = ThreadType["messages"][0];
 
 interface ComponentMessageProps {
   message: MessageType;
+  componentData: ExtractedComponent;
   isHighlighted?: boolean;
   searchQuery?: string;
 }
 
 export const ComponentMessage = memo(
-  ({ message, isHighlighted = false, searchQuery }: ComponentMessageProps) => {
-    const componentName =
-      message.componentDecision?.componentName || "Unknown Component";
-    const componentProps = message.componentDecision?.props || {};
+  ({
+    message,
+    componentData,
+    isHighlighted = false,
+    searchQuery,
+  }: ComponentMessageProps) => {
+    const componentName = componentData.name;
+    const componentProps = componentData.props;
+    const componentState = componentData.state;
 
     return (
       <>
@@ -73,6 +79,15 @@ export const ComponentMessage = memo(
                 componentProps={componentProps}
                 searchQuery={searchQuery}
               />
+
+              {/* View State Dropdown */}
+              {componentState && Object.keys(componentState).length > 0 && (
+                <ComponentPropsSection
+                  componentProps={componentState}
+                  searchQuery={searchQuery}
+                  label="View State"
+                />
+              )}
             </div>
           </div>
         </motion.div>

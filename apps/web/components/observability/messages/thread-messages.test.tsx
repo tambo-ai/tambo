@@ -1,8 +1,11 @@
 import { ThreadMessages } from "@/components/observability/messages/thread-messages";
 import {
   createMockSearchMatches,
+  createMockThread,
   createMockThreadDifferentDays,
+  createMockThreadMessage,
   createMockThreadSameDay,
+  createMockThreadWithContentArrayComponent,
   createMockThreadWithLargeSystemMessage,
   createMockThreadWithMessages,
   createMockThreadWithNonFirstSystemMessage,
@@ -11,18 +14,45 @@ import {
 } from "@/__fixtures__/thread-factories";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { MessageRole } from "@tambo-ai-cloud/core";
 import React from "react";
 
-// Mock the utils
+// Mock the utils - provide extractComponentsFromMessage inline, mock isSameDay
 jest.mock("../utils", () => ({
   isSameDay: (date1: Date, date2: Date) =>
     date1.toDateString() === date2.toDateString(),
+  extractComponentsFromMessage: (message: any) => {
+    const components: any[] = [];
+    if (Array.isArray(message.content)) {
+      for (const part of message.content) {
+        if (part?.type === "component" && part.name) {
+          components.push({
+            id: part.id ?? `comp_${message.id}`,
+            name: part.name,
+            props: part.props ?? {},
+            state: part.state ?? message.componentState ?? undefined,
+          });
+        }
+      }
+    }
+    if (components.length === 0 && message.componentDecision?.componentName) {
+      components.push({
+        id: `comp_${message.id}`,
+        name: message.componentDecision.componentName,
+        props: message.componentDecision.props ?? {},
+        state: message.componentState ?? undefined,
+      });
+    }
+    return components;
+  },
 }));
 
 // Mock the child components
 jest.mock("./component-message", () => ({
-  ComponentMessage: ({ message }: any) => (
-    <div data-testid="component-message">{message.id}</div>
+  ComponentMessage: ({ message, componentData }: any) => (
+    <div data-testid="component-message">
+      {componentData?.name ?? message.id}
+    </div>
   ),
 }));
 
@@ -395,5 +425,63 @@ describe("ThreadMessages", () => {
     expect(
       screen.queryByText("System prompt (click to expand)"),
     ).not.toBeInTheDocument();
+  });
+
+  it("renders component messages from content array (not just componentDecision)", () => {
+    const mockMessageRefs = createMessageRefs();
+    const threadWithContentComponent =
+      createMockThreadWithContentArrayComponent();
+
+    render(
+      <ThreadMessages
+        thread={threadWithContentComponent}
+        messageRefs={mockMessageRefs}
+      />,
+    );
+
+    // Should detect and render the component from the content array
+    expect(screen.getByTestId("component-message")).toBeInTheDocument();
+    // The mock renders componentData.name
+    expect(screen.getByText("DataTable")).toBeInTheDocument();
+  });
+
+  it("hides empty assistant message bubble when it only has a tool call", () => {
+    const mockMessageRefs = createMessageRefs();
+    const thread = createMockThread("thread-empty-tool", "project-1", {
+      messages: [
+        createMockThreadMessage(
+          "msg-1",
+          "thread-empty-tool",
+          MessageRole.User,
+          {
+            content: [{ type: "text", text: "Do something" }],
+            createdAt: new Date("2024-01-01T10:00:00Z"),
+          },
+        ),
+        createMockThreadMessage(
+          "msg-2",
+          "thread-empty-tool",
+          MessageRole.Assistant,
+          {
+            content: [],
+            createdAt: new Date("2024-01-01T10:01:00Z"),
+            toolCallRequest: {
+              tool_call_id: "tool-1",
+              toolName: "test-tool",
+              parameters: [],
+            },
+            toolCallId: "tool-1",
+          },
+        ),
+      ],
+    });
+
+    render(<ThreadMessages thread={thread} messageRefs={mockMessageRefs} />);
+
+    // Should show user message but not an empty assistant message bubble
+    expect(screen.getAllByTestId("message-content")).toHaveLength(1);
+    expect(screen.getByText("user: Do something")).toBeInTheDocument();
+    // Tool call should still be shown
+    expect(screen.getByTestId("tool-call-message")).toBeInTheDocument();
   });
 });

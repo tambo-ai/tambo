@@ -71,6 +71,71 @@ export const getRoleColor = (role: string) => {
   }
 };
 
+// Component Extraction ---------------------------------------------------------
+
+/**
+ * Represents a component extracted from a message, regardless of storage format.
+ */
+export interface ExtractedComponent {
+  id: string;
+  name: string;
+  props: Record<string, unknown>;
+  state?: Record<string, unknown>;
+}
+
+/**
+ * Extracts components from a message, checking the content array first
+ * (new format with type: "component" content parts) and falling back
+ * to the legacy componentDecision field.
+ * @param message - The thread message to extract components from
+ * @returns Array of extracted components (empty if none found)
+ */
+export function extractComponentsFromMessage(
+  message: MessageType,
+): ExtractedComponent[] {
+  const components: ExtractedComponent[] = [];
+
+  if (Array.isArray(message.content)) {
+    for (const part of message.content) {
+      if (
+        part &&
+        typeof part === "object" &&
+        "type" in part &&
+        part.type === "component"
+      ) {
+        const compPart = part as {
+          id?: string;
+          name?: string;
+          props?: Record<string, unknown>;
+          state?: Record<string, unknown>;
+        };
+        if (compPart.name) {
+          components.push({
+            id: compPart.id ?? `comp_${message.id}`,
+            name: compPart.name,
+            props: compPart.props ?? {},
+            state:
+              compPart.state ??
+              (message.componentState as Record<string, unknown> | undefined),
+          });
+        }
+      }
+    }
+  }
+
+  // Fall back to componentDecision (legacy storage)
+  if (components.length === 0 && message.componentDecision?.componentName) {
+    components.push({
+      id: `comp_${message.id}`,
+      name: message.componentDecision.componentName,
+      props: message.componentDecision.props ?? {},
+      state: message.componentState as Record<string, unknown> | undefined,
+    });
+  }
+
+  return components;
+}
+
 // Thread Stats -----------------------------------------------------------------
 
 export const calculateThreadStats = (messages: MessageType[]): ThreadStats => {
@@ -82,9 +147,7 @@ export const calculateThreadStats = (messages: MessageType[]): ThreadStats => {
   };
 
   messages.forEach((message: MessageType) => {
-    if (message.componentDecision?.componentName) {
-      stats.components++;
-    }
+    stats.components += extractComponentsFromMessage(message).length;
 
     if (isErrorMessage(message)) {
       stats.errors++;
@@ -158,12 +221,12 @@ export const createMessageItems = (
       messageId: message.id,
     });
 
-    // Components
-    if (message.componentDecision?.componentName) {
+    // Components (from content array or legacy componentDecision)
+    for (const comp of extractComponentsFromMessage(message)) {
       componentItems.push({
-        id: `comp-${message.id}`,
+        id: `comp-${comp.id}`,
         type: "component",
-        title: message.componentDecision.componentName,
+        title: comp.name,
         subtitle: `Used in ${message.role} message`,
         messageId: message.id,
       });

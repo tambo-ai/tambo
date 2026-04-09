@@ -270,6 +270,37 @@ export function createMockThreadWithNonFirstSystemMessage(
 }
 
 /**
+ * Creates a thread with a component stored in the content array (V1 API format)
+ * rather than in componentDecision (legacy format)
+ */
+export function createMockThreadWithContentArrayComponent(
+  threadId: string = "thread-content-component",
+  projectId: string = "project-1",
+): ThreadType {
+  const messages: MessageType[] = [
+    createMockThreadMessage("msg-1", threadId, MessageRole.User, {
+      content: [{ type: "text", text: "Show me a table" }],
+      createdAt: new Date("2024-01-01T10:00:00Z"),
+    }),
+    createMockThreadMessage("msg-2", threadId, MessageRole.Assistant, {
+      content: [
+        { type: "text", text: "Here is your table" },
+        {
+          type: "component",
+          id: "comp_table_1",
+          name: "DataTable",
+          props: { rows: [{ name: "Alice" }], columns: ["name"] },
+          state: { selectedRow: 0 },
+        },
+      ] as MessageType["content"],
+      createdAt: new Date("2024-01-01T10:01:00Z"),
+    }),
+  ];
+
+  return createMockThread(threadId, projectId, { messages });
+}
+
+/**
  * Creates search matches for testing search functionality
  */
 export function createMockSearchMatches(): Array<{
