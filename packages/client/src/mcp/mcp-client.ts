@@ -104,17 +104,17 @@ export class MCPClient {
   private transport: SSEClientTransport | StreamableHTTPClientTransport;
   private transportType: MCPTransport;
   public sessionId?: string;
-  private endpoint: string;
+  /** The endpoint URL of the MCP server */
+  readonly endpoint: string;
   private headers: Record<string, string>;
   private authProvider?: OAuthClientProvider;
   private handlers: Partial<MCPHandlers>;
 
-
-    // Current connection status
-   /** Current connection status. */
-   readonly status: McpConnectionStatus = "connecting";
-   /** Error message if connection failed. */
-   readonly connectionError?: string;
+  // Current connection status
+  /** Current connection status. */
+  readonly status: McpConnectionStatus = "connecting";
+  /** Error message if connection failed. */
+  readonly connectionError?: string;
 
   /**
    * Private constructor to enforce using the static create method.
@@ -360,7 +360,7 @@ export class MCPClient {
   }
 }
 
- // Information about an MCP client connection.
+// Information about an MCP client connection.
 export type McpClientInfo =
   | {
       key: string;
