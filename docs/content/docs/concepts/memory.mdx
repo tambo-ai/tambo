@@ -48,7 +48,7 @@ When memories exceed the storage cap, Tambo evicts the oldest, lowest-importance
 
 ## Memory Scoping
 
-Memories are scoped to a combination of your project and a **context key**. The context key is typically a user identifier, so each user in your application has their own isolated set of memories. Users never see memories belonging to other users.
+Memories are scoped to the combination of your project and a **context key** (`projectId`, `contextKey`). To isolate memories per user, use a stable per-user context key (for example, a user ID). If multiple users share the same context key, they will share the same memory set.
 
 The context key comes from exactly one source: either [user authentication](/concepts/user-authentication) (derived automatically from the authenticated user) or a manually passed `contextKey` on threads. You cannot use both at the same time.
 
@@ -91,7 +91,7 @@ Both settings are off by default.
 
 Tambo enforces limits to keep memory performant and relevant:
 
-- **Storage cap**: 200 memories per user per project. When the cap is exceeded, the oldest and least important memories are evicted.
+- **Storage cap**: 200 memories per (`projectId`, `contextKey`) scope. When the cap is exceeded, the oldest and least important memories are evicted.
 - **Content length**: Each memory can be up to 1,000 characters.
 - **Injection budget**: Memories injected into the system prompt are capped at approximately 1,000 tokens. The most important memories are selected first.
 
