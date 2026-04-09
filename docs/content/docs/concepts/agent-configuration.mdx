@@ -50,6 +50,19 @@ Skills are supported by select OpenAI (GPT-5.2 and newer) and Anthropic (Claude 
 
 For details on how skills work, supported models, and how to manage them, see the [Skills concept page](/concepts/skills) and the [Add a Skill to Your Agent guide](/guides/manage-skills).
 
+## Memory
+
+Memory allows your agent to remember facts, preferences, and goals about individual users across conversations. When enabled, Tambo automatically extracts noteworthy information after each conversation and injects relevant memories into the system prompt for future interactions.
+
+There are two project-level settings that control memory behavior:
+
+- **Memory** enables automatic extraction and injection of memories.
+- **Memory tools** gives the agent explicit `save_memory` and `delete_memory` tools so users can directly control what the agent remembers.
+
+Both are off by default and can be toggled in the Agent tab of your project settings.
+
+For details on how memory works, categories, importance scoring, and capacity limits, see the [Memory concept page](/concepts/memory).
+
 ## MCP Server Connection
 
 Model Context Protocol servers extend your Tambo agent's capabilities by providing access to external tools, data sources, and services. You can connect MCP servers directly from your project settings page, making their capabilities available to all users of your application.
