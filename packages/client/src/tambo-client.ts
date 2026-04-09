@@ -54,7 +54,9 @@ export interface BeforeRunContext {
   tools: Readonly<Record<string, TamboTool>>;
 }
 
- // Callback invoked when MCP server connection status changes.
+/**
+ * Callback invoked when MCP server connection status changes.
+ */
 export interface McpConnectionChangeEvent {
   key: string;
   url: string;
@@ -195,17 +197,15 @@ export class TamboClient {
       }
     }
 
-    // Connect MCP servers (fire-and-forget)
-    if (options.mcpServers) {
-      for (const server of options.mcpServers) {
-        const key = getMcpServerUniqueKey(server);
-        void this.connectMcpServer(server).catch((err) => {
-          this.mcpFailedConnections.set(key, err.message);
-          this.emitMcpConnectionChange(key, server.url, "failed", err.message);
-          console.error(`[TamboClient] Failed to connect MCP server:`, err);
-        });
-      }
-    }
+     // Connect MCP servers (fire-and-forget)
+     if (options.mcpServers) {
+       for (const server of options.mcpServers) {
+         const key = getMcpServerUniqueKey(server);
+         void this.connectMcpServer(server).catch((err) => {
+           console.error(`[TamboClient] Failed to connect MCP server:`, err);
+         });
+       }
+     }
   }
 
   // -- Core operations --
@@ -548,30 +548,22 @@ export class TamboClient {
     // Clear any previous failure for this key to allow retry
     this.mcpFailedConnections.delete(key);
 
-    try {
-      const mcpClient = await MCPClient.create(
-        serverInfo.url,
-        serverInfo.transport,
-        serverInfo.customHeaders,
-        undefined, // authProvider
-        undefined, // sessionId
-      );
-      this.mcpClients.set(key, mcpClient);
-      this.emitMcpConnectionChange(
-        key,
-        serverInfo.url,
-        "connected",
-        undefined,
-        mcpClient,
-      );
-      return mcpClient;
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : String(error);
-      this.mcpFailedConnections.set(key, errorMessage);
-      this.emitMcpConnectionChange(key, serverInfo.url, "failed", errorMessage);
-      throw error;
-    }
+    const mcpClient = await MCPClient.create(
+      serverInfo.url,
+      serverInfo.transport,
+      serverInfo.customHeaders,
+      undefined, // authProvider
+      undefined, // sessionId
+    );
+    this.mcpClients.set(key, mcpClient);
+    this.emitMcpConnectionChange(
+      key,
+      serverInfo.url,
+      "connected",
+      undefined,
+      mcpClient,
+    );
+    return mcpClient;
   }
 
   /**
@@ -586,41 +578,39 @@ export class TamboClient {
     }
   }
 
-  /**
-   * Get all MCP clients with their connection status.
-   * @returns Record of server key to McpClientInfo.
-   */
-  getMcpClients(): Record<string, McpClientInfo> {
-    const result: Record<string, McpClientInfo> = {};
+   /**
+    * Get all MCP clients with their connection status.
+    * @returns Record of server key to McpClientInfo.
+    */
+   getMcpClients(): Record<string, McpClientInfo> {
+     const result: Record<string, McpClientInfo> = {};
 
-    for (const [key, client] of this.mcpClients.entries()) {
-      const url = client["endpoint" as keyof typeof client] as string;
-      result[key] = {
-        key,
-        url,
-        status: client.status,
-        error: client.connectionError,
-        client,
-      };
-    }
+     for (const [key, client] of this.mcpClients.entries()) {
+       result[key] = {
+         key,
+         url: client.endpoint,
+         status: client.status,
+         error: client.connectionError,
+         client,
+       };
+     }
 
-    for (const [key, error] of this.mcpFailedConnections.entries()) {
-      if (!result[key]) {
-        const serverInfo = this.options.mcpServers?.find(
-          (s) => getMcpServerUniqueKey(s) === key,
-        );
-        result[key] = {
-          key,
-          url: serverInfo?.url ?? "unknown",
-          status: "failed" as McpConnectionStatus,
-          error,
-          client: null as unknown as MCPClient,
-        };
-      }
-    }
+     for (const [key, error] of this.mcpFailedConnections.entries()) {
+       if (!result[key]) {
+         const serverInfo = this.options.mcpServers?.find(
+           (s) => getMcpServerUniqueKey(s) === key,
+         );
+         result[key] = {
+           key,
+           url: serverInfo?.url ?? "unknown",
+           status: "failed",
+           error,
+         };
+       }
+     }
 
-    return result;
-  }
+     return result;
+   }
 
   /**
    * Get an MCP token for a context key.

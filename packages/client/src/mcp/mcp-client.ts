@@ -81,7 +81,6 @@ export interface MCPHandlers {
   sampling: MCPSamplingHandler;
 }
 
-
 // MCP client connection status
 export type McpConnectionStatus = "connecting" | "connected" | "failed";
 
@@ -111,11 +110,11 @@ export class MCPClient {
   private handlers: Partial<MCPHandlers>;
 
 
-  // Current connection status
-  status: McpConnectionStatus = "connecting";
-
-  // Error message if connection failed
-  connectionError?: string;
+    // Current connection status
+   /** Current connection status. */
+   readonly status: McpConnectionStatus = "connecting";
+   /** Error message if connection failed. */
+   readonly connectionError?: string;
 
   /**
    * Private constructor to enforce using the static create method.
@@ -171,13 +170,13 @@ export class MCPClient {
     );
     try {
       await mcpClient.client.connect(mcpClient.transport);
-      mcpClient.status = "connected";
+      (mcpClient as { status: McpConnectionStatus }).status = "connected";
       if ("sessionId" in mcpClient.transport) {
         mcpClient.sessionId = mcpClient.transport.sessionId;
       }
     } catch (error) {
-      mcpClient.status = "failed";
-      mcpClient.connectionError =
+      (mcpClient as { status: McpConnectionStatus }).status = "failed";
+      (mcpClient as { connectionError?: string }).connectionError =
         error instanceof Error ? error.message : String(error);
       throw error;
     }
@@ -362,13 +361,28 @@ export class MCPClient {
 }
 
  // Information about an MCP client connection.
-export interface McpClientInfo {
-  key: string;
-  url: string;
-  status: McpConnectionStatus;
-  error?: string;
-  client: MCPClient;
-}
+export type McpClientInfo =
+  | {
+      key: string;
+      url: string;
+      status: "connected";
+      client: MCPClient;
+      error?: never;
+    }
+  | {
+      key: string;
+      url: string;
+      status: "failed";
+      client?: never;
+      error: string;
+    }
+  | {
+      key: string;
+      url: string;
+      status: "connecting";
+      client?: never;
+      error?: never;
+    };
 
 /**
  * The result of a tool call.
