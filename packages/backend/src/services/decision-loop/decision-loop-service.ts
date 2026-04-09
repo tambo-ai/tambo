@@ -23,6 +23,7 @@ import {
   getLLMResponseMessage,
   getLLMResponseToolCallId,
   LLMClient,
+  type ProviderSkillCall,
 } from "../llm/llm-client";
 import {
   addParametersToTools,
@@ -52,6 +53,12 @@ export interface DecisionStreamItem {
 
   /** Provider options to persist on tool calls (e.g. Gemini thought signatures). */
   toolCallProviderOptionsById?: Record<string, ProviderOptions>;
+
+  /**
+   * Provider-managed skill tool calls that completed during this streaming delta.
+   * Passed through from LLMStreamItem for threads.service.ts to persist.
+   */
+  completedProviderSkillCalls?: ProviderSkillCall[];
 }
 
 const TOOL_CHOICE_KEYWORDS = ["auto", "required", "none"] as const;
@@ -302,6 +309,7 @@ export async function* runDecisionLoop(
         decision: accumulatedDecision,
         aguiEvents: streamItem.aguiEvents,
         toolCallProviderOptionsById: streamItem.toolCallProviderOptionsById,
+        completedProviderSkillCalls: streamItem.completedProviderSkillCalls,
       };
     } catch (e) {
       console.error("Error parsing stream chunk:", e);

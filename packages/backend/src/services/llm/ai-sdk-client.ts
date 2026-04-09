@@ -55,6 +55,7 @@ import {
   LLMClient,
   LLMResponse,
   LLMStreamItem,
+  type ProviderSkillCall,
   StreamingCompleteParams,
 } from "./llm-client";
 import { generateMessageId } from "./message-id-generator";
@@ -545,10 +546,13 @@ export class AISdkClient implements LLMClient {
     // Track component streaming for UI tools (show_component_*)
     let componentTracker: ComponentStreamTracker | undefined;
 
-    // Provider-managed skill tools are completely ignored during streaming.
-    // The provider handles execution internally; the LLM describes what
-    // the skill accomplished in its text response.
+    // Provider-managed skill tools emit AG-UI events and are captured for
+    // persistence, but do not flow through the main accumulatedToolCall pipeline.
     let isProviderSkillTool = false;
+    const accumulatedSkillCall: { id?: string; arguments: string } = {
+      arguments: "",
+    };
+    const completedSkillCalls: ProviderSkillCall[] = [];
 
     for await (const delta of result.fullStream) {
       // Collect AG-UI events for this delta
@@ -630,13 +634,18 @@ export class AISdkClient implements LLMClient {
           isProviderSkillTool =
             !!skillToolName && delta.toolName === skillToolName;
           if (isProviderSkillTool) {
-            // Skill tools are fully handled by the provider. Ignore.
-            // Clear accumulated tool state to prevent stale data from a
-            // previous tool call leaking if tool-result doesn't fire.
+            // Skill tools are handled by the provider but we emit AG-UI events
+            // and capture the call for persistence. Keep the main pipeline clean.
             componentTracker = undefined;
-            accumulatedToolCall.name = undefined;
-            accumulatedToolCall.arguments = "";
-            accumulatedToolCall.id = undefined;
+            accumulatedSkillCall.id = delta.id;
+            accumulatedSkillCall.arguments = "";
+            aguiEvents.push({
+              type: EventType.TOOL_CALL_START,
+              toolCallId: delta.id,
+              toolCallName: "load_skill",
+              parentMessageId: textMessageId,
+              timestamp: Date.now(),
+            } as ToolCallStartEvent);
             break;
           }
 
@@ -672,7 +681,16 @@ export class AISdkClient implements LLMClient {
           break;
         }
         case "tool-input-delta":
-          if (isProviderSkillTool) break;
+          if (isProviderSkillTool) {
+            accumulatedSkillCall.arguments += delta.delta;
+            aguiEvents.push({
+              type: EventType.TOOL_CALL_ARGS,
+              toolCallId: delta.id,
+              delta: delta.delta,
+              timestamp: Date.now(),
+            } as ToolCallArgsEvent);
+            break;
+          }
           accumulatedToolCall.arguments += delta.delta;
           if (componentTracker) {
             const componentEvents = componentTracker.processJsonDelta(
@@ -692,7 +710,15 @@ export class AISdkClient implements LLMClient {
         case "tool-input-end":
           break;
         case "tool-call":
-          if (isProviderSkillTool) break;
+          if (isProviderSkillTool) {
+            accumulatedSkillCall.id = delta.toolCallId;
+            aguiEvents.push({
+              type: EventType.TOOL_CALL_END,
+              toolCallId: delta.toolCallId,
+              timestamp: Date.now(),
+            } as ToolCallEndEvent);
+            break;
+          }
           if (delta.providerMetadata?.google?.thoughtSignature) {
             toolCallProviderOptionsById = {
               ...(toolCallProviderOptionsById ?? {}),
@@ -727,6 +753,20 @@ export class AISdkClient implements LLMClient {
               "Tool result should not be emitted during streaming",
             );
           }
+          if (!accumulatedSkillCall.id) {
+            throw new Error(
+              "Provider skill tool-result received without a tool call ID",
+            );
+          }
+          completedSkillCalls.push({
+            toolCallId: accumulatedSkillCall.id,
+            toolName: "load_skill",
+            args: accumulatedSkillCall.arguments,
+            result: delta.output,
+          });
+          accumulatedSkillCall.id = undefined;
+          accumulatedSkillCall.arguments = "";
+          isProviderSkillTool = false;
           // Clear accumulated tool call so subsequent chunks don't carry
           // the provider-executed tool as an unresolved client tool call.
           accumulatedToolCall.name = undefined;
@@ -815,6 +855,9 @@ export class AISdkClient implements LLMClient {
         },
         aguiEvents,
         toolCallProviderOptionsById,
+        ...(completedSkillCalls.length > 0 && {
+          completedProviderSkillCalls: completedSkillCalls.splice(0),
+        }),
       };
     }
 

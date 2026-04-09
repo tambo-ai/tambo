@@ -1,5 +1,10 @@
 import { Inject, Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
+import {
+  EventType,
+  type BaseEvent,
+  type ToolCallResultEvent,
+} from "@ag-ui/client";
 import * as Sentry from "@sentry/nestjs";
 import {
   convertMetadataToTools,
@@ -12,6 +17,7 @@ import {
   ModelOptions,
   Provider,
   ToolRegistry,
+  type ProviderSkillCall,
 } from "@tambo-ai-cloud/backend";
 import {
   ActionType,
@@ -1791,6 +1797,10 @@ export class ThreadsService {
         updateIntervalMs,
       );
 
+      // Collect provider-managed skill tool calls during streaming.
+      // Persisted post-stream to avoid blocking the hot path with DB writes.
+      const allCompletedSkillCalls: ProviderSkillCall[] = [];
+
       let currentLegacyDecisionId: string | undefined = undefined;
       for await (const streamItem of fixStreamedToolCalls(stream)) {
         const legacyDecision = streamItem.decision;
@@ -1911,6 +1921,13 @@ export class ThreadsService {
           return;
         }
 
+        // Collect completed provider skill calls for post-stream persistence.
+        if (streamItem.completedProviderSkillCalls?.length) {
+          allCompletedSkillCalls.push(
+            ...streamItem.completedProviderSkillCalls,
+          );
+        }
+
         // This is kind of a hack: when we have a tool call, but we might not want to
         // emit it all the way to the frontend, because that is how the frontend
         // knows to actually call a tool.. but the tool here might be an
@@ -2004,6 +2021,74 @@ export class ThreadsService {
             logger,
           ));
       }
+      // Persist provider skill tool call messages post-stream.
+      // Each skill call produces an assistant message (with toolCallRequest)
+      // and a tool response message, both tagged with providerSkill metadata.
+      // TOOL_CALL_RESULT events are collected here and emitted with the final response.
+      const skillResultEvents: BaseEvent[] = [];
+      if (allCompletedSkillCalls.length > 0) {
+        const providerSkillMetadata = {
+          _tambo: { providerSkill: true },
+        };
+
+        for (const skillCall of allCompletedSkillCalls) {
+          // Save assistant message for the tool call
+          await addMessage(
+            db,
+            threadId,
+            {
+              role: MessageRole.Assistant,
+              content: [
+                {
+                  type: ContentPartType.Text,
+                  text: "",
+                },
+              ],
+              toolCallRequest: {
+                toolName: skillCall.toolName,
+                parameters: jsonArgsToParameters(skillCall.args),
+              },
+              tool_call_id: skillCall.toolCallId,
+              actionType: ActionType.ToolCall,
+              metadata: providerSkillMetadata,
+            },
+            sdkVersion,
+          );
+
+          // Save tool response message
+          const resultContent =
+            typeof skillCall.result === "string"
+              ? skillCall.result
+              : JSON.stringify(skillCall.result);
+          const toolResponseMsg = await addMessage(
+            db,
+            threadId,
+            {
+              role: MessageRole.Tool,
+              content: [
+                {
+                  type: ContentPartType.Text,
+                  text: resultContent,
+                },
+              ],
+              tool_call_id: skillCall.toolCallId,
+              actionType: ActionType.ToolResponse,
+              metadata: providerSkillMetadata,
+            },
+            sdkVersion,
+          );
+
+          skillResultEvents.push({
+            type: EventType.TOOL_CALL_RESULT,
+            toolCallId: skillCall.toolCallId,
+            messageId: toolResponseMsg.id,
+            content: resultContent,
+            timestamp: Date.now(),
+          } as ToolCallResultEvent);
+        }
+      }
+
+      // skillResultEvents will be attached to the next queue push below
       const componentDecision = finalThreadMessage.component;
       if (componentDecision && isSystemToolCall(toolCallRequest, allTools)) {
         // Track system tool call within stream
@@ -2031,7 +2116,7 @@ export class ThreadsService {
             statusMessage: resultingStatusMessage,
             ...(mcpAccessToken && { mcpAccessToken }),
           },
-          aguiEvents: [], // System tool call handling, no AG-UI events
+          aguiEvents: skillResultEvents,
         });
 
         const toolCallId = finalThreadMessage.tool_call_id;
@@ -2184,7 +2269,7 @@ export class ThreadsService {
             statusMessage: resultingStatusMessage,
             ...(mcpAccessToken && { mcpAccessToken }),
           },
-          aguiEvents: [],
+          aguiEvents: skillResultEvents,
         });
 
         // Continue the decision loop with the tool response
@@ -2229,7 +2314,7 @@ export class ThreadsService {
           statusMessage: resultingStatusMessage,
           ...(mcpAccessToken && { mcpAccessToken }),
         },
-        aguiEvents: [], // Final response after tool call, no more AG-UI events
+        aguiEvents: skillResultEvents,
       });
     } catch (error) {
       // Capture streaming errors with full context
@@ -2593,4 +2678,31 @@ function deriveToolLimitsFromDto(
   }
 
   return limits;
+}
+
+/**
+ * Parse a raw JSON args string into the ToolCallRequest parameters format.
+ * @returns Array of { parameterName, parameterValue } entries
+ */
+function jsonArgsToParameters(
+  json: string,
+): { parameterName: string; parameterValue: unknown }[] {
+  try {
+    const parsed: unknown = JSON.parse(json);
+    if (
+      typeof parsed !== "object" ||
+      parsed === null ||
+      Array.isArray(parsed)
+    ) {
+      return [{ parameterName: "raw", parameterValue: json }];
+    }
+    return Object.entries(parsed as Record<string, unknown>).map(
+      ([parameterName, parameterValue]) => ({
+        parameterName,
+        parameterValue,
+      }),
+    );
+  } catch {
+    return [{ parameterName: "raw", parameterValue: json }];
+  }
 }
