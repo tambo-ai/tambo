@@ -50,7 +50,7 @@ When memories exceed the storage cap, Tambo evicts the oldest, lowest-importance
 
 Memories are scoped to a combination of your project and a **context key**. The context key is typically a user identifier, so each user in your application has their own isolated set of memories. Users never see memories belonging to other users.
 
-If you use Tambo's [user authentication](/concepts/user-authentication), the context key is derived automatically from the authenticated user. If you pass a `contextKey` manually on threads, that value is used instead.
+The context key comes from exactly one source: either [user authentication](/concepts/user-authentication) (derived automatically from the authenticated user) or a manually passed `contextKey` on threads. You cannot use both at the same time.
 
 ## Memory Tools
 
