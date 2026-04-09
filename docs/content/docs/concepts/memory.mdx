@@ -13,38 +13,13 @@ Memory operates in two phases: extraction and injection.
 
 ### Extraction
 
-After a conversation completes, Tambo analyzes recent messages and extracts atomic facts worth remembering. Each extracted memory is categorized, assigned an importance score, and stored. Tambo deduplicates against existing memories to avoid storing the same fact twice.
+After a conversation completes, Tambo analyzes recent messages and extracts atomic facts worth remembering. Tambo deduplicates against existing memories to avoid storing the same fact twice.
 
 Extraction happens in the background after the response is delivered, so it never slows down the user's experience.
 
 ### Injection
 
-When a user starts a new conversation, Tambo fetches their stored memories and includes them in the system prompt. The agent sees these memories as context and can reference them naturally in responses. Memories are selected to fit within a token budget, prioritizing the most important ones first.
-
-## Memory Categories
-
-Each memory is assigned one of four categories:
-
-| Category       | Description                                         | Example                                      |
-| -------------- | --------------------------------------------------- | -------------------------------------------- |
-| `preference`   | User preferences and choices                        | "User prefers dark mode"                     |
-| `fact`         | Factual information about the user                  | "User works at Acme Corp as a data engineer" |
-| `goal`         | Active projects, objectives, or aspirations         | "User is building a dashboard for Q2 launch" |
-| `relationship` | Connections between people, teams, or organizations | "User reports to Sarah on the platform team" |
-
-## Importance Scale
-
-Each memory receives an importance score from 1 to 5:
-
-| Score | Meaning                   | Example                                 |
-| ----- | ------------------------- | --------------------------------------- |
-| 5     | Core identity/preference  | "User's name is Alex"                   |
-| 4     | Active project or goal    | "User is migrating to TypeScript"       |
-| 3     | Useful background context | "User attended the React conference"    |
-| 2     | Minor preference          | "User likes bullet-point summaries"     |
-| 1     | Transient detail          | "User asked about pricing on April 3rd" |
-
-When memories exceed the storage cap, Tambo evicts the oldest, lowest-importance memories first.
+Each time a user sends a message, Tambo fetches their stored memories and includes the most relevant ones in the system prompt. The agent sees these memories as context and can reference them naturally in responses.
 
 ## Memory Scoping
 
@@ -52,40 +27,9 @@ Memories are scoped to the combination of your project and a **context key** (`p
 
 The context key comes from exactly one source: either [user authentication](/concepts/user-authentication) (derived automatically from the authenticated user) or a manually passed `contextKey` on threads. You cannot use both at the same time.
 
-## Memory Tools
-
-When memory tools are enabled, the agent gains two additional tools it can call during conversations:
-
-### save_memory
-
-Allows the agent to explicitly save a fact when the user asks it to remember something, or when the agent determines a fact is worth preserving.
-
-Parameters:
-
-- `content` (string) -- the fact to remember, written in third person
-- `category` -- one of `preference`, `fact`, `goal`, or `relationship`
-- `importance` (1-5, optional) -- defaults to 3
-
-### delete_memory
-
-Allows the agent to forget a specific memory when the user asks it to.
-
-Parameters:
-
-- `memory_id` (string) -- the ID of the memory to delete
-
-These tools give users direct control over what the agent remembers. A user can say "remember that I prefer Python over JavaScript" or "forget that I work at Acme Corp" and the agent will act on it.
-
 ## Enabling Memory
 
-Memory is configured at the project level in your Tambo Cloud dashboard under the **Agent** tab.
-
-There are two settings:
-
-1. **Memory** -- enables automatic memory extraction from conversations and injection into the system prompt. This is the main toggle.
-2. **Memory tools** -- enables the `save_memory` and `delete_memory` tools so the agent can explicitly save or delete memories during conversations. Requires memory to be enabled first.
-
-Both settings are off by default.
+Memory is configured at the project level in your Tambo Cloud dashboard under the **Agent** tab. The setting is off by default.
 
 ## Capacity and Limits
 
@@ -93,8 +37,7 @@ Tambo enforces limits to keep memory performant and relevant:
 
 - **Storage cap**: 200 memories per (`projectId`, `contextKey`) scope. When the cap is exceeded, the oldest and least important memories are evicted.
 - **Content length**: Each memory can be up to 1,000 characters.
-- **Injection budget**: Memories injected into the system prompt are capped at approximately 1,000 tokens. The most important memories are selected first.
 
 ## Privacy and Deletion
 
-Memories are soft-deleted. When a memory is removed by the agent's `delete_memory` tool, the content is scrubbed and replaced with `[deleted]`. This ensures deleted content is not recoverable while maintaining referential integrity.
+If a user asks the agent to forget something, the memory is deleted. Tambo ensures deleted content is not recoverable.
