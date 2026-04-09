@@ -26,23 +26,23 @@ When a user starts a new conversation, Tambo fetches their stored memories and i
 
 Each memory is assigned one of four categories:
 
-| Category       | Description                                        | Example                                      |
-| -------------- | -------------------------------------------------- | -------------------------------------------- |
-| `preference`   | User preferences and choices                       | "User prefers dark mode"                     |
-| `fact`         | Factual information about the user                 | "User works at Acme Corp as a data engineer" |
-| `goal`         | Active projects, objectives, or aspirations        | "User is building a dashboard for Q2 launch" |
+| Category       | Description                                         | Example                                      |
+| -------------- | --------------------------------------------------- | -------------------------------------------- |
+| `preference`   | User preferences and choices                        | "User prefers dark mode"                     |
+| `fact`         | Factual information about the user                  | "User works at Acme Corp as a data engineer" |
+| `goal`         | Active projects, objectives, or aspirations         | "User is building a dashboard for Q2 launch" |
 | `relationship` | Connections between people, teams, or organizations | "User reports to Sarah on the platform team" |
 
 ## Importance Scale
 
 Each memory receives an importance score from 1 to 5:
 
-| Score | Meaning                   | Example                                |
-| ----- | ------------------------- | -------------------------------------- |
-| 5     | Core identity/preference  | "User's name is Alex"                  |
-| 4     | Active project or goal    | "User is migrating to TypeScript"      |
-| 3     | Useful background context | "User attended the React conference"   |
-| 2     | Minor preference          | "User likes bullet-point summaries"    |
+| Score | Meaning                   | Example                                 |
+| ----- | ------------------------- | --------------------------------------- |
+| 5     | Core identity/preference  | "User's name is Alex"                   |
+| 4     | Active project or goal    | "User is migrating to TypeScript"       |
+| 3     | Useful background context | "User attended the React conference"    |
+| 2     | Minor preference          | "User likes bullet-point summaries"     |
 | 1     | Transient detail          | "User asked about pricing on April 3rd" |
 
 When memories exceed the storage cap, Tambo evicts the oldest, lowest-importance memories first.
@@ -62,6 +62,7 @@ When memory tools are enabled, the agent gains two additional tools it can call 
 Allows the agent to explicitly save a fact when the user asks it to remember something, or when the agent determines a fact is worth preserving.
 
 Parameters:
+
 - `content` (string) -- the fact to remember, written in third person
 - `category` -- one of `preference`, `fact`, `goal`, or `relationship`
 - `importance` (1-5, optional) -- defaults to 3
@@ -71,6 +72,7 @@ Parameters:
 Allows the agent to forget a specific memory when the user asks it to.
 
 Parameters:
+
 - `memory_id` (string) -- the ID of the memory to delete
 
 These tools give users direct control over what the agent remembers. A user can say "remember that I prefer Python over JavaScript" or "forget that I work at Acme Corp" and the agent will act on it.
