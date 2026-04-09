@@ -767,11 +767,6 @@ export class AISdkClient implements LLMClient {
           accumulatedSkillCall.id = undefined;
           accumulatedSkillCall.arguments = "";
           isProviderSkillTool = false;
-          // Clear accumulated tool call so subsequent chunks don't carry
-          // the provider-executed tool as an unresolved client tool call.
-          accumulatedToolCall.name = undefined;
-          accumulatedToolCall.arguments = "";
-          accumulatedToolCall.id = undefined;
           break;
         case "tool-error":
           throw delta.error;

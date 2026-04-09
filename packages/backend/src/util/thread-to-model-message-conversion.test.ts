@@ -8,6 +8,7 @@ import {
   convertAssistantMessage,
   threadMessagesToModelMessages,
 } from "./thread-to-model-message-conversion";
+import type { ThreadMessage } from "@tambo-ai-cloud/core";
 
 const baseAssistantMessage: Omit<
   ThreadAssistantMessage,
@@ -314,11 +315,11 @@ describe("convertAssistantMessage", () => {
 
 describe("threadMessagesToModelMessages - provider skill filtering", () => {
   it("should exclude messages with metadata._tambo.providerSkill = true", () => {
-    const messages = [
+    const messages: ThreadMessage[] = [
       {
         id: "msg_user",
         threadId: "thread_1",
-        role: MessageRole.User,
+        role: MessageRole.User as const,
         content: [{ type: ContentPartType.Text, text: "Hello" }],
         createdAt: new Date(),
         componentState: {},
@@ -326,7 +327,7 @@ describe("threadMessagesToModelMessages - provider skill filtering", () => {
       {
         id: "msg_skill_assistant",
         threadId: "thread_1",
-        role: MessageRole.Assistant,
+        role: MessageRole.Assistant as const,
         content: [{ type: ContentPartType.Text, text: "" }],
         createdAt: new Date(),
         componentState: {},
@@ -337,7 +338,7 @@ describe("threadMessagesToModelMessages - provider skill filtering", () => {
       {
         id: "msg_skill_tool",
         threadId: "thread_1",
-        role: MessageRole.Tool,
+        role: MessageRole.Tool as const,
         content: [{ type: ContentPartType.Text, text: "result" }],
         createdAt: new Date(),
         componentState: {},
@@ -347,7 +348,7 @@ describe("threadMessagesToModelMessages - provider skill filtering", () => {
       {
         id: "msg_assistant",
         threadId: "thread_1",
-        role: MessageRole.Assistant,
+        role: MessageRole.Assistant as const,
         content: [{ type: ContentPartType.Text, text: "Here is the answer" }],
         createdAt: new Date(),
         componentState: {},
@@ -366,11 +367,11 @@ describe("threadMessagesToModelMessages - provider skill filtering", () => {
   });
 
   it("should keep non-skill tool messages", () => {
-    const messages = [
+    const messages: ThreadMessage[] = [
       {
         id: "msg_user",
         threadId: "thread_1",
-        role: MessageRole.User,
+        role: MessageRole.User as const,
         content: [{ type: ContentPartType.Text, text: "Hello" }],
         createdAt: new Date(),
         componentState: {},
@@ -378,7 +379,7 @@ describe("threadMessagesToModelMessages - provider skill filtering", () => {
       {
         id: "msg_assistant_tool",
         threadId: "thread_1",
-        role: MessageRole.Assistant,
+        role: MessageRole.Assistant as const,
         content: [{ type: ContentPartType.Text, text: "" }],
         createdAt: new Date(),
         componentState: {},
@@ -388,7 +389,7 @@ describe("threadMessagesToModelMessages - provider skill filtering", () => {
       {
         id: "msg_tool",
         threadId: "thread_1",
-        role: MessageRole.Tool,
+        role: MessageRole.Tool as const,
         content: [{ type: ContentPartType.Text, text: "sunny" }],
         createdAt: new Date(),
         componentState: {},

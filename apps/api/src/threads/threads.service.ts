@@ -1981,6 +1981,89 @@ export class ThreadsService {
         },
       });
 
+      // Persist provider skill tool call messages post-stream, BEFORE the
+      // tool-limit check so early returns don't skip skill persistence.
+      // Each skill call produces an assistant message (with toolCallRequest)
+      // and a tool response message, both tagged with providerSkill metadata.
+      // TOOL_CALL_RESULT events are collected here and emitted with the final response.
+      const skillResultEvents: BaseEvent[] = [];
+      if (allCompletedSkillCalls.length > 0) {
+        const providerSkillMetadata = {
+          _tambo: { providerSkill: true },
+        };
+
+        for (const skillCall of allCompletedSkillCalls) {
+          try {
+            // Save assistant message for the tool call
+            await addMessage(
+              db,
+              threadId,
+              {
+                role: MessageRole.Assistant,
+                content: [
+                  {
+                    type: ContentPartType.Text,
+                    text: "",
+                  },
+                ],
+                toolCallRequest: {
+                  toolName: skillCall.toolName,
+                  parameters: jsonArgsToParameters(skillCall.args),
+                },
+                tool_call_id: skillCall.toolCallId,
+                actionType: ActionType.ToolCall,
+                metadata: providerSkillMetadata,
+              },
+              sdkVersion,
+            );
+
+            // Save tool response message
+            const resultContent =
+              typeof skillCall.result === "string"
+                ? skillCall.result
+                : JSON.stringify(skillCall.result);
+            const toolResponseMsg = await addMessage(
+              db,
+              threadId,
+              {
+                role: MessageRole.Tool,
+                content: [
+                  {
+                    type: ContentPartType.Text,
+                    text: resultContent,
+                  },
+                ],
+                tool_call_id: skillCall.toolCallId,
+                actionType: ActionType.ToolResponse,
+                metadata: providerSkillMetadata,
+              },
+              sdkVersion,
+            );
+
+            skillResultEvents.push({
+              type: EventType.TOOL_CALL_RESULT,
+              toolCallId: skillCall.toolCallId,
+              messageId: toolResponseMsg.id,
+              content: resultContent,
+              timestamp: Date.now(),
+            } as ToolCallResultEvent);
+          } catch (error) {
+            // Skill persistence is for observability — don't crash the stream
+            Sentry.captureException(error, {
+              tags: {
+                threadId,
+                projectId,
+                operation: "persistProviderSkillCall",
+              },
+              extra: { toolCallId: skillCall.toolCallId },
+            });
+            this.logger.error(
+              `Failed to persist provider skill call ${skillCall.toolCallId}: ${error}`,
+            );
+          }
+        }
+      }
+
       // The tool call request has already been unstrictified in the streaming loop above,
       // so we just extract it here for the tool limit check
       const toolCallRequest = finalThreadMessage.toolCallRequest;
@@ -2020,72 +2103,6 @@ export class ThreadsService {
             finalThreadMessage,
             logger,
           ));
-      }
-      // Persist provider skill tool call messages post-stream.
-      // Each skill call produces an assistant message (with toolCallRequest)
-      // and a tool response message, both tagged with providerSkill metadata.
-      // TOOL_CALL_RESULT events are collected here and emitted with the final response.
-      const skillResultEvents: BaseEvent[] = [];
-      if (allCompletedSkillCalls.length > 0) {
-        const providerSkillMetadata = {
-          _tambo: { providerSkill: true },
-        };
-
-        for (const skillCall of allCompletedSkillCalls) {
-          // Save assistant message for the tool call
-          await addMessage(
-            db,
-            threadId,
-            {
-              role: MessageRole.Assistant,
-              content: [
-                {
-                  type: ContentPartType.Text,
-                  text: "",
-                },
-              ],
-              toolCallRequest: {
-                toolName: skillCall.toolName,
-                parameters: jsonArgsToParameters(skillCall.args),
-              },
-              tool_call_id: skillCall.toolCallId,
-              actionType: ActionType.ToolCall,
-              metadata: providerSkillMetadata,
-            },
-            sdkVersion,
-          );
-
-          // Save tool response message
-          const resultContent =
-            typeof skillCall.result === "string"
-              ? skillCall.result
-              : JSON.stringify(skillCall.result);
-          const toolResponseMsg = await addMessage(
-            db,
-            threadId,
-            {
-              role: MessageRole.Tool,
-              content: [
-                {
-                  type: ContentPartType.Text,
-                  text: resultContent,
-                },
-              ],
-              tool_call_id: skillCall.toolCallId,
-              actionType: ActionType.ToolResponse,
-              metadata: providerSkillMetadata,
-            },
-            sdkVersion,
-          );
-
-          skillResultEvents.push({
-            type: EventType.TOOL_CALL_RESULT,
-            toolCallId: skillCall.toolCallId,
-            messageId: toolResponseMsg.id,
-            content: resultContent,
-            timestamp: Date.now(),
-          } as ToolCallResultEvent);
-        }
       }
 
       // skillResultEvents will be attached to the next queue push below
@@ -2169,6 +2186,7 @@ export class ThreadsService {
             statusMessage: resultingStatusMessage,
             ...(mcpAccessToken && { mcpAccessToken }),
           },
+          aguiEvents: skillResultEvents,
         });
 
         // `tool_call_id` can be missing in edge cases, but UI tools should never be client-invokable.
@@ -2694,6 +2712,9 @@ function jsonArgsToParameters(
       parsed === null ||
       Array.isArray(parsed)
     ) {
+      console.warn(
+        `[Skills] jsonArgsToParameters: parsed JSON is not a plain object (type=${typeof parsed}), using raw fallback`,
+      );
       return [{ parameterName: "raw", parameterValue: json }];
     }
     return Object.entries(parsed as Record<string, unknown>).map(
@@ -2702,7 +2723,11 @@ function jsonArgsToParameters(
         parameterValue,
       }),
     );
-  } catch {
+  } catch (error) {
+    console.warn(
+      `[Skills] jsonArgsToParameters: failed to parse JSON args, using raw fallback:`,
+      error,
+    );
     return [{ parameterName: "raw", parameterValue: json }];
   }
 }

@@ -861,6 +861,103 @@ describe("AISdkClient", () => {
       const uniqueIds = new Set(startEvents.map((e: any) => e.messageId));
       expect(uniqueIds.size).toBe(1);
     });
+
+    it("handles multiple skill tool calls in one stream", async () => {
+      const client = createClient();
+      const mockDeltas: StreamDelta[] = [
+        { type: "text-start" },
+        { type: "text-delta", text: "Loading skills..." },
+        { type: "text-end" },
+        // First skill
+        {
+          type: "tool-input-start",
+          id: "call-a",
+          toolName: "code_execution",
+        },
+        {
+          type: "tool-input-delta",
+          id: "call-a",
+          delta: '{"skill":"alpha"}',
+        },
+        {
+          type: "tool-call",
+          toolCallId: "call-a",
+          toolName: "code_execution",
+          args: {},
+        },
+        {
+          type: "tool-result",
+          toolCallId: "call-a",
+          output: "alpha-result",
+          providerExecuted: true,
+        },
+        // Second skill
+        {
+          type: "tool-input-start",
+          id: "call-b",
+          toolName: "code_execution",
+        },
+        {
+          type: "tool-input-delta",
+          id: "call-b",
+          delta: '{"skill":"beta"}',
+        },
+        {
+          type: "tool-call",
+          toolCallId: "call-b",
+          toolName: "code_execution",
+          args: {},
+        },
+        {
+          type: "tool-result",
+          toolCallId: "call-b",
+          output: "beta-result",
+          providerExecuted: true,
+        },
+        { type: "text-start" },
+        { type: "text-delta", text: "Done." },
+        { type: "text-end" },
+      ];
+
+      const mockStream = createMockStreamResponse(mockDeltas);
+      const chunks: any[] = [];
+      for await (const chunk of callHandleStreamingResponse(
+        client,
+        mockStream,
+        "code_execution",
+      )) {
+        chunks.push(chunk);
+      }
+
+      // Collect all completed skill calls across all chunks
+      const allSkillCalls = chunks.flatMap(
+        (c: any) => c.completedProviderSkillCalls ?? [],
+      );
+      expect(allSkillCalls.length).toBe(2);
+      expect(allSkillCalls[0].toolCallId).toBe("call-a");
+      expect(allSkillCalls[0].args).toBe('{"skill":"alpha"}');
+      expect(allSkillCalls[0].result).toBe("alpha-result");
+      expect(allSkillCalls[1].toolCallId).toBe("call-b");
+      expect(allSkillCalls[1].args).toBe('{"skill":"beta"}');
+      expect(allSkillCalls[1].result).toBe("beta-result");
+
+      // Should have 2 TOOL_CALL_START events, both with "load_skill"
+      const allEvents = chunks.flatMap((c: any) => c.aguiEvents);
+      const startEvents = allEvents.filter(
+        (e: any) => e.type === EventType.TOOL_CALL_START,
+      );
+      expect(startEvents.length).toBe(2);
+      expect(
+        startEvents.every((e: any) => e.toolCallName === "load_skill"),
+      ).toBe(true);
+
+      // Text should be stitched across both skill boundaries
+      const lastChunk = chunks[chunks.length - 1];
+      expect(lastChunk.llmResponse.message?.content).toContain(
+        "Loading skills...",
+      );
+      expect(lastChunk.llmResponse.message?.content).toContain("Done.");
+    });
   });
 
   describe("template substitution via complete()", () => {
