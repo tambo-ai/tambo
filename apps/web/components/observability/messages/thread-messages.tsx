@@ -21,12 +21,14 @@ import { ToolCallMessage } from "./tool-call-message";
 type ThreadType = RouterOutputs["thread"]["getThread"];
 type MessageType = ThreadType["messages"][0];
 
-type MessageGroup = {
-  type: "message" | "tool_call" | "component";
-  message: MessageType;
-  toolResponse?: MessageType;
-  componentData?: ExtractedComponent;
-};
+type MessageGroup =
+  | { type: "message"; message: MessageType }
+  | { type: "tool_call"; message: MessageType; toolResponse?: MessageType }
+  | {
+      type: "component";
+      message: MessageType;
+      componentData: ExtractedComponent;
+    };
 
 /**
  * Checks if a message has displayable text or image content.
@@ -61,7 +63,7 @@ const getMessageKey = (group: MessageGroup): string => {
     return `tool-${group.message.id}`;
   }
   if (group.type === "component") {
-    return `component-${group.componentData?.id ?? group.message.id}`;
+    return `component-${group.componentData.id}`;
   }
   return `msg-${group.message.id}`;
 };
@@ -109,7 +111,7 @@ const MessageRenderer: FC<MessageRendererProps> = ({
     );
   }
 
-  if (group.type === "component" && group.componentData) {
+  if (group.type === "component") {
     return (
       <ComponentMessage
         message={group.message}

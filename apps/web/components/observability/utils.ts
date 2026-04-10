@@ -1,5 +1,9 @@
 import { getSafeContent } from "@/lib/thread-hooks";
 import { type RouterOutputs } from "@/trpc/react";
+import {
+  type ChatCompletionContentPart,
+  type ChatCompletionContentPartComponent,
+} from "@tambo-ai-cloud/core";
 import { SortDirection, SortField } from "./hooks/useThreadList";
 import { MessageItem, ThreadStats } from "./messages/stats-header";
 
@@ -83,6 +87,17 @@ export interface ExtractedComponent {
   state?: Record<string, unknown>;
 }
 
+function isComponentContentPart(
+  part: ChatCompletionContentPart,
+): part is ChatCompletionContentPartComponent {
+  return (
+    typeof part === "object" &&
+    part !== null &&
+    "type" in part &&
+    part.type === "component"
+  );
+}
+
 /**
  * Extracts components from a message, checking the content array first
  * (new format with type: "component" content parts) and falling back
@@ -97,28 +112,15 @@ export function extractComponentsFromMessage(
 
   if (Array.isArray(message.content)) {
     for (const part of message.content) {
-      if (
-        part &&
-        typeof part === "object" &&
-        "type" in part &&
-        part.type === "component"
-      ) {
-        const compPart = part as {
-          id?: string;
-          name?: string;
-          props?: Record<string, unknown>;
-          state?: Record<string, unknown>;
-        };
-        if (compPart.name) {
-          components.push({
-            id: compPart.id ?? `comp_${message.id}`,
-            name: compPart.name,
-            props: compPart.props ?? {},
-            state:
-              compPart.state ??
-              (message.componentState as Record<string, unknown> | undefined),
-          });
-        }
+      if (isComponentContentPart(part)) {
+        components.push({
+          id: part.id ?? `comp_${message.id}`,
+          name: part.name,
+          props: part.props ?? {},
+          state:
+            part.state ??
+            (message.componentState as Record<string, unknown> | undefined),
+        });
       }
     }
   }
