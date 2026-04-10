@@ -1,6 +1,6 @@
 import { MCPTransport } from "@tambo-ai-cloud/core";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { McpServerEditor, type MCPServerInfo } from "./mcp-server-editor";
 
@@ -110,9 +110,13 @@ describe("McpServerEditor", () => {
     await user.clear(valueInput);
     await user.type(valueInput, "Bearer newtoken456");
 
-    // Click the save button on the header row
-    const saveHeaderButton = screen.getByRole("button", {
-      name: /save header/i,
+    // Click the Save button inside the header row (not the main server Save).
+    // Scope the query to the header row so we don't collide with the server
+    // form's Save button.
+    const headerRow = valueInput.closest("div");
+    if (!headerRow) throw new Error("expected header row container");
+    const saveHeaderButton = within(headerRow).getByRole("button", {
+      name: /^save$/i,
     });
     await user.click(saveHeaderButton);
 

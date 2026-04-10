@@ -78,14 +78,14 @@ describe("ToolCallLimitEditor", () => {
     const user = userEvent.setup();
     renderEditor();
 
-    expect(screen.getByText(/current limit/i)).toBeInTheDocument();
+    expect(screen.getByText("Tool call limit")).toBeInTheDocument();
     expect(screen.getByText("3")).toBeInTheDocument();
 
     const editButton = screen.getByRole("button", { name: /edit/i });
     await user.click(editButton);
 
     const input =
-      await screen.findByLabelText<HTMLInputElement>(/maximum tool calls/i);
+      await screen.findByLabelText<HTMLInputElement>(/tool call limit/i);
     expect(input.value).toBe("3");
   });
 
@@ -94,7 +94,7 @@ describe("ToolCallLimitEditor", () => {
     renderEditor();
 
     await user.click(screen.getByRole("button", { name: /edit/i }));
-    const input = await screen.findByLabelText(/maximum tool calls/i);
+    const input = await screen.findByLabelText(/tool call limit/i);
     await user.clear(input);
     await user.type(input, "0");
 
@@ -111,7 +111,7 @@ describe("ToolCallLimitEditor", () => {
     mutateAsyncMock.mockResolvedValueOnce(undefined);
 
     await user.click(screen.getByRole("button", { name: /edit/i }));
-    const input = await screen.findByLabelText(/maximum tool calls/i);
+    const input = await screen.findByLabelText(/tool call limit/i);
     await user.clear(input);
     await user.type(input, "9");
 
@@ -135,21 +135,21 @@ describe("ToolCallLimitEditor", () => {
 
     await user.click(screen.getByRole("button", { name: /edit/i }));
     const input =
-      await screen.findByLabelText<HTMLInputElement>(/maximum tool calls/i);
+      await screen.findByLabelText<HTMLInputElement>(/tool call limit/i);
     await user.clear(input);
     await user.type(input, "12");
     await user.click(screen.getByRole("button", { name: /cancel/i }));
 
-    // With animations skipped, the form is immediately removed
+    // After cancel, the input should no longer be present
     expect(
-      screen.queryByLabelText(/maximum tool calls/i),
+      screen.queryByRole("spinbutton", { name: /tool call limit/i }),
     ).not.toBeInTheDocument();
 
     // Reopen and ensure value reset to prop
     const editBtn = await screen.findByRole("button", { name: /edit/i });
     await user.click(editBtn);
     const input2 =
-      await screen.findByLabelText<HTMLInputElement>(/maximum tool calls/i);
+      await screen.findByLabelText<HTMLInputElement>(/tool call limit/i);
     expect(input2.value).toBe("3");
   });
 
@@ -158,7 +158,7 @@ describe("ToolCallLimitEditor", () => {
     renderEditor({ maxToolCallLimit: 5 });
 
     await user.click(screen.getByRole("button", { name: /edit/i }));
-    const input = await screen.findByLabelText(/maximum tool calls/i);
+    const input = await screen.findByLabelText(/tool call limit/i);
     await user.clear(input);
     await user.type(input, "0");
 

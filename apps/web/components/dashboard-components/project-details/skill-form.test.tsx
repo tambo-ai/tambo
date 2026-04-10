@@ -117,7 +117,7 @@ describe("SkillForm", () => {
 
   it("create button is disabled when name and description are empty", () => {
     render(<SkillForm {...defaultProps} />);
-    const saveButton = screen.getByText("Create skill");
+    const saveButton = screen.getByRole("button", { name: "Create" });
     expect(saveButton).toBeDisabled();
   });
 
@@ -131,7 +131,7 @@ describe("SkillForm", () => {
       "A brief description",
     );
 
-    const saveButton = screen.getByText("Create skill");
+    const saveButton = screen.getByRole("button", { name: "Create" });
     expect(saveButton).not.toBeDisabled();
   });
 
@@ -229,7 +229,7 @@ describe("SkillForm", () => {
     await user.type(screen.getByLabelText("Description"), "A new one");
     await user.type(screen.getByLabelText("Instructions"), "Body here");
 
-    await user.click(screen.getByText("Create skill"));
+    await user.click(screen.getByRole("button", { name: "Create" }));
 
     expect(mockMutate).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -270,7 +270,7 @@ describe("SkillForm", () => {
     await user.clear(instrInput);
     await user.type(instrInput, "New body");
 
-    await user.click(screen.getByText("Save changes"));
+    await user.click(screen.getByRole("button", { name: "Save" }));
 
     expect(mockMutate).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -290,7 +290,7 @@ describe("SkillForm", () => {
     await user.type(screen.getByLabelText("Name"), "My Skill");
     await user.type(screen.getByLabelText("Description"), "Desc");
 
-    await user.click(screen.getByText("Create skill"));
+    await user.click(screen.getByRole("button", { name: "Create" }));
 
     expect(defaultProps.onClose).toHaveBeenCalled();
     expect(mockToast).toHaveBeenCalledWith(
@@ -305,7 +305,7 @@ describe("SkillForm", () => {
 
     await user.type(screen.getByLabelText("Description"), "some desc");
 
-    expect(screen.getByText("Create skill")).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Create" })).toBeDisabled();
     expect(mockMutate).not.toHaveBeenCalled();
   });
 
@@ -319,7 +319,7 @@ describe("SkillForm", () => {
     await user.type(screen.getByLabelText("Name"), "Duplicate");
     await user.type(screen.getByLabelText("Description"), "Desc");
 
-    await user.click(screen.getByText("Create skill"));
+    await user.click(screen.getByRole("button", { name: "Create" }));
 
     expect(mockToast).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -417,7 +417,7 @@ describe("SkillForm", () => {
     await user.clear(nameInput);
     await user.type(nameInput, "Taken Name");
 
-    await user.click(screen.getByText("Save changes"));
+    await user.click(screen.getByRole("button", { name: "Save" }));
 
     expect(mockToast).toHaveBeenCalledWith(
       expect.objectContaining({

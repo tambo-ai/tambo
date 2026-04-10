@@ -52,7 +52,7 @@ describe("HeadersEditor", () => {
     await user.type(headerInput, "X-Test");
     await user.type(valueInput, "123");
 
-    const saveButton = screen.getByRole("button", { name: /save header/i });
+    const saveButton = screen.getByRole("button", { name: /^save$/i });
     expect(saveButton).toBeEnabled();
   });
 
