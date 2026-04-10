@@ -17,34 +17,11 @@ import userEvent from "@testing-library/user-event";
 import { MessageRole } from "@tambo-ai-cloud/core";
 import React from "react";
 
-// Mock the utils - provide extractComponentsFromMessage inline, mock isSameDay
+// Mock only isSameDay, use real extractComponentsFromMessage
 jest.mock("../utils", () => ({
+  ...jest.requireActual("../utils"),
   isSameDay: (date1: Date, date2: Date) =>
     date1.toDateString() === date2.toDateString(),
-  extractComponentsFromMessage: (message: any) => {
-    const components: any[] = [];
-    if (Array.isArray(message.content)) {
-      for (const part of message.content) {
-        if (part?.type === "component" && part.name) {
-          components.push({
-            id: part.id ?? `comp_${message.id}`,
-            name: part.name,
-            props: part.props ?? {},
-            state: part.state ?? message.componentState ?? undefined,
-          });
-        }
-      }
-    }
-    if (components.length === 0 && message.componentDecision?.componentName) {
-      components.push({
-        id: `comp_${message.id}`,
-        name: message.componentDecision.componentName,
-        props: message.componentDecision.props ?? {},
-        state: message.componentState ?? undefined,
-      });
-    }
-    return components;
-  },
 }));
 
 // Mock the child components

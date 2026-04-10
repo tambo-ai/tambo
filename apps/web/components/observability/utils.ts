@@ -114,7 +114,7 @@ export function extractComponentsFromMessage(
     for (const part of message.content) {
       if (isComponentContentPart(part)) {
         components.push({
-          id: part.id ?? `comp_${message.id}`,
+          id: part.id ?? `comp_${message.id}_${components.length}`,
           name: part.name,
           props: part.props ?? {},
           state:
