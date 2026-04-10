@@ -12,14 +12,6 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { EditWithTamboButton } from "@/components/ui/tambo/edit-with-tambo-button";
 import { useToast } from "@/hooks/use-toast";
 import {
   parseSkillContent,
@@ -380,7 +372,7 @@ export function SkillsSection({
         onChange={handleFileInputChange}
       />
 
-      <Card
+      <div
         className={`transition-colors ${cardDragState === "valid" ? "ring-2 ring-primary ring-offset-2" : ""} ${cardDragState === "invalid" ? "ring-2 ring-destructive ring-offset-2" : ""}`}
         onDragOver={
           enableCardDrop
@@ -401,47 +393,41 @@ export function SkillsSection({
         }
         onDrop={enableCardDrop ? handleCardDrop : undefined}
       >
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="text-lg font-semibold">
-                Skills
-                <EditWithTamboButton description="Manage skills for this project." />
-              </CardTitle>
-              <CardDescription>
-                Define agent skills using SKILL.md files.
-              </CardDescription>
-            </div>
-            <AnimatePresence mode="wait">
-              {!isFormOpen && (
-                <motion.div
-                  className="flex gap-2"
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
-                  transition={{ duration: 0.2 }}
+        <div className="flex items-center justify-between py-3">
+          <p className="text-sm text-muted-foreground">
+            Define agent skills using SKILL.md files.
+          </p>
+          <AnimatePresence mode="wait">
+            {!isFormOpen && (
+              <motion.div
+                className="flex gap-2"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                transition={{ duration: 0.2 }}
+              >
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleImportClick}
+                  disabled={!isSkillsSupported}
                 >
-                  <Button
-                    variant="outline"
-                    onClick={handleImportClick}
-                    disabled={!isSkillsSupported}
-                  >
-                    <Import className="h-4 w-4 mr-1" aria-hidden="true" />
-                    Import
-                  </Button>
-                  <Button
-                    onClick={openCreateForm}
-                    disabled={!isSkillsSupported}
-                  >
-                    <Plus className="h-4 w-4 mr-1" aria-hidden="true" />
-                    Create Skill
-                  </Button>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        </CardHeader>
-        <CardContent>
+                  <Import className="h-4 w-4 mr-1" aria-hidden="true" />
+                  Import
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={openCreateForm}
+                  disabled={!isSkillsSupported}
+                >
+                  <Plus className="h-4 w-4 mr-1" aria-hidden="true" />
+                  Create Skill
+                </Button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+        <div>
           <div className="relative">
             {isDragging ? (
               <div
@@ -519,8 +505,8 @@ export function SkillsSection({
                 ))
               : null}
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       <DeleteConfirmationDialog
         mode="single"

@@ -1,7 +1,6 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,8 +10,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { SettingsRow } from "@/components/ui/settings-row";
 import { Switch } from "@/components/ui/switch";
-import { EditWithTamboButton } from "@/components/ui/tambo/edit-with-tambo-button";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { api } from "@/trpc/react";
@@ -364,48 +363,28 @@ export function OAuthSettings({
 
   if (isLoadingSettings) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>OAuth Token Validation</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-center py-6">
-            <Loader2 className="h-6 w-6 animate-spin" />
-          </div>
-        </CardContent>
-      </Card>
+      <div className="flex items-center justify-center py-4">
+        <Loader2 className="h-6 w-6 animate-spin" />
+      </div>
     );
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-lg font-semibold">
-          OAuth Token Validation
-          <EditWithTamboButton description="Manage OAuth token validation settings for this project." />
-        </CardTitle>
-        <p className="text-sm font-sans text-foreground">
-          Configure how OAuth bearer tokens are validated for your
-          project&apos;s API endpoints.
-        </p>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        {/* Token Required */}
-        <div className="flex flex-col gap-2">
-          <Label className="text-base font-medium">Token Required</Label>
-          <Switch
-            checked={isTokenRequiredState}
-            onCheckedChange={setIsTokenRequiredState}
-          />
-          <p className="text-sm text-muted-foreground">
-            When enabled, all API requests must include a valid OAuth bearer
-            token. When disabled, requests can proceed without authentication.
-          </p>
-        </div>
+    <>
+      <SettingsRow
+        label="Token required"
+        description="When enabled, all API requests must include a valid OAuth bearer token."
+      >
+        <Switch
+          checked={isTokenRequiredState}
+          onCheckedChange={setIsTokenRequiredState}
+        />
+      </SettingsRow>
+      <div className="space-y-6 py-4">
         {/* Validation Mode Selection */}
         <div className="space-y-4">
           <div className="flex items-center justify-between w-full">
-            <Label className="text-base font-medium">Validation Mode</Label>
+            <Label className="text-sm font-semibold">Validation Mode</Label>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm" className="gap-2">
@@ -608,6 +587,7 @@ export function OAuthSettings({
         {/* Save Button */}
         <div className="flex justify-end">
           <Button
+            size="sm"
             onClick={handleSave}
             disabled={!hasUnsavedChanges || isUpdating}
           >
@@ -621,8 +601,8 @@ export function OAuthSettings({
             )}
           </Button>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </>
   );
 }
 

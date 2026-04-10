@@ -1,7 +1,6 @@
-import { Button } from "@/components/ui/button";
+import { DestructiveActionButton } from "@/components/ui/destructive-action-button";
 import { useClipboard } from "@/hooks/use-clipboard";
 import { motion, Variants } from "framer-motion";
-import { Trash2 } from "lucide-react";
 
 const listItemVariants: Variants = {
   hidden: { opacity: 0, scale: 0.95, y: 10 },
@@ -45,7 +44,7 @@ export function APIKeyListItem({
       exit="exit"
       layout
     >
-      <div className="flex flex-row items-start sm:items-center gap-2 sm:gap-3">
+      <div className="flex flex-row items-center gap-2 sm:gap-3">
         {/* API Key Name */}
         <div className="min-w-[140px]">
           <p className="text-sm font-medium">{apiKey.name}</p>
@@ -61,14 +60,11 @@ export function APIKeyListItem({
         </button>
 
         {/* Delete Button */}
-        <Button
-          size="icon"
-          variant="ghost"
-          className="h-7 w-7 text-destructive bg-destructive/10 flex-shrink-0 rounded-full"
+        <DestructiveActionButton
           onClick={() => onDelete(apiKey.id)}
-        >
-          <Trash2 className="h-4 w-4" />
-        </Button>
+          aria-label={`Delete API key ${apiKey.name}`}
+          className="flex-shrink-0 ml-auto"
+        />
       </div>
     </motion.div>
   );

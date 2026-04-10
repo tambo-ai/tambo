@@ -77,7 +77,7 @@ export function Combobox<T extends string>({
       </PopoverTrigger>
       <PopoverContent
         className={cn(
-          "w-[--radix-popover-trigger-width] p-0",
+          "min-w-[--radix-popover-trigger-width] w-auto p-0",
           contentClassName,
         )}
         align="start"
@@ -112,7 +112,7 @@ export function Combobox<T extends string>({
                           isSelected ? "opacity-100" : "opacity-0",
                         )}
                       />
-                      <span className="truncate">{option.label}</span>
+                      <span className="whitespace-nowrap">{option.label}</span>
                     </div>
                     {renderRight ? renderRight(option) : null}
                   </CommandItem>

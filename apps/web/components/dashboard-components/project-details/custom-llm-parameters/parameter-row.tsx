@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button";
+import { DestructiveActionButton } from "@/components/ui/destructive-action-button";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -10,7 +10,6 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { LlmParameterUIType } from "@tambo-ai-cloud/core";
 import { motion } from "framer-motion";
-import { Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { PARAMETER_SUGGESTIONS, type ParameterEntry } from "./types";
 import {
@@ -186,14 +185,10 @@ export function ParameterRow({
         )}
 
         {/* Remove button */}
-        <Button
-          variant="ghost"
-          size="icon"
+        <DestructiveActionButton
           onClick={() => onRemoveRow(index)}
-          className="text-destructive"
-        >
-          <Trash2 className="h-4 w-4" />
-        </Button>
+          aria-label="Remove parameter"
+        />
       </div>
 
       {/* Validation error message */}

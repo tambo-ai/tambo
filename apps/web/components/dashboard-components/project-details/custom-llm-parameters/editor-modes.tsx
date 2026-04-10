@@ -1,13 +1,12 @@
 import { Button } from "@/components/ui/button";
 import { CardDescription } from "@/components/ui/card";
+import { SettingsRow } from "@/components/ui/settings-row";
 import { JSONValue, LlmParameterUIType } from "@tambo-ai-cloud/core";
 import { AnimatePresence, motion } from "framer-motion";
 import { Plus } from "lucide-react";
-import type { FC } from "react";
 import { ParameterRow } from "./parameter-row";
 import { ParameterSuggestions } from "./parameter-suggestions";
 import { PARAMETER_SUGGESTIONS, type ParameterEntry } from "./types";
-import { formatValueForDisplay, shouldUseTextarea } from "./utils";
 
 /**
  *
@@ -16,66 +15,6 @@ import { formatValueForDisplay, shouldUseTextarea } from "./utils";
  * and edit the LLM parameters respectively.
  *
  */
-
-/**
- * ViewModeContent Component
- *
- * Renders the content area of the view mode, handling loading states,
- * empty states, and parameter display.
- */
-interface ViewModeContentProps {
-  parameters: ParameterEntry[];
-  isLoading?: boolean;
-}
-
-const ViewModeContent: FC<ViewModeContentProps> = ({
-  parameters,
-  isLoading,
-}) => {
-  if (isLoading) {
-    return (
-      <div className="flex flex-col gap-2">
-        <div className="h-4 bg-muted/50 rounded w-3/4 animate-pulse" />
-        <div className="h-4 bg-muted/50 rounded w-1/2 animate-pulse" />
-      </div>
-    );
-  }
-
-  if (parameters.length === 0) {
-    return (
-      <div className="text-sm text-muted-foreground">
-        No custom parameters configured.
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex flex-col gap-3">
-      {parameters.map((p, i) => (
-        <div key={i} className="flex flex-col gap-1">
-          <div className="flex items-center gap-2">
-            <span className="font-mono font-medium text-sm">{p.key}:</span>
-            <span className="text-xs text-muted-foreground">({p.type})</span>
-            {p.source && p.source !== "custom" && (
-              <span className="text-xs bg-muted text-muted-foreground px-1.5 py-0.5 rounded">
-                {p.source === "model-default" ? "model default" : "default"}
-              </span>
-            )}
-          </div>
-          {shouldUseTextarea(p.type) ? (
-            <pre className="text-xs bg-muted/50 p-2 rounded border font-mono whitespace-pre-wrap break-words max-h-32 overflow-y-auto">
-              {formatValueForDisplay(p.value, p.type)}
-            </pre>
-          ) : (
-            <span className="text-sm text-muted-foreground font-mono">
-              {formatValueForDisplay(p.value, p.type)}
-            </span>
-          )}
-        </div>
-      ))}
-    </div>
-  );
-};
 
 /**
  * ViewMode Component
@@ -90,26 +29,17 @@ interface ViewModeProps {
 }
 
 export function ViewMode({ parameters, onEdit, isLoading }: ViewModeProps) {
+  const description =
+    parameters.length > 0
+      ? `${parameters.length} parameter${parameters.length === 1 ? "" : "s"} configured.`
+      : "Custom parameters sent with each LLM request.";
+
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -10 }}
-      transition={{ duration: 0.3, ease: "easeInOut" }}
-      className="flex items-start justify-between gap-4"
-    >
-      <div className="flex-1 flex flex-col gap-3">
-        <CardDescription className="text-sm text-foreground">
-          Custom parameters sent with each LLM request.
-        </CardDescription>
-
-        <ViewModeContent parameters={parameters} isLoading={isLoading} />
-      </div>
-
+    <SettingsRow label="Custom LLM parameters" description={description}>
       <Button variant="outline" size="sm" onClick={onEdit}>
         Edit
       </Button>
-    </motion.div>
+    </SettingsRow>
   );
 }
 
@@ -162,7 +92,7 @@ export function EditMode({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -10 }}
       transition={{ duration: 0.3, ease: "easeInOut" }}
-      className="flex flex-col"
+      className="flex flex-col px-4 py-3"
     >
       <CardDescription className="text-sm text-foreground mb-4">
         {allowCustomParameters
@@ -206,20 +136,25 @@ export function EditMode({
         className="flex justify-between gap-2 pt-2"
       >
         {allowCustomParameters && (
-          <Button
-            variant="outline"
-            onClick={onAddParameter}
-            disabled={isPending}
-          >
-            <Plus className="h-4 w-4 mr-2" />
+          <Button size="sm" onClick={onAddParameter} disabled={isPending}>
+            <Plus className="h-4 w-4 mr-1" />
             Add Parameter
           </Button>
         )}
         <div className="flex gap-2 ml-auto">
-          <Button variant="ghost" onClick={onCancel} disabled={isPending}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onCancel}
+            disabled={isPending}
+          >
             Cancel
           </Button>
-          <Button onClick={onSave} disabled={isPending || hasValidationErrors}>
+          <Button
+            size="sm"
+            onClick={onSave}
+            disabled={isPending || hasValidationErrors}
+          >
             {isPending ? "Saving..." : "Save"}
           </Button>
         </div>

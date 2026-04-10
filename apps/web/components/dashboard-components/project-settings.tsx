@@ -10,6 +10,8 @@ import { InteractableOAuthSettings } from "@/components/dashboard-components/pro
 import { ProjectNameSection } from "@/components/dashboard-components/project-details/project-name-section";
 import { SettingsPageSkeleton } from "@/components/skeletons/settings-skeletons";
 import { Card } from "@/components/ui/card";
+import { SettingsSection } from "@/components/ui/settings-section";
+import { EditWithTamboButton } from "@/components/ui/tambo/edit-with-tambo-button";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
 import { api } from "@/trpc/react";
@@ -92,43 +94,67 @@ export function ProjectSettings({ projectId }: ProjectSettingsProps) {
   return (
     <TooltipProvider>
       <motion.div
-        className="px-2 sm:px-4 max-w-4xl mx-auto"
+        className="px-2 sm:px-4 max-w-4xl mx-auto rounded-lg p-4"
         initial="hidden"
         animate="visible"
         variants={containerVariants}
       >
-        <p className="text-muted-foreground mb-4 pt-2">
-          Manage your project name, API keys, and webhooks.
-        </p>
-        <div className="space-y-6">
-          <ProjectNameSection
-            projectId={project.id}
-            projectName={project.name}
-            onEdited={handleRefreshProject}
-          />
+        <div className="space-y-8">
+          <SettingsSection title="General">
+            <ProjectNameSection
+              projectId={project.id}
+              projectName={project.name}
+              onEdited={handleRefreshProject}
+            />
+          </SettingsSection>
 
-          <InteractableAPIKeyList
-            projectId={project.id}
-            onEdited={handleRefreshProject}
-          />
-
-          <InteractableOAuthSettings
-            projectId={project.id}
-            isTokenRequired={project.isTokenRequired ?? false}
-            onEdited={handleRefreshProject}
-          />
-
-          <DangerZoneSection
-            onRequestDelete={() =>
-              setAlertState({
-                show: true,
-                title: "Delete Project",
-                description:
-                  "Are you sure you want to delete this project? This action cannot be undone.",
-              })
+          <SettingsSection
+            title="API Keys"
+            action={
+              <EditWithTamboButton
+                variant="button"
+                description="Manage API keys for this project."
+              />
             }
-            isDeleting={isDeleting}
-          />
+          >
+            <InteractableAPIKeyList
+              projectId={project.id}
+              onEdited={handleRefreshProject}
+            />
+          </SettingsSection>
+
+          <SettingsSection
+            title="Authentication"
+            action={
+              <EditWithTamboButton
+                variant="button"
+                description="Manage OAuth token validation settings."
+              />
+            }
+          >
+            <InteractableOAuthSettings
+              projectId={project.id}
+              isTokenRequired={project.isTokenRequired ?? false}
+              onEdited={handleRefreshProject}
+            />
+          </SettingsSection>
+
+          <SettingsSection
+            title="Danger Zone"
+            cardClassName="border-destructive/50"
+          >
+            <DangerZoneSection
+              onRequestDelete={() =>
+                setAlertState({
+                  show: true,
+                  title: "Delete Project",
+                  description:
+                    "Are you sure you want to delete this project? This action cannot be undone.",
+                })
+              }
+              isDeleting={isDeleting}
+            />
+          </SettingsSection>
         </div>
 
         <DeleteConfirmationDialog

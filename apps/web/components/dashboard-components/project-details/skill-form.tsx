@@ -128,7 +128,7 @@ export function SkillForm({
   const showSlugPreview = name.trim().length > 0 && slugifiedName !== name;
 
   const isValid = slugifiedName.length > 0 && description.trim().length > 0;
-  const saveButtonLabel = skill ? "Save changes" : "Create skill";
+  const saveButtonLabel = skill ? "Save" : "Create";
 
   const mutationOptions = {
     onSuccess: () => {
@@ -167,7 +167,14 @@ export function SkillForm({
   };
 
   return (
-    <div className="rounded-md border p-4 space-y-4">
+    <div
+      className="rounded-md border p-4 space-y-4"
+      onKeyDown={(e) => {
+        if (e.key === "Escape") {
+          onClose();
+        }
+      }}
+    >
       <h3 className="text-sm font-semibold">
         {skill ? "Edit Skill" : "Create Skill"}
       </h3>
@@ -216,10 +223,11 @@ export function SkillForm({
       </div>
 
       <div className="flex justify-end gap-2">
-        <Button variant="outline" onClick={onClose}>
+        <Button variant="outline" size="sm" onClick={onClose}>
           Cancel
         </Button>
         <Button
+          size="sm"
           onClick={handleSave}
           disabled={!isValid || saveMutation.isPending}
         >

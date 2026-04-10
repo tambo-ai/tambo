@@ -1,10 +1,14 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Combobox } from "@/components/ui/combobox";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { EditWithTamboButton } from "@/components/ui/tambo/edit-with-tambo-button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { SettingsRow } from "@/components/ui/settings-row";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { api } from "@/trpc/react";
@@ -15,8 +19,8 @@ import {
 } from "@tambo-ai-cloud/core";
 import type { Suggestion } from "@tambo-ai/react";
 import { withTamboInteractable } from "@tambo-ai/react";
-import { AnimatePresence, motion } from "framer-motion";
-import { ExternalLinkIcon, InfoIcon, Loader2 } from "lucide-react";
+import { AnimatePresence } from "framer-motion";
+import { Loader2 } from "lucide-react";
 import {
   useCallback,
   useEffect,
@@ -217,8 +221,7 @@ export function ProviderKeySectionBase({
   updateAgentName: externalAgentName,
   onEdited,
 }: ProviderKeySectionProps) {
-  const modeLlmId = useId();
-  const modeAgentId = useId();
+  const modeSelectId = useId();
   const customModelNameId = useId();
   const baseUrlId = useId();
   const maxInputTokensId = useId();
@@ -676,6 +679,8 @@ export function ProviderKeySectionBase({
 
       // Reset fields when changing selection
       const [provider, model] = value.split("|", 2);
+      let tokenLimit: string = "";
+
       if (provider === "openai-compatible") {
         // Keep existing values if switching within custom providers
         if (!customModelName) setCustomModelName("");
@@ -692,17 +697,28 @@ export function ProviderKeySectionBase({
 
         if (isSavedModel && projectLlmSettings?.maxInputTokens) {
           // Restore the saved token limit for this model
-          setMaxInputTokens(projectLlmSettings.maxInputTokens.toString());
+          tokenLimit = projectLlmSettings.maxInputTokens.toString();
         } else {
           // Set default token limit for new model
           const option = providerModelOptions.find(
             (opt) => opt.value === value,
           );
           if (option?.model?.inputTokenLimit) {
-            setMaxInputTokens(option.model.inputTokenLimit.toString());
-          } else {
-            setMaxInputTokens("");
+            tokenLimit = option.model.inputTokenLimit.toString();
           }
+        }
+        setMaxInputTokens(tokenLimit);
+
+        // Auto-save for standard providers (custom providers need additional fields first)
+        if (projectId && model && model !== "custom") {
+          updateLlmSettings({
+            projectId,
+            defaultLlmProviderName: provider,
+            defaultLlmModelName: model,
+            customLlmModelName: null,
+            customLlmBaseURL: null,
+            maxInputTokens: tokenLimit ? parseInt(tokenLimit) : null,
+          });
         }
       }
 
@@ -715,6 +731,8 @@ export function ProviderKeySectionBase({
       baseUrl,
       maxInputTokens,
       projectLlmSettings,
+      projectId,
+      updateLlmSettings,
     ],
   );
 
@@ -973,465 +991,317 @@ export function ProviderKeySectionBase({
   // --- Loading State ---
   if (isLoadingConfig || isLoadingSettings) {
     return (
-      <Card className="overflow-hidden rounded-md border">
-        <CardHeader>
-          <CardTitle className="text-lg font-semibold">LLM Providers</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="h-60 w-full animate-pulse space-y-4 rounded-md bg-muted p-4">
-            <div className="h-10 rounded bg-muted-foreground/10" />
-            <div className="h-24 rounded bg-muted-foreground/10" />
-            <div className="h-10 rounded bg-muted-foreground/10" />
-          </div>
-        </CardContent>
-      </Card>
+      <div className="px-4 py-3">
+        <div className="h-60 w-full animate-pulse space-y-4 rounded-md bg-muted p-4">
+          <div className="h-10 rounded bg-muted-foreground/10" />
+          <div className="h-24 rounded bg-muted-foreground/10" />
+          <div className="h-10 rounded bg-muted-foreground/10" />
+        </div>
+      </div>
     );
   }
 
   if (!projectId) {
     return (
-      <Card className="border rounded-md overflow-hidden">
-        <CardHeader>
-          <CardTitle className="text-lg font-semibold">LLM Providers</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-foreground">No project selected</p>
-        </CardContent>
-      </Card>
+      <div className="px-4 py-3">
+        <p className="text-sm text-foreground">No project selected</p>
+      </div>
     );
   }
 
   return (
-    <Card className="overflow-hidden rounded-md border">
-      <CardHeader className="pb-0 pt-6">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg font-semibold">
-            LLM Providers
-            <EditWithTamboButton description="Manage LLM providers for this project. Edit the provider and model, set the API key, and more." />
-          </CardTitle>
-          {hasActualChanges && (
-            <Button
-              size="sm"
-              className="font-sans bg-transparent border hover:bg-accent"
-              onClick={handleSaveDefaults}
-              disabled={isSavingDefaults}
-            >
-              {isSavingDefaults || isSavingAgent ? (
-                <span className="text-primary">Saving...</span>
-              ) : (
-                <span className="text-primary">Save Settings</span>
-              )}
-            </Button>
-          )}
-        </div>
-      </CardHeader>
-      {/* usage chip moved below mode toggle */}
-      <CardContent className="space-y-4 p-6">
-        {/* Mode Toggle */}
-        <div className="w-full">
-          <Label className="mb-2 block">AI Mode</Label>
-          <RadioGroup
-            value={mode}
-            onValueChange={(v) => {
-              setMode(v as AiProviderType);
-            }}
-            className="grid grid-cols-2 gap-3"
-          >
-            <label
-              htmlFor={modeLlmId}
-              className={cn(
-                "flex items-center gap-2 rounded-md border p-3",
-                mode === AiProviderType.LLM && "border-primary",
-              )}
-            >
-              <RadioGroupItem value={AiProviderType.LLM} id={modeLlmId} />
-              <span className="text-sm">LLM</span>
-            </label>
-            <label
-              htmlFor={modeAgentId}
-              className={cn(
-                "flex items-center gap-2 rounded-md border p-3",
-                mode === AiProviderType.AGENT && "border-primary",
-              )}
-            >
-              <RadioGroupItem value={AiProviderType.AGENT} id={modeAgentId} />
-              <span className="text-sm">Agent</span>
+    <>
+      {/* Mode Select */}
+      <SettingsRow
+        label="AI Mode"
+        description="Choose between LLM or Agent mode"
+        htmlFor={modeSelectId}
+      >
+        <Select
+          value={mode}
+          onValueChange={(v) => {
+            const newMode = v as AiProviderType;
+            setMode(newMode);
+            // Only auto-save when switching to LLM; Agent mode requires
+            // the user to fill in provider + URL before saving.
+            if (newMode === AiProviderType.LLM) {
+              updateAgentSettingsAsync({
+                projectId,
+                providerType: newMode,
+              }).catch(() => {
+                setMode(mode);
+              });
+            }
+          }}
+        >
+          <SelectTrigger id={modeSelectId} className="w-[140px]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={AiProviderType.LLM}>LLM</SelectItem>
+            <SelectItem value={AiProviderType.AGENT}>
+              Agent
               <span className="ml-2 text-[10px] uppercase tracking-wide rounded-full bg-yellow-100 px-2 py-0.5 text-yellow-800">
                 beta
               </span>
-            </label>
-          </RadioGroup>
-        </div>
+            </SelectItem>
+          </SelectContent>
+        </Select>
+      </SettingsRow>
 
-        {mode === AiProviderType.LLM && (
-          <div className="w-full">
-            <p className="text-sm font-sans text-foreground">
-              Get started with 500 starter LLM calls. Tambo is BYO Model — add
-              your provider key anytime to continue.
-            </p>
-            <div className="flex items-center gap-2 mt-2 mb-2">
-              <p className="text-xs font-sans text-success bg-success-background rounded-full p-2">
-                {projectMessageUsage?.messageCount} of 500 starter LLM calls
-                used
-              </p>
-            </div>
-          </div>
-        )}
+      {mode === AiProviderType.LLM && (
+        <>
+          <SettingsRow
+            label="Provider and Model"
+            description={`${projectMessageUsage?.messageCount} of 500 starter LLM calls used`}
+          >
+            <Combobox
+              items={providerModelOptions.map((option) => ({
+                value: option.value,
+                label: option.label,
+              }))}
+              value={combinedSelectValue}
+              onChange={handleCombinedSelectChange}
+              placeholder="Select provider and model"
+              searchPlaceholder="Search providers and models..."
+              emptyText="No provider or model found."
+              renderRight={(option) => {
+                const opt = providerModelOptionMap.get(option.value);
+                if (!opt?.model?.status) return null;
+                return (
+                  <span
+                    className={cn(
+                      "ml-2 rounded-full px-1.5 py-0.5 text-xs",
+                      opt.model.status === "untested"
+                        ? "bg-gray-200 text-gray-700"
+                        : opt.model.status === "known-issues"
+                          ? "bg-yellow-100 text-yellow-700"
+                          : "bg-green-100 text-green-700",
+                    )}
+                  >
+                    {opt.model.status}
+                  </span>
+                );
+              }}
+            />
+          </SettingsRow>
 
-        {/* Provider • Model Select (LLM Mode) */}
-        <div className="space-y-2 w-full">
-          <AnimatePresence initial={false} mode="wait">
-            {mode === AiProviderType.LLM && (
-              <motion.div
-                key="llm-settings"
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                exit={{ opacity: 0, height: 0 }}
-                transition={{ duration: 0.3, ease: "easeInOut" }}
+          {/* Custom Provider Fields */}
+          {currentSelectedOption?.provider.isCustomProvider && (
+            <>
+              <SettingsRow
+                label="Model name"
+                description="The model identifier for your custom provider."
+                htmlFor={customModelNameId}
               >
-                <Label htmlFor="provider-model-select">Provider • Model</Label>
-              </motion.div>
+                <Input
+                  id={customModelNameId}
+                  type="text"
+                  placeholder="e.g., llama3-8b-instruct"
+                  value={customModelName}
+                  onChange={(e) => {
+                    setCustomModelName(e.target.value);
+                  }}
+                  className="w-48"
+                />
+              </SettingsRow>
+
+              {currentSelectedOption.provider.requiresBaseUrl && (
+                <SettingsRow
+                  label="Base URL"
+                  description="We append /chat/completions to this URL when making requests."
+                  htmlFor={baseUrlId}
+                >
+                  <Input
+                    id={baseUrlId}
+                    type="url"
+                    placeholder="e.g., https://api.example.com/v1"
+                    value={baseUrl}
+                    onChange={(e) => {
+                      setBaseUrl(e.target.value);
+                    }}
+                    className="w-64"
+                  />
+                </SettingsRow>
+              )}
+
+              {currentSelectedOption.provider.apiName ===
+                "openai-compatible" && (
+                <SettingsRow
+                  label="Maximum input tokens"
+                  description="The maximum number of tokens to send to the model."
+                  htmlFor={maxInputTokensId}
+                >
+                  <Input
+                    id={maxInputTokensId}
+                    type="number"
+                    min="1"
+                    placeholder="e.g., 4096"
+                    value={maxInputTokens}
+                    onChange={(e) => {
+                      setMaxInputTokens(e.target.value);
+                    }}
+                    className="w-24 text-right tabular-nums"
+                  />
+                </SettingsRow>
+              )}
+            </>
+          )}
+
+          {/* Input Token Limit for Regular Models */}
+          {currentSelectedOption &&
+            !currentSelectedOption.provider.isCustomProvider && (
+              <SettingsRow
+                label="Input token limit"
+                description={
+                  currentSelectedOption.model?.inputTokenLimit
+                    ? `Maximum: ${currentSelectedOption.model.inputTokenLimit.toLocaleString()}`
+                    : "Limits the number of tokens sent to the model."
+                }
+                htmlFor={maxInputTokensId}
+              >
+                <Input
+                  id={maxInputTokensId}
+                  type="number"
+                  min="1"
+                  max={currentSelectedOption.model?.inputTokenLimit}
+                  placeholder={`${currentSelectedOption.model?.inputTokenLimit ?? 4096}`}
+                  value={maxInputTokens}
+                  onChange={(e) => {
+                    setMaxInputTokens(e.target.value);
+                  }}
+                  onBlur={() => {
+                    if (hasActualChanges) {
+                      handleSaveDefaults().catch(console.error);
+                    }
+                  }}
+                  className="w-24 text-right tabular-nums"
+                />
+              </SettingsRow>
             )}
-          </AnimatePresence>
-        </div>
 
-        {mode === AiProviderType.LLM && (
-          <>
-            <div className="flex flex-col gap-2">
-              <Combobox
-                items={providerModelOptions.map((option) => ({
-                  value: option.value,
-                  label: option.label,
-                }))}
-                value={combinedSelectValue}
-                onChange={handleCombinedSelectChange}
-                placeholder="Select provider and model"
-                searchPlaceholder="Search providers and models..."
-                emptyText="No provider or model found."
-                renderRight={(option) => {
-                  const opt = providerModelOptionMap.get(option.value);
-                  if (!opt?.model?.status) return null;
-                  return (
-                    <span
-                      className={cn(
-                        "ml-2 rounded-full px-1.5 py-0.5 text-xs",
-                        opt.model.status === "untested"
-                          ? "bg-gray-200 text-gray-700"
-                          : opt.model.status === "known-issues"
-                            ? "bg-yellow-100 text-yellow-700"
-                            : "bg-green-100 text-green-700",
-                      )}
-                    >
-                      {opt.model.status}
-                    </span>
-                  );
-                }}
-              />
-              <AnimatePresence mode="wait">
-                {mode === AiProviderType.LLM && currentSelectedOption && (
-                  <motion.div
-                    key={combinedSelectValue + "-llm"}
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    exit={{ opacity: 0, height: 0 }}
-                    transition={{ duration: 0.3, ease: "easeInOut" }}
-                    className="space-y-4 rounded-md w-full"
-                  >
-                    {/* Model Information */}
-                    {currentSelectedOption.model?.notes && (
-                      <div className="space-y-2 text-xs text-foreground">
-                        <p className="flex items-start">
-                          <InfoIcon className="mr-1.5 mt-0.5 h-3.5 w-3.5 flex-shrink-0" />
-                          {currentSelectedOption.model.notes}
-                        </p>
-                        <div className="flex items-start space-x-2">
-                          {currentSelectedOption.model.docLink && (
-                            <a
-                              href={currentSelectedOption.model.docLink}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center text-link text-xs hover:underline"
-                            >
-                              Learn more
-                              <ExternalLinkIcon className="ml-1 h-3 w-3" />
-                            </a>
-                          )}
-                          <a
-                            href="https://docs.tambo.co/reference/llm-providers/labels"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center text-link text-xs hover:underline"
-                          >
-                            What do these labels mean?
-                            <ExternalLinkIcon className="ml-1 h-3 w-3" />
-                          </a>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Custom Provider Fields */}
-                    {currentSelectedOption.provider.isCustomProvider && (
-                      <div className="space-y-4">
-                        <div className="space-y-2">
-                          <Label htmlFor={customModelNameId}>Model Name</Label>
-                          <Input
-                            id={customModelNameId}
-                            type="text"
-                            placeholder="e.g., llama3-8b-instruct"
-                            value={customModelName}
-                            onChange={(e) => {
-                              setCustomModelName(e.target.value);
-                            }}
-                          />
-                          {showValidationErrors && !customModelName.trim() && (
-                            <p className="text-sm text-destructive">
-                              Model name is required
-                            </p>
-                          )}
-                        </div>
-
-                        {currentSelectedOption.provider.requiresBaseUrl && (
-                          <div className="space-y-2">
-                            <Label htmlFor={baseUrlId}>Base URL</Label>
-                            <Input
-                              id={baseUrlId}
-                              type="url"
-                              placeholder="e.g., https://api.example.com/v1"
-                              value={baseUrl}
-                              onChange={(e) => {
-                                setBaseUrl(e.target.value);
-                              }}
-                            />
-                            {showValidationErrors && !baseUrl.trim() && (
-                              <p className="text-sm text-destructive">
-                                Base URL is required
-                              </p>
-                            )}
-                            <p className="text-xs text-foreground">
-                              We append{" "}
-                              <span className="font-mono">
-                                /chat/completions
-                              </span>{" "}
-                              to this base URL when making requests. The final
-                              request URL will be{" "}
-                              <span className="inline-flex rounded-md bg-muted px-2 py-0.5 font-mono">
-                                {baseUrl.trim()
-                                  ? baseUrl.trim().replace(/\/$/, "")
-                                  : "<baseurl>"}
-                                /chat/completions
-                              </span>
-                            </p>
-                          </div>
-                        )}
-
-                        {currentSelectedOption.provider.apiName ===
-                          "openai-compatible" && (
-                          <div className="space-y-2">
-                            <Label htmlFor={maxInputTokensId}>
-                              Maximum Input Tokens
-                            </Label>
-                            <Input
-                              id={maxInputTokensId}
-                              type="number"
-                              min="1"
-                              placeholder="e.g., 4096"
-                              value={maxInputTokens}
-                              onChange={(e) => {
-                                setMaxInputTokens(e.target.value);
-                              }}
-                            />
-                            {showValidationErrors &&
-                              (!maxInputTokens ||
-                                Number(maxInputTokens) <= 0) && (
-                                <p className="text-sm text-destructive">
-                                  Please enter a valid token limit
-                                </p>
-                              )}
-                          </div>
-                        )}
-                      </div>
-                    )}
-
-                    {/* Input Token Limit for Regular Models */}
-                    {!currentSelectedOption.provider.isCustomProvider && (
-                      <div className="space-y-2">
-                        <Label htmlFor={maxInputTokensId}>
-                          Input Token Limit
-                        </Label>
-                        <Input
-                          id={maxInputTokensId}
-                          type="number"
-                          min="1"
-                          max={currentSelectedOption.model?.inputTokenLimit}
-                          placeholder={`${currentSelectedOption.model?.inputTokenLimit ?? 4096}`}
-                          value={maxInputTokens}
-                          onChange={(e) => {
-                            setMaxInputTokens(e.target.value);
-                          }}
-                        />
-                        <p className="text-xs text-foreground">
-                          Tambo will limit the number of tokens sent to the
-                          model to this value.
-                          {currentSelectedOption.model?.inputTokenLimit && (
-                            <span>
-                              {" "}
-                              Maximum:{" "}
-                              {currentSelectedOption.model.inputTokenLimit.toLocaleString()}
-                            </span>
-                          )}
-                        </p>
-                      </div>
-                    )}
-
-                    {/* API Key Section */}
-                    <div className="space-y-2">
-                      <Label>
-                        API Key for {currentSelectedOption.provider.displayName}
-                      </Label>
-                      {isEditingApiKey ? (
-                        <motion.div
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          className="space-y-2"
-                        >
-                          <div className="flex gap-2">
-                            <div className="relative flex-1">
-                              <Input
-                                type="password"
-                                value={apiKeyInput}
-                                onChange={(e) => setApiKeyInput(e.target.value)}
-                                placeholder={
-                                  parsedSelection.provider === "openai"
-                                    ? "Enter your LLM provider key"
-                                    : "Enter your LLM provider key"
-                                }
-                                autoFocus
-                                className={cn(
-                                  "pr-8",
-                                  !apiKeyValidation?.isValid &&
-                                    apiKeyInput &&
-                                    "border-destructive",
-                                )}
-                              />
-                              {isValidatingApiKey && (
-                                <Loader2 className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin" />
-                              )}
-                            </div>
-                            <Button
-                              size="sm"
-                              onClick={handleSaveApiKey}
-                              disabled={
-                                isUpdatingApiKey ||
-                                isValidatingApiKey ||
-                                (!(apiKeyInput || "").trim() &&
-                                  !["openai", "openai-compatible"].includes(
-                                    parsedSelection.provider || "",
-                                  )) ||
-                                (!apiKeyValidation?.isValid &&
-                                  !!(apiKeyInput || "").trim())
-                              }
-                            >
-                              {isUpdatingApiKey ? "Saving..." : "Save Key"}
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => {
-                                setIsEditingApiKey(false);
-                                setApiKeyInput("");
-                              }}
-                              disabled={isUpdatingApiKey}
-                            >
-                              Cancel
-                            </Button>
-                          </div>
-
-                          {apiKeyInput &&
-                            apiKeyValidation &&
-                            !apiKeyValidation.isValid && (
-                              <p className="text-sm text-destructive">
-                                {apiKeyValidation.error}
-                              </p>
-                            )}
-                          {apiKeyInput && apiKeyValidation?.isValid && (
-                            <p className="text-sm text-green-600">
-                              ✓ API key is valid
-                            </p>
-                          )}
-                        </motion.div>
-                      ) : (
-                        <div className="flex items-center gap-2">
-                          <code className="block truncate rounded-md border bg-background px-2 py-1.5 font-mono text-sm flex-1">
-                            {maskedApiKeyDisplay}
-                          </code>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => {
-                              setIsEditingApiKey(true);
-                              setApiKeyInput("");
-                            }}
-                          >
-                            {currentApiKeyRecord ? "Update Key" : "Add Key"}
-                          </Button>
-                        </div>
-                      )}
-
-                      {currentSelectedOption.provider.apiKeyLink && (
-                        <p className="text-xs text-foreground">
-                          Need an API key?{" "}
-                          <a
-                            href={currentSelectedOption.provider.apiKeyLink}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center text-link hover:underline"
-                          >
-                            Get one from{" "}
-                            {currentSelectedOption.provider.displayName}
-                            <ExternalLinkIcon className="ml-1 h-3 w-3" />
-                          </a>
-                        </p>
-                      )}
-                    </div>
-
-                    {/* Custom LLM Parameters Section */}
-                    <div className="space-y-2">
-                      <Label>Custom LLM Parameters</Label>
-                      <CustomLlmParametersEditor
-                        projectId={projectId}
-                        selectedProvider={parsedSelection.provider}
-                        selectedModel={parsedSelection.model}
-                        onEdited={onEdited}
-                      />
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-              <div className="border-t pt-2">
-                <div className="flex items-center justify-between text-xs">
-                  <a
-                    href="https://github.com/tambo-ai/tambo/issues/new?template=feature_request.md&title=Add%20support%20for%20[Model%20Name]"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center text-foreground hover:text-primary transition-colors"
-                  >
-                    Request support for another model
-                    <ExternalLinkIcon className="ml-1 h-3 w-3" />
-                  </a>
+          {/* API Key Section */}
+          {currentSelectedOption && (
+            <div className="py-4 space-y-2">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-semibold">
+                    API key for {currentSelectedOption.provider.displayName}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Your provider API key for authenticating LLM requests.
+                  </p>
                 </div>
+                {!isEditingApiKey && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="shrink-0"
+                    onClick={() => {
+                      setIsEditingApiKey(true);
+                      setApiKeyInput("");
+                    }}
+                  >
+                    {currentApiKeyRecord ? "Edit" : "Add"}
+                  </Button>
+                )}
               </div>
-            </div>
-            {showValidationErrors && !combinedSelectValue && (
-              <p className="text-sm text-destructive mt-1">
-                Please select a provider and model
-              </p>
-            )}
-          </>
-        )}
+              {isEditingApiKey ? (
+                <div className="space-y-2">
+                  <div className="flex gap-2">
+                    <div className="relative flex-1">
+                      <Input
+                        type="password"
+                        value={apiKeyInput}
+                        onChange={(e) => setApiKeyInput(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Escape") {
+                            setIsEditingApiKey(false);
+                            setApiKeyInput("");
+                          }
+                        }}
+                        placeholder="Enter your LLM provider key"
+                        autoFocus
+                        className={cn(
+                          "pr-8",
+                          !apiKeyValidation?.isValid &&
+                            apiKeyInput &&
+                            "border-destructive",
+                        )}
+                      />
+                      {isValidatingApiKey && (
+                        <Loader2 className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin" />
+                      )}
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        setIsEditingApiKey(false);
+                        setApiKeyInput("");
+                      }}
+                      disabled={isUpdatingApiKey}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={handleSaveApiKey}
+                      disabled={
+                        isUpdatingApiKey ||
+                        isValidatingApiKey ||
+                        (!(apiKeyInput || "").trim() &&
+                          !["openai", "openai-compatible"].includes(
+                            parsedSelection.provider || "",
+                          )) ||
+                        (!apiKeyValidation?.isValid &&
+                          !!(apiKeyInput || "").trim())
+                      }
+                    >
+                      {isUpdatingApiKey ? "Saving..." : "Save"}
+                    </Button>
+                  </div>
 
-        {/* Agent Settings */}
-        <AnimatePresence mode="wait">
-          {mode === AiProviderType.AGENT && (
+                  {apiKeyInput &&
+                    apiKeyValidation &&
+                    !apiKeyValidation.isValid && (
+                      <p className="text-sm text-destructive">
+                        {apiKeyValidation.error}
+                      </p>
+                    )}
+                  {apiKeyInput && apiKeyValidation?.isValid && (
+                    <p className="text-sm text-green-600">✓ API key is valid</p>
+                  )}
+                </div>
+              ) : (
+                <code className="block truncate rounded-md border bg-background px-2 py-1.5 font-mono text-sm">
+                  {maskedApiKeyDisplay}
+                </code>
+              )}
+            </div>
+          )}
+
+          {/* Custom LLM Parameters Section */}
+          {currentSelectedOption && (
+            <CustomLlmParametersEditor
+              projectId={projectId}
+              selectedProvider={parsedSelection.provider}
+              selectedModel={parsedSelection.model}
+              onEdited={onEdited}
+            />
+          )}
+          {showValidationErrors && !combinedSelectValue && (
+            <p className="text-sm text-destructive mt-1 px-4">
+              Please select a provider and model
+            </p>
+          )}
+        </>
+      )}
+
+      {/* Agent Settings */}
+      <AnimatePresence mode="wait">
+        {mode === AiProviderType.AGENT && (
+          <div>
             <AgentSettings
               agentProvider={agentProvider}
               setAgentProvider={setAgentProvider}
@@ -1443,10 +1313,24 @@ export function ProviderKeySectionBase({
               agentHeaders={agentHeaders}
               setAgentHeaders={setAgentHeaders}
             />
-          )}
-        </AnimatePresence>
-      </CardContent>
-    </Card>
+            <div className="flex items-center justify-end gap-3 border-t border-border py-4">
+              {!agentUrl.trim() && (
+                <p className="text-sm text-muted-foreground">
+                  Agent provider and URL are required to save.
+                </p>
+              )}
+              <Button
+                size="sm"
+                onClick={handleSaveDefaults}
+                disabled={isSavingAgent || !agentUrl.trim()}
+              >
+                {isSavingAgent ? "Saving..." : "Save"}
+              </Button>
+            </div>
+          </div>
+        )}
+      </AnimatePresence>
+    </>
   );
 }
 

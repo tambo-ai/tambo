@@ -5,9 +5,12 @@ import { InteractableCustomInstructionsEditor } from "@/components/dashboard-com
 import { MemorySettings } from "@/components/dashboard-components/project-details/memory-settings";
 import { InteractableProviderKeySection } from "@/components/dashboard-components/project-details/provider-key-section";
 import { InteractableSkillsSection } from "@/components/dashboard-components/project-details/skills-section";
+import { SystemPromptOverrideToggle } from "@/components/dashboard-components/project-details/system-prompt-override-toggle";
 import { InteractableToolCallLimitEditor } from "@/components/dashboard-components/project-details/tool-call-limit-editor";
 import { AgentPageSkeleton } from "@/components/skeletons/settings-skeletons";
 import { Card } from "@/components/ui/card";
+import { SettingsSection } from "@/components/ui/settings-section";
+import { EditWithTamboButton } from "@/components/ui/tambo/edit-with-tambo-button";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { api } from "@/trpc/react";
 import { motion } from "framer-motion";
@@ -52,51 +55,106 @@ export function AgentSettings({ projectId }: AgentSettingsProps) {
   return (
     <TooltipProvider>
       <motion.div
-        className="px-2 sm:px-4 max-w-4xl mx-auto"
+        className="px-2 sm:px-4 max-w-4xl mx-auto rounded-lg p-4"
         initial="hidden"
         animate="visible"
         variants={containerVariants}
       >
-        <p className="text-muted-foreground mb-4 pt-2">
-          Configure the behavior of your Tambo agent.
-        </p>
-        <div className="space-y-6">
-          <InteractableCustomInstructionsEditor
-            projectId={project.id}
-            customInstructions={project.customInstructions}
-            allowSystemPromptOverride={project.allowSystemPromptOverride}
-            onEdited={handleRefreshProject}
-          />
+        <div className="space-y-8">
+          <SettingsSection
+            title="Model"
+            action={
+              <EditWithTamboButton
+                variant="button"
+                description="Manage LLM providers for this project."
+              />
+            }
+          >
+            <InteractableProviderKeySection
+              projectId={project.id}
+              onEdited={handleRefreshProject}
+            />
+          </SettingsSection>
 
-          <InteractableSkillsSection
-            projectId={project.id}
-            defaultLlmProviderName={project.defaultLlmProviderName ?? undefined}
-            defaultLlmModelName={project.defaultLlmModelName ?? undefined}
-          />
+          <SettingsSection
+            title="Instructions"
+            description="Added to each conversation to guide how your agent responds."
+            action={
+              <EditWithTamboButton
+                variant="button"
+                description="Edit custom instructions for this project."
+              />
+            }
+            bordered={false}
+          >
+            <InteractableCustomInstructionsEditor
+              projectId={project.id}
+              customInstructions={project.customInstructions}
+              onEdited={handleRefreshProject}
+            />
+          </SettingsSection>
 
-          <InteractableToolCallLimitEditor
-            projectId={project.id}
-            maxToolCallLimit={project.maxToolCallLimit}
-            onEdited={handleRefreshProject}
-          />
+          <SettingsSection
+            title="Behavior"
+            action={
+              <EditWithTamboButton
+                variant="button"
+                description="Manage tool call limits, memory, and prompt settings."
+              />
+            }
+          >
+            <SystemPromptOverrideToggle
+              projectId={project.id}
+              allowSystemPromptOverride={project.allowSystemPromptOverride}
+              onEdited={handleRefreshProject}
+            />
+            <InteractableToolCallLimitEditor
+              projectId={project.id}
+              maxToolCallLimit={project.maxToolCallLimit}
+              onEdited={handleRefreshProject}
+            />
+            <MemorySettings
+              projectId={project.id}
+              memoryEnabled={project.memoryEnabled}
+              memoryToolsEnabled={project.memoryToolsEnabled}
+              onEdited={handleRefreshProject}
+            />
+          </SettingsSection>
 
-          <MemorySettings
-            projectId={project.id}
-            memoryEnabled={project.memoryEnabled}
-            memoryToolsEnabled={project.memoryToolsEnabled}
-            onEdited={handleRefreshProject}
-          />
+          <SettingsSection
+            title="Skills"
+            action={
+              <EditWithTamboButton
+                variant="button"
+                description="Manage skills for this project."
+              />
+            }
+            divided={false}
+          >
+            <InteractableSkillsSection
+              projectId={project.id}
+              defaultLlmProviderName={
+                project.defaultLlmProviderName ?? undefined
+              }
+              defaultLlmModelName={project.defaultLlmModelName ?? undefined}
+            />
+          </SettingsSection>
 
-          <InteractableAvailableMcpServers
-            projectId={project.id}
-            providerType={project.providerType}
-            onEdited={handleRefreshProject}
-          />
-
-          <InteractableProviderKeySection
-            projectId={project.id}
-            onEdited={handleRefreshProject}
-          />
+          <SettingsSection
+            title="Integrations"
+            action={
+              <EditWithTamboButton
+                variant="button"
+                description="Manage MCP servers for this project."
+              />
+            }
+          >
+            <InteractableAvailableMcpServers
+              projectId={project.id}
+              providerType={project.providerType}
+              onEdited={handleRefreshProject}
+            />
+          </SettingsSection>
         </div>
       </motion.div>
     </TooltipProvider>

@@ -1,21 +1,12 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { EditWithTamboButton } from "@/components/ui/tambo/edit-with-tambo-button";
+import { SettingsRow } from "@/components/ui/settings-row";
 import { useToast } from "@/hooks/use-toast";
 import { api } from "@/trpc/react";
 import type { Suggestion } from "@tambo-ai/react";
 import { withTamboInteractable } from "@tambo-ai/react";
-import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useId, useRef, useState } from "react";
 import { z } from "zod/v3";
 
@@ -158,105 +149,55 @@ export function ToolCallLimitEditor({
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-lg font-semibold">
-          Tool Call Limit
-          <EditWithTamboButton description="Manage the tool call limit for this project." />
-        </CardTitle>
-        <CardDescription className="text-sm font-sans text-foreground">
-          Set the maximum number of tool calls allowed per response. This helps
-          prevent infinite loops and controls resource usage.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="relative">
-          <AnimatePresence mode="wait">
-            {isEditing ? (
-              <motion.div
-                key="edit-form"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.3, ease: "easeInOut" }}
-                className="space-y-4"
-              >
-                <div className="space-y-2">
-                  <Label htmlFor={maxToolCallLimitId}>Maximum Tool Calls</Label>
-                  <Input
-                    id={maxToolCallLimitId}
-                    type="number"
-                    min="1"
-                    value={limitValue}
-                    onChange={(e) => setLimitValue(e.target.value)}
-                    placeholder="Enter maximum tool calls"
-                    disabled={isUpdating}
-                    autoFocus
-                  />
-                </div>
-                <motion.div
-                  className="flex gap-2"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.1 }}
-                >
-                  <Button onClick={handleSave} disabled={isUpdating}>
-                    {isUpdating ? (
-                      <span className="flex items-center gap-1">
-                        <span className="h-3 w-3 animate-spin rounded-full border-2 border-t-transparent border-current" />
-                        Saving...
-                      </span>
-                    ) : (
-                      "Save"
-                    )}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={handleCancel}
-                    disabled={isUpdating}
-                  >
-                    Cancel
-                  </Button>
-                </motion.div>
-              </motion.div>
-            ) : (
-              <motion.div
-                key="display-limit"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.3, ease: "easeInOut" }}
-                className="space-y-4"
-              >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium">Current Limit</p>
-                    <p className="text-2xl font-bold">{limitValue}</p>
-                  </div>
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.9 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <Button
-                      variant="outline"
-                      onClick={() => setIsEditing(true)}
-                    >
-                      Edit
-                    </Button>
-                  </motion.div>
-                </div>
-                <p className="text-xs text-foreground">
-                  When the Tambo reaches this limit, it will finish the response
-                  with a message that it has reached the limit.
-                </p>
-              </motion.div>
-            )}
-          </AnimatePresence>
+    <SettingsRow
+      label="Tool call limit"
+      description="Maximum number of tool calls allowed per response. Prevents infinite loops and controls resource usage."
+      htmlFor={isEditing ? maxToolCallLimitId : undefined}
+    >
+      {isEditing ? (
+        <div className="flex items-center gap-2">
+          <Input
+            id={maxToolCallLimitId}
+            type="number"
+            min="1"
+            value={limitValue}
+            onChange={(e) => setLimitValue(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                void handleSave();
+              } else if (e.key === "Escape") {
+                handleCancel();
+              }
+            }}
+            disabled={isUpdating}
+            autoFocus
+            className="w-20 text-right tabular-nums"
+          />
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={handleCancel}
+            disabled={isUpdating}
+          >
+            Cancel
+          </Button>
+          <Button size="sm" onClick={handleSave} disabled={isUpdating}>
+            {isUpdating ? "Saving..." : "Save"}
+          </Button>
         </div>
-      </CardContent>
-    </Card>
+      ) : (
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-medium tabular-nums">{limitValue}</span>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsEditing(true)}
+          >
+            Edit
+          </Button>
+        </div>
+      )}
+    </SettingsRow>
   );
 }
 

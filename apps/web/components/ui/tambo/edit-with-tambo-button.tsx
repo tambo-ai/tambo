@@ -30,6 +30,8 @@ export interface EditWithTamboButtonProps {
   className?: string;
   /** Optional callback to open the thread panel/chat interface. Uses useMessageThreadPanel by default if not provided */
   onOpenThread?: () => void;
+  /** Display variant. "inline" (default) shows a small icon. "button" shows a full button with label text. */
+  variant?: "inline" | "button";
 }
 
 /**
@@ -61,6 +63,7 @@ export function EditWithTamboButton({
   description,
   className,
   onOpenThread: onOpenThreadProp,
+  variant = "inline",
 }: EditWithTamboButtonProps) {
   const component = useTamboCurrentComponent();
   const { isIdle } = useTambo();
@@ -100,8 +103,28 @@ export function EditWithTamboButton({
   );
   const isGenerating = !isIdle;
 
-  // If no component, the current component is not an interactable - don't render.
+  // If no component context, the "button" variant still renders as a thread-panel opener.
+  // The inline variant requires interactable context to be useful.
   if (!component) {
+    if (variant === "button") {
+      return (
+        <button
+          type="button"
+          className={cn(
+            "inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-sm font-medium",
+            "bg-card text-muted-foreground hover:text-primary",
+            "hover:bg-accent transition-colors duration-200",
+            "cursor-pointer",
+            className,
+          )}
+          aria-label={tooltip}
+          onClick={() => setThreadPanelOpen(true)}
+        >
+          {icon ?? <Bot className="h-3.5 w-3.5" />}
+          Edit with Tambo
+        </button>
+      );
+    }
     return null;
   }
 
@@ -201,20 +224,38 @@ export function EditWithTamboButton({
           className="bg-popover text-popover-foreground border shadow-md px-3 py-2 text-sm rounded-lg"
         >
           <PopoverTrigger asChild>
-            <button
-              type="button"
-              className={cn(
-                "inline-flex items-center justify-center ml-2 p-1 rounded-md",
-                "text-muted-foreground/60 hover:text-primary",
-                "hover:bg-accent transition-colors duration-200",
-                "cursor-pointer",
-                isOpen && "text-primary bg-accent",
-                className,
-              )}
-              aria-label={tooltip}
-            >
-              {icon ?? <Bot className="h-3.5 w-3.5" />}
-            </button>
+            {variant === "button" ? (
+              <button
+                type="button"
+                className={cn(
+                  "inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-sm font-medium",
+                  "bg-card text-muted-foreground hover:text-primary",
+                  "hover:bg-accent transition-colors duration-200",
+                  "cursor-pointer",
+                  isOpen && "text-primary bg-accent",
+                  className,
+                )}
+                aria-label={tooltip}
+              >
+                {icon ?? <Bot className="h-3.5 w-3.5" />}
+                Edit with Tambo
+              </button>
+            ) : (
+              <button
+                type="button"
+                className={cn(
+                  "inline-flex items-center justify-center ml-2 p-1 rounded-md",
+                  "text-muted-foreground/60 hover:text-primary",
+                  "hover:bg-accent transition-colors duration-200",
+                  "cursor-pointer",
+                  isOpen && "text-primary bg-accent",
+                  className,
+                )}
+                aria-label={tooltip}
+              >
+                {icon ?? <Bot className="h-3.5 w-3.5" />}
+              </button>
+            )}
           </PopoverTrigger>
         </Tooltip>
 

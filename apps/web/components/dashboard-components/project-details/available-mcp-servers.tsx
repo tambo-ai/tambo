@@ -1,6 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { EditWithTamboButton } from "@/components/ui/tambo/edit-with-tambo-button";
+import { Plus } from "lucide-react";
 import { api } from "@/trpc/react";
 import { AiProviderType } from "@tambo-ai-cloud/core";
 import type { Suggestion } from "@tambo-ai/react";
@@ -137,79 +136,63 @@ export function AvailableMcpServers({
   // Show loading state while fetching data
   if (!mcpServers) {
     return (
-      <Card className="border rounded-md overflow-hidden">
-        <CardHeader>
-          <CardTitle className="text-lg font-semibold">MCP Servers</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2">
-            <div className="flex flex-col gap-2 bg-muted/50 p-2 rounded-md animate-pulse">
-              <div className="flex flex-col gap-1">
-                <div className="h-4 w-32 bg-muted rounded" />
-                <div className="flex items-center gap-2">
-                  <div className="h-9 flex-1 bg-muted rounded" />
-                  <div className="h-9 w-9 bg-muted rounded" />
-                  <div className="h-9 w-9 bg-muted rounded" />
-                  <div className="h-9 w-9 bg-muted rounded" />
-                </div>
+      <div className="px-4 py-3">
+        <div className="space-y-2">
+          <div className="flex flex-col gap-2 bg-muted/50 p-2 rounded-md animate-pulse">
+            <div className="flex flex-col gap-1">
+              <div className="h-4 w-32 bg-muted rounded" />
+              <div className="flex items-center gap-2">
+                <div className="h-9 flex-1 bg-muted rounded" />
+                <div className="h-9 w-9 bg-muted rounded" />
+                <div className="h-9 w-9 bg-muted rounded" />
+                <div className="h-9 w-9 bg-muted rounded" />
               </div>
-              <div className="space-y-1">
-                <div className="h-4 w-28 bg-muted rounded" />
-                <div className="h-8 w-full bg-muted rounded" />
-              </div>
-              <div className="space-y-1">
-                <div className="h-4 w-24 bg-muted rounded" />
-                <div className="flex gap-2">
-                  <div className="h-9 flex-[2] bg-muted rounded" />
-                  <div className="h-9 flex-[5] bg-muted rounded" />
-                </div>
+            </div>
+            <div className="space-y-1">
+              <div className="h-4 w-28 bg-muted rounded" />
+              <div className="h-8 w-full bg-muted rounded" />
+            </div>
+            <div className="space-y-1">
+              <div className="h-4 w-24 bg-muted rounded" />
+              <div className="flex gap-2">
+                <div className="h-9 flex-[2] bg-muted rounded" />
+                <div className="h-9 flex-[5] bg-muted rounded" />
               </div>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     );
   }
 
   // Disable panel in Agent mode
   if (isAgentMode) {
     return (
-      <Card className="border rounded-md overflow-hidden opacity-60">
-        <CardHeader>
-          <CardTitle className="text-lg font-semibold">MCP Servers</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-sm text-muted-foreground">
-            MCP Servers are disabled while Agent mode is enabled.
-            <br />
-            MCP + Agent support is coming soon.
-          </div>
-        </CardContent>
-      </Card>
+      <div className="px-4 py-3 opacity-60">
+        <div className="text-sm text-muted-foreground">
+          MCP Servers are disabled while Agent mode is enabled.
+          <br />
+          MCP + Agent support is coming soon.
+        </div>
+      </div>
     );
   }
 
   return (
-    <Card className="border rounded-md overflow-hidden">
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg font-semibold">
-            MCP Servers
-            <EditWithTamboButton description="Manage MCP servers for this project. Add, edit, and delete MCP servers." />
-          </CardTitle>
-          {!isAddingNew && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setIsAddingNew(true)}
-            >
-              Add MCP Server
-            </Button>
-          )}
-        </div>
-      </CardHeader>
+    <div>
+      <div className="flex items-center justify-between py-3">
+        <p className="text-sm text-muted-foreground">
+          Connect external tools and services via MCP.
+        </p>
+        {!isAddingNew && (
+          <Button size="sm" onClick={() => setIsAddingNew(true)}>
+            <Plus className="h-4 w-4 mr-1" />
+            Add MCP Server
+          </Button>
+        )}
+      </div>
       {(mcpServers.length > 0 || isAddingNew) && (
-        <CardContent>
+        <div className="px-4 pb-4">
           {mcpServers.map((server) => (
             <McpServerRow
               key={server.id}
@@ -241,9 +224,9 @@ export function AvailableMcpServers({
               redirectToAuth={redirectToAuth}
             />
           )}
-        </CardContent>
+        </div>
       )}
-    </Card>
+    </div>
   );
 }
 

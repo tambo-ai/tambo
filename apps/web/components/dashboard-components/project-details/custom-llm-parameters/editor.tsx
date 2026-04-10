@@ -273,35 +273,33 @@ export function CustomLlmParametersEditor({
   }, [providerName, currentModel]);
 
   return (
-    <div className="relative">
-      <AnimatePresence mode="wait">
-        {isEditing ? (
-          <EditMode
-            key="edit-mode"
-            parameters={parameters}
-            providerName={providerName}
-            suggestions={suggestions}
-            isPending={updateProject.isPending}
-            activeEditIndex={activeEditIndex}
-            onParametersChange={handleParameterChange}
-            onBeginEdit={handleBeginEdit}
-            onRemoveRow={handleRemoveRow}
-            onAddParameter={handleAddParameter}
-            onApplySuggestion={handleApplySuggestion}
-            onSave={handleSave}
-            onCancel={handleCancel}
-            allowCustomParameters={allowCustomParameters}
-            hasValidationErrors={hasValidationErrors}
-          />
-        ) : (
-          <ViewMode
-            key="view-mode"
-            parameters={parameters}
-            onEdit={() => projectId && setIsEditing(true)}
-            isLoading={isProjectLoading}
-          />
-        )}
-      </AnimatePresence>
-    </div>
+    <AnimatePresence mode="wait">
+      {isEditing ? (
+        <EditMode
+          key="edit-mode"
+          parameters={parameters}
+          providerName={providerName}
+          suggestions={suggestions}
+          isPending={updateProject.isPending}
+          activeEditIndex={activeEditIndex}
+          onParametersChange={handleParameterChange}
+          onBeginEdit={handleBeginEdit}
+          onRemoveRow={handleRemoveRow}
+          onAddParameter={handleAddParameter}
+          onApplySuggestion={handleApplySuggestion}
+          onSave={handleSave}
+          onCancel={handleCancel}
+          allowCustomParameters={allowCustomParameters}
+          hasValidationErrors={hasValidationErrors}
+        />
+      ) : (
+        <ViewMode
+          key="view-mode"
+          parameters={parameters}
+          onEdit={() => projectId && setIsEditing(true)}
+          isLoading={isProjectLoading}
+        />
+      )}
+    </AnimatePresence>
   );
 }

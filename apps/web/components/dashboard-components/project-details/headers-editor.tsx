@@ -1,10 +1,11 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { DestructiveActionButton } from "@/components/ui/destructive-action-button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { motion } from "framer-motion";
-import { Check, Trash2, X } from "lucide-react";
+import { Plus } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 export interface HeaderKV {
@@ -17,6 +18,8 @@ interface HeadersEditorProps {
   onSave: (headers: HeaderKV[]) => void;
   className?: string;
   title?: string;
+  /** Hides the built-in "Add header" button so the parent can render it externally. */
+  hideAddButton?: boolean;
 }
 
 interface HeaderRowProps {
@@ -68,66 +71,43 @@ function HeaderRow({
   };
 
   return (
-    <div className="grid grid-cols-[40%_60%] gap-3 items-start">
-      <div className="space-y-1">
-        <Label className="sr-only">Header</Label>
-        <Input
-          placeholder="Header (e.g., Authorization)"
-          value={local.header}
-          onChange={(e) => handleChange("header", e.target.value)}
-          disabled={disabled && !isEditing}
+    <div className="flex items-center gap-2">
+      <Label className="sr-only">Header</Label>
+      <Input
+        placeholder="Header (e.g., Authorization)"
+        value={local.header}
+        onChange={(e) => handleChange("header", e.target.value)}
+        disabled={disabled && !isEditing}
+        className="flex-1"
+      />
+      <Label className="sr-only">Value</Label>
+      <Input
+        placeholder="Value"
+        value={local.value}
+        onChange={(e) => handleChange("value", e.target.value)}
+        disabled={disabled && !isEditing}
+        className="flex-1"
+      />
+      {isEditing ? (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="flex items-center gap-2"
+        >
+          <Button onClick={handleCancel} variant="outline" size="sm">
+            Cancel
+          </Button>
+          <Button onClick={handleSave} disabled={!canSave} size="sm">
+            Save
+          </Button>
+        </motion.div>
+      ) : (
+        <DestructiveActionButton
+          onClick={() => onDeleteRow(index)}
+          disabled={disabled}
+          aria-label="Delete header"
         />
-      </div>
-      <div className="space-y-1">
-        <Label className="sr-only">Value</Label>
-        <div className="flex items-center gap-2">
-          <Input
-            placeholder="Value"
-            value={local.value}
-            onChange={(e) => handleChange("value", e.target.value)}
-            disabled={disabled && !isEditing}
-            className="flex-1"
-          />
-          {isEditing ? (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="flex items-center gap-1"
-            >
-              <Button
-                onClick={handleSave}
-                disabled={!canSave}
-                size="icon"
-                aria-label="Save header"
-                title="Save"
-              >
-                <Check className="h-4 w-4" />
-              </Button>
-              <Button
-                onClick={handleCancel}
-                variant="ghost"
-                size="icon"
-                aria-label="Cancel editing"
-                title="Cancel"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </motion.div>
-          ) : (
-            <Button
-              onClick={() => onDeleteRow(index)}
-              variant="ghost"
-              size="icon"
-              disabled={disabled}
-              aria-label="Delete header"
-              title="Delete"
-              className="text-muted-foreground hover:text-destructive"
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          )}
-        </div>
-      </div>
+      )}
     </div>
   );
 }
@@ -137,6 +117,7 @@ export function HeadersEditor({
   onSave,
   className,
   title,
+  hideAddButton,
 }: HeadersEditorProps) {
   const [activeEditIndex, setActiveEditIndex] = useState<number | null>(null);
   const [working, setWorking] = useState(headers);
@@ -177,21 +158,23 @@ export function HeadersEditor({
     <div className={className}>
       {title && <div className="mb-2 text-sm font-medium">{title}</div>}
       <div className="space-y-3">
-        <div className="flex justify-end">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              if (activeEditIndex !== null) return;
-              const next = [...working, { header: "", value: "" }];
-              setWorking(next);
-              setActiveEditIndex(next.length - 1);
-            }}
-            disabled={activeEditIndex !== null}
-          >
-            Add header
-          </Button>
-        </div>
+        {!hideAddButton && (
+          <div className="flex justify-end">
+            <Button
+              size="sm"
+              onClick={() => {
+                if (activeEditIndex !== null) return;
+                const next = [...working, { header: "", value: "" }];
+                setWorking(next);
+                setActiveEditIndex(next.length - 1);
+              }}
+              disabled={activeEditIndex !== null}
+            >
+              <Plus className="h-4 w-4 mr-1" />
+              Add header
+            </Button>
+          </div>
+        )}
         {working.map((kv, idx) => (
           <HeaderRow
             key={`${idx}-${kv.header}`}

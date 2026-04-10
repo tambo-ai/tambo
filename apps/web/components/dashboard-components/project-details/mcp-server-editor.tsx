@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { DestructiveActionButton } from "@/components/ui/destructive-action-button";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -160,6 +161,8 @@ export function McpServerEditor({
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSave();
+    } else if (e.key === "Escape") {
+      onCancel?.();
     }
   };
   const {
@@ -263,6 +266,13 @@ export function McpServerEditor({
                   <Button
                     variant="outline"
                     size="sm"
+                    onClick={onCancel}
+                    disabled={isSaving}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    size="sm"
                     onClick={() => handleSave()}
                     disabled={
                       isSaving ||
@@ -270,22 +280,12 @@ export function McpServerEditor({
                       !serverKey.trim() ||
                       !serverKeyValid
                     }
-                    className="font-sans bg-transparent hover:bg-accent text-sm"
                   >
                     {isSaving ? (
                       <Loader2 className="h-3 w-3 animate-spin" />
                     ) : (
                       "Save"
                     )}
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={onCancel}
-                    disabled={isSaving}
-                    className="font-sans bg-transparent text-muted-foreground hover:bg-accent text-sm"
-                  >
-                    Cancel
                   </Button>
                 </div>
               ) : (
@@ -309,19 +309,11 @@ export function McpServerEditor({
                   >
                     Edit
                   </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
+                  <DestructiveActionButton
                     onClick={onDelete}
-                    disabled={isDeleting}
-                    className="font-sans hover:bg-destructive/10 text-destructive hover:text-destructive text-sm"
-                  >
-                    {isDeleting ? (
-                      <Loader2 className="h-3 w-3 animate-spin" />
-                    ) : (
-                      "Delete"
-                    )}
-                  </Button>
+                    isPending={isDeleting}
+                    aria-label="Delete MCP server"
+                  />
                 </>
               )}
             </>

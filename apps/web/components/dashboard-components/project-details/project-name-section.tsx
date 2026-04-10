@@ -1,14 +1,8 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { SettingsRow } from "@/components/ui/settings-row";
 import { useToast } from "@/hooks/use-toast";
 import { api } from "@/trpc/react";
 import { useState } from "react";
@@ -65,55 +59,51 @@ export function ProjectNameSection({
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-lg font-semibold">Project Name</CardTitle>
-        <CardDescription className="text-sm font-sans text-foreground">
-          The display name for this project.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {isEditing ? (
-          <div className="flex flex-col gap-3">
-            <Input
-              value={editedName}
-              onChange={(e) => setEditedName(e.target.value)}
-              placeholder="Project name"
-              disabled={isPending}
-              onKeyDown={async (e) => {
-                if (e.key === "Enter") {
-                  await handleSave();
-                } else if (e.key === "Escape") {
-                  handleCancel();
-                }
-              }}
-              autoFocus
-            />
-            <div className="flex gap-2 justify-end">
-              <Button
-                variant="outline"
-                onClick={handleCancel}
-                disabled={isPending}
-              >
-                Cancel
-              </Button>
-              <Button
-                onClick={handleSave}
-                disabled={isPending || !editedName.trim()}
-              >
-                {isPending ? "Saving..." : "Save"}
-              </Button>
-            </div>
-          </div>
-        ) : (
-          <div className="flex items-center justify-between">
-            <span className="text-sm">{projectName}</span>
-            <Button variant="outline" size="sm" onClick={handleEdit}>
-              Edit
-            </Button>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+    <SettingsRow
+      label="Project name"
+      description="The display name for this project."
+    >
+      {isEditing ? (
+        <div className="flex items-center gap-2">
+          <Input
+            value={editedName}
+            onChange={(e) => setEditedName(e.target.value)}
+            placeholder="Project name"
+            disabled={isPending}
+            onKeyDown={async (e) => {
+              if (e.key === "Enter") {
+                await handleSave();
+              } else if (e.key === "Escape") {
+                handleCancel();
+              }
+            }}
+            autoFocus
+            className="w-48"
+          />
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={handleCancel}
+            disabled={isPending}
+          >
+            Cancel
+          </Button>
+          <Button
+            size="sm"
+            onClick={handleSave}
+            disabled={isPending || !editedName.trim()}
+          >
+            {isPending ? "Saving..." : "Save"}
+          </Button>
+        </div>
+      ) : (
+        <div className="flex items-center gap-3">
+          <span className="text-sm">{projectName}</span>
+          <Button variant="outline" size="sm" onClick={handleEdit}>
+            Edit
+          </Button>
+        </div>
+      )}
+    </SettingsRow>
   );
 }
