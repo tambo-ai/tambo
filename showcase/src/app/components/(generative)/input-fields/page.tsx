@@ -3,6 +3,8 @@
 import { ComponentCodePreview } from "@/components/component-code-preview";
 import { InstallationSection } from "@/components/installation-section";
 import { InputFieldsChatInterface } from "@/components/generative/InputFieldsChatInterface";
+import { SyntaxHighlighter } from "@/components/ui/syntax-highlighter";
+import { InputFields } from "@tambo-ai/ui-registry/components/input-fields";
 
 export default function InputFieldsComponentPage() {
   return (
@@ -20,20 +22,62 @@ export default function InputFieldsComponentPage() {
         </p>
       </header>
 
-      {/* Examples Section */}
+      {/* Example Section */}
       <section className="space-y-6">
-        <h2 className="text-2xl font-semibold">Examples</h2>
-
-        <p className="text-sm text-muted-foreground">
-          This interactive demo runs inside the showcase&apos;s app-level
-          TamboProvider, which sets a per-user context key (persisted in
-          localStorage).
-        </p>
+        <h2 className="text-2xl font-semibold">Example</h2>
 
         <div className="space-y-6">
           <ComponentCodePreview
             title="User Registration Fields"
-            component={<InputFieldsChatInterface />}
+            component={
+              <InputFields
+                fields={[
+                  {
+                    id: "username",
+                    label: "Username",
+                    type: "text",
+                    required: true,
+                    placeholder: "Enter username",
+                    minLength: 3,
+                    maxLength: 20,
+                    pattern: "^[a-zA-Z0-9]+$",
+                    description: "Must be 3-20 alphanumeric characters",
+                    autoComplete: "username",
+                  },
+                  {
+                    id: "email",
+                    label: "Email",
+                    type: "email",
+                    required: true,
+                    placeholder: "your.email@example.com",
+                    description: "We'll use this for account notifications",
+                    autoComplete: "email",
+                  },
+                  {
+                    id: "password",
+                    label: "Password",
+                    type: "password",
+                    required: true,
+                    placeholder: "Create strong password",
+                    minLength: 8,
+                    maxLength: 128,
+                    description: "Must be at least 8 characters long",
+                    autoComplete: "new-password",
+                  },
+                  {
+                    id: "age",
+                    label: "Age",
+                    type: "number",
+                    placeholder: "25",
+                    minLength: 1,
+                    maxLength: 3,
+                    description: "Must be between 1-150",
+                  },
+                ]}
+                variant="solid"
+                layout="compact"
+              />
+            }
             code={`import { InputFields } from "@/components/tambo/input-fields";
 
 export function UserRegistrationFields() {
@@ -73,15 +117,6 @@ export function UserRegistrationFields() {
           autoComplete: "new-password",
         },
         {
-          id: "phone",
-          label: "Phone",
-          type: "text",
-          placeholder: "(555) 123-4567",
-          pattern: "^\\([0-9]{3}\\) [0-9]{3}-[0-9]{4}$",
-          description: "Optional: for account recovery",
-          autoComplete: "tel",
-        },
-        {
           id: "age",
           label: "Age",
           type: "number",
@@ -96,6 +131,48 @@ export function UserRegistrationFields() {
     />
   );
 }`}
+            previewClassName="p-8"
+          />
+        </div>
+      </section>
+
+      {/* Interactive Demo Section */}
+      <section className="space-y-6">
+        <h2 className="text-2xl font-semibold">Interactive Demo</h2>
+
+        <p className="text-sm text-muted-foreground">
+          Use natural language to generate and modify input fields in real time.
+          This interactive demo runs inside the showcase&apos;s app-level
+          TamboProvider, which sets a per-user context key (persisted in
+          localStorage).
+        </p>
+
+        <div className="space-y-6">
+          <ComponentCodePreview
+            title="AI-Generated Input Fields"
+            component={<InputFieldsChatInterface />}
+            code={`import {
+  InputFields,
+  inputFieldsSchema,
+} from "@/components/tambo/input-fields";
+import { MessageThreadFull } from "@/components/tambo/message-thread-full";
+import { useTambo } from "@tambo-ai/react";
+import { useEffect } from "react";
+
+export function InputFieldsDemo() {
+  const { registerComponent } = useTambo();
+
+  useEffect(() => {
+    registerComponent({
+      name: "InputFields",
+      description: "A focused collection of input fields.",
+      component: InputFields,
+      propsSchema: inputFieldsSchema,
+    });
+  }, [registerComponent]);
+
+  return <MessageThreadFull />;
+}`}
             previewClassName="p-0"
             minHeight={700}
           />
@@ -105,6 +182,81 @@ export function UserRegistrationFields() {
       {/* Installation */}
       <section>
         <InstallationSection cliCommand="npx tambo add input-fields" />
+      </section>
+
+      {/* Try It Yourself */}
+      <section className="space-y-6">
+        <h2 className="text-2xl font-semibold">Try It Yourself</h2>
+
+        <div className="not-prose space-y-6">
+          {/* Step 1 */}
+          <div className="space-y-3">
+            <h3 className="text-lg font-500 text-foreground">
+              1. Install the component
+            </h3>
+            <pre className="rounded-md border border-border bg-muted/40 p-4">
+              <code className="text-sm text-foreground">
+                npx tambo add input-fields
+              </code>
+            </pre>
+          </div>
+
+          {/* Step 2 */}
+          <div className="space-y-3">
+            <h3 className="text-lg font-500 text-foreground">
+              2. Register with Tambo
+            </h3>
+            <SyntaxHighlighter
+              language="tsx"
+              code={`import {
+  InputFields,
+  inputFieldsSchema,
+} from "@/components/tambo/input-fields";
+import { MessageThreadFull } from "@/components/tambo/message-thread-full";
+import { useTambo } from "@tambo-ai/react";
+import { useEffect } from "react";
+
+export function App() {
+  const { registerComponent } = useTambo();
+
+  useEffect(() => {
+    registerComponent({
+      name: "InputFields",
+      description: "A focused collection of input fields.",
+      component: InputFields,
+      propsSchema: inputFieldsSchema,
+    });
+  }, [registerComponent]);
+
+  return <MessageThreadFull />;
+}`}
+            />
+          </div>
+
+          {/* Step 3 */}
+          <div className="space-y-3">
+            <h3 className="text-lg font-500 text-foreground">
+              3. Send a prompt
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              Try these example prompts:
+            </p>
+            <ul className="space-y-2 text-sm text-muted-foreground">
+              <li>
+                &rarr; &quot;Create sign-up fields with email and password
+                validation&quot;
+              </li>
+              <li>
+                &rarr; &quot;Add a phone field with pattern validation and
+                helper text&quot;
+              </li>
+              <li>
+                &rarr; &quot;Build a profile editor with username, email, and
+                age inputs&quot;
+              </li>
+            </ul>
+          </div>
+        </div>
       </section>
 
       {/* Component API */}

@@ -3,6 +3,8 @@
 import { ComponentCodePreview } from "@/components/component-code-preview";
 import { InstallationSection } from "@/components/installation-section";
 import { GraphChatInterface } from "@/components/generative/GraphChatInterface";
+import { SyntaxHighlighter } from "@/components/ui/syntax-highlighter";
+import { Graph } from "@tambo-ai/ui-registry/components/graph";
 
 export default function GraphPage() {
   return (
@@ -19,20 +21,37 @@ export default function GraphPage() {
         </p>
       </header>
 
-      {/* Examples Section */}
+      {/* Example Section */}
       <section className="space-y-6">
-        <h2 className="text-2xl font-semibold">Examples</h2>
-
-        <p className="text-sm text-muted-foreground">
-          This interactive demo runs inside the showcase&apos;s app-level
-          TamboProvider, which sets a per-user context key (persisted in
-          localStorage).
-        </p>
+        <h2 className="text-2xl font-semibold">Example</h2>
 
         <div className="space-y-6">
           <ComponentCodePreview
             title="Quarterly Sales Chart"
-            component={<GraphChatInterface />}
+            component={
+              <Graph
+                title="Quarterly Sales"
+                data={{
+                  type: "bar",
+                  labels: ["Q1", "Q2", "Q3", "Q4"],
+                  datasets: [
+                    {
+                      label: "Revenue",
+                      data: [120000, 150000, 180000, 200000],
+                      color: "hsl(160, 82%, 47%)",
+                    },
+                    {
+                      label: "Expenses",
+                      data: [80000, 95000, 110000, 125000],
+                      color: "hsl(340, 82%, 66%)",
+                    },
+                  ],
+                }}
+                variant="bordered"
+                size="lg"
+                showLegend={true}
+              />
+            }
             code={`import { Graph } from "@/components/tambo/graph";
 
 export function QuarterlySalesChart() {
@@ -61,6 +80,45 @@ export function QuarterlySalesChart() {
     />
   );
 }`}
+            previewClassName="p-8"
+          />
+        </div>
+      </section>
+
+      {/* Interactive Demo Section */}
+      <section className="space-y-6">
+        <h2 className="text-2xl font-semibold">Interactive Demo</h2>
+
+        <p className="text-sm text-muted-foreground">
+          Use natural language to generate and modify charts in real time. This
+          interactive demo runs inside the showcase&apos;s app-level
+          TamboProvider, which sets a per-user context key (persisted in
+          localStorage).
+        </p>
+
+        <div className="space-y-6">
+          <ComponentCodePreview
+            title="AI-Generated Chart"
+            component={<GraphChatInterface />}
+            code={`import { Graph, graphSchema } from "@/components/tambo/graph";
+import { MessageThreadFull } from "@/components/tambo/message-thread-full";
+import { useTambo } from "@tambo-ai/react";
+import { useEffect } from "react";
+
+export function GraphDemo() {
+  const { registerComponent } = useTambo();
+
+  useEffect(() => {
+    registerComponent({
+      name: "Graph",
+      description: "A versatile data visualization component.",
+      component: Graph,
+      propsSchema: graphSchema,
+    });
+  }, [registerComponent]);
+
+  return <MessageThreadFull />;
+}`}
             previewClassName="p-0"
             minHeight={700}
           />
@@ -70,6 +128,77 @@ export function QuarterlySalesChart() {
       {/* Installation */}
       <section>
         <InstallationSection cliCommand="npx tambo add graph" />
+      </section>
+
+      {/* Try It Yourself */}
+      <section className="space-y-6">
+        <h2 className="text-2xl font-semibold">Try It Yourself</h2>
+
+        <div className="not-prose space-y-6">
+          {/* Step 1 */}
+          <div className="space-y-3">
+            <h3 className="text-lg font-500 text-foreground">
+              1. Install the component
+            </h3>
+            <pre className="rounded-md border border-border bg-muted/40 p-4">
+              <code className="text-sm text-foreground">
+                npx tambo add graph
+              </code>
+            </pre>
+          </div>
+
+          {/* Step 2 */}
+          <div className="space-y-3">
+            <h3 className="text-lg font-500 text-foreground">
+              2. Register with Tambo
+            </h3>
+            <SyntaxHighlighter
+              language="tsx"
+              code={`import { Graph, graphSchema } from "@/components/tambo/graph";
+import { MessageThreadFull } from "@/components/tambo/message-thread-full";
+import { useTambo } from "@tambo-ai/react";
+import { useEffect } from "react";
+
+export function App() {
+  const { registerComponent } = useTambo();
+
+  useEffect(() => {
+    registerComponent({
+      name: "Graph",
+      description: "A versatile data visualization component.",
+      component: Graph,
+      propsSchema: graphSchema,
+    });
+  }, [registerComponent]);
+
+  return <MessageThreadFull />;
+}`}
+            />
+          </div>
+
+          {/* Step 3 */}
+          <div className="space-y-3">
+            <h3 className="text-lg font-500 text-foreground">
+              3. Send a prompt
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              Try these example prompts:
+            </p>
+            <ul className="space-y-2 text-sm text-muted-foreground">
+              <li>
+                &rarr; &quot;Create a bar chart of monthly revenue for Q1&quot;
+              </li>
+              <li>
+                &rarr; &quot;Show a line chart comparing signups vs activations
+                over 6 months&quot;
+              </li>
+              <li>
+                &rarr; &quot;Make a pie chart of traffic sources: organic, paid,
+                and referral&quot;
+              </li>
+            </ul>
+          </div>
+        </div>
       </section>
 
       {/* Component API */}
