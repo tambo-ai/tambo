@@ -3,6 +3,7 @@
 import { ComponentCodePreview } from "@/components/component-code-preview";
 import { InstallationSection } from "@/components/installation-section";
 import { GraphChatInterface } from "@/components/generative/GraphChatInterface";
+import { SyntaxHighlighter } from "@/components/ui/syntax-highlighter";
 import { Graph } from "@tambo-ai/ui-registry/components/graph";
 
 export default function GraphPage() {
@@ -151,9 +152,9 @@ export function GraphDemo() {
             <h3 className="text-lg font-500 text-foreground">
               2. Register with Tambo
             </h3>
-            <pre className="rounded-md border border-border bg-muted/40 p-4">
-              <code className="text-sm text-foreground">
-                {`import { Graph, graphSchema } from "@/components/tambo/graph";
+            <SyntaxHighlighter
+              language="tsx"
+              code={`import { Graph, graphSchema } from "@/components/tambo/graph";
 import { MessageThreadFull } from "@/components/tambo/message-thread-full";
 import { useTambo } from "@tambo-ai/react";
 import { useEffect } from "react";
@@ -172,8 +173,7 @@ export function App() {
 
   return <MessageThreadFull />;
 }`}
-              </code>
-            </pre>
+            />
           </div>
 
           {/* Step 3 */}

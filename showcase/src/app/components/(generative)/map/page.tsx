@@ -3,6 +3,7 @@
 import { ComponentCodePreview } from "@/components/component-code-preview";
 import { InstallationSection } from "@/components/installation-section";
 import { MapChatInterface } from "@/components/generative/MapChatInterface";
+import { SyntaxHighlighter } from "@/components/ui/syntax-highlighter";
 import dynamic from "next/dynamic";
 
 const Map = dynamic(
@@ -160,9 +161,9 @@ export function MapDemo() {
             <h3 className="text-lg font-500 text-foreground">
               2. Register with Tambo
             </h3>
-            <pre className="rounded-md border border-border bg-muted/40 p-4">
-              <code className="text-sm text-foreground">
-                {`import { Map, mapSchema } from "@/components/tambo/map";
+            <SyntaxHighlighter
+              language="tsx"
+              code={`import { Map, mapSchema } from "@/components/tambo/map";
 import { MessageThreadFull } from "@/components/tambo/message-thread-full";
 import { useTambo } from "@tambo-ai/react";
 import { useEffect } from "react";
@@ -181,8 +182,7 @@ export function App() {
 
   return <MessageThreadFull />;
 }`}
-              </code>
-            </pre>
+            />
           </div>
 
           {/* Step 3 */}

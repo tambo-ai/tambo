@@ -3,6 +3,7 @@
 import { ComponentCodePreview } from "@/components/component-code-preview";
 import { FormChatInterface } from "@/components/generative/FormChatInterface";
 import { InstallationSection } from "@/components/installation-section";
+import { SyntaxHighlighter } from "@/components/ui/syntax-highlighter";
 import { FormComponent } from "@tambo-ai/ui-registry/components/form";
 
 export default function FormComponentPage() {
@@ -187,9 +188,9 @@ export function FormDemo() {
             <h3 className="text-lg font-500 text-foreground">
               2. Register with Tambo
             </h3>
-            <pre className="rounded-md border border-border bg-muted/40 p-4">
-              <code className="text-sm text-foreground">
-                {`import { FormComponent, formSchema } from "@/components/tambo/form";
+            <SyntaxHighlighter
+              language="tsx"
+              code={`import { FormComponent, formSchema } from "@/components/tambo/form";
 import { MessageThreadFull } from "@/components/tambo/message-thread-full";
 import { useTambo } from "@tambo-ai/react";
 import { useEffect } from "react";
@@ -208,8 +209,7 @@ export function App() {
 
   return <MessageThreadFull />;
 }`}
-              </code>
-            </pre>
+            />
           </div>
 
           {/* Step 3 */}
