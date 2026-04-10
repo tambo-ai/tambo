@@ -15,7 +15,7 @@ function SectionSkeleton({
     <div>
       <Skeleton className={`h-5 ${titleWidth} mb-3`} />
       <Card className={cardClassName}>
-        <CardContent className="p-0 divide-y divide-border">
+        <CardContent className="px-6 py-2 divide-y divide-border">
           {children}
         </CardContent>
       </Card>
@@ -33,7 +33,7 @@ function RowSkeleton({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex items-center justify-between gap-4 px-4 py-3">
+    <div className="flex items-center justify-between gap-4 py-4">
       <div className="flex flex-col gap-0.5 min-w-0 flex-1">
         <Skeleton className={`h-4 ${labelWidth}`} />
         {descriptionWidth && (
@@ -65,7 +65,7 @@ export function SettingsPageSkeleton() {
 
         {/* API Keys: description + "Add Key" button, then key items */}
         <SectionSkeleton titleWidth="w-16">
-          <div className="px-4 py-3 space-y-4">
+          <div className="py-4 space-y-4">
             <div className="flex justify-between items-center">
               <Skeleton className="h-3.5 w-60" />
               <SkeletonButton className="w-20" />
@@ -90,9 +90,9 @@ export function SettingsPageSkeleton() {
           <RowSkeleton labelWidth="w-28" descriptionWidth="w-80">
             <Skeleton className="h-6 w-11 rounded-full" />
           </RowSkeleton>
-          <div className="space-y-6 px-4 pb-4">
+          <div className="space-y-6 py-4">
             <div className="space-y-4">
-              <Skeleton className="h-5 w-28" />
+              <Skeleton className="h-4 w-28" />
               <div className="space-y-3">
                 {[...Array(4)].map((_, i) => (
                   <div
@@ -119,10 +119,9 @@ export function SettingsPageSkeleton() {
           titleWidth="w-24"
           cardClassName="border-destructive/50"
         >
-          <div className="px-4 py-3 flex justify-between items-center">
-            <Skeleton className="h-3.5 w-80" />
+          <RowSkeleton labelWidth="w-32" descriptionWidth="w-80">
             <SkeletonButton className="w-36" />
-          </div>
+          </RowSkeleton>
         </SectionSkeleton>
       </div>
     </motion.div>
@@ -175,7 +174,7 @@ export function AgentPageSkeleton() {
 
         {/* Skills: description + buttons, then skill cards */}
         <SectionSkeleton titleWidth="w-12">
-          <div className="px-4 py-3 space-y-3">
+          <div className="py-3 space-y-3">
             <div className="flex justify-between items-center">
               <Skeleton className="h-3.5 w-56" />
               <div className="flex gap-2">
@@ -201,7 +200,7 @@ export function AgentPageSkeleton() {
 
         {/* Integrations: description + add button, then server entry */}
         <SectionSkeleton titleWidth="w-24">
-          <div className="px-4 py-3 space-y-3">
+          <div className="py-3 space-y-3">
             <div className="flex justify-between items-center">
               <Skeleton className="h-3.5 w-56" />
               <SkeletonButton className="w-32" />
