@@ -18,7 +18,7 @@ import type {
   UserModelMessage,
 } from "ai";
 import type { ProviderOptions } from "@ai-sdk/provider-utils";
-import { isProviderSkillMessage } from "../services/llm/llm-client";
+import { isProviderSkillMessage } from "./provider-skill";
 import * as mimeTypes from "mime-types";
 import { formatFunctionCall, generateAdditionalContext } from "./tools";
 

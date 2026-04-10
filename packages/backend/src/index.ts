@@ -37,7 +37,7 @@ export { type DecisionStreamItem } from "./services/decision-loop/decision-loop-
 export {
   type ProviderSkillCall,
   isProviderSkillMessage,
-} from "./services/llm/llm-client";
+} from "./util/provider-skill";
 export { sanitizeEvent } from "./util/event-sanitization";
 export {
   deleteSkillFromProvider,
