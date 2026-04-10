@@ -40,33 +40,18 @@ export const InteractableCustomInstructionsEditorProps = z.object({
     .nullable()
     .optional()
     .describe("The current custom instructions for the AI assistant."),
-  allowSystemPromptOverride: z
-    .boolean()
-    .nullable()
-    .optional()
-    .describe(
-      "Current setting: when enabled, a system message passed from client-side initialMessages will override custom instructions.",
-    ),
   editedValue: z
     .string()
     .optional()
     .describe(
       "The value to overwrite the current custom instructions field with. When set, the component will be in 'editing mode' where the user can save this updated value or cancel it.",
     ),
-  editedAllowSystemPromptOverride: z
-    .boolean()
-    .optional()
-    .describe(
-      "The edited value for the system prompt override setting. When set along with editedValue, this will be staged in edit mode and saved together with the instructions.",
-    ),
 });
 
 export interface CustomInstructionsEditorProps {
   projectId: string;
   customInstructions?: string | null;
-  allowSystemPromptOverride?: boolean | null;
   editedValue?: string;
-  editedAllowSystemPromptOverride?: boolean;
   onEdited?: () => void;
 }
 
@@ -187,7 +172,7 @@ export const InteractableCustomInstructionsEditor = withTamboInteractable(
   {
     componentName: COMPONENT_NAME,
     description:
-      "A component that allows users to edit custom instructions for their AI assistant project. Users can toggle edit mode, update the custom instructions text, and control whether system prompts can override these instructions.",
+      "A component that allows users to edit custom instructions for their AI assistant project. Users can toggle edit mode and update the custom instructions text.",
     propsSchema: InteractableCustomInstructionsEditorProps,
   },
 );

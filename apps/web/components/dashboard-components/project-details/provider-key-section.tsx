@@ -256,14 +256,6 @@ export function ProviderKeySectionBase({
     enabled: !!projectId,
   });
 
-  const { data: projectMessageUsage } =
-    api.project.getProjectMessageUsage.useQuery(
-      { projectId: projectId ?? "" },
-      {
-        enabled: !!projectId,
-      },
-    );
-
   // --- State Management ---
   const [mode, setMode] = useState(AiProviderType.LLM);
   const [combinedSelectValue, setCombinedSelectValue] = useState("");
@@ -1053,7 +1045,7 @@ export function ProviderKeySectionBase({
         <>
           <SettingsRow
             label="Provider and Model"
-            description={`${projectMessageUsage?.messageCount} of 500 starter LLM calls used`}
+            description={`${messageUsage?.messageCount ?? 0} of 500 starter LLM calls used`}
           >
             <Combobox
               items={providerModelOptions.map((option) => ({

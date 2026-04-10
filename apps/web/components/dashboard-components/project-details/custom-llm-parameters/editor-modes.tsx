@@ -1,5 +1,4 @@
 import { Button } from "@/components/ui/button";
-import { CardDescription } from "@/components/ui/card";
 import { SettingsRow } from "@/components/ui/settings-row";
 import { JSONValue, LlmParameterUIType } from "@tambo-ai-cloud/core";
 import { AnimatePresence, motion } from "framer-motion";
@@ -25,10 +24,9 @@ import { PARAMETER_SUGGESTIONS, type ParameterEntry } from "./types";
 interface ViewModeProps {
   parameters: ParameterEntry[];
   onEdit: () => void;
-  isLoading?: boolean;
 }
 
-export function ViewMode({ parameters, onEdit, isLoading }: ViewModeProps) {
+export function ViewMode({ parameters, onEdit }: ViewModeProps) {
   const description =
     parameters.length > 0
       ? `${parameters.length} parameter${parameters.length === 1 ? "" : "s"} configured.`
@@ -94,11 +92,11 @@ export function EditMode({
       transition={{ duration: 0.3, ease: "easeInOut" }}
       className="flex flex-col px-4 py-3"
     >
-      <CardDescription className="text-sm text-foreground mb-4">
+      <p className="text-sm text-muted-foreground mb-4">
         {allowCustomParameters
           ? "Add custom parameters to send with each LLM request."
           : "Add parameters from the suggestions below. Custom parameters are only available for OpenAI-compatible providers."}
-      </CardDescription>
+      </p>
 
       <ParameterSuggestions
         providerName={providerName}

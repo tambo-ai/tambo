@@ -103,36 +103,6 @@ export function EditWithTamboButton({
   );
   const isGenerating = !isIdle;
 
-  // If no component context, the "button" variant still renders as a thread-panel opener.
-  // The inline variant requires interactable context to be useful.
-  if (!component) {
-    if (variant === "button") {
-      return (
-        <button
-          type="button"
-          className={cn(
-            "inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-sm font-medium",
-            "bg-card text-muted-foreground hover:text-primary",
-            "hover:bg-accent transition-colors duration-200",
-            "cursor-pointer",
-            className,
-          )}
-          aria-label={tooltip}
-          onClick={() => setThreadPanelOpen(true)}
-        >
-          {icon ?? <Bot className="h-3.5 w-3.5" />}
-          Edit with Tambo
-        </button>
-      );
-    }
-    return null;
-  }
-
-  // If in a Tambo thread (message with threadId), don't show the button
-  if (component.threadId) {
-    return null;
-  }
-
   // Close popover when generation completes
   useEffect(() => {
     if (shouldCloseOnComplete && !isGenerating) {
@@ -206,6 +176,36 @@ export function EditWithTamboButton({
     },
     [handleMainAction],
   );
+
+  // If no component context, the "button" variant still renders as a thread-panel opener.
+  // The inline variant requires interactable context to be useful.
+  if (!component) {
+    if (variant === "button") {
+      return (
+        <button
+          type="button"
+          className={cn(
+            "inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-sm font-medium",
+            "bg-card text-muted-foreground hover:text-primary",
+            "hover:bg-accent transition-colors duration-200",
+            "cursor-pointer",
+            className,
+          )}
+          aria-label={tooltip}
+          onClick={() => setThreadPanelOpen(true)}
+        >
+          {icon ?? <Bot className="h-3.5 w-3.5" />}
+          Edit with Tambo
+        </button>
+      );
+    }
+    return null;
+  }
+
+  // If in a Tambo thread (message with threadId), don't show the button
+  if (component.threadId) {
+    return null;
+  }
 
   return (
     <TooltipProvider>

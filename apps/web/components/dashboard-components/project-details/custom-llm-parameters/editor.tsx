@@ -53,10 +53,9 @@ export function CustomLlmParametersEditor({
   const [activeEditIndex, setActiveEditIndex] = useState<number | null>(null);
 
   // Fetch project data to get LLM settings and custom parameters
-  const { data: projectData, isLoading: isProjectLoading } =
-    api.project.getProjectById.useQuery(projectId, {
-      enabled: !!projectId,
-    });
+  const { data: projectData } = api.project.getProjectById.useQuery(projectId, {
+    enabled: !!projectId,
+  });
 
   const providerName =
     selectedProvider || projectData?.defaultLlmProviderName || "openai";
@@ -297,7 +296,6 @@ export function CustomLlmParametersEditor({
           key="view-mode"
           parameters={parameters}
           onEdit={() => projectId && setIsEditing(true)}
-          isLoading={isProjectLoading}
         />
       )}
     </AnimatePresence>

@@ -10,7 +10,7 @@ interface SettingsSectionProps {
   action?: React.ReactNode;
   /** When false, renders children directly without a Card wrapper. Useful for full-width content like textareas. Defaults to true. */
   bordered?: boolean;
-  /** When true, adds dividing lines between children. Only applies if bordered is true. Defaults to false. */
+  /** When true, adds dividing lines between children. Only applies if bordered is true. Defaults to true. */
   divided?: boolean;
 }
 
@@ -35,7 +35,7 @@ export function SettingsSection({
       {bordered ? (
         <Card className={cn(cardClassName)}>
           <CardContent
-            className={cn(`px-6 py-2`, divided && "divide-y divide-border")}
+            className={cn("px-6 py-2", divided && "divide-y divide-border")}
           >
             {children}
           </CardContent>
