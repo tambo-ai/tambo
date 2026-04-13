@@ -23,8 +23,8 @@ import {
   getLLMResponseMessage,
   getLLMResponseToolCallId,
   LLMClient,
-  type ProviderSkillCall,
 } from "../llm/llm-client";
+import type { ProviderSkillCall } from "../../util/provider-skill";
 import {
   addParametersToTools,
   filterOutStandardToolParameters,

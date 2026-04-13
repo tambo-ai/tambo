@@ -88,11 +88,6 @@ export type LLMResponse = Omit<LLMChatCompletionChoice, "finish_reason"> &
   LLMResponseExtras;
 
 import type { ProviderSkillCall } from "../../util/provider-skill";
-// Re-export from canonical location so existing consumers don't break.
-export {
-  type ProviderSkillCall,
-  isProviderSkillMessage,
-} from "../../util/provider-skill";
 
 /**
  * Extended stream item that includes both the LLM response and AG-UI events.

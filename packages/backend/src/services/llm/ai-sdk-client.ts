@@ -55,9 +55,9 @@ import {
   LLMClient,
   LLMResponse,
   LLMStreamItem,
-  type ProviderSkillCall,
   StreamingCompleteParams,
 } from "./llm-client";
+import type { ProviderSkillCall } from "../../util/provider-skill";
 import { generateMessageId } from "./message-id-generator";
 import { limitTokens } from "./token-limiter";
 
