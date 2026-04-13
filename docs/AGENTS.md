@@ -111,6 +111,7 @@ In general, try to fit changes into the following categories. If you can't find 
    - tools - Function calling, schemas, orchestration
    - additional-context - Configuration, custom helpers, context attachments
    - conversation-storage - Message threads, history management, status tracking
+   - memory - Cross-conversation memory extraction, injection, and management
    - skills - Reusable instruction sets that run in the provider's sandbox
    - agent-configuration - AI personality and behavior
    - user-authentication - OAuth providers, session management, context keys
