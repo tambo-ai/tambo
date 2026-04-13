@@ -31,11 +31,11 @@
     "@anthropic-ai/sdk": "^0.82.0",
     "@langfuse/otel": "^4.5.1",
     "@nestjs/common": "^11.1.18",
-    "@nestjs/config": "^4.0.3",
+    "@nestjs/config": "^4.0.4",
     "@nestjs/core": "^11.1.18",
     "@nestjs/platform-express": "^11.1.18",
     "@nestjs/schedule": "^6.1.1",
-    "@nestjs/swagger": "^11.2.6",
+    "@nestjs/swagger": "^11.2.7",
     "@opentelemetry/api": "^1.9.1",
     "@opentelemetry/auto-instrumentations-node": "^0.72.0",
     "@opentelemetry/exporter-otlp-http": "^0.26.0",
@@ -78,7 +78,7 @@
     "uuid": "^13.0.0"
   },
   "devDependencies": {
-    "@nestjs/cli": "^11.0.17",
+    "@nestjs/cli": "^11.0.19",
     "@nestjs/schematics": "^11.0.10",
     "@nestjs/testing": "^11.1.18",
     "@tambo-ai/eslint-config": "*",
