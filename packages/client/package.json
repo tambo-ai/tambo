@@ -78,7 +78,7 @@
     "eslint-plugin-jsdoc": "^62.8.1",
     "jest": "^30.3.0",
     "jest-environment-node": "^30.2.0",
-    "prettier": "^3.8.1",
+    "prettier": "^3.8.2",
     "prettier-2": "npm:prettier@^2",
     "ts-jest": "^29.4.9",
     "tsc-esm-fix": "^3.1.2",
