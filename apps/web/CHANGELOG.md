@@ -1,5 +1,41 @@
 # Changelog
 
+## [0.135.0](https://github.com/tambo-ai/tambo/compare/web-v0.134.0...web-v0.135.0) (2026-04-14)
+
+
+### Features
+
+* **api,backend,db,core:** add agent memory system ([#2732](https://github.com/tambo-ai/tambo/issues/2732)) ([cdb3ba4](https://github.com/tambo-ai/tambo/commit/cdb3ba46802c4fb16f7961c7366ea50a69acebc1))
+* **web:** register Skills component and tools with Tambo ([#2780](https://github.com/tambo-ai/tambo/issues/2780)) ([8b75e04](https://github.com/tambo-ai/tambo/commit/8b75e042ed7e7dc8316387a8aeefa524228ccde8))
+
+
+### Bug Fixes
+
+* **web,react-sdk:** fix setState-during-render error and agent settings UI ([#2783](https://github.com/tambo-ai/tambo/issues/2783)) ([7311ed7](https://github.com/tambo-ai/tambo/commit/7311ed797474f426c37b394cf88684f45f6f4451))
+* **web:** hide memory tools toggle from project settings UI ([#2782](https://github.com/tambo-ai/tambo/issues/2782)) ([af55cc2](https://github.com/tambo-ai/tambo/commit/af55cc2fc137d698fb19bd0abc6f1f48b70e2a44))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump autoprefixer from 10.4.24 to 10.4.27 ([#2771](https://github.com/tambo-ai/tambo/issues/2771)) ([6a5f8cf](https://github.com/tambo-ai/tambo/commit/6a5f8cf5ed7366464357dd7737804a16304f98ce))
+* **deps:** bump next from 15.5.14 to 15.5.15 ([#2801](https://github.com/tambo-ai/tambo/issues/2801)) ([cea9a38](https://github.com/tambo-ai/tambo/commit/cea9a3843434d429d3a1dbcc38c2ad68ea84da97))
+* **deps:** bump the sentry group with 3 updates ([#2797](https://github.com/tambo-ai/tambo/issues/2797)) ([eceecab](https://github.com/tambo-ai/tambo/commit/eceecab609b6f0ac2220535b48c16adad4ae5aa4))
+* **deps:** bump the small-safe-packages group with 3 updates ([#2796](https://github.com/tambo-ai/tambo/issues/2796)) ([f0a2fca](https://github.com/tambo-ai/tambo/commit/f0a2fcae66efa501bab423202fc98531704e7758))
+* **deps:** bump the tiptap group with 9 updates ([#2765](https://github.com/tambo-ai/tambo/issues/2765)) ([9525cfb](https://github.com/tambo-ai/tambo/commit/9525cfbfe91559acbb50cd9c582ec7ce98bfaf12))
+* **deps:** bump tldts from 7.0.19 to 7.0.28 ([#2773](https://github.com/tambo-ai/tambo/issues/2773)) ([dda364c](https://github.com/tambo-ai/tambo/commit/dda364c73627310de79b8e5841c09d272987631d))
+
+
+### Code Refactoring
+
+* **web:** split settings into Agent and Settings tabs ([#2757](https://github.com/tambo-ai/tambo/issues/2757)) ([c2076cf](https://github.com/tambo-ai/tambo/commit/c2076cfc31b98c432ca1e64683c2266f0ad8ac3e))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @tambo-ai/react bumped from * to 1.2.7
+
 ## [0.134.0](https://github.com/tambo-ai/tambo/compare/web-v0.133.0...web-v0.134.0) (2026-04-06)
 
 

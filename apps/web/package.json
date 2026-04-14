@@ -1,6 +1,6 @@
 {
   "name": "@tambo-ai-cloud/web",
-  "version": "0.134.0",
+  "version": "0.135.0",
   "description": "Tambo Cloud web dashboard",
   "private": true,
   "type": "module",
@@ -45,7 +45,7 @@
     "@svgr/webpack": "^8.1.0",
     "@t3-oss/env-nextjs": "^0.13.11",
     "@tambo-ai-cloud/db": "*",
-    "@tambo-ai/react": "*",
+    "@tambo-ai/react": "1.2.7",
     "@tambo-ai/typescript-sdk": "^0.95.0",
     "@tambo-ai/ui-registry": "*",
     "@tanstack/react-query": "^5.90.16",
