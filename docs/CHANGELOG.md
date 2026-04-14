@@ -1,5 +1,32 @@
 # Changelog
 
+## [1.33.1](https://github.com/tambo-ai/tambo/compare/docs-v1.33.0...docs-v1.33.1) (2026-04-14)
+
+
+### Bug Fixes
+
+* **docs:** return all valid URLs on 404 for AI agent self-correction ([#2698](https://github.com/tambo-ai/tambo/issues/2698)) ([5118906](https://github.com/tambo-ai/tambo/commit/51189062396176a32b48ef6fee17f1e10d96ee08))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump rimraf from 6.1.2 to 6.1.3 ([#2799](https://github.com/tambo-ai/tambo/issues/2799)) ([4561795](https://github.com/tambo-ai/tambo/commit/45617957bb171d1f938762c9ed8752956a13d573))
+* **deps:** bump next from 15.5.14 to 15.5.15 ([#2801](https://github.com/tambo-ai/tambo/issues/2801)) ([cea9a38](https://github.com/tambo-ai/tambo/commit/cea9a3843434d429d3a1dbcc38c2ad68ea84da97))
+* **deps:** bump the small-safe-packages group with 3 updates ([#2796](https://github.com/tambo-ai/tambo/issues/2796)) ([f0a2fca](https://github.com/tambo-ai/tambo/commit/f0a2fcae66efa501bab423202fc98531704e7758))
+
+
+### Documentation
+
+* **memory:** add Memory concept page and navigation ([#2787](https://github.com/tambo-ai/tambo/issues/2787)) ([f397129](https://github.com/tambo-ai/tambo/commit/f397129a0768350ba6ee97f6e8027702f137bc4a))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @tambo-ai/react bumped from * to 1.2.7
+    * @tambo-ai/react-ui-base bumped from * to 0.1.9
+
 ## [1.33.0](https://github.com/tambo-ai/tambo/compare/docs-v1.32.2...docs-v1.33.0) (2026-04-06)
 
 
