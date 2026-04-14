@@ -104,6 +104,9 @@ export type {
 export type {
   McpServerInfo,
   NormalizedMcpServerInfo,
+  MCPConnectionStatus,
+  MCPConnectionInfo,
+  MCPConnectionChangeCallback,
 } from "./model/mcp-server-info";
 export { MCPTransport, getMcpServerUniqueKey } from "./model/mcp-server-info";
 

@@ -17,7 +17,11 @@ import type {
   ComponentRegistry,
   TamboToolRegistry,
 } from "./model/component-metadata";
-import type { McpServerInfo } from "./model/mcp-server-info";
+import type {
+  McpServerInfo,
+  MCPConnectionInfo,
+  MCPConnectionChangeCallback,
+} from "./model/mcp-server-info";
 import { getMcpServerUniqueKey } from "./model/mcp-server-info";
 import { MCPClient } from "./mcp/mcp-client";
 import {
@@ -70,6 +74,8 @@ export interface TamboClientOptions {
   mcpServers?: McpServerInfo[];
   /** Callback invoked before each run. */
   beforeRun?: (context: BeforeRunContext) => void | Promise<void>;
+  /** Callback invoked when an MCP server's connection status changes. */
+  onMcpConnectionChange?: MCPConnectionChangeCallback;
 }
 
 /**
@@ -135,6 +141,9 @@ export class TamboClient {
   private toolRegistry: TamboToolRegistry = {};
   private componentList: ComponentRegistry = {};
   private mcpClients = new Map<string, MCPClient>();
+  private mcpConnectionStatuses = new Map<string, MCPConnectionInfo>();
+  private mcpServerInfoMap = new Map<string, McpServerInfo>();
+  private mcpPendingConnections = new Map<string, Promise<MCPClient>>();
   private activeRuns: ActiveRuns = {};
   private contextHelpers = new Map<string, ContextHelperFn>();
   private readonly options: TamboClientOptions;
@@ -175,11 +184,11 @@ export class TamboClient {
       }
     }
 
-    // Connect MCP servers (fire-and-forget)
+    // Connect MCP servers (fire-and-forget, status tracked)
     if (options.mcpServers) {
       for (const server of options.mcpServers) {
-        void this.connectMcpServer(server).catch((err) => {
-          console.error(`[TamboClient] Failed to connect MCP server:`, err);
+        void this.connectMcpServer(server).catch(() => {
+          // Error already tracked in mcpConnectionStatuses and reported via callback
         });
       }
     }
@@ -511,26 +520,58 @@ export class TamboClient {
   // -- MCP --
 
   /**
-   * Connect to an MCP server.
+   * Connect to an MCP server. Tracks connection status and invokes the
+   * `onMcpConnectionChange` callback on transitions. Deduplicates
+   * concurrent calls for the same server.
    * @param serverInfo - The MCP server configuration.
    * @returns The connected MCPClient.
    */
   async connectMcpServer(serverInfo: McpServerInfo): Promise<MCPClient> {
     const key = getMcpServerUniqueKey(serverInfo);
+    this.mcpServerInfoMap.set(key, serverInfo);
+
     const existing = this.mcpClients.get(key);
     if (existing) {
       return existing;
     }
 
-    const mcpClient = await MCPClient.create(
-      serverInfo.url,
-      serverInfo.transport,
-      serverInfo.customHeaders,
-      undefined, // authProvider
-      undefined, // sessionId
-    );
-    this.mcpClients.set(key, mcpClient);
-    return mcpClient;
+    // Deduplicate concurrent connect calls for the same server
+    const pending = this.mcpPendingConnections.get(key);
+    if (pending) {
+      return await pending;
+    }
+
+    const connectionPromise = this.doConnect(key, serverInfo);
+    this.mcpPendingConnections.set(key, connectionPromise);
+    try {
+      return await connectionPromise;
+    } finally {
+      this.mcpPendingConnections.delete(key);
+    }
+  }
+
+  /**
+   * Retry connecting to a previously failed MCP server.
+   * @param serverKey - The server key (from `getMcpServerUniqueKey`).
+   * @returns The connected MCPClient.
+   * @throws {Error} If the server key is unknown or the connection fails.
+   */
+  async retryMcpConnection(serverKey: string): Promise<MCPClient> {
+    const serverInfo = this.mcpServerInfoMap.get(serverKey);
+    if (!serverInfo) {
+      throw new Error(
+        `Unknown MCP server key "${serverKey}". Only servers previously passed to connectMcpServer can be retried.`,
+      );
+    }
+
+    // Remove the old client entry so connectMcpServer doesn't short-circuit
+    const oldClient = this.mcpClients.get(serverKey);
+    if (oldClient) {
+      await oldClient.close().catch(() => {});
+    }
+    this.mcpClients.delete(serverKey);
+
+    return await this.connectMcpServer(serverInfo);
   }
 
   /**
@@ -539,10 +580,19 @@ export class TamboClient {
    */
   async disconnectMcpServer(serverKey: string): Promise<void> {
     const client = this.mcpClients.get(serverKey);
+    const info = this.mcpConnectionStatuses.get(serverKey);
     if (client) {
       await client.close();
       this.mcpClients.delete(serverKey);
     }
+    if (info) {
+      this.setMcpConnectionStatus(serverKey, {
+        url: info.url,
+        status: "disconnected",
+      });
+    }
+    this.mcpConnectionStatuses.delete(serverKey);
+    this.mcpServerInfoMap.delete(serverKey);
   }
 
   /**
@@ -551,6 +601,14 @@ export class TamboClient {
    */
   getMcpClients(): Record<string, MCPClient> {
     return Object.fromEntries(this.mcpClients.entries());
+  }
+
+  /**
+   * Get connection status info for all known MCP servers.
+   * @returns Record of server key to connection info.
+   */
+  getMcpConnectionStatuses(): Record<string, MCPConnectionInfo> {
+    return Object.fromEntries(this.mcpConnectionStatuses.entries());
   }
 
   /**
@@ -706,5 +764,54 @@ export class TamboClient {
     // be awaited in the stream processing loop via beforeRun.
     const merged: Record<string, unknown> = { ...additionalContext };
     return merged;
+  }
+
+  /**
+   * Perform the actual MCP connection, updating status along the way.
+   * @returns The connected MCPClient.
+   */
+  private async doConnect(
+    key: string,
+    serverInfo: McpServerInfo,
+  ): Promise<MCPClient> {
+    this.setMcpConnectionStatus(key, {
+      url: serverInfo.url,
+      status: "connecting",
+    });
+
+    try {
+      const mcpClient = await MCPClient.create(
+        serverInfo.url,
+        serverInfo.transport,
+        serverInfo.customHeaders,
+        undefined, // authProvider
+        undefined, // sessionId
+      );
+      this.mcpClients.set(key, mcpClient);
+      this.setMcpConnectionStatus(key, {
+        url: serverInfo.url,
+        status: "connected",
+      });
+      return mcpClient;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      this.setMcpConnectionStatus(key, {
+        url: serverInfo.url,
+        status: "error",
+        error: message,
+      });
+      throw err;
+    }
+  }
+
+  /**
+   * Update the connection status for an MCP server and invoke the callback.
+   */
+  private setMcpConnectionStatus(
+    serverKey: string,
+    info: MCPConnectionInfo,
+  ): void {
+    this.mcpConnectionStatuses.set(serverKey, info);
+    this.options.onMcpConnectionChange?.(serverKey, info);
   }
 }
