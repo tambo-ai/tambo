@@ -81,6 +81,9 @@ export interface MCPHandlers {
   sampling: MCPSamplingHandler;
 }
 
+// MCP client connection status
+export type McpConnectionStatus = "connecting" | "connected" | "failed";
+
 /**
  * A client for interacting with MCP (Model Context Protocol) servers.
  * Provides a simple interface for listing and calling tools exposed by the server.
@@ -101,10 +104,17 @@ export class MCPClient {
   private transport: SSEClientTransport | StreamableHTTPClientTransport;
   private transportType: MCPTransport;
   public sessionId?: string;
-  private endpoint: string;
+  /** The endpoint URL of the MCP server */
+  readonly endpoint: string;
   private headers: Record<string, string>;
   private authProvider?: OAuthClientProvider;
   private handlers: Partial<MCPHandlers>;
+
+  // Current connection status
+  /** Current connection status. */
+  readonly status: McpConnectionStatus = "connecting";
+  /** Error message if connection failed. */
+  readonly connectionError?: string;
 
   /**
    * Private constructor to enforce using the static create method.
@@ -158,9 +168,17 @@ export class MCPClient {
       sessionId,
       handlers,
     );
-    await mcpClient.client.connect(mcpClient.transport);
-    if ("sessionId" in mcpClient.transport) {
-      mcpClient.sessionId = mcpClient.transport.sessionId;
+    try {
+      await mcpClient.client.connect(mcpClient.transport);
+      (mcpClient as { status: McpConnectionStatus }).status = "connected";
+      if ("sessionId" in mcpClient.transport) {
+        mcpClient.sessionId = mcpClient.transport.sessionId;
+      }
+    } catch (error) {
+      (mcpClient as { status: McpConnectionStatus }).status = "failed";
+      (mcpClient as { connectionError?: string }).connectionError =
+        error instanceof Error ? error.message : String(error);
+      throw error;
     }
     return mcpClient;
   }
@@ -341,6 +359,30 @@ export class MCPClient {
     await this.client.close();
   }
 }
+
+// Information about an MCP client connection.
+export type McpClientInfo =
+  | {
+      key: string;
+      url: string;
+      status: "connected";
+      client: MCPClient;
+      error?: never;
+    }
+  | {
+      key: string;
+      url: string;
+      status: "failed";
+      client?: never;
+      error: string;
+    }
+  | {
+      key: string;
+      url: string;
+      status: "connecting";
+      client?: never;
+      error?: never;
+    };
 
 /**
  * The result of a tool call.
