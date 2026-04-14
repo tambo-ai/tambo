@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.38.0](https://github.com/tambo-ai/tambo/compare/showcase-v0.37.6...showcase-v0.38.0) (2026-04-14)
+
+
+### Features
+
+* **showcase:** add static examples and try-it-yourself guides to generative components ([#2779](https://github.com/tambo-ai/tambo/issues/2779)) ([c79c105](https://github.com/tambo-ai/tambo/commit/c79c105cc085c50ed5206156e4731b369004f553))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump rimraf from 6.1.2 to 6.1.3 ([#2799](https://github.com/tambo-ai/tambo/issues/2799)) ([4561795](https://github.com/tambo-ai/tambo/commit/45617957bb171d1f938762c9ed8752956a13d573))
+* **deps-dev:** bump the eslint group with 3 updates ([#2794](https://github.com/tambo-ai/tambo/issues/2794)) ([930bc0f](https://github.com/tambo-ai/tambo/commit/930bc0fea9963290e3866c43a443c9909bf7f819))
+* **deps:** bump autoprefixer from 10.4.24 to 10.4.27 ([#2771](https://github.com/tambo-ai/tambo/issues/2771)) ([6a5f8cf](https://github.com/tambo-ai/tambo/commit/6a5f8cf5ed7366464357dd7737804a16304f98ce))
+* **deps:** bump next from 15.5.14 to 15.5.15 ([#2801](https://github.com/tambo-ai/tambo/issues/2801)) ([cea9a38](https://github.com/tambo-ai/tambo/commit/cea9a3843434d429d3a1dbcc38c2ad68ea84da97))
+* **deps:** bump the small-safe-packages group with 3 updates ([#2796](https://github.com/tambo-ai/tambo/issues/2796)) ([f0a2fca](https://github.com/tambo-ai/tambo/commit/f0a2fcae66efa501bab423202fc98531704e7758))
+* **deps:** bump the tiptap group with 9 updates ([#2765](https://github.com/tambo-ai/tambo/issues/2765)) ([9525cfb](https://github.com/tambo-ai/tambo/commit/9525cfbfe91559acbb50cd9c582ec7ce98bfaf12))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @tambo-ai/react bumped from * to 1.2.7
+
 ## [0.37.6](https://github.com/tambo-ai/tambo/compare/showcase-v0.37.5...showcase-v0.37.6) (2026-04-06)
 
 

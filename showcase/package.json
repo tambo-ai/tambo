@@ -1,6 +1,6 @@
 {
   "name": "@tambo-ai/showcase",
-  "version": "0.37.6",
+  "version": "0.38.0",
   "description": "Tambo AI component showcase",
   "private": true,
   "license": "MIT",
@@ -25,7 +25,7 @@
     "@react-leaflet/core": "^2.1.0",
     "@tailwindcss/postcss": "^4.2.2",
     "@tailwindcss/typography": "^0.5.19",
-    "@tambo-ai/react": "*",
+    "@tambo-ai/react": "1.2.7",
     "@tambo-ai/typescript-sdk": "^0.95.0",
     "@tambo-ai/ui-registry": "*",
     "@tiptap/extension-document": "^3.22.1",
