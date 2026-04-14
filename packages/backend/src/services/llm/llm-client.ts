@@ -87,6 +87,8 @@ interface LLMResponseExtras {
 export type LLMResponse = Omit<LLMChatCompletionChoice, "finish_reason"> &
   LLMResponseExtras;
 
+import type { ProviderSkillCall } from "../../util/provider-skill";
+
 /**
  * Extended stream item that includes both the LLM response and AG-UI events.
  * This allows consumers to either:
@@ -118,6 +120,12 @@ export interface LLMStreamItem {
    * in a follow-up request.
    */
   toolCallProviderOptionsById?: Record<string, ProviderOptions>;
+
+  /**
+   * Provider-managed skill tool calls that completed during this streaming delta.
+   * Populated at `tool-result` time; only present when non-empty.
+   */
+  completedProviderSkillCalls?: ProviderSkillCall[];
 }
 
 /** Get the string response from the LLM response */

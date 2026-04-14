@@ -4,7 +4,11 @@ import {
   LegacyComponentDecision,
   ThreadAssistantMessage,
 } from "@tambo-ai-cloud/core";
-import { convertAssistantMessage } from "./thread-to-model-message-conversion";
+import {
+  convertAssistantMessage,
+  threadMessagesToModelMessages,
+} from "./thread-to-model-message-conversion";
+import type { ThreadMessage } from "@tambo-ai-cloud/core";
 
 const baseAssistantMessage: Omit<
   ThreadAssistantMessage,
@@ -306,5 +310,99 @@ describe("convertAssistantMessage", () => {
         },
       ]);
     });
+  });
+});
+
+describe("threadMessagesToModelMessages - provider skill filtering", () => {
+  it("should exclude messages with metadata._tambo.providerSkill = true", () => {
+    const messages: ThreadMessage[] = [
+      {
+        id: "msg_user",
+        threadId: "thread_1",
+        role: MessageRole.User as const,
+        content: [{ type: ContentPartType.Text, text: "Hello" }],
+        createdAt: new Date(),
+        componentState: {},
+      },
+      {
+        id: "msg_skill_assistant",
+        threadId: "thread_1",
+        role: MessageRole.Assistant as const,
+        content: [{ type: ContentPartType.Text, text: "" }],
+        createdAt: new Date(),
+        componentState: {},
+        metadata: { _tambo: { providerSkill: true } },
+        toolCallRequest: { toolName: "load_skill", parameters: [] },
+        tool_call_id: "call-1",
+      },
+      {
+        id: "msg_skill_tool",
+        threadId: "thread_1",
+        role: MessageRole.Tool as const,
+        content: [{ type: ContentPartType.Text, text: "result" }],
+        createdAt: new Date(),
+        componentState: {},
+        metadata: { _tambo: { providerSkill: true } },
+        tool_call_id: "call-1",
+      },
+      {
+        id: "msg_assistant",
+        threadId: "thread_1",
+        role: MessageRole.Assistant as const,
+        content: [{ type: ContentPartType.Text, text: "Here is the answer" }],
+        createdAt: new Date(),
+        componentState: {},
+      },
+    ];
+
+    const result = threadMessagesToModelMessages(
+      messages,
+      testMimeTypePredicate,
+    );
+
+    // Should have 2 messages: user + final assistant (skill messages filtered out)
+    expect(result.length).toBe(2);
+    expect(result[0].role).toBe("user");
+    expect(result[1].role).toBe("assistant");
+  });
+
+  it("should keep non-skill tool messages", () => {
+    const messages: ThreadMessage[] = [
+      {
+        id: "msg_user",
+        threadId: "thread_1",
+        role: MessageRole.User as const,
+        content: [{ type: ContentPartType.Text, text: "Hello" }],
+        createdAt: new Date(),
+        componentState: {},
+      },
+      {
+        id: "msg_assistant_tool",
+        threadId: "thread_1",
+        role: MessageRole.Assistant as const,
+        content: [{ type: ContentPartType.Text, text: "" }],
+        createdAt: new Date(),
+        componentState: {},
+        toolCallRequest: { toolName: "get_weather", parameters: [] },
+        tool_call_id: "call-2",
+      },
+      {
+        id: "msg_tool",
+        threadId: "thread_1",
+        role: MessageRole.Tool as const,
+        content: [{ type: ContentPartType.Text, text: "sunny" }],
+        createdAt: new Date(),
+        componentState: {},
+        tool_call_id: "call-2",
+      },
+    ];
+
+    const result = threadMessagesToModelMessages(
+      messages,
+      testMimeTypePredicate,
+    );
+
+    // All 3 messages should be present (no filtering)
+    expect(result.length).toBe(3);
   });
 });

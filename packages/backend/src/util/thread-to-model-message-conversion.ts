@@ -18,6 +18,7 @@ import type {
   UserModelMessage,
 } from "ai";
 import type { ProviderOptions } from "@ai-sdk/provider-utils";
+import { isProviderSkillMessage } from "./provider-skill";
 import * as mimeTypes from "mime-types";
 import { formatFunctionCall, generateAdditionalContext } from "./tools";
 
@@ -103,6 +104,10 @@ export function threadMessagesToModelMessages(
 
   for (let i = 0; i < messages.length; i++) {
     const message = messages[i];
+
+    // Skip provider skill tool call/response messages — these are stored
+    // for observability but should not be sent back to the LLM.
+    if (isProviderSkillMessage(message)) continue;
 
     switch (message.role) {
       case MessageRole.Tool: {

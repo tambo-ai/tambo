@@ -34,6 +34,10 @@ export {
   type ModelOptions,
 } from "./tambo-backend";
 export { type DecisionStreamItem } from "./services/decision-loop/decision-loop-service";
+export {
+  type ProviderSkillCall,
+  isProviderSkillMessage,
+} from "./util/provider-skill";
 export { sanitizeEvent } from "./util/event-sanitization";
 export {
   deleteSkillFromProvider,

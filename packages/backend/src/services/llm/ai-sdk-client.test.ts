@@ -67,7 +67,7 @@ type StreamDelta =
   | {
       type: "tool-result";
       toolCallId: string;
-      result: unknown;
+      output: unknown;
       providerExecuted: boolean;
     }
   | { type: "text-start" }
@@ -578,7 +578,7 @@ describe("AISdkClient", () => {
     });
   });
 
-  describe("handleStreamingResponse - skill tool suppression", () => {
+  describe("handleStreamingResponse - skill tool emission", () => {
     function createClient() {
       return new AISdkClient(
         "test-api-key",
@@ -601,7 +601,7 @@ describe("AISdkClient", () => {
       );
     }
 
-    it("suppresses skill tool calls when provider skills are configured", async () => {
+    it("emits load_skill TOOL_CALL events and captures completedProviderSkillCalls", async () => {
       const client = createClient();
       const mockDeltas: StreamDelta[] = [
         { type: "text-start" },
@@ -626,7 +626,7 @@ describe("AISdkClient", () => {
         {
           type: "tool-result",
           toolCallId: "call-skill",
-          result: "ok",
+          output: "ok",
           providerExecuted: true,
         },
         { type: "text-start" },
@@ -635,7 +635,7 @@ describe("AISdkClient", () => {
       ];
 
       const mockStream = createMockStreamResponse(mockDeltas);
-      const chunks = [];
+      const chunks: any[] = [];
       for await (const chunk of callHandleStreamingResponse(
         client,
         mockStream,
@@ -644,12 +644,51 @@ describe("AISdkClient", () => {
         chunks.push(chunk);
       }
 
-      // No chunk should have tool_calls set
+      // No chunk should have tool_calls on the llmResponse (skill calls bypass that pipeline)
       for (const chunk of chunks) {
         expect(chunk.llmResponse.message?.tool_calls).toBeUndefined();
       }
 
-      // The final accumulated message should contain both text segments
+      // AG-UI events should include TOOL_CALL_START with "load_skill" name
+      const allEvents = chunks.flatMap((c: any) => c.aguiEvents);
+      const startEvents = allEvents.filter(
+        (e: any) => e.type === EventType.TOOL_CALL_START,
+      );
+      expect(startEvents.length).toBe(1);
+      expect(startEvents[0].toolCallName).toBe("load_skill");
+      expect(startEvents[0].toolCallId).toBe("call-skill");
+
+      // Should have TOOL_CALL_ARGS and TOOL_CALL_END
+      const argsEvents = allEvents.filter(
+        (e: any) => e.type === EventType.TOOL_CALL_ARGS,
+      );
+      expect(argsEvents.length).toBe(1);
+      expect(argsEvents[0].delta).toBe('{"path":"/skills/foo/SKILL.md"}');
+
+      const endEvents = allEvents.filter(
+        (e: any) => e.type === EventType.TOOL_CALL_END,
+      );
+      expect(endEvents.length).toBe(1);
+
+      // Should NOT have TOOL_CALL_RESULT (emitted by threads.service.ts, not ai-sdk-client)
+      const resultEvents = allEvents.filter(
+        (e: any) => e.type === EventType.TOOL_CALL_RESULT,
+      );
+      expect(resultEvents.length).toBe(0);
+
+      // completedProviderSkillCalls should be populated on the tool-result chunk
+      const skillCallChunks = chunks.filter(
+        (c: any) => c.completedProviderSkillCalls?.length,
+      );
+      expect(skillCallChunks.length).toBe(1);
+      expect(skillCallChunks[0].completedProviderSkillCalls[0]).toEqual({
+        toolCallId: "call-skill",
+        toolName: "load_skill",
+        args: '{"path":"/skills/foo/SKILL.md"}',
+        result: "ok",
+      });
+
+      // Text should still be stitched
       const lastChunk = chunks[chunks.length - 1];
       expect(lastChunk.llmResponse.message?.content).toContain(
         "Using skill...",
@@ -723,7 +762,7 @@ describe("AISdkClient", () => {
       expect(startEvents[0].toolCallName).toBe("code_execution");
     });
 
-    it("suppresses all TOOL_CALL events for the matching skill tool name", async () => {
+    it("emits normalized load_skill TOOL_CALL events for the matching skill tool name", async () => {
       const client = createClient();
       const mockDeltas: StreamDelta[] = [
         {
@@ -741,7 +780,7 @@ describe("AISdkClient", () => {
         {
           type: "tool-result",
           toolCallId: "call-1",
-          result: "ok",
+          output: "ok",
           providerExecuted: true,
         },
       ];
@@ -756,14 +795,22 @@ describe("AISdkClient", () => {
         allEvents.push(...chunk.aguiEvents);
       }
 
-      // No TOOL_CALL events at all
-      const toolEvents = allEvents.filter(
-        (e: any) =>
-          e.type === EventType.TOOL_CALL_START ||
-          e.type === EventType.TOOL_CALL_ARGS ||
-          e.type === EventType.TOOL_CALL_END,
+      // Should have TOOL_CALL_START, TOOL_CALL_ARGS, and TOOL_CALL_END with normalized name
+      const startEvents = allEvents.filter(
+        (e: any) => e.type === EventType.TOOL_CALL_START,
       );
-      expect(toolEvents.length).toBe(0);
+      expect(startEvents.length).toBe(1);
+      expect(startEvents[0].toolCallName).toBe("load_skill");
+
+      const argsEvents = allEvents.filter(
+        (e: any) => e.type === EventType.TOOL_CALL_ARGS,
+      );
+      expect(argsEvents.length).toBe(1);
+
+      const endEvents = allEvents.filter(
+        (e: any) => e.type === EventType.TOOL_CALL_END,
+      );
+      expect(endEvents.length).toBe(1);
     });
 
     it("stitches text segments with separator when text resumes after skill", async () => {
@@ -786,7 +833,7 @@ describe("AISdkClient", () => {
         {
           type: "tool-result",
           toolCallId: "call-1",
-          result: "ok",
+          output: "ok",
           providerExecuted: true,
         },
         { type: "text-start" },
@@ -813,6 +860,103 @@ describe("AISdkClient", () => {
         .filter((e: any) => e.type === EventType.TEXT_MESSAGE_START);
       const uniqueIds = new Set(startEvents.map((e: any) => e.messageId));
       expect(uniqueIds.size).toBe(1);
+    });
+
+    it("handles multiple skill tool calls in one stream", async () => {
+      const client = createClient();
+      const mockDeltas: StreamDelta[] = [
+        { type: "text-start" },
+        { type: "text-delta", text: "Loading skills..." },
+        { type: "text-end" },
+        // First skill
+        {
+          type: "tool-input-start",
+          id: "call-a",
+          toolName: "code_execution",
+        },
+        {
+          type: "tool-input-delta",
+          id: "call-a",
+          delta: '{"skill":"alpha"}',
+        },
+        {
+          type: "tool-call",
+          toolCallId: "call-a",
+          toolName: "code_execution",
+          args: {},
+        },
+        {
+          type: "tool-result",
+          toolCallId: "call-a",
+          output: "alpha-result",
+          providerExecuted: true,
+        },
+        // Second skill
+        {
+          type: "tool-input-start",
+          id: "call-b",
+          toolName: "code_execution",
+        },
+        {
+          type: "tool-input-delta",
+          id: "call-b",
+          delta: '{"skill":"beta"}',
+        },
+        {
+          type: "tool-call",
+          toolCallId: "call-b",
+          toolName: "code_execution",
+          args: {},
+        },
+        {
+          type: "tool-result",
+          toolCallId: "call-b",
+          output: "beta-result",
+          providerExecuted: true,
+        },
+        { type: "text-start" },
+        { type: "text-delta", text: "Done." },
+        { type: "text-end" },
+      ];
+
+      const mockStream = createMockStreamResponse(mockDeltas);
+      const chunks: any[] = [];
+      for await (const chunk of callHandleStreamingResponse(
+        client,
+        mockStream,
+        "code_execution",
+      )) {
+        chunks.push(chunk);
+      }
+
+      // Collect all completed skill calls across all chunks
+      const allSkillCalls = chunks.flatMap(
+        (c: any) => c.completedProviderSkillCalls ?? [],
+      );
+      expect(allSkillCalls.length).toBe(2);
+      expect(allSkillCalls[0].toolCallId).toBe("call-a");
+      expect(allSkillCalls[0].args).toBe('{"skill":"alpha"}');
+      expect(allSkillCalls[0].result).toBe("alpha-result");
+      expect(allSkillCalls[1].toolCallId).toBe("call-b");
+      expect(allSkillCalls[1].args).toBe('{"skill":"beta"}');
+      expect(allSkillCalls[1].result).toBe("beta-result");
+
+      // Should have 2 TOOL_CALL_START events, both with "load_skill"
+      const allEvents = chunks.flatMap((c: any) => c.aguiEvents);
+      const startEvents = allEvents.filter(
+        (e: any) => e.type === EventType.TOOL_CALL_START,
+      );
+      expect(startEvents.length).toBe(2);
+      expect(
+        startEvents.every((e: any) => e.toolCallName === "load_skill"),
+      ).toBe(true);
+
+      // Text should be stitched across both skill boundaries
+      const lastChunk = chunks[chunks.length - 1];
+      expect(lastChunk.llmResponse.message?.content).toContain(
+        "Loading skills...",
+      );
+      expect(lastChunk.llmResponse.message?.content).toContain("Done.");
     });
   });
 
