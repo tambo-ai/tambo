@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.2](https://github.com/tambo-ai/tambo/compare/client-v1.1.1...client-v1.1.2) (2026-04-14)
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump the eslint group with 3 updates ([#2794](https://github.com/tambo-ai/tambo/issues/2794)) ([930bc0f](https://github.com/tambo-ai/tambo/commit/930bc0fea9963290e3866c43a443c9909bf7f819))
+* **deps:** bump the small-safe-packages group with 3 updates ([#2796](https://github.com/tambo-ai/tambo/issues/2796)) ([f0a2fca](https://github.com/tambo-ai/tambo/commit/f0a2fcae66efa501bab423202fc98531704e7758))
+
 ## [1.1.1](https://github.com/tambo-ai/tambo/compare/client-v1.1.0...client-v1.1.1) (2026-04-06)
 
 
