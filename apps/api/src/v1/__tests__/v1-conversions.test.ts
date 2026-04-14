@@ -293,90 +293,142 @@ describe("v1-conversions", () => {
       });
     });
 
-    it("should add component block when componentDecision exists", () => {
-      const message = {
-        ...baseMessage,
-        content: [{ type: "text", text: "Here is a card" }],
-        componentDecision: {
-          componentName: "WeatherCard",
-          props: { temperature: 72 },
-          message: "",
-          componentState: null,
-        },
-        componentState: { expanded: true },
-      } as unknown as DbMessage;
-
-      const result = contentToV1Blocks(message);
-
-      expect(result).toHaveLength(2);
-      expect(result[0]).toEqual({ type: "text", text: "Here is a card" });
-      expect(result[1]).toEqual({
-        type: "component",
-        id: "comp_msg_123",
-        name: "WeatherCard",
-        props: { temperature: 72 },
-        state: { expanded: true },
-      });
-    });
-
-    it("should warn when componentDecision has no componentName and no toolCallRequest", () => {
-      const warnSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
-
-      const message = {
-        ...baseMessage,
-        componentDecision: {
-          componentName: null,
-          props: { foo: "bar" },
-          message: "",
-          componentState: null,
-        },
-        toolCallRequest: null, // No tool call - this is a data integrity issue
-      } as unknown as DbMessage;
-
-      // Should not throw, but should warn
-      const result = contentToV1Blocks(message);
-      expect(result).toEqual([]); // No blocks generated
-      expect(warnSpy).toHaveBeenCalledWith(
-        expect.stringMatching(/has no componentName.*data integrity issue/),
-      );
-
-      warnSpy.mockRestore();
-    });
-
-    it("should NOT throw when componentDecision has no componentName but has toolCallRequest", () => {
-      // componentDecision without componentName is valid for tool call messages
-      // because it stores _tambo_* status messages
+    it("should preserve inline tool_use blocks in their natural position", () => {
       const message = {
         ...baseMessage,
         role: "assistant",
-        componentDecision: {
-          componentName: null,
-          props: {},
-          message: "Fetching data...",
-          statusMessage: "Working...",
-          componentState: null,
-        },
+        content: [
+          { type: "text", text: "Let me search for that." },
+          {
+            type: "tool_use",
+            id: "call_abc",
+            name: "search",
+            input: { query: "weather" },
+          },
+          { type: "text", text: "Here are the results." },
+        ],
         toolCallRequest: {
-          toolName: "getData",
-          parameters: [{ parameterName: "id", parameterValue: "123" }],
+          toolName: "search",
+          parameters: [{ parameterName: "query", parameterValue: "weather" }],
         },
-        toolCallId: "call_123",
+        toolCallId: "call_abc",
       } as unknown as DbMessage;
 
-      // Should not throw
       const result = contentToV1Blocks(message);
 
-      // Should have a tool_use block but no component block
-      expect(result).toHaveLength(1);
-      expect(result[0].type).toBe("tool_use");
+      expect(result).toHaveLength(3);
+      expect(result[0]).toEqual({
+        type: "text",
+        text: "Let me search for that.",
+      });
+      expect(result[1]).toEqual({
+        type: "tool_use",
+        id: "call_abc",
+        name: "search",
+        input: { query: "weather" },
+      });
+      expect(result[2]).toEqual({
+        type: "text",
+        text: "Here are the results.",
+      });
     });
 
-    it("should handle component with null props", () => {
+    it("should skip malformed tool_use blocks with non-string id or name", () => {
       const message = {
         ...baseMessage,
+        role: "assistant",
+        content: [
+          { type: "text", text: "Before" },
+          { type: "tool_use", id: 123, name: "get_data", input: {} },
+          { type: "text", text: "After" },
+        ],
+      } as unknown as DbMessage;
+
+      const result = contentToV1Blocks(message);
+
+      // Malformed tool_use is skipped, only text blocks remain
+      expect(result).toHaveLength(2);
+      expect(result[0]).toEqual({ type: "text", text: "Before" });
+      expect(result[1]).toEqual({ type: "text", text: "After" });
+    });
+
+    it("should default to empty input when tool_use input is not an object", () => {
+      const message = {
+        ...baseMessage,
+        role: "assistant",
+        content: [
+          {
+            type: "tool_use",
+            id: "call_bad_input",
+            name: "get_data",
+            input: "not-an-object",
+          },
+        ],
+      } as unknown as DbMessage;
+
+      const result = contentToV1Blocks(message);
+
+      expect(result).toHaveLength(1);
+      expect(result[0]).toEqual({
+        type: "tool_use",
+        id: "call_bad_input",
+        name: "get_data",
+        input: {},
+      });
+    });
+
+    it("should preserve inline tool_result blocks in their natural position", () => {
+      const message = {
+        ...baseMessage,
+        role: "assistant",
+        content: [
+          { type: "text", text: "Before" },
+          {
+            type: "tool_result",
+            toolUseId: "call_abc",
+            content: [{ type: "text", text: "Result data" }],
+          },
+          { type: "text", text: "After" },
+        ],
+      } as unknown as DbMessage;
+
+      const result = contentToV1Blocks(message);
+
+      expect(result).toHaveLength(3);
+      expect(result[0]).toEqual({ type: "text", text: "Before" });
+      expect(result[1]).toEqual({
+        type: "tool_result",
+        toolUseId: "call_abc",
+        content: [{ type: "text", text: "Result data" }],
+        isError: undefined,
+      });
+      expect(result[2]).toEqual({ type: "text", text: "After" });
+    });
+
+    it("should enrich inline tool_use with _tambo_ display properties from componentDecision", () => {
+      const message = {
+        ...baseMessage,
+        role: "assistant",
+        content: [
+          {
+            type: "tool_use",
+            id: "call_enriched",
+            name: "fetch_data",
+            input: { url: "https://example.com" },
+          },
+        ],
+        toolCallRequest: {
+          toolName: "fetch_data",
+          parameters: [
+            { parameterName: "url", parameterValue: "https://example.com" },
+          ],
+        },
+        toolCallId: "call_enriched",
         componentDecision: {
-          componentName: "SimpleCard",
-          props: null,
+          componentName: null,
+          statusMessage: "Fetching data...",
+          completionStatusMessage: "Done fetching",
+          props: {},
           message: "",
           componentState: null,
         },
@@ -386,11 +438,14 @@ describe("v1-conversions", () => {
 
       expect(result).toHaveLength(1);
       expect(result[0]).toEqual({
-        type: "component",
-        id: "comp_msg_123",
-        name: "SimpleCard",
-        props: {},
-        state: undefined,
+        type: "tool_use",
+        id: "call_enriched",
+        name: "fetch_data",
+        input: {
+          url: "https://example.com",
+          _tambo_statusMessage: "Fetching data...",
+          _tambo_completionStatusMessage: "Done fetching",
+        },
       });
     });
   });

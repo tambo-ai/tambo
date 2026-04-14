@@ -11,7 +11,6 @@ import { V1InitialContent, V1InputContent } from "./dto/message.dto";
 import { schema } from "@tambo-ai-cloud/db";
 import {
   V1ContentBlock,
-  V1ComponentContentDto,
   V1TextContentDto,
   V1ResourceContentDto,
   V1ToolUseContentDto,
@@ -19,6 +18,9 @@ import {
 } from "./dto/content.dto";
 import { V1MessageDto, V1MessageRole } from "./dto/message.dto";
 import { V1ThreadDto } from "./dto/thread.dto";
+import { Logger } from "@nestjs/common";
+
+const logger = new Logger("V1Conversions");
 
 /**
  * Database thread type alias for cleaner function signatures.
@@ -100,7 +102,42 @@ const defaultContentConversionOptions: Required<ContentConversionOptions> = {
   onInvalidContentPart: () => undefined,
 };
 
-function getContentPartType(part: ChatCompletionContentPart): string {
+/**
+ * Extract _tambo_* display properties from componentDecision for tool_use enrichment.
+ */
+function getTamboDisplayProperties(
+  componentDecision: DbMessage["componentDecision"],
+): Record<string, string> {
+  if (!componentDecision) return {};
+  const decision = componentDecision as unknown as Record<string, unknown>;
+  const props: Record<string, string> = {};
+  if (typeof decision.statusMessage === "string") {
+    props._tambo_statusMessage = decision.statusMessage;
+  }
+  if (typeof decision.completionStatusMessage === "string") {
+    props._tambo_completionStatusMessage = decision.completionStatusMessage;
+  }
+  return props;
+}
+
+/**
+ * Build a V1 tool_use content block with Tambo display properties merged in.
+ */
+function buildToolUseBlock(
+  id: string,
+  name: string,
+  input: Record<string, unknown>,
+  componentDecision: DbMessage["componentDecision"],
+): V1ToolUseContentDto {
+  return {
+    type: "tool_use",
+    id,
+    name,
+    input: { ...input, ...getTamboDisplayProperties(componentDecision) },
+  };
+}
+
+function getContentPartType(part: { type?: unknown }): string {
   const type = (part as { type?: unknown }).type;
   return typeof type === "string" ? type : "<non-string type>";
 }
@@ -180,20 +217,15 @@ export function contentPartToV1Block(
 
 /**
  * Convert internal message content to V1 content blocks.
- * Handles OpenAI-style content parts + component decision to V1 unified format.
+ * Handles OpenAI-style content parts to V1 unified format.
  *
  * For tool role messages, wraps content in a tool_result block.
- *
- * @throws Error if componentDecision exists with no componentName and no toolCallRequest
- *         (data integrity issue - componentDecision without componentName is only valid
- *         for tool call messages where it stores _tambo_* status messages)
  */
 export function contentToV1Blocks(
   message: DbMessage,
   options?: ContentConversionOptions,
 ): V1ContentBlock[] {
   const blocks: V1ContentBlock[] = [];
-  let foundComponentInContent = false;
 
   // For tool role messages, wrap content in a tool_result block
   if (message.role === "tool" && message.toolCallId) {
@@ -216,16 +248,67 @@ export function contentToV1Blocks(
     return blocks; // Tool messages don't have other content types
   }
 
-  // Convert standard content parts (non-tool messages)
-  // Including component blocks stored in the content array
+  // Convert standard content parts (non-tool messages).
+  // Including component blocks and V1-specific types stored in the content array.
+  // V1 types (tool_use, tool_result) may be present when the content was saved
+  // from V1 streaming, and must be preserved in their natural position to
+  // maintain interleaved ordering (e.g., text -> tool_use -> text).
   if (Array.isArray(message.content)) {
     for (const part of message.content) {
+      const partType = getContentPartType(part as { type?: unknown });
+
+      // Handle V1-specific content types stored inline in the DB content array.
+      // These are not part of ChatCompletionContentPart, so we handle them
+      // before calling contentPartToV1Block.
+      if (partType === "tool_use") {
+        const toolUsePart = part as unknown as Record<string, unknown>;
+        const id = toolUsePart.id;
+        const name = toolUsePart.name;
+        if (typeof id !== "string" || typeof name !== "string") {
+          logger.warn(
+            `Skipping malformed tool_use block (id: ${typeof id}, name: ${typeof name})`,
+          );
+          continue;
+        }
+        // Skip UI tools (show_component_*), same as the legacy fallback path
+        if (isUiToolName(name)) {
+          continue;
+        }
+        const input =
+          toolUsePart.input != null &&
+          typeof toolUsePart.input === "object" &&
+          !Array.isArray(toolUsePart.input)
+            ? (toolUsePart.input as Record<string, unknown>)
+            : {};
+        blocks.push(
+          buildToolUseBlock(id, name, input, message.componentDecision),
+        );
+        continue;
+      }
+
+      // Content is already in V1 format since it was stored by V1 streaming;
+      // no need to run sub-parts through contentPartToV1Block.
+      if (partType === "tool_result") {
+        const toolResultPart = part as unknown as {
+          toolUseId: string;
+          content: (V1TextContentDto | V1ResourceContentDto)[];
+          isError?: boolean;
+        };
+        const toolResultBlock: V1ToolResultContentDto = {
+          type: "tool_result",
+          toolUseId: toolResultPart.toolUseId,
+          content: toolResultPart.content ?? [],
+          isError: toolResultPart.isError,
+        };
+        blocks.push(toolResultBlock);
+        continue;
+      }
+
       const block = contentPartToV1Block(part, options);
       if (block) {
         // For component blocks, merge the message's componentState which may be
         // more up-to-date than what's stored in the content array
         if (block.type === "component") {
-          foundComponentInContent = true;
           if (message.componentState) {
             block.state = message.componentState;
           }
@@ -233,81 +316,6 @@ export function contentToV1Blocks(
         blocks.push(block);
       }
     }
-  }
-
-  // Backwards compatibility: If no component was found in the content array but
-  // componentDecision exists, generate a component block from it. This handles
-  // messages created before component blocks were stored in the content array.
-  // Tool messages may have componentDecision copied from the assistant message,
-  // but we don't want to duplicate the component block - it belongs on the
-  // assistant message that decided to render it.
-  if (
-    !foundComponentInContent &&
-    message.componentDecision &&
-    message.role !== "tool"
-  ) {
-    const component = message.componentDecision;
-    if (component.componentName) {
-      const componentBlock: V1ComponentContentDto = {
-        type: "component",
-        id: `comp_${message.id}`, // Generate stable ID from message ID
-        name: component.componentName,
-        props: component.props ?? {},
-        state: message.componentState ?? undefined,
-      };
-      blocks.push(componentBlock);
-    } else if (!message.toolCallRequest) {
-      // componentDecision without componentName is only valid for tool call messages
-      // (where it stores _tambo_* status messages). For non-tool-call messages,
-      // this indicates a data integrity issue - but we don't want to fail the
-      // entire request over it.
-      console.warn(
-        `Component decision in message ${message.id} has no componentName. ` +
-          `This indicates a data integrity issue.`,
-      );
-    }
-    // If componentName is null but toolCallRequest exists, the componentDecision
-    // is being used for _tambo_* status messages, not for rendering a component.
-  }
-
-  // Add tool_use content block if present (assistant messages with tool calls)
-  // Skip UI tools (show_component_*) - they're internal implementation details
-  if (
-    message.toolCallRequest &&
-    message.toolCallId &&
-    !isUiToolName(message.toolCallRequest.toolName)
-  ) {
-    const toolCallRequest = message.toolCallRequest;
-    // Convert parameters array to input object
-    const input: Record<string, unknown> = {};
-    for (const param of toolCallRequest.parameters) {
-      input[param.parameterName] = param.parameterValue;
-    }
-
-    // Add _tambo_* display properties from componentDecision if present.
-    // These are stored in componentDecision (via LegacyComponentDecision spread)
-    // but not typed in ComponentDecisionV2, so we access them with type assertions.
-    // The SDK uses these to display status messages during tool execution.
-    if (message.componentDecision) {
-      const decision = message.componentDecision as unknown as Record<
-        string,
-        unknown
-      >;
-      if (typeof decision.statusMessage === "string") {
-        input._tambo_statusMessage = decision.statusMessage;
-      }
-      if (typeof decision.completionStatusMessage === "string") {
-        input._tambo_completionStatusMessage = decision.completionStatusMessage;
-      }
-    }
-
-    const toolUseBlock: V1ToolUseContentDto = {
-      type: "tool_use",
-      id: message.toolCallId,
-      name: toolCallRequest.toolName,
-      input,
-    };
-    blocks.push(toolUseBlock);
   }
 
   return blocks;
