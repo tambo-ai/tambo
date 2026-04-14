@@ -361,7 +361,7 @@ export async function handleCreateApp(
         // - Project selection
         // - Installation path
         // - Agent docs creation
-        execSync("npx tambo init", {
+        execSync("npx tambo@latest init", {
           stdio: "inherit", // Allow user interaction for all prompts
           allowNonInteractive: true,
         });
@@ -373,7 +373,7 @@ export async function handleCreateApp(
         console.error(chalk.red("✗ Failed to run tambo init\n"));
         console.warn(
           chalk.yellow(
-            "Warning: Tambo initialization failed. You can run 'npx tambo init' manually to complete setup.\n",
+            "Warning: Tambo initialization failed. You can run 'npx tambo@latest init' manually to complete setup.\n",
           ),
         );
       }
@@ -420,7 +420,7 @@ export async function handleCreateApp(
       } else {
         reason = chalk.gray("(failed, run manually to complete setup)");
       }
-      setupSteps.push(`${chalk.cyan("npx tambo init")} ${reason}`);
+      setupSteps.push(`${chalk.cyan("npx tambo@latest init")} ${reason}`);
     }
 
     // Show appropriate message based on setup status
