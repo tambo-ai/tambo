@@ -16,6 +16,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   calculateThreadStats,
   createMessageItems,
+  extractComponentsFromMessage,
   formatToolParameters,
   formatToolResponseContent,
 } from "../utils";
@@ -52,10 +53,14 @@ function searchInMessage(message: MessageType, query: string): boolean {
     if (formattedParams.toLowerCase().includes(lowerQuery)) return true;
   }
 
-  // Search in component props
-  if (message.componentDecision?.props) {
-    const propsStr = JSON.stringify(message.componentDecision.props, null, 2);
+  // Search in component props (content array + legacy componentDecision)
+  for (const comp of extractComponentsFromMessage(message)) {
+    const propsStr = JSON.stringify(comp.props, null, 2);
     if (propsStr.toLowerCase().includes(lowerQuery)) return true;
+    if (comp.state) {
+      const stateStr = JSON.stringify(comp.state, null, 2);
+      if (stateStr.toLowerCase().includes(lowerQuery)) return true;
+    }
   }
 
   // Search in additional context
@@ -153,10 +158,14 @@ function findAllMatches(thread: ThreadType, query: string): SearchMatch[] {
       }
     }
 
-    // Check component decisions
-    if (message.componentDecision?.componentName) {
-      const propsStr = JSON.stringify(message.componentDecision.props, null, 2);
-      if (propsStr.toLowerCase().includes(query.toLowerCase())) {
+    // Check components (content array + legacy componentDecision)
+    for (const comp of extractComponentsFromMessage(message)) {
+      const propsStr = JSON.stringify(comp.props, null, 2);
+      const stateStr = comp.state ? JSON.stringify(comp.state, null, 2) : "";
+      if (
+        propsStr.toLowerCase().includes(query.toLowerCase()) ||
+        stateStr.toLowerCase().includes(query.toLowerCase())
+      ) {
         matches.push({
           messageId: message.id,
           messageType: "component",

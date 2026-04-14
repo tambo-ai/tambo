@@ -8,7 +8,11 @@ import { type RouterOutputs } from "@/trpc/react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 import { FC, ReactNode, useCallback, useMemo, useState } from "react";
-import { isSameDay } from "../utils";
+import {
+  type ExtractedComponent,
+  extractComponentsFromMessage,
+  isSameDay,
+} from "../utils";
 import { ComponentMessage } from "./component-message";
 import { DateSeparator } from "./date-separator";
 import { MessageContent } from "./message-content";
@@ -17,11 +21,30 @@ import { ToolCallMessage } from "./tool-call-message";
 type ThreadType = RouterOutputs["thread"]["getThread"];
 type MessageType = ThreadType["messages"][0];
 
-type MessageGroup = {
-  type: "message" | "tool_call" | "component";
-  message: MessageType;
-  toolResponse?: MessageType;
-};
+type MessageGroup =
+  | { type: "message"; message: MessageType }
+  | { type: "tool_call"; message: MessageType; toolResponse?: MessageType }
+  | {
+      type: "component";
+      message: MessageType;
+      componentData: ExtractedComponent;
+    };
+
+/**
+ * Checks if a message has displayable text or image content.
+ * Component content parts are displayed separately via ComponentMessage,
+ * so they don't count as displayable content here.
+ */
+function hasDisplayableContent(content: MessageType["content"]): boolean {
+  if (!Array.isArray(content)) return false;
+  return content.some((part) => {
+    if (!part || typeof part !== "object" || !("type" in part)) return false;
+    if (part.type === "text" && "text" in part) return !!part.text?.trim();
+    if (part.type === "image_url") return true;
+    if (part.type === "resource") return true;
+    return false;
+  });
+}
 
 // Helper function to determine alignment classes
 const getAlignmentClasses = (
@@ -40,7 +63,7 @@ const getMessageKey = (group: MessageGroup): string => {
     return `tool-${group.message.id}`;
   }
   if (group.type === "component") {
-    return `component-${group.message.id}`;
+    return `component-${group.componentData.id}`;
   }
   return `msg-${group.message.id}`;
 };
@@ -92,6 +115,7 @@ const MessageRenderer: FC<MessageRendererProps> = ({
     return (
       <ComponentMessage
         message={group.message}
+        componentData={group.componentData}
         isHighlighted={isHighlighted}
         searchQuery={searchQuery}
       />
@@ -176,14 +200,24 @@ export function ThreadMessages({
         continue;
       }
 
-      // Always add the message first (user or assistant)
-      groups.push({
-        type: "message",
-        message,
-      });
+      const hasToolCall = !!message.toolCallRequest;
+      const components = extractComponentsFromMessage(message);
+      const hasComponent = components.length > 0;
+
+      // Only add a message bubble if there's displayable text/image content,
+      // or if the message has no tool call or component to represent it
+      if (
+        hasDisplayableContent(message.content) ||
+        (!hasToolCall && !hasComponent)
+      ) {
+        groups.push({
+          type: "message",
+          message,
+        });
+      }
 
       // If this message has a tool call, add a separate tool call entry
-      if (message.toolCallRequest) {
+      if (hasToolCall) {
         // Look for the corresponding tool response
         const toolResponse = messages.find(
           (msg, idx) =>
@@ -199,11 +233,13 @@ export function ThreadMessages({
         });
       }
 
-      // If this message has a component decision, add a separate component entry
-      if (message.componentDecision?.componentName) {
+      // If this message has components (in content array or legacy componentDecision),
+      // add a separate component entry for each
+      for (const comp of components) {
         groups.push({
           type: "component",
           message,
+          componentData: comp,
         });
       }
     }
