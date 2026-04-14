@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.146.0](https://github.com/tambo-ai/tambo/compare/api-v0.145.0...api-v0.146.0) (2026-04-14)
+
+
+### Features
+
+* **api,backend,db,core:** add agent memory system ([#2732](https://github.com/tambo-ai/tambo/issues/2732)) ([cdb3ba4](https://github.com/tambo-ai/tambo/commit/cdb3ba46802c4fb16f7961c7366ea50a69acebc1))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump posthog-node from 5.24.9 to 5.28.11 ([#2769](https://github.com/tambo-ai/tambo/issues/2769)) ([80b9032](https://github.com/tambo-ai/tambo/commit/80b9032d1c379da907c4828cb9721d7e49d7dad2))
+* **deps:** bump the nestjs group across 1 directory with 5 updates ([#2768](https://github.com/tambo-ai/tambo/issues/2768)) ([dfc7e34](https://github.com/tambo-ai/tambo/commit/dfc7e34d1c7d3f288cdd473b2de7f6b0ff3f999b))
+* **deps:** bump the nestjs group with 3 updates ([#2793](https://github.com/tambo-ai/tambo/issues/2793)) ([dfec05a](https://github.com/tambo-ai/tambo/commit/dfec05ab2daf795fb96e05cce77e1c6877b5d6cc))
+* **deps:** bump the sentry group with 3 updates ([#2797](https://github.com/tambo-ai/tambo/issues/2797)) ([eceecab](https://github.com/tambo-ai/tambo/commit/eceecab609b6f0ac2220535b48c16adad4ae5aa4))
+* **deps:** bump the small-safe-packages group with 3 updates ([#2796](https://github.com/tambo-ai/tambo/issues/2796)) ([f0a2fca](https://github.com/tambo-ai/tambo/commit/f0a2fcae66efa501bab423202fc98531704e7758))
+
 ## [0.145.0](https://github.com/tambo-ai/tambo/compare/api-v0.144.5...api-v0.145.0) (2026-04-06)
 
 
