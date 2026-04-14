@@ -4,6 +4,7 @@ import { JWTPayload } from "jose";
 export interface SessionClientInformation {
   serverUrl: string;
   clientInformation: OAuthClientInformation;
+  state?: string;
 }
 
 /** This is a direct copy of the OAuthClientInformation type from @modelcontextprotocol/sdk */

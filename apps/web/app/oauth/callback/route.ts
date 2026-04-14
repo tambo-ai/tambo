@@ -63,6 +63,13 @@ export async function GET(request: NextRequest) {
       },
     );
 
+    if (
+      oauthClient.sessionInfo.state &&
+      validatedParams.state !== oauthClient.sessionInfo.state
+    ) {
+      throw new Error("Invalid OAuth state");
+    }
+
     // Check for errors returned from OAuth provider before attempting token exchange
     if (validatedParams.error) {
       console.error("OAuth error:", validatedParams.error);
