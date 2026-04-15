@@ -4,6 +4,13 @@
   --header-height: 56px;
   --toc-top-offset: calc(var(--banner-height) + var(--header-height) + 16px);
   --sidebar-top-offset: calc(var(--banner-height) + 40px);
+
+  /* Colors */
+  --color-dm-border: #6663;
+  --color-lm-border: #cccccc80;
+  /* Bottom nav tab borders */
+  --color-dm-nav-border: #6663;
+  --color-lm-nav-border: #cccccc80;
 }
 
 /* Remove sidebar border */
@@ -21,4 +28,52 @@
   margin-top: var(--sidebar-top-offset) !important;
   background-color: transparent !important;
   border: none !important;
+}
+
+figure.shiki {
+  border-color: var(--color-lm-border);
+}
+figure.shiki div:first-child {
+  border-color: var(--color-lm-border);
+}
+.dark figure.shiki div:first-child {
+  border-color: var(--color-dm-border);
+}
+.dark figure.shiki {
+  border-color: var(--color-dm-border);
+}
+
+/* Bottom navigation tabs */
+#nd-page article a.rounded-lg[class*="border"] {
+  border-color: var(--color-lm-nav-border) !important;
+}
+
+.dark #nd-page article a.rounded-lg[class*="border"] {
+  border-color: var(--color-dm-nav-border) !important;
+}
+
+/* Sidebar bottom section top border (the div with border-t) */
+#nd-sidebar > div:last-child {
+  border-top-color: var(--color-lm-border) !important;
+}
+
+.dark #nd-sidebar > div:last-child {
+  border-top-color: var(--color-dm-border) !important;
+}
+
+#nd-sidebar button[aria-label="Toggle Theme"] {
+  border-color: var(--color-lm-nav-border) !important;
+}
+
+.dark #nd-sidebar button[aria-label="Toggle Theme"] {
+  border-color: var(--color-dm-nav-border) !important;
+}
+
+/* Header search popup */
+div[role="dialog"].fixed.left-1\/2.top-4 {
+  border-color: var(--color-lm-border) !important;
+}
+
+.dark div[role="dialog"].fixed.left-1\/2.top-4 {
+  border-color: var(--color-dm-border) !important;
 }
