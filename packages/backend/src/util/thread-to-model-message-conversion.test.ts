@@ -3,8 +3,14 @@ import {
   MessageRole,
   LegacyComponentDecision,
   ThreadAssistantMessage,
+  ThreadMessage,
+  ThreadUserMessage,
+  ThreadToolMessage,
 } from "@tambo-ai-cloud/core";
-import { convertAssistantMessage } from "./thread-to-model-message-conversion";
+import {
+  convertAssistantMessage,
+  threadMessagesToModelMessages,
+} from "./thread-to-model-message-conversion";
 
 const baseAssistantMessage: Omit<
   ThreadAssistantMessage,
@@ -306,5 +312,128 @@ describe("convertAssistantMessage", () => {
         },
       ]);
     });
+  });
+});
+
+describe("threadMessagesToModelMessages — tool call pairing repair", () => {
+  const baseUser: ThreadUserMessage = {
+    id: "msg_u1",
+    threadId: "thread_1",
+    role: MessageRole.User,
+    content: [{ type: ContentPartType.Text, text: "Hello" }],
+    createdAt: new Date("2024-01-01T00:00:00Z"),
+    componentState: {},
+  };
+
+  const baseAssistantWithTool: ThreadAssistantMessage = {
+    id: "msg_a1",
+    threadId: "thread_1",
+    role: MessageRole.Assistant,
+    content: [{ type: ContentPartType.Text, text: "I will call a tool" }],
+    createdAt: new Date("2024-01-01T00:00:01Z"),
+    componentState: {},
+    tool_call_id: "tool_call_1",
+    toolCallRequest: {
+      toolName: "show_component_Weather",
+      parameters: [{ parameterName: "city", parameterValue: "SF" }],
+    },
+  };
+
+  const toolResult: ThreadToolMessage = {
+    id: "msg_t1",
+    threadId: "thread_1",
+    role: MessageRole.Tool,
+    content: [{ type: ContentPartType.Text, text: "Component rendered" }],
+    createdAt: new Date("2024-01-01T00:00:02Z"),
+    componentState: {},
+    tool_call_id: "tool_call_1",
+  };
+
+  it("should keep tool-call when tool-result immediately follows", () => {
+    const messages: ThreadMessage[] = [
+      baseUser,
+      baseAssistantWithTool,
+      toolResult,
+    ];
+
+    const result = threadMessagesToModelMessages(messages, () => true);
+
+    const assistantMsg = result.find((m) => m.role === "assistant");
+    expect(assistantMsg).toBeDefined();
+    const toolCallParts = (assistantMsg!.content as { type: string }[]).filter(
+      (p) => p.type === "tool-call",
+    );
+    expect(toolCallParts).toHaveLength(1);
+  });
+
+  it("should strip tool-call when no tool-result follows", () => {
+    const messages: ThreadMessage[] = [baseUser, baseAssistantWithTool];
+
+    const result = threadMessagesToModelMessages(messages, () => true);
+
+    // The unresponded tool call goes through Case 1 (text-only), which
+    // doesn't emit a tool-call part at all, so repair has nothing to strip.
+    const assistantMsg = result.find((m) => m.role === "assistant");
+    expect(assistantMsg).toBeDefined();
+    const toolCallParts = (assistantMsg!.content as { type: string }[]).filter(
+      (p) => p.type === "tool-call",
+    );
+    expect(toolCallParts).toHaveLength(0);
+  });
+
+  it("should strip orphaned tool-call when tool-result is for a different ID", () => {
+    // Simulate a state where the assistant's tool_call_id doesn't match the
+    // tool result's tool_call_id. The respondedToolIds set will contain the
+    // other ID, so the assistant message hits Case 1 (text-only). This test
+    // verifies the conversion handles the mismatch gracefully.
+    const mismatchedToolResult: ThreadToolMessage = {
+      ...toolResult,
+      tool_call_id: "different_id",
+    };
+
+    const messages: ThreadMessage[] = [
+      baseUser,
+      baseAssistantWithTool,
+      mismatchedToolResult,
+    ];
+
+    const result = threadMessagesToModelMessages(messages, () => true);
+
+    // No tool-call parts should survive
+    for (const msg of result) {
+      if (msg.role === "assistant") {
+        const toolCalls = (msg.content as { type: string }[]).filter(
+          (p) => p.type === "tool-call",
+        );
+        expect(toolCalls).toHaveLength(0);
+      }
+    }
+  });
+
+  it("should handle responded tool call followed by user message correctly", () => {
+    const userFollowUp: ThreadUserMessage = {
+      ...baseUser,
+      id: "msg_u2",
+      createdAt: new Date("2024-01-01T00:00:03Z"),
+    };
+
+    const messages: ThreadMessage[] = [
+      baseUser,
+      baseAssistantWithTool,
+      toolResult,
+      userFollowUp,
+    ];
+
+    const result = threadMessagesToModelMessages(messages, () => true);
+
+    const assistantMsg = result.find((m) => m.role === "assistant");
+    expect(assistantMsg).toBeDefined();
+    const toolCallParts = (assistantMsg!.content as { type: string }[]).filter(
+      (p) => p.type === "tool-call",
+    );
+    expect(toolCallParts).toHaveLength(1);
+
+    const toolMsg = result.find((m) => m.role === "tool");
+    expect(toolMsg).toBeDefined();
   });
 });
