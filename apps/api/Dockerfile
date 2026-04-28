@@ -37,6 +37,11 @@ WORKDIR /workspace
 
 # install dependencies solo
 COPY --from=installer /workspace/out/json/ .
+# Use the full lockfile (not the pruned one) to preserve nested dep resolutions.
+# Turbo prune can promote packages like log-symbols@4 to the root without their
+# required chalk@4 sibling, causing "chalk.blue is not a function" at build time
+# when NODE_OPTIONS=--experimental-require-module is in use.
+COPY --from=installer /workspace/package-lock.json ./
 RUN npm ci
 
 # copy source from pruned output and then build
