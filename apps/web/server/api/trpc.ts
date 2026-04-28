@@ -52,7 +52,7 @@ export const createTRPCContext = async (): Promise<Context> => {
   // First, try NextAuth session (browser users)
   let user: Context["user"] = session?.user
     ? {
-        id: (session.user as User).id,
+        id: session.user.id,
         email: session.user.email,
         name: session.user.name,
         image: session.user.image,

@@ -1,4 +1,4 @@
-import { EventType, type BaseEvent } from "@ag-ui/client";
+import { EventType } from "@ag-ui/client";
 import {
   ClientToolCallTracker,
   createAwaitingInputEvent,
@@ -30,27 +30,27 @@ describe("v1-client-tools", () => {
           toolCallId: "call_123",
           toolCallName: "get_weather",
           timestamp: Date.now(),
-        } as unknown as BaseEvent);
+        });
 
         tracker.processEvent({
           type: EventType.TOOL_CALL_ARGS,
           toolCallId: "call_123",
           delta: '{"location":',
           timestamp: Date.now(),
-        } as unknown as BaseEvent);
+        });
 
         tracker.processEvent({
           type: EventType.TOOL_CALL_ARGS,
           toolCallId: "call_123",
           delta: '"NYC"}',
           timestamp: Date.now(),
-        } as unknown as BaseEvent);
+        });
 
         tracker.processEvent({
           type: EventType.TOOL_CALL_END,
           toolCallId: "call_123",
           timestamp: Date.now(),
-        } as unknown as BaseEvent);
+        });
 
         // Should have one pending tool call
         expect(tracker.hasPendingToolCalls()).toBe(true);
@@ -67,27 +67,27 @@ describe("v1-client-tools", () => {
           toolCallId: "call_456",
           toolCallName: "system_tool",
           timestamp: Date.now(),
-        } as unknown as BaseEvent);
+        });
 
         tracker.processEvent({
           type: EventType.TOOL_CALL_ARGS,
           toolCallId: "call_456",
           delta: "{}",
           timestamp: Date.now(),
-        } as unknown as BaseEvent);
+        });
 
         tracker.processEvent({
           type: EventType.TOOL_CALL_END,
           toolCallId: "call_456",
           timestamp: Date.now(),
-        } as unknown as BaseEvent);
+        });
 
         tracker.processEvent({
           type: EventType.TOOL_CALL_RESULT,
           toolCallId: "call_456",
           content: "Result from system",
           timestamp: Date.now(),
-        } as unknown as BaseEvent);
+        });
 
         // No pending tool calls
         expect(tracker.hasPendingToolCalls()).toBe(false);
@@ -101,27 +101,27 @@ describe("v1-client-tools", () => {
           toolCallId: "call_1",
           toolCallName: "client_tool",
           timestamp: Date.now(),
-        } as unknown as BaseEvent);
+        });
 
         tracker.processEvent({
           type: EventType.TOOL_CALL_START,
           toolCallId: "call_2",
           toolCallName: "system_tool",
           timestamp: Date.now(),
-        } as unknown as BaseEvent);
+        });
 
         // End both
         tracker.processEvent({
           type: EventType.TOOL_CALL_END,
           toolCallId: "call_1",
           timestamp: Date.now(),
-        } as unknown as BaseEvent);
+        });
 
         tracker.processEvent({
           type: EventType.TOOL_CALL_END,
           toolCallId: "call_2",
           timestamp: Date.now(),
-        } as unknown as BaseEvent);
+        });
 
         // Only call_2 gets a result (system tool)
         tracker.processEvent({
@@ -129,7 +129,7 @@ describe("v1-client-tools", () => {
           toolCallId: "call_2",
           content: "Result",
           timestamp: Date.now(),
-        } as unknown as BaseEvent);
+        });
 
         // Only call_1 should be pending
         expect(tracker.hasPendingToolCalls()).toBe(true);
@@ -151,34 +151,34 @@ describe("v1-client-tools", () => {
           toolCallId: "call_1",
           toolCallName: "test_tool",
           timestamp: Date.now(),
-        } as unknown as BaseEvent);
+        });
 
         tracker.processEvent({
           type: EventType.TOOL_CALL_ARGS,
           toolCallId: "call_1",
           delta: '{"key1":',
           timestamp: Date.now(),
-        } as unknown as BaseEvent);
+        });
 
         tracker.processEvent({
           type: EventType.TOOL_CALL_ARGS,
           toolCallId: "call_1",
           delta: '"value1",',
           timestamp: Date.now(),
-        } as unknown as BaseEvent);
+        });
 
         tracker.processEvent({
           type: EventType.TOOL_CALL_ARGS,
           toolCallId: "call_1",
           delta: '"key2":"value2"}',
           timestamp: Date.now(),
-        } as unknown as BaseEvent);
+        });
 
         tracker.processEvent({
           type: EventType.TOOL_CALL_END,
           toolCallId: "call_1",
           timestamp: Date.now(),
-        } as unknown as BaseEvent);
+        });
 
         const pending = tracker.getPendingToolCalls();
         expect(pending[0].arguments).toBe('{"key1":"value1","key2":"value2"}');
@@ -190,20 +190,20 @@ describe("v1-client-tools", () => {
           toolCallId: "call_1",
           toolCallName: "test_tool",
           timestamp: Date.now(),
-        } as unknown as BaseEvent);
+        });
 
         tracker.processEvent({
           type: EventType.TOOL_CALL_CHUNK,
           toolCallId: "call_1",
           delta: '{"data":"test"}',
           timestamp: Date.now(),
-        } as unknown as BaseEvent);
+        });
 
         tracker.processEvent({
           type: EventType.TOOL_CALL_END,
           toolCallId: "call_1",
           timestamp: Date.now(),
-        } as unknown as BaseEvent);
+        });
 
         const pending = tracker.getPendingToolCalls();
         expect(pending[0].arguments).toBe('{"data":"test"}');
@@ -215,7 +215,7 @@ describe("v1-client-tools", () => {
           toolCallId: "call_large",
           toolCallName: "large_tool",
           timestamp: Date.now(),
-        } as unknown as BaseEvent);
+        });
 
         // Send a chunk that exceeds the 1MB limit
         const oversizedChunk = "x".repeat(1024 * 1024 + 1);
@@ -226,7 +226,7 @@ describe("v1-client-tools", () => {
             toolCallId: "call_large",
             delta: oversizedChunk,
             timestamp: Date.now(),
-          } as unknown as BaseEvent);
+          });
         }).toThrow("Tool call call_large arguments exceed maximum size of");
       });
 
@@ -236,7 +236,7 @@ describe("v1-client-tools", () => {
           toolCallId: "call_large",
           toolCallName: "large_tool",
           timestamp: Date.now(),
-        } as unknown as BaseEvent);
+        });
 
         // Send a chunk close to the limit
         const nearLimitChunk = "x".repeat(1024 * 1024 - 100);
@@ -245,7 +245,7 @@ describe("v1-client-tools", () => {
           toolCallId: "call_large",
           delta: nearLimitChunk,
           timestamp: Date.now(),
-        } as unknown as BaseEvent);
+        });
 
         // This should throw as it exceeds the limit
         expect(() => {
@@ -254,7 +254,7 @@ describe("v1-client-tools", () => {
             toolCallId: "call_large",
             delta: "y".repeat(200),
             timestamp: Date.now(),
-          } as unknown as BaseEvent);
+          });
         }).toThrow("Tool call call_large arguments exceed maximum size of");
       });
 
@@ -265,7 +265,7 @@ describe("v1-client-tools", () => {
           toolCallId: "unknown_call",
           delta: '{"data":"test"}',
           timestamp: Date.now(),
-        } as unknown as BaseEvent);
+        });
 
         // Should not crash and should not have any pending calls
         expect(tracker.hasPendingToolCalls()).toBe(false);
@@ -280,46 +280,46 @@ describe("v1-client-tools", () => {
           toolCallId: "a",
           toolCallName: "tool_a",
           timestamp: Date.now(),
-        } as unknown as BaseEvent);
+        });
 
         tracker.processEvent({
           type: EventType.TOOL_CALL_START,
           toolCallId: "b",
           toolCallName: "tool_b",
           timestamp: Date.now(),
-        } as unknown as BaseEvent);
+        });
 
         tracker.processEvent({
           type: EventType.TOOL_CALL_START,
           toolCallId: "c",
           toolCallName: "tool_c",
           timestamp: Date.now(),
-        } as unknown as BaseEvent);
+        });
 
         tracker.processEvent({
           type: EventType.TOOL_CALL_END,
           toolCallId: "a",
           timestamp: Date.now(),
-        } as unknown as BaseEvent);
+        });
 
         tracker.processEvent({
           type: EventType.TOOL_CALL_END,
           toolCallId: "b",
           timestamp: Date.now(),
-        } as unknown as BaseEvent);
+        });
 
         tracker.processEvent({
           type: EventType.TOOL_CALL_END,
           toolCallId: "c",
           timestamp: Date.now(),
-        } as unknown as BaseEvent);
+        });
 
         tracker.processEvent({
           type: EventType.TOOL_CALL_RESULT,
           toolCallId: "b",
           content: "result",
           timestamp: Date.now(),
-        } as unknown as BaseEvent);
+        });
 
         const ids = tracker.getPendingToolCallIds();
         expect(ids).toHaveLength(2);

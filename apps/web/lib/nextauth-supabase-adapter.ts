@@ -276,7 +276,7 @@ export function SupabaseAdapter(): Adapter {
           sessionToken: session.id,
           userId: session.user_id,
           expires: data.expires,
-        } as AdapterSession;
+        };
       });
     },
 
@@ -305,7 +305,7 @@ export function SupabaseAdapter(): Adapter {
             userId: session.user_id,
             expires:
               session.not_after || new Date(Date.now() + 24 * 60 * 60 * 1000), // Default 24h
-          } as AdapterSession,
+          },
           user: {
             id: user.id,
             email: user.email,

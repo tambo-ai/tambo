@@ -117,7 +117,7 @@ describe("DomainExceptionFilter", () => {
   it("should use request.url as fallback when originalUrl is undefined", () => {
     const res = createMockResponse();
     const fallbackReq: Partial<Request> = {
-      originalUrl: undefined as unknown as string,
+      originalUrl: undefined,
       url: "/fallback-url",
     };
     const host = createMockHost(fallbackReq, res);

@@ -1,6 +1,6 @@
 import { Module } from "@nestjs/common";
 import { ConfigModule, ConfigService } from "@nestjs/config";
-import { ProjectsModule } from "src/projects/projects.module";
+import { ProjectsModule } from "../projects/projects.module";
 import { AudioController } from "./audio.controller";
 import { AudioService } from "./audio.service";
 

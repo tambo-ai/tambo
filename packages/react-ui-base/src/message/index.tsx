@@ -11,7 +11,15 @@ import { MessageRoot } from "./root/message-root";
 /**
  * Message namespace containing all message base components.
  */
-const Message = {
+const Message: {
+  Root: typeof MessageRoot;
+  Content: typeof MessageContent;
+  Images: typeof MessageImages;
+  LoadingIndicator: typeof MessageLoadingIndicator;
+  RenderedComponent: typeof MessageRenderedComponent;
+  RenderedComponentContent: typeof MessageRenderedComponentContent;
+  RenderedComponentCanvasButton: typeof MessageRenderedComponentCanvasButton;
+} = {
   Root: MessageRoot,
   Content: MessageContent,
   Images: MessageImages,

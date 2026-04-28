@@ -12,9 +12,7 @@ function asFunctionTool(
   if (tool.type !== "function") {
     throw new Error(`Expected function tool, got ${tool.type}`);
   }
-  return tool as OpenAI.Chat.Completions.ChatCompletionFunctionTool & {
-    maxCalls?: number;
-  };
+  return tool;
 }
 
 /**

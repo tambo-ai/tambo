@@ -11,7 +11,7 @@ Thanks for helping! This guide covers development setup and workflow expectation
 ### Prerequisites
 
 - Node.js >= 22
-- npm >= 11
+- pnpm >= 10 (managed via Corepack)
 - Docker (for either database option below)
 
 ### 1. Clone and Install
@@ -19,7 +19,7 @@ Thanks for helping! This guide covers development setup and workflow expectation
 ```bash
 git clone https://github.com/tambo-ai/tambo.git
 cd tambo
-npm install
+corepack enable && pnpm install
 ```
 
 ### 2. Set Up Environment Files
@@ -69,12 +69,12 @@ DATABASE_URL=postgresql://postgres:postgres@localhost:5433/tambo
 
 Use the password from your `docker.env` file.
 
-> **Note**: Don't use `tambo-start.sh` for local development - it starts all services in Docker, which conflicts with running apps locally via `npm run dev:cloud`.
+> **Note**: Don't use `tambo-start.sh` for local development - it starts all services in Docker, which conflicts with running apps locally via `pnpm dev:cloud`.
 
 ### 4. Initialize Database
 
 ```bash
-npm run db:migrate -w packages/db
+pnpm --filter @tambo-ai-cloud/db db:migrate
 ```
 
 ### 5. Start Development Servers
@@ -82,7 +82,7 @@ npm run db:migrate -w packages/db
 For Tambo Cloud (web dashboard + API):
 
 ```bash
-npm run dev:cloud
+pnpm dev:cloud
 ```
 
 - **Web App**: http://localhost:8260
@@ -91,13 +91,13 @@ npm run dev:cloud
 For the React SDK framework (showcase + docs):
 
 ```bash
-npm run dev
+pnpm dev
 ```
 
 For React SDK development (SDK in watch mode + showcase):
 
 ```bash
-npm run dev:sdk
+pnpm dev:sdk
 ```
 
 This runs the React SDK in watch mode (automatically rebuilds on changes) alongside the showcase app, making it easy to develop and test SDK changes.
@@ -108,15 +108,15 @@ Tambo uses modern hot reload patterns across different parts of the monorepo:
 
 #### Cloud Development
 
-`npm run dev:cloud` starts the web dashboard and API server with automatic restart when workspace packages change. When you edit files in `packages/core`, `packages/backend`, or `packages/db`, Turborepo detects the changes and automatically restarts the API server. The Next.js web app uses `transpilePackages` to compile workspace TypeScript directly, so changes to workspace packages are reflected immediately via Next.js HMR.
+`pnpm dev:cloud` starts the web dashboard and API server with automatic restart when workspace packages change. When you edit files in `packages/core`, `packages/backend`, or `packages/db`, Turborepo detects the changes and automatically restarts the API server. The Next.js web app uses `transpilePackages` to compile workspace TypeScript directly, so changes to workspace packages are reflected immediately via Next.js HMR.
 
 #### SDK Development
 
-`npm run dev:sdk` runs the React SDK in watch mode alongside the showcase app. Edit react-sdk source and see changes reflected in the showcase via HMR. The showcase app also uses `transpilePackages`, so there's no manual rebuild step needed.
+`pnpm dev:sdk` runs the React SDK in watch mode alongside the showcase app. Edit react-sdk source and see changes reflected in the showcase via HMR. The showcase app also uses `transpilePackages`, so there's no manual rebuild step needed.
 
 #### Full Stack Development
 
-`npm run dev:cloud:full` runs everything (web, API, showcase, docs) with hot reload enabled across all apps.
+`pnpm dev:cloud:full` runs everything (web, API, showcase, docs) with hot reload enabled across all apps.
 
 **Technical details:**
 
@@ -126,7 +126,7 @@ Tambo uses modern hot reload patterns across different parts of the monorepo:
 
 ### 6. Get a Local API Key
 
-1. Start the dev servers: `npm run dev:cloud`
+1. Start the dev servers: `pnpm dev:cloud`
 2. Visit http://localhost:8260 and sign in
 3. Create a project and generate an API key
 4. Add to `apps/web/.env.local`: `NEXT_PUBLIC_TAMBO_API_KEY=your_key`
@@ -136,23 +136,23 @@ Tambo uses modern hot reload patterns across different parts of the monorepo:
 
 ```bash
 # Development
-npm run dev:cloud        # Start web + API for Tambo Cloud
-npm run dev              # Start showcase + docs for React SDK
-npm run dev:sdk          # Start React SDK watch mode + showcase
+pnpm dev:cloud        # Start web + API for Tambo Cloud
+pnpm dev              # Start showcase + docs for React SDK
+pnpm dev:sdk          # Start React SDK watch mode + showcase
 
 # Quality (required before PRs)
-npm run lint
-npm run check-types
-npm test
+pnpm lint
+pnpm check-types
+pnpm test
 
 # Database
-npm run db:generate -w packages/db  # Generate migrations
-npm run db:migrate -w packages/db   # Apply migrations
-npm run db:studio -w packages/db    # Open Drizzle Studio
+pnpm --filter @tambo-ai-cloud/db db:generate  # Generate migrations
+pnpm --filter @tambo-ai-cloud/db db:migrate   # Apply migrations
+pnpm --filter @tambo-ai-cloud/db db:studio    # Open Drizzle Studio
 
 # React SDK
 npm run build:sdk        # One-time build of React SDK
-npm run dev:sdk          # SDK watch mode + showcase (for SDK development)
+pnpm dev:sdk          # SDK watch mode + showcase (for SDK development)
 ```
 
 ## Environment Variables
@@ -216,7 +216,7 @@ Stop conflicting services or modify ports in `docker.env` / `docker-compose.yml`
 
 ```bash
 rm -rf node_modules package-lock.json
-npm install
+corepack enable && pnpm install
 ```
 
 ---
@@ -225,7 +225,7 @@ npm install
 
 1. Pick or file an issue, branch from `main`
 2. Build the feature/fix with tests
-3. Run `npm run lint && npm run check-types && npm test`
+3. Run `pnpm lint && pnpm check-types && pnpm test`
 4. Open a PR with a [Conventional Commit](https://www.conventionalcommits.org/) title
 
 ### PR Title Format

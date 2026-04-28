@@ -24,15 +24,17 @@
     "clean": "rm -rf dist coverage"
   },
   "devDependencies": {
-    "@tambo-ai-cloud/backend": "*",
-    "@tambo-ai/eslint-config": "*",
-    "@tambo-ai/typescript-config": "*",
+    "@tambo-ai-cloud/backend": "workspace:*",
+    "@tambo-ai/eslint-config": "workspace:*",
+    "@tambo-ai/typescript-config": "workspace:*",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/pg": "^8.18.0",
-    "drizzle-kit": "^0.31.10"
+    "drizzle-kit": "^0.31.10",
+    "eslint": "^9.39.4"
   },
   "dependencies": {
-    "@tambo-ai-cloud/core": "*",
+    "@modelcontextprotocol/sdk": "^1.27.1",
+    "@tambo-ai-cloud/core": "workspace:*",
     "drizzle-orm": "^0.45.2",
     "jsonwebtoken": "^9.0.2",
     "openai": "^6.16.0",

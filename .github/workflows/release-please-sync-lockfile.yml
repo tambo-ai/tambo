@@ -1,4 +1,4 @@
-name: Sync Package Lock
+name: Sync Lockfile
 
 on:
   pull_request:
@@ -27,8 +27,8 @@ jobs:
         with:
           frozen: false
 
-      - name: Regenerate package-lock.json
-        run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+      - name: Regenerate pnpm-lock.yaml
+        run: pnpm install --lockfile-only --ignore-scripts
 
       - name: Check for changes
         id: check
@@ -50,7 +50,7 @@ jobs:
             exit 0
           fi
 
-          if echo "$changed_files" | grep -qv '^package-lock\.json$'; then
+          if echo "$changed_files" | grep -qv '^pnpm-lock\.yaml$'; then
             echo "Unexpected file changes detected:" >&2
             echo "$changed_files" >&2
             git status --porcelain >&2
@@ -64,6 +64,6 @@ jobs:
         run: |
           git config user.name "tambo-bot"
           git config user.email "bots@tambo.co"
-          git add package-lock.json
-          git commit -m "chore: sync package-lock.json"
+          git add pnpm-lock.yaml
+          git commit -m "chore: sync pnpm-lock.yaml"
           git push origin "HEAD:${{ github.head_ref }}"

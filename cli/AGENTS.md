@@ -14,11 +14,11 @@ The component registry lives in `packages/ui-registry/` - this is the single sou
 
 ```bash
 # Development
-npm run dev              # Watch mode TypeScript compilation
-npm run build           # Build CLI executable
-npm run test            # Run Jest test suite
-npm run lint            # ESLint code checking
-npm run check-types     # TypeScript type checking
+pnpm dev              # Watch mode TypeScript compilation
+pnpm build           # Build CLI executable
+pnpm test            # Run Jest test suite
+pnpm lint            # ESLint code checking
+pnpm check-types     # TypeScript type checking
 
 # CLI usage (after build)
 tambo init                    # Initialize Tambo in existing project
@@ -180,7 +180,7 @@ If you do update the components directly, you should also update the documentati
 2. Add `config.json` with metadata
 3. Include component files and dependencies
 4. Add exports to `packages/ui-registry/package.json`
-5. Rebuild CLI (`npm run build -w cli`) to copy new components
+5. Rebuild CLI (`pnpm build -w cli`) to copy new components
 6. Test installation with `tambo add <component>`
 
 ## Testing
@@ -199,9 +199,9 @@ CLI utilities use Jest with ESM support and memfs for filesystem mocking:
 ### Running Tests
 
 ```bash
-npm test                        # Run all CLI tests
-npm test -- --watch            # Run tests in watch mode
-npm test -- add                # Run specific CLI utility test
+pnpm test                        # Run all CLI tests
+pnpm test -- --watch            # Run tests in watch mode
+pnpm test -- add                # Run specific CLI utility test
 ```
 
 Key requirements:
@@ -236,4 +236,4 @@ published npm package:
 - Write tests for new commands and logic changes
 - Test component generation end-to-end
 - Update help text for new commands/options
-- Always run tests before committing: `npm test`
+- Always run tests before committing: `pnpm test`

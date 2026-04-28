@@ -651,7 +651,7 @@ export const TextEditor = React.forwardRef<TamboEditor, TextEditorProps>(
       (e: React.KeyboardEvent) => {
         if (e.key === "Enter" && !e.shiftKey && value.trim()) {
           e.preventDefault();
-          void onSubmit(e as React.FormEvent);
+          void onSubmit(e);
           return;
         }
         onKeyDown?.(e);

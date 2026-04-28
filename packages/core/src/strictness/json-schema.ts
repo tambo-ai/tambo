@@ -213,7 +213,7 @@ export function strictifyJSONSchemaProperty(
         }
 
         const strictSchema = strictifyJSONSchemaProperty(
-          value as JSONSchema7Definition,
+          value,
           isRequired,
           `${debugKey}.${key}`,
         );
@@ -255,10 +255,7 @@ export function strictifyJSONSchemaProperty(
     const objectProperty = {
       ...restOfProperty,
       properties: strictifyJSONSchemaProperties(
-        (restOfProperty.properties ?? {}) as Record<
-          string,
-          JSONSchema7Definition
-        >,
+        restOfProperty.properties ?? {},
         restOfProperty.required ?? [],
         debugKey,
       ),
@@ -285,7 +282,7 @@ export function strictifyJSONSchemaProperty(
           )
           .filter((value) => value !== null)
       : strictifyJSONSchemaProperty(
-          restOfProperty.items as JSONSchema7Definition,
+          restOfProperty.items,
           isRequired,
           `${debugKey}.items`,
         );

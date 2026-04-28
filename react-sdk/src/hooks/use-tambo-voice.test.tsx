@@ -88,7 +88,7 @@ describe("useTamboVoice", () => {
     mockFetch.mockReset();
 
     previousFetch = global.fetch;
-    global.fetch = mockFetch as unknown as typeof fetch;
+    global.fetch = mockFetch;
 
     mockStartRecording = jest.fn();
     mockStopRecording = jest.fn();

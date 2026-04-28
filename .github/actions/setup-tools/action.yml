@@ -5,7 +5,7 @@ description: Configure common tools for GitHub Actions workflows.
 
 inputs:
   install:
-    description: "Whether to install npm dependencies."
+    description: "Whether to install pnpm dependencies."
     required: false
     default: "true"
   frozen:
@@ -13,13 +13,13 @@ inputs:
     required: false
     default: "true"
   cache:
-    description: "Whether to cache npm dependencies."
+    description: "Whether to cache pnpm dependencies."
     required: false
     default: "true"
   cache-dependency-path:
-    description: "Path to the file that determines the cache key (e.g., package-lock.json). Relative to working-directory."
+    description: "Path to the file that determines the cache key (e.g., pnpm-lock.yaml). Relative to working-directory."
     required: false
-    default: "package-lock.json"
+    default: "pnpm-lock.yaml"
   working-directory:
     description: "The working directory to run commands in."
     required: false
@@ -31,16 +31,22 @@ runs:
     - name: Setup Mise
       uses: jdx/mise-action@v4.0.1
 
+    - name: Enable Corepack
+      shell: bash
+      # mise installs Node + Corepack; this prepares the pnpm version pinned
+      # in package.json so subsequent steps can run pnpm directly.
+      run: corepack enable && corepack prepare --activate
+
     - name: Setup Node Cache
       if: ${{ inputs.cache == 'true' }}
       uses: actions/setup-node@v6
       with:
         # only specifying cache here. Node install is handled by mise
-        cache: npm
+        cache: pnpm
         cache-dependency-path: ${{ inputs.working-directory }}/${{ inputs.cache-dependency-path }}
 
     - name: Install dependencies
       if: ${{ inputs.install == 'true' }}
       shell: bash
       working-directory: ${{ inputs.working-directory }}
-      run: ${{ inputs.frozen == 'true' && 'npm ci' || 'npm install' }}
+      run: ${{ inputs.frozen == 'true' && 'pnpm install --frozen-lockfile' || 'pnpm install' }}

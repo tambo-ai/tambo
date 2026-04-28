@@ -23,18 +23,25 @@
     "test:watch": "jest --watch"
   },
   "devDependencies": {
-    "@tambo-ai/eslint-config": "*",
-    "@tambo-ai/typescript-config": "*",
+    "@jest/globals": "^30.3.0",
+    "@tambo-ai/eslint-config": "workspace:*",
+    "@tambo-ai/typescript-config": "workspace:*",
     "@types/jest": "^30.0.0",
     "@types/js-yaml": "^4.0.9",
+    "@types/json-schema": "^7.0.15",
     "@types/node": "^22.19.15",
     "jest": "^30.3.0",
     "prettier-2": "npm:prettier@^2",
     "ts-jest": "^29.4.9",
     "zod": "^3.25.76",
-    "zod-to-json-schema": "^3.25.1"
+    "zod-to-json-schema": "^3.25.1",
+    "eslint": "^9.39.4",
+    "typescript-eslint": "^8.58.1"
   },
   "dependencies": {
+    "@ai-sdk/google": "^2.0.21",
+    "@ai-sdk/groq": "^2.0.31",
+    "@ai-sdk/mistral": "^2.0.20",
     "@modelcontextprotocol/sdk": "^1.27.1",
     "js-yaml": "^4.1.0",
     "jose": "^5.10.0",

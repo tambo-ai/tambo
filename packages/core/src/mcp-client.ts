@@ -199,7 +199,7 @@ export class MCPClient {
           return {
             name: tool.name,
             description: tool.description,
-            inputSchema: tool.inputSchema as JSONSchema7,
+            inputSchema: tool.inputSchema,
           };
         }),
       );

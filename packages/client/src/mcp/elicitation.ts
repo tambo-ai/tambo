@@ -65,7 +65,7 @@ export interface ElicitationContextState {
 export function toElicitationRequestedSchema(
   value: ElicitRequestParamsWithRequestedSchema["requestedSchema"],
 ): ElicitationRequestedSchema {
-  return value as ElicitationRequestedSchema;
+  return value;
 }
 
 /**

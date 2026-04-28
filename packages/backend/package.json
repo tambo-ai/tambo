@@ -42,9 +42,10 @@
     "@aws-sdk/s3-request-presigner": "^3.700.0",
     "@mastra/client-js": "^1.1.0",
     "@mastra/core": "^1.1.0",
-    "@tambo-ai-cloud/core": "*",
+    "@tambo-ai-cloud/core": "workspace:*",
     "ai": "^6.0.138",
     "ajv": "^8.18.0",
+    "fast-deep-equal": "^3.1.3",
     "fast-json-patch": "^3.1.1",
     "gpt-tokenizer": "^3.2.0",
     "langfuse": "^3.38.6",
@@ -57,8 +58,8 @@
     "zod-to-json-schema": "^3.25.1"
   },
   "devDependencies": {
-    "@tambo-ai/eslint-config": "*",
-    "@tambo-ai/typescript-config": "*",
+    "@tambo-ai/eslint-config": "workspace:*",
+    "@tambo-ai/typescript-config": "workspace:*",
     "@types/jest": "^30.0.0",
     "@types/json-schema": "^7.0.15",
     "@types/mime-types": "^3.0.1",
@@ -66,6 +67,8 @@
     "jest": "^30.3.0",
     "prettier-2": "npm:prettier@^2",
     "ts-jest": "^29.4.9",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "eslint": "^9.39.4",
+    "typescript-eslint": "^8.58.1"
   }
 }

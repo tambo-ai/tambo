@@ -27,10 +27,12 @@
     "vite-tsconfig-paths": "^6.0.5"
   },
   "devDependencies": {
-    "@tambo-ai/eslint-config": "*",
+    "@tambo-ai/eslint-config": "workspace:*",
+    "@tambo-ai/typescript-config": "workspace:*",
     "tsdown": "^0.20.3",
     "typescript": "^5.9.3",
-    "vite": "^7.3.2"
+    "vite": "^7.3.2",
+    "eslint": "^9.39.4"
   },
   "peerDependencies": {
     "typescript": "^5.0.0",

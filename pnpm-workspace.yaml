@@ -1,0 +1,8 @@
+packages:
+  - "react-sdk"
+  - "showcase"
+  - "docs"
+  - "cli"
+  - "create-tambo-app"
+  - "packages/*"
+  - "apps/*"

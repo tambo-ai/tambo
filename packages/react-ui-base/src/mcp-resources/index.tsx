@@ -9,7 +9,13 @@ import { McpResourcesTrigger } from "./trigger/mcp-resources-trigger";
 /**
  * McpResources namespace containing all MCP resource picker base components.
  */
-const McpResources = {
+const McpResources: {
+  Root: typeof McpResourcesRoot;
+  Trigger: typeof McpResourcesTrigger;
+  Search: typeof McpResourcesSearch;
+  List: typeof McpResourcesList;
+  Item: typeof McpResourcesItem;
+} = {
   Root: McpResourcesRoot,
   Trigger: McpResourcesTrigger,
   Search: McpResourcesSearch,

@@ -172,7 +172,7 @@ describe("v1-tool-conversions", () => {
         description: "A simple tool",
         inputSchema: {
           type: "string",
-        } as unknown as object,
+        },
       };
 
       const result = convertV1ToolToInternal(v1Tool);

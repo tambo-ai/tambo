@@ -398,7 +398,7 @@ describe("convertPropsToJsonSchema", () => {
       name: "TestComponent",
       description: "A test component",
       component: () => null,
-      props: unknownFormat as unknown,
+      props: unknownFormat,
       contextTools: [],
     } as RegisteredComponent;
     const result = convertPropsToJsonSchema(component);

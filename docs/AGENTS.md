@@ -10,9 +10,9 @@ The Docs package (`@tambo-ai/docs`) is a Next.js application serving as the offi
 
 ```bash
 # Development
-npm run dev          # Start dev server with Turbo mode
-npm run build        # Build for production
-npm run start        # Start production server
+pnpm dev          # Start dev server with Turbo mode
+pnpm build        # Build for production
+pnpm start        # Start production server
 npm run postinstall  # Process MDX files (automatic)
 npm run postbuild    # Generate sitemap (automatic)
 ```
@@ -58,7 +58,7 @@ npm run postbuild    # Generate sitemap (automatic)
 1. Create MDX file with frontmatter (title, description, icon)
 2. Update relevant `meta.json` for navigation
 3. Add assets to `public/assets/docs/` if needed
-4. Test locally with `npm run dev`
+4. Test locally with `pnpm dev`
 
 ### Adding Interactive Components
 

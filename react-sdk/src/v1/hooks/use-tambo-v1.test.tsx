@@ -501,7 +501,7 @@ describe("useTambo", () => {
                       name: "TestComponent",
                       props: undefined,
                       streamingState: "done",
-                    } as TamboComponentContent,
+                    },
                   ],
                   createdAt: new Date().toISOString(),
                 },

@@ -232,14 +232,14 @@ describe("skills commands", () => {
     console.error = (...args: unknown[]) => {
       consoleErrors.push(args.join(" "));
     };
-    process.stdout.write = ((data: string) => {
+    process.stdout.write = (data: string) => {
       stdoutWrites.push(data);
       return true;
-    }) as typeof process.stdout.write;
+    };
     // Prevent process.exit from actually exiting
-    process.exit = (() => {
+    process.exit = () => {
       throw new Error("process.exit called");
-    }) as never;
+    };
   });
 
   afterEach(() => {

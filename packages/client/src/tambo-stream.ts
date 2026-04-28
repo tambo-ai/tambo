@@ -109,7 +109,7 @@ class EventQueue<T> {
   close(): void {
     this.done = true;
     for (const waiter of this.waiters) {
-      waiter({ value: undefined as unknown as T, done: true });
+      waiter({ value: undefined, done: true });
     }
     this.waiters = [];
   }
@@ -124,7 +124,7 @@ class EventQueue<T> {
     // Reject all waiters... but async iterator protocol uses throw, not reject.
     // We'll store the error and throw it on next pull.
     for (const waiter of this.waiters) {
-      waiter({ value: undefined as unknown as T, done: true });
+      waiter({ value: undefined, done: true });
     }
     this.waiters = [];
   }
@@ -144,7 +144,7 @@ class EventQueue<T> {
       return { value: item, done: false };
     }
     if (this.done) {
-      return { value: undefined as unknown as T, done: true };
+      return { value: undefined, done: true };
     }
     return await new Promise<IteratorResult<T>>((resolve) => {
       this.waiters.push(resolve);
@@ -228,7 +228,7 @@ export class TamboStream implements AsyncIterable<StreamEvent> {
       next: async () => await this.eventQueue.pull(),
       return: async () => {
         this.eventQueue.close();
-        return { value: undefined as unknown as StreamEvent, done: true };
+        return { value: undefined, done: true };
       },
       [Symbol.asyncIterator]() {
         return this;

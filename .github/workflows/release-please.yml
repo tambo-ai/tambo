@@ -62,11 +62,11 @@ jobs:
           registry-url: "https://registry.npmjs.org"
 
       - name: Build
-        run: npx turbo build --filter=@tambo-ai/client
+        run: pnpm exec turbo build --filter=@tambo-ai/client
 
       - name: Publish @tambo-ai/client to npm
         working-directory: ./packages/client
-        run: npm publish --access public
+        run: pnpm publish --access public --no-git-checks
 
   # NPM Package Publishing - React SDK
   publish-react-sdk:
@@ -90,11 +90,11 @@ jobs:
           registry-url: "https://registry.npmjs.org"
 
       - name: Build
-        run: npx turbo build --filter=@tambo-ai/react
+        run: pnpm exec turbo build --filter=@tambo-ai/react
 
       - name: Publish @tambo-ai/react to npm
         working-directory: ./react-sdk
-        run: npm publish --access public
+        run: pnpm publish --access public --no-git-checks
 
   # NPM Package Publishing - CLI
   publish-cli:
@@ -118,11 +118,11 @@ jobs:
           registry-url: "https://registry.npmjs.org"
 
       - name: Build
-        run: npx turbo build --filter=tambo
+        run: pnpm exec turbo build --filter=tambo
 
       - name: Publish tambo to npm
         working-directory: ./cli
-        run: npm publish --access public
+        run: pnpm publish --access public --no-git-checks
 
   # NPM Package Publishing - Create Tambo App
   publish-create-tambo-app:
@@ -146,11 +146,11 @@ jobs:
           registry-url: "https://registry.npmjs.org"
 
       - name: Build
-        run: npx turbo build --filter=create-tambo-app
+        run: pnpm exec turbo build --filter=create-tambo-app
 
       - name: Publish create-tambo-app to npm
         working-directory: ./create-tambo-app
-        run: npm publish --access public
+        run: pnpm publish --access public --no-git-checks
 
   # NPM Package Publishing - React UI Base
   publish-react-ui-base:
@@ -174,11 +174,11 @@ jobs:
           registry-url: "https://registry.npmjs.org"
 
       - name: Build
-        run: npx turbo build --filter=@tambo-ai/react-ui-base
+        run: pnpm exec turbo build --filter=@tambo-ai/react-ui-base
 
       - name: Publish @tambo-ai/react-ui-base to npm
         working-directory: ./packages/react-ui-base
-        run: npm publish --access public
+        run: pnpm publish --access public --no-git-checks
 
   # Web App Deployment
   deploy-web:

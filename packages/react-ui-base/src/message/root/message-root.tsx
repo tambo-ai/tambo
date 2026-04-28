@@ -69,7 +69,9 @@ export type MessageRootProps = UseRenderComponentProps<
  * Provides context for child components and applies data attributes.
  * Renders nothing for tool response messages.
  */
-export const MessageRoot = React.forwardRef<HTMLDivElement, MessageRootProps>(
+export const MessageRoot: React.ForwardRefExoticComponent<
+  React.PropsWithoutRef<MessageRootProps> & React.RefAttributes<HTMLDivElement>
+> = React.forwardRef<HTMLDivElement, MessageRootProps>(
   function MessageRoot(props, ref) {
     const { messages, isIdle } = useTambo();
     const message = React.useMemo(() => {

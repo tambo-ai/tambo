@@ -5,10 +5,10 @@ jq = "1.8.1"
 shellcheck = "0.11.0"
 
 [tools."npm:corepack"]
-# Use Corepack to manage package managers like npm, yarn, and pnpm
+# Use Corepack to manage package managers (pnpm is selected via
+# `packageManager` in package.json).
 version = "0.34.6"
-# Enable corepack for all package managers (npm doesn't enable by default)
-postinstall = "corepack enable && corepack enable npm"
+postinstall = "corepack enable"
 
 [settings]
 # Enable reading .node-version files for node version management

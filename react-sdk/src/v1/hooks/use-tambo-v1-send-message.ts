@@ -124,7 +124,7 @@ function dispatchToolResults(
         content:
           result.content
             .filter((c) => c.type === "text")
-            .map((c) => (c as { type: "text"; text: string }).text)
+            .map((c) => c.text)
             .join("") || JSON.stringify(result.content),
       },
     });

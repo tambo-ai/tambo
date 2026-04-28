@@ -8,7 +8,12 @@ import { ThreadContentRoot } from "./root/thread-content-root";
 /**
  * ThreadContent namespace containing all thread content base components.
  */
-const ThreadContent = {
+const ThreadContent: {
+  Root: typeof ThreadContentRoot;
+  Messages: typeof ThreadContentMessages;
+  Empty: typeof ThreadContentEmpty;
+  Loading: typeof ThreadContentLoading;
+} = {
   Root: ThreadContentRoot,
   Messages: ThreadContentMessages,
   Empty: ThreadContentEmpty,

@@ -10,7 +10,7 @@ import { CorrelationLoggerService } from "../services/logger.service";
 import { validateSubjectToken } from "./oauth";
 
 // Mock global fetch for OpenID discovery tests
-global.fetch = jest.fn() as jest.MockedFunction<typeof fetch>;
+global.fetch = jest.fn() as unknown as typeof fetch;
 
 describe("validateSubjectToken", () => {
   let mockLogger: jest.Mocked<CorrelationLoggerService>;

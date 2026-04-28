@@ -5,7 +5,7 @@ import { TAMBO_MCP_ACCESS_KEY_CLAIM } from "@tambo-ai-cloud/core";
 import { getDb, HydraDb } from "@tambo-ai-cloud/db";
 import cors from "cors";
 import { Express, NextFunction, Request, Response } from "express";
-import { getThreadMCPClients } from "src/common/systemTools";
+import { getThreadMCPClients } from "../common/systemTools";
 import { extractAndVerifyMcpAccessToken } from "../common/utils/oauth";
 import { registerElicitationHandlers } from "./elicitations";
 import { registerPromptHandlers } from "./prompts";

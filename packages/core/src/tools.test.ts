@@ -96,11 +96,7 @@ describe("validateMcpServer", () => {
     });
 
     it("normalizes undefined status code to 500", async () => {
-      const err = new SseError(
-        undefined as unknown as number,
-        "bad",
-        dummyEvent,
-      );
+      const err = new SseError(undefined, "bad", dummyEvent);
 
       MCPClient.create.mockRejectedValue(err);
 

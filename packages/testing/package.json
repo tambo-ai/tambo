@@ -21,18 +21,19 @@
     "clean": "rm -rf dist coverage"
   },
   "devDependencies": {
-    "@tambo-ai/eslint-config": "*",
-    "@tambo-ai/typescript-config": "*",
+    "@tambo-ai/eslint-config": "workspace:*",
+    "@tambo-ai/typescript-config": "workspace:*",
     "@types/jest": "^30.0.0",
     "@types/node": "^22.19.15",
     "jest": "^30.3.0",
     "prettier-2": "npm:prettier@^2",
     "ts-jest": "^29.4.9",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "eslint": "^9.39.4"
   },
   "dependencies": {
-    "@tambo-ai-cloud/core": "*",
-    "@tambo-ai-cloud/db": "*",
+    "@tambo-ai-cloud/core": "workspace:*",
+    "@tambo-ai-cloud/db": "workspace:*",
     "openai": "^6.16.0"
   }
 }

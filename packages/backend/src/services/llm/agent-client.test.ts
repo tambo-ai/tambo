@@ -156,7 +156,7 @@ describe("AgentClient", () => {
             return {
               done: true,
               value: { result: null, newMessages: [] },
-            } as IteratorReturnResult<RunAgentResult>;
+            };
           }
           return { done: false, value: events.shift()! };
         },
@@ -164,13 +164,13 @@ describe("AgentClient", () => {
           return {
             done: true,
             value: { result: null, newMessages: [] },
-          } as IteratorReturnResult<RunAgentResult>;
+          };
         },
         async throw() {
           return {
             done: true,
             value: { result: null, newMessages: [] },
-          } as IteratorReturnResult<RunAgentResult>;
+          };
         },
         [Symbol.asyncIterator]() {
           return this;
@@ -267,19 +267,19 @@ describe("AgentClient", () => {
           return {
             done: true,
             value: { result: null, newMessages: [] },
-          } as IteratorReturnResult<RunAgentResult>;
+          };
         },
         async return() {
           return {
             done: true,
             value: { result: null, newMessages: [] },
-          } as IteratorReturnResult<RunAgentResult>;
+          };
         },
         async throw() {
           return {
             done: true,
             value: { result: null, newMessages: [] },
-          } as IteratorReturnResult<RunAgentResult>;
+          };
         },
         [Symbol.asyncIterator]() {
           return this;
@@ -400,19 +400,19 @@ describe("AgentClient", () => {
           return {
             done: true,
             value: { result: null, newMessages: [] },
-          } as IteratorReturnResult<RunAgentResult>;
+          };
         },
         async return() {
           return {
             done: true,
             value: { result: null, newMessages: [] },
-          } as IteratorReturnResult<RunAgentResult>;
+          };
         },
         async throw() {
           return {
             done: true,
             value: { result: null, newMessages: [] },
-          } as IteratorReturnResult<RunAgentResult>;
+          };
         },
         [Symbol.asyncIterator]() {
           return this;
@@ -537,7 +537,7 @@ describe("AgentClient", () => {
             return {
               done: true,
               value: { result: null, newMessages: [] },
-            } as IteratorReturnResult<RunAgentResult>;
+            };
           }
 
           // Wait for events to be available
@@ -557,7 +557,7 @@ describe("AgentClient", () => {
             return {
               done: true,
               value: { result: null, newMessages: [] },
-            } as IteratorReturnResult<RunAgentResult>;
+            };
           }
 
           const event = events.shift()!;
@@ -572,14 +572,14 @@ describe("AgentClient", () => {
           return {
             done: true,
             value: { result: null, newMessages: [] },
-          } as IteratorReturnResult<RunAgentResult>;
+          };
         },
         async throw() {
           isFinished = true;
           return {
             done: true,
             value: { result: null, newMessages: [] },
-          } as IteratorReturnResult<RunAgentResult>;
+          };
         },
         [Symbol.asyncIterator]() {
           return this;
@@ -1321,20 +1321,20 @@ describe("AgentClient", () => {
                 state: {},
                 agent: {} as any,
                 input: {} as any,
-              } as EventHandlerParams,
+              },
             };
           },
           async return() {
             return {
               done: true,
               value: { result: null, newMessages: [] },
-            } as IteratorReturnResult<RunAgentResult>;
+            };
           },
           async throw() {
             return {
               done: true,
               value: { result: null, newMessages: [] },
-            } as IteratorReturnResult<RunAgentResult>;
+            };
           },
           [Symbol.asyncIterator]() {
             return this;
@@ -1376,20 +1376,20 @@ describe("AgentClient", () => {
                 state: {},
                 agent: {} as any,
                 input: {} as any,
-              } as EventHandlerParams,
+              },
             };
           },
           async return() {
             return {
               done: true,
               value: { result: null, newMessages: [] },
-            } as IteratorReturnResult<RunAgentResult>;
+            };
           },
           async throw() {
             return {
               done: true,
               value: { result: null, newMessages: [] },
-            } as IteratorReturnResult<RunAgentResult>;
+            };
           },
           [Symbol.asyncIterator]() {
             return this;
@@ -1430,20 +1430,20 @@ describe("AgentClient", () => {
                 state: {},
                 agent: {} as any,
                 input: {} as any,
-              } as EventHandlerParams,
+              },
             };
           },
           async return() {
             return {
               done: true,
               value: { result: null, newMessages: [] },
-            } as IteratorReturnResult<RunAgentResult>;
+            };
           },
           async throw() {
             return {
               done: true,
               value: { result: null, newMessages: [] },
-            } as IteratorReturnResult<RunAgentResult>;
+            };
           },
           [Symbol.asyncIterator]() {
             return this;
@@ -1484,20 +1484,20 @@ describe("AgentClient", () => {
                 state: {},
                 agent: {} as any,
                 input: {} as any,
-              } as EventHandlerParams,
+              },
             };
           },
           async return() {
             return {
               done: true,
               value: { result: null, newMessages: [] },
-            } as IteratorReturnResult<RunAgentResult>;
+            };
           },
           async throw() {
             return {
               done: true,
               value: { result: null, newMessages: [] },
-            } as IteratorReturnResult<RunAgentResult>;
+            };
           },
           [Symbol.asyncIterator]() {
             return this;

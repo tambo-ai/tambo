@@ -9,12 +9,12 @@ The Showcase (`@tambo-ai/showcase`) is a Next.js application that demonstrates a
 ## Essential Commands
 
 ```bash
-npm run dev          # Start Next.js development server
-npm run build        # Build for production
-npm run lint         # ESLint code checking
-npm run test         # Ensure code snippets stay Prettier formatted
-npm run format:code  # Format embedded code snippets in showcase with Prettier rules
-npm run clean        # Remove .next build artifacts
+pnpm dev          # Start Next.js development server
+pnpm build        # Build for production
+pnpm lint         # ESLint code checking
+pnpm test         # Ensure code snippets stay Prettier formatted
+pnpm format:code  # Format embedded code snippets in showcase with Prettier rules
+pnpm clean        # Remove .next build artifacts
 ```
 
 ## Key Files and Directories
@@ -43,7 +43,7 @@ src/
 - **All components must be SSR compatible** - This is a Next.js app
 - **Use unique context keys for thread isolation** - Each demo needs its own thread context
 - **Update `src/lib/navigation.ts` when adding demos**
-- **Embedded code snippets must stay Prettier formatted** - Run `npm run format:code` after editing `code={` template strings; CI enforces this with `npm run test`
+- **Embedded code snippets must stay Prettier formatted** - Run `pnpm format:code` after editing `code={` template strings; CI enforces this with `pnpm test`
 
 ## Critical Design Rules
 

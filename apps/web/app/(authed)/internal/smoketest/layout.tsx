@@ -16,7 +16,7 @@ export default async function Layout({
   children: React.ReactNode;
 }) {
   const session = await getServerSession(authOptions);
-  const user = session?.user as User | undefined;
+  const user = session?.user;
 
   // Get the OAuth access token from the session
   const userToken = user?.idToken ?? user?.userToken;

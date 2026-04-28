@@ -10,12 +10,12 @@ This is the **@tambo-ai/react** package - the core React SDK for building AI-pow
 
 ```bash
 # Development
-npm run dev              # Watch mode compilation (CJS + ESM)
-npm run build           # Build both CJS and ESM outputs
-npm run test            # Run Jest tests
-npm run lint            # ESLint code checking
-npm run check-types     # TypeScript type checking
-npm run clean           # Remove build artifacts
+pnpm dev              # Watch mode compilation (CJS + ESM)
+pnpm build           # Build both CJS and ESM outputs
+pnpm test            # Run Jest tests
+pnpm lint            # ESLint code checking
+pnpm check-types     # TypeScript type checking
+pnpm clean           # Remove build artifacts
 ```
 
 ## Architecture Overview

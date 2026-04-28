@@ -43,6 +43,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",
+    "@tambo-ai/typescript-config": "workspace:*",
     "@types/cross-spawn": "^6.0.6",
     "eslint": "^9.39.4",
     "rimraf": "^6.1.3",

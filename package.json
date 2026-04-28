@@ -42,16 +42,7 @@
     "type-fest": "^5.4.3",
     "typescript": "^5.9.3"
   },
-  "packageManager": "npm@11.7.0+sha512.c22099a6fff8d5b2286c2a09df5352b4858a7c0c716320f58989d60ad8b29ecf2ce6fdfe97ccb41c23ffb1272e1fa079f868487dd6b81d02a2a9e199c095a117",
-  "workspaces": [
-    "react-sdk",
-    "showcase",
-    "docs",
-    "cli",
-    "create-tambo-app",
-    "packages/*",
-    "apps/*"
-  ],
+  "packageManager": "pnpm@10.15.0",
   "devEngines": {
     "runtime": {
       "name": "node",
@@ -59,22 +50,43 @@
       "onFail": "error"
     },
     "packageManager": {
-      "name": "npm",
-      "version": ">=11",
+      "name": "pnpm",
+      "version": ">=10",
       "onFail": "error"
     }
   },
-  "//overrides": "@ai-sdk/openai v3 and @ai-sdk/anthropic v3 are required for skills runtime (openai.tools.shell and anthropic.tools.codeExecution in mergeProviderSkills). @copilotkit/runtime pulls in v2 which gets hoisted to root, so we pin v3 here to ensure all packages resolve the same version.",
-  "overrides": {
-    "@ai-sdk/openai": "$@ai-sdk/openai",
-    "@ai-sdk/anthropic": "$@ai-sdk/anthropic"
+  "//overrides": "@ai-sdk/openai v3 and @ai-sdk/anthropic v3 are required for skills runtime (openai.tools.shell and anthropic.tools.codeExecution in mergeProviderSkills). @copilotkit/runtime pulls in v2, so we pin v3 here via pnpm.overrides to ensure all packages resolve the same version.",
+  "pnpm": {
+    "overrides": {
+      "@ai-sdk/openai": "$@ai-sdk/openai",
+      "@ai-sdk/anthropic": "$@ai-sdk/anthropic",
+      "@types/express-serve-static-core": "5.1.0"
+    },
+    "peerDependencyRules": {
+      "allowedVersions": {
+        "mcp-handler>@modelcontextprotocol/sdk": "1.29.x",
+        "@copilotkit/runtime>openai": "6",
+        "@copilotkit/runtime>@anthropic-ai/sdk": "0.82",
+        "@standard-community/standard-json>quansync": "1"
+      }
+    },
+    "onlyBuiltDependencies": [
+      "@nestjs/core",
+      "@scarf/scarf",
+      "@sentry-internal/node-cpu-profiler",
+      "@sentry/cli",
+      "core-js",
+      "esbuild",
+      "protobufjs",
+      "sharp",
+      "unrs-resolver"
+    ]
   },
   "dependencies": {
     "@ai-sdk/openai": "^3.0.48",
     "@ai-sdk/anthropic": "^3.0.64"
   },
   "volta": {
-    "node": "22.22.0",
-    "npm": "11.7.0"
+    "node": "22.22.0"
   }
 }

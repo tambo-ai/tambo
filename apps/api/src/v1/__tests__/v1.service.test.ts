@@ -212,7 +212,7 @@ describe("V1Service", () => {
     mockDb.select.mockReturnValue(mockSelectChain);
 
     mockDb.transaction.mockImplementation(async (handler) => {
-      return await handler(mockDb as unknown as HydraDatabase);
+      return await handler(mockDb);
     });
 
     mockThreadsService = {
@@ -251,7 +251,7 @@ describe("V1Service", () => {
     it("should clamp negative limits", async () => {
       mockOperations.listThreadsPaginated.mockResolvedValue([]);
 
-      await service.listThreads("prj_123", "user_456", { limit: -5 } as any);
+      await service.listThreads("prj_123", "user_456", { limit: -5 });
 
       const normalizedLimit = 1;
 
@@ -266,7 +266,7 @@ describe("V1Service", () => {
     it("should clamp large limits to 100", async () => {
       mockOperations.listThreadsPaginated.mockResolvedValue([]);
 
-      await service.listThreads("prj_123", "user_456", { limit: 1000 } as any);
+      await service.listThreads("prj_123", "user_456", { limit: 1000 });
 
       const normalizedLimit = 100;
 
@@ -861,7 +861,7 @@ describe("V1Service", () => {
     it("should handle message with empty content array", async () => {
       const messageWithEmptyContent = { ...mockMessage, content: [] };
       mockOperations.getMessageByIdInThread.mockResolvedValue(
-        messageWithEmptyContent as any,
+        messageWithEmptyContent,
       );
 
       const result = await service.getMessage("thr_123", "msg_123");

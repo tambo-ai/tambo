@@ -140,7 +140,7 @@ describe("content utilities", () => {
         {
           type: ContentPartType.InputAudio,
           input_audio: undefined,
-        } as ChatCompletionContentPartDto,
+        },
       ];
       expect(() => convertContentDtoToContentPart(input)).toThrow(
         "input_audio with base64 'data' is required for input_audio type",
@@ -226,7 +226,7 @@ describe("content utilities", () => {
           name: "TestComponent",
           props: { title: "Hello" },
           state: { expanded: true },
-        } as ChatCompletionContentPart,
+        },
         { type: ContentPartType.Text, text: "after component" },
       ];
       const result = convertContentPartToDto(input);
@@ -243,7 +243,7 @@ describe("content utilities", () => {
           id: "comp-456",
           name: "OnlyComponent",
           props: {},
-        } as ChatCompletionContentPart,
+        },
       ];
       const result = convertContentPartToDto(input);
       expect(result).toEqual([]);
@@ -267,7 +267,7 @@ describe("content utilities", () => {
           name: "WeatherCard",
           props: { temp: 72 },
           state: { expanded: true },
-        } as ChatCompletionContentPart,
+        },
       ];
       const result = contentPartToDbFormat(input);
       // Should return the same array without filtering
@@ -290,7 +290,7 @@ describe("content utilities", () => {
           id: "comp-123",
           name: "TestComponent",
           props: {},
-        } as ChatCompletionContentPart,
+        },
         { type: ContentPartType.Text, text: "after" },
       ];
 

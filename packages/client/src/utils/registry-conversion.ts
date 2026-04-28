@@ -41,7 +41,7 @@ export function toAvailableComponent(
   return {
     name: component.name,
     description: component.description,
-    propsSchema: component.props as Record<string, unknown>,
+    propsSchema: component.props,
     // stateSchema is not available in registered components
     // Components can still have state, but schema must be defined separately
   };
@@ -99,7 +99,7 @@ export function toAvailableTool(
     return {
       name: tool.name,
       description: tool.description,
-      inputSchema: inputSchema as Record<string, unknown>,
+      inputSchema: inputSchema,
       ...(tool.maxCalls !== undefined ? { maxCalls: tool.maxCalls } : {}),
     };
   }
@@ -110,7 +110,7 @@ export function toAvailableTool(
     return {
       name: tool.name,
       description: tool.description,
-      inputSchema: inputSchema as Record<string, unknown>,
+      inputSchema: inputSchema,
       ...(tool.maxCalls !== undefined ? { maxCalls: tool.maxCalls } : {}),
     };
   }

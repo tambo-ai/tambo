@@ -30,16 +30,16 @@
   ],
   "sideEffects": false,
   "scripts": {
-    "build": "tsc --project tsconfig.build.json && npm run copy-registry",
-    "copy-registry": "npx tsx scripts/copy-registry.ts",
-    "dev": "concurrently -c blue.bold,green.bold \"npm run dev:esm\"",
+    "build": "tsc --project tsconfig.build.json && pnpm run copy-registry",
+    "copy-registry": "tsx scripts/copy-registry.ts",
+    "dev": "concurrently -c blue.bold,green.bold \"pnpm run dev:esm\"",
     "dev:esm": "tsc --watch",
     "check-types": "tsc --noEmit",
     "test": "NODE_OPTIONS=--experimental-vm-modules jest",
     "format": "prettier --write .",
     "lint": "eslint",
     "lint:fix": "eslint --fix",
-    "format:lint": "npm run format && npm run lint:fix",
+    "format:lint": "pnpm run format && pnpm run lint:fix",
     "clean": "rimraf dist esm coverage"
   },
   "engines": {
@@ -55,13 +55,15 @@
     ]
   },
   "dependencies": {
-    "@tambo-ai/react": "*",
+    "@inquirer/prompts": "^7.10.1",
+    "@tambo-ai/react": "workspace:*",
     "@tambo-ai/typescript-sdk": "^0.95.0",
     "@trpc/client": "^11.15.1",
     "@trpc/server": "^11.15.1",
     "chalk": "^5.6.0",
     "cli-table3": "^0.6.5",
     "clipboardy": "^5.0.2",
+    "clsx": "^2.1.1",
     "cross-spawn": "^7.0.6",
     "date-fns": "^4.1.0",
     "deepmerge": "^4.3.1",
@@ -82,10 +84,15 @@
     "semver": "^7.7.3",
     "streamdown": "^2.3.0",
     "superjson": "^2.2.6",
+    "tailwind-merge": "^2.6.1",
+    "tailwindcss": "^3.4.19",
     "ts-morph": "^27.0.2"
   },
   "devDependencies": {
-    "@tambo-ai/ui-registry": "*",
+    "@jest/globals": "^30.3.0",
+    "@tambo-ai/eslint-config": "workspace:*",
+    "@tambo-ai/typescript-config": "workspace:*",
+    "@tambo-ai/ui-registry": "workspace:*",
     "@types/cross-spawn": "^6.0.6",
     "@types/diffable-html": "^5.0.2",
     "@types/jest": "^30.0.0",
@@ -95,8 +102,11 @@
     "@types/semver": "^7.7.1",
     "diffable-html": "^6.0.1",
     "jest": "^30.3.0",
-    "memfs": "^4.51.0",
+    "memfs": "~4.51.0",
     "ts-jest": "^29.4.9",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "eslint": "^9.39.4",
+    "@eslint/js": "^9.39.4",
+    "typescript-eslint": "^8.58.1"
   }
 }

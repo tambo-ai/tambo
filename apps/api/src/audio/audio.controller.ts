@@ -16,7 +16,7 @@ import {
   ApiTags,
 } from "@nestjs/swagger";
 import mimeTypes from "mime-types";
-import { ApiKeyGuard } from "src/projects/guards/apikey.guard";
+import { ApiKeyGuard } from "../projects/guards/apikey.guard";
 import { AudioService } from "./audio.service";
 import { TranscribeAudioDto } from "./dto/transcribe-audio.dto";
 

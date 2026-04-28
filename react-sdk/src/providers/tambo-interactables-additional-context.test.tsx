@@ -238,7 +238,7 @@ describe("Interactables AdditionalContext (provider-based)", () => {
             description: "",
             component: () => null,
             props: {},
-          } as any);
+          });
           (snapshot[0].props as any).title = "MUTATED";
 
           // The mutations should succeed on the returned copy, proving it's a separate object

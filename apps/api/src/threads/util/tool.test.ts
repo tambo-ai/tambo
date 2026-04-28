@@ -235,7 +235,7 @@ describe("tool utilities", () => {
 
       await callSystemTool(
         prefixedSystemTools,
-        { toolName, parameters: [] as any },
+        { toolName, parameters: [] },
         "id-1",
         "msg-1",
         {

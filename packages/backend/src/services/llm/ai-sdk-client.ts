@@ -1,16 +1,4 @@
-import {
-  EventType,
-  type BaseEvent,
-  type TextMessageContentEvent,
-  type TextMessageEndEvent,
-  type TextMessageStartEvent,
-  type ThinkingTextMessageContentEvent,
-  type ThinkingTextMessageEndEvent,
-  type ThinkingTextMessageStartEvent,
-  type ToolCallArgsEvent,
-  type ToolCallEndEvent,
-  type ToolCallStartEvent,
-} from "@ag-ui/core";
+import { EventType, type BaseEvent } from "@ag-ui/core";
 import { createAnthropic } from "@ai-sdk/anthropic";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { createGroq } from "@ai-sdk/groq";
@@ -581,13 +569,13 @@ export class AISdkClient implements LLMClient {
               messageId: textMessageId,
               role: "assistant",
               timestamp: Date.now(),
-            } as TextMessageStartEvent);
+            });
             aguiEvents.push({
               type: EventType.TEXT_MESSAGE_CONTENT,
               messageId: textMessageId,
               delta: "\n\n",
               timestamp: Date.now(),
-            } as TextMessageContentEvent);
+            });
           } else {
             accumulatedMessage = "";
             textMessageId = generateMessageId();
@@ -596,7 +584,7 @@ export class AISdkClient implements LLMClient {
               messageId: textMessageId,
               role: "assistant",
               timestamp: Date.now(),
-            } as TextMessageStartEvent);
+            });
           }
           break;
         }
@@ -608,7 +596,7 @@ export class AISdkClient implements LLMClient {
               messageId: textMessageId,
               delta: delta.text,
               timestamp: Date.now(),
-            } as TextMessageContentEvent);
+            });
           }
           break;
         case "text-end":
@@ -617,7 +605,7 @@ export class AISdkClient implements LLMClient {
               type: EventType.TEXT_MESSAGE_END,
               messageId: textMessageId,
               timestamp: Date.now(),
-            } as TextMessageEndEvent);
+            });
           }
           // textMessageId is deliberately NOT cleared here so it can be
           // reused if text resumes after a provider-managed skill tool call.
@@ -667,7 +655,7 @@ export class AISdkClient implements LLMClient {
               toolCallName: delta.toolName,
               parentMessageId: textMessageId,
               timestamp: Date.now(),
-            } as ToolCallStartEvent);
+            });
           }
           break;
         }
@@ -686,7 +674,7 @@ export class AISdkClient implements LLMClient {
               toolCallId: delta.id,
               delta: delta.delta,
               timestamp: Date.now(),
-            } as ToolCallArgsEvent);
+            });
           }
           break;
         case "tool-input-end":
@@ -716,7 +704,7 @@ export class AISdkClient implements LLMClient {
               type: EventType.TOOL_CALL_END,
               toolCallId: delta.toolCallId,
               timestamp: Date.now(),
-            } as ToolCallEndEvent);
+            });
           }
           break;
         case "tool-result":
@@ -742,7 +730,7 @@ export class AISdkClient implements LLMClient {
           aguiEvents.push({
             type: EventType.THINKING_TEXT_MESSAGE_START,
             timestamp: Date.now(),
-          } as ThinkingTextMessageStartEvent);
+          });
           break;
         case "reasoning-delta":
           accumulatedReasoning = [
@@ -753,14 +741,14 @@ export class AISdkClient implements LLMClient {
             type: EventType.THINKING_TEXT_MESSAGE_CONTENT,
             delta: delta.text,
             timestamp: Date.now(),
-          } as ThinkingTextMessageContentEvent);
+          });
           break;
         case "reasoning-end":
           reasoningEndTimestamp = Date.now();
           aguiEvents.push({
             type: EventType.THINKING_TEXT_MESSAGE_END,
             timestamp: Date.now(),
-          } as ThinkingTextMessageEndEvent);
+          });
           break;
         case "source": // url? not sure what this is
         case "file": // TODO: handle files - should be added as message objects

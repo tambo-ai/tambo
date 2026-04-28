@@ -20,10 +20,10 @@ Files are stored under `{projectId}/{uniqueId}-{signature}` where `uniqueId` is 
 docker compose --env-file docker.env up minio -d
 
 # 2. Initialize storage bucket
-npm run storage:init -w apps/api
+pnpm --filter @tambo-ai-cloud/api run storage:init
 
 # 3. Start the API
-npm run dev:api
+pnpm dev:api
 ```
 
 ## Environment Variables
@@ -67,13 +67,13 @@ S3_BUCKET=user-files
 3. Initialize storage (creates bucket if needed):
 
 ```bash
-npm run storage:init -w apps/api
+pnpm --filter @tambo-ai-cloud/api run storage:init
 ```
 
 4. Start the API:
 
 ```bash
-npm run dev:api
+pnpm dev:api
 ```
 
 ### Alternative: Manual Bucket Creation
@@ -176,13 +176,13 @@ SUPABASE_SERVICE_ROLE_KEY=<service-role-key-from-supabase-start>
 5. Initialize storage (creates bucket if needed):
 
 ```bash
-npm run storage:init -w apps/api
+pnpm --filter @tambo-ai-cloud/api run storage:init
 ```
 
 6. Start the API:
 
 ```bash
-npm run dev:api
+pnpm dev:api
 ```
 
 ### Alternative: Manual Bucket Creation

@@ -365,9 +365,9 @@ describe("handleInit", () => {
 
     // Mock process.exit to prevent actual exit during tests
     originalExit = process.exit;
-    process.exit = ((code?: number) => {
+    process.exit = (code?: number) => {
       throw new Error(`process.exit(${code ?? 0})`);
-    }) as typeof process.exit;
+    };
 
     // Capture console output
     logs = [];

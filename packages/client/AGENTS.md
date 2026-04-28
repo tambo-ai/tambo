@@ -9,11 +9,11 @@ Framework-agnostic client for Tambo AI. Provides streaming, tool execution, thre
 ## Essential Commands
 
 ```bash
-npm run build -w packages/client    # Build CJS + ESM
-npm run check-types -w packages/client  # TypeScript type checking
-npm run test -w packages/client     # Run tests
-npm run lint -w packages/client     # ESLint
-npm run clean -w packages/client    # Remove build artifacts
+pnpm build -w packages/client    # Build CJS + ESM
+pnpm check-types -w packages/client  # TypeScript type checking
+pnpm test -w packages/client     # Run tests
+pnpm lint -w packages/client     # ESLint
+pnpm clean -w packages/client    # Remove build artifacts
 ```
 
 ## Architecture

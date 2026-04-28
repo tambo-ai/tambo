@@ -13,14 +13,14 @@ Detailed guidance for Claude Code agents working inside `apps/web`, the Next.js 
 ## Essential Commands
 
 ```bash
-npm run dev          # Next dev server with turbo hot reload
-npm run build        # Production build (SKIP_ENV_VALIDATION=true set in script)
-npm start            # Run compiled build
-npm run lint         # ESLint via @tambo-ai config
-npm run check-types  # Strict tsc --noEmit
-npm test             # Jest (jsdom) component/unit tests
-npm run test:cov     # Coverage for dashboard components
-npm run clean        # Remove .next/, dist/, coverage/
+pnpm dev          # Next dev server with turbo hot reload
+pnpm build        # Production build (SKIP_ENV_VALIDATION=true set in script)
+pnpm start            # Run compiled build
+pnpm lint         # ESLint via @tambo-ai config
+pnpm check-types  # Strict tsc --noEmit
+pnpm test             # Jest (jsdom) component/unit tests
+pnpm test:cov     # Coverage for dashboard components
+pnpm clean        # Remove .next/, dist/, coverage/
 ```
 
 Always run lint + type-check + tests before committing; PRs must keep everything passing.
@@ -94,7 +94,7 @@ apps/web
 2. **Document** any significant UX or API behavior in this AGENTS file (and docs site) before writing code.
 3. **Update schemas** under `lib/` or `server/` when backend contracts change; keep tRPC routers and forms in sync.
 4. **Write tests** for hooks/components as you add logic. Snapshots are discouraged; assert actual behavior.
-5. **Run npm run dev** locally and validate flows manually (especially auth + AI interactions).
+5. **Run pnpm dev** locally and validate flows manually (especially auth + AI interactions).
 6. **Lint, check types, and run tests** before commits. Visual changes require a ≤90s demo video when opening a PR.
 
 ## Common Pitfalls

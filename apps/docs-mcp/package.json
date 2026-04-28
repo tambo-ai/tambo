@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@sentry/nextjs": "^10.48.0",
+    "@tambo-ai-cloud/db": "workspace:*",
     "mcp-handler": "^1.1.0",
     "next": "^15.5.15",
     "openai": "^6.16.0",
@@ -23,9 +24,13 @@
     "zod": "^3.25.76"
   },
   "devDependencies": {
-    "@tambo-ai/eslint-config": "*",
-    "@tambo-ai/typescript-config": "*",
+    "@tambo-ai/eslint-config": "workspace:*",
+    "@tambo-ai/typescript-config": "workspace:*",
     "@types/node": "^22.19.15",
-    "typescript": "^5.9.3"
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "typescript": "^5.9.3",
+    "eslint": "^9.39.4",
+    "typescript-eslint": "^8.58.1"
   }
 }

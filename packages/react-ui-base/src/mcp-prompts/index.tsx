@@ -9,7 +9,13 @@ import { McpPromptsTrigger } from "./trigger/mcp-prompts-trigger";
 /**
  * McpPrompts namespace containing all MCP prompt picker base components.
  */
-const McpPrompts = {
+const McpPrompts: {
+  Root: typeof McpPromptsRoot;
+  Trigger: typeof McpPromptsTrigger;
+  List: typeof McpPromptsList;
+  Item: typeof McpPromptsItem;
+  Error: typeof McpPromptsError;
+} = {
   Root: McpPromptsRoot,
   Trigger: McpPromptsTrigger,
   List: McpPromptsList,

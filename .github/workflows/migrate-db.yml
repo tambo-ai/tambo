@@ -137,5 +137,5 @@ jobs:
         if: steps.check-changes.outputs.changed == 'true'
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        run: npm run db:migrate
+        run: pnpm run db:migrate
         working-directory: packages/db

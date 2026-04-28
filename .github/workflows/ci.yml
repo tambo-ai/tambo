@@ -88,13 +88,13 @@ jobs:
           exit "$found"
 
       - name: Run Prettier
-        run: npm run prettier-check
+        run: pnpm run prettier-check
 
       - name: Run Lint
-        run: npm run lint
+        run: pnpm run lint
 
       - name: Run Type Check
-        run: npm run check-types
+        run: pnpm run check-types
 
       - name: Validate docs.tambo.co links
         uses: ./.github/actions/validate-docs-links
@@ -114,7 +114,7 @@ jobs:
         uses: ./.github/actions/setup-tools
 
       - name: Run Tests
-        run: npm run test -- -- --coverage
+        run: pnpm run test -- --coverage
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@57e3a136b779b570ffcdbf80b3bdc90e7fab3de2 # v6.0.0
@@ -135,7 +135,7 @@ jobs:
         uses: ./.github/actions/setup-tools
 
       - name: Run E2E Tests
-        run: npm run test:e2e -w @tambo-ai-cloud/api
+        run: pnpm --filter @tambo-ai-cloud/api run test:e2e
 
   build:
     runs-on: ubuntu-latest
@@ -150,7 +150,7 @@ jobs:
         uses: ./.github/actions/setup-tools
 
       - name: Build
-        run: npm run build
+        run: pnpm run build
         env:
           DATABASE_URL: "postgresql://dummy-user:dummy-password@dummy-host:5432/dummy-database"
           API_KEY_SECRET: "dummy-api-key-secret"

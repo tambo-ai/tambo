@@ -99,14 +99,14 @@ export class AgentClient {
           url: agentUrl,
           headers,
         });
-        return new AgentClient(chainId, agent as unknown as AbstractAgent);
+        return new AgentClient(chainId, agent);
       }
       case AgentProviderType.LLAMAINDEX: {
         const agent = new LlamaIndexAgent({
           url: agentUrl,
           headers,
         });
-        return new AgentClient(chainId, agent as unknown as AbstractAgent);
+        return new AgentClient(chainId, agent);
       }
       case AgentProviderType.PYDANTICAI: {
         const agent = new HttpAgent({
@@ -435,8 +435,11 @@ export class AgentClient {
           }
 
           const currentContent = aguiContentToString(currentMessage.content);
+          // The cast keeps `tsc --declaration` happy when emitting types: the
+          // discriminated-union spread otherwise can't be portably named.
           const updatedMessage: AgentMessage = {
-            ...(currentMessage as unknown as AgentMessage),
+            // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+            ...(currentMessage as AgentMessage),
             content: currentContent + e.delta,
           };
           currentMessage = updatedMessage;
@@ -500,8 +503,11 @@ export class AgentClient {
           }
           const currentReasoningString: string =
             currentMessage.reasoning?.at(-1) ?? "";
+          // See the cast above for why `as AgentMessage` is required despite
+          // the no-op runtime semantics.
           currentMessage = {
-            ...(currentMessage as unknown as AgentMessage),
+            // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+            ...(currentMessage as AgentMessage),
             reasoning: [
               ...(currentMessage.reasoning?.slice(0, -1) ?? []),
               currentReasoningString + e.delta,

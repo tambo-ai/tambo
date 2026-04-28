@@ -34,7 +34,7 @@ function createMockExtra(): RequestHandlerExtra<
   return {
     signal: new AbortController().signal,
     requestId: "test-request-id",
-    sendNotification: (async () => {}) as any,
+    sendNotification: async () => {},
     sendRequest: (async () => ({ _meta: {} })) as any,
   };
 }

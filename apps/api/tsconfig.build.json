@@ -1,10 +1,14 @@
 {
   "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "types": ["node", "multer"]
+  },
   "exclude": [
     "node_modules",
     "test",
     "dist",
     "scripts",
+    "src/test",
     "**/*spec.ts",
     "**/*.test.ts",
     "**/*.test.tsx"

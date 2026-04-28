@@ -5,9 +5,10 @@ const config: Config = {
   testEnvironment: "jsdom",
   moduleNameMapper: {
     "^@/(.*)$": "<rootDir>/src/$1",
-    // pkce-challenge's browser build is ESM-only; force the CJS Node.js version
+    // pkce-challenge's browser build is ESM-only; force the CJS Node.js
+    // version (pnpm symlinks via the workspace's own node_modules).
     "^pkce-challenge$":
-      "<rootDir>/../node_modules/pkce-challenge/dist/index.node.cjs",
+      "<rootDir>/node_modules/pkce-challenge/dist/index.node.cjs",
   },
   testMatch: ["<rootDir>/src/**/*.test.ts?(x)"],
   collectCoverageFrom: [
@@ -20,8 +21,11 @@ const config: Config = {
     "!<rootDir>/esm/**",
   ],
   transform: {
-    "^.+\\.tsx?$": "ts-jest",
+    "^.+\\.[jt]sx?$": "ts-jest",
   },
+  transformIgnorePatterns: [
+    "node_modules/(?!.*?(?:quansync|@standard-community|local-pkg|unconfig-core)[/\\\\@])",
+  ],
   prettierPath: "prettier-2",
   moduleFileExtensions: ["ts", "tsx", "js", "jsx", "json", "node"],
   setupFilesAfterEnv: ["<rootDir>/src/setupTests.ts"],

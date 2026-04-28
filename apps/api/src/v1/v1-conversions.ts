@@ -1,6 +1,5 @@
 import {
   ChatCompletionContentPart,
-  ChatCompletionContentPartComponent,
   ContentPartType,
   isUiToolName,
   MessageRole,
@@ -132,7 +131,7 @@ export function contentPartToV1Block(
     case "resource": {
       const resourceBlock: V1ResourceContentDto = {
         type: "resource",
-        resource: part.resource as V1ResourceContentDto["resource"],
+        resource: part.resource,
       };
       return resourceBlock;
     }
@@ -161,8 +160,7 @@ export function contentPartToV1Block(
       // Component blocks are stored in the content array and passed through to V1 API.
       // The component state is merged from the message's componentState field.
       // Type narrowing works since we're in the "component" case
-      const componentPart =
-        part as unknown as ChatCompletionContentPartComponent;
+      const componentPart = part;
       return {
         type: "component",
         id: componentPart.id,

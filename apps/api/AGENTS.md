@@ -11,19 +11,19 @@ Detailed guidance for Claude Code agents working inside `apps/api`, the NestJS O
 ## Essential Commands
 
 ```bash
-npm run dev           # Start Nest in watch mode (port 8261 by default)
-npm run build         # Compile to dist/ for production
-npm run start:prod    # Run the compiled build
-npm run generate-config # Bootstraps runtime config snapshot
-npm run lint          # ESLint with @tambo-ai config
-npm run check-types   # tsc --noEmit
-npm test              # Jest unit tests (ts-jest)
-npm run test:cov      # Generate coverage report
-npm run test:e2e      # Supertest-based e2e suite (test/app.e2e-spec.ts)
-npm run clean         # Remove dist/ + coverage/
+pnpm dev           # Start Nest in watch mode (port 8261 by default)
+pnpm build         # Compile to dist/ for production
+pnpm start:prod    # Run the compiled build
+pnpm generate-config # Bootstraps runtime config snapshot
+pnpm lint          # ESLint with @tambo-ai config
+pnpm check-types   # tsc --noEmit
+pnpm test              # Jest unit tests (ts-jest)
+pnpm test:cov      # Generate coverage report
+pnpm test:e2e      # Supertest-based e2e suite (test/app.e2e-spec.ts)
+pnpm clean         # Remove dist/ + coverage/
 ```
 
-Always align with the root-level requirement to run `npm run lint`, `npm run check-types`, and `npm test` before opening a PR.
+Always align with the root-level requirement to run `pnpm lint`, `pnpm check-types`, and `pnpm test` before opening a PR.
 
 ## Directory Structure
 
@@ -103,7 +103,7 @@ apps/api/src
   - Null returns from database operations
   - Context fallback behavior (e.g., query param vs bearer token precedence)
 - **Testing HttpException responses** - When testing methods that return `HttpException`, error details are in `getResponse()`, not `message`. Use `error.getResponse()` to access response body fields like `type` and `detail`.
-- Always run `npm run test:cov` when adding meaningful logic to keep a coverage baseline; document gaps if coverage dips.
+- Always run `pnpm test:cov` when adding meaningful logic to keep a coverage baseline; document gaps if coverage dips.
 
 ### NestJS unit tests (providers/services)
 
@@ -124,7 +124,7 @@ See:
 3. **Add DTOs + tests** before wiring controllers.
 4. **Wire services** and ensure providers are registered inside the module.
 5. **Add Swagger decorators** for every route (summary, description, auth requirements).
-6. **Verify locally** with `npm run dev` and the Swagger UI at `http://localhost:8261/api`.
+6. **Verify locally** with `pnpm dev` and the Swagger UI at `http://localhost:8261/api`.
 7. **Run lint, type-check, and tests** before committing.
 
 ## Common Pitfalls

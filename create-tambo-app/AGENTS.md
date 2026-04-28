@@ -10,9 +10,9 @@ The `create-tambo-app` package is a lightweight bootstrapper that creates new Ta
 
 ```bash
 # Development
-npm run dev          # Watch mode TypeScript compilation
-npm run build        # Build executable
-npm run lint         # ESLint code checking
+pnpm dev          # Watch mode TypeScript compilation
+pnpm build        # Build executable
+pnpm lint         # ESLint code checking
 
 # Usage (after build/publish)
 npx create-tambo-app my-app    # Create new Tambo app
@@ -54,7 +54,7 @@ Since this is a simple proxy, most functionality changes should be made in the m
 Test the built package locally:
 
 ```bash
-npm run build
+pnpm build
 node dist/index.js my-test-app
 ```
 

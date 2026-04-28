@@ -67,7 +67,6 @@ import { useStreamState } from "../providers/tambo-v1-stream-context";
 import { useComponentContentOptional } from "../utils/component-renderer";
 import { useDebouncedCallback } from "use-debounce";
 import type { StreamState } from "@tambo-ai/client";
-import type { TamboComponentContent } from "../types/message";
 
 describe("useTamboComponentState", () => {
   const mockUpdateState = jest.fn();
@@ -95,7 +94,7 @@ describe("useTamboComponentState", () => {
                   props: {},
                   state: componentState,
                   streamingState: "done",
-                } as TamboComponentContent,
+                },
               ],
               createdAt: new Date().toISOString(),
             },

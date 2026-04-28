@@ -1,4 +1,4 @@
-import { FunctionParameters, ThreadMessage } from "@tambo-ai-cloud/core";
+import { ThreadMessage } from "@tambo-ai-cloud/core";
 import OpenAI from "openai";
 import { zodToJsonSchema } from "zod-to-json-schema";
 import { z } from "zod/v3";
@@ -18,7 +18,7 @@ export const threadNameTool: OpenAI.Chat.Completions.ChatCompletionTool = {
     name: "generate_thread_name",
     description: `Generate a short name for the thread which summarizes the conversation and can be used to identify the thread. When completed, the name should be no more than ${nameLengthLimit} characters.`,
     strict: true,
-    parameters: zodToJsonSchema(ThreadNameSchema) as FunctionParameters,
+    parameters: zodToJsonSchema(ThreadNameSchema),
   },
 };
 

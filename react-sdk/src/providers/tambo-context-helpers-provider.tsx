@@ -87,11 +87,11 @@ export const TamboContextHelpersProvider: React.FC<
 
   const getAdditionalContext = useCallback(async () => {
     const contexts = await resolveAdditionalContext(helpers);
-    return contexts as AdditionalContext[];
+    return contexts;
   }, [helpers]);
 
   const getContextHelpers = useCallback(() => {
-    return helpers as ContextHelpers;
+    return helpers;
   }, [helpers]);
 
   const value = useMemo(

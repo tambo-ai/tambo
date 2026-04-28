@@ -11,13 +11,13 @@ const config: Config = {
     "<rootDir>/scripts/**/*.test.ts",
   ],
   moduleNameMapper: {
-    // Ensure single React instance - point to monorepo root node_modules
-    "^react$": "<rootDir>/../../node_modules/react",
-    "^react-dom$": "<rootDir>/../../node_modules/react-dom",
-    "^react-dom/(.*)$": "<rootDir>/../../node_modules/react-dom/$1",
-    "^react/jsx-runtime$": "<rootDir>/../../node_modules/react/jsx-runtime",
-    "^react/jsx-dev-runtime$":
-      "<rootDir>/../../node_modules/react/jsx-dev-runtime",
+    // Ensure single React instance - point to the workspace's node_modules
+    // (pnpm symlinks each direct dep into the package's own node_modules).
+    "^react$": "<rootDir>/node_modules/react",
+    "^react-dom$": "<rootDir>/node_modules/react-dom",
+    "^react-dom/(.*)$": "<rootDir>/node_modules/react-dom/$1",
+    "^react/jsx-runtime$": "<rootDir>/node_modules/react/jsx-runtime",
+    "^react/jsx-dev-runtime$": "<rootDir>/node_modules/react/jsx-dev-runtime",
     // Internal package imports
     "^@tambo-ai/ui-registry/utils$": "<rootDir>/src/utils",
     "^@tambo-ai/ui-registry/lib/(.*)$": "<rootDir>/src/lib/$1",

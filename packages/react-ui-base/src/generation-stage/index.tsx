@@ -8,7 +8,12 @@ import { GenerationStageWaiting } from "./generation-stage-waiting";
 /**
  * GenerationStage namespace containing all generation stage base components.
  */
-const GenerationStage = {
+const GenerationStage: {
+  Root: typeof GenerationStageRoot;
+  Content: typeof GenerationStageContent;
+  Waiting: typeof GenerationStageWaiting;
+  Streaming: typeof GenerationStageStreaming;
+} = {
   Root: GenerationStageRoot,
   Content: GenerationStageContent,
   Waiting: GenerationStageWaiting,

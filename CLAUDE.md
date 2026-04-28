@@ -12,20 +12,22 @@ Guidelines for Claude Code (claude.ai/code) when touching this repo.
 
 ## Key Commands
 
+This repo uses **pnpm** (managed via Corepack — `package.json#packageManager`).
+
 ```bash
 # Development (two different apps)
-npm run dev:cloud        # Start Tambo Cloud (web + API) - ports 8260 + 8261
-npm run dev              # Start React SDK (showcase + docs)
+pnpm dev:cloud        # Start Tambo Cloud (web + API) - ports 8260 + 8261
+pnpm dev              # Start React SDK (showcase + docs)
 
 # Quality checks (run before commits)
-npm run lint
-npm run check-types
-npm test
+pnpm lint
+pnpm check-types
+pnpm test
 
-# Database (requires -w flag)
-npm run db:generate -w packages/db
-npm run db:migrate -w packages/db
-npm run db:studio -w packages/db
+# Database (run from the package, or use --filter from the root)
+pnpm --filter @tambo-ai-cloud/db db:generate
+pnpm --filter @tambo-ai-cloud/db db:migrate
+pnpm --filter @tambo-ai-cloud/db db:studio
 
 # Docker (for PostgreSQL in local dev)
 docker compose --env-file docker.env up postgres -d

@@ -1,9 +1,8 @@
 FROM node:22-alpine AS base
 # ---- base ----
 
-# Upgrade npm to v11 (npx bootstraps a working copy to bypass broken
-# promise-retry in the bundled npm on node:22-alpine)
-RUN npx -y npm@11 install -g npm@^11
+# Enable corepack so the pnpm version pinned in package.json is used.
+RUN corepack enable
 
 # Install system dependencies (aligned with @tambo-ai-cloud/api)
 RUN apk add --no-cache gcompat dumb-init
@@ -16,15 +15,16 @@ FROM base AS installer
 
 WORKDIR /workspace
 
-COPY turbo.json package.json package-lock.json ./
-
-# install repo root dependencies for consistent tooling
-RUN npm ci --workspaces=false
+COPY turbo.json package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
 
 COPY packages ./packages
 COPY apps/api ./apps/api
 
-RUN npx turbo prune @tambo-ai-cloud/api --docker
+# pnpm needs the workspace manifest to run `turbo prune`; install the root
+# tooling deps (turbo, tsx) without traversing into workspace packages.
+RUN pnpm install --filter @tambo-ai/repo --frozen-lockfile
+
+RUN pnpm exec turbo prune @tambo-ai-cloud/api --docker
 
 # ---- /installer ----
 
@@ -37,7 +37,9 @@ WORKDIR /workspace
 
 # install dependencies solo
 COPY --from=installer /workspace/out/json/ .
-RUN npm ci
+COPY --from=installer /workspace/out/pnpm-lock.yaml ./pnpm-lock.yaml
+COPY --from=installer /workspace/.npmrc ./.npmrc
+RUN pnpm install --frozen-lockfile
 
 # copy source from pruned output and then build
 COPY --from=installer /workspace/out/full/ .
@@ -52,7 +54,7 @@ ARG TURBO_API
 
 # Build the application
 RUN --mount=type=secret,id=TURBO_TOKEN,env=TURBO_TOKEN \
-  npx turbo run build --filter="@tambo-ai-cloud/api"
+  pnpm exec turbo run build --filter="@tambo-ai-cloud/api"
 
 # ---- /builder ----
 

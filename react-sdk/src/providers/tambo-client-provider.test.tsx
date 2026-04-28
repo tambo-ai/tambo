@@ -22,7 +22,7 @@ let previousFetch: typeof fetch;
 beforeEach(() => {
   mockFetch.mockReset();
   previousFetch = global.fetch;
-  global.fetch = mockFetch as unknown as typeof fetch;
+  global.fetch = mockFetch;
 });
 
 afterEach(() => {

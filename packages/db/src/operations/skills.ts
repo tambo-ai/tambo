@@ -212,7 +212,7 @@ export async function mergeSkillMetadata(
     .set({
       externalSkillMetadata: mergeSuperJson(
         schema.skills.externalSkillMetadata,
-        metadata as Record<string, unknown>,
+        metadata,
       ),
       updatedAt: sql`now()`,
     })

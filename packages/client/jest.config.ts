@@ -14,11 +14,15 @@ const config: Config = {
     "!<rootDir>/esm/**",
   ],
   transform: {
-    "^.+\\.ts$": "ts-jest",
+    "^.+\\.[jt]s$": "ts-jest",
   },
+  transformIgnorePatterns: [
+    // ESM-only deps must be transformed by ts-jest. pnpm symlinks deps under
+    // .pnpm/, so the negative lookahead allows matches anywhere in the path.
+    "node_modules/(?!.*?(?:quansync|@standard-community|local-pkg|unconfig-core)[/\\\\@])",
+  ],
   prettierPath: "prettier-2",
   moduleFileExtensions: ["ts", "js", "json", "node"],
-  setupFilesAfterSetup: [],
   clearMocks: true,
   resetMocks: true,
 };

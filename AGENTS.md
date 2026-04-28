@@ -61,7 +61,7 @@ This is a Turborepo monorepo containing both the Tambo AI framework packages and
 ### Prerequisites
 
 - Node.js >=22
-- npm >=11
+- pnpm >=10 (managed via Corepack; see `package.json#packageManager`)
 
 It is OK to use `crypto.randomUUID()` without a fallback in runtime and test code (Node.js >=22 and modern browsers).
 
@@ -82,7 +82,7 @@ mise exec -- <command>    # Preferred for scripts/CI/non-interactive shells
 eval "$(mise activate)"   # Interactive shells only
 ```
 
-**Changing tool versions**: Open a PR updating the authoritative version file(s). For Node.js, always update both `.node-version` and `.nvmrc` together. Run `mise install`, then verify with `npm run lint && npm run check-types && npm test`.
+**Changing tool versions**: Open a PR updating the authoritative version file(s). For Node.js, always update both `.node-version` and `.nvmrc` together. Run `mise install`, then verify with `pnpm lint && pnpm check-types && pnpm test`.
 
 **Local overrides**: Use `.mise.local.toml` (gitignored) for local-only changes. Only for additive or patch-level changes—don't override Node.js or use incompatible versions.
 
@@ -290,17 +290,17 @@ Most types do exactly what they sound like: `PartialDeep`, `ReadonlyDeep`, `Requ
 ## 6. Database (Drizzle ORM)
 
 - Source of truth is packages/db/src/schema.ts. Do not hand-edit generated SQL.
-- Generate migrations with `npm run db:generate`, do not manually generate migrations.
+- Generate migrations with `pnpm --filter @tambo-ai-cloud/db db:generate`, do not manually generate migrations.
 - Don't denormalize FKs that can be derived from relationships (e.g., if `runs.threadId` exists and threads have `projectId`, don't add `runs.projectId`).
 - **Factor database operations into `packages/db/src/operations/`**. Services in `apps/api` should call operation functions rather than writing inline DB queries. This promotes reuse and keeps DB logic centralized. Export new operations from `packages/db/src/operations/index.ts`.
 
-Database commands (require `-w packages/db` flag from root):
+Database commands (run from the package directory, or use `--filter` from the root):
 
 ```bash
-npm run db:generate -w packages/db  # Generate migrations from schema changes
-npm run db:migrate -w packages/db   # Apply migrations
-npm run db:check -w packages/db     # Check status
-npm run db:studio -w packages/db    # Open Drizzle Studio
+pnpm --filter @tambo-ai-cloud/db db:generate  # Generate migrations from schema changes
+pnpm --filter @tambo-ai-cloud/db db:migrate   # Apply migrations
+pnpm --filter @tambo-ai-cloud/db db:check     # Check status
+pnpm --filter @tambo-ai-cloud/db db:studio    # Open Drizzle Studio
 ```
 
 ## 7. Shared Packages & Utilities
@@ -317,22 +317,22 @@ npm run db:studio -w packages/db    # Open Drizzle Studio
 
 ```bash
 # Development (two different apps!)
-npm run dev:cloud        # Start Tambo Cloud (web + API) - ports 8260 + 8261 - uses turbo watch
-npm run dev              # Start React SDK (showcase + docs)
-npm run dev:sdk          # Start React SDK in watch mode + showcase (for SDK development)
-npm run build:sdk        # One-time build of React SDK
+pnpm dev:cloud        # Start Tambo Cloud (web + API) - ports 8260 + 8261 - uses turbo watch
+pnpm dev              # Start React SDK (showcase + docs)
+pnpm dev:sdk          # Start React SDK in watch mode + showcase (for SDK development)
+pnpm build:sdk        # One-time build of React SDK
 
 # Quality checks
-npm run lint             # Lint all packages
-npm run lint:fix         # Auto-fix linting issues
-npm run check-types      # TypeScript type checking
-npm test                 # Run all tests
-npm run format           # Format code with Prettier
+pnpm lint             # Lint all packages
+pnpm lint:fix         # Auto-fix linting issues
+pnpm check-types      # TypeScript type checking
+pnpm test             # Run all tests
+pnpm format           # Format code with Prettier
 
 # Individual package development (from package directory or with -w flag)
-npm run dev -w cli       # Start specific workspace
-npm run dev:showcase     # Start showcase only
-npm run build -w react-sdk  # Build specific package
+pnpm --filter tambo dev          # Start specific workspace by name
+pnpm dev:showcase                # Start showcase only
+pnpm --filter @tambo-ai/react build  # Build specific package
 ```
 
 #### Hot Reload
@@ -383,7 +383,7 @@ turbo check-types       # Type-check all packages
 
 When working across multiple packages:
 
-1. **react-sdk changes** → Use `npm run dev:sdk` for watch mode development, or `npm run build:sdk` for one-time builds. Run tests, check showcase integration.
+1. **react-sdk changes** → Use `pnpm dev:sdk` for watch mode development, or `pnpm build:sdk` for one-time builds. Run tests, check showcase integration.
 2. **cli changes** → Test component generation, verify registry updates, sync to showcase
 3. **showcase changes** → Edit CLI registry (auto-syncs to showcase)
 4. **docs changes** → Ensure examples match current API
@@ -427,10 +427,10 @@ When working across multiple packages:
 Run these commands before commits/PRs:
 
 ```bash
-npm run check-types   # TS across workspace
-npm run lint:fix      # ESLint autofix
-npm run format        # Prettier write
-npm test              # Unit/integration tests
+pnpm check-types   # TS across workspace
+pnpm lint:fix      # ESLint autofix
+pnpm format        # Prettier write
+pnpm test          # Unit/integration tests
 ```
 
 ## 10. Git Workflow & PRs
@@ -467,7 +467,7 @@ Common scopes: api, web, core, db, deps, ci, config, react-sdk, cli, showcase, d
 
 ### What Agents MUST Do
 
-- Run `npm run lint`, `npm run check-types`, `npm run test` in root before commits.
+- Run `pnpm lint`, `pnpm check-types`, `pnpm test` in root before commits.
 - Cross-package changes should be tested together.
 - Documentation updates required:
   1. Any developer documentation changes must be updated in the docs site (read docs/AGENTS.md)
