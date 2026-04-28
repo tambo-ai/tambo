@@ -67,7 +67,10 @@
   "//overrides": "@ai-sdk/openai v3 and @ai-sdk/anthropic v3 are required for skills runtime (openai.tools.shell and anthropic.tools.codeExecution in mergeProviderSkills). @copilotkit/runtime pulls in v2 which gets hoisted to root, so we pin v3 here to ensure all packages resolve the same version.",
   "overrides": {
     "@ai-sdk/openai": "$@ai-sdk/openai",
-    "@ai-sdk/anthropic": "$@ai-sdk/anthropic"
+    "@ai-sdk/anthropic": "$@ai-sdk/anthropic",
+    "picomatch@>=4.0.0": "4.0.4",
+    "picomatch@<3.0.0": "2.3.2",
+    "path-to-regexp@<0.1.13": "0.1.13"
   },
   "dependencies": {
     "@ai-sdk/openai": "^3.0.48",
