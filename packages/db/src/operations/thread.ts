@@ -123,7 +123,10 @@ export async function getThreadForProjectId(
         where: includeSystem
           ? undefined
           : not(eq(schema.messages.role, MessageRole.System)),
-        orderBy: (messages, { asc }) => [asc(messages.createdAt)],
+        orderBy: (messages, { asc }) => [
+          asc(messages.createdAt),
+          asc(messages.id),
+        ],
         with: {
           suggestions: true,
         },
@@ -391,7 +394,7 @@ export async function getMessages(
 
   const messages = await db.query.messages.findMany({
     where,
-    orderBy: (messages, { asc }) => [asc(messages.createdAt)],
+    orderBy: (messages, { asc }) => [asc(messages.createdAt), asc(messages.id)],
   });
   return messages;
 }
