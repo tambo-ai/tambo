@@ -15,11 +15,6 @@ jest.mock("./message-id-generator", () => ({
   generateMessageId: jest.fn(() => `message-${++messageIdCounter}`),
 }));
 
-// Mock the langfuse config
-jest.mock("../../config/langfuse.config", () => ({
-  createLangfuseTelemetryConfig: jest.fn(() => undefined),
-}));
-
 // Mock AI SDK provider factories for mergeProviderSkills tests
 const mockShellTool = { type: "provider-defined", id: "shell" };
 const mockCodeExecutionTool = {

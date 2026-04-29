@@ -11,11 +11,6 @@ jest.mock("./message-id-generator", () => ({
   generateMessageId: jest.fn(() => "message-1"),
 }));
 
-// Mock the langfuse config
-jest.mock("../../config/langfuse.config", () => ({
-  createLangfuseTelemetryConfig: jest.fn(() => undefined),
-}));
-
 // Mock streamText from "ai" so we can verify its args
 jest.mock("ai", () => {
   const actual = jest.requireActual("ai");
