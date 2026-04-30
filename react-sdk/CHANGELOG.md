@@ -1,5 +1,27 @@
 # Changelog
 
+## [1.2.7](https://github.com/tambo-ai/tambo/compare/react-v1.2.6...react-v1.2.7) (2026-04-30)
+
+
+### Bug Fixes
+
+* **web,react-sdk:** fix setState-during-render error and agent settings UI ([#2783](https://github.com/tambo-ai/tambo/issues/2783)) ([7311ed7](https://github.com/tambo-ai/tambo/commit/7311ed797474f426c37b394cf88684f45f6f4451))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump the eslint group with 2 updates ([#2807](https://github.com/tambo-ai/tambo/issues/2807)) ([21d35e2](https://github.com/tambo-ai/tambo/commit/21d35e255a947ae2bf07cce17567c3f3f0a96d27))
+* **deps-dev:** bump the eslint group with 3 updates ([#2794](https://github.com/tambo-ai/tambo/issues/2794)) ([930bc0f](https://github.com/tambo-ai/tambo/commit/930bc0fea9963290e3866c43a443c9909bf7f819))
+* **deps:** bump the small-safe-packages group across 1 directory with 9 updates ([#2814](https://github.com/tambo-ai/tambo/issues/2814)) ([070925b](https://github.com/tambo-ai/tambo/commit/070925b00fd734d22c9f62207560208c1bb223f8))
+* **deps:** bump the small-safe-packages group with 3 updates ([#2796](https://github.com/tambo-ai/tambo/issues/2796)) ([f0a2fca](https://github.com/tambo-ai/tambo/commit/f0a2fcae66efa501bab423202fc98531704e7758))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @tambo-ai/client bumped from 0.1.0 to 1.1.2
+
 ## [1.2.6](https://github.com/tambo-ai/tambo/compare/react-v1.2.5...react-v1.2.6) (2026-04-06)
 
 
