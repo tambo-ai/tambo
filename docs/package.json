@@ -1,6 +1,6 @@
 {
   "name": "@tambo-ai/docs",
-  "version": "1.33.0",
+  "version": "1.33.1",
   "description": "Tambo AI documentation site",
   "license": "MIT",
   "scripts": {
@@ -14,8 +14,8 @@
     "clean": "rimraf .next"
   },
   "dependencies": {
-    "@tambo-ai/react": "*",
-    "@tambo-ai/react-ui-base": "*",
+    "@tambo-ai/react": "1.2.7",
+    "@tambo-ai/react-ui-base": "0.1.9",
     "@tambo-ai/typescript-sdk": "^0.95.0",
     "@tambo-ai/ui-registry": "*",
     "class-variance-authority": "^0.7.1",
