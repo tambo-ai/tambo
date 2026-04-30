@@ -1,6 +1,6 @@
 {
   "name": "tambo",
-  "version": "0.56.0",
+  "version": "0.56.1",
   "description": "Tambo CLI for scaffolding and managing AI applications",
   "license": "MIT",
   "repository": {
@@ -55,7 +55,7 @@
     ]
   },
   "dependencies": {
-    "@tambo-ai/react": "*",
+    "@tambo-ai/react": "1.2.7",
     "@tambo-ai/typescript-sdk": "^0.95.0",
     "@trpc/client": "^11.15.1",
     "@trpc/server": "^11.15.1",

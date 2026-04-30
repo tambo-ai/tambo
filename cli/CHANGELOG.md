@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.56.1](https://github.com/tambo-ai/tambo/compare/tambo-v0.56.0...tambo-v0.56.1) (2026-04-30)
+
+
+### Miscellaneous Chores
+
+* **deps:** bump dotenv from 17.2.3 to 17.4.0 ([#2766](https://github.com/tambo-ai/tambo/issues/2766)) ([2c94257](https://github.com/tambo-ai/tambo/commit/2c942577bc5196aa53e669506468c778e123d336))
+* **deps:** bump meow from 14.0.0 to 14.1.0 ([#2772](https://github.com/tambo-ai/tambo/issues/2772)) ([7278bb6](https://github.com/tambo-ai/tambo/commit/7278bb6de5f689093ea149d0570c81c4716f5340))
+* **deps:** bump postcss from 8.5.10 to 8.5.11 ([#2820](https://github.com/tambo-ai/tambo/issues/2820)) ([5c3c0c1](https://github.com/tambo-ai/tambo/commit/5c3c0c1e10ec661045ba63e66c2f31665d91905d))
+* **deps:** bump postcss from 8.5.6 to 8.5.10 ([#2819](https://github.com/tambo-ai/tambo/issues/2819)) ([6708051](https://github.com/tambo-ai/tambo/commit/6708051c0ec25f0875664ae07979d91580b7f39b))
+* **deps:** bump posthog-node from 5.24.9 to 5.28.11 ([#2769](https://github.com/tambo-ai/tambo/issues/2769)) ([80b9032](https://github.com/tambo-ai/tambo/commit/80b9032d1c379da907c4828cb9721d7e49d7dad2))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @tambo-ai/react bumped from * to 1.2.7
+
 ## [0.56.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.55.1...tambo-v0.56.0) (2026-04-06)
 
 
