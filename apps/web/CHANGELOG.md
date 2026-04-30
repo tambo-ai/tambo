@@ -1,5 +1,48 @@
 # Changelog
 
+## [0.135.0](https://github.com/tambo-ai/tambo/compare/web-v0.134.0...web-v0.135.0) (2026-04-30)
+
+
+### Features
+
+* **api,backend,db,core:** add agent memory system ([#2732](https://github.com/tambo-ai/tambo/issues/2732)) ([cdb3ba4](https://github.com/tambo-ai/tambo/commit/cdb3ba46802c4fb16f7961c7366ea50a69acebc1))
+* **web:** register Skills component and tools with Tambo ([#2780](https://github.com/tambo-ai/tambo/issues/2780)) ([8b75e04](https://github.com/tambo-ai/tambo/commit/8b75e042ed7e7dc8316387a8aeefa524228ccde8))
+
+
+### Bug Fixes
+
+* **web,react-sdk:** fix setState-during-render error and agent settings UI ([#2783](https://github.com/tambo-ai/tambo/issues/2783)) ([7311ed7](https://github.com/tambo-ai/tambo/commit/7311ed797474f426c37b394cf88684f45f6f4451))
+* **web:** hide memory tools toggle from project settings UI ([#2782](https://github.com/tambo-ai/tambo/issues/2782)) ([af55cc2](https://github.com/tambo-ai/tambo/commit/af55cc2fc137d698fb19bd0abc6f1f48b70e2a44))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump autoprefixer from 10.4.24 to 10.4.27 ([#2771](https://github.com/tambo-ai/tambo/issues/2771)) ([6a5f8cf](https://github.com/tambo-ai/tambo/commit/6a5f8cf5ed7366464357dd7737804a16304f98ce))
+* **deps:** bump dompurify from 3.3.2 to 3.4.0 ([#2805](https://github.com/tambo-ai/tambo/issues/2805)) ([c96136c](https://github.com/tambo-ai/tambo/commit/c96136ccb42b6016c530fa5c54cece8fe8cc5898))
+* **deps:** bump next from 15.5.14 to 15.5.15 ([#2801](https://github.com/tambo-ai/tambo/issues/2801)) ([cea9a38](https://github.com/tambo-ai/tambo/commit/cea9a3843434d429d3a1dbcc38c2ad68ea84da97))
+* **deps:** bump postcss from 8.5.10 to 8.5.11 ([#2820](https://github.com/tambo-ai/tambo/issues/2820)) ([5c3c0c1](https://github.com/tambo-ai/tambo/commit/5c3c0c1e10ec661045ba63e66c2f31665d91905d))
+* **deps:** bump postcss from 8.5.6 to 8.5.10 ([#2819](https://github.com/tambo-ai/tambo/issues/2819)) ([6708051](https://github.com/tambo-ai/tambo/commit/6708051c0ec25f0875664ae07979d91580b7f39b))
+* **deps:** bump react-medium-image-zoom from 5.4.0 to 5.4.3 ([#2811](https://github.com/tambo-ai/tambo/issues/2811)) ([d29346e](https://github.com/tambo-ai/tambo/commit/d29346e77b4b0d99281ff36cbcdea573357f21e4))
+* **deps:** bump the sentry group with 3 updates ([#2797](https://github.com/tambo-ai/tambo/issues/2797)) ([eceecab](https://github.com/tambo-ai/tambo/commit/eceecab609b6f0ac2220535b48c16adad4ae5aa4))
+* **deps:** bump the sentry group with 3 updates ([#2810](https://github.com/tambo-ai/tambo/issues/2810)) ([9c62760](https://github.com/tambo-ai/tambo/commit/9c62760d7b0b07dcca0b733d10389240ec0f566a))
+* **deps:** bump the small-safe-packages group across 1 directory with 9 updates ([#2814](https://github.com/tambo-ai/tambo/issues/2814)) ([070925b](https://github.com/tambo-ai/tambo/commit/070925b00fd734d22c9f62207560208c1bb223f8))
+* **deps:** bump the small-safe-packages group with 3 updates ([#2796](https://github.com/tambo-ai/tambo/issues/2796)) ([f0a2fca](https://github.com/tambo-ai/tambo/commit/f0a2fcae66efa501bab423202fc98531704e7758))
+* **deps:** bump the tiptap group with 9 updates ([#2765](https://github.com/tambo-ai/tambo/issues/2765)) ([9525cfb](https://github.com/tambo-ai/tambo/commit/9525cfbfe91559acbb50cd9c582ec7ce98bfaf12))
+* **deps:** bump the tiptap group with 9 updates ([#2798](https://github.com/tambo-ai/tambo/issues/2798)) ([52affa1](https://github.com/tambo-ai/tambo/commit/52affa1046a6bce8ac948fab1a897c646a7157b5))
+* **deps:** bump tldts from 7.0.19 to 7.0.28 ([#2773](https://github.com/tambo-ai/tambo/issues/2773)) ([dda364c](https://github.com/tambo-ai/tambo/commit/dda364c73627310de79b8e5841c09d272987631d))
+
+
+### Code Refactoring
+
+* **web:** split settings into Agent and Settings tabs ([#2757](https://github.com/tambo-ai/tambo/issues/2757)) ([c2076cf](https://github.com/tambo-ai/tambo/commit/c2076cfc31b98c432ca1e64683c2266f0ad8ac3e))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @tambo-ai/react bumped from * to 1.2.7
+
 ## [0.134.0](https://github.com/tambo-ai/tambo/compare/web-v0.133.0...web-v0.134.0) (2026-04-06)
 
 
