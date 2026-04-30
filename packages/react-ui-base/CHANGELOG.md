@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.1.9](https://github.com/tambo-ai/tambo/compare/@tambo-ai/react-ui-base-v0.1.8...@tambo-ai/react-ui-base-v0.1.9) (2026-04-30)
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump rimraf from 6.1.2 to 6.1.3 ([#2799](https://github.com/tambo-ai/tambo/issues/2799)) ([4561795](https://github.com/tambo-ai/tambo/commit/45617957bb171d1f938762c9ed8752956a13d573))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * devDependencies
+    * @tambo-ai/react bumped from * to 1.2.7
+  * peerDependencies
+    * @tambo-ai/react bumped from * to 1.2.7
+
 ## [0.1.8](https://github.com/tambo-ai/tambo/compare/@tambo-ai/react-ui-base-v0.1.7...@tambo-ai/react-ui-base-v0.1.8) (2026-04-06)
 
 
