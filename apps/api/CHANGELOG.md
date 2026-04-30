@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.146.0](https://github.com/tambo-ai/tambo/compare/api-v0.145.0...api-v0.146.0) (2026-04-30)
+
+
+### Features
+
+* **api,backend,db,core:** add agent memory system ([#2732](https://github.com/tambo-ai/tambo/issues/2732)) ([cdb3ba4](https://github.com/tambo-ai/tambo/commit/cdb3ba46802c4fb16f7961c7366ea50a69acebc1))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump posthog-node from 5.24.9 to 5.28.11 ([#2769](https://github.com/tambo-ai/tambo/issues/2769)) ([80b9032](https://github.com/tambo-ai/tambo/commit/80b9032d1c379da907c4828cb9721d7e49d7dad2))
+* **deps:** bump the nestjs group across 1 directory with 5 updates ([#2768](https://github.com/tambo-ai/tambo/issues/2768)) ([dfc7e34](https://github.com/tambo-ai/tambo/commit/dfc7e34d1c7d3f288cdd473b2de7f6b0ff3f999b))
+* **deps:** bump the nestjs group across 1 directory with 8 updates ([#2806](https://github.com/tambo-ai/tambo/issues/2806)) ([c3b8c1a](https://github.com/tambo-ai/tambo/commit/c3b8c1a6754f08cf56e1f6e99f4b57560bca074a))
+* **deps:** bump the nestjs group with 3 updates ([#2793](https://github.com/tambo-ai/tambo/issues/2793)) ([dfec05a](https://github.com/tambo-ai/tambo/commit/dfec05ab2daf795fb96e05cce77e1c6877b5d6cc))
+* **deps:** bump the sentry group with 3 updates ([#2797](https://github.com/tambo-ai/tambo/issues/2797)) ([eceecab](https://github.com/tambo-ai/tambo/commit/eceecab609b6f0ac2220535b48c16adad4ae5aa4))
+* **deps:** bump the sentry group with 3 updates ([#2810](https://github.com/tambo-ai/tambo/issues/2810)) ([9c62760](https://github.com/tambo-ai/tambo/commit/9c62760d7b0b07dcca0b733d10389240ec0f566a))
+* **deps:** bump the small-safe-packages group across 1 directory with 9 updates ([#2814](https://github.com/tambo-ai/tambo/issues/2814)) ([070925b](https://github.com/tambo-ai/tambo/commit/070925b00fd734d22c9f62207560208c1bb223f8))
+* **deps:** bump the small-safe-packages group with 3 updates ([#2796](https://github.com/tambo-ai/tambo/issues/2796)) ([f0a2fca](https://github.com/tambo-ai/tambo/commit/f0a2fcae66efa501bab423202fc98531704e7758))
+* **deps:** bump uuid from 13.0.0 to 14.0.0 ([#2818](https://github.com/tambo-ai/tambo/issues/2818)) ([8bd6075](https://github.com/tambo-ai/tambo/commit/8bd6075e8e96d4992dbd968f4bda9a3617a3c78b))
+* remove dead env vars and Langfuse wiring ([#2822](https://github.com/tambo-ai/tambo/issues/2822)) ([63709ef](https://github.com/tambo-ai/tambo/commit/63709efca82db48683fb54886063c64de591a023))
+
 ## [0.145.0](https://github.com/tambo-ai/tambo/compare/api-v0.144.5...api-v0.145.0) (2026-04-06)
 
 
