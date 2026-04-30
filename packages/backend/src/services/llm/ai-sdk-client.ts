@@ -41,7 +41,6 @@ import {
 import type { ProviderOptions } from "@ai-sdk/provider-utils";
 import type OpenAI from "openai";
 import { z } from "zod/v3";
-import { createLangfuseTelemetryConfig } from "../../config/langfuse.config";
 import { Provider } from "../../model/providers";
 import {
   ComponentStreamTracker,
@@ -204,14 +203,6 @@ export class AISdkClient implements LLMClient {
       isSupportedMimeType,
     );
 
-    // Prepare experimental telemetry for Langfuse
-    const experimentalTelemetry = createLangfuseTelemetryConfig({
-      sessionId: params.chainId ?? this.chainId,
-      provider: this.provider,
-      model: this.model,
-      functionId: `${this.provider}-${this.model}`,
-    });
-
     // Extract custom parameters for the current model
     // Handle provider key mapping (e.g., "gemini" provider stores under "gemini" but AI SDK uses "google")
     const originalProviderKey = this.provider; // e.g., "gemini"
@@ -273,9 +264,6 @@ export class AISdkClient implements LLMClient {
         ? this.convertToolChoice(params.tool_choice)
         : undefined,
       ...(responseFormat && { responseFormat }),
-      ...(experimentalTelemetry && {
-        experimental_telemetry: experimentalTelemetry,
-      }),
       /**
        * Provider-specific configuration
        * Merge hierarchy (later overrides earlier):
