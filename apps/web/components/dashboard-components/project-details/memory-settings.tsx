@@ -41,13 +41,13 @@ export function MemorySettings({
   };
 
   return (
-    <Card>
+    <Card className="overflow-hidden">
       <CardHeader>
         <CardTitle>Memory</CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col gap-6">
         <div className="flex items-center justify-between gap-4">
-          <div className="flex flex-col gap-1">
+          <div className="flex flex-col gap-1 min-w-0">
             <Label htmlFor="memory-enabled">Enable memory</Label>
             <p className="text-sm text-muted-foreground">
               Automatically extract and remember facts about users across

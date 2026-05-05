@@ -19,7 +19,7 @@ export function DangerZoneSection({
   isDeleting,
 }: DangerZoneSectionProps) {
   return (
-    <Card className="border-destructive/50">
+    <Card className="overflow-hidden border-destructive/50">
       <CardHeader>
         <CardTitle className="text-lg font-semibold">Danger Zone</CardTitle>
         <CardDescription className="text-sm font-sans text-foreground">
