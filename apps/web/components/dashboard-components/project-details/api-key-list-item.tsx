@@ -47,14 +47,14 @@ export function APIKeyListItem({
     >
       <div className="flex flex-row items-start sm:items-center gap-2 sm:gap-3">
         {/* API Key Name */}
-        <div className="min-w-[140px]">
-          <p className="text-sm font-medium">{apiKey.name}</p>
+        <div className="min-w-0 flex-1 sm:min-w-[140px] sm:flex-initial">
+          <p className="text-sm font-medium truncate">{apiKey.name}</p>
         </div>
 
         {/* API Key Value - clickable to copy */}
         <button
           onClick={async () => await copy()}
-          className="text-xs text-foreground font-mono px-2 py-1 bg-accent rounded-full min-w-[120px] hover:bg-accent/80 transition-colors cursor-pointer"
+          className="text-xs text-foreground font-mono px-2 py-1 bg-accent rounded-full sm:min-w-[120px] hover:bg-accent/80 transition-colors cursor-pointer truncate max-w-[40vw] sm:max-w-none"
           title="Click to copy"
         >
           {apiKey.partiallyHiddenKey?.slice(0, 15)}
