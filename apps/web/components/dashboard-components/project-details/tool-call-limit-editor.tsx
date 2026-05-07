@@ -158,7 +158,7 @@ export function ToolCallLimitEditor({
   };
 
   return (
-    <Card>
+    <Card className="overflow-hidden">
       <CardHeader>
         <CardTitle className="text-lg font-semibold">
           Tool Call Limit

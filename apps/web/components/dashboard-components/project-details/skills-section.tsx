@@ -424,7 +424,7 @@ export function SkillsSection({
       />
 
       <Card
-        className={`transition-colors ${cardDragState === "valid" ? "ring-2 ring-primary ring-offset-2" : ""} ${cardDragState === "invalid" ? "ring-2 ring-destructive ring-offset-2" : ""}`}
+        className={`overflow-hidden transition-colors ${cardDragState === "valid" ? "ring-2 ring-primary ring-offset-2" : ""} ${cardDragState === "invalid" ? "ring-2 ring-destructive ring-offset-2" : ""}`}
         onDragOver={
           enableCardDrop
             ? (e) => {
@@ -445,8 +445,8 @@ export function SkillsSection({
         onDrop={enableCardDrop ? handleCardDrop : undefined}
       >
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0">
               <CardTitle className="text-lg font-semibold">
                 Skills
                 <EditWithTamboButton description="Manage skills for this project." />
@@ -458,7 +458,7 @@ export function SkillsSection({
             <AnimatePresence mode="wait">
               {!isFormOpen && (
                 <motion.div
-                  className="flex gap-2"
+                  className="flex flex-wrap gap-2"
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.9 }}

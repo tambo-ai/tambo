@@ -65,7 +65,7 @@ export function ProjectNameSection({
   };
 
   return (
-    <Card>
+    <Card className="overflow-hidden">
       <CardHeader>
         <CardTitle className="text-lg font-semibold">Project Name</CardTitle>
         <CardDescription className="text-sm font-sans text-foreground">
@@ -106,9 +106,14 @@ export function ProjectNameSection({
             </div>
           </div>
         ) : (
-          <div className="flex items-center justify-between">
-            <span className="text-sm">{projectName}</span>
-            <Button variant="outline" size="sm" onClick={handleEdit}>
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-sm truncate min-w-0">{projectName}</span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleEdit}
+              className="flex-shrink-0"
+            >
               Edit
             </Button>
           </div>
