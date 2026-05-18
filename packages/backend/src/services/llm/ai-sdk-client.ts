@@ -354,7 +354,7 @@ export class AISdkClient implements LLMClient {
         model: openai.responses(this.model),
         tools: {
           ...config.tools,
-          shell: shellTool,
+          shell: shellTool as unknown as Tool,
         },
       };
     }
@@ -377,7 +377,7 @@ export class AISdkClient implements LLMClient {
         ...config,
         tools: {
           ...config.tools,
-          code_execution: codeExecutionTool,
+          code_execution: codeExecutionTool as unknown as Tool,
         },
         providerOptions: {
           ...config.providerOptions,
