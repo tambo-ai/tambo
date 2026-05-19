@@ -32,10 +32,7 @@ describe("handleToolCall", () => {
 
   it("throws when toolName is missing", async () => {
     await expect(
-      handleToolCall(
-        { toolName: "", parameters: [] } as TamboAI.ToolCallRequest,
-        {},
-      ),
+      handleToolCall({ toolName: "", parameters: [] }, {}),
     ).rejects.toThrow("Tool name is required");
   });
 

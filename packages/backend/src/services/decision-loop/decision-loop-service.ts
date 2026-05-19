@@ -252,7 +252,7 @@ export async function* runDecisionLoop(
             [parameterName]: parameterValue,
           }),
           {},
-        ) as Partial<TamboToolParameters>;
+        );
       }
 
       // Build tool call request for both UI and non-UI tools (even if incomplete)

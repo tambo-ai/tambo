@@ -1,5 +1,5 @@
 import { EventType } from "@ag-ui/core";
-import type { BaseEvent, RunStartedEvent, RunFinishedEvent } from "@ag-ui/core";
+import type { BaseEvent } from "@ag-ui/core";
 import type { TamboThread } from "./types/thread";
 import type { TamboStreamOptions, StreamEvent } from "./tambo-stream";
 import { TamboStream } from "./tambo-stream";
@@ -44,19 +44,19 @@ function makeEvents(): BaseEvent[] {
       type: EventType.RUN_STARTED,
       runId: "run_1",
       threadId: "thread_123",
-    } as RunStartedEvent,
+    },
     {
       type: EventType.TEXT_MESSAGE_START,
       messageId: "msg_1",
       role: "assistant",
-    } as BaseEvent,
+    },
     {
       type: EventType.TEXT_MESSAGE_CONTENT,
       messageId: "msg_1",
       delta: "Hello",
-    } as BaseEvent,
-    { type: EventType.TEXT_MESSAGE_END, messageId: "msg_1" } as BaseEvent,
-    { type: EventType.RUN_FINISHED, runId: "run_1" } as RunFinishedEvent,
+    },
+    { type: EventType.TEXT_MESSAGE_END, messageId: "msg_1" },
+    { type: EventType.RUN_FINISHED, runId: "run_1" },
   ];
 }
 
@@ -84,7 +84,7 @@ function wireUpCoreMocks(): void {
   mockedCreateThrottled.mockReturnValue({
     schedule: jest.fn(),
     flush: jest.fn(),
-  } as never);
+  });
 
   // handleEventStream passes events through
   mockedHandleEventStream.mockImplementation(async function* (

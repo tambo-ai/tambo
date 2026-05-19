@@ -17,6 +17,7 @@
   "extensionsToTreatAsEsm": [".ts", ".tsx"],
   "moduleNameMapper": {
     "^src/(.*)$": "<rootDir>/src/$1",
+    "^@tambo-ai-cloud/core/safe-fetch$": "<rootDir>/../../packages/core/src/safe-fetch",
     "^@tambo-ai-cloud/(.*)$": "<rootDir>/../../packages/$1/src"
   },
   "transformIgnorePatterns": [

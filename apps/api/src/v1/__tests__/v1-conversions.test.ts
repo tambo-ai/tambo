@@ -469,7 +469,7 @@ describe("v1-conversions", () => {
       const message = {
         ...baseMessage,
         isCancelled: true,
-      } as unknown as DbMessage;
+      };
       const result = messageToDto(message);
 
       expect(result.isCancelled).toBe(true);
@@ -479,7 +479,7 @@ describe("v1-conversions", () => {
       const message = {
         ...baseMessage,
         isCancelled: false,
-      } as unknown as DbMessage;
+      };
       const result = messageToDto(message);
 
       expect(result.isCancelled).toBeUndefined();

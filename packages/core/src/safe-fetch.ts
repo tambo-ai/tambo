@@ -103,7 +103,10 @@ export const safeAgent = new Agent({
  * differs slightly from the global `Response` (header iterator types). The
  * runtime behaviour is identical.
  */
-export const safeFetch = (async (input: RequestInfo | URL, init?: RequestInit) =>
+export const safeFetch = (async (
+  input: RequestInfo | URL,
+  init?: RequestInit,
+) =>
   await undiciFetch(input as Parameters<typeof undiciFetch>[0], {
     ...(init as Parameters<typeof undiciFetch>[1]),
     dispatcher: safeAgent,
