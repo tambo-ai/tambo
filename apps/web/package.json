@@ -44,6 +44,7 @@
     "@splinetool/runtime": "^1.12.90",
     "@svgr/webpack": "^8.1.0",
     "@t3-oss/env-nextjs": "^0.13.11",
+    "@tambo-ai-cloud/core": "*",
     "@tambo-ai-cloud/db": "*",
     "@tambo-ai/react": "*",
     "@tambo-ai/typescript-sdk": "^0.96.0",

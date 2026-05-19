@@ -1,6 +1,7 @@
 import { OAuthClientProvider } from "@modelcontextprotocol/sdk/client/auth.js";
 import { SseError } from "@modelcontextprotocol/sdk/client/sse.js";
 import { StreamableHTTPError } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
+import { FetchLike } from "@modelcontextprotocol/sdk/shared/transport.js";
 import type OpenAI from "openai";
 import { MCPClient, MCPTransport } from "./mcp-client";
 
@@ -20,11 +21,14 @@ export async function validateMcpServer({
   customHeaders,
   mcpTransport,
   oauthProvider,
+  fetch,
 }: {
   url: string;
   customHeaders?: Record<string, string>;
   mcpTransport: MCPTransport;
   oauthProvider?: OAuthClientProvider;
+  /** Optional fetch override. Server callers should pass `safeFetch` to enforce DNS pinning. */
+  fetch?: FetchLike;
 }) {
   try {
     const mcpClient = await MCPClient.create(
@@ -33,6 +37,8 @@ export async function validateMcpServer({
       customHeaders,
       oauthProvider,
       undefined, // since we're not doing anything with this session, it's ok to just start a new session
+      {},
+      fetch,
     );
     const capabilities = mcpClient.getServerCapabilities();
     const version = mcpClient.getServerVersion();

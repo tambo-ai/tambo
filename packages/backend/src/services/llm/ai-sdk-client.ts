@@ -27,6 +27,7 @@ import {
   ThreadMessage,
   type LlmProviderConfigInfo,
 } from "@tambo-ai-cloud/core";
+import { safeFetch } from "@tambo-ai-cloud/core/safe-fetch";
 import {
   generateText,
   jsonSchema,
@@ -427,6 +428,9 @@ export class AISdkClient implements LLMClient {
           name: config.providerName || "openai-compatible",
           baseURL: config.baseURL || "",
           apiKey: config.apiKey,
+          // Pin DNS via safeFetch so an attacker-controlled custom base URL
+          // cannot rebind to a private address between validation and call.
+          fetch: safeFetch,
         })(this.model);
       }
       default:

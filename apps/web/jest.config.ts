@@ -27,6 +27,8 @@ const config: Config = {
     "^@modelcontextprotocol/sdk/client/sse\\.js$":
       "<rootDir>/__mocks__/mcpSseMock.ts",
     "^@/(.*)$": "<rootDir>/$1",
+    "^@tambo-ai-cloud/core/safe-fetch$":
+      "<rootDir>/../../packages/core/src/safe-fetch",
     "^@tambo-ai-cloud/(.*)$": "<rootDir>/../../packages/$1/src",
     "^@tambo-ai/react$": "<rootDir>/../../react-sdk/src/index.ts",
     "^@tambo-ai/react/(.*)$": "<rootDir>/../../react-sdk/src/$1",

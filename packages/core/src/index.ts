@@ -12,6 +12,10 @@ export * from "./mcp-client";
 export * from "./mcp-utils";
 export * from "./oauth";
 export * from "./oauth-validation";
+// `./safe-fetch` is server-only (imports undici + dns). Consumers must import
+// it via `@tambo-ai-cloud/core/safe-fetch` so it isn't pulled into browser /
+// jsdom bundles. `./safe-ip` is the pure helper safe to use anywhere.
+export * from "./safe-ip";
 export * from "./project";
 export * from "./sessions";
 export * from "./shared-constants";
