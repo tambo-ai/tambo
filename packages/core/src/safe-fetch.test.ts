@@ -18,7 +18,7 @@ const callLookup = async (
   await new Promise<{ err: NodeJS.ErrnoException | null; result: unknown }>(
     (resolve) => {
       safeLookup(hostname, options, (err, result) =>
-        resolve({ err, result: result as unknown }),
+        resolve({ err, result: result }),
       );
     },
   );

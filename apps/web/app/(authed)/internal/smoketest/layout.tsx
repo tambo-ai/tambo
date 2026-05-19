@@ -1,7 +1,7 @@
 import { authOptions } from "@/lib/auth";
 import { ComponentsThemeProvider } from "@/providers/components-theme-provider";
 import { Metadata } from "next";
-import { getServerSession, User } from "next-auth";
+import { getServerSession } from "next-auth";
 import { CSSProperties } from "react";
 import { ClientLayout } from "./components/client-layout";
 
@@ -16,7 +16,7 @@ export default async function Layout({
   children: React.ReactNode;
 }) {
   const session = await getServerSession(authOptions);
-  const user = session?.user as User | undefined;
+  const user = session?.user;
 
   // Get the OAuth access token from the session
   const userToken = user?.idToken ?? user?.userToken;

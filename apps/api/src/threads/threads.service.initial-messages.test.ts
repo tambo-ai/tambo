@@ -190,7 +190,7 @@ describe("ThreadsService - Initial Messages", () => {
     it("should throw error for text content without text property", () => {
       const invalidMessages: MessageRequest[] = [
         {
-          content: [{ type: ContentPartType.Text } as any],
+          content: [{ type: ContentPartType.Text }],
           role: MessageRole.User,
         },
       ];

@@ -160,7 +160,7 @@ describe("generateContextKey", () => {
   describe("Edge cases and error handling", () => {
     it("should fall back to legacy format when issuer is invalid", () => {
       const result = generateContextKey(
-        null as any, // Cast to any to test the null case
+        null, // Cast to any to test the null case
         { hd: "company.com" },
         "user-123",
       );
@@ -187,7 +187,7 @@ describe("generateContextKey", () => {
     it("should ignore non-string organizational claims", () => {
       const result = generateContextKey(
         "https://accounts.google.com",
-        { hd: 123 as any }, // Cast to any to test invalid type
+        { hd: 123 }, // Cast to any to test invalid type
         "user-789",
       );
 
