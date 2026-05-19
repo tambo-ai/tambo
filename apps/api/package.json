@@ -42,7 +42,7 @@
     "@opentelemetry/instrumentation-http": "^0.218.0",
     "@opentelemetry/instrumentation-nestjs-core": "^0.64.0",
     "@opentelemetry/sdk-node": "^0.218.0",
-    "@opentelemetry/semantic-conventions": "^1.40.0",
+    "@opentelemetry/semantic-conventions": "^1.41.1",
     "@react-email/components": "^1.0.12",
     "@sentry/nestjs": "^10.53.1",
     "@sentry/profiling-node": "^10.53.1",
