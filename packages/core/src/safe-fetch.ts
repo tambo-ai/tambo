@@ -104,7 +104,7 @@ export const safeAgent = new Agent({
  * runtime behaviour is identical.
  */
 export const safeFetch = (async (
-  input: RequestInfo | URL,
+  input: string | URL | Request,
   init?: RequestInit,
 ) =>
   await undiciFetch(input as Parameters<typeof undiciFetch>[0], {
