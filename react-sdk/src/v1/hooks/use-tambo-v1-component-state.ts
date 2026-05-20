@@ -228,7 +228,7 @@ export function useTamboComponentState<S>(
     if (!isInteractable) return;
     if (interactableState === undefined) return;
     setLocalState((prev) =>
-      deepEqual(prev, interactableState) ? prev : (interactableState as S),
+      deepEqual(prev, interactableState) ? prev : interactableState,
     );
   }, [isInteractable, interactableState]);
 

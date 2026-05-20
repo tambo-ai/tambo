@@ -402,7 +402,7 @@ describe("schema utilities", () => {
             properties: {
               // Properties can technically be boolean (for schema composition)
               weird: true,
-            } as any,
+            },
           } as JSONSchema7,
           outputSchema: z4.void(),
         };

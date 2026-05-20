@@ -69,7 +69,7 @@ describe("V1Controller", () => {
         mockV1Service.listThreads.mockResolvedValue({
           threads: [],
           hasMore: false,
-        } as any);
+        });
 
         await controller.listThreads(mockRequest, { userKey: "user_456" });
 
@@ -89,7 +89,7 @@ describe("V1Controller", () => {
         mockV1Service.listThreads.mockResolvedValue({
           threads: [],
           hasMore: false,
-        } as any);
+        });
 
         await controller.listThreads(mockRequest, {});
 
@@ -109,7 +109,7 @@ describe("V1Controller", () => {
         mockV1Service.listThreads.mockResolvedValue({
           threads: [],
           hasMore: false,
-        } as any);
+        });
 
         await expect(
           controller.listThreads(mockRequest, { userKey: "query_context" }),
@@ -385,7 +385,7 @@ describe("V1Controller", () => {
         mockV1Service.listMessages.mockResolvedValue({
           messages: [],
           hasMore: false,
-        } as any);
+        });
 
         await controller.listMessages(mockRequest, "thr_123", {}, "user_456");
 
@@ -414,7 +414,7 @@ describe("V1Controller", () => {
           messages: [],
           hasMore: true,
           nextCursor: "2024-01-01T00:00:00Z",
-        } as any);
+        });
 
         await controller.listMessages(mockRequest, "thr_123", {
           limit: 10,

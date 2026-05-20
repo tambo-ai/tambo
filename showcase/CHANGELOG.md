@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.37.6](https://github.com/tambo-ai/tambo/compare/showcase-v0.37.5...showcase-v0.37.6) (2026-04-06)
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump eslint-config-next from 16.2.1 to 16.2.2 in the eslint group ([#2759](https://github.com/tambo-ai/tambo/issues/2759)) ([1f6bf99](https://github.com/tambo-ai/tambo/commit/1f6bf9907e95b3ad554f5a56fd1ed011bba3e6ba))
+* **deps-dev:** bump the eslint group across 1 directory with 4 updates ([#2703](https://github.com/tambo-ai/tambo/issues/2703)) ([61278a0](https://github.com/tambo-ai/tambo/commit/61278a05de431b9ff4e14e92a3d0433d2bf1d80d))
+* **deps-dev:** bump ts-jest from 29.4.6 to 29.4.9 in the testing group ([#2760](https://github.com/tambo-ai/tambo/issues/2760)) ([801bbc9](https://github.com/tambo-ai/tambo/commit/801bbc92828cc338e169e762776f9bd74abe49ac))
+* **deps:** bump @tambo-ai/typescript-sdk from 0.94.0 to 0.94.1 in the tambo-ai group ([#2706](https://github.com/tambo-ai/tambo/issues/2706)) ([6842afa](https://github.com/tambo-ai/tambo/commit/6842afa3f2b9f0e0be4be46b5def319b10f4f784))
+* **deps:** bump @tambo-ai/typescript-sdk from 0.94.1 to 0.95.0 in the tambo-ai group ([#2762](https://github.com/tambo-ai/tambo/issues/2762)) ([f577b82](https://github.com/tambo-ai/tambo/commit/f577b821d12eed5dca94b10efbf86591824b47db))
+* **deps:** bump posthog-js from 1.364.6 to 1.364.7 in the small-safe-packages group ([#2763](https://github.com/tambo-ai/tambo/issues/2763)) ([12aa854](https://github.com/tambo-ai/tambo/commit/12aa854c7bd0bb631ce861890b742182cfdc5ce7))
+* **deps:** bump the small-safe-packages group across 1 directory with 8 updates ([#2720](https://github.com/tambo-ai/tambo/issues/2720)) ([320e141](https://github.com/tambo-ai/tambo/commit/320e141cffd2ce8a5d5d948290d2601dce4dde67))
+
+
+### Code Refactoring
+
+* **showcase:** remove Canvas Space component ([#2745](https://github.com/tambo-ai/tambo/issues/2745)) ([565cf28](https://github.com/tambo-ai/tambo/commit/565cf28be2d1b6af3655616b3d72959cd4551d59))
+
 ## [0.37.5](https://github.com/tambo-ai/tambo/compare/showcase-v0.37.4...showcase-v0.37.5) (2026-03-19)
 
 

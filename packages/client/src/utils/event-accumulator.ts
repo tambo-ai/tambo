@@ -255,7 +255,7 @@ export function createInitialStateWithMessages(
       if (c.type === "text") {
         return { type: "text" as const, text: c.text };
       }
-      return c as Content;
+      return c;
     }),
   }));
 
