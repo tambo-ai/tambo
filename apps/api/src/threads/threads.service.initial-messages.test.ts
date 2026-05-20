@@ -12,6 +12,7 @@ import { EmailService } from "../common/services/email.service";
 import { CorrelationLoggerService } from "../common/services/logger.service";
 import { StorageConfigService } from "../common/services/storage-config.service";
 import { ProjectsService } from "../projects/projects.service";
+import { MemoryExtractionService } from "../memory/memory-extraction.service";
 import { SkillsService } from "../skills/skills.service";
 import { AdvanceThreadDto } from "./dto/advance-thread.dto";
 import { MessageRequest } from "./dto/message.dto";
@@ -111,6 +112,12 @@ describe("ThreadsService - Initial Messages", () => {
             ensureSkillUploaded: jest.fn(),
           },
         },
+        {
+          provide: MemoryExtractionService,
+          useValue: {
+            extractAndSaveMemories: jest.fn().mockResolvedValue(undefined),
+          },
+        },
       ],
     }).compile();
 
@@ -183,7 +190,7 @@ describe("ThreadsService - Initial Messages", () => {
     it("should throw error for text content without text property", () => {
       const invalidMessages: MessageRequest[] = [
         {
-          content: [{ type: ContentPartType.Text } as any],
+          content: [{ type: ContentPartType.Text }],
           role: MessageRole.User,
         },
       ];

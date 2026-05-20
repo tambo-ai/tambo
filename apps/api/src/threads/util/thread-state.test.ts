@@ -3,7 +3,6 @@ import { operations } from "@tambo-ai-cloud/db";
 import { Logger } from "@nestjs/common";
 import {
   ActionType,
-  ChatCompletionContentPart,
   ContentPartType,
   GenerationStage,
   UI_TOOLNAME_PREFIX,
@@ -190,9 +189,7 @@ describe("Thread State", () => {
         threadId: "thread-1",
         parentMessageId: "msg-1",
         role: MessageRole.Assistant,
-        content: [
-          { type: ContentPartType.Text, text: "" } as ChatCompletionContentPart,
-        ],
+        content: [{ type: ContentPartType.Text, text: "" }],
         componentState: {},
         createdAt: now,
       };
@@ -254,7 +251,7 @@ describe("Thread State", () => {
           {
             type: ContentPartType.Text,
             text: "Custom initial text",
-          } as ChatCompletionContentPart,
+          },
         ],
         componentState: {},
         createdAt: now,
@@ -349,7 +346,7 @@ describe("Thread State", () => {
           {
             type: ContentPartType.Text,
             text: "initial",
-          } as ChatCompletionContentPart,
+          },
         ],
         createdAt: new Date(),
         componentState: {},
@@ -397,7 +394,7 @@ describe("Thread State", () => {
           {
             type: ContentPartType.Text,
             text: "initial",
-          } as ChatCompletionContentPart,
+          },
         ],
         createdAt: new Date(),
         componentState: {},
@@ -444,7 +441,7 @@ describe("Thread State", () => {
           {
             type: ContentPartType.Text,
             text: "initial",
-          } as ChatCompletionContentPart,
+          },
         ],
         createdAt: new Date(),
         componentState: {},
@@ -524,7 +521,7 @@ describe("Thread State", () => {
           {
             type: ContentPartType.Text,
             text: "original",
-          } as ChatCompletionContentPart,
+          },
         ],
         createdAt: new Date(),
         componentState: {},
@@ -562,7 +559,7 @@ describe("Thread State", () => {
           {
             type: ContentPartType.Text,
             text: "original system",
-          } as ChatCompletionContentPart,
+          },
         ],
         createdAt: new Date(),
         componentState: {},
@@ -642,7 +639,7 @@ describe("Thread State", () => {
           {
             type: ContentPartType.Text,
             text: "original tool response",
-          } as ChatCompletionContentPart,
+          },
         ],
         createdAt: new Date(),
         componentState: {},

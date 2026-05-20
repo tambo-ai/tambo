@@ -155,11 +155,14 @@ describe("useTamboSessionToken", () => {
   it("should not fetch token when userToken changes to undefined", async () => {
     mockAuthApi.getToken.mockResolvedValue(mockTokenResponse);
 
-    const { result, rerender } = renderHook(
+    const { result, rerender } = renderHook<
+      ReturnType<typeof useTamboSessionToken>,
+      { userToken: string | undefined }
+    >(
       ({ userToken }) =>
         useTamboSessionToken(mockTamboAI, queryClient, userToken),
       {
-        initialProps: { userToken: "user-token" as string | undefined },
+        initialProps: { userToken: "user-token" },
       },
     );
     expect(mockAuthApi.getToken).toHaveBeenCalledTimes(1);
@@ -231,11 +234,14 @@ describe("useTamboSessionToken", () => {
   it("should reset token when userToken becomes null", async () => {
     mockAuthApi.getToken.mockResolvedValue(mockTokenResponse);
 
-    const { result, rerender } = renderHook(
+    const { result, rerender } = renderHook<
+      ReturnType<typeof useTamboSessionToken>,
+      { userToken: string | undefined }
+    >(
       ({ userToken }) =>
         useTamboSessionToken(mockTamboAI, queryClient, userToken),
       {
-        initialProps: { userToken: "user-token" as string | undefined },
+        initialProps: { userToken: "user-token" },
       },
     );
 

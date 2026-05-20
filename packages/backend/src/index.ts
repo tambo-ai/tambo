@@ -1,8 +1,4 @@
 export {
-  createLangfuseConfig,
-  createLangfuseTelemetryConfig,
-} from "./config/langfuse.config";
-export {
   createS3Client,
   isS3Configured,
   type S3Config,
@@ -43,3 +39,4 @@ export {
   providerSupportsSkills,
 } from "./services/skills/provider-skill-client";
 export * from "./util/tambo-custom-events";
+export { callMemoryExtractionLLM } from "./prompt/memory-extraction-prompt";

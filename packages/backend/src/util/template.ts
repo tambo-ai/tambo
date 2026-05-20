@@ -181,6 +181,10 @@ export function objectTemplate<T>(objs: T): ObjectTemplate<T> {
         return objectTemplate(item)[formatProp](parameters);
       }) as T;
     }
+    // Non-plain objects (Date, RegExp, etc.) can't contain template strings
+    if (Object.getPrototypeOf(objs) !== Object.prototype) {
+      return objs;
+    }
 
     return Object.fromEntries(
       Object.entries(objs).map(([key, value]) => {
@@ -221,6 +225,12 @@ function objTemplateVariables(objs: unknown): readonly string[] {
 
   if (Array.isArray(objs)) {
     return objs.flatMap((item) => objTemplateVariables(item));
+  }
+  if (
+    typeof objs === "object" &&
+    Object.getPrototypeOf(objs) !== Object.prototype
+  ) {
+    return [];
   }
   return Object.entries(objs as Record<string, unknown>).flatMap(
     ([, value]): readonly string[] => {

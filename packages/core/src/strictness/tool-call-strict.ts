@@ -32,10 +32,7 @@ export function unstrictifyToolCallRequest(
   );
 
   // unstrictify the parameters
-  const newParamsRecord = unstrictifyToolCallParams(
-    originalToolParams as JSONSchema7,
-    params,
-  );
+  const newParamsRecord = unstrictifyToolCallParams(originalToolParams, params);
 
   // repack the parameters into the tool call request
   const newParams = Object.entries(newParamsRecord).map(

@@ -930,7 +930,7 @@ export class V1Service {
             isRetryable: classified.isRetryable,
             status: classified.status,
             timestamp: Date.now(),
-          } as RunErrorEvent;
+          };
           this.emitEvent(response, runErrorEvent);
 
           // Store full error details in database for debugging

@@ -64,7 +64,6 @@ src/
 
 - Sentry configured in `src/sentry.ts` with tags (`projectId`, `threadId`, etc.).
 - OpenTelemetry spans configured via `src/telemetry.ts`; long-running operations should create child spans.
-- Langfuse instrumentation imported from `@langfuse/otel` for LLM traces.
 
 See `devdocs/OBSERVABILITY.md` for expectations and tag conventions.
 

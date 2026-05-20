@@ -26,6 +26,7 @@ import { EmailService } from "../common/services/email.service";
 import { CorrelationLoggerService } from "../common/services/logger.service";
 import { StorageConfigService } from "../common/services/storage-config.service";
 import { ProjectsService } from "../projects/projects.service";
+import { MemoryExtractionService } from "../memory/memory-extraction.service";
 import { SkillsService } from "../skills/skills.service";
 import { AdvanceThreadDto } from "./dto/advance-thread.dto";
 import { StreamQueueItem } from "./dto/stream-queue-item";
@@ -184,6 +185,9 @@ jest.mock("@tambo-ai-cloud/db", () => {
 
     // component state
     updateMessageComponentState: jest.fn(),
+
+    // memories
+    getActiveMemories: jest.fn(),
   } satisfies Partial<typeof dbOperations>;
   return {
     ...actual,
@@ -421,6 +425,12 @@ describe("ThreadsService.advanceThread initialization", () => {
             supportsSkills: jest.fn().mockReturnValue(false),
             ensureSkillUploaded: jest.fn(),
             ensureProviderSkillsForRun: jest.fn().mockResolvedValue(undefined),
+          },
+        },
+        {
+          provide: MemoryExtractionService,
+          useValue: {
+            extractAndSaveMemories: jest.fn().mockResolvedValue(undefined),
           },
         },
       ],
@@ -2061,6 +2071,176 @@ describe("ThreadsService.advanceThread initialization", () => {
       await expect(
         service.generateThreadName(threadId, projectId),
       ).rejects.toThrow(NotFoundError);
+    });
+  });
+
+  describe("memory injection", () => {
+    const contextKey = "user_42";
+
+    function createMemoryBackendMock() {
+      const runDecisionLoopMock = jest.fn().mockImplementation(() => {
+        throw new Error("STOP_MEMORY_CHECK");
+      });
+      const backendMock = {
+        runDecisionLoop: runDecisionLoopMock,
+        modelOptions: { provider: "openai", model: "gpt-4o" },
+        llmClient: { complete: jest.fn() },
+        generateSuggestions: jest.fn(),
+        generateThreadName: jest.fn(),
+      } as const;
+      return { backendMock, runDecisionLoopMock };
+    }
+
+    test("fetches and injects memories when memoryEnabled is true", async () => {
+      const dto = makeDto();
+      const { backendMock, runDecisionLoopMock } = createMemoryBackendMock();
+
+      // Project with memory enabled
+      operations.getProject.mockResolvedValue(
+        createMockDBProject(projectId, {
+          memoryEnabled: true,
+          memoryToolsEnabled: false,
+          agentProviderType: AgentProviderType.MASTRA,
+          defaultLlmProviderName: "openai",
+          defaultLlmModelName: DEFAULT_OPENAI_MODEL,
+          oauthValidationMode: OAuthValidationMode.NONE,
+          providerType: AiProviderType.LLM,
+          maxToolCallLimit: 7,
+        }),
+      );
+
+      // Mock memories from DB
+      operations.getActiveMemories.mockResolvedValue([
+        {
+          id: "mem_abc",
+          projectId,
+          contextKey,
+          content: "Prefers dark mode",
+          category: "preference",
+          importance: 5,
+
+          deletedAt: null,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        {
+          id: "mem_def",
+          projectId,
+          contextKey,
+          content: "Works at Acme Corp",
+          category: "fact",
+          importance: 3,
+
+          deletedAt: null,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      ]);
+
+      const backendSpy = jest
+        .spyOn<any, any>(service, "createTamboBackendForThread")
+        .mockResolvedValue(backendMock);
+
+      try {
+        await expect(
+          service.advanceThread({ projectId, contextKey }, dto),
+        ).rejects.toThrow("STOP_MEMORY_CHECK");
+
+        // Verify memories were fetched
+        expect(operations.getActiveMemories).toHaveBeenCalledWith(
+          expect.anything(), // db
+          projectId,
+          contextKey,
+          50,
+        );
+
+        // Verify memories were passed to runDecisionLoop
+        expect(runDecisionLoopMock).toHaveBeenCalledTimes(1);
+        const [params] = runDecisionLoopMock.mock.calls[0];
+        expect(params.memories).toBeDefined();
+        expect(params.memories).toContain("mem_abc");
+        expect(params.memories).toContain("Prefers dark mode");
+        expect(params.memories).toContain("mem_def");
+        expect(params.memories).toContain("Works at Acme Corp");
+      } finally {
+        backendSpy.mockRestore();
+      }
+    });
+
+    test("does not fetch memories when memoryEnabled is false", async () => {
+      const dto = makeDto();
+      const { backendMock, runDecisionLoopMock } = createMemoryBackendMock();
+
+      // Project with memory disabled (default)
+      operations.getProject.mockResolvedValue(
+        createMockDBProject(projectId, {
+          memoryEnabled: false,
+          agentProviderType: AgentProviderType.MASTRA,
+          defaultLlmProviderName: "openai",
+          defaultLlmModelName: DEFAULT_OPENAI_MODEL,
+          oauthValidationMode: OAuthValidationMode.NONE,
+          providerType: AiProviderType.LLM,
+          maxToolCallLimit: 7,
+        }),
+      );
+
+      const backendSpy = jest
+        .spyOn<any, any>(service, "createTamboBackendForThread")
+        .mockResolvedValue(backendMock);
+
+      try {
+        await expect(
+          service.advanceThread({ projectId, contextKey }, dto),
+        ).rejects.toThrow("STOP_MEMORY_CHECK");
+
+        // Should NOT have fetched memories
+        expect(operations.getActiveMemories).not.toHaveBeenCalled();
+
+        // memories param should be undefined
+        expect(runDecisionLoopMock).toHaveBeenCalledTimes(1);
+        const [params] = runDecisionLoopMock.mock.calls[0];
+        expect(params.memories).toBeUndefined();
+      } finally {
+        backendSpy.mockRestore();
+      }
+    });
+
+    test("passes undefined memories when user has no memories", async () => {
+      const dto = makeDto();
+      const { backendMock, runDecisionLoopMock } = createMemoryBackendMock();
+
+      operations.getProject.mockResolvedValue(
+        createMockDBProject(projectId, {
+          memoryEnabled: true,
+          agentProviderType: AgentProviderType.MASTRA,
+          defaultLlmProviderName: "openai",
+          defaultLlmModelName: DEFAULT_OPENAI_MODEL,
+          oauthValidationMode: OAuthValidationMode.NONE,
+          providerType: AiProviderType.LLM,
+          maxToolCallLimit: 7,
+        }),
+      );
+
+      // Empty memories
+      operations.getActiveMemories.mockResolvedValue([]);
+
+      const backendSpy = jest
+        .spyOn<any, any>(service, "createTamboBackendForThread")
+        .mockResolvedValue(backendMock);
+
+      try {
+        await expect(
+          service.advanceThread({ projectId, contextKey }, dto),
+        ).rejects.toThrow("STOP_MEMORY_CHECK");
+
+        expect(operations.getActiveMemories).toHaveBeenCalled();
+
+        // With no memories, memoriesText should be undefined (empty formatMemoriesForPrompt returns "")
+        const [params] = runDecisionLoopMock.mock.calls[0];
+        expect(params.memories).toBeUndefined();
+      } finally {
+        backendSpy.mockRestore();
+      }
     });
   });
 });

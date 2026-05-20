@@ -35,10 +35,10 @@
     "@types/node": "^22.19.15",
     "chokidar": "^5.0.0",
     "husky": "^9.1.7",
-    "lint-staged": "^16.4.0",
-    "prettier": "^3.8.1",
+    "lint-staged": "^17.0.4",
+    "prettier": "^3.8.3",
     "tsx": "^4.21.0",
-    "turbo": "^2.8.3",
+    "turbo": "^2.9.14",
     "type-fest": "^5.4.3",
     "typescript": "^5.9.3"
   },
@@ -67,7 +67,10 @@
   "//overrides": "@ai-sdk/openai v3 and @ai-sdk/anthropic v3 are required for skills runtime (openai.tools.shell and anthropic.tools.codeExecution in mergeProviderSkills). @copilotkit/runtime pulls in v2 which gets hoisted to root, so we pin v3 here to ensure all packages resolve the same version.",
   "overrides": {
     "@ai-sdk/openai": "$@ai-sdk/openai",
-    "@ai-sdk/anthropic": "$@ai-sdk/anthropic"
+    "@ai-sdk/anthropic": "$@ai-sdk/anthropic",
+    "picomatch@>=4.0.0": "4.0.4",
+    "picomatch@<3.0.0": "2.3.2",
+    "path-to-regexp@<0.1.13": "0.1.13"
   },
   "dependencies": {
     "@ai-sdk/openai": "^3.0.48",

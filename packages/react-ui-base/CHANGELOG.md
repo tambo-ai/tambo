@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.1.9](https://github.com/tambo-ai/tambo/compare/@tambo-ai/react-ui-base-v0.1.8...@tambo-ai/react-ui-base-v0.1.9) (2026-05-20)
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump rimraf from 6.1.2 to 6.1.3 ([#2799](https://github.com/tambo-ai/tambo/issues/2799)) ([4561795](https://github.com/tambo-ai/tambo/commit/45617957bb171d1f938762c9ed8752956a13d573))
+* **deps-dev:** bump the testing group across 1 directory with 3 updates ([#2841](https://github.com/tambo-ai/tambo/issues/2841)) ([5eccdbf](https://github.com/tambo-ai/tambo/commit/5eccdbf9353201b8d8d9508a6449a90aa3437512))
+* **deps:** bump @tambo-ai/typescript-sdk from 0.95.0 to 0.96.0 in the tambo-ai group ([#2830](https://github.com/tambo-ai/tambo/issues/2830)) ([c2d8a3d](https://github.com/tambo-ai/tambo/commit/c2d8a3df63336ae0b34d845e019f7297d6b9a010))
+
 ## [0.1.8](https://github.com/tambo-ai/tambo/compare/@tambo-ai/react-ui-base-v0.1.7...@tambo-ai/react-ui-base-v0.1.8) (2026-04-06)
 
 

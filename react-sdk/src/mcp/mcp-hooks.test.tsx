@@ -848,7 +848,7 @@ describe("useTamboMcpResourceList - resource management", () => {
         uri: "file:///registry/doc.txt",
         name: "Registry Doc",
         mimeType: "text/plain",
-      } as any,
+      },
     };
 
     const mcpEntry: ListResourceEntry = {
@@ -857,7 +857,7 @@ describe("useTamboMcpResourceList - resource management", () => {
         uri: "server-a:file:///home/user/doc.txt",
         name: "Document",
         mimeType: "text/plain",
-      } as any,
+      },
     };
 
     expect(isMcpResourceEntry(mcpEntry)).toBe(true);

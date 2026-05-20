@@ -10,7 +10,7 @@ import { api } from "@/trpc/react";
 import { extractErrorMessage } from "@/lib/extract-error-message";
 import { parseSkillContent, toSkillSlug } from "@tambo-ai-cloud/core";
 import { Loader2 } from "lucide-react";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 export type SkillSummary = RouterOutputs["skills"]["list"][number];
 
@@ -112,6 +112,19 @@ export function SkillForm({
   const [instructions, setInstructions] = useState(
     initialFields?.instructions ?? skill?.instructions ?? "",
   );
+
+  // Sync form fields as Tambo streams in updated initialFields
+  useEffect(() => {
+    if (initialFields?.name !== undefined) setName(initialFields.name);
+    if (initialFields?.description !== undefined)
+      setDescription(initialFields.description);
+    if (initialFields?.instructions !== undefined)
+      setInstructions(initialFields.instructions);
+  }, [
+    initialFields?.name,
+    initialFields?.description,
+    initialFields?.instructions,
+  ]);
 
   const handlePasteWithFrontmatter = useCallback((e: React.ClipboardEvent) => {
     const text = e.clipboardData.getData("text/plain");
@@ -225,7 +238,10 @@ export function SkillForm({
         >
           {saveMutation.isPending ? (
             <>
-              <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+              <Loader2
+                className="mr-2 h-4 w-4 animate-spin"
+                aria-hidden="true"
+              />
               Saving...
             </>
           ) : (

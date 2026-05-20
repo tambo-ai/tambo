@@ -1,16 +1,4 @@
-import {
-  EventType,
-  type BaseEvent,
-  type TextMessageContentEvent,
-  type TextMessageEndEvent,
-  type TextMessageStartEvent,
-  type ThinkingTextMessageContentEvent,
-  type ThinkingTextMessageEndEvent,
-  type ThinkingTextMessageStartEvent,
-  type ToolCallArgsEvent,
-  type ToolCallEndEvent,
-  type ToolCallStartEvent,
-} from "@ag-ui/core";
+import { EventType, type BaseEvent } from "@ag-ui/core";
 import { createAnthropic } from "@ai-sdk/anthropic";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { createGroq } from "@ai-sdk/groq";
@@ -27,6 +15,7 @@ import {
   ThreadMessage,
   type LlmProviderConfigInfo,
 } from "@tambo-ai-cloud/core";
+import { safeFetch } from "@tambo-ai-cloud/core/safe-fetch";
 import {
   generateText,
   jsonSchema,
@@ -41,7 +30,6 @@ import {
 import type { ProviderOptions } from "@ai-sdk/provider-utils";
 import type OpenAI from "openai";
 import { z } from "zod/v3";
-import { createLangfuseTelemetryConfig } from "../../config/langfuse.config";
 import { Provider } from "../../model/providers";
 import {
   ComponentStreamTracker,
@@ -204,14 +192,6 @@ export class AISdkClient implements LLMClient {
       isSupportedMimeType,
     );
 
-    // Prepare experimental telemetry for Langfuse
-    const experimentalTelemetry = createLangfuseTelemetryConfig({
-      sessionId: params.chainId ?? this.chainId,
-      provider: this.provider,
-      model: this.model,
-      functionId: `${this.provider}-${this.model}`,
-    });
-
     // Extract custom parameters for the current model
     // Handle provider key mapping (e.g., "gemini" provider stores under "gemini" but AI SDK uses "google")
     const originalProviderKey = this.provider; // e.g., "gemini"
@@ -273,9 +253,6 @@ export class AISdkClient implements LLMClient {
         ? this.convertToolChoice(params.tool_choice)
         : undefined,
       ...(responseFormat && { responseFormat }),
-      ...(experimentalTelemetry && {
-        experimental_telemetry: experimentalTelemetry,
-      }),
       /**
        * Provider-specific configuration
        * Merge hierarchy (later overrides earlier):
@@ -366,7 +343,7 @@ export class AISdkClient implements LLMClient {
         model: openai.responses(this.model),
         tools: {
           ...config.tools,
-          shell: shellTool,
+          shell: shellTool as unknown as Tool,
         },
       };
     }
@@ -389,7 +366,7 @@ export class AISdkClient implements LLMClient {
         ...config,
         tools: {
           ...config.tools,
-          code_execution: codeExecutionTool,
+          code_execution: codeExecutionTool as unknown as Tool,
         },
         providerOptions: {
           ...config.providerOptions,
@@ -439,6 +416,9 @@ export class AISdkClient implements LLMClient {
           name: config.providerName || "openai-compatible",
           baseURL: config.baseURL || "",
           apiKey: config.apiKey,
+          // Pin DNS via safeFetch so an attacker-controlled custom base URL
+          // cannot rebind to a private address between validation and call.
+          fetch: safeFetch,
         })(this.model);
       }
       default:
@@ -581,13 +561,13 @@ export class AISdkClient implements LLMClient {
               messageId: textMessageId,
               role: "assistant",
               timestamp: Date.now(),
-            } as TextMessageStartEvent);
+            });
             aguiEvents.push({
               type: EventType.TEXT_MESSAGE_CONTENT,
               messageId: textMessageId,
               delta: "\n\n",
               timestamp: Date.now(),
-            } as TextMessageContentEvent);
+            });
           } else {
             accumulatedMessage = "";
             textMessageId = generateMessageId();
@@ -596,7 +576,7 @@ export class AISdkClient implements LLMClient {
               messageId: textMessageId,
               role: "assistant",
               timestamp: Date.now(),
-            } as TextMessageStartEvent);
+            });
           }
           break;
         }
@@ -608,7 +588,7 @@ export class AISdkClient implements LLMClient {
               messageId: textMessageId,
               delta: delta.text,
               timestamp: Date.now(),
-            } as TextMessageContentEvent);
+            });
           }
           break;
         case "text-end":
@@ -617,7 +597,7 @@ export class AISdkClient implements LLMClient {
               type: EventType.TEXT_MESSAGE_END,
               messageId: textMessageId,
               timestamp: Date.now(),
-            } as TextMessageEndEvent);
+            });
           }
           // textMessageId is deliberately NOT cleared here so it can be
           // reused if text resumes after a provider-managed skill tool call.
@@ -667,7 +647,7 @@ export class AISdkClient implements LLMClient {
               toolCallName: delta.toolName,
               parentMessageId: textMessageId,
               timestamp: Date.now(),
-            } as ToolCallStartEvent);
+            });
           }
           break;
         }
@@ -686,7 +666,7 @@ export class AISdkClient implements LLMClient {
               toolCallId: delta.id,
               delta: delta.delta,
               timestamp: Date.now(),
-            } as ToolCallArgsEvent);
+            });
           }
           break;
         case "tool-input-end":
@@ -716,7 +696,7 @@ export class AISdkClient implements LLMClient {
               type: EventType.TOOL_CALL_END,
               toolCallId: delta.toolCallId,
               timestamp: Date.now(),
-            } as ToolCallEndEvent);
+            });
           }
           break;
         case "tool-result":
@@ -742,7 +722,7 @@ export class AISdkClient implements LLMClient {
           aguiEvents.push({
             type: EventType.THINKING_TEXT_MESSAGE_START,
             timestamp: Date.now(),
-          } as ThinkingTextMessageStartEvent);
+          });
           break;
         case "reasoning-delta":
           accumulatedReasoning = [
@@ -753,14 +733,14 @@ export class AISdkClient implements LLMClient {
             type: EventType.THINKING_TEXT_MESSAGE_CONTENT,
             delta: delta.text,
             timestamp: Date.now(),
-          } as ThinkingTextMessageContentEvent);
+          });
           break;
         case "reasoning-end":
           reasoningEndTimestamp = Date.now();
           aguiEvents.push({
             type: EventType.THINKING_TEXT_MESSAGE_END,
             timestamp: Date.now(),
-          } as ThinkingTextMessageEndEvent);
+          });
           break;
         case "source": // url? not sure what this is
         case "file": // TODO: handle files - should be added as message objects
@@ -876,7 +856,6 @@ export class AISdkClient implements LLMClient {
   }
 }
 
-/** We have to manually format this because objectTemplate doesn't seem to support chat_history */
 function tryFormatTemplate(
   messages: ThreadMessage[],
   promptTemplateParams: Record<string, string | ThreadMessage[]>,
@@ -886,7 +865,11 @@ function tryFormatTemplate(
       messages as ObjectTemplate<ThreadMessage[]>,
       promptTemplateParams,
     );
-  } catch (_e) {
+  } catch (e) {
+    console.warn(
+      "tryFormatTemplate: template substitution failed, returning original messages:",
+      e,
+    );
     return messages;
   }
 }

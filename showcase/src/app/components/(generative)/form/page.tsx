@@ -3,6 +3,8 @@
 import { ComponentCodePreview } from "@/components/component-code-preview";
 import { FormChatInterface } from "@/components/generative/FormChatInterface";
 import { InstallationSection } from "@/components/installation-section";
+import { SyntaxHighlighter } from "@/components/ui/syntax-highlighter";
+import { FormComponent } from "@tambo-ai/ui-registry/components/form";
 
 export default function FormComponentPage() {
   return (
@@ -19,25 +21,60 @@ export default function FormComponentPage() {
         </p>
       </header>
 
-      {/* Examples Section */}
+      {/* Example Section */}
       <section className="space-y-6">
-        <h2 className="text-2xl font-semibold">Examples</h2>
-
-        <p className="text-sm text-muted-foreground">
-          This interactive demo runs inside the showcase&apos;s app-level
-          TamboProvider, which sets a per-user context key (persisted in
-          localStorage).
-        </p>
+        <h2 className="text-2xl font-semibold">Example</h2>
 
         <div className="space-y-6">
           <ComponentCodePreview
             title="Contact Form"
-            component={<FormChatInterface />}
-            code={`import { Form } from "@/components/tambo/form";
+            component={
+              <FormComponent
+                fields={[
+                  {
+                    id: "name",
+                    label: "Name",
+                    type: "text",
+                    required: true,
+                    placeholder: "Enter your name",
+                  },
+                  {
+                    id: "email",
+                    label: "Email",
+                    type: "email",
+                    required: true,
+                    placeholder: "your.email@example.com",
+                  },
+                  {
+                    id: "phone",
+                    label: "Phone",
+                    type: "text",
+                    placeholder: "(555) 123-4567",
+                  },
+                  {
+                    id: "message",
+                    label: "Message",
+                    type: "textarea",
+                    required: true,
+                    placeholder: "How can we help?",
+                  },
+                  {
+                    id: "contactMethod",
+                    label: "Preferred Contact Method",
+                    type: "select",
+                    options: ["Email", "Phone", "Either"],
+                  },
+                ]}
+                variant="bordered"
+                layout="relaxed"
+                onSubmit={(data) => console.log(data)}
+              />
+            }
+            code={`import { FormComponent } from "@/components/tambo/form";
 
 export function ContactForm() {
   return (
-    <Form
+    <FormComponent
       fields={[
         {
           id: "name",
@@ -79,6 +116,45 @@ export function ContactForm() {
     />
   );
 }`}
+            previewClassName="p-8"
+          />
+        </div>
+      </section>
+
+      {/* Interactive Demo Section */}
+      <section className="space-y-6">
+        <h2 className="text-2xl font-semibold">Interactive Demo</h2>
+
+        <p className="text-sm text-muted-foreground">
+          Use natural language to generate and modify forms in real time. This
+          interactive demo runs inside the showcase&apos;s app-level
+          TamboProvider, which sets a per-user context key (persisted in
+          localStorage).
+        </p>
+
+        <div className="space-y-6">
+          <ComponentCodePreview
+            title="AI-Generated Form"
+            component={<FormChatInterface />}
+            code={`import { FormComponent, formSchema } from "@/components/tambo/form";
+import { MessageThreadFull } from "@/components/tambo/message-thread-full";
+import { useTambo } from "@tambo-ai/react";
+import { useEffect } from "react";
+
+export function FormDemo() {
+  const { registerComponent } = useTambo();
+
+  useEffect(() => {
+    registerComponent({
+      name: "FormComponent",
+      description: "A dynamic form builder component.",
+      component: FormComponent,
+      propsSchema: formSchema,
+    });
+  }, [registerComponent]);
+
+  return <MessageThreadFull />;
+}`}
             previewClassName="p-0"
             minHeight={700}
           />
@@ -88,6 +164,78 @@ export function ContactForm() {
       {/* Installation */}
       <section>
         <InstallationSection cliCommand="npx tambo add form" />
+      </section>
+
+      {/* Try It Yourself */}
+      <section className="space-y-6">
+        <h2 className="text-2xl font-semibold">Try It Yourself</h2>
+
+        <div className="not-prose space-y-6">
+          {/* Step 1 */}
+          <div className="space-y-3">
+            <h3 className="text-lg font-500 text-foreground">
+              1. Install the component
+            </h3>
+            <pre className="rounded-md border border-border bg-muted/40 p-4">
+              <code className="text-sm text-foreground">
+                npx tambo add form
+              </code>
+            </pre>
+          </div>
+
+          {/* Step 2 */}
+          <div className="space-y-3">
+            <h3 className="text-lg font-500 text-foreground">
+              2. Register with Tambo
+            </h3>
+            <SyntaxHighlighter
+              language="tsx"
+              code={`import { FormComponent, formSchema } from "@/components/tambo/form";
+import { MessageThreadFull } from "@/components/tambo/message-thread-full";
+import { useTambo } from "@tambo-ai/react";
+import { useEffect } from "react";
+
+export function App() {
+  const { registerComponent } = useTambo();
+
+  useEffect(() => {
+    registerComponent({
+      name: "FormComponent",
+      description: "A dynamic form builder component.",
+      component: FormComponent,
+      propsSchema: formSchema,
+    });
+  }, [registerComponent]);
+
+  return <MessageThreadFull />;
+}`}
+            />
+          </div>
+
+          {/* Step 3 */}
+          <div className="space-y-3">
+            <h3 className="text-lg font-500 text-foreground">
+              3. Send a prompt
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              Try these example prompts:
+            </p>
+            <ul className="space-y-2 text-sm text-muted-foreground">
+              <li>
+                &rarr; &quot;Create a contact form with name, email, and message
+                fields&quot;
+              </li>
+              <li>
+                &rarr; &quot;Build a survey with radio buttons and a dropdown
+                for age range&quot;
+              </li>
+              <li>
+                &rarr; &quot;Make a compact registration form with email and
+                password validation&quot;
+              </li>
+            </ul>
+          </div>
+        </div>
       </section>
 
       {/* Component API */}

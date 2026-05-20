@@ -55,6 +55,8 @@ function makeProject(overrides: Partial<Project> = {}): Project {
     agentUrl: null,
     agentName: null,
     customLlmParameters: null,
+    memoryEnabled: false,
+    memoryToolsEnabled: false,
     messages: 0,
     users: 0,
     lastMessageAt: null,
