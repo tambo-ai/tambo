@@ -99,7 +99,7 @@ export class AgentClient {
           url: agentUrl,
           headers,
         });
-        return new AgentClient(chainId, agent as unknown as AbstractAgent);
+        return new AgentClient(chainId, agent);
       }
       case AgentProviderType.LLAMAINDEX: {
         const agent = new LlamaIndexAgent({
@@ -435,10 +435,13 @@ export class AgentClient {
           }
 
           const currentContent = aguiContentToString(currentMessage.content);
-          const updatedMessage: AgentMessage = {
-            ...(currentMessage as unknown as AgentMessage),
-            content: currentContent + e.delta,
-          };
+          const updatedMessage: AgentMessage = Object.assign(
+            {},
+            currentMessage,
+            {
+              content: currentContent + e.delta,
+            },
+          );
           currentMessage = updatedMessage;
           yield {
             type: AgentResponseType.MESSAGE,
@@ -500,13 +503,12 @@ export class AgentClient {
           }
           const currentReasoningString: string =
             currentMessage.reasoning?.at(-1) ?? "";
-          currentMessage = {
-            ...(currentMessage as unknown as AgentMessage),
+          currentMessage = Object.assign({}, currentMessage, {
             reasoning: [
               ...(currentMessage.reasoning?.slice(0, -1) ?? []),
               currentReasoningString + e.delta,
             ],
-          };
+          });
           yield {
             type: AgentResponseType.MESSAGE,
             message: currentMessage,

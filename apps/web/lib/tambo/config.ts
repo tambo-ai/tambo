@@ -37,6 +37,10 @@ import {
   ProjectTableContainerSchema,
 } from "@/components/dashboard-components/project-table-container";
 import {
+  SkillsSection,
+  InteractableSkillsSectionProps,
+} from "@/components/dashboard-components/project-details/skills-section";
+import {
   ThreadTableContainer,
   ThreadTableContainerSchema,
 } from "@/components/observability/thread-table/thread-table-container";
@@ -111,5 +115,12 @@ export const tamboRegisteredComponents = [
       "A component that allows users to manage API keys for their project. Users can view existing API keys, create new keys with custom names, and delete keys they no longer need. Each key is displayed with its creation date and preview, and newly created keys are shown once for copying.",
     component: APIKeyList,
     propsSchema: InteractableAPIKeyListProps,
+  },
+  {
+    name: "Skills",
+    description:
+      "A component that allows users to manage agent skills for their project. Users can create, edit, delete, toggle, and import skills from SKILL.md files. To create a new skill, render with `defaultNewSkill` containing `name`, `description`, and `instructions`. To edit an existing skill, render with `defaultEditSkill` containing `skillId` and the updated fields - the edit form opens pre-filled so the user can review and save. Requires a project ID and optionally accepts default LLM provider/model names to check skill support.",
+    component: SkillsSection,
+    propsSchema: InteractableSkillsSectionProps,
   },
 ];

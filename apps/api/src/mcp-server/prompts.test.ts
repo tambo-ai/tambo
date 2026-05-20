@@ -323,7 +323,7 @@ describe("registerPromptHandlers", () => {
       const handler = registerPromptSpy.mock.calls[0][2];
       const args = { message: "hello", count: 42 };
 
-      await handler(args as any, {} as any);
+      await handler(args, {} as any);
 
       expect(mockGetPrompt).toHaveBeenCalledWith({
         name: "test_prompt",

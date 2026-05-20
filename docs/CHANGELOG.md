@@ -1,5 +1,53 @@
 # Changelog
 
+## [1.33.1](https://github.com/tambo-ai/tambo/compare/docs-v1.33.0...docs-v1.33.1) (2026-05-20)
+
+
+### Miscellaneous Chores
+
+* **deps:** bump @tambo-ai/typescript-sdk from 0.95.0 to 0.96.0 in the tambo-ai group ([#2830](https://github.com/tambo-ai/tambo/issues/2830)) ([c2d8a3d](https://github.com/tambo-ai/tambo/commit/c2d8a3df63336ae0b34d845e019f7297d6b9a010))
+* **deps:** bump dompurify from 3.3.2 to 3.4.0 ([#2805](https://github.com/tambo-ai/tambo/issues/2805)) ([c96136c](https://github.com/tambo-ai/tambo/commit/c96136ccb42b6016c530fa5c54cece8fe8cc5898))
+* **deps:** bump mermaid from 11.13.0 to 11.14.0 ([#2844](https://github.com/tambo-ai/tambo/issues/2844)) ([4cb86c0](https://github.com/tambo-ai/tambo/commit/4cb86c023524d7184cb0a4ea72565fdf6f6bc1f4))
+* **deps:** bump mermaid from 11.14.0 to 11.15.0 ([#2839](https://github.com/tambo-ai/tambo/issues/2839)) ([e3bdb17](https://github.com/tambo-ai/tambo/commit/e3bdb177db063924769e70ea2a1f04385bd5c971))
+* **deps:** bump next from 15.5.15 to 15.5.18 ([#2845](https://github.com/tambo-ai/tambo/issues/2845)) ([aef3672](https://github.com/tambo-ai/tambo/commit/aef36727d9f8556f0c5ab3cefa7b9f894be3109a))
+* **deps:** bump postcss from 8.5.10 to 8.5.11 ([#2820](https://github.com/tambo-ai/tambo/issues/2820)) ([5c3c0c1](https://github.com/tambo-ai/tambo/commit/5c3c0c1e10ec661045ba63e66c2f31665d91905d))
+* **deps:** bump postcss from 8.5.11 to 8.5.12 ([#2824](https://github.com/tambo-ai/tambo/issues/2824)) ([f680012](https://github.com/tambo-ai/tambo/commit/f6800122d9d1558c7da41a5c7a4e9e5175e85c46))
+* **deps:** bump postcss from 8.5.12 to 8.5.13 ([#2835](https://github.com/tambo-ai/tambo/issues/2835)) ([fe474fd](https://github.com/tambo-ai/tambo/commit/fe474fd906d954988770d5139c9ee2696d098957))
+* **deps:** bump postcss from 8.5.13 to 8.5.14 ([#2859](https://github.com/tambo-ai/tambo/issues/2859)) ([7f0a2d7](https://github.com/tambo-ai/tambo/commit/7f0a2d7ef83c282907fc01f6f7ad7e4e0c9c6a58))
+* **deps:** bump postcss from 8.5.6 to 8.5.10 ([#2819](https://github.com/tambo-ai/tambo/issues/2819)) ([6708051](https://github.com/tambo-ai/tambo/commit/6708051c0ec25f0875664ae07979d91580b7f39b))
+* **deps:** bump the small-safe-packages group across 1 directory with 5 updates ([#2856](https://github.com/tambo-ai/tambo/issues/2856)) ([e0e941d](https://github.com/tambo-ai/tambo/commit/e0e941d263f34c00425dc5e5f7db84addf8ec7e8))
+* **deps:** bump the small-safe-packages group across 1 directory with 9 updates ([#2814](https://github.com/tambo-ai/tambo/issues/2814)) ([070925b](https://github.com/tambo-ai/tambo/commit/070925b00fd734d22c9f62207560208c1bb223f8))
+* **deps:** bump the small-safe-packages group with 7 updates ([#2831](https://github.com/tambo-ai/tambo/issues/2831)) ([e1ca59d](https://github.com/tambo-ai/tambo/commit/e1ca59d73e16f91220b0cf42d6b7a4b6f112dc2a))
+
+## [1.33.0](https://github.com/tambo-ai/tambo/compare/docs-v1.32.2...docs-v1.33.0) (2026-04-06)
+
+
+### Features
+
+* **api:** add skills management, provider upload, and runtime integration ([#2690](https://github.com/tambo-ai/tambo/issues/2690)) ([c486010](https://github.com/tambo-ai/tambo/commit/c486010bd41774283cc69988988c6c0b730aef67))
+* **cli:** add skills management commands ([#2728](https://github.com/tambo-ai/tambo/issues/2728)) ([2bfedff](https://github.com/tambo-ai/tambo/commit/2bfedff3c818b0fe31a786f74b109cbd6376e85a))
+* **cli:** auto-detect non-interactive auth and always open browser ([#2727](https://github.com/tambo-ai/tambo/issues/2727)) ([7ce2530](https://github.com/tambo-ai/tambo/commit/7ce25300c00960964bbb3132ae9a662d40a6009a))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump the eslint group across 1 directory with 4 updates ([#2703](https://github.com/tambo-ai/tambo/issues/2703)) ([61278a0](https://github.com/tambo-ai/tambo/commit/61278a05de431b9ff4e14e92a3d0433d2bf1d80d))
+* **deps:** bump @tambo-ai/typescript-sdk from 0.94.0 to 0.94.1 in the tambo-ai group ([#2706](https://github.com/tambo-ai/tambo/issues/2706)) ([6842afa](https://github.com/tambo-ai/tambo/commit/6842afa3f2b9f0e0be4be46b5def319b10f4f784))
+* **deps:** bump @tambo-ai/typescript-sdk from 0.94.1 to 0.95.0 in the tambo-ai group ([#2762](https://github.com/tambo-ai/tambo/issues/2762)) ([f577b82](https://github.com/tambo-ai/tambo/commit/f577b821d12eed5dca94b10efbf86591824b47db))
+* **deps:** bump posthog-js from 1.364.6 to 1.364.7 in the small-safe-packages group ([#2763](https://github.com/tambo-ai/tambo/issues/2763)) ([12aa854](https://github.com/tambo-ai/tambo/commit/12aa854c7bd0bb631ce861890b742182cfdc5ce7))
+* **deps:** bump the small-safe-packages group across 1 directory with 8 updates ([#2720](https://github.com/tambo-ai/tambo/issues/2720)) ([320e141](https://github.com/tambo-ai/tambo/commit/320e141cffd2ce8a5d5d948290d2601dce4dde67))
+
+
+### Documentation
+
+* add index.mdx files to all docs folders missing them ([#2731](https://github.com/tambo-ai/tambo/issues/2731)) ([41e0b12](https://github.com/tambo-ai/tambo/commit/41e0b128e84553415f64de111f0611461aabc9aa))
+* add skills documentation and CLI enable/disable commands ([#2741](https://github.com/tambo-ai/tambo/issues/2741)) ([2dc34e6](https://github.com/tambo-ai/tambo/commit/2dc34e61954998ab72bddef894031cf43e4d52e9))
+
+
+### Code Refactoring
+
+* **showcase:** remove Canvas Space component ([#2745](https://github.com/tambo-ai/tambo/issues/2745)) ([565cf28](https://github.com/tambo-ai/tambo/commit/565cf28be2d1b6af3655616b3d72959cd4551d59))
+
 ## [1.32.2](https://github.com/tambo-ai/tambo/compare/docs-v1.32.1...docs-v1.32.2) (2026-03-30)
 
 

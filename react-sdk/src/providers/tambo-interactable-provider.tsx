@@ -9,6 +9,7 @@ import React, {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import { z } from "zod/v3";
@@ -54,32 +55,32 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
   const [interactableComponents, setInteractableComponents] = useState<
     TamboInteractableComponent[]
   >([]);
-  const [, setToolComponentOwnership] = useState<Record<string, string[]>>({});
+  const toolComponentOwnershipRef = useRef<Record<string, string[]>>({});
   const { registerTool, unregisterTools } = useTamboRegistry();
   const { addContextHelper, removeContextHelper } = useTamboContextHelpers();
 
   const registerToolForComponent = useCallback(
     (componentId: string, tool: TamboTool) => {
       registerTool(tool);
-      setToolComponentOwnership((prev) => {
-        const existing = prev[componentId] ?? [];
-        if (existing.includes(tool.name)) return prev;
-        return { ...prev, [componentId]: [...existing, tool.name] };
-      });
+      const existing = toolComponentOwnershipRef.current[componentId] ?? [];
+      if (!existing.includes(tool.name)) {
+        toolComponentOwnershipRef.current = {
+          ...toolComponentOwnershipRef.current,
+          [componentId]: [...existing, tool.name],
+        };
+      }
     },
     [registerTool],
   );
 
   const unregisterToolsForComponent = useCallback(
     (componentId: string) => {
-      setToolComponentOwnership((prev) => {
-        const toolNames = prev[componentId];
-        if (!toolNames || toolNames.length === 0) return prev;
-        unregisterTools(toolNames);
-        const next = { ...prev };
-        delete next[componentId];
-        return next;
-      });
+      const toolNames = toolComponentOwnershipRef.current[componentId];
+      if (!toolNames || toolNames.length === 0) return;
+      unregisterTools(toolNames);
+      const next = { ...toolComponentOwnershipRef.current };
+      delete next[componentId];
+      toolComponentOwnershipRef.current = next;
     },
     [unregisterTools],
   );

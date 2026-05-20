@@ -18,6 +18,13 @@ export function limitTokens(
 
 /**
  * Reduce to within token limit by taking the system message and newest messages until we hit the limit.
+ *
+ * After truncation, drops any leading Tool messages that lost their preceding
+ * Assistant tool-call message. This prevents sending orphaned `tool_result`
+ * blocks that violate the Anthropic message protocol. Orphaned `tool_use`
+ * blocks (assistant with tool-call but no following tool-result) are handled
+ * downstream by `repairToolCallPairing` in the message conversion layer.
+ *
  * @param messages - The messages to limit.
  * @param tokenLimit - The token limit.
  * @returns The limited messages.
@@ -47,6 +54,14 @@ function truncateLimitingStrategy(
     } else {
       break;
     }
+  }
+
+  // Drop leading Tool messages that lost their preceding Assistant (orphaned tool_result)
+  while (
+    limitedMessages.length > 0 &&
+    limitedMessages[0].role === MessageRole.Tool
+  ) {
+    limitedMessages.shift();
   }
 
   // Add the system message to the front

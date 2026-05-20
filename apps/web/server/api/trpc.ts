@@ -17,7 +17,7 @@ import { env } from "@/lib/env";
 import * as Sentry from "@sentry/nextjs";
 import { getDb, HydraDb, operations } from "@tambo-ai-cloud/db";
 import { sql } from "drizzle-orm";
-import { getServerSession, User } from "next-auth";
+import { getServerSession } from "next-auth";
 import { headers } from "next/headers";
 
 export type Context = {
@@ -52,7 +52,7 @@ export const createTRPCContext = async (): Promise<Context> => {
   // First, try NextAuth session (browser users)
   let user: Context["user"] = session?.user
     ? {
-        id: (session.user as User).id,
+        id: session.user.id,
         email: session.user.email,
         name: session.user.name,
         image: session.user.image,

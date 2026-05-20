@@ -4,5 +4,6 @@ beta:
     - playbook: ".charlie/playbooks/team-update.md"
     - playbook: ".charlie/playbooks/dead-code-cleanup.md"
     - playbook: ".charlie/playbooks/coverage-threshold-bump.md"
+    - playbook: ".charlie/playbooks/documentation-updater.md"
     - playbook: ".charlie/playbooks/ui-ux-spacing-scan.md"
     - playbook: ".charlie/playbooks/accessibility-scan.md"
