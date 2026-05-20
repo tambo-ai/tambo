@@ -1,5 +1,35 @@
 # Changelog
 
+## [1.2.7](https://github.com/tambo-ai/tambo/compare/react-v1.2.6...react-v1.2.7) (2026-05-20)
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump the eslint group across 1 directory with 3 updates ([#2840](https://github.com/tambo-ai/tambo/issues/2840)) ([d2be935](https://github.com/tambo-ai/tambo/commit/d2be935d9c067d0fcc2dc154f353b120bb6ed797))
+* **deps-dev:** bump the eslint group with 2 updates ([#2807](https://github.com/tambo-ai/tambo/issues/2807)) ([21d35e2](https://github.com/tambo-ai/tambo/commit/21d35e255a947ae2bf07cce17567c3f3f0a96d27))
+* **deps-dev:** bump the eslint group with 3 updates ([#2794](https://github.com/tambo-ai/tambo/issues/2794)) ([930bc0f](https://github.com/tambo-ai/tambo/commit/930bc0fea9963290e3866c43a443c9909bf7f819))
+* **deps-dev:** bump the testing group across 1 directory with 3 updates ([#2841](https://github.com/tambo-ai/tambo/issues/2841)) ([5eccdbf](https://github.com/tambo-ai/tambo/commit/5eccdbf9353201b8d8d9508a6449a90aa3437512))
+* **deps:** bump @tambo-ai/typescript-sdk from 0.95.0 to 0.96.0 in the tambo-ai group ([#2830](https://github.com/tambo-ai/tambo/issues/2830)) ([c2d8a3d](https://github.com/tambo-ai/tambo/commit/c2d8a3df63336ae0b34d845e019f7297d6b9a010))
+* **deps:** bump the small-safe-packages group across 1 directory with 5 updates ([#2856](https://github.com/tambo-ai/tambo/issues/2856)) ([e0e941d](https://github.com/tambo-ai/tambo/commit/e0e941d263f34c00425dc5e5f7db84addf8ec7e8))
+* **deps:** bump the small-safe-packages group across 1 directory with 9 updates ([#2814](https://github.com/tambo-ai/tambo/issues/2814)) ([070925b](https://github.com/tambo-ai/tambo/commit/070925b00fd734d22c9f62207560208c1bb223f8))
+* **deps:** bump the small-safe-packages group with 3 updates ([#2796](https://github.com/tambo-ai/tambo/issues/2796)) ([f0a2fca](https://github.com/tambo-ai/tambo/commit/f0a2fcae66efa501bab423202fc98531704e7758))
+
+## [1.2.6](https://github.com/tambo-ai/tambo/compare/react-v1.2.5...react-v1.2.6) (2026-04-06)
+
+
+### Bug Fixes
+
+* **react-sdk:** fix interactable selection not reaching the model ([#2725](https://github.com/tambo-ai/tambo/issues/2725)) ([fe96240](https://github.com/tambo-ai/tambo/commit/fe962400233cc1b55aa05e7d0694eff39edf62fa))
+* **react-sdk:** retry suggestions query on 404 to handle message persistence race ([#2709](https://github.com/tambo-ai/tambo/issues/2709)) ([1a6589d](https://github.com/tambo-ai/tambo/commit/1a6589de22fd60315381c2ecf07ad8a70649e15e))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump the eslint group across 1 directory with 4 updates ([#2703](https://github.com/tambo-ai/tambo/issues/2703)) ([61278a0](https://github.com/tambo-ai/tambo/commit/61278a05de431b9ff4e14e92a3d0433d2bf1d80d))
+* **deps-dev:** bump ts-jest from 29.4.6 to 29.4.9 in the testing group ([#2760](https://github.com/tambo-ai/tambo/issues/2760)) ([801bbc9](https://github.com/tambo-ai/tambo/commit/801bbc92828cc338e169e762776f9bd74abe49ac))
+* **deps:** bump @tambo-ai/typescript-sdk from 0.94.0 to 0.94.1 in the tambo-ai group ([#2706](https://github.com/tambo-ai/tambo/issues/2706)) ([6842afa](https://github.com/tambo-ai/tambo/commit/6842afa3f2b9f0e0be4be46b5def319b10f4f784))
+* **deps:** bump @tambo-ai/typescript-sdk from 0.94.1 to 0.95.0 in the tambo-ai group ([#2762](https://github.com/tambo-ai/tambo/issues/2762)) ([f577b82](https://github.com/tambo-ai/tambo/commit/f577b821d12eed5dca94b10efbf86591824b47db))
+
 ## [1.2.5](https://github.com/tambo-ai/tambo/compare/react-v1.2.4...react-v1.2.5) (2026-03-30)
 
 

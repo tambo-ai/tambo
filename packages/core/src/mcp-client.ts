@@ -2,6 +2,7 @@ import { type OAuthClientProvider } from "@modelcontextprotocol/sdk/client/auth.
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { SSEClientTransport } from "@modelcontextprotocol/sdk/client/sse.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
+import { FetchLike } from "@modelcontextprotocol/sdk/shared/transport.js";
 import {
   CreateMessageRequest,
   CreateMessageRequestSchema,
@@ -71,6 +72,8 @@ export class MCPClient {
    * @param transportType - The transport to use for the MCP client
    * @param headers - Optional custom headers to include in requests
    */
+  private fetch?: FetchLike;
+
   private constructor(
     endpoint: string,
     transportType: MCPTransport,
@@ -78,12 +81,14 @@ export class MCPClient {
     authProvider?: OAuthClientProvider,
     sessionId?: string,
     handlers: Partial<MCPHandlers> = {},
+    fetch?: FetchLike,
   ) {
     this.endpoint = endpoint;
     this.headers = headers ?? {};
     this.authProvider = authProvider;
     this.transportType = transportType;
     this.handlers = handlers;
+    this.fetch = fetch;
     this.transport = this.initializeTransport(sessionId);
     this.client = this.initializeClient();
   }
@@ -108,6 +113,7 @@ export class MCPClient {
     authProvider: OAuthClientProvider | undefined,
     sessionId: string | undefined,
     handlers: Partial<MCPHandlers> = {},
+    fetch?: FetchLike,
   ): Promise<MCPClient> {
     const mcpClient = new MCPClient(
       endpoint,
@@ -116,6 +122,7 @@ export class MCPClient {
       authProvider,
       sessionId,
       handlers,
+      fetch,
     );
     await mcpClient.client.connect(mcpClient.transport);
     if ("sessionId" in mcpClient.transport) {
@@ -125,16 +132,22 @@ export class MCPClient {
   }
 
   private initializeTransport(sessionId: string | undefined) {
+    // When a `fetch` is supplied, route every transport-level request through
+    // it. Server-side callers should pass `safeFetch` (from
+    // `@tambo-ai-cloud/core/safe-fetch`) so DNS rebinding cannot land the
+    // connection on a private address after the URL was validated.
     if (this.transportType === MCPTransport.SSE) {
       return new SSEClientTransport(new URL(this.endpoint), {
         authProvider: this.authProvider,
         requestInit: { headers: this.headers },
+        fetch: this.fetch,
       });
     } else {
       return new StreamableHTTPClientTransport(new URL(this.endpoint), {
         authProvider: this.authProvider,
         requestInit: { headers: this.headers },
         sessionId,
+        fetch: this.fetch,
       });
     }
   }
@@ -199,7 +212,7 @@ export class MCPClient {
           return {
             name: tool.name,
             description: tool.description,
-            inputSchema: tool.inputSchema as JSONSchema7,
+            inputSchema: tool.inputSchema,
           };
         }),
       );

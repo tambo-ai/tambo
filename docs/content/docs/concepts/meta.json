@@ -5,6 +5,7 @@
     "tools",
     "additional-context",
     "conversation-storage",
+    "memory",
     "skills",
     "agent-configuration",
     "model-context-protocol",

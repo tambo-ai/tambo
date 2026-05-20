@@ -9,6 +9,7 @@ import {
   OAuthClientInformation,
   ToolProviderType,
 } from "@tambo-ai-cloud/core";
+import { safeFetch } from "@tambo-ai-cloud/core/safe-fetch";
 import { getDb, operations, schema } from "@tambo-ai-cloud/db";
 import { type JSONSchema7 } from "json-schema";
 import { getSystemTools, getThreadMCPClients } from "./systemTools";
@@ -395,6 +396,7 @@ describe("systemTools", () => {
         undefined,
         undefined,
         mcpHandlers,
+        safeFetch,
       );
     });
 
@@ -551,6 +553,7 @@ describe("systemTools", () => {
         undefined,
         "existing-session-123",
         mcpHandlers,
+        safeFetch,
       );
     });
 
@@ -686,6 +689,7 @@ describe("systemTools", () => {
         undefined,
         undefined,
         mcpHandlers,
+        safeFetch,
       );
     });
 
@@ -870,6 +874,7 @@ describe("systemTools", () => {
         undefined,
         undefined, // sessionId should be undefined when threadId is null
         {}, // handlers should be empty object when threadId is null
+        safeFetch,
       );
 
       // Verify getMcpThreadSession was NOT called when threadId is null
@@ -1025,6 +1030,7 @@ describe("systemTools", () => {
         undefined,
         undefined,
         {}, // handlers should be empty object when threadId is null
+        safeFetch,
       );
 
       // Verify getMcpThreadSession was NOT called when threadId is null

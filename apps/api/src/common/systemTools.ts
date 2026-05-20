@@ -12,6 +12,7 @@ import {
   MCPClient,
   MCPHandlers,
 } from "@tambo-ai-cloud/core";
+import { safeFetch } from "@tambo-ai-cloud/core/safe-fetch";
 import {
   HydraDatabase,
   HydraDb,
@@ -141,6 +142,7 @@ export async function getThreadMCPClients(
           authProvider,
           sessionId,
           threadId ? mcpHandlers : {},
+          safeFetch,
         );
 
         if (

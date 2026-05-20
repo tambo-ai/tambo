@@ -364,7 +364,7 @@ export function OAuthSettings({
 
   if (isLoadingSettings) {
     return (
-      <Card>
+      <Card className="overflow-hidden">
         <CardHeader>
           <CardTitle>OAuth Token Validation</CardTitle>
         </CardHeader>
@@ -378,7 +378,7 @@ export function OAuthSettings({
   }
 
   return (
-    <Card>
+    <Card className="overflow-hidden">
       <CardHeader>
         <CardTitle className="text-lg font-semibold">
           OAuth Token Validation

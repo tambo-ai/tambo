@@ -46,3 +46,13 @@ export async function invalidateMcpServersCache(
 ) {
   await ctx.utils.tools.listMcpServers.invalidate({ projectId });
 }
+
+/**
+ * Helper to invalidate skills cache for a specific project
+ */
+export async function invalidateSkillsCache(
+  ctx: ToolContext,
+  projectId: string,
+) {
+  await ctx.utils.skills.list.invalidate({ projectId });
+}

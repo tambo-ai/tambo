@@ -9,7 +9,11 @@ import {
   mcpServerDetailSchema,
   mcpServerSchema,
 } from "@/lib/schemas/mcp";
-import { validateSafeURL, validateServerUrl } from "@/lib/urlSecurity";
+import {
+  validateSafeURLForMcp,
+  validateServerUrlForMcp,
+} from "@/lib/urlSecurity";
+import { safeFetch } from "@tambo-ai-cloud/core/safe-fetch";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { auth } from "@modelcontextprotocol/sdk/client/auth.js";
 import {
@@ -87,7 +91,7 @@ export const toolsRouter = createTRPCRouter({
           .string()
           .url()
           .refine(
-            validateServerUrl,
+            validateServerUrlForMcp,
             "URL appears to be unsafe: must not point to internal, local, or private networks",
           ),
         serverKey: z
@@ -126,7 +130,7 @@ export const toolsRouter = createTRPCRouter({
       }
 
       // Perform additional safety checks
-      const safetyCheck = await validateSafeURL(parsedUrl.hostname);
+      const safetyCheck = await validateSafeURLForMcp(parsedUrl.hostname);
       if (!safetyCheck.safe) {
         throw new TRPCError({
           code: "BAD_REQUEST",
@@ -138,6 +142,7 @@ export const toolsRouter = createTRPCRouter({
         customHeaders,
         mcpTransport,
         // Cannot pass in oauthProvider, because we don't have the client information yet
+        fetch: safeFetch,
       });
       if (!validity.valid) {
         // Allow creating a server when auth is required so the user can proceed
@@ -262,7 +267,7 @@ export const toolsRouter = createTRPCRouter({
           .string()
           .url()
           .refine(
-            validateServerUrl,
+            validateServerUrlForMcp,
             "URL appears to be unsafe: must not point to internal, local, or private networks",
           ),
         serverKey: z
@@ -407,6 +412,8 @@ export const toolsRouter = createTRPCRouter({
         server.customHeaders,
         authProvider,
         undefined, // since we're not doing anything with this session, it's ok to just start a new session
+        {},
+        safeFetch,
       );
 
       const tools = await mcpClient.listTools();
@@ -415,6 +422,7 @@ export const toolsRouter = createTRPCRouter({
         customHeaders: server.customHeaders,
         mcpTransport: server.mcpTransport,
         oauthProvider: authProvider,
+        fetch: safeFetch,
       });
 
       return {
@@ -511,6 +519,7 @@ async function getServerValidity(
     customHeaders,
     mcpTransport,
     oauthProvider,
+    fetch: safeFetch,
   });
   return {
     ...validity,

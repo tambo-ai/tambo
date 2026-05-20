@@ -1,5 +1,41 @@
 # Changelog
 
+## [0.134.0](https://github.com/tambo-ai/tambo/compare/web-v0.133.0...web-v0.134.0) (2026-04-06)
+
+
+### Features
+
+* **api:** add skills management, provider upload, and runtime integration ([#2690](https://github.com/tambo-ai/tambo/issues/2690)) ([c486010](https://github.com/tambo-ai/tambo/commit/c486010bd41774283cc69988988c6c0b730aef67))
+* **cli:** add skills management commands ([#2728](https://github.com/tambo-ai/tambo/issues/2728)) ([2bfedff](https://github.com/tambo-ai/tambo/commit/2bfedff3c818b0fe31a786f74b109cbd6376e85a))
+* **web:** rework skill settings UI from sheet to inline form ([#2714](https://github.com/tambo-ai/tambo/issues/2714)) ([65fb389](https://github.com/tambo-ai/tambo/commit/65fb38955b4a1983724eac37a38d1754780c4e27))
+
+
+### Bug Fixes
+
+* **core:** skip skill injection for models that don't support skills ([#2740](https://github.com/tambo-ai/tambo/issues/2740)) ([b7456ed](https://github.com/tambo-ai/tambo/commit/b7456ed57d0159c5afcade288b897b19908d9abe))
+* **react-sdk:** fix interactable selection not reaching the model ([#2725](https://github.com/tambo-ai/tambo/issues/2725)) ([fe96240](https://github.com/tambo-ai/tambo/commit/fe962400233cc1b55aa05e7d0694eff39edf62fa))
+* **web:** auto-slugify skill names and show readable validation errors ([#2738](https://github.com/tambo-ai/tambo/issues/2738)) ([0630719](https://github.com/tambo-ai/tambo/commit/0630719889a7254d6884f74c8d10503f7a3f0d28))
+* **web:** keep auth token fresh so Tambo assistant survives session resume ([#2716](https://github.com/tambo-ai/tambo/issues/2716)) ([21aaf29](https://github.com/tambo-ai/tambo/commit/21aaf29a4a401143a6cb78d49eb2187bcfcfe379))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump the eslint group across 1 directory with 4 updates ([#2703](https://github.com/tambo-ai/tambo/issues/2703)) ([61278a0](https://github.com/tambo-ai/tambo/commit/61278a05de431b9ff4e14e92a3d0433d2bf1d80d))
+* **deps-dev:** bump ts-jest from 29.4.6 to 29.4.9 in the testing group ([#2760](https://github.com/tambo-ai/tambo/issues/2760)) ([801bbc9](https://github.com/tambo-ai/tambo/commit/801bbc92828cc338e169e762776f9bd74abe49ac))
+* **deps:** bump @t3-oss/env-nextjs from 0.13.10 to 0.13.11 in the t3-oss group across 1 directory ([#2705](https://github.com/tambo-ai/tambo/issues/2705)) ([e55c3ad](https://github.com/tambo-ai/tambo/commit/e55c3ada604bfafc7e487d4f8707e8be96f12722))
+* **deps:** bump @tambo-ai/typescript-sdk from 0.94.0 to 0.94.1 in the tambo-ai group ([#2706](https://github.com/tambo-ai/tambo/issues/2706)) ([6842afa](https://github.com/tambo-ai/tambo/commit/6842afa3f2b9f0e0be4be46b5def319b10f4f784))
+* **deps:** bump @tambo-ai/typescript-sdk from 0.94.1 to 0.95.0 in the tambo-ai group ([#2762](https://github.com/tambo-ai/tambo/issues/2762)) ([f577b82](https://github.com/tambo-ai/tambo/commit/f577b821d12eed5dca94b10efbf86591824b47db))
+* **deps:** bump drizzle-orm from 0.45.1 to 0.45.2 in the drizzle group ([#2702](https://github.com/tambo-ai/tambo/issues/2702)) ([cce9764](https://github.com/tambo-ai/tambo/commit/cce9764695856d2840d8dd2427285788881845f7))
+* **deps:** bump posthog-js from 1.364.6 to 1.364.7 in the small-safe-packages group ([#2763](https://github.com/tambo-ai/tambo/issues/2763)) ([12aa854](https://github.com/tambo-ai/tambo/commit/12aa854c7bd0bb631ce861890b742182cfdc5ce7))
+* **deps:** bump the sentry group with 3 updates ([#2708](https://github.com/tambo-ai/tambo/issues/2708)) ([89804c9](https://github.com/tambo-ai/tambo/commit/89804c97adb9d7b0bf5cdbc2be431475ee67f970))
+* **deps:** bump the small-safe-packages group across 1 directory with 8 updates ([#2720](https://github.com/tambo-ai/tambo/issues/2720)) ([320e141](https://github.com/tambo-ai/tambo/commit/320e141cffd2ce8a5d5d948290d2601dce4dde67))
+* **deps:** bump the trpc group with 3 updates ([#2701](https://github.com/tambo-ai/tambo/issues/2701)) ([0f551a8](https://github.com/tambo-ai/tambo/commit/0f551a8e7215b173d2e76287a1831cb49c294711))
+
+
+### Code Refactoring
+
+* **web:** consolidate skills, fix a11y and styling violations ([#2744](https://github.com/tambo-ai/tambo/issues/2744)) ([d22b85a](https://github.com/tambo-ai/tambo/commit/d22b85afdab2d7d0ae5561c1e28f852699ffac6d))
+
 ## [0.133.0](https://github.com/tambo-ai/tambo/compare/web-v0.132.5...web-v0.133.0) (2026-03-19)
 
 

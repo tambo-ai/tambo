@@ -1,0 +1,43 @@
+---
+title: Memory
+description: How Tambo remembers facts about users across conversations
+---
+
+Tambo can remember facts, preferences, and goals about individual users and use that knowledge in future conversations. When memory is enabled, Tambo automatically extracts noteworthy information from conversations and injects relevant memories into the system prompt for subsequent interactions.
+
+This means your agent can recall that a user prefers dark mode, works on a specific project, or has a particular goal, without the user needing to repeat themselves.
+
+## How Memory Works
+
+Memory operates in two phases: extraction and injection.
+
+### Extraction
+
+After a conversation completes, Tambo analyzes recent messages and extracts atomic facts worth remembering. Tambo deduplicates against existing memories to avoid storing the same fact twice.
+
+Extraction happens in the background after the response is delivered, so it never slows down the user's experience.
+
+### Injection
+
+Each time a user sends a message, Tambo fetches their stored memories and includes the most relevant ones in the system prompt. The agent sees these memories as context and can reference them naturally in responses.
+
+## Memory Scoping
+
+Memories are scoped to the combination of your project and a **context key** (`projectId`, `contextKey`). To isolate memories per user, use a stable per-user context key (for example, a user ID). If multiple users share the same context key, they will share the same memory set.
+
+The context key comes from exactly one source: either [user authentication](/concepts/user-authentication) (derived automatically from the authenticated user) or a manually passed `contextKey` on threads. You cannot use both at the same time.
+
+## Enabling Memory
+
+Memory is configured at the project level in your Tambo Cloud dashboard under the **Agent** tab. The setting is off by default.
+
+## Capacity and Limits
+
+Tambo enforces limits to keep memory performant and relevant:
+
+- **Storage cap**: 200 memories per (`projectId`, `contextKey`) scope. When the cap is exceeded, the oldest and least important memories are evicted.
+- **Content length**: Each memory can be up to 1,000 characters.
+
+## Privacy and Deletion
+
+If a user asks the agent to forget something, the memory is deleted. Tambo ensures deleted content is not recoverable.

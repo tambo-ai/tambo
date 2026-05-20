@@ -140,7 +140,77 @@ export function threadMessagesToModelMessages(
     }
   }
 
-  return modelMessages;
+  return repairToolCallPairing(modelMessages);
+}
+
+/**
+ * Scan the model messages for assistant messages whose `tool-call` parts lack a
+ * matching `tool-result` in the immediately following `tool` role message, then
+ * strip those orphaned parts.
+ *
+ * Anthropic requires every `tool_use` block to have a corresponding `tool_result`
+ * in the very next message. Orphaned tool calls can appear when:
+ * - Token limiting truncates the conversation and drops a tool result
+ * - A previous run failed mid-stream, leaving an assistant message with a tool
+ *   call but no tool result in the DB
+ * - Message ordering anomalies
+ *
+ * Rather than fabricating fake results, we downgrade the assistant message to
+ * text-only so the LLM can still see the conversation context.
+ *
+ * @returns The repaired model messages array (mutated in-place for efficiency)
+ */
+function repairToolCallPairing(messages: ModelMessage[]): ModelMessage[] {
+  for (let i = 0; i < messages.length; i++) {
+    const msg = messages[i];
+    if (msg.role !== "assistant") continue;
+
+    const assistantContent = msg.content as (ToolCallPart | TextPart)[];
+    const toolCallParts = assistantContent.filter(
+      (p): p is ToolCallPart => p.type === "tool-call",
+    );
+
+    if (toolCallParts.length === 0) continue;
+
+    // Collect tool-result IDs from the immediately following tool message(s)
+    const respondedIds = new Set<string>();
+    for (let j = i + 1; j < messages.length; j++) {
+      const next = messages[j];
+      if (next.role !== "tool") break;
+      for (const part of next.content as ToolResultPart[]) {
+        if (part.type === "tool-result" && part.toolCallId) {
+          respondedIds.add(part.toolCallId);
+        }
+      }
+    }
+
+    const orphanedIds = toolCallParts.filter(
+      (p) => !respondedIds.has(p.toolCallId),
+    );
+
+    if (orphanedIds.length === 0) continue;
+
+    console.warn(
+      `Stripping ${orphanedIds.length} orphaned tool-call part(s) from assistant message ` +
+        `(tool IDs: ${orphanedIds.map((p) => p.toolCallId).join(", ")}). ` +
+        `No matching tool-result found in the next message.`,
+    );
+
+    // Remove orphaned tool-call parts
+    const orphanedIdSet = new Set(orphanedIds.map((p) => p.toolCallId));
+    const repairedContent = assistantContent.filter(
+      (p) => !(p.type === "tool-call" && orphanedIdSet.has(p.toolCallId)),
+    );
+
+    // If stripping left no content, add an empty text part so the message isn't empty
+    if (repairedContent.length === 0) {
+      repairedContent.push({ type: "text", text: "" });
+    }
+
+    messages[i] = { ...msg, content: repairedContent };
+  }
+
+  return messages;
 }
 
 /**
