@@ -13,6 +13,7 @@
 * **deps:** bump @nestjs/swagger from 11.4.1 to 11.4.2 in the nestjs group ([#2827](https://github.com/tambo-ai/tambo/issues/2827)) ([e57386b](https://github.com/tambo-ai/tambo/commit/e57386b7d2cb8c86e4f2e709e65078b9fc2f7720))
 * **deps:** bump the nestjs group across 1 directory with 8 updates ([#2806](https://github.com/tambo-ai/tambo/issues/2806)) ([c3b8c1a](https://github.com/tambo-ai/tambo/commit/c3b8c1a6754f08cf56e1f6e99f4b57560bca074a))
 * **deps:** bump the nestjs group with 3 updates ([#2793](https://github.com/tambo-ai/tambo/issues/2793)) ([dfec05a](https://github.com/tambo-ai/tambo/commit/dfec05ab2daf795fb96e05cce77e1c6877b5d6cc))
+* **deps:** bump the sentry group with 3 updates ([#2797](https://github.com/tambo-ai/tambo/issues/2797)) ([eceecab](https://github.com/tambo-ai/tambo/commit/eceecab609b6f0ac2220535b48c16adad4ae5aa4))
 * **deps:** bump the sentry group with 3 updates ([#2810](https://github.com/tambo-ai/tambo/issues/2810)) ([9c62760](https://github.com/tambo-ai/tambo/commit/9c62760d7b0b07dcca0b733d10389240ec0f566a))
 * **deps:** bump the small-safe-packages group across 1 directory with 5 updates ([#2856](https://github.com/tambo-ai/tambo/issues/2856)) ([e0e941d](https://github.com/tambo-ai/tambo/commit/e0e941d263f34c00425dc5e5f7db84addf8ec7e8))
 * **deps:** bump the small-safe-packages group across 1 directory with 9 updates ([#2814](https://github.com/tambo-ai/tambo/issues/2814)) ([070925b](https://github.com/tambo-ai/tambo/commit/070925b00fd734d22c9f62207560208c1bb223f8))
