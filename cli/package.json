@@ -1,6 +1,6 @@
 {
   "name": "tambo",
-  "version": "0.56.0",
+  "version": "0.56.1",
   "description": "Tambo CLI for scaffolding and managing AI applications",
   "license": "MIT",
   "repository": {
