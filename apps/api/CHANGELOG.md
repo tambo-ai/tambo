@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.145.1](https://github.com/tambo-ai/tambo/compare/api-v0.145.0...api-v0.145.1) (2026-05-20)
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump the eslint group across 1 directory with 3 updates ([#2840](https://github.com/tambo-ai/tambo/issues/2840)) ([d2be935](https://github.com/tambo-ai/tambo/commit/d2be935d9c067d0fcc2dc154f353b120bb6ed797))
+* **deps-dev:** bump the testing group across 1 directory with 3 updates ([#2841](https://github.com/tambo-ai/tambo/issues/2841)) ([5eccdbf](https://github.com/tambo-ai/tambo/commit/5eccdbf9353201b8d8d9508a6449a90aa3437512))
+* **deps-dev:** bump turbo from 2.8.3 to 2.9.6 ([#2800](https://github.com/tambo-ai/tambo/issues/2800)) ([6b4ab15](https://github.com/tambo-ai/tambo/commit/6b4ab1529369bb8e5868d8a65cc4f8b022cc6d2a))
+* **deps:** bump @ai-sdk/provider from 2.0.1 to 2.0.3 in the ai-sdk group across 1 directory ([#2855](https://github.com/tambo-ai/tambo/issues/2855)) ([3583aa1](https://github.com/tambo-ai/tambo/commit/3583aa1388e140bc1a00be8a40cce37b5fb34aca))
+* **deps:** bump @anthropic-ai/sdk from 0.82.0 to 0.91.1 ([#2825](https://github.com/tambo-ai/tambo/issues/2825)) ([0c3e78b](https://github.com/tambo-ai/tambo/commit/0c3e78b14e6d4a2192d52535141bbd000af3f553))
+* **deps:** bump @nestjs/swagger from 11.4.1 to 11.4.2 in the nestjs group ([#2827](https://github.com/tambo-ai/tambo/issues/2827)) ([e57386b](https://github.com/tambo-ai/tambo/commit/e57386b7d2cb8c86e4f2e709e65078b9fc2f7720))
+* **deps:** bump the nestjs group across 1 directory with 8 updates ([#2806](https://github.com/tambo-ai/tambo/issues/2806)) ([c3b8c1a](https://github.com/tambo-ai/tambo/commit/c3b8c1a6754f08cf56e1f6e99f4b57560bca074a))
+* **deps:** bump the nestjs group with 3 updates ([#2793](https://github.com/tambo-ai/tambo/issues/2793)) ([dfec05a](https://github.com/tambo-ai/tambo/commit/dfec05ab2daf795fb96e05cce77e1c6877b5d6cc))
+* **deps:** bump the sentry group with 3 updates ([#2797](https://github.com/tambo-ai/tambo/issues/2797)) ([eceecab](https://github.com/tambo-ai/tambo/commit/eceecab609b6f0ac2220535b48c16adad4ae5aa4))
+* **deps:** bump the sentry group with 3 updates ([#2810](https://github.com/tambo-ai/tambo/issues/2810)) ([9c62760](https://github.com/tambo-ai/tambo/commit/9c62760d7b0b07dcca0b733d10389240ec0f566a))
+* **deps:** bump the small-safe-packages group across 1 directory with 5 updates ([#2856](https://github.com/tambo-ai/tambo/issues/2856)) ([e0e941d](https://github.com/tambo-ai/tambo/commit/e0e941d263f34c00425dc5e5f7db84addf8ec7e8))
+* **deps:** bump the small-safe-packages group across 1 directory with 9 updates ([#2814](https://github.com/tambo-ai/tambo/issues/2814)) ([070925b](https://github.com/tambo-ai/tambo/commit/070925b00fd734d22c9f62207560208c1bb223f8))
+* **deps:** bump the small-safe-packages group with 3 updates ([#2796](https://github.com/tambo-ai/tambo/issues/2796)) ([f0a2fca](https://github.com/tambo-ai/tambo/commit/f0a2fcae66efa501bab423202fc98531704e7758))
+* **deps:** bump the small-safe-packages group with 7 updates ([#2831](https://github.com/tambo-ai/tambo/issues/2831)) ([e1ca59d](https://github.com/tambo-ai/tambo/commit/e1ca59d73e16f91220b0cf42d6b7a4b6f112dc2a))
+* **deps:** bump uuid from 13.0.0 to 14.0.0 ([#2818](https://github.com/tambo-ai/tambo/issues/2818)) ([8bd6075](https://github.com/tambo-ai/tambo/commit/8bd6075e8e96d4992dbd968f4bda9a3617a3c78b))
+* **deps:** update dependencies ([#2852](https://github.com/tambo-ai/tambo/issues/2852)) ([7080818](https://github.com/tambo-ai/tambo/commit/7080818be378575cb885829bcecd4e8d9ea10e4e))
+* remove dead env vars and Langfuse wiring ([#2822](https://github.com/tambo-ai/tambo/issues/2822)) ([63709ef](https://github.com/tambo-ai/tambo/commit/63709efca82db48683fb54886063c64de591a023))
+
 ## [0.145.0](https://github.com/tambo-ai/tambo/compare/api-v0.144.5...api-v0.145.0) (2026-04-06)
 
 
