@@ -172,7 +172,7 @@ describe("TamboDevtools", () => {
     });
     expect(link).toHaveAttribute(
       "href",
-      "https://docs.tambo.co/docs/guides/enable-generative-ui/register-components",
+      "https://docs.tambo.co/guides/enable-generative-ui/register-components",
     );
   });
 
@@ -191,7 +191,7 @@ describe("TamboDevtools", () => {
     });
     expect(link).toHaveAttribute(
       "href",
-      "https://docs.tambo.co/docs/guides/enable-generative-ui/register-interactables",
+      "https://docs.tambo.co/guides/enable-generative-ui/register-interactables",
     );
   });
 

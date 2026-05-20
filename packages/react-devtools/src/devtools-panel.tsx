@@ -30,9 +30,9 @@ interface DevtoolsPanelProps {
 
 const DOCS_URLS: Record<Tab, string> = {
   components:
-    "https://docs.tambo.co/docs/guides/enable-generative-ui/register-components",
+    "https://docs.tambo.co/guides/enable-generative-ui/register-components",
   tools:
-    "https://docs.tambo.co/docs/guides/enable-generative-ui/register-interactables",
+    "https://docs.tambo.co/guides/enable-generative-ui/register-interactables",
 };
 
 const EMPTY_MESSAGES: Record<Tab, { heading: string; guidance: string }> = {
