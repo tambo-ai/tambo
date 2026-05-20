@@ -639,6 +639,13 @@ export function streamReducer(
     case EventType.RAW:
     case EventType.STEP_STARTED:
     case EventType.STEP_FINISHED:
+    case EventType.REASONING_START:
+    case EventType.REASONING_MESSAGE_START:
+    case EventType.REASONING_MESSAGE_CONTENT:
+    case EventType.REASONING_MESSAGE_END:
+    case EventType.REASONING_MESSAGE_CHUNK:
+    case EventType.REASONING_END:
+    case EventType.REASONING_ENCRYPTED_VALUE:
       // Log warning - these events are being ignored
 
       console.warn(
