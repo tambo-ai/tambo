@@ -58,13 +58,13 @@
     "shiki": "^3.4.2"
   },
   "peerDependencies": {
-    "@tambo-ai/client": "*",
+    "@tambo-ai/client": "0.1.0",
     "@tambo-ai/react": "*",
     "react": "^18.0.0 || ^19.0.0",
     "react-dom": "^18.0.0 || ^19.0.0"
   },
   "devDependencies": {
-    "@tambo-ai/client": "*",
+    "@tambo-ai/client": "0.1.0",
     "@tambo-ai/eslint-config": "*",
     "@tambo-ai/react": "*",
     "@tambo-ai/typescript-config": "*",
