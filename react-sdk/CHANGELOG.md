@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.2.8](https://github.com/tambo-ai/tambo/compare/react-v1.2.7...react-v1.2.8) (2026-05-21)
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @tambo-ai/client bumped from 0.1.0 to 1.1.3
+
 ## [1.2.7](https://github.com/tambo-ai/tambo/compare/react-v1.2.6...react-v1.2.7) (2026-05-20)
 
 
