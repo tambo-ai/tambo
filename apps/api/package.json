@@ -25,10 +25,9 @@
     "storage:init": "tsx scripts/storage-init.ts"
   },
   "dependencies": {
-    "@ag-ui/client": "^0.0.53",
+    "@ag-ui/client": "0.0.53",
     "@ag-ui/crewai": "^0.0.3",
     "@ag-ui/llamaindex": "^0.1.5",
-    "@ai-sdk/provider": "^3.0.8",
     "@anthropic-ai/sdk": "^0.96.0",
     "@nestjs/common": "^11.1.21",
     "@nestjs/config": "^4.0.4",
@@ -47,6 +46,7 @@
     "@react-email/components": "^1.0.12",
     "@sentry/nestjs": "^10.53.1",
     "@sentry/profiling-node": "^10.53.1",
+    "@ai-sdk/provider": "^3.0.8",
     "@tambo-ai-cloud/backend": "*",
     "@tambo-ai-cloud/core": "*",
     "@tambo-ai-cloud/db": "*",

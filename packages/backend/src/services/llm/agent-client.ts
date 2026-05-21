@@ -243,12 +243,6 @@ export class AgentClient {
               };
               break;
             }
-            case "reasoning": {
-              // Reasoning messages are not yet surfaced as standalone messages;
-              // their content is accumulated onto the preceding assistant message
-              // via the REASONING_*/THINKING_* event handlers.
-              break;
-            }
             default: {
               invalidEvent(currentMessage);
             }
@@ -527,16 +521,6 @@ export class AgentClient {
         case EventType.ACTIVITY_SNAPSHOT:
         case EventType.ACTIVITY_DELTA: {
           // We don't support activity events yet
-          break;
-        }
-        case EventType.REASONING_START:
-        case EventType.REASONING_MESSAGE_START:
-        case EventType.REASONING_MESSAGE_CONTENT:
-        case EventType.REASONING_MESSAGE_END:
-        case EventType.REASONING_MESSAGE_CHUNK:
-        case EventType.REASONING_END:
-        case EventType.REASONING_ENCRYPTED_VALUE: {
-          // New REASONING_* events supersede THINKING_*; not yet wired up.
           break;
         }
         default: {
