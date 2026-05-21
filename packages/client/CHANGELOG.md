@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.1.3](https://github.com/tambo-ai/tambo/compare/client-v1.1.2...client-v1.1.3) (2026-05-21)
+
+
+### Bug Fixes
+
+* **deps:** make ag-ui 0.0.53 bump build ([#2870](https://github.com/tambo-ai/tambo/issues/2870)) ([02f615a](https://github.com/tambo-ai/tambo/commit/02f615abba144ba1518baacbe05e5d9d62ce0c24))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump the ag-ui group across 1 directory with 5 updates ([#2623](https://github.com/tambo-ai/tambo/issues/2623)) ([e9fb2cf](https://github.com/tambo-ai/tambo/commit/e9fb2cfe09104f5f6373ee54d38f99c0cfa142c5))
+
 ## [1.1.2](https://github.com/tambo-ai/tambo/compare/client-v1.1.1...client-v1.1.2) (2026-05-20)
 
 
