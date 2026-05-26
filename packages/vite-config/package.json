@@ -22,7 +22,7 @@
   ],
   "dependencies": {
     "rollup-plugin-preserve-directives": "0.4.0",
-    "vite-plugin-dts": "^5.0.1",
+    "unplugin-dts": "^1.0.1",
     "vite-plugin-externalize-deps": "^0.10.0",
     "vite-tsconfig-paths": "^6.0.5"
   },

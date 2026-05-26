@@ -1,7 +1,6 @@
 import { ModuleKind, type Diagnostic } from "typescript";
-import dtsPlugin, {
-  type PluginOptions as DtsPluginOptions,
-} from "vite-plugin-dts";
+import dtsPlugin from "unplugin-dts/vite";
+import { type PluginOptions as DtsPluginOptions } from "unplugin-dts";
 import { type Options } from "../options";
 
 export const tamboDtsPlugin = (options: Options) => {
@@ -25,7 +24,7 @@ export const tamboDtsPlugin = (options: Options) => {
   return [
     dtsPlugin({
       ...basePluginOptions,
-      outDir: `${outDir}/esm`,
+      outDirs: `${outDir}/esm`,
       compilerOptions: {
         module: ModuleKind.ES2020,
         declarationMap: true,
@@ -34,7 +33,7 @@ export const tamboDtsPlugin = (options: Options) => {
     options.enableCjs
       ? dtsPlugin({
           ...basePluginOptions,
-          outDir: `${outDir}/cjs`,
+          outDirs: `${outDir}/cjs`,
           compilerOptions: {
             module: ModuleKind.CommonJS,
             declarationMap: true,
