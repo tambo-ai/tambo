@@ -47,7 +47,7 @@
     "@tambo-ai-cloud/core": "*",
     "@tambo-ai-cloud/db": "*",
     "@tambo-ai/react": "*",
-    "@tambo-ai/typescript-sdk": "^0.96.0",
+    "@tambo-ai/typescript-sdk": "^0.96.1",
     "@tambo-ai/ui-registry": "*",
     "@tanstack/react-query": "^5.90.16",
     "@theguild/remark-mermaid": "^0.3.0",
