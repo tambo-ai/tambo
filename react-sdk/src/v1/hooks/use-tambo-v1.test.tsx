@@ -57,6 +57,7 @@ describe("useTambo", () => {
   } as unknown as TamboAI;
 
   const mockRegistry: TamboRegistryContextType = {
+    __initialized: true,
     componentList: {},
     toolRegistry: {},
     componentToolAssociations: {},

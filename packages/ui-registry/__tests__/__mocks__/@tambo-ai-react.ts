@@ -46,6 +46,25 @@ export const useTamboInteractable: Mock = jest.fn().mockReturnValue({
   setInteractableSelected: jest.fn(),
 });
 
+export const useTamboRegistry: Mock = jest.fn().mockReturnValue({
+  __initialized: true,
+  componentList: {},
+  toolRegistry: {},
+  componentToolAssociations: {},
+  mcpServerInfos: [],
+  resources: [],
+  resourceSource: null,
+  registerComponent: jest.fn(),
+  registerTool: jest.fn(),
+  registerTools: jest.fn(),
+  addToolAssociation: jest.fn(),
+  registerMcpServer: jest.fn(),
+  registerMcpServers: jest.fn(),
+  registerResource: jest.fn(),
+  registerResources: jest.fn(),
+  registerResourceSource: jest.fn(),
+});
+
 export const useIsTamboTokenUpdating: Mock = jest.fn().mockReturnValue(false);
 
 export const MCPTransport = {
