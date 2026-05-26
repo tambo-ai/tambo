@@ -22,7 +22,7 @@
     "dompurify": "^3.4.0",
     "framer-motion": "^12.29.0",
     "fumadocs-core": "15.8.5",
-    "fumadocs-mdx": "^13.0.8",
+    "fumadocs-mdx": "^15.0.7",
     "fumadocs-ui": "15.8.5",
     "highlight.js": "^11.11.1",
     "json-stringify-pretty-compact": "^4.0.0",
