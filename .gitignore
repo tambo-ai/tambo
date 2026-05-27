@@ -67,3 +67,4 @@ react-sdk/dist/**
 # Agents
 .claude/settings.local.json
 .claude/**/*.local.md
+.agents/loop-state/
