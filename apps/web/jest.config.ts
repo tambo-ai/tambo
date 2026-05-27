@@ -39,10 +39,7 @@ const config: Config = {
       "ts-jest",
       {
         useESM: true,
-        tsconfig: {
-          jsx: "react-jsx",
-          allowJs: true,
-        },
+        tsconfig: "<rootDir>/tsconfig.test.json",
       },
     ],
   },
