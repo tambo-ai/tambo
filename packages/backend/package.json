@@ -16,7 +16,7 @@
     "test": "jest",
     "test:cov": "jest --coverage",
     "test:watch": "jest --watch",
-    "check-types": "tsc --noEmit",
+    "check-types": "tsc --noEmit --rootDir ..",
     "lint": "eslint",
     "lint:fix": "eslint --fix",
     "clean": "rm -rf dist coverage"

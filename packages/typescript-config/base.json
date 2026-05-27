@@ -12,6 +12,8 @@
     "moduleDetection": "force",
     "moduleResolution": "NodeNext",
     "customConditions": ["@tambo-ai/source"],
+    "ignoreDeprecations": "6.0",
+    "noUncheckedSideEffectImports": false,
     "noUncheckedIndexedAccess": false,
     "resolveJsonModule": true,
     "skipLibCheck": true,

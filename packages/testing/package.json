@@ -17,7 +17,7 @@
   "scripts": {
     "lint": "eslint",
     "lint:fix": "eslint --fix",
-    "check-types": "tsc --noEmit",
+    "check-types": "tsc --noEmit --rootDir ..",
     "clean": "rm -rf dist coverage"
   },
   "devDependencies": {

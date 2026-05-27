@@ -19,7 +19,7 @@
     "test:debug": "tsx --inspect-brk node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "clean": "rm -rf dist coverage",
-    "check-types": "tsc --noEmit",
+    "check-types": "tsc --noEmit --rootDir ../..",
     "lint": "eslint",
     "lint:fix": "eslint --fix",
     "storage:init": "tsx scripts/storage-init.ts"

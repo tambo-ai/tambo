@@ -5,6 +5,7 @@
     "outDir": "./dist",
     "moduleResolution": "Bundler",
     "module": "ESNext",
+    "types": ["jest", "node"],
     "paths": {
       "@tambo-ai-cloud/testing": ["../testing/src"]
     }
