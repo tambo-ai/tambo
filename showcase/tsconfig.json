@@ -3,7 +3,6 @@
   "extends": "@tambo-ai/typescript-config/nextjs.json",
   "compilerOptions": {
     "incremental": true,
-    "rootDir": ".",
     "paths": {
       "@/*": ["./src/*"],
       "@tambo-ai/react": ["../react-sdk/src"],
