@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.56.2](https://github.com/tambo-ai/tambo/compare/tambo-v0.56.1...tambo-v0.56.2) (2026-05-29)
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump ts-jest from 29.4.9 to 29.4.11 in the testing group across 1 directory ([#2874](https://github.com/tambo-ai/tambo/issues/2874)) ([dd3d3a7](https://github.com/tambo-ai/tambo/commit/dd3d3a71c6165c14370ae06a37041dd616d905c2))
+* **deps:** bump @tambo-ai/typescript-sdk from 0.96.0 to 0.96.1 in the tambo-ai group across 1 directory ([#2875](https://github.com/tambo-ai/tambo/issues/2875)) ([540b8ac](https://github.com/tambo-ai/tambo/commit/540b8ac49dd0c2e2e7e75c8f544098639860f03e))
+* **deps:** bump inquirer from 13.3.0 to 13.4.3 ([#2887](https://github.com/tambo-ai/tambo/issues/2887)) ([1aab6d4](https://github.com/tambo-ai/tambo/commit/1aab6d4cb2a7d9c03bcc3863a5d43a69ff0753ea))
+* **deps:** bump postcss from 8.5.14 to 8.5.15 ([#2869](https://github.com/tambo-ai/tambo/issues/2869)) ([ceb3047](https://github.com/tambo-ai/tambo/commit/ceb3047258292cd670d10bf984080481ab3870c7))
+
 ## [0.56.1](https://github.com/tambo-ai/tambo/compare/tambo-v0.56.0...tambo-v0.56.1) (2026-05-20)
 
 
