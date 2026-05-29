@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.145.2](https://github.com/tambo-ai/tambo/compare/api-v0.145.1...api-v0.145.2) (2026-05-29)
+
+
+### Bug Fixes
+
+* **deps:** make ag-ui 0.0.53 bump build ([#2870](https://github.com/tambo-ai/tambo/issues/2870)) ([02f615a](https://github.com/tambo-ai/tambo/commit/02f615abba144ba1518baacbe05e5d9d62ce0c24))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump @types/supertest from 6.0.3 to 7.2.0 ([#2893](https://github.com/tambo-ai/tambo/issues/2893)) ([6a9be3a](https://github.com/tambo-ai/tambo/commit/6a9be3a5020913403b3dcae81caaedf8797d4552))
+* **deps-dev:** bump ts-jest from 29.4.9 to 29.4.11 in the testing group across 1 directory ([#2874](https://github.com/tambo-ai/tambo/issues/2874)) ([dd3d3a7](https://github.com/tambo-ai/tambo/commit/dd3d3a71c6165c14370ae06a37041dd616d905c2))
+* **deps:** bump helmet from 8.1.0 to 8.2.0 ([#2895](https://github.com/tambo-ai/tambo/issues/2895)) ([40742f7](https://github.com/tambo-ai/tambo/commit/40742f7f955bea5a1ebbabcb4ab4c9156468bf5a))
+* **deps:** bump resend from 6.9.3 to 6.12.3 ([#2889](https://github.com/tambo-ai/tambo/issues/2889)) ([b1eb057](https://github.com/tambo-ai/tambo/commit/b1eb057b0059e07109dab67ff01933898226c06c))
+* **deps:** bump the ag-ui group across 1 directory with 5 updates ([#2623](https://github.com/tambo-ai/tambo/issues/2623)) ([e9fb2cf](https://github.com/tambo-ai/tambo/commit/e9fb2cfe09104f5f6373ee54d38f99c0cfa142c5))
+* **deps:** bump the nestjs group across 1 directory with 5 updates ([#2872](https://github.com/tambo-ai/tambo/issues/2872)) ([cff3342](https://github.com/tambo-ai/tambo/commit/cff3342b526371042483713296faa91532427f02))
+
 ## [0.145.1](https://github.com/tambo-ai/tambo/compare/api-v0.145.0...api-v0.145.1) (2026-05-20)
 
 
