@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.5](https://github.com/tambo-ai/tambo/compare/create-tambo-app-v0.3.4...create-tambo-app-v0.3.5) (2026-05-29)
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump typescript-eslint from 8.59.3 to 8.59.4 in the eslint group ([#2873](https://github.com/tambo-ai/tambo/issues/2873)) ([e8af366](https://github.com/tambo-ai/tambo/commit/e8af366915f45a34311fdcadfc103063c48c5ab6))
+
 ## [0.3.4](https://github.com/tambo-ai/tambo/compare/create-tambo-app-v0.3.3...create-tambo-app-v0.3.4) (2026-05-20)
 
 
