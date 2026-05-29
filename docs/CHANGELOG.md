@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.33.2](https://github.com/tambo-ai/tambo/compare/docs-v1.33.1...docs-v1.33.2) (2026-05-29)
+
+
+### Miscellaneous Chores
+
+* **deps:** bump @tailwindcss/postcss from 4.2.2 to 4.3.0 in the tailwind group across 1 directory ([#2880](https://github.com/tambo-ai/tambo/issues/2880)) ([3041273](https://github.com/tambo-ai/tambo/commit/3041273309225756291b329ce5cfba7d3c668655))
+* **deps:** bump @tambo-ai/typescript-sdk from 0.96.0 to 0.96.1 in the tambo-ai group across 1 directory ([#2875](https://github.com/tambo-ai/tambo/issues/2875)) ([540b8ac](https://github.com/tambo-ai/tambo/commit/540b8ac49dd0c2e2e7e75c8f544098639860f03e))
+* **deps:** bump postcss from 8.5.14 to 8.5.15 ([#2869](https://github.com/tambo-ai/tambo/issues/2869)) ([ceb3047](https://github.com/tambo-ai/tambo/commit/ceb3047258292cd670d10bf984080481ab3870c7))
+* **deps:** bump the small-safe-packages group across 1 directory with 3 updates ([#2876](https://github.com/tambo-ai/tambo/issues/2876)) ([a2198da](https://github.com/tambo-ai/tambo/commit/a2198daca95c3b4b2e7166b476ad149ab10d4ab8))
+
 ## [1.33.1](https://github.com/tambo-ai/tambo/compare/docs-v1.33.0...docs-v1.33.1) (2026-05-20)
 
 
