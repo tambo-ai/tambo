@@ -35,7 +35,7 @@
     "@types/node": "^22.19.15",
     "jest": "^30.4.2",
     "prettier-2": "npm:prettier@^2",
-    "ts-jest": "^29.4.9",
+    "ts-jest": "^29.4.11",
     "zod": "^3.25.76",
     "zod-to-json-schema": "^3.25.1"
   },
@@ -45,7 +45,7 @@
     "jose": "^5.10.0",
     "js-yaml": "^4.1.0",
     "openai": "^6.16.0",
-    "resend": "^6.9.1",
+    "resend": "^6.12.3",
     "undici": "^8.3.0"
   }
 }

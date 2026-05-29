@@ -47,9 +47,17 @@
     "@tambo-ai/react": "*",
     "@tambo-ai/react-ui-base": "*",
     "@tambo-ai/typescript-config": "*",
-    "@tambo-ai/typescript-sdk": "^0.96.0",
+    "@tambo-ai/typescript-sdk": "^0.96.1",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.3.2",
+    "@tiptap/extension-document": "^3.23.6",
+    "@tiptap/extension-hard-break": "^3.23.6",
+    "@tiptap/extension-mention": "^3.23.6",
+    "@tiptap/extension-paragraph": "^3.23.6",
+    "@tiptap/extension-placeholder": "^3.23.6",
+    "@tiptap/extension-text": "^3.23.6",
+    "@tiptap/react": "^3.23.6",
+    "@tiptap/suggestion": "^3.23.6",
     "@types/jest": "^30.0.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",
@@ -67,7 +75,7 @@
     "tailwind-merge": "^2.6.1",
     "tailwindcss": "^4.1.18",
     "tailwindcss-animate": "^1.0.7",
-    "ts-jest": "^29.4.9",
+    "ts-jest": "^29.4.11",
     "typescript": "^5.9.3"
   }
 }
