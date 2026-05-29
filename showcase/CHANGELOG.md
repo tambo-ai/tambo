@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.37.8](https://github.com/tambo-ai/tambo/compare/showcase-v0.37.7...showcase-v0.37.8) (2026-05-29)
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump ts-jest from 29.4.9 to 29.4.11 in the testing group across 1 directory ([#2874](https://github.com/tambo-ai/tambo/issues/2874)) ([dd3d3a7](https://github.com/tambo-ai/tambo/commit/dd3d3a71c6165c14370ae06a37041dd616d905c2))
+* **deps:** bump @tailwindcss/postcss from 4.2.2 to 4.3.0 in the tailwind group across 1 directory ([#2880](https://github.com/tambo-ai/tambo/issues/2880)) ([3041273](https://github.com/tambo-ai/tambo/commit/3041273309225756291b329ce5cfba7d3c668655))
+* **deps:** bump @tambo-ai/typescript-sdk from 0.96.0 to 0.96.1 in the tambo-ai group across 1 directory ([#2875](https://github.com/tambo-ai/tambo/issues/2875)) ([540b8ac](https://github.com/tambo-ai/tambo/commit/540b8ac49dd0c2e2e7e75c8f544098639860f03e))
+* **deps:** bump postcss from 8.5.14 to 8.5.15 ([#2869](https://github.com/tambo-ai/tambo/issues/2869)) ([ceb3047](https://github.com/tambo-ai/tambo/commit/ceb3047258292cd670d10bf984080481ab3870c7))
+* **deps:** bump the small-safe-packages group across 1 directory with 3 updates ([#2876](https://github.com/tambo-ai/tambo/issues/2876)) ([a2198da](https://github.com/tambo-ai/tambo/commit/a2198daca95c3b4b2e7166b476ad149ab10d4ab8))
+* **deps:** bump the tiptap group across 1 directory with 9 updates ([#2881](https://github.com/tambo-ai/tambo/issues/2881)) ([281593c](https://github.com/tambo-ai/tambo/commit/281593c233164bec793870cd8f17459690b9eaa6))
+
 ## [0.37.7](https://github.com/tambo-ai/tambo/compare/showcase-v0.37.6...showcase-v0.37.7) (2026-05-20)
 
 
