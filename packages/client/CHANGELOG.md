@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.1.4](https://github.com/tambo-ai/tambo/compare/client-v1.1.3...client-v1.1.4) (2026-05-29)
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump ts-jest from 29.4.9 to 29.4.11 in the testing group across 1 directory ([#2874](https://github.com/tambo-ai/tambo/issues/2874)) ([dd3d3a7](https://github.com/tambo-ai/tambo/commit/dd3d3a71c6165c14370ae06a37041dd616d905c2))
+* **deps-dev:** bump typescript-eslint from 8.59.3 to 8.59.4 in the eslint group ([#2873](https://github.com/tambo-ai/tambo/issues/2873)) ([e8af366](https://github.com/tambo-ai/tambo/commit/e8af366915f45a34311fdcadfc103063c48c5ab6))
+* **deps:** bump @tambo-ai/typescript-sdk from 0.96.0 to 0.96.1 in the tambo-ai group across 1 directory ([#2875](https://github.com/tambo-ai/tambo/issues/2875)) ([540b8ac](https://github.com/tambo-ai/tambo/commit/540b8ac49dd0c2e2e7e75c8f544098639860f03e))
+
 ## [1.1.3](https://github.com/tambo-ai/tambo/compare/client-v1.1.2...client-v1.1.3) (2026-05-21)
 
 
