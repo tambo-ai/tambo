@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.2.8](https://github.com/tambo-ai/tambo/compare/react-v1.2.7...react-v1.2.8) (2026-05-29)
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump ts-jest from 29.4.9 to 29.4.11 in the testing group across 1 directory ([#2874](https://github.com/tambo-ai/tambo/issues/2874)) ([dd3d3a7](https://github.com/tambo-ai/tambo/commit/dd3d3a71c6165c14370ae06a37041dd616d905c2))
+* **deps-dev:** bump type-fest from 5.4.3 to 5.6.0 ([#2890](https://github.com/tambo-ai/tambo/issues/2890)) ([e31d815](https://github.com/tambo-ai/tambo/commit/e31d8154f777abe8e6daab25eb01be86ff2710a6))
+* **deps-dev:** bump typescript-eslint from 8.59.3 to 8.59.4 in the eslint group ([#2873](https://github.com/tambo-ai/tambo/issues/2873)) ([e8af366](https://github.com/tambo-ai/tambo/commit/e8af366915f45a34311fdcadfc103063c48c5ab6))
+* **deps:** bump @sentry/nextjs from 10.49.0 to 10.53.1 in the sentry group ([#2877](https://github.com/tambo-ai/tambo/issues/2877)) ([8a5f7f7](https://github.com/tambo-ai/tambo/commit/8a5f7f7e43c8cc501ef946652a52651c3566f7de))
+* **deps:** bump @tambo-ai/typescript-sdk from 0.96.0 to 0.96.1 in the tambo-ai group across 1 directory ([#2875](https://github.com/tambo-ai/tambo/issues/2875)) ([540b8ac](https://github.com/tambo-ai/tambo/commit/540b8ac49dd0c2e2e7e75c8f544098639860f03e))
+* **deps:** bump the small-safe-packages group across 1 directory with 3 updates ([#2876](https://github.com/tambo-ai/tambo/issues/2876)) ([a2198da](https://github.com/tambo-ai/tambo/commit/a2198daca95c3b4b2e7166b476ad149ab10d4ab8))
+* **main:** release react 1.2.8 ([#2867](https://github.com/tambo-ai/tambo/issues/2867)) ([b05e9d9](https://github.com/tambo-ai/tambo/commit/b05e9d9943cd794d81d0a0e50fb6e66586ffc26d))
+
 ## [1.2.8](https://github.com/tambo-ai/tambo/compare/react-v1.2.7...react-v1.2.8) (2026-05-21)
 
 
