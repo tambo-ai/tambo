@@ -17,7 +17,7 @@
   "scripts": {
     "lint": "eslint",
     "lint:fix": "eslint --fix",
-    "check-types": "tsc --noEmit",
+    "check-types": "tsc --noEmit --rootDir ..",
     "clean": "rm -rf dist coverage"
   },
   "devDependencies": {
@@ -28,7 +28,7 @@
     "jest": "^30.4.2",
     "prettier-2": "npm:prettier@^2",
     "ts-jest": "^29.4.11",
-    "typescript": "^5.9.3"
+    "typescript": "^6.0.3"
   },
   "dependencies": {
     "@tambo-ai-cloud/core": "*",

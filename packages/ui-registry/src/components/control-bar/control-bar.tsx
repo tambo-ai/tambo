@@ -1,6 +1,6 @@
 "use client";
 
-import { useThreadContentContext } from "@tambo-ai/react-ui-base/thread-content";
+import { useThreadContentContext } from "@tambo-ai/react-ui-base";
 import type { messageVariants } from "@tambo-ai/ui-registry/components/message";
 import {
   MessageInput,

@@ -3,8 +3,10 @@
   "compilerOptions": {
     "declaration": true,
     "outDir": "./dist",
+    "rootDir": "./src",
     "moduleResolution": "Bundler",
     "module": "ESNext",
+    "types": ["jest", "node"],
     "paths": {
       "@tambo-ai-cloud/testing": ["../testing/src"]
     }
