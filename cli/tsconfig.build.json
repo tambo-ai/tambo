@@ -3,8 +3,8 @@
   "compilerOptions": {
     "rootDir": "./src",
     "paths": {
-      "@/*": ["src/*"],
-      "@/lib/*": ["src/lib/*"]
+      "@/*": ["./src/*"],
+      "@/lib/*": ["./src/lib/*"]
     }
   },
   "exclude": ["__tests__", "**/*.test.ts", "**/*.test.tsx", "tests", "scripts"]

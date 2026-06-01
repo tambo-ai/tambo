@@ -426,6 +426,12 @@ export async function createRunStream(
   }
 }
 
+interface SendMessageResult {
+  threadId: string | undefined;
+  preMutationMessageCount: number;
+  threadAlreadyHasName: boolean;
+}
+
 /**
  * Hook to send a message and handle streaming responses.
  *
@@ -470,12 +476,6 @@ export async function createRunStream(
  * }
  * ```
  */
-interface SendMessageResult {
-  threadId: string | undefined;
-  preMutationMessageCount: number;
-  threadAlreadyHasName: boolean;
-}
-
 export function useTamboSendMessage(
   threadId?: string,
 ): UseTamboMutationResult<SendMessageResult, Error, SendMessageOptions> {

@@ -1,12 +1,12 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
+    "moduleResolution": "bundler",
     "module": "CommonJS",
     "outDir": "./dist",
     "declaration": true,
     "rootDir": "./src",
     "customConditions": null,
-    "baseUrl": null,
     "paths": {}
   },
   "include": ["src/**/*.ts", "src/**/*.tsx"],

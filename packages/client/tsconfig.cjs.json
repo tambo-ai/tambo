@@ -1,8 +1,8 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "moduleResolution": "Node16",
-    "module": "Node16",
+    "moduleResolution": "bundler",
+    "module": "CommonJS",
     "customConditions": null,
     "outDir": "./dist",
     "declaration": true

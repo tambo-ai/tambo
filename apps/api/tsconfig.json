@@ -1,21 +1,29 @@
 {
   "extends": "@tambo-ai/typescript-config/base",
   "compilerOptions": {
+    // This NestJS app compiles workspace source (core/db/backend) together via
+    // path maps and emits CommonJS. "bundler" resolution triggers drizzle-orm's
+    // dual-package hazard (duplicate, unrelated SQL<> types) and "node16"/"nodenext"
+    // would require extensionful imports across every compiled package. "node"
+    // resolution is the only workable option here, so its TS6 deprecation is
+    // explicitly acknowledged rather than silently swapped.
     "ignoreDeprecations": "6.0",
     "jsx": "react-jsx",
     "target": "es2023",
     "lib": ["es2024", "ESNext.Array", "ESNext.Collection", "ESNext.Iterator"],
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
+    "rootDir": "../..",
     "outDir": "./dist",
-    "baseUrl": "./",
     "noImplicitAny": false,
     "moduleResolution": "node",
     "module": "commonjs",
     "customConditions": null,
     "resolveJsonModule": true,
     "sourceMap": true,
+    "types": ["node", "jest", "express", "multer"],
     "paths": {
+      "src/*": ["./src/*"],
       "@tambo-ai-cloud/backend": ["../../packages/backend/src"],
       "@tambo-ai-cloud/core": ["../../packages/core/src"],
       "@tambo-ai-cloud/core/safe-fetch": ["../../packages/core/src/safe-fetch"],
