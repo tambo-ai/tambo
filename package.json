@@ -70,7 +70,11 @@
     "@ai-sdk/anthropic": "$@ai-sdk/anthropic",
     "picomatch@>=4.0.0": "4.0.4",
     "picomatch@<3.0.0": "2.3.2",
-    "path-to-regexp@<0.1.13": "0.1.13"
+    "path-to-regexp@<0.1.13": "0.1.13",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "@types/react": "^19.2.15",
+    "@types/react-dom": "^19.2.3"
   },
   "dependencies": {
     "@ai-sdk/openai": "^3.0.48",
