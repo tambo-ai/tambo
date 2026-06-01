@@ -1,18 +1,12 @@
 import { withSentryConfig } from "@sentry/nextjs";
 import { createJiti } from "jiti";
-import nextra from "nextra";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
-import rehypeKatex from "rehype-katex";
-import rehypePrettyCode from "rehype-pretty-code";
-import remarkGfm from "remark-gfm";
-import remarkMdxFrontmatter from "remark-mdx-frontmatter";
 // Docker builds use a pruned workspace; repo-root imports (like `scripts/`) must be copied in `apps/web/Dockerfile`.
 import {
   getWorkspaceTranspilePackages,
   mergeConditions,
 } from "../../scripts/workspace-packages.mjs";
-import { remarkInjectBlogLayout } from "./lib/mdx/inject-blog-layout.mjs";
 
 const APP_DIR = fileURLToPath(new URL(".", import.meta.url));
 const jiti = createJiti(APP_DIR);
@@ -200,32 +194,7 @@ const config = {
   },
 };
 
-// Nextra configuration for MDX support
-// Includes blog-specific plugins: remarkMdxFrontmatter exports frontmatter as a variable,
-// and remarkInjectBlogLayout automatically wraps blog posts with the BlogPost layout component
-const withNextra = nextra({
-  defaultShowCopyCode: true,
-  readingTime: true,
-  mdxOptions: {
-    remarkPlugins: [remarkGfm, remarkMdxFrontmatter, remarkInjectBlogLayout],
-    rehypePlugins: [
-      rehypeKatex,
-      [
-        rehypePrettyCode,
-        {
-          theme: {
-            light: "github-light",
-            dark: "github-dark",
-          },
-          keepBackground: false,
-          defaultLang: "typescript",
-        },
-      ],
-    ],
-  },
-});
-
-export default withSentryConfig(withNextra(config), {
+export default withSentryConfig(config, {
   // For all available options, see:
   // https://www.npmjs.com/package/@sentry/webpack-plugin#options
 

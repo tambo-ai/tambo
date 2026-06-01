@@ -34,6 +34,7 @@
   "devDependencies": {
     "@types/node": "^22.19.15",
     "chokidar": "^5.0.0",
+    "class-validator": "^0.14.4",
     "husky": "^9.1.7",
     "lint-staged": "^17.0.5",
     "prettier": "^3.8.3",
@@ -71,10 +72,10 @@
     "picomatch@>=4.0.0": "4.0.4",
     "picomatch@<3.0.0": "2.3.2",
     "path-to-regexp@<0.1.13": "0.1.13",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0",
-    "@types/react": "^19.2.15",
-    "@types/react-dom": "^19.2.3"
+    "react": "19.2.6",
+    "react-dom": "19.2.6",
+    "@types/react": "19.2.15",
+    "@types/react-dom": "19.2.3"
   },
   "dependencies": {
     "@ai-sdk/openai": "^3.0.48",
