@@ -29,11 +29,11 @@
   "devDependencies": {
     "@tambo-ai/eslint-config": "*",
     "tsdown": "^0.20.3",
-    "typescript": "^5.9.3",
+    "typescript": "^6.0.0",
     "vite": "^7.3.2"
   },
   "peerDependencies": {
-    "typescript": "^5.0.0",
+    "typescript": "^5.0.0 || ^6.0.0",
     "vite": "^6.0.0 || ^7.0.0"
   }
 }

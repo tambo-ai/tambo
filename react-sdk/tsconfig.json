@@ -1,6 +1,7 @@
 {
   "extends": "@tambo-ai/typescript-config/base.json",
   "compilerOptions": {
+    "ignoreDeprecations": "6.0",
     "target": "ES2022",
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,

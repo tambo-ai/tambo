@@ -1,6 +1,7 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
+    "ignoreDeprecations": "6.0",
     "moduleResolution": "node",
     "module": "CommonJS",
     "customConditions": null,

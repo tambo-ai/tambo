@@ -82,7 +82,7 @@
     "prettier-2": "npm:prettier@^2",
     "ts-jest": "^29.4.11",
     "tsc-esm-fix": "^3.1.2",
-    "typescript": "^5.9.3",
+    "typescript": "^6.0.0",
     "typescript-eslint": "^8.59.4",
     "zod": "^3.25.76 || ^4",
     "zod-to-json-schema": "^3.25.1"
