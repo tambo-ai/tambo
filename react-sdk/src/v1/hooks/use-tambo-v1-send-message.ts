@@ -18,7 +18,10 @@ import {
   useTamboClient,
   useTamboQueryClient,
 } from "../../providers/tambo-client-provider";
-import { useTamboMutation } from "../../hooks/react-query-hooks";
+import {
+  useTamboMutation,
+  type UseTamboMutationResult,
+} from "../../hooks/react-query-hooks";
 import {
   TamboRegistryContext,
   type TamboRegistryContext as TamboRegistry,
@@ -467,7 +470,15 @@ export async function createRunStream(
  * }
  * ```
  */
-export function useTamboSendMessage(threadId?: string) {
+interface SendMessageResult {
+  threadId: string | undefined;
+  preMutationMessageCount: number;
+  threadAlreadyHasName: boolean;
+}
+
+export function useTamboSendMessage(
+  threadId?: string,
+): UseTamboMutationResult<SendMessageResult, Error, SendMessageOptions> {
   const client = useTamboClient();
   const dispatch = useStreamDispatch();
   const streamState = useStreamState();

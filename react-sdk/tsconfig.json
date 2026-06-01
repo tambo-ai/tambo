@@ -1,13 +1,12 @@
 {
   "extends": "@tambo-ai/typescript-config/base.json",
   "compilerOptions": {
-    "ignoreDeprecations": "6.0",
     "target": "ES2022",
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "jsx": "react",
-    "module": "ES6",
-    "moduleResolution": "node",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
     "customConditions": null,
     "declaration": true,
     "sourceMap": true,
@@ -15,8 +14,7 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "strict": true,
-    "skipLibCheck": true,
-    "baseUrl": "."
+    "skipLibCheck": true
   },
   "include": ["src/**/*.ts", "src/**/*.tsx"],
   "exclude": ["node_modules", "./dist"]
