@@ -70,7 +70,8 @@
     "@ai-sdk/anthropic": "$@ai-sdk/anthropic",
     "picomatch@>=4.0.0": "4.0.4",
     "picomatch@<3.0.0": "2.3.2",
-    "path-to-regexp@<0.1.13": "0.1.13"
+    "path-to-regexp@<0.1.13": "0.1.13",
+    "@xmldom/xmldom": "0.9.10"
   },
   "dependencies": {
     "@ai-sdk/openai": "^3.0.48",
