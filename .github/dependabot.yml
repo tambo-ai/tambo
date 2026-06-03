@@ -124,10 +124,6 @@ updates:
         patterns:
           - "@ag-ui/*"
           - "@mastra/*"
-      nextra:
-        patterns:
-          - "nextra"
-          - "nextra-*"
       fumadocs:
         patterns:
           - "fumadocs-*"
