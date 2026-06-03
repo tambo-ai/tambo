@@ -7,6 +7,7 @@ import { type RouterOutputs } from "@/trpc/react";
 import { motion } from "framer-motion";
 import { Check, ChevronDown, Copy, Info } from "lucide-react";
 import { FC, isValidElement, memo, ReactNode, useMemo, useState } from "react";
+import type { JSX } from "react";
 import ReactMarkdown from "react-markdown";
 import rehypeRaw from "rehype-raw";
 import {

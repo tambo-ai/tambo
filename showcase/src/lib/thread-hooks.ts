@@ -40,9 +40,9 @@ export function useMergeRefs<Instance>(
             };
       }
 
-      (ref as React.MutableRefObject<Instance | null>).current = instance;
+      ref.current = instance;
       return () => {
-        (ref as React.MutableRefObject<Instance | null>).current = null;
+        ref.current = null;
       };
     });
 

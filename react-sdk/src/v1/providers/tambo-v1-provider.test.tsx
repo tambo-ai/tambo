@@ -21,19 +21,27 @@ jest.mock("../../providers/tambo-client-provider", () => {
     useTamboClient: jest.fn(),
     useTamboQueryClient: jest.fn(),
     TamboClientProvider: jest.fn(
-      ({ children }: { children: React.ReactNode }) => children,
+      ({ children }: { children: React.ReactNode }): React.ReactNode =>
+        children,
     ),
   };
 });
 
 // Mock MCP providers to avoid TamboClientContext dependency
 jest.mock("../../providers/tambo-mcp-token-provider", () => ({
-  TamboMcpTokenProvider: ({ children }: { children: React.ReactNode }) =>
+  TamboMcpTokenProvider: ({
     children,
+  }: {
+    children: React.ReactNode;
+  }): React.ReactNode => children,
 }));
 
 jest.mock("../../mcp/tambo-mcp-provider", () => ({
-  TamboMcpProvider: ({ children }: { children: React.ReactNode }) => children,
+  TamboMcpProvider: ({
+    children,
+  }: {
+    children: React.ReactNode;
+  }): React.ReactNode => children,
 }));
 
 // Mock auth state to avoid TamboClientContext dependency

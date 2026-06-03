@@ -412,7 +412,9 @@ export const FormComponent = React.forwardRef<HTMLFormElement, FormProps>(
 
     if (!state) return null;
 
-    const renderTextLikeInput = (field: FormField): JSX.Element | null => {
+    const renderTextLikeInput = (
+      field: FormField,
+    ): React.JSX.Element | null => {
       const isTextField = field.type === "text";
       const isEmailField = field.type === "email";
 
