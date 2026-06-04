@@ -100,12 +100,15 @@ via #280.
 
 **Remaining:**
 
-1. **Secrets for the config-repo generate workflow (you):**
-   - `STLC_VENDOR_TOKEN` — read on `tambo-ai/stlc-vendor` — config-repo secret
-     (consumed by `setup-stlc`).
-   - `SDK_WRITE_TOKEN` — Contents + Pull requests + **Workflows**: write on
-     `tambo-ai/typescript-sdk` — config-repo secret.
-   - `RELEASE_PLEASE_TOKEN` — already present in the SDK repo ✓.
+1. **Auth — uses the existing tambo-bot PAT, no new personal PATs:**
+   `stlc-generate.yml` now uses **`TAMBO_UPGRADE_PAT`** (the org-level tambo-bot
+   cross-repo PAT already used by `template-maintenance.yml`) for both fetching
+   the vendored CLI from `tambo-ai/stlc-vendor` and pushing to
+   `tambo-ai/typescript-sdk`. tambo-bot already has access to both repos.
+   **Only check needed:** confirm `TAMBO_UPGRADE_PAT` carries `workflow` scope
+   (required for the SDK's `.github/workflows/*`); if not, extend the bot token —
+   don't mint a personal PAT. `RELEASE_PLEASE_TOKEN` already present in the SDK
+   repo ✓.
 2. **Merge config-repo PR #2915** (CI green) once the two secrets are in, so the
    deploy-gated `stlc-generate.yml` can regenerate + push to the SDK repo.
 3. **U8 first release:** SDK release PR **#282 (0.96.3)** is open and validated
@@ -119,9 +122,10 @@ via #280.
 
 The SDK side (U7 + release automation) is **already live on main via #280**. All
 code/config/doc work for the config-repo side is committed in **#2915 (CI
-green)**. What remains is purely operational and human-gated: add 2 secrets →
-merge #2915; merge #282 to publish 0.96.3; remove `STAINLESS_API_KEY` + uninstall
-the Stainless App.
+green)**, and it reuses the existing tambo-bot `TAMBO_UPGRADE_PAT` (no new
+secrets to mint). What remains is purely operational: verify the bot token has
+`workflow` scope → merge #2915; merge #282 to publish 0.96.3; remove
+`STAINLESS_API_KEY` + uninstall the Stainless App.
 
 ---
 
