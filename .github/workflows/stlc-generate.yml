@@ -9,12 +9,14 @@ name: Generate TypeScript SDK with stlc
 # release-please PR in tambo-ai/typescript-sdk is merged, so this never publishes
 # ahead of a deploy.
 #
-# Requires repo secrets:
-#   STLC_VENDOR_TOKEN  read access to tambo-ai/stlc-vendor (fetch the vendored CLI)
-#   SDK_WRITE_TOKEN    Contents + Pull requests + Workflows: write on
-#                      tambo-ai/typescript-sdk. Workflows:write is REQUIRED — the
-#                      generated SDK contains .github/workflows/*, and GitHub
-#                      rejects ref pushes that touch workflow files without it.
+# Auth: uses the existing tambo-bot PAT (TAMBO_UPGRADE_PAT, the org secret already
+# used by template-maintenance.yml to push across repos). tambo-bot has access to
+# both tambo-ai/stlc-vendor (read the vendored CLI) and tambo-ai/typescript-sdk
+# (push generated code). The token must carry `repo` + `workflow` scope (classic),
+# or fine-grained Contents+Workflows:write on typescript-sdk + Contents:read on
+# stlc-vendor — `workflow` scope is REQUIRED because the generated SDK contains
+# .github/workflows/*, which GitHub refuses to push without it. If TAMBO_UPGRADE_PAT
+# lacks `workflow` scope, extend the bot token rather than minting a personal PAT.
 
 on:
   push:
@@ -55,19 +57,19 @@ jobs:
       - name: Setup stlc
         uses: ./.github/actions/setup-stlc
         with:
-          vendor-read-token: ${{ secrets.STLC_VENDOR_TOKEN }}
+          vendor-read-token: ${{ secrets.TAMBO_UPGRADE_PAT }}
 
       - name: Configure git auth to push to the SDK repo
         env:
-          GH_TOKEN: ${{ secrets.SDK_WRITE_TOKEN }}
+          GH_TOKEN: ${{ secrets.TAMBO_UPGRADE_PAT }}
         run: |
-          git config --global user.name "stlc-bot"
-          git config --global user.email "stlc-bot@users.noreply.github.com"
+          git config --global user.name "Tambo Bot"
+          git config --global user.email "bots@tambo.co"
           gh auth setup-git
 
       - name: Generate SDK and push
         env:
-          GH_TOKEN: ${{ secrets.SDK_WRITE_TOKEN }}
+          GH_TOKEN: ${{ secrets.TAMBO_UPGRADE_PAT }}
         working-directory: ${{ env.STAINLESS_WORKSPACE }}
         run: |
           stlc build \
