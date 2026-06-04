@@ -9,12 +9,16 @@ name: Generate TypeScript SDK with stlc
 # release-please PR in tambo-ai/typescript-sdk is merged, so this never publishes
 # ahead of a deploy.
 #
-# Auth: mints a short-lived GitHub App installation token (the org's
-# tambo-automations app, TAMBO_AUTOMATIONS_APP_CLIENT_ID /
-# TAMBO_AUTOMATIONS_APP_PRIVATE_KEY) scoped to the SDK + vendor repos. The app is
-# installed org-wide; it needs Contents + Workflows: write on typescript-sdk
-# (Workflows:write is required — the generated SDK contains .github/workflows/*)
-# and Contents: read on stlc-vendor.
+# Auth: mints short-lived GitHub App installation tokens from the org's
+# tambo-automations app (TAMBO_AUTOMATIONS_APP_CLIENT_ID /
+# TAMBO_AUTOMATIONS_APP_PRIVATE_KEY). The tokens request only the permissions
+# this workflow needs (least privilege), narrower than the app's full grant:
+#   - SDK push:    contents:write + workflows:write on typescript-sdk
+#                  (workflows:write is required — the generated SDK contains
+#                  .github/workflows/*; no pull-requests permission needed since
+#                  stlc pushes to main directly, and release-please opens the
+#                  release PR with its own token).
+#   - vendor read: contents:read on stlc-vendor.
 
 on:
   push:
@@ -42,16 +46,26 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Mint GitHub App token (SDK + vendor repos)
-        id: app-token
+      - name: Mint app token — vendor read (stlc-vendor)
+        id: vendor-token
         uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
         with:
           client-id: ${{ secrets.TAMBO_AUTOMATIONS_APP_CLIENT_ID }}
           private-key: ${{ secrets.TAMBO_AUTOMATIONS_APP_PRIVATE_KEY }}
           owner: ${{ github.repository_owner }}
-          repositories: |
-            typescript-sdk
-            stlc-vendor
+          repositories: stlc-vendor
+          permission-contents: read
+
+      - name: Mint app token — SDK write (typescript-sdk)
+        id: sdk-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ secrets.TAMBO_AUTOMATIONS_APP_CLIENT_ID }}
+          private-key: ${{ secrets.TAMBO_AUTOMATIONS_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: typescript-sdk
+          permission-contents: write
+          permission-workflows: write
 
       # Regenerate the spec from the deployed API so the SDK matches the live
       # contract. Runs on the repo's pinned Node (via setup-tools) before stlc
@@ -66,12 +80,12 @@ jobs:
       - name: Setup stlc
         uses: ./.github/actions/setup-stlc
         with:
-          vendor-read-token: ${{ steps.app-token.outputs.token }}
+          vendor-read-token: ${{ steps.vendor-token.outputs.token }}
 
       - name: Configure git auth to push to the SDK repo
         env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
-          APP_SLUG: ${{ steps.app-token.outputs.app-slug }}
+          GH_TOKEN: ${{ steps.sdk-token.outputs.token }}
+          APP_SLUG: ${{ steps.sdk-token.outputs.app-slug }}
         run: |
           # Commit as the app's bot identity so pushes are attributed correctly.
           bot_id=$(gh api "/users/${APP_SLUG}[bot]" --jq .id)
@@ -81,7 +95,7 @@ jobs:
 
       - name: Generate SDK and push
         env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          GH_TOKEN: ${{ steps.sdk-token.outputs.token }}
         working-directory: ${{ env.STAINLESS_WORKSPACE }}
         run: |
           stlc build \
