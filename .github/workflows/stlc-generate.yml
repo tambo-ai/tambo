@@ -1,0 +1,113 @@
+name: Generate TypeScript SDK with stlc
+
+# Regenerates @tambo-ai/typescript-sdk from the API's OpenAPI spec and pushes the
+# generated code to the SDK repo. Replaces the hosted-Stainless upload
+# (stainless-cloud.yml), which stops working when Stainless is sunset 2026-09-01.
+#
+# Gated on the `deploy` branch (same trigger as the old workflow) so the SDK
+# tracks the production-deployed API contract. The SDK is only PUBLISHED when the
+# release-please PR in tambo-ai/typescript-sdk is merged, so this never publishes
+# ahead of a deploy.
+#
+# Auth: mints short-lived GitHub App installation tokens from the org's
+# tambo-automations app (TAMBO_AUTOMATIONS_APP_CLIENT_ID /
+# TAMBO_AUTOMATIONS_APP_PRIVATE_KEY). The tokens request only the permissions
+# this workflow needs (least privilege), narrower than the app's full grant:
+#   - SDK push:    contents:write + workflows:write on typescript-sdk
+#                  (workflows:write is required — the generated SDK contains
+#                  .github/workflows/*; no pull-requests permission needed since
+#                  stlc pushes to main directly, and release-please opens the
+#                  release PR with its own token).
+#   - vendor read: contents:read on stlc-vendor.
+
+on:
+  push:
+    branches: [deploy]
+  workflow_dispatch:
+
+concurrency:
+  # Never cancel an in-flight push to the SDK repo.
+  group: stlc-generate
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  STAINLESS_WORKSPACE: stainless
+  DEFAULT_TARGETS: typescript
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Mint app token — vendor read (stlc-vendor)
+        id: vendor-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ secrets.TAMBO_AUTOMATIONS_APP_CLIENT_ID }}
+          private-key: ${{ secrets.TAMBO_AUTOMATIONS_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: stlc-vendor
+          permission-contents: read
+
+      - name: Mint app token — SDK write (typescript-sdk)
+        id: sdk-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ secrets.TAMBO_AUTOMATIONS_APP_CLIENT_ID }}
+          private-key: ${{ secrets.TAMBO_AUTOMATIONS_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: typescript-sdk
+          permission-contents: write
+          permission-workflows: write
+
+      # Regenerate the spec from the deployed API so the SDK matches the live
+      # contract. Runs on the repo's pinned Node (via setup-tools) before stlc
+      # switches the job to Node 24.
+      - name: Setup tools
+        uses: ./.github/actions/setup-tools
+
+      - name: Regenerate OpenAPI spec
+        run: OPENAPI_SPEC_FILE="$GITHUB_WORKSPACE/stainless/openapi.json" npm run generate-config
+        working-directory: apps/api
+
+      - name: Setup stlc
+        uses: ./.github/actions/setup-stlc
+        with:
+          vendor-read-token: ${{ steps.vendor-token.outputs.token }}
+
+      - name: Configure git auth to push to the SDK repo
+        env:
+          GH_TOKEN: ${{ steps.sdk-token.outputs.token }}
+          APP_SLUG: ${{ steps.sdk-token.outputs.app-slug }}
+        run: |
+          # Commit as the app's bot identity so pushes are attributed correctly.
+          bot_id=$(gh api "/users/${APP_SLUG}[bot]" --jq .id)
+          git config --global user.name "${APP_SLUG}[bot]"
+          git config --global user.email "${bot_id}+${APP_SLUG}[bot]@users.noreply.github.com"
+          gh auth setup-git
+
+      - name: Generate SDK and push
+        env:
+          GH_TOKEN: ${{ steps.sdk-token.outputs.token }}
+        working-directory: ${{ env.STAINLESS_WORKSPACE }}
+        run: |
+          # stlc build is deterministic: when the regenerated tree is identical to
+          # the SDK repo's main there is nothing to commit/push, so no-op deploys
+          # never create a release PR. When there IS a change we use `fix:` (patch)
+          # as a conservative default — the workflow can't classify change
+          # magnitude, and a hardcoded `feat:` would over-bump generator/tooling
+          # drift to a minor. For a notable feature, set the version explicitly via
+          # a Release-As: footer or a manual edit on the SDK repo's release PR.
+          stlc build \
+            --branch main \
+            --output "$RUNNER_TEMP/sdk-output" \
+            --push \
+            --targets "$DEFAULT_TARGETS" \
+            --commit "fix: regenerate SDK from deployed API"
