@@ -377,7 +377,7 @@ turbo check-types       # Type-check all packages
 
 - Shared configs in `packages/` (eslint-config, typescript-config)
 - Cross-package dependencies use workspace protocol (`*`)
-- TypeScript SDK dependency (`@tambo-ai/typescript-sdk`) is external
+- TypeScript SDK dependency (`@tambo-ai/typescript-sdk`) is external — it lives in its own repo and is generated from the `apps/api` OpenAPI spec by the **stlc** CLI (run in our CI; workspace in `stainless/`). See `RELEASING.md`.
 
 ### Cross-Package Development
 
