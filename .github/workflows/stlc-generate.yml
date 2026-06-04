@@ -9,14 +9,11 @@ name: Generate TypeScript SDK with stlc
 # release-please PR in tambo-ai/typescript-sdk is merged, so this never publishes
 # ahead of a deploy.
 #
-# Auth: uses the existing tambo-bot PAT (TAMBO_UPGRADE_PAT, the org secret already
-# used by template-maintenance.yml to push across repos). tambo-bot has access to
-# both tambo-ai/stlc-vendor (read the vendored CLI) and tambo-ai/typescript-sdk
-# (push generated code). The token must carry `repo` + `workflow` scope (classic),
-# or fine-grained Contents+Workflows:write on typescript-sdk + Contents:read on
-# stlc-vendor — `workflow` scope is REQUIRED because the generated SDK contains
-# .github/workflows/*, which GitHub refuses to push without it. If TAMBO_UPGRADE_PAT
-# lacks `workflow` scope, extend the bot token rather than minting a personal PAT.
+# Auth: mints a short-lived GitHub App installation token (the org's RELEASE app,
+# RELEASE_APP_ID / RELEASE_APP_PRIVATE_KEY) scoped to the SDK + vendor repos. The
+# app installation must grant Contents + Workflows: write on typescript-sdk
+# (Workflows:write is required — the generated SDK contains .github/workflows/*)
+# and Contents: read on stlc-vendor.
 
 on:
   push:
@@ -44,6 +41,17 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Mint GitHub App token (SDK + vendor repos)
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ secrets.RELEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: |
+            typescript-sdk
+            stlc-vendor
+
       # Regenerate the spec from the deployed API so the SDK matches the live
       # contract. Runs on the repo's pinned Node (via setup-tools) before stlc
       # switches the job to Node 24.
@@ -57,19 +65,19 @@ jobs:
       - name: Setup stlc
         uses: ./.github/actions/setup-stlc
         with:
-          vendor-read-token: ${{ secrets.TAMBO_UPGRADE_PAT }}
+          vendor-read-token: ${{ steps.app-token.outputs.token }}
 
       - name: Configure git auth to push to the SDK repo
         env:
-          GH_TOKEN: ${{ secrets.TAMBO_UPGRADE_PAT }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
-          git config --global user.name "Tambo Bot"
+          git config --global user.name "tambo-bot[bot]"
           git config --global user.email "bots@tambo.co"
           gh auth setup-git
 
       - name: Generate SDK and push
         env:
-          GH_TOKEN: ${{ secrets.TAMBO_UPGRADE_PAT }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
         working-directory: ${{ env.STAINLESS_WORKSPACE }}
         run: |
           stlc build \
