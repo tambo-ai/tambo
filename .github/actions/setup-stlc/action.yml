@@ -39,9 +39,8 @@ runs:
     - name: Install stlc from vendored tarballs
       shell: bash
       run: |
-        npm install -g \
-          "$RUNNER_TEMP"/stlc/stlc-*.tgz \
-          "$RUNNER_TEMP"/stlc/stlc-typescript-*.tgz
+        # Glob matches both stlc-*.tgz and stlc-typescript-*.tgz from the release.
+        npm install -g "$RUNNER_TEMP"/stlc/*.tgz
 
     - name: Check stlc CLI is callable
       shell: bash

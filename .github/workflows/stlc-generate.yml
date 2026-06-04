@@ -98,9 +98,16 @@ jobs:
           GH_TOKEN: ${{ steps.sdk-token.outputs.token }}
         working-directory: ${{ env.STAINLESS_WORKSPACE }}
         run: |
+          # stlc build is deterministic: when the regenerated tree is identical to
+          # the SDK repo's main there is nothing to commit/push, so no-op deploys
+          # never create a release PR. When there IS a change we use `fix:` (patch)
+          # as a conservative default — the workflow can't classify change
+          # magnitude, and a hardcoded `feat:` would over-bump generator/tooling
+          # drift to a minor. For a notable feature, set the version explicitly via
+          # a Release-As: footer or a manual edit on the SDK repo's release PR.
           stlc build \
             --branch main \
             --output "$RUNNER_TEMP/sdk-output" \
             --push \
             --targets "$DEFAULT_TARGETS" \
-            --commit "feat: regenerate SDK from deployed API"
+            --commit "fix: regenerate SDK from deployed API"

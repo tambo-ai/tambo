@@ -120,4 +120,4 @@ for the full migration record.
   - `deploy` branch goes to [Production](https://railway.com/project/f6706075-78e8-4b8f-93ff-a07ef6da36d9/service/720e5a60-8fb2-4bca-ad76-38b983649287?environmentId=cb7ad6ef-d499-4792-8656-780891015359)
   - `main` branch goes to [Development](https://railway.com/project/f6706075-78e8-4b8f-93ff-a07ef6da36d9/service/720e5a60-8fb2-4bca-ad76-38b983649287?environmentId=6bee8983-1a4f-4b39-b778-72ec46e18db5)
 
-* We use [stlc](https://github.com/stainless/stlc) (Stainless's source-available CLI, run in our own CI) to generate the Tambo client SDKs from the OpenAPI spec.
+* We use **stlc** (Stainless's source-available CLI, run in our own CI; vendored privately at [`tambo-ai/stlc-vendor`](https://github.com/tambo-ai/stlc-vendor)) to generate the Tambo client SDKs from the OpenAPI spec. The upstream `github.com/stainless` repos are unavailable after 2026-09-01.
