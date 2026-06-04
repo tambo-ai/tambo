@@ -55,23 +55,21 @@ branches; no secrets added.
   Faithful to the upstream stlc template. Cannot be CI-verified without the
   secrets + a deploy.
 
-**U7 — PARTIAL, needs mechanism correction.** The hand-authored
-`release-please.yml` content (commit `075fc00` on `lachlan/stlc-release-please`)
-is correct, but execution revealed two corrections:
+**U7 — DONE (landed via parallel PR #280, not mine).** While this work was in
+progress, another contributor merged
+**tambo-ai/typescript-sdk#280 "chore: migrate SDK generation to self-hosted
+stlc"** to the SDK repo `main` (2026-06-04). It added a stock
+`release-please.yml` (functionally identical to mine — `googleapis/release-please-action`,
+`RELEASE_PLEASE_TOKEN`) plus the stlc-generated baseline and the `$schema` →
+googleapis change. So U7 is complete on main. My redundant PR
+`tambo-ai/typescript-sdk#283` was **closed** as superseded.
 
-1. **`release-please.yml` must be sealed as custom code**, not a plain commit.
-   `stlc build` resets the working tree and regenerates ~138 files; stlc does
-   **not** generate `release-please.yml`, so a plain commit to the SDK repo would
-   be wiped on the next generate. It must go through the custom-code flow (like
-   the publish-npm.yml mods) so it re-integrates every build.
-2. **`release-please-config.json` is stlc-generated** (`versioning: prerelease`,
-   `prerelease: true`, `$schema` → stock googleapis). My hand-edit to
-   `versioning: default` is moot (regenerated away). The published history is
-   plain semver, so the **version scheme must be validated in the U8 dry-run**
-   (stock release-please opens a release PR showing the proposed version before
-   any publish — non-destructive). If stock proposes a prerelease version, adjust
-   the generated config then. `publish.release: { prerelease: false }` had no
-   effect in stlc 0.1.2.
+**Version scheme resolved:** release-please is live on the SDK main and opened
+**#282 "release: 0.96.3"** — **plain semver, not a prerelease**. So
+`versioning: prerelease` + `prerelease: true` under stock release-please yields
+correct plain versions (the earlier concern was unfounded). The custom-code
+sealing concern is also moot now that the SDK baseline is established on main
+via #280.
 
 **Review-ready (pushed):**
 
@@ -100,23 +98,27 @@ is correct, but execution revealed two corrections:
 - stlc auto-installs a Claude Code plugin during `init` when `claude` is on PATH;
   neutralized here with a no-op shim so the real Claude config was untouched.
 
-**Remaining — all on hard human/credential gates:**
+**Remaining:**
 
-1. **Secrets (you):**
-   - `STLC_VENDOR_TOKEN` — read on `tambo-ai/stlc-vendor` — repo secret in the
-     config repo (consumed by `setup-stlc`).
+1. **Secrets for the config-repo generate workflow (you):**
+   - `STLC_VENDOR_TOKEN` — read on `tambo-ai/stlc-vendor` — config-repo secret
+     (consumed by `setup-stlc`).
    - `SDK_WRITE_TOKEN` — Contents + Pull requests + **Workflows**: write on
-     `tambo-ai/typescript-sdk` — repo secret in the config repo.
-   - `RELEASE_PLEASE_TOKEN` — Contents + Pull requests: write on
-     `tambo-ai/typescript-sdk` — repo secret in the SDK repo.
-2. **U7 finish:** seal `release-please.yml` as custom code (needs a
-   workflow-scoped push), then merge `lachlan/stlc-release-please`.
-3. **U8 dry-run:** a real `deploy` push runs `stlc-generate.yml`; merge the
-   resulting release PR; confirm the version scheme is plain semver and npm
-   publish succeeds.
-4. **U9 cutover:** delete `stainless-cloud.yml`, remove `STAINLESS_API_KEY`,
-   uninstall the Stainless GitHub App, update `RELEASING.md` + `AGENTS.md`, mark
-   migration complete (read-only) in the Stainless dashboard.
+     `tambo-ai/typescript-sdk` — config-repo secret.
+   - `RELEASE_PLEASE_TOKEN` — already present in the SDK repo ✓.
+2. **Merge config-repo PR #2915** (CI green) once the two secrets are in, so the
+   deploy-gated `stlc-generate.yml` can regenerate + push to the SDK repo.
+3. **U8 first release:** SDK release PR **#282 (0.96.3)** is open and validated
+   (plain semver). Merging it tags a release and `publish-npm.yml` (OIDC)
+   publishes to npm — an intentional, human-approved publish.
+4. **U9 cutover:** delete `stainless-cloud.yml` + remove `STAINLESS_API_KEY` in
+   the monorepo (part of / after #2915), uninstall the Stainless GitHub App,
+   update `RELEASING.md` + `AGENTS.md`, mark migration complete (read-only) in
+   the Stainless dashboard.
+
+The SDK side (U7 + release automation) is **already live on main via #280**.
+What's left is the config-repo generate pipeline (#2915, needs 2 secrets), the
+first npm publish (merge #282), and the cutover teardown.
 
 ---
 
