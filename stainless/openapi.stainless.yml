@@ -1,0 +1,279 @@
+# yaml-language-server: $schema=https://app.stainlessapi.com/config.schema.json
+
+organization:
+  # Name of your organization or company, used to determine the name of the client
+  # and headings.
+  name: tambo-ai
+  docs: https://tambo.co/docs
+  contact: dev-feedback@tambo.co
+  github_org: tambo-ai
+
+# `targets` define the output targets and their customization options, such as
+# whether to emit the Node SDK and what it's package name should be.
+targets:
+  typescript:
+    readme_title: Tambo Typescript
+    package_name: "@tambo-ai/typescript-sdk"
+    production_repo: tambo-ai/typescript-sdk
+    publish:
+      npm:
+        auth_method: oidc
+    options:
+      node_migration:
+        # These values will be used in the generated migration guide
+        previous_version: '1' # Last version number before migration
+        migrated_version: '2' # New version number for the `typescript` SDK
+    staging_repo: tambo-ai/typescript-sdk
+
+# `client_settings` define settings for the API client, such as extra constructor
+# arguments (used for authentication), retry behavior, idempotency, etc.
+client_settings:
+  default_retries:
+    max_retries: 0
+    initial_delay_seconds: 1
+    max_delay_seconds: 5
+
+  opts:
+    api_key:
+      type: string
+      description: API key used for authentication
+      nullable: true
+      read_env: TAMBO_API_KEY
+      auth:
+        security_scheme: apiKey
+        role: value
+    bearer:
+      type: string
+      description: Tambo Access Token from /oauth/token API
+      nullable: true
+      auth:
+        security_scheme: bearer
+        role: value
+
+# `environments` are a map of the name of the environment (e.g. "sandbox",
+# "production") to the corresponding url to use.
+environments:
+  production: "https://api.tambo.co"
+  staging: "https://hydra-api-dev.up.railway.app"
+
+# `pagination` defines [pagination schemes] which provides a template to match
+# endpoints and generate next-page and auto-pagination helpers in the SDKs.
+pagination:
+  - name: offset_and_limit
+    type: offset
+    request:
+      offset:
+        type: integer
+        x-stainless-pagination-property:
+          purpose: offset_count_param
+      limit:
+        type: integer
+    response:
+      items:
+        type: array
+        items:
+          type: object
+      total:
+        type: integer
+        x-stainless-pagination-property:
+          purpose: offset_total_count_field
+      count:
+        type: integer
+        x-stainless-pagination-property: offset_count_start_field
+
+# `resources` define the structure and organziation for your API, such as how
+# methods and models are grouped together and accessed. See the [configuration
+# guide] for more information.
+#
+# [configuration guide]:
+#   https://app.stainlessapi.com/docs/guides/configure#resources
+resources:
+  beta:
+    subresources:
+      registry:
+        methods:
+          retrieve: get /registry/{componentname}
+
+      projects:
+        methods:
+          retrieve: get /projects/{id}
+          delete: delete /projects/{id}
+          get_current: get /projects
+        # Subresources define resources that are nested within another for more powerful
+        # logical groupings, e.g. `cards.payments`.
+        subresources:
+          api_key:
+            # Configure the models--named types--defined in the resource. Each key in the
+            # object is the name of the model and the value is either the name of a schema in
+            # `#/components/schemas` or an object with more detail.
+            #
+            # [reference]: https://app.stainlessapi.com/docs/reference/config#model
+            methods:
+              list:
+                endpoint: get /projects/{id}/api-keys
+                paginated: false
+              delete: delete /projects/{id}/api-key/{apiKeyId}
+          provider_key:
+            methods:
+              delete: delete /projects/{id}/provider-key/{providerKeyId}
+              list:
+                endpoint: get /projects/{id}/provider-keys
+                paginated: false
+
+      threads:
+        models:
+          thread_message: ThreadMessage
+          thread: Thread
+          chat_completion_content_part: ChatCompletionContentPart
+          component_decision_v2: "#/components/schemas/ComponentDecisionV2"
+        methods:
+          create: post /threads
+          retrieve: get /threads/{id}
+          update: put /threads/{id}
+          delete: delete /threads/{id}
+          list:
+            endpoint: get /threads/project/{projectId}
+            paginated: offset_and_limit
+          advance: post /threads/advance
+          advance_by_id: post /threads/{id}/advance
+          generate_name: post /threads/{id}/generate-name
+          cancel: post /threads/{id}/cancel
+        subresources:
+          messages:
+            methods:
+              create: post /threads/{id}/messages
+              list:
+                endpoint: get /threads/{id}/messages
+                paginated: false
+              delete: delete /threads/{id}/messages/{messageId}
+              update_component_state: put /threads/{id}/messages/{messageId}/component-state
+          suggestions:
+            models:
+              suggestion: 'Suggestion'
+              suggestions_generate: 'SuggestionsGenerate'
+            methods:
+              generate: post /threads/{id}/messages/{messageId}/suggestions
+              list:
+                endpoint: get /threads/{id}/messages/{messageId}/suggestions
+                paginated: false
+      auth:
+        methods:
+          get_token: post /oauth/token
+          get_mcp_token: post /auth/mcp/access-token
+      audio:
+        methods:
+          transcribe:
+            endpoint: post /audio/transcribe
+            request_body:
+              content_type: multipart/form-data
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  required: true
+                model:
+                  type: string
+                  example: gpt-4o-mini-transcribe
+            response:
+              type: string
+  storage:
+    methods:
+      presign: post /storage/presign
+  threads:
+    methods:
+      list:
+        endpoint: get /v1/threads
+        paginated: false
+      delete: delete /v1/threads/{threadId}
+      create: post /v1/threads
+      retrieve: get /v1/threads/{threadId}
+      update: patch /v1/threads/{threadId}
+
+    subresources:
+      state:
+        methods:
+          update_state: post /v1/threads/{threadId}/components/{componentId}/state
+      messages:
+        methods:
+          list:
+            endpoint: get /v1/threads/{threadId}/messages
+            paginated: false
+          get: get /v1/threads/{threadId}/messages/{messageId}
+      runs:
+        methods:
+          run: post /v1/threads/{threadId}/runs
+          create: post /v1/threads/runs
+          delete: delete /v1/threads/{threadId}/runs/{runId}
+        models:
+          input_message: "#/components/schemas/InputMessage"
+      suggestions:
+        methods:
+          list:
+            endpoint: get /v1/threads/{threadId}/messages/{messageId}/suggestions
+            paginated: false
+          create: post /v1/threads/{threadId}/messages/{messageId}/suggestions
+
+    models:
+      run_error: "#/components/schemas/RunError"
+      text_content: "#/components/schemas/TextContent"
+      resource_content: "#/components/schemas/ResourceContent"
+      tool_use_content: "#/components/schemas/ToolUseContent"
+      tool_result_content: "#/components/schemas/ToolResultContent"
+      component_content: "#/components/schemas/ComponentContent"
+      message: "#/components/schemas/Message"
+
+  home:
+    # Configure the methods defined in this resource. Each key in the object is the
+    # name of the method and the value is either an endpoint (for example, `get /foo`)
+    # or an object with more detail.
+    #
+    # [reference]: https://app.stainlessapi.com/docs/reference/config#method
+    skip: true
+    methods:
+      retrieve: get /
+      advancestream: post /threads/{id}/advancestream
+      advancestream_by_id: post /threads/advancestream
+      health: get /health
+      handle_signup: post /users/webhook/signup
+  $shared:
+    models:
+      tool_call_request: "#/components/schemas/ToolCallRequest"
+      available_component: "#/components/schemas/AvailableComponent"
+      component_context_tool_metadata: "#/components/schemas/ComponentContextToolMetadata"
+      tool_parameters: "#/components/schemas/ToolParameters"
+      tool_call_parameter: "#/components/schemas/ToolParameter"
+      resource: "#/components/schemas/Resource"
+      resource_annotations: "#/components/schemas/ResourceAnnotations"
+
+settings:
+  license: Apache-2.0
+
+# `readme` is used to configure the code snippets that will be rendered in the
+# README.md of various SDKs. In particular, you can change the `headline`
+# snippet's endpoint and the arguments to call it with.
+readme:
+  example_requests:
+    headline:
+      type: request
+      endpoint: post /threads/advance
+      params:
+        messageToAppend:
+          role: "user"
+          content:
+            - type: "text"
+              text: "What is the weather in berkeley?"
+    default:
+      type: request
+      endpoint: post /threads/{id}/advance
+      params:
+        id: "thr_123"
+        messageToAppend:
+          role: "user"
+          content:
+            - type: "text"
+              text: "And what about oakland?"
+    pagination:
+      type: request
+      endpoint: get /threads/project/{projectId}
+      params:
+        projectId: "p_123"
