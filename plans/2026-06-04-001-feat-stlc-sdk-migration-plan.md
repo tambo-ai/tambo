@@ -100,15 +100,15 @@ via #280.
 
 **Remaining:**
 
-1. **Auth — uses the existing tambo-bot PAT, no new personal PATs:**
-   `stlc-generate.yml` now uses **`TAMBO_UPGRADE_PAT`** (the org-level tambo-bot
-   cross-repo PAT already used by `template-maintenance.yml`) for both fetching
-   the vendored CLI from `tambo-ai/stlc-vendor` and pushing to
-   `tambo-ai/typescript-sdk`. tambo-bot already has access to both repos.
-   **Only check needed:** confirm `TAMBO_UPGRADE_PAT` carries `workflow` scope
-   (required for the SDK's `.github/workflows/*`); if not, extend the bot token —
-   don't mint a personal PAT. `RELEASE_PLEASE_TOKEN` already present in the SDK
-   repo ✓.
+1. **Auth — GitHub App token, no PATs:** `stlc-generate.yml` mints a short-lived
+   token from the org **RELEASE app** (`actions/create-github-app-token` with
+   `RELEASE_APP_ID` / `RELEASE_APP_PRIVATE_KEY`), scoped to `typescript-sdk` +
+   `stlc-vendor`, for both the vendored-CLI fetch and the SDK push. **Only
+   requirement:** the RELEASE app installation must grant **Contents + Workflows:
+   write** on `typescript-sdk` (Workflows:write required for the generated
+   `.github/workflows/*`) and **Contents: read** on `stlc-vendor`. No new secrets
+   to create — the app secrets already exist org-wide. `RELEASE_PLEASE_TOKEN`
+   present in the SDK repo ✓.
 2. **Merge config-repo PR #2915** (CI green) once the two secrets are in, so the
    deploy-gated `stlc-generate.yml` can regenerate + push to the SDK repo.
 3. **U8 first release:** SDK release PR **#282 (0.96.3)** is open and validated
@@ -122,10 +122,11 @@ via #280.
 
 The SDK side (U7 + release automation) is **already live on main via #280**. All
 code/config/doc work for the config-repo side is committed in **#2915 (CI
-green)**, and it reuses the existing tambo-bot `TAMBO_UPGRADE_PAT` (no new
-secrets to mint). What remains is purely operational: verify the bot token has
-`workflow` scope → merge #2915; merge #282 to publish 0.96.3; remove
-`STAINLESS_API_KEY` + uninstall the Stainless App.
+green)**, and it authenticates via the org RELEASE GitHub App (no new secrets to
+mint). What remains is purely operational: confirm the RELEASE app is installed
+on `typescript-sdk` + `stlc-vendor` with the right permissions → merge #2915;
+merge #282 to publish 0.96.3; remove `STAINLESS_API_KEY` + uninstall the
+Stainless App.
 
 ---
 
