@@ -32,7 +32,11 @@ jobs:
 
       - name: Compare against committed snapshot
         run: |
-          if ! diff -u stainless/openapi.json "$RUNNER_TEMP/openapi.fresh.json"; then
+          # Compare normalized JSON (sorted keys) so formatting differences —
+          # e.g. the repo's prettier-on-commit hook reformatting the committed
+          # file vs generate-config's JSON.stringify output — don't cause false
+          # failures. Only semantic spec drift should fail this check.
+          if ! diff -u <(jq -S . stainless/openapi.json) <(jq -S . "$RUNNER_TEMP/openapi.fresh.json"); then
             echo "::error::stainless/openapi.json is out of sync with apps/api. Run 'OPENAPI_SPEC_FILE=stainless/openapi.json npm run generate-config' in apps/api and commit the result."
             exit 1
           fi
