@@ -1,0 +1,39 @@
+name: Check committed OpenAPI spec is in sync
+
+# The committed stainless/openapi.json is the workspace source of truth for local
+# `stlc build` and `stlc init`. This check fails a PR when the spec generated from
+# apps/api drifts from the committed snapshot, so the snapshot stays honest.
+# (Production generation regenerates the spec fresh on deploy — see
+# stlc-generate.yml — so this is about keeping the committed copy accurate for
+# local/dev use, not about gating releases.)
+
+on:
+  pull_request:
+    paths:
+      - "apps/api/**"
+      - "stainless/openapi.json"
+
+permissions:
+  contents: read
+
+jobs:
+  spec-sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup tools
+        uses: ./.github/actions/setup-tools
+
+      - name: Regenerate spec to a temp file
+        run: OPENAPI_SPEC_FILE="$RUNNER_TEMP/openapi.fresh.json" npm run generate-config
+        working-directory: apps/api
+
+      - name: Compare against committed snapshot
+        run: |
+          if ! diff -u stainless/openapi.json "$RUNNER_TEMP/openapi.fresh.json"; then
+            echo "::error::stainless/openapi.json is out of sync with apps/api. Run 'OPENAPI_SPEC_FILE=stainless/openapi.json npm run generate-config' in apps/api and commit the result."
+            exit 1
+          fi
+          echo "Committed OpenAPI spec is in sync."

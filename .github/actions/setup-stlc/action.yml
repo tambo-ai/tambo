@@ -1,0 +1,48 @@
+# yaml-language-server: $schema=http://json.schemastore.org/github-action.json
+
+name: "Setup stlc"
+description: >-
+  Install the vendored stlc CLI (TypeScript target) for SDK generation. Installs
+  from the private tambo-ai/stlc-vendor release assets rather than
+  github.com/stainless, so CI keeps working after the Stainless repos are sunset
+  on 2026-09-01. Node 24 is selected here (job-scoped) because stlc requires it;
+  the rest of the repo stays on its pinned Node version.
+
+inputs:
+  vendor-read-token:
+    description: "Token with read access to tambo-ai/stlc-vendor (used by `gh release download`)."
+    required: true
+  vendor-tag:
+    description: "Release tag in tambo-ai/stlc-vendor to install."
+    required: false
+    default: "stlc-0.1.2"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Setup Node 24 (stlc requirement)
+      uses: actions/setup-node@v6
+      with:
+        node-version: "24"
+
+    - name: Download vendored stlc packages
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.vendor-read-token }}
+      run: |
+        mkdir -p "$RUNNER_TEMP/stlc"
+        gh release download "${{ inputs.vendor-tag }}" \
+          --repo tambo-ai/stlc-vendor \
+          --pattern '*.tgz' \
+          --dir "$RUNNER_TEMP/stlc"
+
+    - name: Install stlc from vendored tarballs
+      shell: bash
+      run: |
+        npm install -g \
+          "$RUNNER_TEMP"/stlc/stlc-*.tgz \
+          "$RUNNER_TEMP"/stlc/stlc-typescript-*.tgz
+
+    - name: Check stlc CLI is callable
+      shell: bash
+      run: stlc --help >/dev/null && echo "stlc is callable"

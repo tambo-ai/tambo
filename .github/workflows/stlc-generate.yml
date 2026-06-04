@@ -1,0 +1,78 @@
+name: Generate TypeScript SDK with stlc
+
+# Regenerates @tambo-ai/typescript-sdk from the API's OpenAPI spec and pushes the
+# generated code to the SDK repo. Replaces the hosted-Stainless upload
+# (stainless-cloud.yml), which stops working when Stainless is sunset 2026-09-01.
+#
+# Gated on the `deploy` branch (same trigger as the old workflow) so the SDK
+# tracks the production-deployed API contract. The SDK is only PUBLISHED when the
+# release-please PR in tambo-ai/typescript-sdk is merged, so this never publishes
+# ahead of a deploy.
+#
+# Requires repo secrets:
+#   STLC_VENDOR_TOKEN  read access to tambo-ai/stlc-vendor (fetch the vendored CLI)
+#   SDK_WRITE_TOKEN    Contents + Pull requests + Workflows: write on
+#                      tambo-ai/typescript-sdk. Workflows:write is REQUIRED — the
+#                      generated SDK contains .github/workflows/*, and GitHub
+#                      rejects ref pushes that touch workflow files without it.
+
+on:
+  push:
+    branches: [deploy]
+  workflow_dispatch:
+
+concurrency:
+  # Never cancel an in-flight push to the SDK repo.
+  group: stlc-generate
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  STAINLESS_WORKSPACE: stainless
+  DEFAULT_TARGETS: typescript
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      # Regenerate the spec from the deployed API so the SDK matches the live
+      # contract. Runs on the repo's pinned Node (via setup-tools) before stlc
+      # switches the job to Node 24.
+      - name: Setup tools
+        uses: ./.github/actions/setup-tools
+
+      - name: Regenerate OpenAPI spec
+        run: OPENAPI_SPEC_FILE="$GITHUB_WORKSPACE/stainless/openapi.json" npm run generate-config
+        working-directory: apps/api
+
+      - name: Setup stlc
+        uses: ./.github/actions/setup-stlc
+        with:
+          vendor-read-token: ${{ secrets.STLC_VENDOR_TOKEN }}
+
+      - name: Configure git auth to push to the SDK repo
+        env:
+          GH_TOKEN: ${{ secrets.SDK_WRITE_TOKEN }}
+        run: |
+          git config --global user.name "stlc-bot"
+          git config --global user.email "stlc-bot@users.noreply.github.com"
+          gh auth setup-git
+
+      - name: Generate SDK and push
+        env:
+          GH_TOKEN: ${{ secrets.SDK_WRITE_TOKEN }}
+        working-directory: ${{ env.STAINLESS_WORKSPACE }}
+        run: |
+          stlc build \
+            --branch main \
+            --output "$RUNNER_TEMP/sdk-output" \
+            --push \
+            --targets "$DEFAULT_TARGETS" \
+            --commit "feat: regenerate SDK from deployed API"
