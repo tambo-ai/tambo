@@ -73,6 +73,22 @@ is correct, but execution revealed two corrections:
    the generated config then. `publish.release: { prerelease: false }` had no
    effect in stlc 0.1.2.
 
+**Review-ready (pushed):**
+
+- Config repo → **draft PR tambo-ai/tambo#2915** (branch `lachlan/stlc-migration`):
+  workspace, `setup-stlc`, `stlc-generate.yml`, `stlc-spec-check.yml`, plan.
+- SDK repo → **draft PR tambo-ai/typescript-sdk#283** (branch
+  `lachlan/stlc-release-please`): release-please workflow + config, with the U7
+  custom-code-mechanism caveat documented in the PR body.
+- Pushed via **SSH**, which bypasses the OAuth-app `workflow`-scope restriction
+  (the rejection only applies to OAuth tokens, not SSH keys). The local `gh`
+  token still lacks `workflow` scope, so HTTPS pushes of workflow files fail —
+  SSH is the working path locally; CI uses `SDK_WRITE_TOKEN` (Workflows:write).
+- Fixed a workspace bug: the committed custom-code tracking file had been
+  captured from a build (`branch: worktree-...`, local-only SHAs); restored the
+  bundle's exported tracking file (`branch: main`, integrated `8f2cc36` = 0.96.2,
+  on origin).
+
 **Key mechanics learned:**
 
 - Pushing generated SDK / custom-code refs to `tambo-ai/typescript-sdk` requires
