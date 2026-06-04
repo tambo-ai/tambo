@@ -21,8 +21,8 @@ targets:
     options:
       node_migration:
         # These values will be used in the generated migration guide
-        previous_version: '1' # Last version number before migration
-        migrated_version: '2' # New version number for the `typescript` SDK
+        previous_version: "1" # Last version number before migration
+        migrated_version: "2" # New version number for the `typescript` SDK
     staging_repo: tambo-ai/typescript-sdk
 
 # `client_settings` define settings for the API client, such as extra constructor
@@ -149,8 +149,8 @@ resources:
               update_component_state: put /threads/{id}/messages/{messageId}/component-state
           suggestions:
             models:
-              suggestion: 'Suggestion'
-              suggestions_generate: 'SuggestionsGenerate'
+              suggestion: "Suggestion"
+              suggestions_generate: "SuggestionsGenerate"
             methods:
               generate: post /threads/{id}/messages/{messageId}/suggestions
               list:
