@@ -9,9 +9,10 @@ name: Generate TypeScript SDK with stlc
 # release-please PR in tambo-ai/typescript-sdk is merged, so this never publishes
 # ahead of a deploy.
 #
-# Auth: mints a short-lived GitHub App installation token (the org's RELEASE app,
-# RELEASE_APP_ID / RELEASE_APP_PRIVATE_KEY) scoped to the SDK + vendor repos. The
-# app installation must grant Contents + Workflows: write on typescript-sdk
+# Auth: mints a short-lived GitHub App installation token (the org's
+# tambo-automations app, TAMBO_AUTOMATIONS_APP_CLIENT_ID /
+# TAMBO_AUTOMATIONS_APP_PRIVATE_KEY) scoped to the SDK + vendor repos. The app is
+# installed org-wide; it needs Contents + Workflows: write on typescript-sdk
 # (Workflows:write is required — the generated SDK contains .github/workflows/*)
 # and Contents: read on stlc-vendor.
 
@@ -45,8 +46,8 @@ jobs:
         id: app-token
         uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
         with:
-          client-id: ${{ secrets.RELEASE_APP_ID }}
-          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          client-id: ${{ secrets.TAMBO_AUTOMATIONS_APP_CLIENT_ID }}
+          private-key: ${{ secrets.TAMBO_AUTOMATIONS_APP_PRIVATE_KEY }}
           owner: ${{ github.repository_owner }}
           repositories: |
             typescript-sdk
@@ -70,9 +71,12 @@ jobs:
       - name: Configure git auth to push to the SDK repo
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          APP_SLUG: ${{ steps.app-token.outputs.app-slug }}
         run: |
-          git config --global user.name "tambo-bot[bot]"
-          git config --global user.email "bots@tambo.co"
+          # Commit as the app's bot identity so pushes are attributed correctly.
+          bot_id=$(gh api "/users/${APP_SLUG}[bot]" --jq .id)
+          git config --global user.name "${APP_SLUG}[bot]"
+          git config --global user.email "${bot_id}+${APP_SLUG}[bot]@users.noreply.github.com"
           gh auth setup-git
 
       - name: Generate SDK and push
