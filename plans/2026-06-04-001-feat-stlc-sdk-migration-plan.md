@@ -111,14 +111,17 @@ via #280.
 3. **U8 first release:** SDK release PR **#282 (0.96.3)** is open and validated
    (plain semver). Merging it tags a release and `publish-npm.yml` (OIDC)
    publishes to npm — an intentional, human-approved publish.
-4. **U9 cutover:** delete `stainless-cloud.yml` + remove `STAINLESS_API_KEY` in
-   the monorepo (part of / after #2915), uninstall the Stainless GitHub App,
-   update `RELEASING.md` + `AGENTS.md`, mark migration complete (read-only) in
-   the Stainless dashboard.
+4. **U9 cutover:** the config-repo cutover is **staged in #2915** — it deletes
+   `stainless-cloud.yml` and rewrites `RELEASING.md` + `AGENTS.md` to the stlc
+   flow. The only out-of-band cutover steps left are operational: remove the
+   `STAINLESS_API_KEY` secret, uninstall the Stainless GitHub App, and mark the
+   org read-only in the Stainless dashboard.
 
-The SDK side (U7 + release automation) is **already live on main via #280**.
-What's left is the config-repo generate pipeline (#2915, needs 2 secrets), the
-first npm publish (merge #282), and the cutover teardown.
+The SDK side (U7 + release automation) is **already live on main via #280**. All
+code/config/doc work for the config-repo side is committed in **#2915 (CI
+green)**. What remains is purely operational and human-gated: add 2 secrets →
+merge #2915; merge #282 to publish 0.96.3; remove `STAINLESS_API_KEY` + uninstall
+the Stainless App.
 
 ---
 
