@@ -67,6 +67,7 @@ jobs:
           repositories: typescript-sdk
           permission-contents: write
           permission-workflows: write
+          permission-pull-requests: write
 
       # Regenerate the spec from the deployed API so the SDK matches the live
       # contract. Runs on the repo's pinned Node (via setup-tools) before stlc
