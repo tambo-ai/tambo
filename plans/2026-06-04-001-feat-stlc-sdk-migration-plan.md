@@ -202,19 +202,33 @@ Stainless-managed staging repo collapses into the production repo.
 
 ## Key Technical Decisions
 
-### KTD1. Separate SDK repo, work-in-public (`staging_repo == production_repo`)
+### KTD1. Separate SDK repo; regenerate to a side branch + PR into protected `main`
 
 The SDK stays its own repo (`tambo-ai/typescript-sdk`), not folded into the
-monorepo. We set both `staging_repo` and `production_repo` to
-`tambo-ai/typescript-sdk` — stlc's documented "work in public" path.
+monorepo. The SDK repo's `main` is **PR-only** (branch ruleset: `pull_request`,
+`required_status_checks`, `required_linear_history`), so stlc **cannot push to
+`main` directly**. The generate workflow therefore pushes the regenerated SDK to
+an **unprotected side branch** (`stlc/auto-regenerate`) and **opens a PR into
+`main`**; release-please releases on merge. `staging_repo` / `production_repo`
+both point at `tambo-ai/typescript-sdk` (the side branch is the "staging"
+surface within that one repo).
 
-**Why:** the SDK repo is already 100% generated commits, so there is no churn or
-review value in a private staging buffer; collapsing removes one repo, one PAT,
-and the entire promote workflow. Folding the SDK into the monorepo was
-considered and rejected — stlc's `build` operates on a cloned SDK repo as its
-output unit (custom code lives in `refs/stainless/*` on that repo), so a
-monorepo subtree fights the tool, and the lockstep-release upside is not worth
-the generated-code churn in monorepo PR diffs.
+**Why not work-in-public direct-to-main (original choice, reversed):** that
+assumed the bot could push straight to `main`. It can't — the ruleset rejects
+direct pushes and won't be relaxed. A separate staging _repo_ would also work
+but is unnecessary: an unprotected side branch in the same repo serves as
+stlc's writable surface, and the PR into `main` honors the ruleset.
+
+**Custom-code lineage:** the tracking file at
+`stainless/custom-code/typescript/` pins `base` = the stlc-generated baseline
+(`90c6c35`, #280's seal base) and `integrated` = the SDK `main` HEAD (reachable
+from `origin/main`). This was required because the parallel **#280** migration
+PR was **squash-merged**, orphaning its stlc seals from `main` — so neither the
+old Stainless seal (conflicts) nor #280's seal (no shared history) applied.
+Pinning `integrated` to a real `main` commit makes the custom-code patch
+3-way-apply cleanly. Validated: a `workflow_dispatch` run goes green end-to-end
+(generate → apply custom code → push side branch → open PR #284, diff = one
+tooling file).
 (Decision history: see `plans/stainless-migration.md`.)
 
 ### KTD2. Generation stays gated on the `deploy` branch
