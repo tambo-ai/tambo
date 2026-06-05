@@ -95,6 +95,22 @@ jobs:
           git config --global user.email "${bot_id}+${APP_SLUG}[bot]@users.noreply.github.com"
           gh auth setup-git
 
+      - name: Reset regen branch to main (keeps stlc's push a fast-forward)
+        env:
+          GH_TOKEN: ${{ steps.sdk-token.outputs.token }}
+        run: |
+          # stlc has no --force; each regen commits on top of main, so the
+          # persistent regen branch must be reset to main first. Force-updating
+          # the branch keeps the open PR in place and refreshes its diff.
+          main_sha=$(gh api repos/tambo-ai/typescript-sdk/commits/main --jq .sha)
+          if gh api "repos/tambo-ai/typescript-sdk/git/refs/heads/$SDK_BRANCH" >/dev/null 2>&1; then
+            gh api -X PATCH "repos/tambo-ai/typescript-sdk/git/refs/heads/$SDK_BRANCH" \
+              -F sha="$main_sha" -F force=true >/dev/null
+          else
+            gh api -X POST "repos/tambo-ai/typescript-sdk/git/refs" \
+              -f ref="refs/heads/$SDK_BRANCH" -f sha="$main_sha" >/dev/null
+          fi
+
       - name: Generate SDK and push
         env:
           GH_TOKEN: ${{ steps.sdk-token.outputs.token }}
