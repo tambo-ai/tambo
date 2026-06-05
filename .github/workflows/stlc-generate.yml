@@ -36,6 +36,7 @@ permissions:
 env:
   STAINLESS_WORKSPACE: stainless
   DEFAULT_TARGETS: typescript
+  SDK_BRANCH: stlc/auto-regenerate
 
 jobs:
   generate:
@@ -106,8 +107,23 @@ jobs:
           # drift to a minor. For a notable feature, set the version explicitly via
           # a Release-As: footer or a manual edit on the SDK repo's release PR.
           stlc build \
-            --branch main \
+            --branch "$SDK_BRANCH" \
             --output "$RUNNER_TEMP/sdk-output" \
             --push \
             --targets "$DEFAULT_TARGETS" \
             --commit "fix: regenerate SDK from deployed API"
+
+      - name: Open / update PR into the protected main
+        env:
+          GH_TOKEN: ${{ steps.sdk-token.outputs.token }}
+        run: |
+          # main is PR-only (ruleset). stlc pushed generated code to $SDK_BRANCH;
+          # open or update a PR from it into main. release-please then releases.
+          existing=$(gh pr list --repo tambo-ai/typescript-sdk --head "$SDK_BRANCH" --base main --state open --json number --jq '.[0].number')
+          if [ -z "$existing" ]; then
+            gh pr create --repo tambo-ai/typescript-sdk --base main --head "$SDK_BRANCH" \
+              --title "chore: regenerate SDK from API" \
+              --body "Automated SDK regeneration from the deployed API (stlc). Merging publishes via release-please."
+          else
+            echo "PR #$existing already open; stlc force-pushed $SDK_BRANCH so it is updated."
+          fi
