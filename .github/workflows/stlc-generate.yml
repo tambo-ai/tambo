@@ -5,19 +5,20 @@ name: Generate TypeScript SDK with stlc
 # (stainless-cloud.yml), which stops working when Stainless is sunset 2026-09-01.
 #
 # Gated on the `deploy` branch (same trigger as the old workflow) so the SDK
-# tracks the production-deployed API contract. The SDK is only PUBLISHED when the
-# release-please PR in tambo-ai/typescript-sdk is merged, so this never publishes
-# ahead of a deploy.
+# tracks the production-deployed API contract.
+#
+# Flow: the SDK repo's `main` is PR-only (branch ruleset), so stlc cannot push
+# to it directly. stlc pushes the regenerated SDK to the unprotected side branch
+# `stlc/auto-regenerate`, and this workflow opens/updates a PR into `main`.
+# Merging that PR lets release-please cut the release — so nothing publishes
+# ahead of a human merge.
 #
 # Auth: mints short-lived GitHub App installation tokens from the org's
 # tambo-automations app (TAMBO_AUTOMATIONS_APP_CLIENT_ID /
-# TAMBO_AUTOMATIONS_APP_PRIVATE_KEY). The tokens request only the permissions
-# this workflow needs (least privilege), narrower than the app's full grant:
-#   - SDK push:    contents:write + workflows:write on typescript-sdk
-#                  (workflows:write is required — the generated SDK contains
-#                  .github/workflows/*; no pull-requests permission needed since
-#                  stlc pushes to main directly, and release-please opens the
-#                  release PR with its own token).
+# TAMBO_AUTOMATIONS_APP_PRIVATE_KEY), least-privilege per repo:
+#   - SDK token:   contents:write + workflows:write (the generated SDK contains
+#                  .github/workflows/*) + pull-requests:write (open the PR) on
+#                  typescript-sdk.
 #   - vendor read: contents:read on stlc-vendor.
 
 on:
