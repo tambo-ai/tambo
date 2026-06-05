@@ -108,6 +108,5 @@ jobs:
           stlc build \
             --branch main \
             --output "$RUNNER_TEMP/sdk-output" \
-            --push \
             --targets "$DEFAULT_TARGETS" \
             --commit "fix: regenerate SDK from deployed API"
