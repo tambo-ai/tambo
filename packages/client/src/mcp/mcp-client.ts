@@ -14,7 +14,7 @@ import {
   ElicitResult,
 } from "@modelcontextprotocol/sdk/types.js";
 import { JSONSchema7 } from "json-schema";
-import { MCPTransport } from "../model/mcp-server-info";
+import { MCPTransport, type McpServerInfo } from "../model/mcp-server-info";
 
 // Re-export for backwards compatibility
 export { MCPTransport };
@@ -82,6 +82,20 @@ export interface MCPHandlers {
 }
 
 /**
+ * Connection status for an MCP client.
+ */
+export type MCPClientStatus = "connecting" | "connected" | "failed";
+
+/**
+ * Public connection info for an MCP client.
+ */
+export interface MCPConnectionInfo {
+  status: MCPClientStatus;
+  error?: string;
+  serverInfo: McpServerInfo;
+}
+
+/**
  * A client for interacting with MCP (Model Context Protocol) servers.
  * Provides a simple interface for listing and calling tools exposed by the server.
  * @example
@@ -105,6 +119,16 @@ export class MCPClient {
   private headers: Record<string, string>;
   private authProvider?: OAuthClientProvider;
   private handlers: Partial<MCPHandlers>;
+
+  /** Current connection status. */
+  status: MCPClientStatus = "connecting";
+  /** Error message if connection failed. */
+  error?: string;
+
+  /** The endpoint URL this client is (or was) connecting to. */
+  getEndpoint(): string {
+    return this.endpoint;
+  }
 
   /**
    * Private constructor to enforce using the static create method.
@@ -158,9 +182,15 @@ export class MCPClient {
       sessionId,
       handlers,
     );
-    await mcpClient.client.connect(mcpClient.transport);
-    if ("sessionId" in mcpClient.transport) {
-      mcpClient.sessionId = mcpClient.transport.sessionId;
+    try {
+      await mcpClient.client.connect(mcpClient.transport);
+      mcpClient.status = "connected";
+      if ("sessionId" in mcpClient.transport) {
+        mcpClient.sessionId = mcpClient.transport.sessionId;
+      }
+    } catch (err) {
+      mcpClient.status = "failed";
+      mcpClient.error = err instanceof Error ? err.message : String(err);
     }
     return mcpClient;
   }

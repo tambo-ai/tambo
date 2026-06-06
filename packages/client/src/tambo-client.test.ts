@@ -752,6 +752,17 @@ describe("TamboClient", () => {
       expect(mcpClients).toEqual({});
     });
 
+    it("getMcpClients returns connection info with status", () => {
+      const onMcpConnectionChange = jest.fn();
+      const client = new TamboClient({
+        apiKey: "test-key",
+        onMcpConnectionChange,
+      });
+      const mcpClients = client.getMcpClients();
+      expect(mcpClients).toEqual({});
+      expect(onMcpConnectionChange).not.toHaveBeenCalled();
+    });
+
     it("getMcpToken calls SDK", async () => {
       mocks.getMcpToken.mockResolvedValue({
         mcpAccessToken: "mcp-token-123",

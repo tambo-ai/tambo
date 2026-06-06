@@ -19,7 +19,11 @@ import type {
 } from "./model/component-metadata";
 import type { McpServerInfo } from "./model/mcp-server-info";
 import { getMcpServerUniqueKey } from "./model/mcp-server-info";
-import { MCPClient } from "./mcp/mcp-client";
+import {
+  MCPClient,
+  type MCPClientStatus,
+  type MCPConnectionInfo,
+} from "./mcp/mcp-client";
 import {
   streamReducer,
   createInitialState,
@@ -70,6 +74,17 @@ export interface TamboClientOptions {
   mcpServers?: McpServerInfo[];
   /** Callback invoked before each run. */
   beforeRun?: (context: BeforeRunContext) => void | Promise<void>;
+  /**
+   * Callback invoked when an MCP server connection status changes.
+   * @param serverKey - The unique key for the server.
+   * @param status - The new connection status.
+   * @param error - Error message if status is "failed".
+   */
+  onMcpConnectionChange?: (
+    serverKey: string,
+    status: MCPClientStatus,
+    error?: string,
+  ) => void;
 }
 
 /**
@@ -135,6 +150,7 @@ export class TamboClient {
   private toolRegistry: TamboToolRegistry = {};
   private componentList: ComponentRegistry = {};
   private mcpClients = new Map<string, MCPClient>();
+  private mcpServerInfos = new Map<string, McpServerInfo>();
   private activeRuns: ActiveRuns = {};
   private contextHelpers = new Map<string, ContextHelperFn>();
   private readonly options: TamboClientOptions;
@@ -175,12 +191,10 @@ export class TamboClient {
       }
     }
 
-    // Connect MCP servers (fire-and-forget)
+    // Connect MCP servers (fire-and-forget, status tracked internally)
     if (options.mcpServers) {
       for (const server of options.mcpServers) {
-        void this.connectMcpServer(server).catch((err) => {
-          console.error(`[TamboClient] Failed to connect MCP server:`, err);
-        });
+        void this.connectMcpServer(server);
       }
     }
   }
@@ -512,14 +526,24 @@ export class TamboClient {
 
   /**
    * Connect to an MCP server.
+   *
+   * If the server was previously connected, returns the existing client.
+   * If the server previously failed, removes the failed entry and retries.
+   * Connection status is tracked on the returned `MCPClient.status` field.
    * @param serverInfo - The MCP server configuration.
-   * @returns The connected MCPClient.
+   * @returns The MCPClient (status may be "connected" or "failed").
    */
   async connectMcpServer(serverInfo: McpServerInfo): Promise<MCPClient> {
     const key = getMcpServerUniqueKey(serverInfo);
     const existing = this.mcpClients.get(key);
-    if (existing) {
+    if (existing?.status === "connected") {
       return existing;
+    }
+
+    // If previous attempt failed, remove it so we retry fresh
+    if (existing?.status === "failed") {
+      this.mcpClients.delete(key);
+      this.mcpServerInfos.delete(key);
     }
 
     const mcpClient = await MCPClient.create(
@@ -530,6 +554,14 @@ export class TamboClient {
       undefined, // sessionId
     );
     this.mcpClients.set(key, mcpClient);
+    this.mcpServerInfos.set(key, serverInfo);
+
+    this.options.onMcpConnectionChange?.(
+      key,
+      mcpClient.status,
+      mcpClient.error,
+    );
+
     return mcpClient;
   }
 
@@ -542,15 +574,26 @@ export class TamboClient {
     if (client) {
       await client.close();
       this.mcpClients.delete(serverKey);
+      this.mcpServerInfos.delete(serverKey);
     }
   }
 
   /**
-   * Get all connected MCP clients.
-   * @returns Record of server key to MCPClient.
+   * Get all MCP clients with their connection status.
+   * @returns Record of server key to MCPConnectionInfo.
    */
-  getMcpClients(): Record<string, MCPClient> {
-    return Object.fromEntries(this.mcpClients.entries());
+  getMcpClients(): Record<string, MCPConnectionInfo> {
+    const result: Record<string, MCPConnectionInfo> = {};
+    for (const [key, client] of this.mcpClients) {
+      result[key] = {
+        status: client.status,
+        error: client.error,
+        serverInfo: this.mcpServerInfos.get(key) ?? {
+          url: client.getEndpoint(),
+        },
+      };
+    }
+    return result;
   }
 
   /**

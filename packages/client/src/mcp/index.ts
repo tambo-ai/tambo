@@ -1,5 +1,7 @@
 export {
   MCPClient,
+  type MCPClientStatus,
+  type MCPConnectionInfo,
   type MCPToolCallResult,
   type MCPToolSpec,
   type MCPElicitationHandler,

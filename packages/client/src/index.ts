@@ -127,6 +127,8 @@ export {
   hasRequestedSchema,
 } from "./mcp/index";
 export type {
+  MCPClientStatus,
+  MCPConnectionInfo,
   MCPToolCallResult,
   MCPToolSpec,
   MCPElicitationHandler,
