@@ -75,9 +75,11 @@ export interface TamboClientOptions {
   /** Callback invoked before each run. */
   beforeRun?: (context: BeforeRunContext) => void | Promise<void>;
   /**
-   * Callback invoked when an MCP server connection status changes.
+   * Callback invoked after an MCP server connect or disconnect attempt.
+   * Fires once per `connectMcpServer()` or `disconnectMcpServer()` call
+   * with the terminal status ("connected" or "failed").
    * @param serverKey - The unique key for the server.
-   * @param status - The new connection status.
+   * @param status - The resulting connection status.
    * @param error - Error message if status is "failed".
    */
   onMcpConnectionChange?: (
@@ -194,7 +196,12 @@ export class TamboClient {
     // Connect MCP servers (fire-and-forget, status tracked internally)
     if (options.mcpServers) {
       for (const server of options.mcpServers) {
-        void this.connectMcpServer(server);
+        void this.connectMcpServer(server).catch((err) => {
+          console.error(
+            `[TamboClient] Unexpected error connecting MCP server:`,
+            err,
+          );
+        });
       }
     }
   }
@@ -579,18 +586,24 @@ export class TamboClient {
   }
 
   /**
-   * Get all MCP clients with their connection status.
+   * Get all connected MCP clients.
+   * @returns Record of server key to MCPClient.
+   */
+  getMcpClients(): Record<string, MCPClient> {
+    return Object.fromEntries(this.mcpClients.entries());
+  }
+
+  /**
+   * Get all MCP clients with connection status info.
    * @returns Record of server key to MCPConnectionInfo.
    */
-  getMcpClients(): Record<string, MCPConnectionInfo> {
+  getMcpConnectionStatuses(): Record<string, MCPConnectionInfo> {
     const result: Record<string, MCPConnectionInfo> = {};
     for (const [key, client] of this.mcpClients) {
       result[key] = {
         status: client.status,
         error: client.error,
-        serverInfo: this.mcpServerInfos.get(key) ?? {
-          url: client.getEndpoint(),
-        },
+        serverInfo: this.mcpServerInfos.get(key)!,
       };
     }
     return result;

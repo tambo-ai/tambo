@@ -125,11 +125,6 @@ export class MCPClient {
   /** Error message if connection failed. */
   error?: string;
 
-  /** The endpoint URL this client is (or was) connecting to. */
-  getEndpoint(): string {
-    return this.endpoint;
-  }
-
   /**
    * Private constructor to enforce using the static create method.
    * @param endpoint - The URL of the MCP server to connect to
@@ -154,17 +149,19 @@ export class MCPClient {
   }
 
   /**
-   * Creates and initializes a new MCPClient instance. This is the recommended
-   * way to create an MCPClient as it handles both instantiation and connection
-   * setup.
+   * Creates and initializes a new MCPClient instance.
+   *
+   * Connection status is tracked on the returned client — check `.status`
+   * to determine if the connection succeeded. If construction or connection
+   * fails, the client is returned with `.status = "failed"` and `.error` set.
+   * This method never throws.
    * @param endpoint - The URL of the MCP server to connect to
    * @param transportType - The transport type to use for the MCP client. Defaults to HTTP.
    * @param headers - Optional custom headers to include in requests
    * @param authProvider - Optional auth provider to use for authentication
    * @param sessionId - Optional session id to use for the MCP client - if not
    *   provided, a new session will be created
-   * @returns A connected MCPClient instance ready for use
-   * @throws {Error} Will throw an error if connection fails
+   * @returns An MCPClient instance (check `.status` for connection state).
    */
   static async create(
     endpoint: string,
@@ -174,25 +171,37 @@ export class MCPClient {
     sessionId: string | undefined,
     handlers: Partial<MCPHandlers> = {},
   ): Promise<MCPClient> {
-    const mcpClient = new MCPClient(
-      endpoint,
-      transportType,
-      headers,
-      authProvider,
-      sessionId,
-      handlers,
-    );
     try {
+      const mcpClient = new MCPClient(
+        endpoint,
+        transportType,
+        headers,
+        authProvider,
+        sessionId,
+        handlers,
+      );
       await mcpClient.client.connect(mcpClient.transport);
       mcpClient.status = "connected";
       if ("sessionId" in mcpClient.transport) {
         mcpClient.sessionId = mcpClient.transport.sessionId;
       }
+      return mcpClient;
     } catch (err) {
-      mcpClient.status = "failed";
-      mcpClient.error = err instanceof Error ? err.message : String(err);
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      // If construction or connection fails (bad URL, network error, etc.),
+      // create a disconnected client with a safe URL to hold the failure state.
+      const failedClient = new MCPClient(
+        "http://localhost",
+        transportType,
+        headers,
+        authProvider,
+        sessionId,
+        handlers,
+      );
+      failedClient.status = "failed";
+      failedClient.error = errorMessage;
+      return failedClient;
     }
-    return mcpClient;
   }
 
   private initializeTransport(sessionId: string | undefined) {

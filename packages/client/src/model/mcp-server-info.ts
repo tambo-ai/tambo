@@ -1,4 +1,36 @@
-import { MCPHandlers } from "../mcp";
+import type {
+  ClientNotification,
+  ClientRequest,
+  CreateMessageRequest,
+  CreateMessageResult,
+  ElicitRequest,
+  ElicitResult,
+} from "@modelcontextprotocol/sdk/types.js";
+import type { RequestHandlerExtra } from "@modelcontextprotocol/sdk/shared/protocol.js";
+
+/**
+ * Handler for MCP elicitation requests.
+ */
+type McpServerInfoElicitationHandler = (
+  e: ElicitRequest,
+  extra: RequestHandlerExtra<ClientRequest, ClientNotification>,
+) => Promise<ElicitResult>;
+
+/**
+ * Handler for MCP sampling requests.
+ */
+type McpServerInfoSamplingHandler = (
+  e: CreateMessageRequest,
+  extra: RequestHandlerExtra<ClientRequest, ClientNotification>,
+) => Promise<CreateMessageResult>;
+
+/**
+ * Handlers for MCP server requests.
+ */
+export interface McpServerInfoHandlers {
+  elicitation: McpServerInfoElicitationHandler;
+  sampling: McpServerInfoSamplingHandler;
+}
 
 /**
  * The transport protocol to use for MCP connections.
@@ -48,7 +80,7 @@ export interface McpServerInfo {
    * defined outside the component) to avoid constant re-registration of the
    * MCP server on every render.
    */
-  handlers?: Partial<MCPHandlers>;
+  handlers?: Partial<McpServerInfoHandlers>;
 }
 
 /**
