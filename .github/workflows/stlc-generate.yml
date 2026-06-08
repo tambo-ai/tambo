@@ -137,11 +137,18 @@ jobs:
         run: |
           # main is PR-only (ruleset). stlc pushed generated code to $SDK_BRANCH;
           # open or update a PR from it into main. release-please then releases.
+          # Skip PR creation when the branch is at main (no-op regen: stlc made no
+          # commit, so creating a PR would error "No commits between...").
+          ahead=$(gh api "repos/tambo-ai/typescript-sdk/compare/main...$SDK_BRANCH" --jq .ahead_by)
+          if [ "$ahead" -eq 0 ]; then
+            echo "No changes vs main — no-op regen, skipping PR."
+            exit 0
+          fi
           existing=$(gh pr list --repo tambo-ai/typescript-sdk --head "$SDK_BRANCH" --base main --state open --json number --jq '.[0].number')
           if [ -z "$existing" ]; then
             gh pr create --repo tambo-ai/typescript-sdk --base main --head "$SDK_BRANCH" \
               --title "chore: regenerate SDK from API" \
               --body "Automated SDK regeneration from the deployed API (stlc). Merging publishes via release-please."
           else
-            echo "PR #$existing already open; stlc force-pushed $SDK_BRANCH so it is updated."
+            echo "PR #$existing already open; stlc pushed new commits to $SDK_BRANCH so it is updated."
           fi
