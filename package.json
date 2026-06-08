@@ -36,7 +36,7 @@
     "chokidar": "^5.0.0",
     "class-validator": "^0.14.4",
     "husky": "^9.1.7",
-    "lint-staged": "^17.0.5",
+    "lint-staged": "^17.0.7",
     "prettier": "^3.8.3",
     "tsx": "^4.21.0",
     "turbo": "^2.9.14",
