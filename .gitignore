@@ -67,3 +67,7 @@ react-sdk/dist/**
 # Agents
 .claude/settings.local.json
 .claude/**/*.local.md
+.gstack/
+
+# Stainless transition doc cache (scraped from app.stainless.com; not source)
+devdocs/stainless-transition/
