@@ -16,7 +16,7 @@
   "dependencies": {
     "@sentry/nextjs": "^10.56.0",
     "mcp-handler": "^1.1.0",
-    "next": "^15.5.18",
+    "next": "^15.5.19",
     "openai": "^6.16.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
