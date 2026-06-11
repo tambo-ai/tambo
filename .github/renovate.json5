@@ -1,10 +1,23 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["config:recommended"],
+  "extends": [
+    "config:best-practices",
+    "schedule:daily",
+    "schedule:automergeDaily",
+    ":automergeAll",
+    ":automergePr",
+    ":disableDependencyDashboard"
+  ],
   "labels": ["dependencies"],
   "gitAuthor": "renovate[bot] <29139614+renovate[bot]@users.noreply.github.com>",
-  "enabledManagers": ["nvm", "nodenv", "mise", "npm", "custom.jsonata"],
-  "dependencyDashboard": false,
+  "enabledManagers": [
+    "nvm",
+    "nodenv",
+    "mise",
+    "npm",
+    "github-actions",
+    "custom.jsonata"
+  ],
   // Custom manager to match Node.js version from devEngines.runtime in package.json
   "customManagers": [
     {
@@ -19,6 +32,7 @@
     }
   ],
   "packageRules": [
+    // --- Node.js version management ---
     {
       "description": "Group all Node.js version updates into a single PR",
       "matchDatasources": ["node-version"],
@@ -30,41 +44,195 @@
       "commitMessageTopic": "Node.js"
     },
     {
-      "description": "Auto-merge Node.js patch updates",
-      "matchDatasources": ["node-version"],
-      "matchUpdateTypes": ["patch"],
-      "automerge": true,
-      "automergeType": "pr",
-      "platformAutomerge": true
-    },
-    {
+      // automerge is enabled globally via :automergeAll; keep Node minor/major gated on review.
       "description": "Require review for Node.js minor/major updates",
       "matchDatasources": ["node-version"],
       "matchUpdateTypes": ["minor", "major"],
       "automerge": false
     },
     {
-      "description": "Disable all npm dependency updates (only enable volta node/npm)",
-      "matchManagers": ["npm"],
-      "matchDepTypes": [
-        "dependencies",
-        "devDependencies",
-        "peerDependencies",
-        "optionalDependencies",
-        "engines"
-      ],
-      "enabled": false
-    },
-    {
-      "description": "Enable volta node/npm updates",
+      "description": "Group volta node/npm updates with the Node.js version update",
       "matchManagers": ["npm"],
       "matchDepTypes": ["volta"],
-      "enabled": true,
       "groupName": "node version",
       "groupSlug": "node"
+    },
+
+    // --- npm release cooldown (migrated from Dependabot `cooldown`) ---
+    // config:best-practices already enforces a 3-day npm wait via
+    // security:minimumReleaseAgeNpm; these rules tune it per update type.
+    {
+      "description": "Cooldown: npm major updates bake for 7 days",
+      "matchDatasources": ["npm"],
+      "matchUpdateTypes": ["major"],
+      "minimumReleaseAge": "7 days"
+    },
+    {
+      "description": "Cooldown: npm minor updates bake for 4 days",
+      "matchDatasources": ["npm"],
+      "matchUpdateTypes": ["minor"],
+      "minimumReleaseAge": "4 days"
+    },
+    {
+      "description": "Cooldown: npm patch updates bake for 2 days",
+      "matchDatasources": ["npm"],
+      "matchUpdateTypes": ["patch"],
+      "minimumReleaseAge": "2 days"
+    },
+    {
+      "description": "Always update Tambo and AI SDK packages immediately (no cooldown)",
+      "matchDatasources": ["npm"],
+      "matchPackageNames": ["@tambo-ai/*", "ai", "@ai-sdk/*"],
+      "minimumReleaseAge": "0 days"
+    },
+
+    // --- Version constraints (migrated from Dependabot `ignore`) ---
+    {
+      "description": "Stay on React 18 until we migrate (block v19+)",
+      "matchPackageNames": [
+        "react",
+        "react-dom",
+        "@types/react",
+        "@types/react-dom"
+      ],
+      "allowedVersions": "<19"
+    },
+
+    // --- npm groups (migrated from Dependabot `groups`) ---
+    {
+      "matchManagers": ["npm"],
+      "matchPackageNames": ["@trpc/*"],
+      "groupName": "trpc"
+    },
+    {
+      "matchManagers": ["npm"],
+      "matchPackageNames": ["@nestjs/*"],
+      "groupName": "nestjs"
+    },
+    {
+      "matchManagers": ["npm"],
+      "matchPackageNames": ["@radix-ui/*", "radix-ui"],
+      "groupName": "radix-ui"
+    },
+    {
+      "matchManagers": ["npm"],
+      "matchPackageNames": ["drizzle-kit", "drizzle-orm"],
+      "groupName": "drizzle"
+    },
+    {
+      "matchManagers": ["npm"],
+      "matchPackageNames": [
+        "@eslint/*",
+        "eslint",
+        "typescript-eslint",
+        "eslint-plugin-*",
+        "eslint-config-*"
+      ],
+      "groupName": "eslint"
+    },
+    {
+      "matchManagers": ["npm"],
+      "matchPackageNames": [
+        "jest",
+        "@types/jest",
+        "jest-*",
+        "ts-jest",
+        "@testing-library/*",
+        "supertest"
+      ],
+      "groupName": "testing"
+    },
+    {
+      "matchManagers": ["npm"],
+      "matchPackageNames": ["ai", "@ai-sdk/*"],
+      "groupName": "ai-sdk"
+    },
+    {
+      "matchManagers": ["npm"],
+      "matchPackageNames": [
+        "react",
+        "react-dom",
+        "@types/react",
+        "@types/react-dom"
+      ],
+      "groupName": "react"
+    },
+    {
+      "matchManagers": ["npm"],
+      "matchPackageNames": ["next", "@next/*"],
+      "groupName": "next"
+    },
+    {
+      "matchManagers": ["npm"],
+      "matchPackageNames": ["@t3-oss/*"],
+      "groupName": "t3-oss"
+    },
+    {
+      "matchManagers": ["npm"],
+      "matchPackageNames": ["@tambo-ai/*"],
+      "groupName": "tambo-ai"
+    },
+    {
+      // These aren't related, but are all generally safe to update
+      // unconditionally, so we lump them together to get one PR.
+      "matchManagers": ["npm"],
+      "matchPackageNames": [
+        "posthog-js",
+        "@splinetool/runtime",
+        "prettier",
+        "lint-staged",
+        "globals",
+        "lucide-react",
+        "@opentelemetry/*"
+      ],
+      "groupName": "small-safe-packages"
+    },
+    {
+      "matchManagers": ["npm"],
+      "matchPackageNames": ["@sentry/*", "sentry-*"],
+      "groupName": "sentry"
+    },
+    {
+      "matchManagers": ["npm"],
+      "matchPackageNames": ["@ag-ui/*", "@mastra/*"],
+      "groupName": "ag-ui"
+    },
+    {
+      "matchManagers": ["npm"],
+      "matchPackageNames": ["fumadocs-*"],
+      "groupName": "fumadocs"
+    },
+    {
+      "matchManagers": ["npm"],
+      "matchPackageNames": ["tailwindcss", "tailwind-*", "@tailwindcss/*"],
+      "groupName": "tailwind"
+    },
+    {
+      "matchManagers": ["npm"],
+      "matchPackageNames": ["@tiptap/*"],
+      "groupName": "tiptap"
+    },
+
+    // --- GitHub Actions (migrated from Dependabot github-actions ecosystem) ---
+    {
+      "description": "Group composite action updates into a single PR",
+      "matchManagers": ["github-actions"],
+      "matchFileNames": [".github/actions/**"],
+      "groupName": "composite-actions"
+    },
+
+    // --- Labels (migrated from Dependabot per-ecosystem labels) ---
+    {
+      "description": "Label npm dependency PRs",
+      "matchManagers": ["npm"],
+      "addLabels": ["area: dependencies", "status: ready"]
+    },
+    {
+      "description": "Label GitHub Actions PRs",
+      "matchManagers": ["github-actions"],
+      "addLabels": ["area: github actions", "status: ready"]
     }
   ],
-  "schedule": ["before 9am on monday"],
   "prConcurrentLimit": 10,
   "prHourlyLimit": 2
 }

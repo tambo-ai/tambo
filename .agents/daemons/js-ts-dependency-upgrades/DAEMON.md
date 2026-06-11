@@ -1,21 +1,23 @@
 ---
 id: js-ts-dependency-upgrades
-purpose: Keep JavaScript and TypeScript dependencies current with low-noise grouped upgrade pull requests.
+purpose: Stabilize JavaScript and TypeScript dependency pull requests by applying minimal migration and compatibility fixes when bot-authored dependency updates fail CI.
 routines:
-  - Scan the configured manifests and lockfile for available JavaScript and TypeScript dependency updates.
-  - Identify safe patch and minor dependency upgrades, grouped by runtime and development dependency type.
-  - Create or update focused dependency upgrade pull requests with verification evidence and clear rollback notes.
+  - Trigger only for dependency pull requests authored by `renovate[bot]` or `dependabot[bot]`.
+  - Run only when the latest CI status on that pull request is failing.
+  - Reproduce failures locally and apply the smallest dependency-scoped fix, including required migration or codemod edits.
+  - Commit fixes to the same dependency pull request branch with verification evidence.
 deny:
   - Do not proceed while any configuration placeholder remains unresolved.
+  - Do not act on non-dependency pull requests or pull requests authored by humans/other bots.
+  - Do not run when CI is already green.
   - Do not auto-merge dependency pull requests.
-  - Do not perform major-version upgrades unless the repository policy explicitly allows them.
-  - Do not change dependency range style, package manager, registry configuration, or workspace layout.
-  - Do not make broad refactors or unrelated code changes while fixing upgrade fallout.
-  - Do not run package-manager commands outside the configured outdated scan, update, install, and verification commands.
-schedule: '0 8 * * 1'
+  - Do not perform unrelated refactors, feature work, or broad formatting-only rewrites.
+  - Do not broaden upgrade scope beyond what is required to make the dependency pull request pass CI.
+  - Do not change dependency range style, package manager, registry configuration, or workspace layout unless migration docs require it.
+schedule: "0 8 * * 1"
 ---
 
-# JavaScript/TypeScript Dependency Update Maintainer
+# JavaScript/TypeScript Dependency Upgrade Fixer
 
 ## Configuration
 
@@ -24,73 +26,76 @@ Use these repository-specific values:
 - Package manager: `npm (workspaces)`
 - Dependency manifests: `package.json, apps/*/package.json, packages/*/package.json, cli/package.json, create-tambo-app/package.json, docs/package.json, react-sdk/package.json, showcase/package.json`
 - Lockfile: `package-lock.json`
-- Outdated scan: `npm outdated --workspaces`
-- Runtime dependency update: `npm update <runtime-package> --workspaces`
-- Development dependency update: `npm update <dev-package> --save-dev --workspaces`
 - Install or lockfile refresh: `npm install --package-lock-only --workspaces`
 - Verification:
   - `npm run lint`
   - `npm run check-types`
   - `npm test`
-- Runtime dependency branch: `daemon/chore-deps-runtime-minor-patch`
-- Development dependency branch: `daemon/chore-deps-dev-minor-patch`
-- Runtime dependency title: `chore(deps): update runtime dependencies`
-- Development dependency title: `chore(deps-dev): update development dependencies`
-- Runtime dependency labels: `area: dependencies`, `status: ready`
-- Development dependency labels: `area: dependencies`, `status: ready`
 
-## Update policy
+## Trigger policy
 
-Default scope:
+Proceed only when all conditions are true:
 
-- patch and minor updates only
-- runtime dependencies and development dependencies in separate pull requests
-- no package manager migration
-- no registry or workspace layout changes
+1. the current context is an open dependency pull request
+2. the pull request author is `renovate[bot]` or `dependabot[bot]`
+3. the latest CI run for that pull request has at least one failing required check
 
-Major upgrades are out of scope unless the repository has an explicit policy for major upgrade pull requests.
+If any condition is false, perform no code changes and leave a concise no-op reason.
 
-Run the configured outdated scan before choosing updates. Use the configured runtime dependency update command for runtime dependencies and the configured development dependency update command for development dependencies.
+## Fix strategy
 
-## PR policy
+1. Inspect failing CI checks and identify the dependency upgrade that introduced breakage.
+2. Reproduce the failure locally with the closest equivalent command.
+3. Apply minimal, dependency-scoped fixes needed to restore compatibility:
+   - package API migrations
+   - required config/schema updates
+   - generated artifacts needed by migration tooling
+4. Run install/lockfile refresh if needed.
+5. Re-run verification commands relevant to the failing checks (prefer full configured verification set).
+6. Commit only dependency-fix and migration-related changes to the same pull request branch.
 
-Create or update at most two pull requests per run:
+## Migration requirements
 
-1. runtime dependency patch/minor updates
-2. development dependency patch/minor updates
+When an upgraded package requires migration work:
 
-Use the configured branch and title for each dependency bucket.
+- Use official migration paths first (codemods, `migrate` scripts, release-note steps).
+- Include migration edits in the same fix commit/pull request branch.
+- Keep migrations narrowly scoped to the upgraded packages and broken call sites.
+- If migration requires broad architectural changes, stop and hand off with:
+  - blocked package/version
+  - migration commands attempted
+  - exact manual follow-up steps
 
-Each PR body must include:
+## Safety constraints
 
-- configured package manager
-- packages updated
-- dependency type bucket
-- install command run
-- verification commands run
-- failures, skipped packages, and follow-ups
+- Keep scope strictly tied to failing dependency pull request CI.
+- No unrelated refactors or opportunistic cleanup.
+- Avoid touching files outside the dependency/migration blast radius unless required by tooling.
+- Do not introduce new dependency upgrade goals while fixing the current failure.
 
-## Verification and freshness
+## Verification and reporting
 
-Before modifying files, re-read the current default branch and existing daemon upgrade branches or pull requests to avoid duplicate work.
+After edits:
 
-After applying updates:
+1. run `npm install --package-lock-only --workspaces` when lockfile/manifests changed
+2. run failing-check equivalents and, when practical, the full set:
+   - `npm run lint`
+   - `npm run check-types`
+   - `npm test`
+3. inspect the diff to confirm only dependency and migration-related edits are included
 
-1. run the configured install or lockfile refresh command
-2. run the configured verification commands
-3. inspect the diff to confirm it only contains dependency update changes and minimal lockfile changes
-
-If verification fails and the fix is not a small dependency-related adjustment, leave the pull request as draft or stop with a concise handoff note. Do not broaden into feature or refactor work.
+Report commands run, remaining failures, and any follow-up needed.
 
 ## Limits
 
-- Max open pull requests created or updated per run: 2
-- Max packages per grouped pull request: 20
-- No changes outside dependency manifests, lockfiles, and minimal generated dependency metadata unless the pull request is explicitly marked draft with rationale
+- Max dependency pull requests handled per run: 1
+- Max fix commits per run: 1
+- No changes outside dependency-fix scope unless required by documented migration tooling
 
 ## No-op when
 
-- no patch or minor upgrades are available
-- any configuration placeholder remains unresolved
-- verification cannot be run safely
-- an existing human-owned dependency upgrade is already active for the same dependency bucket
+- pull request author is not `renovate[bot]` or `dependabot[bot]`
+- pull request is not a dependency update
+- CI is already green
+- required CI logs are unavailable
+- migration would require unrelated, broad refactor work
