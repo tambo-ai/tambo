@@ -111,7 +111,7 @@
     "jest": "^30.4.2",
     "jest-environment-jsdom": "^30.4.1",
     "lint-staged": "^17.0.7",
-    "prettier": "^3.8.3",
+    "prettier": "^3.8.4",
     "prettier-2": "npm:prettier@^2",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
