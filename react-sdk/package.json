@@ -105,7 +105,7 @@
     "fast-json-patch": "^3.1.1",
     "concurrently": "^9.2.1",
     "eslint": "^9.39.4",
-    "eslint-plugin-jsdoc": "^63.0.1",
+    "eslint-plugin-jsdoc": "^63.0.2",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^6.1.1",
     "jest": "^30.4.2",
