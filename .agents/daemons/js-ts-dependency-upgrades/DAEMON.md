@@ -21,19 +21,23 @@ schedule: '0 8 * * 1'
 
 Use these repository-specific values:
 
-- Package manager: `<package-manager>`
-- Dependency manifests: `<manifest-globs>`
-- Lockfile: `<lockfile-path>`
-- Outdated scan: `<outdated-command>`
-- Runtime dependency update: `<runtime-update-command>`
-- Development dependency update: `<development-update-command>`
-- Install or lockfile refresh: `<install-command>`
+- Package manager: `npm (workspaces)`
+- Dependency manifests: `package.json, apps/*/package.json, packages/*/package.json, cli/package.json, create-tambo-app/package.json, docs/package.json, react-sdk/package.json, showcase/package.json`
+- Lockfile: `package-lock.json`
+- Outdated scan: `npm outdated --workspaces`
+- Runtime dependency update: `npm update <runtime-package> --workspaces`
+- Development dependency update: `npm update <dev-package> --save-dev --workspaces`
+- Install or lockfile refresh: `npm install --package-lock-only --workspaces`
 - Verification:
-  - `<verification-command>`
-- Runtime dependency branch: `daemon/deps-runtime-minor-patch`
-- Development dependency branch: `daemon/deps-dev-minor-patch`
-- Runtime dependency title: `deps: update runtime dependencies`
-- Development dependency title: `deps(dev): update development dependencies`
+  - `npm run lint`
+  - `npm run check-types`
+  - `npm test`
+- Runtime dependency branch: `daemon/chore-deps-runtime-minor-patch`
+- Development dependency branch: `daemon/chore-deps-dev-minor-patch`
+- Runtime dependency title: `chore(deps): update runtime dependencies`
+- Development dependency title: `chore(deps-dev): update development dependencies`
+- Runtime dependency labels: `area: dependencies`, `status: ready`
+- Development dependency labels: `area: dependencies`, `status: ready`
 
 ## Update policy
 
