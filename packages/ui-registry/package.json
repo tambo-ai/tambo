@@ -47,7 +47,7 @@
     "@tambo-ai/react": "*",
     "@tambo-ai/react-ui-base": "*",
     "@tambo-ai/typescript-config": "*",
-    "@tambo-ai/typescript-sdk": "^0.96.1",
+    "@tambo-ai/typescript-sdk": "^0.96.4",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.3.2",
     "@tiptap/extension-document": "^3.25.0",
