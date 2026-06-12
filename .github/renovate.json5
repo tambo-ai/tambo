@@ -58,6 +58,23 @@
       "groupSlug": "node"
     },
 
+    // --- Pinning overrides ---
+    // config:best-practices pulls in :pinDevDependencies and
+    // helpers:pinGitHubActionDigests. We want its cooldown/security behavior
+    // but not pinning, so cancel both here. These must be packageRules (not
+    // extends-level rangeStrategy) because preset packageRules override
+    // top-level config; later packageRules win.
+    {
+      "description": "Keep semver ranges for devDependencies (cancel :pinDevDependencies)",
+      "matchDepTypes": ["devDependencies"],
+      "rangeStrategy": "auto"
+    },
+    {
+      "description": "Keep GitHub Actions on tags (cancel helpers:pinGitHubActionDigests)",
+      "matchManagers": ["github-actions"],
+      "pinDigests": false
+    },
+
     // --- npm release cooldown (migrated from Dependabot `cooldown`) ---
     // config:best-practices already enforces a 3-day npm wait via
     // security:minimumReleaseAgeNpm; these rules tune it per update type.
