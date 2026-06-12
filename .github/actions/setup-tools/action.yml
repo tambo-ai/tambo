@@ -29,11 +29,11 @@ runs:
   using: "composite"
   steps:
     - name: Setup Mise
-      uses: jdx/mise-action@v4.1.0
+      uses: jdx/mise-action@dba19683ed58901619b14f395a24841710cb4925 # v4.1.0
 
     - name: Setup Node Cache
       if: ${{ inputs.cache == 'true' }}
-      uses: actions/setup-node@v6
+      uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
       with:
         # only specifying cache here. Node install is handled by mise
         cache: npm
