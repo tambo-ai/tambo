@@ -197,6 +197,10 @@ export function useTamboSuggestions(
   const latestMessage = messages[messages.length - 1];
   const isLatestFromAssistant = latestMessage?.role === "assistant";
   const latestMessageId = latestMessage?.id;
+  // Ephemeral ids (e.g. reasoning placeholders) are never persisted server-side,
+  // so suggestion requests against them can only ever 404.
+  const isEphemeralMessageId =
+    latestMessageId?.startsWith("ephemeral_") ?? false;
 
   // Reset selected suggestion when the message changes
   useEffect(() => {
@@ -207,6 +211,7 @@ export function useTamboSuggestions(
   const shouldFetchSuggestions =
     currentThreadId &&
     latestMessageId &&
+    !isEphemeralMessageId &&
     isLatestFromAssistant &&
     isIdle &&
     autoGenerate;
@@ -253,7 +258,12 @@ export function useTamboSuggestions(
   // Mutation to manually generate suggestions
   const generateMutation = useTamboMutation({
     mutationFn: async () => {
-      if (!currentThreadId || !latestMessageId || !isLatestFromAssistant) {
+      if (
+        !currentThreadId ||
+        !latestMessageId ||
+        isEphemeralMessageId ||
+        !isLatestFromAssistant
+      ) {
         return undefined;
       }
 

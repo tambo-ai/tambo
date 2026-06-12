@@ -317,6 +317,37 @@ describe("useTamboSuggestions", () => {
       expect(mockCreateSuggestions).not.toHaveBeenCalled();
     });
 
+    it("does not fetch or generate suggestions for ephemeral message ids", async () => {
+      jest.mocked(useTambo).mockReturnValue({
+        messages: [
+          {
+            id: "ephemeral_cb2decbe-9423-4b09-9ac2-feb385cea075",
+            role: "assistant",
+            content: [],
+            createdAt: "2024-01-01T00:00:00Z",
+          },
+        ],
+        thread: undefined,
+        isIdle: true,
+        isStreaming: false,
+        currentThreadId: "thread_123",
+        startNewThread: jest.fn(),
+        switchThread: jest.fn(),
+        initThread: jest.fn(),
+        streamingState: { status: "idle" },
+      } as any);
+
+      renderHook(() => useTamboSuggestions(), {
+        wrapper: createWrapper(),
+      });
+
+      // Give effects a chance to fire
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      expect(mockListSuggestions).not.toHaveBeenCalled();
+      expect(mockCreateSuggestions).not.toHaveBeenCalled();
+    });
+
     it("does not generate suggestions when autoGenerate is false", () => {
       jest.mocked(useTambo).mockReturnValue({
         messages: [
