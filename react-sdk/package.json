@@ -103,7 +103,7 @@
     "@valibot/to-json-schema": "^1.5.0",
     "valibot": "^1.2.0",
     "fast-json-patch": "^3.1.1",
-    "concurrently": "^9.2.1",
+    "concurrently": "^10.0.3",
     "eslint": "^9.39.4",
     "eslint-plugin-jsdoc": "^63.0.2",
     "eslint-plugin-react": "^7.37.5",
