@@ -71,9 +71,9 @@
     "@tambo-ai/eslint-config": "*",
     "@tambo-ai/typescript-config": "*",
     "@types/jest": "^30.0.0",
-    "@types/json-schema": "^7.0.15",
-    "@types/node": "^22.19.15",
-    "concurrently": "^10.0.3",
+    "@types/json-schema": "7.0.15",
+    "@types/node": "22.19.21",
+    "concurrently": "10.0.3",
     "eslint": "^9.39.4",
     "eslint-plugin-jsdoc": "^63.0.2",
     "jest": "^30.4.2",
@@ -81,10 +81,10 @@
     "prettier": "^3.8.3",
     "prettier-2": "npm:prettier@^2",
     "ts-jest": "^29.4.11",
-    "tsc-esm-fix": "^3.1.2",
-    "typescript": "^5.9.3",
+    "tsc-esm-fix": "3.1.2",
+    "typescript": "5.9.3",
     "typescript-eslint": "^8.60.1",
-    "zod": "^3.25.76 || ^4",
-    "zod-to-json-schema": "^3.25.1"
+    "zod": "4.4.3",
+    "zod-to-json-schema": "3.25.2"
   }
 }

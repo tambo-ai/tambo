@@ -31,13 +31,13 @@
     "@tambo-ai/eslint-config": "*",
     "@tambo-ai/typescript-config": "*",
     "@types/jest": "^30.0.0",
-    "@types/js-yaml": "^4.0.9",
-    "@types/node": "^22.19.15",
+    "@types/js-yaml": "4.0.9",
+    "@types/node": "22.19.21",
     "jest": "^30.4.2",
     "prettier-2": "npm:prettier@^2",
     "ts-jest": "^29.4.11",
-    "zod": "^3.25.76",
-    "zod-to-json-schema": "^3.25.1"
+    "zod": "3.25.76",
+    "zod-to-json-schema": "3.25.2"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.27.1",

@@ -86,17 +86,17 @@
   },
   "devDependencies": {
     "@tambo-ai/ui-registry": "*",
-    "@types/cross-spawn": "^6.0.6",
-    "@types/diffable-html": "^5.0.2",
+    "@types/cross-spawn": "6.0.6",
+    "@types/diffable-html": "5.0.2",
     "@types/jest": "^30.0.0",
-    "@types/js-yaml": "^4.0.9",
-    "@types/node": "^22.19.15",
-    "@types/node-fetch": "^2.6.13",
-    "@types/semver": "^7.7.1",
-    "diffable-html": "^6.0.1",
+    "@types/js-yaml": "4.0.9",
+    "@types/node": "22.19.21",
+    "@types/node-fetch": "2.6.13",
+    "@types/semver": "7.7.1",
+    "diffable-html": "6.0.1",
     "jest": "^30.4.2",
-    "memfs": "^4.51.0",
+    "memfs": "4.57.7",
     "ts-jest": "^29.4.11",
-    "typescript": "^5.9.3"
+    "typescript": "5.9.3"
   }
 }
