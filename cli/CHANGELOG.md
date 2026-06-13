@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.56.2](https://github.com/tambo-ai/tambo/compare/tambo-v0.56.1...tambo-v0.56.2) (2026-06-13)
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump ts-jest from 29.4.9 to 29.4.11 in the testing group across 1 directory ([#2874](https://github.com/tambo-ai/tambo/issues/2874)) ([dd3d3a7](https://github.com/tambo-ai/tambo/commit/dd3d3a71c6165c14370ae06a37041dd616d905c2))
+* **deps:** bump @tambo-ai/typescript-sdk from 0.96.0 to 0.96.1 in the tambo-ai group across 1 directory ([#2875](https://github.com/tambo-ai/tambo/issues/2875)) ([540b8ac](https://github.com/tambo-ai/tambo/commit/540b8ac49dd0c2e2e7e75c8f544098639860f03e))
+* **deps:** bump inquirer from 13.3.0 to 13.4.3 ([#2887](https://github.com/tambo-ai/tambo/issues/2887)) ([1aab6d4](https://github.com/tambo-ai/tambo/commit/1aab6d4cb2a7d9c03bcc3863a5d43a69ff0753ea))
+* **deps:** bump ora from 9.0.0 to 9.4.0 ([#2909](https://github.com/tambo-ai/tambo/issues/2909)) ([6716dec](https://github.com/tambo-ai/tambo/commit/6716dec54eac7c0f0fb32449710f02a8b9d57b4d))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @tambo-ai/react bumped from * to 1.3.0
+
 ## [0.56.1](https://github.com/tambo-ai/tambo/compare/tambo-v0.56.0...tambo-v0.56.1) (2026-05-20)
 
 
