@@ -1,5 +1,33 @@
 # Changelog
 
+## [0.38.0](https://github.com/tambo-ai/tambo/compare/showcase-v0.37.7...showcase-v0.38.0) (2026-06-13)
+
+
+### Features
+
+* **web:** migrate to Next.js 16 and React 19 ([#2900](https://github.com/tambo-ai/tambo/issues/2900)) ([5a654ef](https://github.com/tambo-ai/tambo/commit/5a654efe235d6f9a3711282c503c63a47b56eb22))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump the eslint group across 1 directory with 4 updates ([#2922](https://github.com/tambo-ai/tambo/issues/2922)) ([6cbdb40](https://github.com/tambo-ai/tambo/commit/6cbdb40a51136a0c30fb8e560bc2bc5499ee01a7))
+* **deps-dev:** bump ts-jest from 29.4.9 to 29.4.11 in the testing group across 1 directory ([#2874](https://github.com/tambo-ai/tambo/issues/2874)) ([dd3d3a7](https://github.com/tambo-ai/tambo/commit/dd3d3a71c6165c14370ae06a37041dd616d905c2))
+* **deps:** bump @tailwindcss/postcss from 4.2.2 to 4.3.0 in the tailwind group across 1 directory ([#2880](https://github.com/tambo-ai/tambo/issues/2880)) ([3041273](https://github.com/tambo-ai/tambo/commit/3041273309225756291b329ce5cfba7d3c668655))
+* **deps:** bump @tambo-ai/typescript-sdk from 0.96.0 to 0.96.1 in the tambo-ai group across 1 directory ([#2875](https://github.com/tambo-ai/tambo/issues/2875)) ([540b8ac](https://github.com/tambo-ai/tambo/commit/540b8ac49dd0c2e2e7e75c8f544098639860f03e))
+* **deps:** bump recharts from 3.8.0 to 3.8.1 ([#2938](https://github.com/tambo-ai/tambo/issues/2938)) ([487dfab](https://github.com/tambo-ai/tambo/commit/487dfab1e51e2eb9c6d5c67fc3ced8960048fbf3))
+* **deps:** bump the radix-ui group with 19 updates ([#2930](https://github.com/tambo-ai/tambo/issues/2930)) ([a21bbef](https://github.com/tambo-ai/tambo/commit/a21bbef264da217c18c517591c4d2418a7d6cf4f))
+* **deps:** bump the small-safe-packages group across 1 directory with 3 updates ([#2876](https://github.com/tambo-ai/tambo/issues/2876)) ([a2198da](https://github.com/tambo-ai/tambo/commit/a2198daca95c3b4b2e7166b476ad149ab10d4ab8))
+* **deps:** bump the small-safe-packages group across 1 directory with 3 updates ([#2914](https://github.com/tambo-ai/tambo/issues/2914)) ([7520049](https://github.com/tambo-ai/tambo/commit/7520049842c75ad7933dede838c5b4100a9639b1))
+* **deps:** bump the tiptap group across 1 directory with 9 updates ([#2881](https://github.com/tambo-ai/tambo/issues/2881)) ([281593c](https://github.com/tambo-ai/tambo/commit/281593c233164bec793870cd8f17459690b9eaa6))
+* **deps:** bump the tiptap group across 1 directory with 9 updates ([#2907](https://github.com/tambo-ai/tambo/issues/2907)) ([69ad3c5](https://github.com/tambo-ai/tambo/commit/69ad3c5fbb1a9407573cc6c6c021725fa405da0b))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @tambo-ai/react bumped from * to 1.3.0
+
 ## [0.37.7](https://github.com/tambo-ai/tambo/compare/showcase-v0.37.6...showcase-v0.37.7) (2026-05-20)
 
 
