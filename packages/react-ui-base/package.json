@@ -1,6 +1,6 @@
 {
   "name": "@tambo-ai/react-ui-base",
-  "version": "0.1.10",
+  "version": "0.1.11",
   "description": "Headless base components/Primitives for Tambo AI",
   "author": {
     "name": "Tambo",
@@ -185,7 +185,7 @@
   },
   "devDependencies": {
     "@tambo-ai/eslint-config": "*",
-    "@tambo-ai/react": "*",
+    "@tambo-ai/react": "1.3.0",
     "@tambo-ai/typescript-config": "*",
     "@tambo-ai/typescript-sdk": "^0.96.1",
     "@tambo-ai/vite-config": "*",
