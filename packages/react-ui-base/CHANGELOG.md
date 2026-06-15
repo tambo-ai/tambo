@@ -3,6 +3,13 @@
 ## [0.1.11](https://github.com/tambo-ai/tambo/compare/@tambo-ai/react-ui-base-v0.1.10...@tambo-ai/react-ui-base-v0.1.11) (2026-06-15)
 
 
+### Miscellaneous Chores
+
+* **main:** release @tambo-ai/react-ui-base 0.1.11 ([#2912](https://github.com/tambo-ai/tambo/issues/2912)) ([1c0c007](https://github.com/tambo-ai/tambo/commit/1c0c00768ec1a165b1243f4ac1b02f71e96ba95f))
+
+## [0.1.11](https://github.com/tambo-ai/tambo/compare/@tambo-ai/react-ui-base-v0.1.10...@tambo-ai/react-ui-base-v0.1.11) (2026-06-15)
+
+
 ### Dependencies
 
 * The following workspace dependencies were updated
