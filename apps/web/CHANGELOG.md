@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.135.0](https://github.com/tambo-ai/tambo/compare/web-v0.134.1...web-v0.135.0) (2026-06-15)
+
+
+### Features
+
+* **web:** migrate to Next.js 16 and React 19 ([#2900](https://github.com/tambo-ai/tambo/issues/2900)) ([5a654ef](https://github.com/tambo-ai/tambo/commit/5a654efe235d6f9a3711282c503c63a47b56eb22))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump @hookform/resolvers from 5.2.2 to 5.4.0 ([#2894](https://github.com/tambo-ai/tambo/issues/2894)) ([4c7b560](https://github.com/tambo-ai/tambo/commit/4c7b560cb5295aa430ce86a7e1756d4da16479f4))
+* **deps:** bump @sentry/nextjs from 10.53.1 to 10.56.0 in the sentry group across 1 directory ([#2924](https://github.com/tambo-ai/tambo/issues/2924)) ([1284f0c](https://github.com/tambo-ai/tambo/commit/1284f0c12ecd8154c628464ee1d47e7df0fd474d))
+* **deps:** bump jiti from 2.6.1 to 2.7.0 ([#2892](https://github.com/tambo-ai/tambo/issues/2892)) ([9ad93e1](https://github.com/tambo-ai/tambo/commit/9ad93e12b62b1ac9631e13060092809081c00e2e))
+* **deps:** bump next-auth from 4.24.13 to 4.24.14 ([#2891](https://github.com/tambo-ai/tambo/issues/2891)) ([d082305](https://github.com/tambo-ai/tambo/commit/d082305facdecdbdb5852b85b594ed8cc4bae8f2))
+* **deps:** bump react-hook-form from 7.71.1 to 7.76.1 ([#2910](https://github.com/tambo-ai/tambo/issues/2910)) ([0acdd7d](https://github.com/tambo-ai/tambo/commit/0acdd7d3ef089df9c741af01e90bbb62c1ae5c2b))
+* **deps:** bump recharts from 3.8.0 to 3.8.1 ([#2938](https://github.com/tambo-ai/tambo/issues/2938)) ([487dfab](https://github.com/tambo-ai/tambo/commit/487dfab1e51e2eb9c6d5c67fc3ced8960048fbf3))
+* **deps:** bump rehype-pretty-code from 0.14.1 to 0.14.3 ([#2888](https://github.com/tambo-ai/tambo/issues/2888)) ([f542051](https://github.com/tambo-ai/tambo/commit/f542051e1533c266eae9d32748d85e8b39a2476d))
+* **deps:** bump resend from 6.9.3 to 6.12.3 ([#2889](https://github.com/tambo-ai/tambo/issues/2889)) ([b1eb057](https://github.com/tambo-ai/tambo/commit/b1eb057b0059e07109dab67ff01933898226c06c))
+* **deps:** bump the radix-ui group with 19 updates ([#2930](https://github.com/tambo-ai/tambo/issues/2930)) ([a21bbef](https://github.com/tambo-ai/tambo/commit/a21bbef264da217c18c517591c4d2418a7d6cf4f))
+* **deps:** bump the small-safe-packages group across 1 directory with 3 updates ([#2914](https://github.com/tambo-ai/tambo/issues/2914)) ([7520049](https://github.com/tambo-ai/tambo/commit/7520049842c75ad7933dede838c5b4100a9639b1))
+* **deps:** bump the tiptap group across 1 directory with 9 updates ([#2881](https://github.com/tambo-ai/tambo/issues/2881)) ([281593c](https://github.com/tambo-ai/tambo/commit/281593c233164bec793870cd8f17459690b9eaa6))
+* **deps:** bump the tiptap group across 1 directory with 9 updates ([#2907](https://github.com/tambo-ai/tambo/issues/2907)) ([69ad3c5](https://github.com/tambo-ai/tambo/commit/69ad3c5fbb1a9407573cc6c6c021725fa405da0b))
+
 ## [0.134.1](https://github.com/tambo-ai/tambo/compare/web-v0.134.0...web-v0.134.1) (2026-05-20)
 
 
