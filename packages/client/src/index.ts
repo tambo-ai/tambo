@@ -17,6 +17,8 @@ export type {
   ClientState,
   BeforeRunContext,
   ContextHelperFn,
+  McpConnectionStatus,
+  McpConnectionInfo,
 } from "./tambo-client";
 export { TamboStream } from "./tambo-stream";
 export type { StreamEvent, TamboStreamOptions } from "./tambo-stream";

@@ -1,5 +1,26 @@
 # Changelog
 
+## [1.3.0](https://github.com/tambo-ai/tambo/compare/react-v1.2.8...react-v1.3.0) (2026-06-15)
+
+
+### Features
+
+* **web:** migrate to Next.js 16 and React 19 ([#2900](https://github.com/tambo-ai/tambo/issues/2900)) ([5a654ef](https://github.com/tambo-ai/tambo/commit/5a654efe235d6f9a3711282c503c63a47b56eb22))
+
+
+### Bug Fixes
+
+* **config:** stop renovate from pinning devDependencies and action digests ([#2945](https://github.com/tambo-ai/tambo/issues/2945)) ([3db4b25](https://github.com/tambo-ai/tambo/commit/3db4b250b517a5502526b56ece517dd811b42eea))
+* **deps:** patch dependabot alerts for shell-quote, grpc-js, and hono ([#2944](https://github.com/tambo-ai/tambo/issues/2944)) ([712503e](https://github.com/tambo-ai/tambo/commit/712503e16417e53f011633c78ca19b163aef2676))
+* **react-sdk:** skip suggestion fetch for ephemeral message ids ([#2943](https://github.com/tambo-ai/tambo/issues/2943)) ([5025c5d](https://github.com/tambo-ai/tambo/commit/5025c5d567eba89c4574e26531acf33e8109c585))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump eslint-plugin-jsdoc from 63.0.1 to 63.0.2 in the eslint group ([#2931](https://github.com/tambo-ai/tambo/issues/2931)) ([ac5c1f0](https://github.com/tambo-ai/tambo/commit/ac5c1f0afbefc701a94d11fad3d16aa25cd006a7))
+* **deps-dev:** bump the eslint group across 1 directory with 4 updates ([#2922](https://github.com/tambo-ai/tambo/issues/2922)) ([6cbdb40](https://github.com/tambo-ai/tambo/commit/6cbdb40a51136a0c30fb8e560bc2bc5499ee01a7))
+* **deps:** bump the small-safe-packages group across 1 directory with 3 updates ([#2914](https://github.com/tambo-ai/tambo/issues/2914)) ([7520049](https://github.com/tambo-ai/tambo/commit/7520049842c75ad7933dede838c5b4100a9639b1))
+
 ## [1.2.8](https://github.com/tambo-ai/tambo/compare/react-v1.2.7...react-v1.2.8) (2026-05-29)
 
 

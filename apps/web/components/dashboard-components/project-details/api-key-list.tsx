@@ -107,8 +107,8 @@ export function APIKeyList({
   const [, copy] = useClipboard(newGeneratedKey ?? "");
   const { toast } = useToast();
   const utils = api.useUtils();
-  const lastCreateKeyRef = useRef<string | undefined>();
-  const lastDeleteKeyRef = useRef<string | undefined>();
+  const lastCreateKeyRef = useRef<string | undefined>(undefined);
+  const lastDeleteKeyRef = useRef<string | undefined>(undefined);
   const hasAutoOpenedCreateRef = useRef(false);
 
   const {

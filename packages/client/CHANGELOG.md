@@ -1,5 +1,24 @@
 # Changelog
 
+## [1.2.0](https://github.com/tambo-ai/tambo/compare/client-v1.1.4...client-v1.2.0) (2026-06-15)
+
+
+### Features
+
+* **client:** track MCP server connection status ([#2918](https://github.com/tambo-ai/tambo/issues/2918)) ([9897d11](https://github.com/tambo-ai/tambo/commit/9897d118d3a06d76618313652d1d1c20cbeca1b1))
+
+
+### Bug Fixes
+
+* **config:** stop renovate from pinning devDependencies and action digests ([#2945](https://github.com/tambo-ai/tambo/issues/2945)) ([3db4b25](https://github.com/tambo-ai/tambo/commit/3db4b250b517a5502526b56ece517dd811b42eea))
+* **deps:** patch dependabot alerts for shell-quote, grpc-js, and hono ([#2944](https://github.com/tambo-ai/tambo/issues/2944)) ([712503e](https://github.com/tambo-ai/tambo/commit/712503e16417e53f011633c78ca19b163aef2676))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump eslint-plugin-jsdoc from 63.0.1 to 63.0.2 in the eslint group ([#2931](https://github.com/tambo-ai/tambo/issues/2931)) ([ac5c1f0](https://github.com/tambo-ai/tambo/commit/ac5c1f0afbefc701a94d11fad3d16aa25cd006a7))
+* **deps-dev:** bump the eslint group across 1 directory with 4 updates ([#2922](https://github.com/tambo-ai/tambo/issues/2922)) ([6cbdb40](https://github.com/tambo-ai/tambo/commit/6cbdb40a51136a0c30fb8e560bc2bc5499ee01a7))
+
 ## [1.1.4](https://github.com/tambo-ai/tambo/compare/client-v1.1.3...client-v1.1.4) (2026-05-29)
 
 

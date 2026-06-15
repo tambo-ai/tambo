@@ -84,15 +84,6 @@ export function MobileDrawer({
               MCP
             </Link>
           </DrawerClose>
-          <Link
-            href="/blog"
-            className={cn(
-              buttonVariants({ variant: "ghost" }),
-              "justify-start text-base w-full",
-            )}
-          >
-            Blog
-          </Link>
           <DrawerClose asChild>
             <button
               onClick={togglePanel}

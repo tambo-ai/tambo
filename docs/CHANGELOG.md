@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.34.0](https://github.com/tambo-ai/tambo/compare/docs-v1.33.2...docs-v1.34.0) (2026-06-15)
+
+
+### Features
+
+* **web:** migrate to Next.js 16 and React 19 ([#2900](https://github.com/tambo-ai/tambo/issues/2900)) ([5a654ef](https://github.com/tambo-ai/tambo/commit/5a654efe235d6f9a3711282c503c63a47b56eb22))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump the radix-ui group with 19 updates ([#2930](https://github.com/tambo-ai/tambo/issues/2930)) ([a21bbef](https://github.com/tambo-ai/tambo/commit/a21bbef264da217c18c517591c4d2418a7d6cf4f))
+* **deps:** bump the small-safe-packages group across 1 directory with 3 updates ([#2914](https://github.com/tambo-ai/tambo/issues/2914)) ([7520049](https://github.com/tambo-ai/tambo/commit/7520049842c75ad7933dede838c5b4100a9639b1))
+
 ## [1.33.2](https://github.com/tambo-ai/tambo/compare/docs-v1.33.1...docs-v1.33.2) (2026-05-29)
 
 

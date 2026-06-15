@@ -1,0 +1,3463 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/": {
+      "get": {
+        "operationId": "AppController_getHello",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": { "schema": { "type": "string" } }
+            }
+          }
+        },
+        "tags": ["Auth"]
+      }
+    },
+    "/health": {
+      "get": {
+        "operationId": "AppController_checkHealth",
+        "parameters": [],
+        "responses": { "200": { "description": "" } },
+        "tags": ["Auth"]
+      }
+    },
+    "/auth/mcp/access-token": {
+      "post": {
+        "description": "Creates a JWT MCP access token for the project. If threadId is provided, the token will be bound to that thread. If threadId is omitted, a sessionless token will be created using the provided contextKey (or from Bearer token if not provided). Sessionless tokens can only access resources and prompts, not session-specific features. The token expires in 15 minutes and can be used as a bearer token.",
+        "operationId": "AppController_createMcpAccessToken",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateMcpAccessToken" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "MCP access token created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/McpAccessTokenResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - invalid authentication context or API key"
+          },
+          "404": {
+            "description": "Thread not found or does not belong to project"
+          }
+        },
+        "security": [{ "apiKey": [] }],
+        "summary": "Create an MCP access token",
+        "tags": ["Auth"]
+      }
+    },
+    "/oauth/token": {
+      "post": {
+        "description": "Exchanges an OAuth subject token for a Tambo access token following RFC 6749 and RFC 8693 specifications. Accepts form-encoded data and validates the subject token based on project OAuth validation settings.",
+        "operationId": "OAuthController_exchangeOAuthToken",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": { "$ref": "#/components/schemas/OAuthTokenRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Token exchange successful",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/OAuthTokenResponse" }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - invalid grant type or missing parameters"
+          },
+          "401": { "description": "Unauthorized - invalid OAuth token" }
+        },
+        "security": [{ "apiKey": [] }],
+        "summary": "OAuth 2.0 Token Exchange Endpoint",
+        "tags": ["OAuth"]
+      }
+    },
+    "/projects": {
+      "get": {
+        "operationId": "ProjectsController_getCurrentProject",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ProjectResponse" }
+              }
+            }
+          }
+        },
+        "security": [{ "apiKey": [] }],
+        "tags": ["Projects"]
+      }
+    },
+    "/projects/{id}": {
+      "get": {
+        "operationId": "ProjectsController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ProjectResponse" }
+              }
+            }
+          }
+        },
+        "security": [{ "apiKey": [] }],
+        "tags": ["Projects"]
+      },
+      "delete": {
+        "operationId": "ProjectsController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": { "schema": { "type": "boolean" } }
+            }
+          }
+        },
+        "security": [{ "apiKey": [] }],
+        "tags": ["Projects"]
+      }
+    },
+    "/projects/{id}/api-keys": {
+      "get": {
+        "operationId": "ProjectsController_findAllApiKeys",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/APIKeyResponse" }
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "apiKey": [] }],
+        "tags": ["Projects"]
+      }
+    },
+    "/projects/{id}/api-key/{apiKeyId}": {
+      "delete": {
+        "operationId": "ProjectsController_removeApiKey",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "apiKeyId",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": { "schema": { "type": "boolean" } }
+            }
+          }
+        },
+        "security": [{ "apiKey": [] }],
+        "tags": ["Projects"]
+      }
+    },
+    "/projects/{id}/provider-keys": {
+      "get": {
+        "operationId": "ProjectsController_findAllProviderKeys",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ProviderKeyResponse"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "apiKey": [] }],
+        "tags": ["Projects"]
+      }
+    },
+    "/projects/{id}/provider-key/{providerKeyId}": {
+      "delete": {
+        "operationId": "ProjectsController_removeProviderKey",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "providerKeyId",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SimpleProjectResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "apiKey": [] }],
+        "tags": ["Projects"]
+      }
+    },
+    "/registry/{componentname}": {
+      "get": {
+        "operationId": "RegistryController_getComponentDefinition",
+        "parameters": [
+          {
+            "name": "componentname",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": { "schema": { "type": "object" } }
+            }
+          }
+        },
+        "tags": ["Registry"]
+      }
+    },
+    "/threads": {
+      "post": {
+        "operationId": "ThreadsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ThreadRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Thread" }
+              }
+            }
+          }
+        },
+        "security": [{ "bearer": [] }, { "apiKey": [] }],
+        "tags": ["threads"]
+      }
+    },
+    "/threads/project/{projectId}": {
+      "get": {
+        "operationId": "ThreadsController_findAllForProject",
+        "parameters": [
+          {
+            "name": "projectId",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "contextKey",
+            "required": false,
+            "in": "query",
+            "description": "Unique user identifier for the thread",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "schema": { "default": 0, "type": "number" }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": { "default": 10, "type": "number" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ThreadList" }
+              }
+            }
+          }
+        },
+        "security": [{ "bearer": [] }, { "apiKey": [] }],
+        "tags": ["threads"]
+      }
+    },
+    "/threads/{id}": {
+      "get": {
+        "operationId": "ThreadsController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "contextKey",
+            "required": false,
+            "in": "query",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "includeInternal",
+            "required": false,
+            "in": "query",
+            "schema": { "type": "boolean" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ThreadWithMessages" }
+              }
+            }
+          }
+        },
+        "security": [{ "bearer": [] }, { "apiKey": [] }],
+        "tags": ["threads"]
+      },
+      "put": {
+        "operationId": "ThreadsController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ThreadRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Thread" }
+              }
+            }
+          }
+        },
+        "security": [{ "bearer": [] }, { "apiKey": [] }],
+        "tags": ["threads"]
+      },
+      "delete": {
+        "operationId": "ThreadsController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": { "200": { "description": "" } },
+        "security": [{ "bearer": [] }, { "apiKey": [] }],
+        "tags": ["threads"]
+      }
+    },
+    "/threads/{id}/cancel": {
+      "post": {
+        "description": "Sets a thread's generation stage to CANCELLED",
+        "operationId": "ThreadsController_cancelThread",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID of the thread to cancel",
+            "schema": { "example": "thread_123456789", "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thread cancelled successfully",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Thread" }
+              }
+            }
+          },
+          "400": {
+            "description": "Thread is not in a cancellable state",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ProblemDetails" }
+              }
+            }
+          },
+          "404": {
+            "description": "Thread not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ProblemDetails" }
+              }
+            }
+          }
+        },
+        "security": [{ "bearer": [] }, { "apiKey": [] }],
+        "summary": "Cancel thread advancement",
+        "tags": ["threads"]
+      }
+    },
+    "/threads/{id}/messages": {
+      "post": {
+        "operationId": "ThreadsController_addMessage",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/MessageRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": { "schema": { "type": "object" } }
+            }
+          }
+        },
+        "security": [{ "bearer": [] }, { "apiKey": [] }],
+        "tags": ["threads"]
+      },
+      "get": {
+        "operationId": "ThreadsController_getMessages",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Id of the thread to get messages for",
+            "schema": { "example": "thr_123.456", "type": "string" }
+          },
+          {
+            "name": "includeInternal",
+            "required": false,
+            "in": "query",
+            "description": "Whether to include internal messages, must be `true`",
+            "deprecated": true,
+            "schema": { "type": "boolean" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/ThreadMessage" }
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "bearer": [] }, { "apiKey": [] }],
+        "tags": ["threads"]
+      }
+    },
+    "/threads/{id}/messages/{messageId}": {
+      "delete": {
+        "operationId": "ThreadsController_deleteMessage",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Id of the thread that contains the message",
+            "schema": { "example": "thr_123.456", "type": "string" }
+          },
+          {
+            "name": "messageId",
+            "required": true,
+            "in": "path",
+            "description": "Id of the message to delete",
+            "schema": { "example": "msg_123.456", "type": "string" }
+          }
+        ],
+        "responses": { "200": { "description": "" } },
+        "security": [{ "bearer": [] }, { "apiKey": [] }],
+        "tags": ["threads"]
+      }
+    },
+    "/threads/{id}/messages/{messageId}/suggestions": {
+      "get": {
+        "description": "Retrieves all suggestions generated for a specific message",
+        "operationId": "ThreadsController_getSuggestions",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID of the thread to get suggestions for",
+            "schema": { "example": "thread_123456789", "type": "string" }
+          },
+          {
+            "name": "messageId",
+            "required": true,
+            "in": "path",
+            "description": "ID of the message to get suggestions for",
+            "schema": { "example": "msg_123456789", "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of suggestions for the message",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/Suggestion" }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Message not found or has no suggestions",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ProblemDetails" }
+              }
+            }
+          }
+        },
+        "security": [{ "bearer": [] }, { "apiKey": [] }],
+        "summary": "Get suggestions for a message",
+        "tags": ["threads"]
+      },
+      "post": {
+        "description": "Generates and stores new suggestions for a specific message",
+        "operationId": "ThreadsController_generateSuggestions",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID of the thread to generate suggestions for",
+            "schema": { "example": "thread_123456789", "type": "string" }
+          },
+          {
+            "name": "messageId",
+            "required": true,
+            "in": "path",
+            "description": "ID of the message to generate suggestions for",
+            "schema": { "example": "msg_123456789", "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/SuggestionsGenerate" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "New suggestions generated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/Suggestion" }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request parameters",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ProblemDetails" }
+              }
+            }
+          },
+          "404": {
+            "description": "Message not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ProblemDetails" }
+              }
+            }
+          },
+          "500": {
+            "description": "Failed to generate suggestions",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ProblemDetails" }
+              }
+            }
+          }
+        },
+        "security": [{ "bearer": [] }, { "apiKey": [] }],
+        "summary": "Generate new suggestions",
+        "tags": ["threads"]
+      }
+    },
+    "/threads/{id}/messages/{messageId}/component-state": {
+      "put": {
+        "operationId": "ThreadsController_updateComponentState",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Id of the thread that contains the message",
+            "schema": { "example": "thr_123.456", "type": "string" }
+          },
+          {
+            "name": "messageId",
+            "required": true,
+            "in": "path",
+            "description": "Id of the message to update component state for",
+            "schema": { "example": "msg_123.456", "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateComponentStateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ThreadMessage" }
+              }
+            }
+          }
+        },
+        "security": [{ "bearer": [] }, { "apiKey": [] }],
+        "tags": ["threads"]
+      }
+    },
+    "/threads/{id}/advance": {
+      "post": {
+        "deprecated": true,
+        "description": "This endpoint has been deprecated. Use POST /:id/advancestream instead.",
+        "operationId": "ThreadsController_advanceThread",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Id of an existing thread to advance",
+            "schema": { "example": "thr_123.456", "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/AdvanceThread" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdvanceThreadResponse"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "This endpoint is deprecated",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ProblemDetails" }
+              }
+            }
+          }
+        },
+        "security": [{ "bearer": [] }, { "apiKey": [] }],
+        "summary": "DEPRECATED - Advance a thread (non-streaming)",
+        "tags": ["threads"]
+      }
+    },
+    "/threads/{id}/advancestream": {
+      "post": {
+        "description": "Generates the response message for an existing thread, and streams the response message(s)",
+        "operationId": "ThreadsController_advanceThreadStream",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Id of an existing thread to advance",
+            "schema": { "example": "thr_123.456", "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/AdvanceThread" }
+            }
+          }
+        },
+        "responses": { "201": { "description": "" } },
+        "security": [{ "bearer": [] }, { "apiKey": [] }],
+        "summary": "Advance a thread stream",
+        "tags": ["threads"]
+      }
+    },
+    "/threads/advance": {
+      "post": {
+        "deprecated": true,
+        "description": "This endpoint has been deprecated. Use POST /advancestream instead.",
+        "operationId": "ThreadsController_createAndAdvanceThread",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdvanceThreadResponse"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "This endpoint is deprecated",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ProblemDetails" }
+              }
+            }
+          }
+        },
+        "security": [{ "bearer": [] }, { "apiKey": [] }],
+        "summary": "DEPRECATED - Create and advance a thread (non-streaming)",
+        "tags": ["threads"]
+      }
+    },
+    "/threads/advancestream": {
+      "post": {
+        "description": "Creates a new thread and advances it, and streams the response message(s)",
+        "operationId": "ThreadsController_createAndAdvanceThreadStream",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/AdvanceThread" }
+            }
+          }
+        },
+        "responses": { "201": { "description": "" } },
+        "security": [{ "bearer": [] }, { "apiKey": [] }],
+        "summary": "Create and advance a thread stream",
+        "tags": ["threads"]
+      }
+    },
+    "/threads/{id}/generate-name": {
+      "post": {
+        "description": "Automatically generates and sets a name for the thread as a summary based on its messages.",
+        "operationId": "ThreadsController_generateName",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID of the thread to generate name for",
+            "schema": { "example": "thread_123456789", "type": "string" }
+          },
+          {
+            "name": "contextKey",
+            "required": false,
+            "in": "query",
+            "description": "Unique user identifier for the thread",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Thread name generated successfully",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Thread" }
+              }
+            }
+          },
+          "404": {
+            "description": "Thread not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ProblemDetails" }
+              }
+            }
+          }
+        },
+        "security": [{ "bearer": [] }, { "apiKey": [] }],
+        "summary": "Generate and set a thread's name",
+        "tags": ["threads"]
+      }
+    },
+    "/audio/transcribe": {
+      "post": {
+        "description": "Upload an audio file and get its transcription. Supports MP3, WAV, MP4, MPEG, MPGA, M4A, and WEBM formats. Maximum file size is 25 MB.",
+        "operationId": "AudioController_transcribeAudio",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "description": "Audio file to transcribe",
+          "content": {
+            "multipart/form-data": {
+              "schema": { "$ref": "#/components/schemas/TranscribeAudioDto" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": { "schema": { "type": "string" } }
+            }
+          },
+          "400": { "description": "Invalid audio file or format" }
+        },
+        "security": [{ "apiKey": [] }],
+        "summary": "Transcribe audio to text",
+        "tags": ["audio"]
+      }
+    },
+    "/users/webhook/signup": {
+      "post": {
+        "description": "Triggered when a new user signs up via Supabase Auth. Requires webhook secret for authentication.",
+        "operationId": "UsersController_handleSignupWebhook",
+        "parameters": [
+          {
+            "name": "x-webhook-secret",
+            "required": true,
+            "in": "header",
+            "description": "Shared secret for webhook authentication",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "x-webhook-source",
+            "required": false,
+            "in": "header",
+            "description": "Source identifier for the webhook",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": { "schema": { "type": "object" } }
+            }
+          }
+        },
+        "summary": "Handle new user signup webhook from Supabase",
+        "tags": ["Users"]
+      }
+    },
+    "/storage/presign": {
+      "post": {
+        "description": "Returns a presigned URL that allows direct file upload to S3. The client should PUT the file directly to the returned uploadUrl.",
+        "operationId": "StorageController_presign",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/PresignUploadDto" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Presigned URL generated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PresignUploadResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request (missing contentType or size, or size exceeds 10MB)"
+          },
+          "503": { "description": "Storage is not configured" }
+        },
+        "security": [{ "bearer": [] }, { "apiKey": [] }],
+        "summary": "Get a presigned URL for direct S3 upload",
+        "tags": ["storage"]
+      }
+    },
+    "/v1/threads": {
+      "get": {
+        "description": "List all threads for the authenticated project. Supports cursor-based pagination and filtering by user key.",
+        "operationId": "V1Controller_listThreads",
+        "parameters": [
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Maximum number of threads to return",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "cursor",
+            "required": false,
+            "in": "query",
+            "description": "Cursor for pagination",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "userKey",
+            "required": false,
+            "in": "query",
+            "description": "Filter by user key",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of threads",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ListThreadsResponse" }
+              }
+            }
+          }
+        },
+        "security": [{ "bearer": [] }, { "apiKey": [] }],
+        "summary": "List threads",
+        "tags": ["v1"]
+      },
+      "post": {
+        "description": "Create a new empty thread. Note: initialMessages is not supported yet; create the thread first, then add messages via runs/message endpoints.",
+        "operationId": "V1Controller_createThread",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateThreadRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created thread",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateThreadResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "bearer": [] }, { "apiKey": [] }],
+        "summary": "Create empty thread",
+        "tags": ["v1"]
+      }
+    },
+    "/v1/threads/{threadId}": {
+      "get": {
+        "description": "Get a thread by ID with all its messages. The thread must belong to the authenticated project.",
+        "operationId": "V1Controller_getThread",
+        "parameters": [
+          {
+            "name": "threadId",
+            "required": true,
+            "in": "path",
+            "description": "Thread ID",
+            "schema": { "example": "thr_abc123xyz", "type": "string" }
+          },
+          {
+            "name": "userKey",
+            "required": false,
+            "in": "query",
+            "description": "Optional user key for thread organization",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thread with messages",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/GetThreadResponse" }
+              }
+            }
+          },
+          "404": { "description": "Thread not found" }
+        },
+        "security": [{ "bearer": [] }, { "apiKey": [] }],
+        "summary": "Get thread with messages",
+        "tags": ["v1"]
+      },
+      "patch": {
+        "description": "Update thread metadata such as name. Useful for manual thread renaming.",
+        "operationId": "V1Controller_updateThread",
+        "parameters": [
+          {
+            "name": "threadId",
+            "required": true,
+            "in": "path",
+            "description": "Thread ID",
+            "schema": { "example": "thr_abc123xyz", "type": "string" }
+          },
+          {
+            "name": "userKey",
+            "required": false,
+            "in": "query",
+            "description": "Optional user key for thread organization",
+            "schema": { "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UpdateThreadRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated thread",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateThreadResponse"
+                }
+              }
+            }
+          },
+          "404": { "description": "Thread not found" }
+        },
+        "security": [{ "bearer": [] }, { "apiKey": [] }],
+        "summary": "Update thread",
+        "tags": ["v1"]
+      },
+      "delete": {
+        "description": "Delete a thread and all its messages. This action cannot be undone.",
+        "operationId": "V1Controller_deleteThread",
+        "parameters": [
+          {
+            "name": "threadId",
+            "required": true,
+            "in": "path",
+            "description": "Thread ID",
+            "schema": { "example": "thr_abc123xyz", "type": "string" }
+          },
+          {
+            "name": "userKey",
+            "required": false,
+            "in": "query",
+            "description": "Identifier for a user in your system. Required if no bearer token is provided.",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "204": { "description": "Thread deleted successfully" },
+          "404": { "description": "Thread not found" }
+        },
+        "security": [{ "bearer": [] }, { "apiKey": [] }],
+        "summary": "Delete thread",
+        "tags": ["v1"]
+      }
+    },
+    "/v1/threads/{threadId}/messages": {
+      "get": {
+        "description": "List messages in a thread. Supports cursor-based pagination and ordering.",
+        "operationId": "V1Controller_listMessages",
+        "parameters": [
+          {
+            "name": "threadId",
+            "required": true,
+            "in": "path",
+            "description": "Thread ID",
+            "schema": { "example": "thr_abc123xyz", "type": "string" }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Maximum number of messages to return",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50,
+              "type": "number"
+            }
+          },
+          {
+            "name": "cursor",
+            "required": false,
+            "in": "query",
+            "description": "Cursor for pagination",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "order",
+            "required": false,
+            "in": "query",
+            "description": "Sort order: 'asc' for oldest first, 'desc' for newest first",
+            "schema": {
+              "default": "asc",
+              "type": "string",
+              "enum": ["asc", "desc"]
+            }
+          },
+          {
+            "name": "userKey",
+            "required": false,
+            "in": "query",
+            "description": "Identifier for a user in your system. Required if no bearer token is provided.",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of messages",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListMessagesResponse"
+                }
+              }
+            }
+          },
+          "404": { "description": "Thread not found" }
+        },
+        "security": [{ "bearer": [] }, { "apiKey": [] }],
+        "summary": "List messages",
+        "tags": ["v1"]
+      }
+    },
+    "/v1/threads/{threadId}/messages/{messageId}": {
+      "get": {
+        "description": "Get a specific message by ID from a thread.",
+        "operationId": "V1Controller_getMessage",
+        "parameters": [
+          {
+            "name": "threadId",
+            "required": true,
+            "in": "path",
+            "description": "Thread ID",
+            "schema": { "example": "thr_abc123xyz", "type": "string" }
+          },
+          {
+            "name": "messageId",
+            "required": true,
+            "in": "path",
+            "description": "Message ID",
+            "schema": { "example": "msg_xyz789abc", "type": "string" }
+          },
+          {
+            "name": "userKey",
+            "required": false,
+            "in": "query",
+            "description": "Identifier for a user in your system. Required if no bearer token is provided.",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Message details",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/GetMessageResponse" }
+              }
+            }
+          },
+          "404": { "description": "Message not found" }
+        },
+        "security": [{ "bearer": [] }, { "apiKey": [] }],
+        "summary": "Get message",
+        "tags": ["v1"]
+      }
+    },
+    "/v1/threads/runs": {
+      "post": {
+        "description": "Creates a new thread and immediately starts a streaming run. Returns an SSE stream of AG-UI events.",
+        "operationId": "V1Controller_createThreadWithRun",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateThreadWithRunRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "SSE stream of AG-UI events. Each event is sent as 'data: <json>\\n\\n' where <json> is a BaseEvent object.",
+            "headers": {
+              "X-Thread-Id": {
+                "description": "The created thread ID",
+                "schema": { "type": "string" }
+              },
+              "X-Run-Id": {
+                "description": "The created run ID",
+                "schema": { "type": "string" }
+              }
+            },
+            "content": {
+              "text/event-stream": {
+                "schema": { "$ref": "#/components/schemas/BaseEvent" }
+              }
+            }
+          },
+          "409": { "description": "Concurrent run conflict" }
+        },
+        "security": [{ "bearer": [] }, { "apiKey": [] }],
+        "summary": "Create thread with run (SSE)",
+        "tags": ["v1"]
+      }
+    },
+    "/v1/threads/{threadId}/runs": {
+      "post": {
+        "description": "Starts a streaming run on an existing thread. Returns an SSE stream of AG-UI events.",
+        "operationId": "V1Controller_createRun",
+        "parameters": [
+          {
+            "name": "threadId",
+            "required": true,
+            "in": "path",
+            "description": "Thread ID",
+            "schema": { "example": "thr_abc123xyz", "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateRunRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "SSE stream of AG-UI events. Each event is sent as 'data: <json>\\n\\n' where <json> is a BaseEvent object.",
+            "headers": {
+              "X-Run-Id": {
+                "description": "The created run ID",
+                "schema": { "type": "string" }
+              }
+            },
+            "content": {
+              "text/event-stream": {
+                "schema": { "$ref": "#/components/schemas/BaseEvent" }
+              }
+            }
+          },
+          "404": { "description": "Thread not found" },
+          "409": { "description": "Concurrent run conflict" }
+        },
+        "security": [{ "bearer": [] }, { "apiKey": [] }],
+        "summary": "Create run on existing thread (SSE)",
+        "tags": ["v1"]
+      }
+    },
+    "/v1/threads/{threadId}/runs/{runId}": {
+      "delete": {
+        "description": "Explicitly cancel a running run. Note: closing the SSE connection also cancels the run.",
+        "operationId": "V1Controller_cancelRun",
+        "parameters": [
+          {
+            "name": "threadId",
+            "required": true,
+            "in": "path",
+            "description": "Thread ID",
+            "schema": { "example": "thr_abc123xyz", "type": "string" }
+          },
+          {
+            "name": "runId",
+            "required": true,
+            "in": "path",
+            "description": "Run ID",
+            "schema": { "example": "run_xyz789abc", "type": "string" }
+          },
+          {
+            "name": "userKey",
+            "required": false,
+            "in": "query",
+            "description": "Identifier for a user in your system. Required if no bearer token is provided.",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Run cancelled",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/CancelRunResponse" }
+              }
+            }
+          },
+          "404": { "description": "Run not found" }
+        },
+        "security": [{ "bearer": [] }, { "apiKey": [] }],
+        "summary": "Cancel run",
+        "tags": ["v1"]
+      }
+    },
+    "/v1/threads/{threadId}/components/{componentId}/state": {
+      "post": {
+        "description": "Update the state of a component in a thread. Supports both full replacement and JSON Patch operations. Thread must not have an active run.",
+        "operationId": "V1Controller_updateComponentState",
+        "parameters": [
+          {
+            "name": "threadId",
+            "required": true,
+            "in": "path",
+            "description": "Thread ID",
+            "schema": { "example": "thr_abc123xyz", "type": "string" }
+          },
+          {
+            "name": "componentId",
+            "required": true,
+            "in": "path",
+            "description": "Component ID",
+            "schema": { "example": "comp_xyz789abc", "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UpdateComponentState" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Component state updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateComponentStateResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request (missing state/patch, or invalid patch)"
+          },
+          "404": { "description": "Component not found in thread" },
+          "409": { "description": "Cannot update state while run is active" }
+        },
+        "security": [{ "bearer": [] }, { "apiKey": [] }],
+        "summary": "Update component state",
+        "tags": ["v1"]
+      }
+    },
+    "/v1/threads/{threadId}/messages/{messageId}/suggestions": {
+      "get": {
+        "description": "List suggestions that have been generated for a specific message. Supports cursor-based pagination.",
+        "operationId": "V1Controller_listSuggestions",
+        "parameters": [
+          {
+            "name": "threadId",
+            "required": true,
+            "in": "path",
+            "description": "Thread ID",
+            "schema": { "example": "thr_abc123xyz", "type": "string" }
+          },
+          {
+            "name": "messageId",
+            "required": true,
+            "in": "path",
+            "description": "Message ID",
+            "schema": { "example": "msg_xyz789abc", "type": "string" }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Maximum number of suggestions to return",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "cursor",
+            "required": false,
+            "in": "query",
+            "description": "Cursor for pagination",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "userKey",
+            "required": false,
+            "in": "query",
+            "description": "Optional user key for thread organization",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of suggestions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListSuggestionsResponse"
+                }
+              }
+            }
+          },
+          "404": { "description": "Message not found" }
+        },
+        "security": [{ "bearer": [] }, { "apiKey": [] }],
+        "summary": "List suggestions for a message",
+        "tags": ["v1"]
+      },
+      "post": {
+        "description": "Generate AI-powered suggestions for the next action based on the thread context. Suggestions are persisted and can be retrieved later via the list endpoint. Calling this endpoint replaces any existing suggestions for the message.",
+        "operationId": "V1Controller_generateSuggestions",
+        "parameters": [
+          {
+            "name": "threadId",
+            "required": true,
+            "in": "path",
+            "description": "Thread ID",
+            "schema": { "example": "thr_abc123xyz", "type": "string" }
+          },
+          {
+            "name": "messageId",
+            "required": true,
+            "in": "path",
+            "description": "Message ID",
+            "schema": { "example": "msg_xyz789abc", "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GenerateSuggestionsRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Suggestions generated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenerateSuggestionsResponse"
+                }
+              }
+            }
+          },
+          "400": { "description": "Invalid request parameters" },
+          "404": { "description": "Message not found" }
+        },
+        "security": [{ "bearer": [] }, { "apiKey": [] }],
+        "summary": "Generate suggestions for a message",
+        "tags": ["v1"]
+      }
+    }
+  },
+  "info": {
+    "title": "Tambo API",
+    "description": "Hosted Tambo Backend",
+    "version": "0.0.1",
+    "contact": {}
+  },
+  "tags": [],
+  "servers": [],
+  "components": {
+    "securitySchemes": {
+      "apiKey": { "type": "apiKey", "in": "header", "name": "x-api-key" },
+      "bearer": { "scheme": "bearer", "bearerFormat": "JWT", "type": "http" }
+    },
+    "schemas": {
+      "CreateMcpAccessToken": {
+        "type": "object",
+        "properties": {
+          "threadId": {
+            "type": "string",
+            "description": "Thread ID for the MCP access token. If provided, the token will be bound to this thread. If omitted, a sessionless token will be created.",
+            "example": "thread-123"
+          },
+          "contextKey": {
+            "type": "string",
+            "description": "Context key for sessionless MCP access tokens. If not provided, will be extracted from Bearer token.",
+            "example": "user-context-123"
+          }
+        },
+        "description": "Create MCP access token request"
+      },
+      "McpAccessTokenResponse": {
+        "type": "object",
+        "properties": {
+          "mcpAccessToken": {
+            "type": "string",
+            "description": "JWT MCP access token to be used as bearer token. Only included when MCP servers are configured for the project.",
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+          },
+          "expiresAt": {
+            "type": "number",
+            "description": "Expiration time of the token in milliseconds since epoch. Only included when mcpAccessToken is present.",
+            "example": 1704123456789
+          },
+          "hasSession": {
+            "type": "boolean",
+            "description": "Whether the token is bound to a specific thread session. Only included when mcpAccessToken is present.",
+            "example": true
+          }
+        },
+        "description": "MCP access token response"
+      },
+      "OAuthTokenRequest": {
+        "type": "object",
+        "properties": {
+          "grant_type": {
+            "type": "string",
+            "description": "OAuth 2.0 grant type - must be 'urn:ietf:params:oauth:grant-type:token-exchange'",
+            "example": "urn:ietf:params:oauth:grant-type:token-exchange"
+          },
+          "subject_token": {
+            "type": "string",
+            "description": "OAuth subject token from an OAuth provider (e.g., Google, Microsoft)",
+            "example": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IjEyMzQ1Njc4OTAifQ..."
+          },
+          "subject_token_type": {
+            "type": "string",
+            "description": "Type of the subject token - should be 'urn:ietf:params:oauth:token-type:access_token' or 'urn:ietf:params:oauth:token-type:id_token'",
+            "example": "urn:ietf:params:oauth:token-type:id_token"
+          },
+          "audience": {
+            "type": "string",
+            "description": "Optional audience for the token"
+          },
+          "scope": {
+            "type": "string",
+            "description": "Optional scope for the token"
+          }
+        },
+        "description": "OAuth 2.0 Token Exchange Endpoint",
+        "required": ["grant_type", "subject_token", "subject_token_type"]
+      },
+      "OAuthTokenResponse": {
+        "type": "object",
+        "properties": {
+          "access_token": {
+            "type": "string",
+            "description": "JWT access token signed by Tambo with projectId as issuer",
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+          },
+          "token_type": {
+            "type": "string",
+            "description": "Token type - always 'Bearer'",
+            "example": "Bearer"
+          },
+          "expires_in": {
+            "type": "number",
+            "description": "Token expiration time in seconds",
+            "example": 3600
+          },
+          "issued_token_type": {
+            "type": "string",
+            "description": "Type of the issued token",
+            "example": "urn:ietf:params:oauth:token-type:access_token"
+          }
+        },
+        "description": "OAuth 2.0 Token Response",
+        "required": [
+          "access_token",
+          "token_type",
+          "expires_in",
+          "issued_token_type"
+        ]
+      },
+      "ProjectResponse": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "userId": { "type": "string" },
+          "defaultLlmProviderName": { "type": "string" },
+          "defaultLlmModelName": { "type": "string" },
+          "customLlmModelName": { "type": "string" },
+          "customLlmBaseURL": { "type": "string" },
+          "customInstructions": { "type": "string" },
+          "maxInputTokens": { "type": "number", "nullable": true },
+          "allowSystemPromptOverride": { "type": "boolean" },
+          "isTokenRequired": { "type": "boolean" },
+          "providerType": { "enum": ["llm", "agent"], "type": "string" },
+          "agentProviderType": {
+            "enum": [
+              "ag-ui",
+              "mastra",
+              "crewai",
+              "llamaindex",
+              "langgraph",
+              "pydanticai"
+            ],
+            "type": "string"
+          },
+          "agentName": { "type": "string" },
+          "agentUrl": { "type": "string" },
+          "customLlmParameters": { "type": "object" }
+        },
+        "required": ["id", "name", "userId", "isTokenRequired", "providerType"]
+      },
+      "APIKeyResponse": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "partiallyHiddenKey": { "type": "string" },
+          "lastUsed": { "format": "date-time", "type": "string" },
+          "created": { "format": "date-time", "type": "string" },
+          "createdByUserId": { "type": "string" }
+        }
+      },
+      "ProviderKeyResponse": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "providerName": { "type": "string" },
+          "providerKeyEncrypted": { "type": "string" },
+          "partiallyHiddenKey": { "type": "string" }
+        }
+      },
+      "SimpleProjectResponse": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" }
+        },
+        "required": ["id", "name"]
+      },
+      "ThreadRequest": {
+        "type": "object",
+        "properties": {
+          "contextKey": {
+            "type": "string",
+            "description": "Unique user identifier for the thread"
+          },
+          "metadata": { "type": "object", "additionalProperties": true },
+          "projectId": { "type": "string" },
+          "generationStage": {
+            "enum": [
+              "IDLE",
+              "CHOOSING_COMPONENT",
+              "FETCHING_CONTEXT",
+              "HYDRATING_COMPONENT",
+              "STREAMING_RESPONSE",
+              "COMPLETE",
+              "ERROR",
+              "CANCELLED"
+            ],
+            "type": "string"
+          },
+          "statusMessage": { "type": "string" },
+          "name": { "type": "string" }
+        },
+        "required": ["projectId"]
+      },
+      "Thread": {
+        "type": "object",
+        "properties": {
+          "metadata": { "type": "object", "additionalProperties": true },
+          "projectId": { "type": "string" },
+          "generationStage": {
+            "enum": [
+              "IDLE",
+              "CHOOSING_COMPONENT",
+              "FETCHING_CONTEXT",
+              "HYDRATING_COMPONENT",
+              "STREAMING_RESPONSE",
+              "COMPLETE",
+              "ERROR",
+              "CANCELLED"
+            ],
+            "type": "string"
+          },
+          "statusMessage": { "type": "string" },
+          "name": { "type": "string" },
+          "id": { "type": "string" },
+          "createdAt": { "format": "date-time", "type": "string" },
+          "updatedAt": { "format": "date-time", "type": "string" }
+        },
+        "required": ["projectId", "id", "createdAt", "updatedAt"]
+      },
+      "ThreadList": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Thread" }
+          },
+          "total": { "type": "number" },
+          "offset": { "type": "number" },
+          "limit": { "type": "number" },
+          "count": { "type": "number" }
+        },
+        "required": ["items", "total", "offset", "limit", "count"]
+      },
+      "ToolParameter": {
+        "type": "object",
+        "properties": {
+          "parameterName": { "type": "string" },
+          "parameterValue": { "type": "object" }
+        },
+        "required": ["parameterName", "parameterValue"]
+      },
+      "ToolCallRequest": {
+        "type": "object",
+        "properties": {
+          "tool_call_id": {
+            "type": "string",
+            "deprecated": true,
+            "description": "The unique id of the tool call, no longer used."
+          },
+          "parameters": {
+            "description": "The parameters of the function to call.",
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ToolParameter" }
+          },
+          "toolName": {
+            "type": "string",
+            "description": "The name of the function to call."
+          }
+        },
+        "required": ["parameters", "toolName"]
+      },
+      "ContentPartType": {
+        "type": "string",
+        "enum": ["text", "image_url", "input_audio", "resource"],
+        "description": "The type of content part"
+      },
+      "ImageUrl": {
+        "type": "object",
+        "properties": {
+          "url": { "type": "string" },
+          "detail": { "type": "string", "enum": ["auto", "high", "low"] }
+        },
+        "required": ["url"]
+      },
+      "InputAudio": {
+        "type": "object",
+        "properties": {
+          "data": { "type": "string" },
+          "format": { "type": "string", "enum": ["wav", "mp3"] }
+        },
+        "required": ["data", "format"]
+      },
+      "ResourceAnnotations": {
+        "type": "object",
+        "properties": {
+          "audience": {
+            "description": "Target audience for this resource",
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "priority": {
+            "type": "number",
+            "description": "Priority level for this resource"
+          }
+        }
+      },
+      "Resource": {
+        "type": "object",
+        "properties": {
+          "uri": {
+            "type": "string",
+            "description": "URI identifying the resource (e.g., file://, https://, s3://)",
+            "example": "file:///path/to/document.pdf"
+          },
+          "name": {
+            "type": "string",
+            "description": "Human-readable name for the resource",
+            "example": "project-documentation.pdf"
+          },
+          "description": {
+            "type": "string",
+            "description": "Optional description of the resource",
+            "example": "Project documentation for Q4 2024"
+          },
+          "mimeType": {
+            "type": "string",
+            "description": "MIME type of the resource",
+            "example": "application/pdf"
+          },
+          "text": {
+            "type": "string",
+            "description": "Inline text content (alternative to uri)",
+            "example": "The contents of the document..."
+          },
+          "blob": {
+            "type": "string",
+            "description": "Base64-encoded blob data (alternative to uri or text)",
+            "example": "SGVsbG8gV29ybGQh"
+          },
+          "annotations": {
+            "description": "Annotations for additional metadata (MCP-specific). Can include audience, priority, or custom properties.",
+            "allOf": [{ "$ref": "#/components/schemas/ResourceAnnotations" }]
+          }
+        }
+      },
+      "ChatCompletionContentPart": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "description": "The type of content part",
+            "allOf": [{ "$ref": "#/components/schemas/ContentPartType" }]
+          },
+          "text": {
+            "type": "string",
+            "description": "Text content (when type is 'text')"
+          },
+          "image_url": {
+            "description": "Image URL content (when type is 'image_url')",
+            "allOf": [{ "$ref": "#/components/schemas/ImageUrl" }]
+          },
+          "input_audio": {
+            "description": "Input audio content (when type is 'input_audio')",
+            "allOf": [{ "$ref": "#/components/schemas/InputAudio" }]
+          },
+          "resource": {
+            "description": "Resource content (when type is 'resource'). Supports MCP Resources with URI, text, or blob data.",
+            "allOf": [{ "$ref": "#/components/schemas/Resource" }]
+          }
+        },
+        "required": ["type"]
+      },
+      "ComponentDecisionV2": {
+        "type": "object",
+        "properties": {
+          "props": { "type": "object", "additionalProperties": true },
+          "componentState": {
+            "type": "object",
+            "nullable": true,
+            "additionalProperties": true
+          },
+          "toolCallRequest": {
+            "description": "The tool call request. This is filled in whether the tool call is a server-side or client-side tool call.",
+            "allOf": [{ "$ref": "#/components/schemas/ToolCallRequest" }]
+          },
+          "toolCallId": {
+            "type": "string",
+            "example": {
+              "parameters": [
+                { "parameterName": "name", "parameterValue": "John Doe" }
+              ],
+              "toolName": "get_user_info"
+            },
+            "description": "The unique id of the tool call. This is filled in whether the tool call is a server-side or client-side tool call."
+          },
+          "componentName": { "type": "string", "nullable": true },
+          "message": { "type": "string" },
+          "statusMessage": { "type": "string" },
+          "completionStatusMessage": { "type": "string" }
+        },
+        "required": ["props", "componentState", "componentName", "message"]
+      },
+      "ThreadMessage": {
+        "type": "object",
+        "properties": {
+          "parentMessageId": {
+            "type": "string",
+            "description": "The id of the parent message, if the message was created during the \ngeneration of another message, such as during an agent call, MCP Elicitation, or MCP Sample"
+          },
+          "metadata": { "type": "object", "additionalProperties": true },
+          "reasoning": {
+            "description": "Reasoning text from the LLM, if the model supports it.",
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "reasoningDurationMS": {
+            "type": "number",
+            "description": "Duration of reasoning in milliseconds"
+          },
+          "componentState": { "type": "object", "additionalProperties": true },
+          "toolCallRequest": {
+            "description": "The tool call request. This is filled in only if the tool call is a client-side tool call.",
+            "allOf": [{ "$ref": "#/components/schemas/ToolCallRequest" }]
+          },
+          "tool_call_id": {
+            "type": "string",
+            "description": "The unique id of the tool call. This is filled in only if the tool call is a client-side tool call."
+          },
+          "actionType": {
+            "enum": ["tool_call", "tool_response"],
+            "type": "string",
+            "deprecated": true,
+            "description": "Deprecated: use the role and the presence of tool calls to determine the action type"
+          },
+          "error": { "type": "string" },
+          "isCancelled": {
+            "type": "boolean",
+            "description": "Whether the message has been cancelled"
+          },
+          "additionalContext": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "Additional context to provide to the AI beyond the user query, such as the info about the current page the user is visiting."
+          },
+          "id": { "type": "string" },
+          "threadId": { "type": "string" },
+          "role": {
+            "enum": ["user", "assistant", "system", "tool"],
+            "type": "string"
+          },
+          "content": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ChatCompletionContentPart"
+            }
+          },
+          "component": { "$ref": "#/components/schemas/ComponentDecisionV2" },
+          "tool_calls": { "type": "array", "items": { "type": "object" } },
+          "createdAt": { "format": "date-time", "type": "string" }
+        },
+        "required": [
+          "componentState",
+          "id",
+          "threadId",
+          "role",
+          "content",
+          "createdAt"
+        ]
+      },
+      "ThreadWithMessages": {
+        "type": "object",
+        "properties": {
+          "metadata": { "type": "object", "additionalProperties": true },
+          "projectId": { "type": "string" },
+          "generationStage": {
+            "enum": [
+              "IDLE",
+              "CHOOSING_COMPONENT",
+              "FETCHING_CONTEXT",
+              "HYDRATING_COMPONENT",
+              "STREAMING_RESPONSE",
+              "COMPLETE",
+              "ERROR",
+              "CANCELLED"
+            ],
+            "type": "string"
+          },
+          "statusMessage": { "type": "string" },
+          "name": { "type": "string" },
+          "id": { "type": "string" },
+          "createdAt": { "format": "date-time", "type": "string" },
+          "updatedAt": { "format": "date-time", "type": "string" },
+          "messages": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ThreadMessage" }
+          }
+        },
+        "required": ["projectId", "id", "createdAt", "updatedAt", "messages"]
+      },
+      "ProblemDetails": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "maxLength": 1024,
+            "format": "uri",
+            "description": "A URI reference that identifies the problem type",
+            "example": "https://problems-registry.smartbear.com/not-found"
+          },
+          "status": {
+            "type": "number",
+            "minimum": 100,
+            "maximum": 599,
+            "description": "The HTTP status code for this occurrence of the problem",
+            "example": 404
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 1024,
+            "description": "A short, human-readable summary of the problem type",
+            "example": "Resource Not Found"
+          },
+          "detail": {
+            "type": "string",
+            "maxLength": 4096,
+            "description": "A human-readable explanation specific to this occurrence of the problem",
+            "example": "Message with ID 'msg_123456789' was not found"
+          },
+          "instance": {
+            "type": "string",
+            "maxLength": 1024,
+            "description": "A URI reference that identifies the specific occurrence of the problem",
+            "example": "/threads/123/messages/msg_123456789"
+          },
+          "code": {
+            "type": "string",
+            "maxLength": 50,
+            "description": "An API specific error code aiding the provider team understand the error",
+            "example": "MSG_NOT_FOUND"
+          },
+          "errors": {
+            "description": "An array of error details to accompany a problem details response",
+            "example": [
+              { "detail": "Invalid message ID format", "pointer": "/messageId" }
+            ],
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "details": {
+            "type": "object",
+            "description": "Additional error details specific to this occurrence",
+            "example": { "messageId": "msg_123456789" },
+            "additionalProperties": true
+          }
+        },
+        "required": ["type"]
+      },
+      "MessageRequest": {
+        "type": "object",
+        "properties": {
+          "reasoning": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Reasoning text from the LLM, if the model supports it."
+          },
+          "reasoningDurationMS": {
+            "type": "number",
+            "description": "Duration of reasoning in milliseconds"
+          },
+          "metadata": { "type": "object", "additionalProperties": true },
+          "actionType": {
+            "enum": ["tool_call", "tool_response"],
+            "type": "string",
+            "deprecated": true,
+            "description": "No longer used - instead set role and the tool call information"
+          },
+          "error": { "type": "string" },
+          "isCancelled": {
+            "type": "boolean",
+            "description": "Whether the message has been cancelled"
+          },
+          "toolResponse": {
+            "type": "object",
+            "description": "@deprecated Put the response in the content instead"
+          },
+          "componentState": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "The initial state of the component"
+          },
+          "additionalContext": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "Additional context to provide to the AI beyond the user query, such as the info about the current page the user is visiting."
+          },
+          "role": {
+            "type": "string",
+            "enum": ["user", "assistant", "system", "tool"]
+          },
+          "content": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ChatCompletionContentPart"
+            }
+          },
+          "component": { "$ref": "#/components/schemas/ComponentDecisionV2" },
+          "toolCallRequest": { "$ref": "#/components/schemas/ToolCallRequest" },
+          "tool_call_id": { "type": "string" }
+        },
+        "required": ["role", "content"]
+      },
+      "Suggestion": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the suggestion",
+            "example": "sug_123456789"
+          },
+          "messageId": {
+            "type": "string",
+            "description": "ID of the message this suggestion is for",
+            "example": "msg_123456789"
+          },
+          "title": {
+            "type": "string",
+            "description": "Short title or summary of the suggestion",
+            "example": "Add error handling"
+          },
+          "detailedSuggestion": {
+            "type": "string",
+            "description": "Detailed explanation of the suggestion",
+            "example": "Add try-catch block to handle potential API errors"
+          },
+          "description": {
+            "type": "string",
+            "description": "Detailed explanation of the suggestion (alias for detailedSuggestion)",
+            "example": "Add try-catch block to handle potential API errors"
+          },
+          "metadata": {
+            "type": "object",
+            "description": "Additional metadata for the suggestion",
+            "additionalProperties": { "type": "string" },
+            "example": { "category": "error-handling", "priority": "high" }
+          }
+        },
+        "required": [
+          "id",
+          "messageId",
+          "title",
+          "detailedSuggestion",
+          "description"
+        ]
+      },
+      "ToolParameters": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "type": { "type": "string" },
+          "description": { "type": "string" },
+          "isRequired": { "type": "boolean" },
+          "items": {
+            "type": "object",
+            "properties": { "type": { "type": "string" } },
+            "required": ["type"]
+          },
+          "enumValues": { "type": "array", "items": { "type": "string" } },
+          "schema": { "type": "object" }
+        },
+        "required": ["name", "type", "description", "isRequired"]
+      },
+      "ComponentContextToolMetadata": {
+        "type": "object",
+        "properties": {
+          "maxCalls": {
+            "type": "number",
+            "description": "Maximum number of times this tool can be called in a single thread execution.Overrides project-level maxToolCalls setting for this specific tool."
+          },
+          "name": { "type": "string" },
+          "description": { "type": "string" },
+          "parameters": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ToolParameters" }
+          }
+        },
+        "required": ["name", "description", "parameters"]
+      },
+      "AvailableComponent": {
+        "type": "object",
+        "properties": {
+          "props": {
+            "type": "object",
+            "description": "JSON Schema for the component's props",
+            "additionalProperties": true
+          },
+          "name": { "type": "string" },
+          "description": { "type": "string" },
+          "contextTools": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ComponentContextToolMetadata"
+            }
+          }
+        },
+        "required": ["props", "name", "description", "contextTools"]
+      },
+      "SuggestionsGenerate": {
+        "type": "object",
+        "properties": {
+          "maxSuggestions": {
+            "type": "number",
+            "default": 3,
+            "minimum": 1,
+            "maximum": 10,
+            "description": "Maximum number of suggestions to generate"
+          },
+          "availableComponents": {
+            "description": "Available components that can be used with this suggestion",
+            "example": [
+              {
+                "name": "Button",
+                "description": "A clickable button component",
+                "contextTools": [
+                  {
+                    "name": "fetchData",
+                    "description": "Fetches data for the button",
+                    "parameters": []
+                  }
+                ],
+                "props": { "variant": "primary", "size": "medium" }
+              }
+            ],
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/AvailableComponent" }
+          }
+        }
+      },
+      "UpdateComponentStateRequest": {
+        "type": "object",
+        "properties": {
+          "state": { "type": "object", "additionalProperties": true }
+        },
+        "required": ["state"]
+      },
+      "AdvanceThread": {
+        "type": "object",
+        "properties": {
+          "contextKey": {
+            "type": "string",
+            "description": "Unique user identifier for the thread"
+          },
+          "toolCallCounts": {
+            "type": "object",
+            "description": "Tool call counts",
+            "example": { "tool_name": 1 },
+            "additionalProperties": { "type": "number" }
+          },
+          "initialMessages": {
+            "description": "Initial messages to include when creating a new thread",
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/MessageRequest" }
+          },
+          "messageToAppend": { "$ref": "#/components/schemas/MessageRequest" },
+          "availableComponents": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/AvailableComponent" }
+          },
+          "clientTools": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ComponentContextToolMetadata"
+            }
+          },
+          "forceToolChoice": { "type": "string" }
+        },
+        "required": ["messageToAppend"]
+      },
+      "AdvanceThreadResponse": {
+        "type": "object",
+        "properties": {
+          "responseMessageDto": {
+            "description": "Response message",
+            "example": {
+              "role": "assistant",
+              "content": "Hello, how are you?"
+            },
+            "allOf": [{ "$ref": "#/components/schemas/ThreadMessage" }]
+          },
+          "statusMessage": {
+            "type": "string",
+            "description": "Status message for the generation stage",
+            "example": "Streaming response..."
+          },
+          "mcpAccessToken": {
+            "type": "string",
+            "description": "MCP access token to be used as bearer token when talking to the Tambo MCP server. Only included when MCP servers are configured for the project.",
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+          },
+          "generationStage": {
+            "enum": [
+              "IDLE",
+              "CHOOSING_COMPONENT",
+              "FETCHING_CONTEXT",
+              "HYDRATING_COMPONENT",
+              "STREAMING_RESPONSE",
+              "COMPLETE",
+              "ERROR",
+              "CANCELLED"
+            ],
+            "type": "string"
+          }
+        },
+        "required": ["responseMessageDto", "generationStage"]
+      },
+      "TranscribeAudioDto": {
+        "type": "object",
+        "properties": {
+          "file": {
+            "type": "string",
+            "description": "Audio file to transcribe (MP3, WAV, MP4, MPEG, MPGA, M4A, or WEBM)",
+            "format": "binary"
+          }
+        },
+        "required": ["file"]
+      },
+      "PresignUploadDto": {
+        "type": "object",
+        "properties": {
+          "contentType": {
+            "type": "string",
+            "description": "The MIME type of the file",
+            "example": "application/pdf"
+          },
+          "size": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 10485760,
+            "description": "The file size in bytes (max 10MB)",
+            "example": 1024000
+          }
+        },
+        "required": ["contentType", "size"]
+      },
+      "PresignUploadResponseDto": {
+        "type": "object",
+        "properties": {
+          "uploadUrl": {
+            "type": "string",
+            "description": "The presigned URL to PUT the file directly to S3",
+            "example": "https://s3.amazonaws.com/bucket/key?X-Amz-Signature=..."
+          },
+          "attachmentUri": {
+            "type": "string",
+            "description": "The attachment URI to reference this file in messages",
+            "example": "attachment://p_u2tgQg5U.43bbdf/Ab3xY9kLmN"
+          },
+          "expiresIn": {
+            "type": "number",
+            "description": "Time in seconds until the presigned URL expires",
+            "example": 3600
+          }
+        },
+        "required": ["uploadUrl", "attachmentUri", "expiresIn"]
+      },
+      "RunError": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "Error code",
+            "example": "INTERNAL_ERROR"
+          },
+          "message": {
+            "type": "string",
+            "description": "Error message",
+            "example": "An unexpected error occurred"
+          }
+        },
+        "required": ["message"]
+      },
+      "V1Thread": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for this thread",
+            "example": "thr_abc123xyz"
+          },
+          "name": {
+            "type": "string",
+            "description": "Thread name (auto-generated or user-set)"
+          },
+          "userKey": {
+            "type": "string",
+            "description": "Optional user key for thread organization"
+          },
+          "runStatus": {
+            "enum": ["idle", "waiting", "streaming"],
+            "type": "string",
+            "description": "Current run status: idle (no run), waiting (run started, awaiting content), streaming (receiving content)",
+            "example": "idle"
+          },
+          "currentRunId": {
+            "type": "string",
+            "description": "ID of the currently active run (when not idle)"
+          },
+          "statusMessage": {
+            "type": "string",
+            "description": "Human-readable status message (e.g., 'Fetching weather data...')"
+          },
+          "lastRunCancelled": {
+            "type": "boolean",
+            "description": "Whether the last run was cancelled"
+          },
+          "lastRunError": {
+            "description": "Error information from the last run",
+            "allOf": [{ "$ref": "#/components/schemas/RunError" }]
+          },
+          "pendingToolCallIds": {
+            "description": "Tool call IDs awaiting client-side results. If non-empty, next run must provide tool_result content with previousRunId set.",
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "lastCompletedRunId": {
+            "type": "string",
+            "description": "ID of the last completed run. Required as previousRunId when continuing after tool calls."
+          },
+          "metadata": {
+            "type": "object",
+            "description": "Additional metadata"
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "When the thread was created (ISO 8601)",
+            "example": "2024-01-15T12:00:00Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "description": "When the thread was last updated (ISO 8601)",
+            "example": "2024-01-15T12:05:00Z"
+          }
+        },
+        "required": ["id", "runStatus", "createdAt", "updatedAt"]
+      },
+      "ListThreadsResponse": {
+        "type": "object",
+        "properties": {
+          "threads": {
+            "description": "List of threads",
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/V1Thread" }
+          },
+          "nextCursor": {
+            "type": "string",
+            "description": "Cursor for the next page of results"
+          },
+          "hasMore": {
+            "type": "boolean",
+            "description": "Whether there are more results"
+          }
+        },
+        "required": ["threads", "hasMore"]
+      },
+      "TextContent": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "Content block type identifier",
+            "enum": ["text"],
+            "example": "text"
+          },
+          "text": {
+            "type": "string",
+            "description": "The text content",
+            "example": "Hello, world!"
+          }
+        },
+        "required": ["type", "text"]
+      },
+      "ResourceContent": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "Content block type identifier",
+            "enum": ["resource"],
+            "example": "resource"
+          },
+          "resource": {
+            "description": "Resource data containing URI, text, or blob",
+            "allOf": [{ "$ref": "#/components/schemas/Resource" }]
+          }
+        },
+        "required": ["type", "resource"]
+      },
+      "ToolUseContent": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "Content block type identifier",
+            "enum": ["tool_use"],
+            "example": "tool_use"
+          },
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for this tool call",
+            "example": "call_abc123"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the tool being called",
+            "example": "get_weather"
+          },
+          "input": {
+            "type": "object",
+            "description": "Input arguments for the tool",
+            "example": { "location": "San Francisco", "unit": "celsius" }
+          }
+        },
+        "required": ["type", "id", "name", "input"]
+      },
+      "ToolResultContent": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "Content block type identifier",
+            "enum": ["tool_result"],
+            "example": "tool_result"
+          },
+          "toolUseId": {
+            "type": "string",
+            "description": "ID of the tool call this result responds to",
+            "example": "call_abc123"
+          },
+          "content": {
+            "type": "array",
+            "description": "Result content (text or resource blocks)",
+            "items": {
+              "oneOf": [
+                { "$ref": "#/components/schemas/TextContent" },
+                { "$ref": "#/components/schemas/ResourceContent" }
+              ],
+              "discriminator": {
+                "propertyName": "type",
+                "mapping": {
+                  "text": "#/components/schemas/TextContent",
+                  "resource": "#/components/schemas/ResourceContent"
+                }
+              }
+            }
+          },
+          "isError": {
+            "type": "boolean",
+            "description": "Whether the tool call resulted in an error"
+          }
+        },
+        "required": ["type", "toolUseId", "content"]
+      },
+      "ComponentContent": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "Content block type identifier",
+            "enum": ["component"],
+            "example": "component"
+          },
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for this component instance",
+            "example": "comp_xyz789"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the component to render",
+            "example": "WeatherCard"
+          },
+          "props": {
+            "type": "object",
+            "description": "Props to pass to the component",
+            "example": { "temperature": 72, "location": "San Francisco" }
+          },
+          "state": {
+            "type": "object",
+            "description": "Current state of the component"
+          }
+        },
+        "required": ["type", "id", "name", "props"]
+      },
+      "Message": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for this message",
+            "example": "msg_abc123xyz"
+          },
+          "role": {
+            "enum": ["user", "assistant", "system"],
+            "type": "string",
+            "description": "Message role",
+            "example": "assistant"
+          },
+          "content": {
+            "type": "array",
+            "description": "Content blocks in this message",
+            "items": {
+              "oneOf": [
+                { "$ref": "#/components/schemas/TextContent" },
+                { "$ref": "#/components/schemas/ResourceContent" },
+                { "$ref": "#/components/schemas/ToolUseContent" },
+                { "$ref": "#/components/schemas/ToolResultContent" },
+                { "$ref": "#/components/schemas/ComponentContent" }
+              ],
+              "discriminator": {
+                "propertyName": "type",
+                "mapping": {
+                  "text": "#/components/schemas/TextContent",
+                  "resource": "#/components/schemas/ResourceContent",
+                  "tool_use": "#/components/schemas/ToolUseContent",
+                  "tool_result": "#/components/schemas/ToolResultContent",
+                  "component": "#/components/schemas/ComponentContent"
+                }
+              }
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "When the message was created (ISO 8601)",
+            "example": "2024-01-15T12:00:00Z"
+          },
+          "metadata": {
+            "type": "object",
+            "description": "Additional metadata"
+          },
+          "parentMessageId": {
+            "type": "string",
+            "description": "The id of the parent message, if the message was created during the generation of another message, such as during an agent call, MCP Elicitation, or MCP Sample"
+          },
+          "isCancelled": {
+            "type": "boolean",
+            "description": "Whether this message was interrupted by a run cancellation. When true, the message content may be incomplete.",
+            "example": false
+          }
+        },
+        "required": ["id", "role", "content"]
+      },
+      "GetThreadResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for this thread",
+            "example": "thr_abc123xyz"
+          },
+          "name": {
+            "type": "string",
+            "description": "Thread name (auto-generated or user-set)"
+          },
+          "userKey": {
+            "type": "string",
+            "description": "Optional user key for thread organization"
+          },
+          "runStatus": {
+            "enum": ["idle", "waiting", "streaming"],
+            "type": "string",
+            "description": "Current run status: idle (no run), waiting (run started, awaiting content), streaming (receiving content)",
+            "example": "idle"
+          },
+          "currentRunId": {
+            "type": "string",
+            "description": "ID of the currently active run (when not idle)"
+          },
+          "statusMessage": {
+            "type": "string",
+            "description": "Human-readable status message (e.g., 'Fetching weather data...')"
+          },
+          "lastRunCancelled": {
+            "type": "boolean",
+            "description": "Whether the last run was cancelled"
+          },
+          "lastRunError": {
+            "description": "Error information from the last run",
+            "allOf": [{ "$ref": "#/components/schemas/RunError" }]
+          },
+          "pendingToolCallIds": {
+            "description": "Tool call IDs awaiting client-side results. If non-empty, next run must provide tool_result content with previousRunId set.",
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "lastCompletedRunId": {
+            "type": "string",
+            "description": "ID of the last completed run. Required as previousRunId when continuing after tool calls."
+          },
+          "metadata": {
+            "type": "object",
+            "description": "Additional metadata"
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "When the thread was created (ISO 8601)",
+            "example": "2024-01-15T12:00:00Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "description": "When the thread was last updated (ISO 8601)",
+            "example": "2024-01-15T12:05:00Z"
+          },
+          "messages": {
+            "description": "Messages in this thread",
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Message" }
+          }
+        },
+        "required": ["id", "runStatus", "createdAt", "updatedAt", "messages"]
+      },
+      "InitialMessage": {
+        "type": "object",
+        "properties": {
+          "role": {
+            "enum": ["user", "system", "assistant"],
+            "type": "string",
+            "description": "Message role - 'user', 'system', or 'assistant' for initial messages",
+            "example": "user"
+          },
+          "content": {
+            "type": "array",
+            "description": "Content blocks (text or resource)",
+            "items": {
+              "oneOf": [
+                { "$ref": "#/components/schemas/TextContent" },
+                { "$ref": "#/components/schemas/ResourceContent" }
+              ],
+              "discriminator": {
+                "propertyName": "type",
+                "mapping": {
+                  "text": "#/components/schemas/TextContent",
+                  "resource": "#/components/schemas/ResourceContent"
+                }
+              }
+            }
+          },
+          "metadata": {
+            "type": "object",
+            "description": "Additional metadata to attach to the message"
+          }
+        },
+        "required": ["role", "content"]
+      },
+      "CreateThreadRequest": {
+        "type": "object",
+        "properties": {
+          "userKey": {
+            "type": "string",
+            "description": "Identifier for a user in your system. Required if no bearer token is provided."
+          },
+          "metadata": {
+            "type": "object",
+            "description": "Additional metadata to attach to the thread"
+          },
+          "initialMessages": {
+            "description": "Initial messages to seed the thread with",
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/InitialMessage" }
+          }
+        }
+      },
+      "CreateThreadResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for this thread",
+            "example": "thr_abc123xyz"
+          },
+          "name": {
+            "type": "string",
+            "description": "Thread name (auto-generated or user-set)"
+          },
+          "userKey": {
+            "type": "string",
+            "description": "Optional user key for thread organization"
+          },
+          "runStatus": {
+            "enum": ["idle", "waiting", "streaming"],
+            "type": "string",
+            "description": "Current run status: idle (no run), waiting (run started, awaiting content), streaming (receiving content)",
+            "example": "idle"
+          },
+          "currentRunId": {
+            "type": "string",
+            "description": "ID of the currently active run (when not idle)"
+          },
+          "statusMessage": {
+            "type": "string",
+            "description": "Human-readable status message (e.g., 'Fetching weather data...')"
+          },
+          "lastRunCancelled": {
+            "type": "boolean",
+            "description": "Whether the last run was cancelled"
+          },
+          "lastRunError": {
+            "description": "Error information from the last run",
+            "allOf": [{ "$ref": "#/components/schemas/RunError" }]
+          },
+          "pendingToolCallIds": {
+            "description": "Tool call IDs awaiting client-side results. If non-empty, next run must provide tool_result content with previousRunId set.",
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "lastCompletedRunId": {
+            "type": "string",
+            "description": "ID of the last completed run. Required as previousRunId when continuing after tool calls."
+          },
+          "metadata": {
+            "type": "object",
+            "description": "Additional metadata"
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "When the thread was created (ISO 8601)",
+            "example": "2024-01-15T12:00:00Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "description": "When the thread was last updated (ISO 8601)",
+            "example": "2024-01-15T12:05:00Z"
+          }
+        },
+        "required": ["id", "runStatus", "createdAt", "updatedAt"]
+      },
+      "UpdateThreadRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Thread name (for manual renaming)"
+          },
+          "metadata": {
+            "type": "object",
+            "description": "Additional metadata to update"
+          }
+        }
+      },
+      "UpdateThreadResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for this thread",
+            "example": "thr_abc123xyz"
+          },
+          "name": {
+            "type": "string",
+            "description": "Thread name (auto-generated or user-set)"
+          },
+          "userKey": {
+            "type": "string",
+            "description": "Optional user key for thread organization"
+          },
+          "runStatus": {
+            "enum": ["idle", "waiting", "streaming"],
+            "type": "string",
+            "description": "Current run status: idle (no run), waiting (run started, awaiting content), streaming (receiving content)",
+            "example": "idle"
+          },
+          "currentRunId": {
+            "type": "string",
+            "description": "ID of the currently active run (when not idle)"
+          },
+          "statusMessage": {
+            "type": "string",
+            "description": "Human-readable status message (e.g., 'Fetching weather data...')"
+          },
+          "lastRunCancelled": {
+            "type": "boolean",
+            "description": "Whether the last run was cancelled"
+          },
+          "lastRunError": {
+            "description": "Error information from the last run",
+            "allOf": [{ "$ref": "#/components/schemas/RunError" }]
+          },
+          "pendingToolCallIds": {
+            "description": "Tool call IDs awaiting client-side results. If non-empty, next run must provide tool_result content with previousRunId set.",
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "lastCompletedRunId": {
+            "type": "string",
+            "description": "ID of the last completed run. Required as previousRunId when continuing after tool calls."
+          },
+          "metadata": {
+            "type": "object",
+            "description": "Additional metadata"
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "When the thread was created (ISO 8601)",
+            "example": "2024-01-15T12:00:00Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "description": "When the thread was last updated (ISO 8601)",
+            "example": "2024-01-15T12:05:00Z"
+          }
+        },
+        "required": ["id", "runStatus", "createdAt", "updatedAt"]
+      },
+      "ListMessagesResponse": {
+        "type": "object",
+        "properties": {
+          "messages": {
+            "description": "List of messages in the thread",
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Message" }
+          },
+          "nextCursor": {
+            "type": "string",
+            "description": "Cursor for the next page of results"
+          },
+          "hasMore": {
+            "type": "boolean",
+            "description": "Whether there are more results"
+          }
+        },
+        "required": ["messages", "hasMore"]
+      },
+      "GetMessageResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for this message",
+            "example": "msg_abc123xyz"
+          },
+          "role": {
+            "enum": ["user", "assistant", "system"],
+            "type": "string",
+            "description": "Message role",
+            "example": "assistant"
+          },
+          "content": {
+            "type": "array",
+            "description": "Content blocks in this message",
+            "items": {
+              "oneOf": [
+                { "$ref": "#/components/schemas/TextContent" },
+                { "$ref": "#/components/schemas/ResourceContent" },
+                { "$ref": "#/components/schemas/ToolUseContent" },
+                { "$ref": "#/components/schemas/ToolResultContent" },
+                { "$ref": "#/components/schemas/ComponentContent" }
+              ],
+              "discriminator": {
+                "propertyName": "type",
+                "mapping": {
+                  "text": "#/components/schemas/TextContent",
+                  "resource": "#/components/schemas/ResourceContent",
+                  "tool_use": "#/components/schemas/ToolUseContent",
+                  "tool_result": "#/components/schemas/ToolResultContent",
+                  "component": "#/components/schemas/ComponentContent"
+                }
+              }
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "When the message was created (ISO 8601)",
+            "example": "2024-01-15T12:00:00Z"
+          },
+          "metadata": {
+            "type": "object",
+            "description": "Additional metadata"
+          },
+          "parentMessageId": {
+            "type": "string",
+            "description": "The id of the parent message, if the message was created during the generation of another message, such as during an agent call, MCP Elicitation, or MCP Sample"
+          },
+          "isCancelled": {
+            "type": "boolean",
+            "description": "Whether this message was interrupted by a run cancellation. When true, the message content may be incomplete.",
+            "example": false
+          }
+        },
+        "required": ["id", "role", "content"]
+      },
+      "InputMessage": {
+        "type": "object",
+        "properties": {
+          "role": {
+            "type": "string",
+            "enum": ["user"],
+            "description": "Message role - must be 'user' for input messages",
+            "example": "user"
+          },
+          "content": {
+            "type": "array",
+            "description": "Content blocks (text, resource, or tool_result)",
+            "items": {
+              "oneOf": [
+                { "$ref": "#/components/schemas/TextContent" },
+                { "$ref": "#/components/schemas/ResourceContent" },
+                { "$ref": "#/components/schemas/ToolResultContent" }
+              ],
+              "discriminator": {
+                "propertyName": "type",
+                "mapping": {
+                  "text": "#/components/schemas/TextContent",
+                  "resource": "#/components/schemas/ResourceContent",
+                  "tool_result": "#/components/schemas/ToolResultContent"
+                }
+              }
+            }
+          },
+          "metadata": {
+            "type": "object",
+            "description": "Additional metadata to attach to the message"
+          },
+          "additionalContext": {
+            "type": "object",
+            "description": "Additional context to provide to the AI beyond the user query, such as current page URL or application state"
+          }
+        },
+        "required": ["role", "content"]
+      },
+      "V1AvailableComponent": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Component name (e.g., 'StockChart')",
+            "example": "WeatherCard"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of what this component displays",
+            "example": "Displays weather information for a location"
+          },
+          "propsSchema": {
+            "type": "object",
+            "description": "JSON Schema for component props",
+            "example": {
+              "type": "object",
+              "properties": {
+                "temperature": { "type": "number" },
+                "location": { "type": "string" },
+                "unit": { "type": "string", "enum": ["celsius", "fahrenheit"] }
+              },
+              "required": ["temperature", "location"]
+            }
+          },
+          "stateSchema": {
+            "type": "object",
+            "description": "Optional JSON Schema for component state"
+          }
+        },
+        "required": ["name", "description", "propsSchema"]
+      },
+      "Tool": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Unique tool name (a-z, A-Z, 0-9, _, -)",
+            "example": "get_weather"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of what the tool does",
+            "example": "Get the current weather for a location"
+          },
+          "inputSchema": {
+            "type": "object",
+            "description": "JSON Schema for the tool's input parameters",
+            "example": {
+              "type": "object",
+              "properties": {
+                "location": { "type": "string", "description": "City name" },
+                "unit": { "type": "string", "enum": ["celsius", "fahrenheit"] }
+              },
+              "required": ["location"]
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "description": "Optional JSON Schema for structured output"
+          },
+          "strict": {
+            "type": "boolean",
+            "description": "Enable strict schema validation (OpenAI feature)"
+          },
+          "maxCalls": {
+            "type": "number",
+            "minimum": 1,
+            "description": "Per-tool call limit. Overrides the project's global maxToolCallLimit for this tool.",
+            "example": 1
+          }
+        },
+        "required": ["name", "description", "inputSchema"]
+      },
+      "CreateThreadWithRunRequest": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "description": "The user's message",
+            "allOf": [{ "$ref": "#/components/schemas/InputMessage" }]
+          },
+          "userKey": {
+            "type": "string",
+            "description": "Identifier for a user in your system. Required if no bearer token is provided."
+          },
+          "availableComponents": {
+            "description": "Available UI components the model can render",
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/V1AvailableComponent" }
+          },
+          "tools": {
+            "description": "Client-side tools the model can call",
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Tool" }
+          },
+          "toolChoice": {
+            "description": "How the model should use tools",
+            "oneOf": [
+              { "type": "string", "enum": ["auto", "required", "none"] },
+              {
+                "type": "object",
+                "properties": { "name": { "type": "string" } }
+              }
+            ]
+          },
+          "previousRunId": {
+            "type": "string",
+            "description": "ID of the previous run. Required when continuing a thread that already has messages."
+          },
+          "model": {
+            "type": "string",
+            "description": "Override the default model",
+            "example": "gpt-4o"
+          },
+          "maxTokens": {
+            "type": "number",
+            "minimum": 1,
+            "description": "Maximum tokens to generate"
+          },
+          "temperature": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 2,
+            "description": "Temperature for generation (0-2)"
+          },
+          "runMetadata": {
+            "type": "object",
+            "description": "Metadata for the run"
+          },
+          "thread": {
+            "description": "Thread configuration",
+            "allOf": [{ "$ref": "#/components/schemas/CreateThreadRequest" }]
+          },
+          "threadMetadata": {
+            "type": "object",
+            "description": "Metadata for the thread"
+          }
+        },
+        "required": ["message"]
+      },
+      "BaseEvent": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "Event type discriminator (e.g., RUN_STARTED, TEXT_MESSAGE_CONTENT, TOOL_CALL_START)",
+            "example": "TEXT_MESSAGE_CONTENT"
+          },
+          "timestamp": {
+            "type": "number",
+            "description": "Unix timestamp (milliseconds) when event was generated",
+            "example": 1705334400000
+          }
+        },
+        "required": ["type"]
+      },
+      "CreateRunRequest": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "description": "The user's message",
+            "allOf": [{ "$ref": "#/components/schemas/InputMessage" }]
+          },
+          "userKey": {
+            "type": "string",
+            "description": "Identifier for a user in your system. Required if no bearer token is provided."
+          },
+          "availableComponents": {
+            "description": "Available UI components the model can render",
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/V1AvailableComponent" }
+          },
+          "tools": {
+            "description": "Client-side tools the model can call",
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Tool" }
+          },
+          "toolChoice": {
+            "description": "How the model should use tools",
+            "oneOf": [
+              { "type": "string", "enum": ["auto", "required", "none"] },
+              {
+                "type": "object",
+                "properties": { "name": { "type": "string" } }
+              }
+            ]
+          },
+          "previousRunId": {
+            "type": "string",
+            "description": "ID of the previous run. Required when continuing a thread that already has messages."
+          },
+          "model": {
+            "type": "string",
+            "description": "Override the default model",
+            "example": "gpt-4o"
+          },
+          "maxTokens": {
+            "type": "number",
+            "minimum": 1,
+            "description": "Maximum tokens to generate"
+          },
+          "temperature": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 2,
+            "description": "Temperature for generation (0-2)"
+          },
+          "runMetadata": {
+            "type": "object",
+            "description": "Metadata for the run"
+          }
+        },
+        "required": ["message"]
+      },
+      "CancelRunResponse": {
+        "type": "object",
+        "properties": {
+          "runId": {
+            "type": "string",
+            "description": "The run ID that was cancelled"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["cancelled"],
+            "description": "New status after cancellation (always 'cancelled')"
+          }
+        },
+        "required": ["runId", "status"]
+      },
+      "JsonPatchOperation": {
+        "type": "object",
+        "properties": {
+          "op": {
+            "enum": ["add", "remove", "replace", "move", "copy", "test"],
+            "type": "string",
+            "description": "Operation type",
+            "example": "replace"
+          },
+          "path": {
+            "type": "string",
+            "description": "JSON Pointer path to the target location",
+            "example": "/loading"
+          },
+          "value": {
+            "type": "object",
+            "description": "Value to add, replace, or test (required for add, replace, test)",
+            "example": false
+          },
+          "from": {
+            "type": "string",
+            "description": "Source path for move and copy operations"
+          }
+        },
+        "required": ["op", "path"]
+      },
+      "UpdateComponentState": {
+        "type": "object",
+        "properties": {
+          "userKey": {
+            "type": "string",
+            "description": "Identifier for a user in your system. Required if no bearer token is provided."
+          },
+          "state": {
+            "type": "object",
+            "description": "Full replacement state object",
+            "example": { "loading": false, "data": [1, 2, 3] }
+          },
+          "patch": {
+            "description": "JSON Patch operations to apply to current state",
+            "example": [
+              { "op": "replace", "path": "/loading", "value": false },
+              { "op": "add", "path": "/data/-", "value": 4 }
+            ],
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/JsonPatchOperation" }
+          }
+        }
+      },
+      "UpdateComponentStateResponse": {
+        "type": "object",
+        "properties": {
+          "state": {
+            "type": "object",
+            "description": "New complete state of the component",
+            "example": { "loading": false, "data": [1, 2, 3, 4] }
+          }
+        },
+        "required": ["state"]
+      },
+      "ListSuggestionsResponse": {
+        "type": "object",
+        "properties": {
+          "suggestions": {
+            "description": "List of suggestions for the message",
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Suggestion" }
+          },
+          "nextCursor": {
+            "type": "string",
+            "description": "Cursor for the next page of results"
+          },
+          "hasMore": {
+            "type": "boolean",
+            "description": "Whether there are more results"
+          }
+        },
+        "required": ["suggestions", "hasMore"]
+      },
+      "GenerateSuggestionsRequest": {
+        "type": "object",
+        "properties": {
+          "userKey": {
+            "type": "string",
+            "description": "Identifier for a user in your system. Required if no bearer token is provided."
+          },
+          "maxSuggestions": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 10,
+            "description": "Maximum number of suggestions to generate (1-10)",
+            "default": 3
+          },
+          "availableComponents": {
+            "description": "Available components that suggestions can reference",
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/V1AvailableComponent" }
+          }
+        }
+      },
+      "GenerateSuggestionsResponse": {
+        "type": "object",
+        "properties": {
+          "suggestions": {
+            "description": "List of suggestions for the message",
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Suggestion" }
+          },
+          "nextCursor": {
+            "type": "string",
+            "description": "Cursor for the next page of results"
+          },
+          "hasMore": {
+            "type": "boolean",
+            "description": "Whether there are more results"
+          }
+        },
+        "required": ["suggestions", "hasMore"]
+      }
+    }
+  },
+  "security": [{ "apiKey": [] }, { "bearer": [] }]
+}

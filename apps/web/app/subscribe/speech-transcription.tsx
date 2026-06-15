@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useTamboThreadInput } from "@tambo-ai/react";
 import { Mic, StopCircle } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
+import type { JSX } from "react";
 import SpeechRecognition, {
   useSpeechRecognition,
 } from "react-speech-recognition";

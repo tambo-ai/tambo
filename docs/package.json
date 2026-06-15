@@ -1,6 +1,6 @@
 {
   "name": "@tambo-ai/docs",
-  "version": "1.33.2",
+  "version": "1.34.0",
   "description": "Tambo AI documentation site",
   "license": "MIT",
   "scripts": {
@@ -30,8 +30,8 @@
     "mermaid": "^11.15.0",
     "next": "^15.5.18",
     "next-themes": "^0.4.6",
-    "posthog-js": "^1.376.0",
-    "radix-ui": "^1.4.3",
+    "posthog-js": "^1.380.0",
+    "radix-ui": "^1.5.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-markdown": "^10.1.0",
