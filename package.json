@@ -34,12 +34,13 @@
   "devDependencies": {
     "@types/node": "^22.19.15",
     "chokidar": "^5.0.0",
+    "class-validator": "^0.14.4",
     "husky": "^9.1.7",
-    "lint-staged": "^17.0.4",
+    "lint-staged": "^17.0.7",
     "prettier": "^3.8.3",
     "tsx": "^4.21.0",
-    "turbo": "^2.9.14",
-    "type-fest": "^5.4.3",
+    "turbo": "^2.9.16",
+    "type-fest": "^5.6.0",
     "typescript": "^5.9.3"
   },
   "packageManager": "npm@11.7.0+sha512.c22099a6fff8d5b2286c2a09df5352b4858a7c0c716320f58989d60ad8b29ecf2ce6fdfe97ccb41c23ffb1272e1fa079f868487dd6b81d02a2a9e199c095a117",
@@ -70,7 +71,11 @@
     "@ai-sdk/anthropic": "$@ai-sdk/anthropic",
     "picomatch@>=4.0.0": "4.0.4",
     "picomatch@<3.0.0": "2.3.2",
-    "path-to-regexp@<0.1.13": "0.1.13"
+    "path-to-regexp@<0.1.13": "0.1.13",
+    "react": "19.2.6",
+    "react-dom": "19.2.6",
+    "@types/react": "19.2.15",
+    "@types/react-dom": "19.2.3"
   },
   "dependencies": {
     "@ai-sdk/openai": "^3.0.48",

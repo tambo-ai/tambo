@@ -1,0 +1,154 @@
+name: Generate TypeScript SDK with stlc
+
+# Regenerates @tambo-ai/typescript-sdk from the API's OpenAPI spec and pushes the
+# generated code to the SDK repo. Replaces the hosted-Stainless upload
+# (stainless-cloud.yml), which stops working when Stainless is sunset 2026-09-01.
+#
+# Gated on the `deploy` branch (same trigger as the old workflow) so the SDK
+# tracks the production-deployed API contract.
+#
+# Flow: the SDK repo's `main` is PR-only (branch ruleset), so stlc cannot push
+# to it directly. stlc pushes the regenerated SDK to the unprotected side branch
+# `stlc/auto-regenerate`, and this workflow opens/updates a PR into `main`.
+# Merging that PR lets release-please cut the release — so nothing publishes
+# ahead of a human merge.
+#
+# Auth: mints short-lived GitHub App installation tokens from the org's
+# tambo-automations app (TAMBO_AUTOMATIONS_APP_CLIENT_ID /
+# TAMBO_AUTOMATIONS_APP_PRIVATE_KEY), least-privilege per repo:
+#   - SDK token:   contents:write + workflows:write (the generated SDK contains
+#                  .github/workflows/*) + pull-requests:write (open the PR) on
+#                  typescript-sdk.
+#   - vendor read: contents:read on stlc-vendor.
+
+on:
+  push:
+    branches: [deploy]
+  workflow_dispatch:
+
+concurrency:
+  # Never cancel an in-flight push to the SDK repo.
+  group: stlc-generate
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  STAINLESS_WORKSPACE: stainless
+  DEFAULT_TARGETS: typescript
+  SDK_BRANCH: stlc/auto-regenerate
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Mint app token — vendor read (stlc-vendor)
+        id: vendor-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ secrets.TAMBO_AUTOMATIONS_APP_CLIENT_ID }}
+          private-key: ${{ secrets.TAMBO_AUTOMATIONS_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: stlc-vendor
+          permission-contents: read
+
+      - name: Mint app token — SDK write (typescript-sdk)
+        id: sdk-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ secrets.TAMBO_AUTOMATIONS_APP_CLIENT_ID }}
+          private-key: ${{ secrets.TAMBO_AUTOMATIONS_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: typescript-sdk
+          permission-contents: write
+          permission-workflows: write
+          permission-pull-requests: write
+
+      # Regenerate the spec from the deployed API so the SDK matches the live
+      # contract. Runs on the repo's pinned Node (via setup-tools) before stlc
+      # switches the job to Node 24.
+      - name: Setup tools
+        uses: ./.github/actions/setup-tools
+
+      - name: Regenerate OpenAPI spec
+        run: OPENAPI_SPEC_FILE="$GITHUB_WORKSPACE/stainless/openapi.json" npm run generate-config
+        working-directory: apps/api
+
+      - name: Setup stlc
+        uses: ./.github/actions/setup-stlc
+        with:
+          vendor-read-token: ${{ steps.vendor-token.outputs.token }}
+
+      - name: Configure git auth to push to the SDK repo
+        env:
+          GH_TOKEN: ${{ steps.sdk-token.outputs.token }}
+          APP_SLUG: ${{ steps.sdk-token.outputs.app-slug }}
+        run: |
+          # Commit as the app's bot identity so pushes are attributed correctly.
+          bot_id=$(gh api "/users/${APP_SLUG}[bot]" --jq .id)
+          git config --global user.name "${APP_SLUG}[bot]"
+          git config --global user.email "${bot_id}+${APP_SLUG}[bot]@users.noreply.github.com"
+          gh auth setup-git
+
+      - name: Reset regen branch to main (keeps stlc's push a fast-forward)
+        env:
+          GH_TOKEN: ${{ steps.sdk-token.outputs.token }}
+        run: |
+          # stlc has no --force; each regen commits on top of main, so the
+          # persistent regen branch must be reset to main first. Force-updating
+          # the branch keeps the open PR in place and refreshes its diff.
+          main_sha=$(gh api repos/tambo-ai/typescript-sdk/commits/main --jq .sha)
+          if gh api "repos/tambo-ai/typescript-sdk/git/refs/heads/$SDK_BRANCH" >/dev/null 2>&1; then
+            gh api -X PATCH "repos/tambo-ai/typescript-sdk/git/refs/heads/$SDK_BRANCH" \
+              -F sha="$main_sha" -F force=true >/dev/null
+          else
+            gh api -X POST "repos/tambo-ai/typescript-sdk/git/refs" \
+              -f ref="refs/heads/$SDK_BRANCH" -f sha="$main_sha" >/dev/null
+          fi
+
+      - name: Generate SDK and push
+        env:
+          GH_TOKEN: ${{ steps.sdk-token.outputs.token }}
+        working-directory: ${{ env.STAINLESS_WORKSPACE }}
+        run: |
+          # stlc build is deterministic: when the regenerated tree is identical to
+          # the SDK repo's main there is nothing to commit/push, so no-op deploys
+          # never create a release PR. When there IS a change we use `fix:` (patch)
+          # as a conservative default — the workflow can't classify change
+          # magnitude, and a hardcoded `feat:` would over-bump generator/tooling
+          # drift to a minor. For a notable feature, set the version explicitly via
+          # a Release-As: footer or a manual edit on the SDK repo's release PR.
+          stlc build \
+            --branch "$SDK_BRANCH" \
+            --output "$RUNNER_TEMP/sdk-output" \
+            --push \
+            --targets "$DEFAULT_TARGETS" \
+            --commit "fix: regenerate SDK from deployed API"
+
+      - name: Open / update PR into the protected main
+        env:
+          GH_TOKEN: ${{ steps.sdk-token.outputs.token }}
+        run: |
+          # main is PR-only (ruleset). stlc pushed generated code to $SDK_BRANCH;
+          # open or update a PR from it into main. release-please then releases.
+          # Skip PR creation when the branch is at main (no-op regen: stlc made no
+          # commit, so creating a PR would error "No commits between...").
+          ahead=$(gh api "repos/tambo-ai/typescript-sdk/compare/main...$SDK_BRANCH" --jq .ahead_by)
+          if [ "$ahead" -eq 0 ]; then
+            echo "No changes vs main — no-op regen, skipping PR."
+            exit 0
+          fi
+          existing=$(gh pr list --repo tambo-ai/typescript-sdk --head "$SDK_BRANCH" --base main --state open --json number --jq '.[0].number')
+          if [ -z "$existing" ]; then
+            gh pr create --repo tambo-ai/typescript-sdk --base main --head "$SDK_BRANCH" \
+              --title "chore: regenerate SDK from API" \
+              --body "Automated SDK regeneration from the deployed API (stlc). Merging publishes via release-please."
+          else
+            echo "PR #$existing already open; stlc pushed new commits to $SDK_BRANCH so it is updated."
+          fi

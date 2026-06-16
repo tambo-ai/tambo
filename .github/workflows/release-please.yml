@@ -32,11 +32,20 @@ jobs:
 
       tag_name: ${{ steps.release.outputs.tag_name }}
     steps:
+      - name: Mint app token
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ secrets.TAMBO_AUTOMATIONS_APP_CLIENT_ID }}
+          private-key: ${{ secrets.TAMBO_AUTOMATIONS_APP_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
+
       - name: Release Please
         id: release
         uses: googleapis/release-please-action@v5
         with:
-          token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
+          token: ${{ steps.app-token.outputs.token }}
           config-file: .config/release-please/release-please-config.json
           manifest-file: .config/release-please/.release-please-manifest.json
 
@@ -186,10 +195,18 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ needs.release-please.outputs['apps/web--release_created'] == 'true' }}
     steps:
+      - name: Mint app token
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ secrets.TAMBO_AUTOMATIONS_APP_CLIENT_ID }}
+          private-key: ${{ secrets.TAMBO_AUTOMATIONS_APP_PRIVATE_KEY }}
+          permission-contents: write
+
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
-          token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
+          token: ${{ steps.app-token.outputs.token }}
 
       - name: Setup Git User
         run: |
@@ -208,10 +225,18 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ needs.release-please.outputs['apps/api--release_created'] == 'true' }}
     steps:
+      - name: Mint app token
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ secrets.TAMBO_AUTOMATIONS_APP_CLIENT_ID }}
+          private-key: ${{ secrets.TAMBO_AUTOMATIONS_APP_PRIVATE_KEY }}
+          permission-contents: write
+
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
-          token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
+          token: ${{ steps.app-token.outputs.token }}
 
       - name: Setup Git User
         run: |
@@ -230,10 +255,18 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ needs.release-please.outputs.docs--release_created == 'true' }}
     steps:
+      - name: Mint app token
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ secrets.TAMBO_AUTOMATIONS_APP_CLIENT_ID }}
+          private-key: ${{ secrets.TAMBO_AUTOMATIONS_APP_PRIVATE_KEY }}
+          permission-contents: write
+
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
-          token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
+          token: ${{ steps.app-token.outputs.token }}
 
       - name: Setup Git User
         run: |
@@ -252,10 +285,18 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ needs.release-please.outputs.showcase--release_created == 'true' }}
     steps:
+      - name: Mint app token
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ secrets.TAMBO_AUTOMATIONS_APP_CLIENT_ID }}
+          private-key: ${{ secrets.TAMBO_AUTOMATIONS_APP_PRIVATE_KEY }}
+          permission-contents: write
+
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
-          token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
+          token: ${{ steps.app-token.outputs.token }}
 
       - name: Setup Git User
         run: |
@@ -272,6 +313,14 @@ jobs:
     needs: release-please
     runs-on: ubuntu-latest
     steps:
+      - name: Mint app token
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ secrets.TAMBO_AUTOMATIONS_APP_CLIENT_ID }}
+          private-key: ${{ secrets.TAMBO_AUTOMATIONS_APP_PRIVATE_KEY }}
+          permission-contents: read
+
       - name: Install Sentry CLI
         run: |
           curl -sL https://sentry.io/get-cli/ | bash
@@ -279,7 +328,7 @@ jobs:
       - uses: actions/checkout@v6
         with:
           fetch-depth: 100
-          token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
+          token: ${{ steps.app-token.outputs.token }}
 
       - name: Create Sentry Release
         env:
