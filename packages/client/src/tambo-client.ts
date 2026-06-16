@@ -70,6 +70,29 @@ export interface TamboClientOptions {
   mcpServers?: McpServerInfo[];
   /** Callback invoked before each run. */
   beforeRun?: (context: BeforeRunContext) => void | Promise<void>;
+  /** Callback invoked whenever an MCP server's connection status changes. */
+  onMcpConnectionChange?: (info: McpConnectionInfo) => void;
+}
+
+/**
+ * Connection status for an MCP server.
+ */
+export type McpConnectionStatus = "connecting" | "connected" | "failed";
+
+/**
+ * Connection state for a single MCP server.
+ */
+export interface McpConnectionInfo {
+  /** Stable key identifying the server (from getMcpServerUniqueKey). */
+  key: string;
+  /** The server configuration used for the connection. */
+  server: McpServerInfo;
+  /** Current connection status. */
+  status: McpConnectionStatus;
+  /** The connected client, present once status is "connected". */
+  client?: MCPClient;
+  /** Error message captured when status is "failed". */
+  error?: string;
 }
 
 /**
@@ -134,7 +157,8 @@ export class TamboClient {
   private pendingNotification = false;
   private toolRegistry: TamboToolRegistry = {};
   private componentList: ComponentRegistry = {};
-  private mcpClients = new Map<string, MCPClient>();
+  private mcpConnections = new Map<string, McpConnectionInfo>();
+  private mcpConnectPromises = new Map<string, Promise<McpConnectionInfo>>();
   private activeRuns: ActiveRuns = {};
   private contextHelpers = new Map<string, ContextHelperFn>();
   private readonly options: TamboClientOptions;
@@ -175,12 +199,11 @@ export class TamboClient {
       }
     }
 
-    // Connect MCP servers (fire-and-forget)
+    // Connect MCP servers. Failures are tracked as connection status rather
+    // than thrown, so no error handling is needed here.
     if (options.mcpServers) {
       for (const server of options.mcpServers) {
-        void this.connectMcpServer(server).catch((err) => {
-          console.error(`[TamboClient] Failed to connect MCP server:`, err);
-        });
+        void this.connectMcpServer(server);
       }
     }
   }
@@ -511,26 +534,71 @@ export class TamboClient {
   // -- MCP --
 
   /**
-   * Connect to an MCP server.
+   * Connect to an MCP server. Connection failures are captured in the returned
+   * status rather than thrown. An already connected server is returned as-is,
+   * a connection already in flight is awaited, and a previously failed server
+   * is retried (clearing the old failure).
    * @param serverInfo - The MCP server configuration.
-   * @returns The connected MCPClient.
+   * @returns The resulting connection info.
    */
-  async connectMcpServer(serverInfo: McpServerInfo): Promise<MCPClient> {
+  async connectMcpServer(
+    serverInfo: McpServerInfo,
+  ): Promise<McpConnectionInfo> {
     const key = getMcpServerUniqueKey(serverInfo);
-    const existing = this.mcpClients.get(key);
-    if (existing) {
+    const existing = this.mcpConnections.get(key);
+    if (existing?.status === "connected") {
       return existing;
     }
 
-    const mcpClient = await MCPClient.create(
-      serverInfo.url,
-      serverInfo.transport,
-      serverInfo.customHeaders,
-      undefined, // authProvider
-      undefined, // sessionId
-    );
-    this.mcpClients.set(key, mcpClient);
-    return mcpClient;
+    const inFlight = this.mcpConnectPromises.get(key);
+    if (inFlight) {
+      return await inFlight;
+    }
+
+    const promise = this.establishMcpConnection(key, serverInfo);
+    this.mcpConnectPromises.set(key, promise);
+    try {
+      return await promise;
+    } finally {
+      this.mcpConnectPromises.delete(key);
+    }
+  }
+
+  /**
+   * Establish a fresh MCP connection, recording connecting/connected/failed
+   * status as it progresses.
+   * @param key - The server's stable key.
+   * @param serverInfo - The MCP server configuration.
+   * @returns The resulting connection info.
+   */
+  private async establishMcpConnection(
+    key: string,
+    serverInfo: McpServerInfo,
+  ): Promise<McpConnectionInfo> {
+    this.setMcpConnection({ key, server: serverInfo, status: "connecting" });
+
+    try {
+      const client = await MCPClient.create(
+        serverInfo.url,
+        serverInfo.transport,
+        serverInfo.customHeaders,
+        undefined, // authProvider
+        undefined, // sessionId
+      );
+      return this.setMcpConnection({
+        key,
+        server: serverInfo,
+        status: "connected",
+        client,
+      });
+    } catch (error) {
+      return this.setMcpConnection({
+        key,
+        server: serverInfo,
+        status: "failed",
+        error: error instanceof Error ? error.message : `${error}`,
+      });
+    }
   }
 
   /**
@@ -538,19 +606,19 @@ export class TamboClient {
    * @param serverKey - The server key (from getMcpServerUniqueKey).
    */
   async disconnectMcpServer(serverKey: string): Promise<void> {
-    const client = this.mcpClients.get(serverKey);
-    if (client) {
-      await client.close();
-      this.mcpClients.delete(serverKey);
+    const connection = this.mcpConnections.get(serverKey);
+    if (connection) {
+      await connection.client?.close();
+      this.mcpConnections.delete(serverKey);
     }
   }
 
   /**
-   * Get all connected MCP clients.
-   * @returns Record of server key to MCPClient.
+   * Get connection info for all known MCP servers, keyed by server key.
+   * @returns Record of server key to connection info.
    */
-  getMcpClients(): Record<string, MCPClient> {
-    return Object.fromEntries(this.mcpClients.entries());
+  getMcpClients(): Record<string, McpConnectionInfo> {
+    return Object.fromEntries(this.mcpConnections.entries());
   }
 
   /**
@@ -648,6 +716,17 @@ export class TamboClient {
   }
 
   // -- Private methods --
+
+  /**
+   * Store an MCP connection record and notify the status-change callback.
+   * @param info - The connection info to record.
+   * @returns The stored connection info.
+   */
+  private setMcpConnection(info: McpConnectionInfo): McpConnectionInfo {
+    this.mcpConnections.set(info.key, info);
+    this.options.onMcpConnectionChange?.(info);
+    return info;
+  }
 
   /**
    * Dispatch an action to the state reducer and notify listeners.

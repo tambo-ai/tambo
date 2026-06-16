@@ -8,6 +8,10 @@ const config: Config = {
     // pkce-challenge's browser build is ESM-only; force the CJS Node.js version
     "^pkce-challenge$":
       "<rootDir>/../node_modules/pkce-challenge/dist/index.node.cjs",
+    // dedupe MCP SDK so jest.mock() in this package also mocks imports made
+    // from the @tambo-ai/client workspace, which has its own nested copy
+    "^@modelcontextprotocol/sdk/(.*)\\.js$":
+      "<rootDir>/node_modules/@modelcontextprotocol/sdk/dist/cjs/$1.js",
   },
   testMatch: ["<rootDir>/src/**/*.test.ts?(x)"],
   collectCoverageFrom: [

@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.146.1](https://github.com/tambo-ai/tambo/compare/api-v0.146.0...api-v0.146.1) (2026-06-16)
+
+
+### Bug Fixes
+
+* **deps:** resolve open GitHub security alerts ([#2957](https://github.com/tambo-ai/tambo/issues/2957)) ([49cdf5d](https://github.com/tambo-ai/tambo/commit/49cdf5da6892e3614160b89f0d4039bd1e6e52be))
+
+## [0.146.0](https://github.com/tambo-ai/tambo/compare/api-v0.145.1...api-v0.146.0) (2026-06-15)
+
+
+### Features
+
+* **web:** migrate to Next.js 16 and React 19 ([#2900](https://github.com/tambo-ai/tambo/issues/2900)) ([5a654ef](https://github.com/tambo-ai/tambo/commit/5a654efe235d6f9a3711282c503c63a47b56eb22))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump @nestjs/cli from 11.0.22 to 11.0.23 in the nestjs group ([#2929](https://github.com/tambo-ai/tambo/issues/2929)) ([3cee460](https://github.com/tambo-ai/tambo/commit/3cee460f402dd06ac6a6af07036e9d0f32a0d7ac))
+* **deps-dev:** bump @types/supertest from 6.0.3 to 7.2.0 ([#2893](https://github.com/tambo-ai/tambo/issues/2893)) ([6a9be3a](https://github.com/tambo-ai/tambo/commit/6a9be3a5020913403b3dcae81caaedf8797d4552))
+* **deps:** bump helmet from 8.1.0 to 8.2.0 ([#2895](https://github.com/tambo-ai/tambo/issues/2895)) ([40742f7](https://github.com/tambo-ai/tambo/commit/40742f7f955bea5a1ebbabcb4ab4c9156468bf5a))
+* **deps:** bump resend from 6.9.3 to 6.12.3 ([#2889](https://github.com/tambo-ai/tambo/issues/2889)) ([b1eb057](https://github.com/tambo-ai/tambo/commit/b1eb057b0059e07109dab67ff01933898226c06c))
+* **deps:** bump the nestjs group across 1 directory with 5 updates ([#2925](https://github.com/tambo-ai/tambo/issues/2925)) ([7dfca17](https://github.com/tambo-ai/tambo/commit/7dfca17fb48c8cdcc42fa4fc6d733382b066888f))
+* **deps:** bump the small-safe-packages group across 1 directory with 3 updates ([#2914](https://github.com/tambo-ai/tambo/issues/2914)) ([7520049](https://github.com/tambo-ai/tambo/commit/7520049842c75ad7933dede838c5b4100a9639b1))
+
 ## [0.145.1](https://github.com/tambo-ai/tambo/compare/api-v0.145.0...api-v0.145.1) (2026-05-20)
 
 

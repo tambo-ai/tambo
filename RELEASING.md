@@ -4,12 +4,14 @@ This document describes the process for releasing new versions of the Tambo pack
 
 ### Tambo API Client (`@tambo-ai/typescript-sdk`)
 
-The Tambo API is built in `apps/api`. When the API changes, it exposes a new OpenAPI doc at `/api-json` (for example `https://api.tambo.co/api-json`). Deploying a new API (see "Tambo Cloud" below) is what unlocks a new SDK release. After the deploy:
+The Tambo API is built in `apps/api`; its OpenAPI spec is generated from the NestJS decorators (`npm run generate-config`). The SDK is generated from that spec by **stlc** — Stainless's source-available CLI — running in our own GitHub Actions (the hosted Stainless service was sunset; see "Migrating off hosted Stainless" below). After deploying a new API:
 
-1. When a new version of the Tambo API is deployed to Railway, Stainless will automatically detect the changes and create a release PR in the [`@tambo-ai/typescript-sdk` repository](https://github.com/tambo-ai/typescript-sdk/pulls).
-2. You can wait for Stainless to notice the new API (it polls once every hour) or you can force a refresh by clicking the "Release Flow" button in Stainless Studio.
-3. A developer must review and approve the release PR.
-4. Once approved and merged, Stainless will automatically publish the new version to https://www.npmjs.com/package/@tambo-ai/typescript-sdk. You can watch progress at https://github.com/tambo-ai/typescript-sdk/actions/workflows/publish-npm.yml
+1. A push to the `deploy` branch triggers `.github/workflows/stlc-generate.yml`, which regenerates the OpenAPI spec from `apps/api` and runs `stlc build --push` to regenerate `@tambo-ai/typescript-sdk` and push the generated code to that repo's `main`.
+2. The SDK repo's `release-please.yml` opens (or updates) a release PR with the version bump and changelog.
+3. A developer reviews and merges the release PR.
+4. Merging tags a GitHub Release, which triggers `publish-npm.yml` (OIDC) to publish to https://www.npmjs.com/package/@tambo-ai/typescript-sdk.
+
+The stlc CLI is installed in CI from the private `tambo-ai/stlc-vendor` release (via `.github/actions/setup-stlc`), so generation does not depend on `github.com/stainless`, which is unavailable after 2026-09-01.
 
 ### React SDK (`@tambo-ai/react`)
 
@@ -78,26 +80,39 @@ In general, the process is as follows for any repo:
    - If it is a library, it will create a new release and push it to NPM.
    - If it is an app, it will create a new release and push it to Vercel/Railway
 
-### Stainless Studio
+### Migrating off hosted Stainless
 
-- If you want to jump the gun and try out a local version of the Tambo API before an official release:
-  1. Grab the OpenAPI spec from your local build:
+Stainless was acquired by Anthropic and is sunsetting all hosted products
+(SDK generator, build API, GitHub App, the `stainless-sdks` staging org) on
+**2026-09-01**. SDK generation now runs on **stlc**, Stainless's
+source-available CLI, in our own CI. The stlc workspace (OpenAPI spec,
+`openapi.stainless.yml`, custom-code tracking) lives in `stainless/` in this
+repo; the vendored stlc packages live in the private `tambo-ai/stlc-vendor`
+repo so CI survives the shutdown.
 
-     ```
-     curl http://localhost:8261/api-json | jq -S . | pbcopy
-     ```
+To preview SDK changes locally before a release:
 
-     (On Mac, `pbcopy` is used to copy the output to the clipboard)
+1. Install stlc (one-time): download the tarballs from the latest
+   `tambo-ai/stlc-vendor` release and `npm install -g` them, or see
+   `.github/actions/setup-stlc`.
+2. Regenerate the spec from your local API:
 
-  2. In [Stainless Studio](https://app.stainless.com/hydra-ai/hydra-ai/studio?language=node) switch to your own branch by clicking the dropdown in the top right and click on the "<userid>/dev" branch. Reset if necessary.
-  3. In the "OpenAPI Spec" tab, paste the OpenAPI spec and click "Build branch".
-  4. When the "Codegen" stage is complete, click on the "Codegen" line and observe any errors or warnings.
-  5. For errors in the OpenAPI spec, edit the actual API in `apps/api/` and copy `/api-json` from your local build.
-  6. For errors and warnings in the `openapi.stainless.yaml` file, edit the file in this repo and click "Build branch" again.
+   ```bash
+   OPENAPI_SPEC_FILE=stainless/openapi.json npm run generate-config -w apps/api
+   ```
 
-**WARNING** Never edit or update the OpenAPI spec in the Stainless Studio `main` branch, and never merge a local OpenAPI spec into that branch. The Stainless `main` branch should only be updated via a release PR coming from this repository.
+3. Build and inspect the SDK from the `stainless/` workspace:
 
-Updating `openapi.stainless.yaml` directly in Stainless Studio `main` is fine so long as it matches the latest spec exported from this repo.
+   ```bash
+   stlc build           # generate into ./sdks
+   stlc test            # run the SDK test suite
+   stlc preview         # preview the SDK + API reference
+   ```
+
+Custom code (hand edits to the generated SDK) is sealed via `stlc build` and
+tracked under `stainless/custom-code/`; commit those tracking files alongside
+spec/config changes. See `plans/2026-06-04-001-feat-stlc-sdk-migration-plan.md`
+for the full migration record.
 
 ### Miscellaneous
 
@@ -105,4 +120,4 @@ Updating `openapi.stainless.yaml` directly in Stainless Studio `main` is fine so
   - `deploy` branch goes to [Production](https://railway.com/project/f6706075-78e8-4b8f-93ff-a07ef6da36d9/service/720e5a60-8fb2-4bca-ad76-38b983649287?environmentId=cb7ad6ef-d499-4792-8656-780891015359)
   - `main` branch goes to [Development](https://railway.com/project/f6706075-78e8-4b8f-93ff-a07ef6da36d9/service/720e5a60-8fb2-4bca-ad76-38b983649287?environmentId=6bee8983-1a4f-4b39-b778-72ec46e18db5)
 
-* We use [Stainless](https://stainlessapi.com/) to automatically generate the Tambo client SDKs from the OpenAPI spec.
+* We use **stlc** (Stainless's source-available CLI, run in our own CI; vendored privately at [`tambo-ai/stlc-vendor`](https://github.com/tambo-ai/stlc-vendor)) to generate the Tambo client SDKs from the OpenAPI spec. The upstream `github.com/stainless` repos are unavailable after 2026-09-01.

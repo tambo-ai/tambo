@@ -195,7 +195,8 @@ export class EmailService {
       });
 
       const masked = maskEmail(userEmail);
-      console.log(`Welcome email sent successfully to ${masked}`, {
+      console.log("Welcome email sent successfully", {
+        to: masked,
         id: (result as { data?: { id?: string } }).data?.id,
       });
 
@@ -237,7 +238,8 @@ export class EmailService {
       });
 
       const masked = maskEmail(userEmail);
-      console.log(`First message email sent successfully to ${masked}`, {
+      console.log("First message email sent successfully", {
+        to: masked,
         id: (result as { data?: { id?: string } }).data?.id,
       });
 

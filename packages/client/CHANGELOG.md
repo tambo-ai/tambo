@@ -1,5 +1,45 @@
 # Changelog
 
+## [1.2.0](https://github.com/tambo-ai/tambo/compare/client-v1.1.4...client-v1.2.0) (2026-06-15)
+
+
+### Features
+
+* **client:** track MCP server connection status ([#2918](https://github.com/tambo-ai/tambo/issues/2918)) ([9897d11](https://github.com/tambo-ai/tambo/commit/9897d118d3a06d76618313652d1d1c20cbeca1b1))
+
+
+### Bug Fixes
+
+* **config:** stop renovate from pinning devDependencies and action digests ([#2945](https://github.com/tambo-ai/tambo/issues/2945)) ([3db4b25](https://github.com/tambo-ai/tambo/commit/3db4b250b517a5502526b56ece517dd811b42eea))
+* **deps:** patch dependabot alerts for shell-quote, grpc-js, and hono ([#2944](https://github.com/tambo-ai/tambo/issues/2944)) ([712503e](https://github.com/tambo-ai/tambo/commit/712503e16417e53f011633c78ca19b163aef2676))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump eslint-plugin-jsdoc from 63.0.1 to 63.0.2 in the eslint group ([#2931](https://github.com/tambo-ai/tambo/issues/2931)) ([ac5c1f0](https://github.com/tambo-ai/tambo/commit/ac5c1f0afbefc701a94d11fad3d16aa25cd006a7))
+* **deps-dev:** bump the eslint group across 1 directory with 4 updates ([#2922](https://github.com/tambo-ai/tambo/issues/2922)) ([6cbdb40](https://github.com/tambo-ai/tambo/commit/6cbdb40a51136a0c30fb8e560bc2bc5499ee01a7))
+
+## [1.1.4](https://github.com/tambo-ai/tambo/compare/client-v1.1.3...client-v1.1.4) (2026-05-29)
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump ts-jest from 29.4.9 to 29.4.11 in the testing group across 1 directory ([#2874](https://github.com/tambo-ai/tambo/issues/2874)) ([dd3d3a7](https://github.com/tambo-ai/tambo/commit/dd3d3a71c6165c14370ae06a37041dd616d905c2))
+* **deps-dev:** bump typescript-eslint from 8.59.3 to 8.59.4 in the eslint group ([#2873](https://github.com/tambo-ai/tambo/issues/2873)) ([e8af366](https://github.com/tambo-ai/tambo/commit/e8af366915f45a34311fdcadfc103063c48c5ab6))
+* **deps:** bump @tambo-ai/typescript-sdk from 0.96.0 to 0.96.1 in the tambo-ai group across 1 directory ([#2875](https://github.com/tambo-ai/tambo/issues/2875)) ([540b8ac](https://github.com/tambo-ai/tambo/commit/540b8ac49dd0c2e2e7e75c8f544098639860f03e))
+
+## [1.1.3](https://github.com/tambo-ai/tambo/compare/client-v1.1.2...client-v1.1.3) (2026-05-21)
+
+
+### Bug Fixes
+
+* **deps:** make ag-ui 0.0.53 bump build ([#2870](https://github.com/tambo-ai/tambo/issues/2870)) ([02f615a](https://github.com/tambo-ai/tambo/commit/02f615abba144ba1518baacbe05e5d9d62ce0c24))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump the ag-ui group across 1 directory with 5 updates ([#2623](https://github.com/tambo-ai/tambo/issues/2623)) ([e9fb2cf](https://github.com/tambo-ai/tambo/commit/e9fb2cfe09104f5f6373ee54d38f99c0cfa142c5))
+
 ## [1.1.2](https://github.com/tambo-ai/tambo/compare/client-v1.1.1...client-v1.1.2) (2026-05-20)
 
 

@@ -22,15 +22,15 @@
   ],
   "dependencies": {
     "rollup-plugin-preserve-directives": "0.4.0",
-    "vite-plugin-dts": "^4.5.4",
+    "unplugin-dts": "^1.0.1",
     "vite-plugin-externalize-deps": "^0.10.0",
-    "vite-tsconfig-paths": "^6.0.5"
+    "vite-tsconfig-paths": "^6.1.1"
   },
   "devDependencies": {
     "@tambo-ai/eslint-config": "*",
     "tsdown": "^0.20.3",
     "typescript": "^5.9.3",
-    "vite": "^7.3.2"
+    "vite": "^7.3.5"
   },
   "peerDependencies": {
     "typescript": "^5.0.0",

@@ -18,6 +18,8 @@ const mocks = {
   suggestionsList: jest.fn(),
   suggestionsGenerate: jest.fn(),
   streamAbort: jest.fn(),
+  mcpCreate: jest.fn(),
+  mcpClose: jest.fn(),
 };
 
 // Reset our manual mocks before each test (since resetMocks only affects jest.fn())
@@ -33,6 +35,9 @@ beforeEach(() => {
   mocks.suggestionsList.mockReset();
   mocks.suggestionsGenerate.mockReset();
   mocks.streamAbort.mockReset();
+  mocks.mcpCreate.mockReset();
+  mocks.mcpClose.mockReset();
+  mocks.mcpCreate.mockResolvedValue({ close: mocks.mcpClose });
 });
 
 jest.mock("@tambo-ai/typescript-sdk", () => {
@@ -71,7 +76,7 @@ jest.mock("@tambo-ai/typescript-sdk", () => {
 
 jest.mock("./mcp/mcp-client", () => ({
   MCPClient: {
-    create: async () => await Promise.resolve({ close: jest.fn() }),
+    create: (...a: unknown[]) => mocks.mcpCreate(...a),
   },
 }));
 
@@ -750,6 +755,114 @@ describe("TamboClient", () => {
       const client = new TamboClient({ apiKey: "test-key" });
       const mcpClients = client.getMcpClients();
       expect(mcpClients).toEqual({});
+    });
+
+    it("connectMcpServer returns connected info and exposes it via getMcpClients", async () => {
+      const client = new TamboClient({ apiKey: "test-key" });
+      const info = await client.connectMcpServer({
+        url: "https://example.com/mcp",
+      });
+
+      expect(info.status).toBe("connected");
+      expect(info.client).toBeDefined();
+      expect(info.error).toBeUndefined();
+      expect(client.getMcpClients()[info.key]).toBe(info);
+    });
+
+    it("connectMcpServer records failure without throwing", async () => {
+      mocks.mcpCreate.mockRejectedValue(new Error("connection refused"));
+
+      const client = new TamboClient({ apiKey: "test-key" });
+      const info = await client.connectMcpServer({
+        url: "https://example.com/mcp",
+      });
+
+      expect(info.status).toBe("failed");
+      expect(info.error).toBe("connection refused");
+      expect(info.client).toBeUndefined();
+      expect(client.getMcpClients()[info.key]).toBe(info);
+    });
+
+    it("onMcpConnectionChange fires for connecting and failed transitions", async () => {
+      mocks.mcpCreate.mockRejectedValue(new Error("nope"));
+      const onMcpConnectionChange = jest.fn();
+      const client = new TamboClient({
+        apiKey: "test-key",
+        onMcpConnectionChange,
+      });
+
+      await client.connectMcpServer({ url: "https://example.com/mcp" });
+
+      const statuses = onMcpConnectionChange.mock.calls.map(
+        ([info]) => info.status,
+      );
+      expect(statuses).toEqual(["connecting", "failed"]);
+    });
+
+    it("connectMcpServer dedupes concurrent calls for the same server", async () => {
+      const client = new TamboClient({ apiKey: "test-key" });
+      const serverInfo = { url: "https://example.com/mcp" };
+
+      const [first, second] = await Promise.all([
+        client.connectMcpServer(serverInfo),
+        client.connectMcpServer(serverInfo),
+      ]);
+
+      expect(first).toBe(second);
+      expect(first.status).toBe("connected");
+      expect(mocks.mcpCreate).toHaveBeenCalledTimes(1);
+    });
+
+    it("connectMcpServer retries a previously failed connection", async () => {
+      mocks.mcpCreate.mockRejectedValueOnce(new Error("boom"));
+
+      const client = new TamboClient({ apiKey: "test-key" });
+      const serverInfo = { url: "https://example.com/mcp" };
+
+      const failed = await client.connectMcpServer(serverInfo);
+      expect(failed.status).toBe("failed");
+
+      const retried = await client.connectMcpServer(serverInfo);
+      expect(retried.status).toBe("connected");
+      expect(mocks.mcpCreate).toHaveBeenCalledTimes(2);
+    });
+
+    it("connectMcpServer reuses an existing connected connection", async () => {
+      const client = new TamboClient({ apiKey: "test-key" });
+      const serverInfo = { url: "https://example.com/mcp" };
+
+      const first = await client.connectMcpServer(serverInfo);
+      const second = await client.connectMcpServer(serverInfo);
+
+      expect(second).toBe(first);
+      expect(mocks.mcpCreate).toHaveBeenCalledTimes(1);
+    });
+
+    it("onMcpConnectionChange fires for connecting and connected transitions", async () => {
+      const onMcpConnectionChange = jest.fn();
+      const client = new TamboClient({
+        apiKey: "test-key",
+        onMcpConnectionChange,
+      });
+
+      await client.connectMcpServer({ url: "https://example.com/mcp" });
+
+      const statuses = onMcpConnectionChange.mock.calls.map(
+        ([info]) => info.status,
+      );
+      expect(statuses).toEqual(["connecting", "connected"]);
+    });
+
+    it("disconnectMcpServer closes the client and removes it", async () => {
+      const client = new TamboClient({ apiKey: "test-key" });
+      const info = await client.connectMcpServer({
+        url: "https://example.com/mcp",
+      });
+
+      await client.disconnectMcpServer(info.key);
+
+      expect(mocks.mcpClose).toHaveBeenCalledTimes(1);
+      expect(client.getMcpClients()).toEqual({});
     });
 
     it("getMcpToken calls SDK", async () => {

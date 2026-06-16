@@ -1,5 +1,47 @@
 # Changelog
 
+## [1.34.0](https://github.com/tambo-ai/tambo/compare/docs-v1.33.2...docs-v1.34.0) (2026-06-15)
+
+
+### Features
+
+* **web:** migrate to Next.js 16 and React 19 ([#2900](https://github.com/tambo-ai/tambo/issues/2900)) ([5a654ef](https://github.com/tambo-ai/tambo/commit/5a654efe235d6f9a3711282c503c63a47b56eb22))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump the radix-ui group with 19 updates ([#2930](https://github.com/tambo-ai/tambo/issues/2930)) ([a21bbef](https://github.com/tambo-ai/tambo/commit/a21bbef264da217c18c517591c4d2418a7d6cf4f))
+* **deps:** bump the small-safe-packages group across 1 directory with 3 updates ([#2914](https://github.com/tambo-ai/tambo/issues/2914)) ([7520049](https://github.com/tambo-ai/tambo/commit/7520049842c75ad7933dede838c5b4100a9639b1))
+
+## [1.33.2](https://github.com/tambo-ai/tambo/compare/docs-v1.33.1...docs-v1.33.2) (2026-05-29)
+
+
+### Miscellaneous Chores
+
+* **deps:** bump @tailwindcss/postcss from 4.2.2 to 4.3.0 in the tailwind group across 1 directory ([#2880](https://github.com/tambo-ai/tambo/issues/2880)) ([3041273](https://github.com/tambo-ai/tambo/commit/3041273309225756291b329ce5cfba7d3c668655))
+* **deps:** bump @tambo-ai/typescript-sdk from 0.96.0 to 0.96.1 in the tambo-ai group across 1 directory ([#2875](https://github.com/tambo-ai/tambo/issues/2875)) ([540b8ac](https://github.com/tambo-ai/tambo/commit/540b8ac49dd0c2e2e7e75c8f544098639860f03e))
+* **deps:** bump postcss from 8.5.14 to 8.5.15 ([#2869](https://github.com/tambo-ai/tambo/issues/2869)) ([ceb3047](https://github.com/tambo-ai/tambo/commit/ceb3047258292cd670d10bf984080481ab3870c7))
+* **deps:** bump the small-safe-packages group across 1 directory with 3 updates ([#2876](https://github.com/tambo-ai/tambo/issues/2876)) ([a2198da](https://github.com/tambo-ai/tambo/commit/a2198daca95c3b4b2e7166b476ad149ab10d4ab8))
+
+## [1.33.1](https://github.com/tambo-ai/tambo/compare/docs-v1.33.0...docs-v1.33.1) (2026-05-20)
+
+
+### Miscellaneous Chores
+
+* **deps:** bump @tambo-ai/typescript-sdk from 0.95.0 to 0.96.0 in the tambo-ai group ([#2830](https://github.com/tambo-ai/tambo/issues/2830)) ([c2d8a3d](https://github.com/tambo-ai/tambo/commit/c2d8a3df63336ae0b34d845e019f7297d6b9a010))
+* **deps:** bump dompurify from 3.3.2 to 3.4.0 ([#2805](https://github.com/tambo-ai/tambo/issues/2805)) ([c96136c](https://github.com/tambo-ai/tambo/commit/c96136ccb42b6016c530fa5c54cece8fe8cc5898))
+* **deps:** bump mermaid from 11.13.0 to 11.14.0 ([#2844](https://github.com/tambo-ai/tambo/issues/2844)) ([4cb86c0](https://github.com/tambo-ai/tambo/commit/4cb86c023524d7184cb0a4ea72565fdf6f6bc1f4))
+* **deps:** bump mermaid from 11.14.0 to 11.15.0 ([#2839](https://github.com/tambo-ai/tambo/issues/2839)) ([e3bdb17](https://github.com/tambo-ai/tambo/commit/e3bdb177db063924769e70ea2a1f04385bd5c971))
+* **deps:** bump next from 15.5.15 to 15.5.18 ([#2845](https://github.com/tambo-ai/tambo/issues/2845)) ([aef3672](https://github.com/tambo-ai/tambo/commit/aef36727d9f8556f0c5ab3cefa7b9f894be3109a))
+* **deps:** bump postcss from 8.5.10 to 8.5.11 ([#2820](https://github.com/tambo-ai/tambo/issues/2820)) ([5c3c0c1](https://github.com/tambo-ai/tambo/commit/5c3c0c1e10ec661045ba63e66c2f31665d91905d))
+* **deps:** bump postcss from 8.5.11 to 8.5.12 ([#2824](https://github.com/tambo-ai/tambo/issues/2824)) ([f680012](https://github.com/tambo-ai/tambo/commit/f6800122d9d1558c7da41a5c7a4e9e5175e85c46))
+* **deps:** bump postcss from 8.5.12 to 8.5.13 ([#2835](https://github.com/tambo-ai/tambo/issues/2835)) ([fe474fd](https://github.com/tambo-ai/tambo/commit/fe474fd906d954988770d5139c9ee2696d098957))
+* **deps:** bump postcss from 8.5.13 to 8.5.14 ([#2859](https://github.com/tambo-ai/tambo/issues/2859)) ([7f0a2d7](https://github.com/tambo-ai/tambo/commit/7f0a2d7ef83c282907fc01f6f7ad7e4e0c9c6a58))
+* **deps:** bump postcss from 8.5.6 to 8.5.10 ([#2819](https://github.com/tambo-ai/tambo/issues/2819)) ([6708051](https://github.com/tambo-ai/tambo/commit/6708051c0ec25f0875664ae07979d91580b7f39b))
+* **deps:** bump the small-safe-packages group across 1 directory with 5 updates ([#2856](https://github.com/tambo-ai/tambo/issues/2856)) ([e0e941d](https://github.com/tambo-ai/tambo/commit/e0e941d263f34c00425dc5e5f7db84addf8ec7e8))
+* **deps:** bump the small-safe-packages group across 1 directory with 9 updates ([#2814](https://github.com/tambo-ai/tambo/issues/2814)) ([070925b](https://github.com/tambo-ai/tambo/commit/070925b00fd734d22c9f62207560208c1bb223f8))
+* **deps:** bump the small-safe-packages group with 7 updates ([#2831](https://github.com/tambo-ai/tambo/issues/2831)) ([e1ca59d](https://github.com/tambo-ai/tambo/commit/e1ca59d73e16f91220b0cf42d6b7a4b6f112dc2a))
+
 ## [1.33.0](https://github.com/tambo-ai/tambo/compare/docs-v1.32.2...docs-v1.33.0) (2026-04-06)
 
 

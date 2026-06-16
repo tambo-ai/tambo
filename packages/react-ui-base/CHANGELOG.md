@@ -1,5 +1,31 @@
 # Changelog
 
+## [0.1.11](https://github.com/tambo-ai/tambo/compare/@tambo-ai/react-ui-base-v0.1.10...@tambo-ai/react-ui-base-v0.1.11) (2026-06-15)
+
+
+### Miscellaneous Chores
+
+* **main:** release @tambo-ai/react-ui-base 0.1.11 ([#2912](https://github.com/tambo-ai/tambo/issues/2912)) ([1c0c007](https://github.com/tambo-ai/tambo/commit/1c0c00768ec1a165b1243f4ac1b02f71e96ba95f))
+
+## [0.1.11](https://github.com/tambo-ai/tambo/compare/@tambo-ai/react-ui-base-v0.1.10...@tambo-ai/react-ui-base-v0.1.11) (2026-06-15)
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * devDependencies
+    * @tambo-ai/react bumped from * to 1.3.0
+  * peerDependencies
+    * @tambo-ai/react bumped from * to 1.3.0
+
+## [0.1.10](https://github.com/tambo-ai/tambo/compare/@tambo-ai/react-ui-base-v0.1.9...@tambo-ai/react-ui-base-v0.1.10) (2026-05-29)
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump ts-jest from 29.4.9 to 29.4.11 in the testing group across 1 directory ([#2874](https://github.com/tambo-ai/tambo/issues/2874)) ([dd3d3a7](https://github.com/tambo-ai/tambo/commit/dd3d3a71c6165c14370ae06a37041dd616d905c2))
+* **deps:** bump @tambo-ai/typescript-sdk from 0.96.0 to 0.96.1 in the tambo-ai group across 1 directory ([#2875](https://github.com/tambo-ai/tambo/issues/2875)) ([540b8ac](https://github.com/tambo-ai/tambo/commit/540b8ac49dd0c2e2e7e75c8f544098639860f03e))
+
 ## [0.1.9](https://github.com/tambo-ai/tambo/compare/@tambo-ai/react-ui-base-v0.1.8...@tambo-ai/react-ui-base-v0.1.9) (2026-05-20)
 
 
