@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.12](https://github.com/tambo-ai/tambo/compare/@tambo-ai/react-ui-base-v0.1.11...@tambo-ai/react-ui-base-v0.1.12) (2026-06-16)
+
+
+### Miscellaneous Chores
+
+* **deps:** bump the npm_and_yarn group across 1 directory with 2 updates ([#2953](https://github.com/tambo-ai/tambo/issues/2953)) ([49a0b35](https://github.com/tambo-ai/tambo/commit/49a0b3508f5f5187cd467ef8c1cfe37f54e3ca7d))
+
 ## [0.1.11](https://github.com/tambo-ai/tambo/compare/@tambo-ai/react-ui-base-v0.1.10...@tambo-ai/react-ui-base-v0.1.11) (2026-06-15)
 
 

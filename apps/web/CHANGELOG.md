@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.135.1](https://github.com/tambo-ai/tambo/compare/web-v0.135.0...web-v0.135.1) (2026-06-16)
+
+
+### Miscellaneous Chores
+
+* **deps:** bump dompurify from 3.4.0 to 3.4.9 in the npm_and_yarn group across 1 directory ([#2956](https://github.com/tambo-ai/tambo/issues/2956)) ([1bf986a](https://github.com/tambo-ai/tambo/commit/1bf986a31a2d6a39a8a3b8634c2cf0e4a5969acd))
+* **deps:** bump the npm_and_yarn group across 1 directory with 2 updates ([#2953](https://github.com/tambo-ai/tambo/issues/2953)) ([49a0b35](https://github.com/tambo-ai/tambo/commit/49a0b3508f5f5187cd467ef8c1cfe37f54e3ca7d))
+
 ## [0.135.0](https://github.com/tambo-ai/tambo/compare/web-v0.134.1...web-v0.135.0) (2026-06-15)
 
 
