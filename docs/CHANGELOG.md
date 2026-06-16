@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.34.1](https://github.com/tambo-ai/tambo/compare/docs-v1.34.0...docs-v1.34.1) (2026-06-16)
+
+
+### Bug Fixes
+
+* **deps:** resolve open GitHub security alerts ([#2957](https://github.com/tambo-ai/tambo/issues/2957)) ([49cdf5d](https://github.com/tambo-ai/tambo/commit/49cdf5da6892e3614160b89f0d4039bd1e6e52be))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump dompurify from 3.4.0 to 3.4.9 in the npm_and_yarn group across 1 directory ([#2956](https://github.com/tambo-ai/tambo/issues/2956)) ([1bf986a](https://github.com/tambo-ai/tambo/commit/1bf986a31a2d6a39a8a3b8634c2cf0e4a5969acd))
+
 ## [1.34.0](https://github.com/tambo-ai/tambo/compare/docs-v1.33.2...docs-v1.34.0) (2026-06-15)
 
 
