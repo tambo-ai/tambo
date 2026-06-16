@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.38.0](https://github.com/tambo-ai/tambo/compare/showcase-v0.37.7...showcase-v0.38.0) (2026-06-16)
+
+
+### Features
+
+* **web:** migrate to Next.js 16 and React 19 ([#2900](https://github.com/tambo-ai/tambo/issues/2900)) ([5a654ef](https://github.com/tambo-ai/tambo/commit/5a654efe235d6f9a3711282c503c63a47b56eb22))
+
+
+### Bug Fixes
+
+* **deps:** resolve open GitHub security alerts ([#2957](https://github.com/tambo-ai/tambo/issues/2957)) ([49cdf5d](https://github.com/tambo-ai/tambo/commit/49cdf5da6892e3614160b89f0d4039bd1e6e52be))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump the eslint group across 1 directory with 4 updates ([#2922](https://github.com/tambo-ai/tambo/issues/2922)) ([6cbdb40](https://github.com/tambo-ai/tambo/commit/6cbdb40a51136a0c30fb8e560bc2bc5499ee01a7))
+* **deps:** bump dompurify from 3.4.0 to 3.4.9 in the npm_and_yarn group across 1 directory ([#2956](https://github.com/tambo-ai/tambo/issues/2956)) ([1bf986a](https://github.com/tambo-ai/tambo/commit/1bf986a31a2d6a39a8a3b8634c2cf0e4a5969acd))
+* **deps:** bump recharts from 3.8.0 to 3.8.1 ([#2938](https://github.com/tambo-ai/tambo/issues/2938)) ([487dfab](https://github.com/tambo-ai/tambo/commit/487dfab1e51e2eb9c6d5c67fc3ced8960048fbf3))
+* **deps:** bump the radix-ui group with 19 updates ([#2930](https://github.com/tambo-ai/tambo/issues/2930)) ([a21bbef](https://github.com/tambo-ai/tambo/commit/a21bbef264da217c18c517591c4d2418a7d6cf4f))
+* **deps:** bump the small-safe-packages group across 1 directory with 3 updates ([#2914](https://github.com/tambo-ai/tambo/issues/2914)) ([7520049](https://github.com/tambo-ai/tambo/commit/7520049842c75ad7933dede838c5b4100a9639b1))
+* **deps:** bump the tiptap group across 1 directory with 9 updates ([#2881](https://github.com/tambo-ai/tambo/issues/2881)) ([281593c](https://github.com/tambo-ai/tambo/commit/281593c233164bec793870cd8f17459690b9eaa6))
+* **deps:** bump the tiptap group across 1 directory with 9 updates ([#2907](https://github.com/tambo-ai/tambo/issues/2907)) ([69ad3c5](https://github.com/tambo-ai/tambo/commit/69ad3c5fbb1a9407573cc6c6c021725fa405da0b))
+
 ## [0.37.7](https://github.com/tambo-ai/tambo/compare/showcase-v0.37.6...showcase-v0.37.7) (2026-05-20)
 
 
