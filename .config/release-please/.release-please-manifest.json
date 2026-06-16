@@ -1,11 +1,11 @@
 {
-  "apps/api": "0.145.1",
-  "apps/web": "0.134.1",
+  "apps/api": "0.146.1",
+  "apps/web": "0.135.1",
   "cli": "0.56.1",
   "create-tambo-app": "0.3.4",
-  "docs": "1.33.1",
-  "packages/client": "1.1.2",
-  "packages/react-ui-base": "0.1.9",
-  "react-sdk": "1.2.7",
-  "showcase": "0.37.7"
+  "docs": "1.34.0",
+  "packages/client": "1.2.0",
+  "packages/react-ui-base": "0.1.12",
+  "react-sdk": "1.3.0",
+  "showcase": "0.38.0"
 }

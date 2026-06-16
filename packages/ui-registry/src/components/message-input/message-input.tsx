@@ -316,7 +316,7 @@ const MessageInputTextarea = ({
               onComplete={() => setSelectedMcpPromptName(null)}
             />
             <TextEditor
-              ref={editorRef as React.RefObject<TamboEditor>}
+              ref={editorRef}
               value={value}
               onChange={setValue}
               onResourceNamesChange={setResourceNames}

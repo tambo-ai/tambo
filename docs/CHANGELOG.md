@@ -1,5 +1,28 @@
 # Changelog
 
+## [1.34.0](https://github.com/tambo-ai/tambo/compare/docs-v1.33.2...docs-v1.34.0) (2026-06-15)
+
+
+### Features
+
+* **web:** migrate to Next.js 16 and React 19 ([#2900](https://github.com/tambo-ai/tambo/issues/2900)) ([5a654ef](https://github.com/tambo-ai/tambo/commit/5a654efe235d6f9a3711282c503c63a47b56eb22))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump the radix-ui group with 19 updates ([#2930](https://github.com/tambo-ai/tambo/issues/2930)) ([a21bbef](https://github.com/tambo-ai/tambo/commit/a21bbef264da217c18c517591c4d2418a7d6cf4f))
+* **deps:** bump the small-safe-packages group across 1 directory with 3 updates ([#2914](https://github.com/tambo-ai/tambo/issues/2914)) ([7520049](https://github.com/tambo-ai/tambo/commit/7520049842c75ad7933dede838c5b4100a9639b1))
+
+## [1.33.2](https://github.com/tambo-ai/tambo/compare/docs-v1.33.1...docs-v1.33.2) (2026-05-29)
+
+
+### Miscellaneous Chores
+
+* **deps:** bump @tailwindcss/postcss from 4.2.2 to 4.3.0 in the tailwind group across 1 directory ([#2880](https://github.com/tambo-ai/tambo/issues/2880)) ([3041273](https://github.com/tambo-ai/tambo/commit/3041273309225756291b329ce5cfba7d3c668655))
+* **deps:** bump @tambo-ai/typescript-sdk from 0.96.0 to 0.96.1 in the tambo-ai group across 1 directory ([#2875](https://github.com/tambo-ai/tambo/issues/2875)) ([540b8ac](https://github.com/tambo-ai/tambo/commit/540b8ac49dd0c2e2e7e75c8f544098639860f03e))
+* **deps:** bump postcss from 8.5.14 to 8.5.15 ([#2869](https://github.com/tambo-ai/tambo/issues/2869)) ([ceb3047](https://github.com/tambo-ai/tambo/commit/ceb3047258292cd670d10bf984080481ab3870c7))
+* **deps:** bump the small-safe-packages group across 1 directory with 3 updates ([#2876](https://github.com/tambo-ai/tambo/issues/2876)) ([a2198da](https://github.com/tambo-ai/tambo/commit/a2198daca95c3b4b2e7166b476ad149ab10d4ab8))
+
 ## [1.33.1](https://github.com/tambo-ai/tambo/compare/docs-v1.33.0...docs-v1.33.1) (2026-05-20)
 
 

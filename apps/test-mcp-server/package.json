@@ -24,11 +24,13 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.27.1",
     "commander": "^14.0.3",
+    "cors": "^2.8.5",
     "express": "^5.1.0"
   },
   "devDependencies": {
     "@tambo-ai/eslint-config": "*",
     "@tambo-ai/typescript-config": "*",
+    "@types/cors": "^2.8.19",
     "@types/express": "^5.0.0",
     "@types/node": "^22.19.15",
     "tsx": "^4.21.0",

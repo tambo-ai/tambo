@@ -53,15 +53,6 @@ export function HeaderActions({
       >
         MCP
       </Link>
-      <Link
-        href="/blog"
-        className={cn(
-          buttonVariants({ variant: "link" }),
-          "h-9 rounded-md group tracking-tight font-medium",
-        )}
-      >
-        Blog
-      </Link>
       <TamboChatTrigger />
       {/* <GitHubLink href={siteConfig.links.github} text="Github" /> */}
       {showDiscordButton && (

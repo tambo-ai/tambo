@@ -14,10 +14,20 @@ on:
 jobs:
   deploy-migrations:
     name: Deploy Database Migrations
-    # Skip if the actor is dependabot, or if the triggering workflow failed
-    if: github.actor != 'dependabot[bot]' && (github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success')
+    # Only trusted pushes from this repo (never fork PRs)
+    if: >-
+      github.actor != 'dependabot[bot]' &&
+      (
+        github.event_name == 'workflow_dispatch' ||
+        (
+          github.event_name == 'workflow_run' &&
+          github.event.workflow_run.event == 'push' &&
+          github.event.workflow_run.head_repository.full_name == github.repository &&
+          github.event.workflow_run.head_branch == 'main' &&
+          github.event.workflow_run.conclusion == 'success'
+        )
+      )
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
