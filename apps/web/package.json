@@ -1,6 +1,6 @@
 {
   "name": "@tambo-ai-cloud/web",
-  "version": "0.135.0",
+  "version": "0.135.1",
   "description": "Tambo Cloud web dashboard",
   "private": true,
   "type": "module",
