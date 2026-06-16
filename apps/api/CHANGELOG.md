@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.146.1](https://github.com/tambo-ai/tambo/compare/api-v0.146.0...api-v0.146.1) (2026-06-16)
+
+
+### Bug Fixes
+
+* **deps:** resolve open GitHub security alerts ([#2957](https://github.com/tambo-ai/tambo/issues/2957)) ([49cdf5d](https://github.com/tambo-ai/tambo/commit/49cdf5da6892e3614160b89f0d4039bd1e6e52be))
+
 ## [0.146.0](https://github.com/tambo-ai/tambo/compare/api-v0.145.1...api-v0.146.0) (2026-06-15)
 
 
