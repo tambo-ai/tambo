@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.56.2](https://github.com/tambo-ai/tambo/compare/tambo-v0.56.1...tambo-v0.56.2) (2026-06-16)
+
+
+### Miscellaneous Chores
+
+* **deps:** bump ora from 9.0.0 to 9.4.0 ([#2909](https://github.com/tambo-ai/tambo/issues/2909)) ([6716dec](https://github.com/tambo-ai/tambo/commit/6716dec54eac7c0f0fb32449710f02a8b9d57b4d))
+* **deps:** bump the npm_and_yarn group across 1 directory with 2 updates ([#2953](https://github.com/tambo-ai/tambo/issues/2953)) ([49a0b35](https://github.com/tambo-ai/tambo/commit/49a0b3508f5f5187cd467ef8c1cfe37f54e3ca7d))
+
 ## [0.56.1](https://github.com/tambo-ai/tambo/compare/tambo-v0.56.0...tambo-v0.56.1) (2026-05-20)
 
 
