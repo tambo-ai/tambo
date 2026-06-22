@@ -76,8 +76,8 @@
     }
   },
   "dependencies": {
-    "@ag-ui/core": "^0.0.44",
-    "@tambo-ai/client": "1.1.3",
+    "@ag-ui/core": "^0.0.57",
+    "@tambo-ai/client": "1.2.0",
     "@modelcontextprotocol/sdk": "^1.27.1",
     "@tambo-ai/typescript-sdk": "^0.96.1",
     "@tanstack/react-query": "^5.90.16",

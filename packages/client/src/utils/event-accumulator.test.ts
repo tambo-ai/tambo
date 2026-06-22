@@ -1,4 +1,10 @@
-import { EventType, type RunErrorEvent } from "@ag-ui/core";
+import {
+  EventType,
+  type ReasoningMessageContentEvent,
+  type ReasoningMessageEndEvent,
+  type ReasoningMessageStartEvent,
+  type RunErrorEvent,
+} from "@ag-ui/core";
 import {
   createInitialState,
   createInitialThreadState,
@@ -128,5 +134,51 @@ describe("streamReducer RUN_ERROR handling", () => {
     expect(error?.message).toBe("Generic error");
     expect(error?.category).toBeUndefined();
     expect(error?.isRetryable).toBeUndefined();
+  });
+});
+
+describe("streamReducer REASONING_MESSAGE_* handling", () => {
+  it("accumulates reasoning content and duration on an assistant message", () => {
+    const state = createTestStreamState("thread_1");
+
+    const startEvent: ReasoningMessageStartEvent = {
+      type: EventType.REASONING_MESSAGE_START,
+      messageId: "reasoning-message-1",
+      role: "reasoning",
+      timestamp: 1704067200000,
+    };
+    const contentEvent: ReasoningMessageContentEvent = {
+      type: EventType.REASONING_MESSAGE_CONTENT,
+      messageId: "reasoning-message-1",
+      delta: "Let me think about this...",
+      timestamp: 1704067201000,
+    };
+    const endEvent: ReasoningMessageEndEvent = {
+      type: EventType.REASONING_MESSAGE_END,
+      messageId: "reasoning-message-1",
+      timestamp: 1704067205000,
+    };
+
+    const afterStart = streamReducer(state, {
+      type: "EVENT",
+      event: startEvent,
+      threadId: "thread_1",
+    });
+    const afterContent = streamReducer(afterStart, {
+      type: "EVENT",
+      event: contentEvent,
+      threadId: "thread_1",
+    });
+    const afterEnd = streamReducer(afterContent, {
+      type: "EVENT",
+      event: endEvent,
+      threadId: "thread_1",
+    });
+
+    const [message] = afterEnd.threadMap.thread_1.thread.messages;
+
+    expect(message.role).toBe("assistant");
+    expect(message.reasoning).toEqual(["Let me think about this..."]);
+    expect(message.reasoningDurationMS).toBe(5000);
   });
 });
