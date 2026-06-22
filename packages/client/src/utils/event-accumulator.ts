@@ -8,6 +8,10 @@
 import type {
   AGUIEvent,
   CustomEvent,
+  ReasoningMessageChunkEvent,
+  ReasoningMessageContentEvent,
+  ReasoningMessageEndEvent,
+  ReasoningMessageStartEvent,
   RunErrorEvent,
   RunFinishedEvent,
   RunStartedEvent,
@@ -614,15 +618,36 @@ export function streamReducer(
       updatedThreadState = handleCustomEvent(threadState, event);
       break;
 
+    case EventType.REASONING_START:
+      updatedThreadState = {
+        ...threadState,
+        streaming: {
+          ...threadState.streaming,
+          reasoningStartTime:
+            threadState.streaming.reasoningStartTime ??
+            event.timestamp ??
+            Date.now(),
+        },
+      };
+      break;
+
+    case EventType.REASONING_END:
+      updatedThreadState = threadState;
+      break;
+
     case EventType.THINKING_TEXT_MESSAGE_START:
+    case EventType.REASONING_MESSAGE_START:
       updatedThreadState = handleThinkingTextMessageStart(threadState, event);
       break;
 
     case EventType.THINKING_TEXT_MESSAGE_CONTENT:
+    case EventType.REASONING_MESSAGE_CONTENT:
+    case EventType.REASONING_MESSAGE_CHUNK:
       updatedThreadState = handleThinkingTextMessageContent(threadState, event);
       break;
 
     case EventType.THINKING_TEXT_MESSAGE_END:
+    case EventType.REASONING_MESSAGE_END:
       updatedThreadState = handleThinkingTextMessageEnd(threadState, event);
       break;
 
@@ -631,6 +656,7 @@ export function streamReducer(
     case EventType.TOOL_CALL_CHUNK:
     case EventType.THINKING_START:
     case EventType.THINKING_END:
+    case EventType.REASONING_ENCRYPTED_VALUE:
     case EventType.STATE_SNAPSHOT:
     case EventType.STATE_DELTA:
     case EventType.MESSAGES_SNAPSHOT:
@@ -1624,7 +1650,7 @@ function findOrCreateMessageForReasoning(threadState: ThreadState): {
  */
 function handleThinkingTextMessageStart(
   threadState: ThreadState,
-  event: ThinkingTextMessageStartEvent,
+  event: ThinkingTextMessageStartEvent | ReasoningMessageStartEvent,
 ): ThreadState {
   const {
     messageIndex,
@@ -1666,7 +1692,10 @@ function handleThinkingTextMessageStart(
  */
 function handleThinkingTextMessageContent(
   threadState: ThreadState,
-  event: ThinkingTextMessageContentEvent,
+  event:
+    | ThinkingTextMessageContentEvent
+    | ReasoningMessageContentEvent
+    | ReasoningMessageChunkEvent,
 ): ThreadState {
   const {
     messageIndex,
@@ -1677,12 +1706,13 @@ function handleThinkingTextMessageContent(
 
   const message = messages[messageIndex];
   const existingReasoning = message.reasoning ?? [];
+  const delta = event.delta ?? "";
 
   if (existingReasoning.length === 0) {
     // No reasoning chunk started - start one implicitly
     const updatedMessage: TamboThreadMessage = {
       ...message,
-      reasoning: [event.delta],
+      reasoning: [delta],
     };
 
     return {
@@ -1703,7 +1733,7 @@ function handleThinkingTextMessageContent(
   // Append to the last reasoning chunk
   const updatedReasoning = [
     ...existingReasoning.slice(0, -1),
-    existingReasoning[existingReasoning.length - 1] + event.delta,
+    existingReasoning[existingReasoning.length - 1] + delta,
   ];
 
   const updatedMessage: TamboThreadMessage = {
@@ -1726,7 +1756,7 @@ function handleThinkingTextMessageContent(
  */
 function handleThinkingTextMessageEnd(
   threadState: ThreadState,
-  event: ThinkingTextMessageEndEvent,
+  event: ThinkingTextMessageEndEvent | ReasoningMessageEndEvent,
 ): ThreadState {
   const {
     messageIndex,
