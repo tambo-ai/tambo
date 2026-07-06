@@ -38,7 +38,6 @@
     "@nestjs/swagger": "^11.4.4",
     "@opentelemetry/api": "^1.9.1",
     "@opentelemetry/auto-instrumentations-node": "^0.77.0",
-    "@opentelemetry/exporter-otlp-http": "^0.26.0",
     "@opentelemetry/instrumentation-express": "^0.66.0",
     "@opentelemetry/instrumentation-http": "^0.219.0",
     "@opentelemetry/instrumentation-nestjs-core": "^0.64.0",
