@@ -742,6 +742,7 @@ function handleRunFinished(
     streaming: {
       ...threadState.streaming,
       status: "idle",
+      messageId: undefined,
     },
   };
 }
@@ -777,6 +778,7 @@ function handleRunError(
     streaming: {
       ...threadState.streaming,
       status: "idle",
+      messageId: undefined,
       error: isCancelled
         ? undefined
         : {
@@ -804,13 +806,16 @@ function handleTextMessageStart(
   const isAssistant = event.role !== "user";
   const messages = threadState.thread.messages;
 
-  // For assistant messages, check if there's an ephemeral message with reasoning
-  // that we should merge into instead of creating a new message.
-  if (isAssistant) {
+  // For assistant messages, check if the current run created an ephemeral
+  // reasoning message that we should merge into instead of creating a new one.
+  // Scope the search to the active streaming messageId so we never adopt an
+  // orphaned ephemeral left behind by a previous run.
+  const activeMessageId = threadState.streaming.messageId;
+  if (isAssistant && activeMessageId?.startsWith("ephemeral_")) {
     const ephemeralIndex = messages.findIndex(
       (m) =>
+        m.id === activeMessageId &&
         m.role === "assistant" &&
-        m.id.startsWith("ephemeral_") &&
         m.reasoning &&
         m.reasoning.length > 0,
     );
