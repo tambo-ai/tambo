@@ -40,7 +40,7 @@
     "autoprefixer": "^10.4.27",
     "class-variance-authority": "^0.7.1",
     "dompurify": "^3.4.11",
-    "framer-motion": "^12.29.0",
+    "motion": "^12.29.0",
     "geist": "^1.5.1",
     "highlight.js": "^11.11.1",
     "json-stringify-pretty-compact": "^4.0.0",
