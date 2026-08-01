@@ -15,6 +15,7 @@ import {
   ApiSecurity,
   ApiTags,
 } from "@nestjs/swagger";
+import { Throttle } from "@nestjs/throttler";
 import * as Sentry from "@sentry/nestjs";
 import { OAuthValidationMode } from "@tambo-ai-cloud/core";
 import { getDb, operations } from "@tambo-ai-cloud/db";
@@ -36,6 +37,7 @@ export class OAuthController {
   @ApiSecurity("apiKey")
   @UseGuards(ApiKeyGuard)
   @Post("token")
+  @Throttle({ strict: { limit: 10, ttl: 60_000 } })
   @ApiConsumes("application/x-www-form-urlencoded")
   @ApiOperation({
     summary: "OAuth 2.0 Token Exchange Endpoint",

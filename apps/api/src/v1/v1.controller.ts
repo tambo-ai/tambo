@@ -24,6 +24,7 @@ import {
   ApiSecurity,
   ApiTags,
 } from "@nestjs/swagger";
+import { Throttle } from "@nestjs/throttler";
 import { Request, Response } from "express";
 import { ApiKeyGuard } from "../projects/guards/apikey.guard";
 import { BearerTokenGuard } from "../projects/guards/bearer-token.guard";
@@ -313,6 +314,7 @@ export class V1Controller {
   // ==========================================
 
   @Post("threads/runs")
+  @Throttle({ streaming: { limit: 20, ttl: 60_000 } })
   @ApiOperation({
     summary: "Create thread with run (SSE)",
     description:
@@ -437,6 +439,7 @@ export class V1Controller {
 
   @Post("threads/:threadId/runs")
   @UseGuards(V1ThreadInProjectGuard)
+  @Throttle({ streaming: { limit: 20, ttl: 60_000 } })
   @ApiOperation({
     summary: "Create run on existing thread (SSE)",
     description:

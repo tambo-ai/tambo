@@ -22,6 +22,7 @@ import {
   ApiSecurity,
   ApiTags,
 } from "@nestjs/swagger";
+import { Throttle } from "@nestjs/throttler";
 import * as Sentry from "@sentry/nestjs";
 import { AsyncQueue } from "@tambo-ai-cloud/core";
 import { operations } from "@tambo-ai-cloud/db";
@@ -415,6 +416,7 @@ export class ThreadsController {
 
   @UseGuards(ThreadInProjectGuard)
   @Post(":id/advancestream")
+  @Throttle({ streaming: { limit: 20, ttl: 60_000 } })
   @ApiOperation({
     summary: "Advance a thread stream",
     description:
@@ -499,6 +501,7 @@ export class ThreadsController {
   }
 
   @Post("advancestream")
+  @Throttle({ streaming: { limit: 20, ttl: 60_000 } })
   @ApiOperation({
     summary: "Create and advance a thread stream",
     description:

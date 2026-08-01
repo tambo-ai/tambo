@@ -1,7 +1,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import type { MCPHandlers } from "@tambo-ai-cloud/core";
-import { TAMBO_MCP_ACCESS_KEY_CLAIM } from "@tambo-ai-cloud/core";
+import { TAMBO_MCP_ACCESS_KEY_CLAIM, hashKey } from "@tambo-ai-cloud/core";
 import { getDb, HydraDb } from "@tambo-ai-cloud/db";
 import cors from "cors";
 import { Express, NextFunction, Request, Response } from "express";
@@ -19,6 +19,69 @@ interface AuthenticatedMcpRequest extends Request {
   [MCP_REQUEST_PROJECT_ID]?: string;
   [MCP_REQUEST_THREAD_ID]?: string;
   [MCP_REQUEST_CONTEXT_KEY]?: string;
+}
+
+/**
+ * Simple in-memory sliding window rate limiter for MCP endpoints.
+ * Uses hashed API keys as tracker when available, falls back to IP.
+ * MCP runs outside the NestJS guard pipeline, so this is a standalone
+ * Express middleware rate limiter.
+ */
+const MCP_RATE_LIMIT = Number(process.env.RATE_LIMIT_MCP ?? 60);
+const MCP_RATE_WINDOW_MS = 60_000;
+const mcpRateLimitStore = new Map<
+  string,
+  { count: number; windowStart: number }
+>();
+
+function mcpRateLimitMiddleware(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): void {
+  const apiKey = req.headers["x-api-key"];
+  const key = Array.isArray(apiKey) ? apiKey[0] : apiKey;
+  const tracker = key
+    ? `mcp:apikey:${hashKey(key)}`
+    : `mcp:ip:${req.ip ?? req.socket.remoteAddress ?? "unknown"}`;
+
+  const now = Date.now();
+  const entry = mcpRateLimitStore.get(tracker);
+
+  if (!entry || now - entry.windowStart > MCP_RATE_WINDOW_MS) {
+    mcpRateLimitStore.set(tracker, { count: 1, windowStart: now });
+    res.setHeader("X-RateLimit-Limit", MCP_RATE_LIMIT);
+    res.setHeader("X-RateLimit-Remaining", MCP_RATE_LIMIT - 1);
+    next();
+    return;
+  }
+
+  entry.count++;
+
+  if (entry.count > MCP_RATE_LIMIT) {
+    const retryAfterSeconds = Math.ceil(
+      (entry.windowStart + MCP_RATE_WINDOW_MS - now) / 1000,
+    );
+    res.setHeader("Retry-After", retryAfterSeconds);
+    res.setHeader("X-RateLimit-Limit", MCP_RATE_LIMIT);
+    res.setHeader("X-RateLimit-Remaining", 0);
+    res.setHeader(
+      "X-RateLimit-Reset",
+      new Date(entry.windowStart + MCP_RATE_WINDOW_MS).toISOString(),
+    );
+    res.status(429).json({
+      type: "https://docs.tambo.co/reference/problems/rate-limit",
+      status: 429,
+      title: "Too Many Requests",
+      detail: `Rate limit exceeded. Try again in ${retryAfterSeconds} seconds.`,
+      instance: req.originalUrl ?? req.url,
+    });
+    return;
+  }
+
+  res.setHeader("X-RateLimit-Limit", MCP_RATE_LIMIT);
+  res.setHeader("X-RateLimit-Remaining", MCP_RATE_LIMIT - entry.count);
+  next();
 }
 
 export async function createMcpServer(
@@ -260,6 +323,8 @@ const handler = async (req: AuthenticatedMcpRequest, res: Response) => {
 export function registerHandler(expressApp: Express, path: string) {
   expressApp.use(
     path,
+    // Rate limit MCP requests before authentication
+    mcpRateLimitMiddleware,
     // Enable CORS for all routes so Inspector can connect
     cors({
       origin: "*", // use "*" with caution in production
