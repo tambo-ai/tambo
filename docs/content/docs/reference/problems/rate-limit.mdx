@@ -1,0 +1,57 @@
+---
+title: Rate Limit Exceeded
+description: Error response when a request exceeds the rate limit
+---
+
+The API returns a `429 Too Many Requests` status with this problem type when you exceed the rate limit for an endpoint.
+
+## Response Format
+
+```json
+{
+  "type": "https://docs.tambo.co/reference/problems/rate-limit",
+  "status": 429,
+  "title": "Too Many Requests",
+  "detail": "Rate limit exceeded. Try again in 45 seconds.",
+  "instance": "/v1/threads/runs"
+}
+```
+
+## Fields
+
+- **`type`** - Stable URI identifying this problem type
+- **`status`** - HTTP status code (always `429`)
+- **`title`** - Short summary of the problem (always `Too Many Requests`)
+- **`detail`** - Human-readable description including the retry wait time
+- **`instance`** - The specific request path that triggered this error
+
+## Rate Limit Tiers
+
+| Tier | Limit | Applies To |
+|------|-------|------------|
+| default | 100 requests/minute | All endpoints |
+| streaming | 20 requests/minute | LLM run endpoints |
+| strict | 10 requests/minute | OAuth token exchange |
+
+## Headers
+
+Rate limit responses include these headers:
+
+- **`Retry-After`** - Seconds to wait before retrying
+- **`X-RateLimit-Limit`** - Maximum requests allowed in the window
+- **`X-RateLimit-Remaining`** - Requests remaining in the current window
+- **`X-RateLimit-Reset`** - ISO 8601 timestamp when the window resets
+
+## Handling
+
+When you receive this error:
+
+1. Read the `Retry-After` header to know how long to wait
+2. Wait before retrying the request
+3. Consider reducing your request frequency
+4. Use batch APIs where available to reduce total requests
+
+## See Also
+
+- [REST API Reference](/reference/rest-api) - Complete API documentation
+- [RFC 9457 Problem Details](https://www.rfc-editor.org/rfc/rfc9457.html) - Standard for error responses

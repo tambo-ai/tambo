@@ -5,6 +5,7 @@
     "not-found",
     "forbidden",
     "conflict",
-    "endpoint-deprecated"
+    "endpoint-deprecated",
+    "rate-limit"
   ]
 }
