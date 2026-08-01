@@ -21,6 +21,7 @@ import { StorageConfigService } from "./common/services/storage-config.service";
 import { ConfigServiceSingleton } from "./config.service";
 import { OAuthModule } from "./oauth/oauth.module";
 import { ProjectsModule } from "./projects/projects.module";
+import { RateLimitModule } from "./common/rate-limit/rate-limit.module";
 import { RegistryModule } from "./registry/registry.module";
 import { MemoryModule } from "./memory/memory.module";
 import { SkillsModule } from "./skills/skills.module";
@@ -55,6 +56,7 @@ export class GlobalModule {}
     SchedulerModule,
     StorageModule,
     V1Module,
+    RateLimitModule,
   ],
   controllers: [AppController],
   providers: [AppService, EmailService, AuthService],
