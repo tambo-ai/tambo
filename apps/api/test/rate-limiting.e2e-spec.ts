@@ -68,10 +68,9 @@ describe("Rate Limiting (e2e)", () => {
     );
 
     const rateLimited = responses.find((r) => r.status === 429);
-    if (rateLimited) {
-      expect(rateLimited.headers["content-type"]).toContain(
-        "application/problem+json",
-      );
-    }
+    expect(rateLimited).toBeDefined();
+    expect(rateLimited!.headers["content-type"]).toContain(
+      "application/problem+json",
+    );
   });
 });

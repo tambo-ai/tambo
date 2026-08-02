@@ -4,6 +4,22 @@ import { APP_GUARD } from "@nestjs/core";
 import { ThrottlerModule } from "@nestjs/throttler";
 import { RateLimitGuard } from "./rate-limit.guard";
 
+function parseRateLimitEnv(
+  configService: ConfigService,
+  key: string,
+  fallback: number,
+): number {
+  const raw = configService.get<string>(key);
+  if (raw === undefined || raw === "") {
+    return fallback;
+  }
+  const parsed = Number(raw);
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    throw new Error(`Invalid ${key}="${raw}": must be a positive number.`);
+  }
+  return parsed;
+}
+
 /**
  * Named throttle tiers for different endpoint groups.
  *
@@ -28,17 +44,17 @@ import { RateLimitGuard } from "./rate-limit.guard";
         throttlers: [
           {
             name: "default",
-            limit: configService.get<number>("RATE_LIMIT_DEFAULT", 100),
+            limit: parseRateLimitEnv(configService, "RATE_LIMIT_DEFAULT", 100),
             ttl: 60_000,
           },
           {
             name: "streaming",
-            limit: configService.get<number>("RATE_LIMIT_STREAMING", 20),
+            limit: parseRateLimitEnv(configService, "RATE_LIMIT_STREAMING", 20),
             ttl: 60_000,
           },
           {
             name: "strict",
-            limit: configService.get<number>("RATE_LIMIT_STRICT", 10),
+            limit: parseRateLimitEnv(configService, "RATE_LIMIT_STRICT", 10),
             ttl: 60_000,
           },
         ],

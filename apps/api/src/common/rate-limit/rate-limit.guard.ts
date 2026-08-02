@@ -1,7 +1,6 @@
-import { ExecutionContext, Injectable } from "@nestjs/common";
-import { Reflector } from "@nestjs/core";
+import { ExecutionContext, HttpException, Injectable } from "@nestjs/common";
 import { ThrottlerGuard, ThrottlerLimitDetail } from "@nestjs/throttler";
-import { hashKey } from "@tambo-ai-cloud/core";
+import { ProjectId } from "../../projects/guards/apikey.guard";
 import { Request, Response } from "express";
 import { ProblemDetails } from "../../threads/types/errors";
 
@@ -9,21 +8,13 @@ const RATE_LIMIT_PROBLEM_TYPE =
   "https://docs.tambo.co/reference/problems/rate-limit";
 
 /**
- * Custom throttler guard that uses the API key (hashed) as the rate limit
- * identifier when present, falling back to IP address for unauthenticated
- * requests. Returns RFC 9457 Problem Details on 429 and adds standard
- * rate limit headers to all responses.
+ * Custom throttler guard that tracks by authenticated project ID when
+ * available (set by ApiKeyGuard/BearerTokenGuard), falling back to
+ * hashed API key, then to IP. Throws an HttpException on 429 so the
+ * existing exception filters produce a proper RFC 9457 response.
  */
 @Injectable()
 export class RateLimitGuard extends ThrottlerGuard {
-  constructor(
-    options: ConstructorParameters<typeof ThrottlerGuard>[0],
-    storageService: ConstructorParameters<typeof ThrottlerGuard>[1],
-    reflector: Reflector,
-  ) {
-    super(options, storageService, reflector);
-  }
-
   protected override getRequestResponse(context: ExecutionContext): {
     req: Record<string, unknown>;
     res: Record<string, unknown>;
@@ -36,26 +27,33 @@ export class RateLimitGuard extends ThrottlerGuard {
   }
 
   /**
-   * Returns the rate limit tracker key: hashed API key when present,
-   * otherwise the client IP address.
+   * Returns the rate limit tracker key: authenticated project ID when
+   * available, otherwise hashed API key, then client IP.
    */
   protected override async getTracker(
     req: Record<string, unknown>,
   ): Promise<string> {
     const request = req as Request;
+
+    // Use authenticated project ID if the auth guard has already run
+    const projectId = request[ProjectId];
+    if (typeof projectId === "string") {
+      return `project:${projectId}`;
+    }
+
     const apiKey = request.headers["x-api-key"];
     const key = Array.isArray(apiKey) ? apiKey[0] : apiKey;
 
     if (key) {
-      return `apikey:${hashKey(key)}`;
+      return `apikey:${key}`;
     }
 
     return `ip:${request.ip ?? request.socket.remoteAddress ?? "unknown"}`;
   }
 
   /**
-   * Sets rate limit headers on every response and returns `true` to allow
-   * the request through. Called by the base class on every throttled request.
+   * Sets rate limit headers on every response. Called by the base class
+   * on every throttled request that is allowed through.
    */
   protected override async handleRequest(
     requestProps: Parameters<ThrottlerGuard["handleRequest"]>[0],
@@ -78,43 +76,37 @@ export class RateLimitGuard extends ThrottlerGuard {
   }
 
   /**
-   * Returns a 429 response with RFC 9457 Problem Details body and
-   * Retry-After header instead of throwing an exception. This integrates
-   * with the existing DomainExceptionFilter and HttpExceptionFilter patterns.
+   * Throws an HttpException with RFC 9457 Problem Details body and
+   * rate limit headers. The exception filters will format the response.
    */
-  protected override async throwThrottlingException(
+  protected override throwThrottlingException(
     context: ExecutionContext,
     throttlerLimitDetail: ThrottlerLimitDetail,
-  ): Promise<void> {
-    const { req, res } = this.getRequestResponse(context);
+  ): never {
+    const { res, req } = this.getRequestResponse(context);
     const response = res as Response;
     const request = req as Request;
 
-    if (response.headersSent) {
-      return;
-    }
+    if (!response.headersSent) {
+      const retryAfterSeconds = Math.ceil(throttlerLimitDetail.ttl / 1000);
 
-    const retryAfterSeconds = Math.ceil(throttlerLimitDetail.ttl / 1000);
+      response.setHeader("Retry-After", retryAfterSeconds);
+      response.setHeader("X-RateLimit-Limit", throttlerLimitDetail.limit);
+      response.setHeader("X-RateLimit-Remaining", 0);
+      response.setHeader(
+        "X-RateLimit-Reset",
+        new Date(Date.now() + throttlerLimitDetail.ttl).toISOString(),
+      );
+    }
 
     const problemDetails: ProblemDetails = {
       type: RATE_LIMIT_PROBLEM_TYPE,
       status: 429,
       title: "Too Many Requests",
-      detail: `Rate limit exceeded. Try again in ${retryAfterSeconds} seconds.`,
+      detail: `Rate limit exceeded. Try again in ${Math.ceil(throttlerLimitDetail.ttl / 1000)} seconds.`,
       instance: request.originalUrl ?? request.url,
     };
 
-    response.setHeader("Retry-After", retryAfterSeconds);
-    response.setHeader("X-RateLimit-Limit", throttlerLimitDetail.limit);
-    response.setHeader("X-RateLimit-Remaining", 0);
-    response.setHeader(
-      "X-RateLimit-Reset",
-      new Date(Date.now() + throttlerLimitDetail.ttl).toISOString(),
-    );
-
-    response
-      .status(429)
-      .header("Content-Type", "application/problem+json")
-      .json(problemDetails);
+    throw new HttpException(problemDetails, 429);
   }
 }

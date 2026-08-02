@@ -22,23 +22,44 @@ interface AuthenticatedMcpRequest extends Request {
 }
 
 /**
- * Simple in-memory sliding window rate limiter for MCP endpoints.
+ * Fixed-window rate limiter for MCP endpoints.
  * Uses hashed API keys as tracker when available, falls back to IP.
  * MCP runs outside the NestJS guard pipeline, so this is a standalone
  * Express middleware rate limiter.
  */
-const MCP_RATE_LIMIT = Number(process.env.RATE_LIMIT_MCP ?? 60);
+const rawMcpRateLimit = process.env.RATE_LIMIT_MCP ?? "60";
+const MCP_RATE_LIMIT = Number(rawMcpRateLimit);
+if (!Number.isFinite(MCP_RATE_LIMIT) || MCP_RATE_LIMIT <= 0) {
+  throw new Error(
+    `Invalid RATE_LIMIT_MCP="${rawMcpRateLimit}": must be a positive number.`,
+  );
+}
 const MCP_RATE_WINDOW_MS = 60_000;
+const MCP_RATE_LIMIT_ENTRIES_MAX = 10_000;
 const mcpRateLimitStore = new Map<
   string,
   { count: number; windowStart: number }
 >();
+
+function pruneExpiredMcpEntries(): void {
+  if (mcpRateLimitStore.size < MCP_RATE_LIMIT_ENTRIES_MAX) {
+    return;
+  }
+  const now = Date.now();
+  for (const [key, entry] of mcpRateLimitStore) {
+    if (now - entry.windowStart > MCP_RATE_WINDOW_MS) {
+      mcpRateLimitStore.delete(key);
+    }
+  }
+}
 
 function mcpRateLimitMiddleware(
   req: Request,
   res: Response,
   next: NextFunction,
 ): void {
+  pruneExpiredMcpEntries();
+
   const apiKey = req.headers["x-api-key"];
   const key = Array.isArray(apiKey) ? apiKey[0] : apiKey;
   const tracker = key
@@ -323,8 +344,6 @@ const handler = async (req: AuthenticatedMcpRequest, res: Response) => {
 export function registerHandler(expressApp: Express, path: string) {
   expressApp.use(
     path,
-    // Rate limit MCP requests before authentication
-    mcpRateLimitMiddleware,
     // Enable CORS for all routes so Inspector can connect
     cors({
       origin: "*", // use "*" with caution in production
@@ -337,6 +356,8 @@ export function registerHandler(expressApp: Express, path: string) {
         "mcp-protocol-version",
       ],
     }),
+    // Rate limit MCP requests after CORS but before authentication
+    mcpRateLimitMiddleware,
     // Authenticate the request
     authenticateMcpRequest,
   );
