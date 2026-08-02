@@ -416,7 +416,7 @@ export class ThreadsController {
 
   @UseGuards(ThreadInProjectGuard)
   @Post(":id/advancestream")
-  @Throttle({ streaming: { limit: 20, ttl: 60_000 } })
+  @Throttle({ streaming: {} })
   @ApiOperation({
     summary: "Advance a thread stream",
     description:
@@ -501,7 +501,7 @@ export class ThreadsController {
   }
 
   @Post("advancestream")
-  @Throttle({ streaming: { limit: 20, ttl: 60_000 } })
+  @Throttle({ streaming: {} })
   @ApiOperation({
     summary: "Create and advance a thread stream",
     description:

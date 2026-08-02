@@ -128,7 +128,7 @@ describe("RateLimitGuard", () => {
     it("should extract req and res from execution context", () => {
       const context = createMockContext();
 
-      const result = guard.getRequestResponse(context);
+      const result = (guard as any).getRequestResponse(context);
 
       expect(result.req).toBeDefined();
       expect(result.res).toBeDefined();

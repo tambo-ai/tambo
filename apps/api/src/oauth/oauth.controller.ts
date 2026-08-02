@@ -37,7 +37,7 @@ export class OAuthController {
   @ApiSecurity("apiKey")
   @UseGuards(ApiKeyGuard)
   @Post("token")
-  @Throttle({ strict: { limit: 10, ttl: 60_000 } })
+  @Throttle({ strict: {} })
   @ApiConsumes("application/x-www-form-urlencoded")
   @ApiOperation({
     summary: "OAuth 2.0 Token Exchange Endpoint",
