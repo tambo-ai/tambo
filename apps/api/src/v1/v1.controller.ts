@@ -314,7 +314,7 @@ export class V1Controller {
   // ==========================================
 
   @Post("threads/runs")
-  @Throttle({ streaming: {} })
+  @Throttle({ default: { limit: 20, ttl: 60_000 } })
   @ApiOperation({
     summary: "Create thread with run (SSE)",
     description:
@@ -439,7 +439,7 @@ export class V1Controller {
 
   @Post("threads/:threadId/runs")
   @UseGuards(V1ThreadInProjectGuard)
-  @Throttle({ streaming: {} })
+  @Throttle({ default: { limit: 20, ttl: 60_000 } })
   @ApiOperation({
     summary: "Create run on existing thread (SSE)",
     description:

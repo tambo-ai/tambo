@@ -35,31 +35,28 @@ if (!Number.isFinite(MCP_RATE_LIMIT) || MCP_RATE_LIMIT <= 0) {
   );
 }
 const MCP_RATE_WINDOW_MS = 60_000;
-const MCP_RATE_LIMIT_ENTRIES_MAX = 10_000;
 const mcpRateLimitStore = new Map<
   string,
   { count: number; windowStart: number }
 >();
 
-function pruneExpiredMcpEntries(): void {
-  if (mcpRateLimitStore.size < MCP_RATE_LIMIT_ENTRIES_MAX) {
-    return;
-  }
+// Sweep expired entries every minute instead of on every request.
+// unref() prevents the timer from keeping the process alive.
+const mcpSweepInterval = setInterval(() => {
   const now = Date.now();
   for (const [key, entry] of mcpRateLimitStore) {
     if (now - entry.windowStart > MCP_RATE_WINDOW_MS) {
       mcpRateLimitStore.delete(key);
     }
   }
-}
+}, MCP_RATE_WINDOW_MS);
+mcpSweepInterval.unref();
 
 function mcpRateLimitMiddleware(
   req: Request,
   res: Response,
   next: NextFunction,
 ): void {
-  pruneExpiredMcpEntries();
-
   const apiKey = req.headers["x-api-key"];
   const key = Array.isArray(apiKey) ? apiKey[0] : apiKey;
   const tracker = key

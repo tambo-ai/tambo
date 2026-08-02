@@ -10,6 +10,7 @@ import { json, urlencoded } from "express";
 import helmet from "helmet";
 import { AppModule } from "./app.module";
 import { DomainExceptionFilter } from "./common/filters/domain-exception.filter";
+import { HttpExceptionFilter } from "./common/filters/http-exception.filter";
 import { SentryExceptionFilter } from "./common/filters/sentry-exception.filter";
 import { generateOpenAPIConfig } from "./common/openapi";
 import { registerHandler } from "./mcp-server/server";
@@ -20,6 +21,7 @@ async function bootstrap() {
   const { httpAdapter } = app.get(HttpAdapterHost);
   app.useGlobalFilters(
     new SentryExceptionFilter(httpAdapter),
+    new HttpExceptionFilter(),
     new DomainExceptionFilter(),
   );
 

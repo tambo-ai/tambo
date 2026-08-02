@@ -1,7 +1,8 @@
-import { HttpException } from "@nestjs/common";
-import { ExecutionContext } from "@nestjs/common";
+import { ExecutionContext, HttpException } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
 import { ThrottlerModuleOptions, ThrottlerStorage } from "@nestjs/throttler";
+import { hashKey } from "@tambo-ai-cloud/core";
+import { ProjectId } from "../../projects/guards/apikey.guard";
 import { Request, Response } from "express";
 import { RateLimitGuard } from "./rate-limit.guard";
 
@@ -72,7 +73,6 @@ describe("RateLimitGuard", () => {
       const context = createMockContext({ "x-api-key": "tambo_test-key-123" });
       const req = context.switchToHttp().getRequest();
       // Simulate ApiKeyGuard having set the project ID
-      const { ProjectId } = await import("../../projects/guards/apikey.guard");
       req[ProjectId] = "proj_abc123";
 
       const tracker = await (guard as any).getTracker(req);
@@ -80,14 +80,14 @@ describe("RateLimitGuard", () => {
       expect(tracker).toBe("project:proj_abc123");
     });
 
-    it("should return hashed API key as tracker when no project ID is set", async () => {
+    it("should return API key as tracker when no project ID is set", async () => {
       const apiKey = "tambo_test-key-123";
       const context = createMockContext({ "x-api-key": apiKey });
 
       const req = context.switchToHttp().getRequest();
       const tracker = await (guard as any).getTracker(req);
 
-      expect(tracker).toBe(`apikey:${apiKey}`);
+      expect(tracker).toBe(`apikey:${hashKey(apiKey)}`);
     });
 
     it("should return IP-based tracker when no API key is present", async () => {
@@ -106,7 +106,7 @@ describe("RateLimitGuard", () => {
       const req = context.switchToHttp().getRequest();
       const tracker = await (guard as any).getTracker(req);
 
-      expect(tracker).toBe(`apikey:${apiKey}`);
+      expect(tracker).toBe(`apikey:${hashKey(apiKey)}`);
     });
 
     it("should fall back to unknown when IP is unavailable", async () => {

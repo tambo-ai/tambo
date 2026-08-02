@@ -3,6 +3,7 @@ import { Test, TestingModule } from "@nestjs/testing";
 import request from "supertest";
 import { AppModule } from "../src/app.module";
 import { AudioService } from "../src/audio/audio.service";
+import { HttpExceptionFilter } from "../src/common/filters/http-exception.filter";
 
 describe("Rate Limiting (e2e)", () => {
   let app: INestApplication;
@@ -19,6 +20,7 @@ describe("Rate Limiting (e2e)", () => {
       .compile();
 
     app = moduleFixture.createNestApplication();
+    app.useGlobalFilters(new HttpExceptionFilter());
     await app.init();
   }, 30_000);
 

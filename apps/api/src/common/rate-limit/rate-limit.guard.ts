@@ -1,5 +1,6 @@
 import { ExecutionContext, HttpException, Injectable } from "@nestjs/common";
 import { ThrottlerGuard, ThrottlerLimitDetail } from "@nestjs/throttler";
+import { hashKey } from "@tambo-ai-cloud/core";
 import { ProjectId } from "../../projects/guards/apikey.guard";
 import { Request, Response } from "express";
 import { ProblemDetails } from "../../threads/types/errors";
@@ -10,8 +11,8 @@ const RATE_LIMIT_PROBLEM_TYPE =
 /**
  * Custom throttler guard that tracks by authenticated project ID when
  * available (set by ApiKeyGuard/BearerTokenGuard), falling back to
- * hashed API key, then to IP. Throws an HttpException on 429 so the
- * existing exception filters produce a proper RFC 9457 response.
+ * a hashed API key, then to client IP. Throws an HttpException on 429
+ * so the existing exception filters produce a proper RFC 9457 response.
  */
 @Injectable()
 export class RateLimitGuard extends ThrottlerGuard {
@@ -45,7 +46,7 @@ export class RateLimitGuard extends ThrottlerGuard {
     const key = Array.isArray(apiKey) ? apiKey[0] : apiKey;
 
     if (key) {
-      return `apikey:${key}`;
+      return `apikey:${hashKey(key)}`;
     }
 
     return `ip:${request.ip ?? request.socket.remoteAddress ?? "unknown"}`;
@@ -87,9 +88,9 @@ export class RateLimitGuard extends ThrottlerGuard {
     const response = res as Response;
     const request = req as Request;
 
-    if (!response.headersSent) {
-      const retryAfterSeconds = Math.ceil(throttlerLimitDetail.ttl / 1000);
+    const retryAfterSeconds = Math.ceil(throttlerLimitDetail.ttl / 1000);
 
+    if (!response.headersSent) {
       response.setHeader("Retry-After", retryAfterSeconds);
       response.setHeader("X-RateLimit-Limit", throttlerLimitDetail.limit);
       response.setHeader("X-RateLimit-Remaining", 0);
@@ -103,7 +104,7 @@ export class RateLimitGuard extends ThrottlerGuard {
       type: RATE_LIMIT_PROBLEM_TYPE,
       status: 429,
       title: "Too Many Requests",
-      detail: `Rate limit exceeded. Try again in ${Math.ceil(throttlerLimitDetail.ttl / 1000)} seconds.`,
+      detail: `Rate limit exceeded. Try again in ${retryAfterSeconds} seconds.`,
       instance: request.originalUrl ?? request.url,
     };
 

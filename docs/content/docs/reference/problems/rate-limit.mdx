@@ -29,9 +29,12 @@ The API returns a `429 Too Many Requests` status with this problem type when you
 
 | Tier | Limit | Applies To |
 |------|-------|------------|
-| default | 100 requests/minute | All endpoints |
-| streaming | 20 requests/minute | LLM run endpoints |
+| default | 100 requests/minute | All endpoints (global) |
+| streaming | 20 requests/minute | LLM run and advancestream endpoints |
 | strict | 10 requests/minute | OAuth token exchange |
+
+Limits are configurable via `RATE_LIMIT_DEFAULT`, `RATE_LIMIT_STREAMING`,
+and `RATE_LIMIT_STRICT` environment variables.
 
 ## Headers
 

@@ -21,19 +21,21 @@ function parseRateLimitEnv(
 }
 
 /**
- * Named throttle tiers for different endpoint groups.
+ * Global rate limit applied to all endpoints.
  *
- * - `default`: Standard API endpoints (100 requests per 60 seconds)
- * - `streaming`: SSE streaming endpoints that invoke LLM runs (20 requests per 60 seconds)
- * - `strict`: Security-sensitive endpoints like OAuth token exchange (10 requests per 60 seconds)
+ * Individual routes override this via @Throttle({ limit: X, ttl: 60000 })
+ * to set their own per-route limits. Since only one throttler is registered,
+ * there is no additive evaluation — each route is checked against exactly
+ * one limit.
  *
- * Limits are configurable via environment variables:
- * - RATE_LIMIT_DEFAULT (default: 100)
- * - RATE_LIMIT_STREAMING (default: 20)
- * - RATE_LIMIT_STRICT (default: 10)
+ * Configurable via:
+ * - RATE_LIMIT_DEFAULT (default: 100) — global per-minute limit
+ * - RATE_LIMIT_STREAMING (default: 20) — used by streaming route decorators
+ * - RATE_LIMIT_STRICT (default: 10) — used by OAuth route decorator
  *
- * For production multi-instance deployments, replace the default in-memory storage
- * with `@nestjs/throttler-storage-redis` to share rate limit counters across instances.
+ * For production multi-instance deployments, replace the default in-memory
+ * storage with `@nestjs/throttler-storage-redis` to share counters across
+ * instances.
  */
 @Module({
   imports: [
@@ -45,16 +47,6 @@ function parseRateLimitEnv(
           {
             name: "default",
             limit: parseRateLimitEnv(configService, "RATE_LIMIT_DEFAULT", 100),
-            ttl: 60_000,
-          },
-          {
-            name: "streaming",
-            limit: parseRateLimitEnv(configService, "RATE_LIMIT_STREAMING", 20),
-            ttl: 60_000,
-          },
-          {
-            name: "strict",
-            limit: parseRateLimitEnv(configService, "RATE_LIMIT_STRICT", 10),
             ttl: 60_000,
           },
         ],
