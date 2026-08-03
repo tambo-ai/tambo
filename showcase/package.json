@@ -6,7 +6,7 @@
   "license": "MIT",
   "scripts": {
     "dev": "next dev -p 8262",
-    "build": "next build",
+    "build": "next build --webpack",
     "postbuild": "next-sitemap",
     "start": "next start",
     "lint": "eslint",
