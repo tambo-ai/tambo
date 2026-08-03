@@ -1,4 +1,4 @@
-import { ExecutionContext, HttpException } from "@nestjs/common";
+import { ExecutionContext } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
 import { ThrottlerModuleOptions, ThrottlerStorage } from "@nestjs/throttler";
 import { hashKey } from "@tambo-ai-cloud/core";
@@ -7,7 +7,7 @@ import { Request, Response } from "express";
 import { RateLimitGuard } from "./rate-limit.guard";
 
 function createMockContext(
-  headers: Record<string, string> = {},
+  headers: Record<string, string | string[]> = {},
   ip = "127.0.0.1",
 ): ExecutionContext {
   const mockRequest = {
@@ -36,11 +36,7 @@ function createMockContext(
 
 function createGuard(): RateLimitGuard {
   const options: ThrottlerModuleOptions = {
-    throttlers: [
-      { name: "default", limit: 100, ttl: 60_000 },
-      { name: "streaming", limit: 20, ttl: 60_000 },
-      { name: "strict", limit: 10, ttl: 60_000 },
-    ],
+    throttlers: [{ name: "default", limit: 100, ttl: 60_000 }],
   };
 
   const storage: ThrottlerStorage = {
@@ -52,8 +48,6 @@ function createGuard(): RateLimitGuard {
       blockDuration: 0,
       blockedStatuses: [],
     }),
-    decrement: jest.fn().mockResolvedValue(undefined),
-    reset: jest.fn().mockResolvedValue(undefined),
   };
 
   const reflector = new Reflector();
@@ -136,7 +130,7 @@ describe("RateLimitGuard", () => {
   });
 
   describe("throwThrottlingException", () => {
-    it("should throw HttpException with status 429 and Problem Details body", () => {
+    it("should throw Error after writing 429 response with Problem Details body", () => {
       const context = createMockContext({}, "10.0.0.1");
       const limitDetail = {
         ttl: 60_000,
@@ -149,20 +143,17 @@ describe("RateLimitGuard", () => {
 
       expect(() =>
         (guard as any).throwThrottlingException(context, limitDetail),
-      ).toThrow(HttpException);
+      ).toThrow(Error);
 
-      try {
-        (guard as any).throwThrottlingException(context, limitDetail);
-      } catch (error) {
-        expect(error).toBeInstanceOf(HttpException);
-        expect((error as HttpException).getStatus()).toBe(429);
-        const response = (error as HttpException).getResponse();
-        expect(response).toMatchObject({
+      const res = context.switchToHttp().getResponse();
+      expect(res.status).toHaveBeenCalledWith(429);
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({
           type: "https://docs.tambo.co/reference/problems/rate-limit",
           status: 429,
           title: "Too Many Requests",
-        });
-      }
+        }),
+      );
     });
 
     it("should set Retry-After header before throwing", () => {
@@ -230,6 +221,7 @@ describe("RateLimitGuard", () => {
       ).toThrow();
 
       expect(res.status).not.toHaveBeenCalled();
+      expect(res.json).not.toHaveBeenCalled();
     });
   });
 

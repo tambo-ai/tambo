@@ -35,21 +35,38 @@ if (!Number.isFinite(MCP_RATE_LIMIT) || MCP_RATE_LIMIT <= 0) {
   );
 }
 const MCP_RATE_WINDOW_MS = 60_000;
+const MCP_RATE_LIMIT_ENTRIES_MAX = 10_000;
 const mcpRateLimitStore = new Map<
   string,
   { count: number; windowStart: number }
 >();
 
-// Sweep expired entries every minute instead of on every request.
-// unref() prevents the timer from keeping the process alive.
-const mcpSweepInterval = setInterval(() => {
+function evictOldestMcpEntries(): void {
   const now = Date.now();
+  // First pass: remove expired entries
   for (const [key, entry] of mcpRateLimitStore) {
     if (now - entry.windowStart > MCP_RATE_WINDOW_MS) {
       mcpRateLimitStore.delete(key);
     }
   }
-}, MCP_RATE_WINDOW_MS);
+  // Second pass: if still over cap, remove oldest entries
+  if (mcpRateLimitStore.size > MCP_RATE_LIMIT_ENTRIES_MAX) {
+    const entries = [...mcpRateLimitStore.entries()].sort(
+      (a, b) => a[1].windowStart - b[1].windowStart,
+    );
+    const toRemove = entries.slice(
+      0,
+      mcpRateLimitStore.size - MCP_RATE_LIMIT_ENTRIES_MAX,
+    );
+    for (const [key] of toRemove) {
+      mcpRateLimitStore.delete(key);
+    }
+  }
+}
+
+// Sweep expired entries every minute.
+// unref() prevents the timer from keeping the process alive.
+const mcpSweepInterval = setInterval(evictOldestMcpEntries, MCP_RATE_WINDOW_MS);
 mcpSweepInterval.unref();
 
 function mcpRateLimitMiddleware(
@@ -67,6 +84,10 @@ function mcpRateLimitMiddleware(
   const entry = mcpRateLimitStore.get(tracker);
 
   if (!entry || now - entry.windowStart > MCP_RATE_WINDOW_MS) {
+    // Enforce cap before inserting
+    if (mcpRateLimitStore.size >= MCP_RATE_LIMIT_ENTRIES_MAX) {
+      evictOldestMcpEntries();
+    }
     mcpRateLimitStore.set(tracker, { count: 1, windowStart: now });
     res.setHeader("X-RateLimit-Limit", MCP_RATE_LIMIT);
     res.setHeader("X-RateLimit-Remaining", MCP_RATE_LIMIT - 1);

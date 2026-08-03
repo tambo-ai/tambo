@@ -68,6 +68,18 @@ Email login requires at minimum `RESEND_API_KEY` and `EMAIL_FROM_DEFAULT`.
 | `NEXT_PUBLIC_POSTHOG_HOST` | PostHog host URL                           |
 | `SENTRY_DSN`               | Sentry error tracking DSN                  |
 
+## Rate limiting
+
+These variables control per-minute request limits. The API uses the default
+limit for all NestJS endpoints unless a route-specific limit applies.
+
+| Variable               | Default | Description                              |
+| ---------------------- | ------- | ---------------------------------------- |
+| `RATE_LIMIT_DEFAULT`   | `100`   | All NestJS API endpoints                 |
+| `RATE_LIMIT_STREAMING` | `20`    | LLM run and `advancestream` endpoints   |
+| `RATE_LIMIT_STRICT`    | `10`    | OAuth token exchange                    |
+| `RATE_LIMIT_MCP`       | `60`    | MCP Express endpoint                    |
+
 ## Whitelabeling
 
 | Variable                    | Description                       |

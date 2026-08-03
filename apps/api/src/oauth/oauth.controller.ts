@@ -16,6 +16,7 @@ import {
   ApiTags,
 } from "@nestjs/swagger";
 import { Throttle } from "@nestjs/throttler";
+import { getRateLimitStrict } from "../common/rate-limit/rate-limit.module";
 import * as Sentry from "@sentry/nestjs";
 import { OAuthValidationMode } from "@tambo-ai-cloud/core";
 import { getDb, operations } from "@tambo-ai-cloud/db";
@@ -37,7 +38,7 @@ export class OAuthController {
   @ApiSecurity("apiKey")
   @UseGuards(ApiKeyGuard)
   @Post("token")
-  @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  @Throttle({ default: { limit: () => getRateLimitStrict(), ttl: 60_000 } })
   @ApiConsumes("application/x-www-form-urlencoded")
   @ApiOperation({
     summary: "OAuth 2.0 Token Exchange Endpoint",

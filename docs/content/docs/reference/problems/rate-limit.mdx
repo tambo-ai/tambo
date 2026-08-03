@@ -25,16 +25,16 @@ The API returns a `429 Too Many Requests` status with this problem type when you
 - **`detail`** - Human-readable description including the retry wait time
 - **`instance`** - The specific request path that triggered this error
 
-## Rate Limit Tiers
+## Rate Limiting
 
-| Tier | Limit | Applies To |
-|------|-------|------------|
-| default | 100 requests/minute | All endpoints (global) |
-| streaming | 20 requests/minute | LLM run and advancestream endpoints |
-| strict | 10 requests/minute | OAuth token exchange |
+The API enforces per-minute rate limits on all endpoints. Limits are
+configurable via environment variables:
 
-Limits are configurable via `RATE_LIMIT_DEFAULT`, `RATE_LIMIT_STREAMING`,
-and `RATE_LIMIT_STRICT` environment variables.
+| Environment Variable | Default | Applies To |
+|---------------------|---------|------------|
+| `RATE_LIMIT_DEFAULT` | 100/min | All endpoints (global) |
+| `RATE_LIMIT_STREAMING` | 20/min | LLM run and advancestream endpoints |
+| `RATE_LIMIT_STRICT` | 10/min | OAuth token exchange |
 
 ## Headers
 

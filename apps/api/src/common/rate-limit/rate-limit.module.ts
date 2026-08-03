@@ -21,37 +21,54 @@ function parseRateLimitEnv(
 }
 
 /**
- * Global rate limit applied to all endpoints.
+ * Rate limit values read from environment variables. Used by both the
+ * global throttler and per-route @Throttle decorators.
  *
- * Individual routes override this via @Throttle({ limit: X, ttl: 60000 })
- * to set their own per-route limits. Since only one throttler is registered,
- * there is no additive evaluation — each route is checked against exactly
- * one limit.
- *
- * Configurable via:
- * - RATE_LIMIT_DEFAULT (default: 100) — global per-minute limit
- * - RATE_LIMIT_STREAMING (default: 20) — used by streaming route decorators
- * - RATE_LIMIT_STRICT (default: 10) — used by OAuth route decorator
+ * - `RATE_LIMIT_DEFAULT` (default: 100) — global per-minute limit
+ * - `RATE_LIMIT_STREAMING` (default: 20) — LLM run and advancestream endpoints
+ * - `RATE_LIMIT_STRICT` (default: 10) — OAuth token exchange
  *
  * For production multi-instance deployments, replace the default in-memory
  * storage with `@nestjs/throttler-storage-redis` to share counters across
  * instances.
  */
+let rateLimitDefault = 100;
+let rateLimitStreaming = 20;
+let rateLimitStrict = 10;
+
 @Module({
   imports: [
     ThrottlerModule.forRootAsync({
       imports: [],
       inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        throttlers: [
-          {
-            name: "default",
-            limit: parseRateLimitEnv(configService, "RATE_LIMIT_DEFAULT", 100),
-            ttl: 60_000,
-          },
-        ],
-        setHeaders: true,
-      }),
+      useFactory: (configService: ConfigService) => {
+        rateLimitDefault = parseRateLimitEnv(
+          configService,
+          "RATE_LIMIT_DEFAULT",
+          100,
+        );
+        rateLimitStreaming = parseRateLimitEnv(
+          configService,
+          "RATE_LIMIT_STREAMING",
+          20,
+        );
+        rateLimitStrict = parseRateLimitEnv(
+          configService,
+          "RATE_LIMIT_STRICT",
+          10,
+        );
+
+        return {
+          throttlers: [
+            {
+              name: "default",
+              limit: rateLimitDefault,
+              ttl: 60_000,
+            },
+          ],
+          setHeaders: true,
+        };
+      },
     }),
   ],
   providers: [
@@ -62,3 +79,13 @@ function parseRateLimitEnv(
   ],
 })
 export class RateLimitModule {}
+
+/** Per-minute limit for streaming endpoints (LLM runs, advancestream). */
+export function getRateLimitStreaming(): number {
+  return rateLimitStreaming;
+}
+
+/** Per-minute limit for strict endpoints (OAuth token exchange). */
+export function getRateLimitStrict(): number {
+  return rateLimitStrict;
+}

@@ -3,14 +3,12 @@ import { Test, TestingModule } from "@nestjs/testing";
 import request from "supertest";
 import { AppModule } from "../src/app.module";
 import { AudioService } from "../src/audio/audio.service";
-import { HttpExceptionFilter } from "../src/common/filters/http-exception.filter";
 
 describe("Rate Limiting (e2e)", () => {
   let app: INestApplication;
 
   beforeAll(async () => {
     process.env.RATE_LIMIT_DEFAULT = "3";
-    process.env.RATE_LIMIT_STRICT = "2";
 
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
@@ -20,7 +18,6 @@ describe("Rate Limiting (e2e)", () => {
       .compile();
 
     app = moduleFixture.createNestApplication();
-    app.useGlobalFilters(new HttpExceptionFilter());
     await app.init();
   }, 30_000);
 
@@ -29,7 +26,6 @@ describe("Rate Limiting (e2e)", () => {
       await app.close();
     }
     delete process.env.RATE_LIMIT_DEFAULT;
-    delete process.env.RATE_LIMIT_STRICT;
   });
 
   it("should include rate limit headers on successful responses", async () => {

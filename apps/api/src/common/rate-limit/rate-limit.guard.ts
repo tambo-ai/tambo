@@ -1,4 +1,4 @@
-import { ExecutionContext, HttpException, Injectable } from "@nestjs/common";
+import { ExecutionContext, Injectable } from "@nestjs/common";
 import { ThrottlerGuard, ThrottlerLimitDetail } from "@nestjs/throttler";
 import { hashKey } from "@tambo-ai-cloud/core";
 import { ProjectId } from "../../projects/guards/apikey.guard";
@@ -11,8 +11,8 @@ const RATE_LIMIT_PROBLEM_TYPE =
 /**
  * Custom throttler guard that tracks by authenticated project ID when
  * available (set by ApiKeyGuard/BearerTokenGuard), falling back to
- * a hashed API key, then to client IP. Throws an HttpException on 429
- * so the existing exception filters produce a proper RFC 9457 response.
+ * a hashed API key, then to client IP. Writes a 429 with RFC 9457
+ * Problem Details directly, then throws to prevent handler execution.
  */
 @Injectable()
 export class RateLimitGuard extends ThrottlerGuard {
@@ -22,8 +22,8 @@ export class RateLimitGuard extends ThrottlerGuard {
   } {
     const ctx = context.switchToHttp();
     return {
-      req: ctx.getRequest<Request>(),
-      res: ctx.getResponse<Response>(),
+      req: ctx.getRequest<Request>() as unknown as Record<string, unknown>,
+      res: ctx.getResponse<Response>() as unknown as Record<string, unknown>,
     };
   }
 
@@ -34,7 +34,7 @@ export class RateLimitGuard extends ThrottlerGuard {
   protected override async getTracker(
     req: Record<string, unknown>,
   ): Promise<string> {
-    const request = req as Request;
+    const request = req as unknown as Request;
 
     // Use authenticated project ID if the auth guard has already run
     const projectId = request[ProjectId];
@@ -61,7 +61,7 @@ export class RateLimitGuard extends ThrottlerGuard {
   ): Promise<boolean> {
     const result = await super.handleRequest(requestProps);
     const { res } = this.getRequestResponse(requestProps.context);
-    const response = res as Response;
+    const response = res as unknown as Response;
 
     if (response.headersSent) {
       return result;
@@ -77,28 +77,32 @@ export class RateLimitGuard extends ThrottlerGuard {
   }
 
   /**
-   * Throws an HttpException with RFC 9457 Problem Details body and
-   * rate limit headers. The exception filters will format the response.
+   * Writes a 429 response with RFC 9457 Problem Details body and
+   * rate limit headers directly, then throws to prevent the route
+   * handler from executing. The response is written before the throw
+   * so BaseExceptionFilter sees headersSent and skips its own response.
    */
   protected override throwThrottlingException(
     context: ExecutionContext,
     throttlerLimitDetail: ThrottlerLimitDetail,
   ): never {
     const { res, req } = this.getRequestResponse(context);
-    const response = res as Response;
-    const request = req as Request;
+    const response = res as unknown as Response;
+    const request = req as unknown as Request;
+
+    if (response.headersSent) {
+      throw new Error("Rate limit exceeded");
+    }
 
     const retryAfterSeconds = Math.ceil(throttlerLimitDetail.ttl / 1000);
 
-    if (!response.headersSent) {
-      response.setHeader("Retry-After", retryAfterSeconds);
-      response.setHeader("X-RateLimit-Limit", throttlerLimitDetail.limit);
-      response.setHeader("X-RateLimit-Remaining", 0);
-      response.setHeader(
-        "X-RateLimit-Reset",
-        new Date(Date.now() + throttlerLimitDetail.ttl).toISOString(),
-      );
-    }
+    response.setHeader("Retry-After", retryAfterSeconds);
+    response.setHeader("X-RateLimit-Limit", throttlerLimitDetail.limit);
+    response.setHeader("X-RateLimit-Remaining", 0);
+    response.setHeader(
+      "X-RateLimit-Reset",
+      new Date(Date.now() + throttlerLimitDetail.ttl).toISOString(),
+    );
 
     const problemDetails: ProblemDetails = {
       type: RATE_LIMIT_PROBLEM_TYPE,
@@ -108,6 +112,11 @@ export class RateLimitGuard extends ThrottlerGuard {
       instance: request.originalUrl ?? request.url,
     };
 
-    throw new HttpException(problemDetails, 429);
+    response
+      .status(429)
+      .header("Content-Type", "application/problem+json")
+      .json(problemDetails);
+
+    throw new Error("Rate limit exceeded");
   }
 }
