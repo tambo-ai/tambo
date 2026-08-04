@@ -15,7 +15,7 @@
     "tsx": "^4.20.5"
   },
   "overrides": {
-    "undici": "^6.27.0"
+    "undici": "^8.0.0"
   },
   "engines": {
     "node": ">=22.0.0"
