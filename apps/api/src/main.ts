@@ -16,6 +16,7 @@ import { registerHandler } from "./mcp-server/server";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { cors: true });
+  configureTrustProxy(app);
 
   const { httpAdapter } = app.get(HttpAdapterHost);
   app.useGlobalFilters(
@@ -32,7 +33,7 @@ async function bootstrap() {
 
   // Register MCP server handler
   const expressInstance = app.getHttpAdapter().getInstance();
-  registerHandler(expressInstance, "/mcp");
+  registerHandler(expressInstance, "/mcp", app.get(ConfigService));
 
   // Graceful shutdown
   process.on("SIGTERM", async () => {
@@ -67,6 +68,30 @@ async function bootstrap() {
 
   console.log("Starting server on port", process.env.PORT || 8261);
   await app.listen(process.env.PORT || 8261);
+}
+
+function configureTrustProxy(app: INestApplication): void {
+  const config = app.get(ConfigService);
+  const raw = config.get<string>("TRUST_PROXY");
+  if (raw === undefined || raw === "") {
+    return;
+  }
+
+  if (raw === "true" || raw === "false") {
+    app
+      .getHttpAdapter()
+      .getInstance()
+      .set("trust proxy", raw === "true");
+    return;
+  }
+
+  const hops = Number(raw);
+  if (!Number.isInteger(hops) || hops < 0) {
+    throw new Error(
+      `Invalid TRUST_PROXY="${raw}": must be true, false, or a non-negative integer.`,
+    );
+  }
+  app.getHttpAdapter().getInstance().set("trust proxy", hops);
 }
 
 function configureSwagger(app: INestApplication) {

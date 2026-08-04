@@ -56,6 +56,10 @@ Rate limits can be adjusted with `RATE_LIMIT_DEFAULT`, `RATE_LIMIT_STREAMING`,
 60 requests per minute respectively. See the [environment variables reference](https://tambo.co/docs/guides/self-hosting/environment-variables)
 for details.
 
+When using a reverse proxy, set `TRUST_PROXY` to the number of trusted proxy
+hops so rate limits can distinguish client addresses. Leave it unset for direct
+connections.
+
 ### 4. Start Services
 
 ```bash

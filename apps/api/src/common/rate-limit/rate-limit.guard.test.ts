@@ -1,10 +1,34 @@
 import { ExecutionContext } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { Reflector } from "@nestjs/core";
 import { ThrottlerModuleOptions, ThrottlerStorage } from "@nestjs/throttler";
-import { hashKey } from "@tambo-ai-cloud/core";
-import { ProjectId } from "../../projects/guards/apikey.guard";
+import { encryptApiKey } from "@tambo-ai-cloud/core";
 import { Request, Response } from "express";
+import { RateLimitException } from "../../threads/types/errors";
 import { RateLimitGuard } from "./rate-limit.guard";
+
+type GuardInternals = {
+  getTracker: (request: Request) => Promise<string>;
+  getRequestResponse: (context: ExecutionContext) => {
+    req: Record<string, unknown>;
+    res: Record<string, unknown>;
+  };
+  throwThrottlingException: (
+    context: ExecutionContext,
+    detail: {
+      limit: number;
+      key: string;
+      tracker: string;
+      totalHits: number;
+      timeToExpire: number;
+      timeToBlockExpire: number;
+    },
+  ) => never;
+};
+
+function getInternals(guard: RateLimitGuard): GuardInternals {
+  return guard as unknown as GuardInternals;
+}
 
 function createMockContext(
   headers: Record<string, string | string[]> = {},
@@ -21,9 +45,6 @@ function createMockContext(
   const mockResponse = {
     headersSent: false,
     setHeader: jest.fn(),
-    status: jest.fn().mockReturnThis(),
-    header: jest.fn().mockReturnThis(),
-    json: jest.fn(),
   } as unknown as Response;
 
   return {
@@ -38,21 +59,20 @@ function createGuard(): RateLimitGuard {
   const options: ThrottlerModuleOptions = {
     throttlers: [{ name: "default", limit: 100, ttl: 60_000 }],
   };
-
   const storage: ThrottlerStorage = {
     increment: jest.fn().mockResolvedValue({
       totalHits: 1,
-      timeToExpire: 60_000,
-      timeToExpireFromFirst: 60_000,
+      timeToExpire: 60,
+      timeToExpireFromFirst: 60,
       isBlocked: false,
       blockDuration: 0,
       blockedStatuses: [],
     }),
   };
-
-  const reflector = new Reflector();
-
-  return new RateLimitGuard(options, storage, reflector);
+  const configService = {
+    get: jest.fn().mockReturnValue("invalid-test-secret"),
+  } as unknown as ConfigService;
+  return new RateLimitGuard(options, storage, new Reflector(), configService);
 }
 
 describe("RateLimitGuard", () => {
@@ -62,236 +82,94 @@ describe("RateLimitGuard", () => {
     guard = createGuard();
   });
 
-  describe("getTracker", () => {
-    it("should return project-based tracker when request is already authenticated", async () => {
-      const context = createMockContext({ "x-api-key": "tambo_test-key-123" });
-      const req = context.switchToHttp().getRequest();
-      // Simulate ApiKeyGuard having set the project ID
-      req[ProjectId] = "proj_abc123";
+  it("uses the source address even when an API key is supplied", async () => {
+    const context = createMockContext(
+      { "x-api-key": "rotatable-untrusted-value" },
+      "192.168.1.100",
+    );
+    const request = context.switchToHttp().getRequest();
 
-      const tracker = await (guard as any).getTracker(req);
-
-      expect(tracker).toBe("project:proj_abc123");
-    });
-
-    it("should return API key as tracker when no project ID is set", async () => {
-      const apiKey = "tambo_test-key-123";
-      const context = createMockContext({ "x-api-key": apiKey });
-
-      const req = context.switchToHttp().getRequest();
-      const tracker = await (guard as any).getTracker(req);
-
-      expect(tracker).toBe(`apikey:${hashKey(apiKey)}`);
-    });
-
-    it("should return IP-based tracker when no API key is present", async () => {
-      const context = createMockContext({}, "192.168.1.100");
-
-      const req = context.switchToHttp().getRequest();
-      const tracker = await (guard as any).getTracker(req);
-
-      expect(tracker).toBe("ip:192.168.1.100");
-    });
-
-    it("should handle array API key header", async () => {
-      const apiKey = "tambo_array-key";
-      const context = createMockContext({ "x-api-key": [apiKey] });
-
-      const req = context.switchToHttp().getRequest();
-      const tracker = await (guard as any).getTracker(req);
-
-      expect(tracker).toBe(`apikey:${hashKey(apiKey)}`);
-    });
-
-    it("should fall back to unknown when IP is unavailable", async () => {
-      const context = createMockContext({});
-
-      const req = context.switchToHttp().getRequest();
-      Object.defineProperty(req, "ip", { value: undefined, writable: true });
-      Object.defineProperty(req.socket, "remoteAddress", {
-        value: undefined,
-        writable: true,
-      });
-      const tracker = await (guard as any).getTracker(req);
-
-      expect(tracker).toBe("ip:unknown");
-    });
+    await expect(getInternals(guard).getTracker(request)).resolves.toBe(
+      "ip:192.168.1.100",
+    );
   });
 
-  describe("getRequestResponse", () => {
-    it("should extract req and res from execution context", () => {
-      const context = createMockContext();
+  it("uses the project ID from a cryptographically valid API key", async () => {
+    const encryptedApiKey = encryptApiKey(
+      "proj_123",
+      "api-key-value",
+      "invalid-test-secret",
+    );
+    const context = createMockContext({ "x-api-key": encryptedApiKey });
+    const request = context.switchToHttp().getRequest();
 
-      const result = (guard as any).getRequestResponse(context);
-
-      expect(result.req).toBeDefined();
-      expect(result.res).toBeDefined();
-    });
+    await expect(getInternals(guard).getTracker(request)).resolves.toBe(
+      "project:proj_123",
+    );
   });
 
-  describe("throwThrottlingException", () => {
-    it("should throw Error after writing 429 response with Problem Details body", () => {
-      const context = createMockContext({}, "10.0.0.1");
-      const limitDetail = {
-        ttl: 60_000,
-        limit: 100,
-        key: "test-key",
-        tracker: "ip:10.0.0.1",
-        totalHits: 101,
-        timeToExpire: 60_000,
-      };
-
-      expect(() =>
-        (guard as any).throwThrottlingException(context, limitDetail),
-      ).toThrow(Error);
-
-      const res = context.switchToHttp().getResponse();
-      expect(res.status).toHaveBeenCalledWith(429);
-      expect(res.json).toHaveBeenCalledWith(
-        expect.objectContaining({
-          type: "https://docs.tambo.co/reference/problems/rate-limit",
-          status: 429,
-          title: "Too Many Requests",
-        }),
-      );
+  it("falls back to unknown when the source address is unavailable", async () => {
+    const context = createMockContext();
+    const request = context.switchToHttp().getRequest();
+    Object.defineProperty(request, "ip", { value: undefined });
+    Object.defineProperty(request.socket, "remoteAddress", {
+      value: undefined,
     });
 
-    it("should set Retry-After header before throwing", () => {
-      const context = createMockContext();
-      const limitDetail = {
-        ttl: 45_000,
-        limit: 10,
-        key: "test-key",
-        tracker: "test",
-        totalHits: 11,
-        timeToExpire: 45_000,
-      };
-
-      expect(() =>
-        (guard as any).throwThrottlingException(context, limitDetail),
-      ).toThrow();
-
-      const res = context.switchToHttp().getResponse();
-      expect(res.setHeader).toHaveBeenCalledWith("Retry-After", 45);
-    });
-
-    it("should set rate limit headers on 429 response", () => {
-      const context = createMockContext();
-      const limitDetail = {
-        ttl: 60_000,
-        limit: 20,
-        key: "test-key",
-        tracker: "test",
-        totalHits: 21,
-        timeToExpire: 60_000,
-      };
-
-      expect(() =>
-        (guard as any).throwThrottlingException(context, limitDetail),
-      ).toThrow();
-
-      const res = context.switchToHttp().getResponse();
-      expect(res.setHeader).toHaveBeenCalledWith("X-RateLimit-Limit", 20);
-      expect(res.setHeader).toHaveBeenCalledWith("X-RateLimit-Remaining", 0);
-      expect(res.setHeader).toHaveBeenCalledWith(
-        "X-RateLimit-Reset",
-        expect.any(String),
-      );
-    });
-
-    it("should not send response if headers already sent", () => {
-      const context = createMockContext();
-      const res = context.switchToHttp().getResponse();
-      Object.defineProperty(res, "headersSent", {
-        value: true,
-        writable: true,
-      });
-
-      const limitDetail = {
-        ttl: 60_000,
-        limit: 100,
-        key: "test",
-        tracker: "test",
-        totalHits: 101,
-        timeToExpire: 60_000,
-      };
-
-      expect(() =>
-        (guard as any).throwThrottlingException(context, limitDetail),
-      ).toThrow();
-
-      expect(res.status).not.toHaveBeenCalled();
-      expect(res.json).not.toHaveBeenCalled();
-    });
+    await expect(getInternals(guard).getTracker(request)).resolves.toBe(
+      "ip:unknown",
+    );
   });
 
-  describe("handleRequest", () => {
-    it("should set rate limit headers on successful requests", async () => {
-      const context = createMockContext();
+  it("extracts request and response from the execution context", () => {
+    const result = getInternals(guard).getRequestResponse(createMockContext());
 
-      const superHandleRequest = jest
-        .spyOn(
-          Object.getPrototypeOf(Object.getPrototypeOf(guard)),
-          "handleRequest",
-        )
-        .mockResolvedValue(true);
+    expect(result.req).toBeDefined();
+    expect(result.res).toBeDefined();
+  });
 
-      const requestProps = {
-        context,
-        limit: 100,
-        ttl: 60_000,
-        throttler: { name: "default", limit: 100, ttl: 60_000 },
-        blockDuration: 0,
-        getTracker: jest.fn(),
-        generateKey: jest.fn(),
-      };
+  it("throws a typed 429 with Problem Details", () => {
+    const context = createMockContext({}, "10.0.0.1");
+    const detail = {
+      limit: 100,
+      key: "test-key",
+      tracker: "ip:10.0.0.1",
+      totalHits: 101,
+      timeToExpire: 12,
+      timeToBlockExpire: 12,
+    };
 
-      const result = await (guard as any).handleRequest(requestProps);
+    expect(() =>
+      getInternals(guard).throwThrottlingException(context, detail),
+    ).toThrow(RateLimitException);
 
-      expect(result).toBe(true);
-      const res = context.switchToHttp().getResponse();
-      expect(res.setHeader).toHaveBeenCalledWith("X-RateLimit-Limit", 100);
-      expect(res.setHeader).toHaveBeenCalledWith(
-        "X-RateLimit-Reset",
-        expect.any(String),
-      );
+    const response = context.switchToHttp().getResponse();
+    expect(response.setHeader).toHaveBeenCalledWith(
+      "Content-Type",
+      "application/problem+json",
+    );
+    expect(response.setHeader).toHaveBeenCalledWith("Retry-After", 12);
+    expect(response.setHeader).toHaveBeenCalledWith("X-RateLimit-Reset", 12);
+  });
 
-      superHandleRequest.mockRestore();
-    });
+  it("uses the remaining block duration for Retry-After", () => {
+    const context = createMockContext();
+    const detail = {
+      limit: 10,
+      key: "test-key",
+      tracker: "ip:test",
+      totalHits: 11,
+      timeToExpire: 45,
+      timeToBlockExpire: 3,
+    };
 
-    it("should not set headers if response headers already sent", async () => {
-      const context = createMockContext();
-      const res = context.switchToHttp().getResponse();
-      Object.defineProperty(res, "headersSent", {
-        value: true,
-        writable: true,
-      });
+    expect(() =>
+      getInternals(guard).throwThrottlingException(context, detail),
+    ).toThrow(RateLimitException);
 
-      const superHandleRequest = jest
-        .spyOn(
-          Object.getPrototypeOf(Object.getPrototypeOf(guard)),
-          "handleRequest",
-        )
-        .mockResolvedValue(true);
-
-      const requestProps = {
-        context,
-        limit: 100,
-        ttl: 60_000,
-        throttler: { name: "default", limit: 100, ttl: 60_000 },
-        blockDuration: 0,
-        getTracker: jest.fn(),
-        generateKey: jest.fn(),
-      };
-
-      await (guard as any).handleRequest(requestProps);
-
-      expect(res.setHeader).not.toHaveBeenCalledWith(
-        "X-RateLimit-Limit",
-        expect.anything(),
-      );
-
-      superHandleRequest.mockRestore();
-    });
+    expect(context.switchToHttp().getResponse().setHeader).toHaveBeenCalledWith(
+      "Retry-After",
+      3,
+    );
   });
 });

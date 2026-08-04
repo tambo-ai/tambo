@@ -16,6 +16,7 @@ All configuration is done through environment variables in the `docker.env` file
 | `PROVIDER_KEY_SECRET` | Yes      | 32+ character secret for provider key encryption                                         |
 | `NEXTAUTH_SECRET`     | Yes      | Secret for NextAuth.js sessions                                                          |
 | `NEXTAUTH_URL`        | Yes      | Base URL for auth callbacks (e.g., `http://localhost:8260` or `https://your-domain.com`) |
+| `TRUST_PROXY`         | No       | Trusted reverse-proxy hop count (`false` by default)                                     |
 
 ## OpenAI configuration
 
@@ -73,12 +74,16 @@ Email login requires at minimum `RESEND_API_KEY` and `EMAIL_FROM_DEFAULT`.
 These variables control per-minute request limits. The API uses the default
 limit for all NestJS endpoints unless a route-specific limit applies.
 
-| Variable               | Default | Description                              |
-| ---------------------- | ------- | ---------------------------------------- |
-| `RATE_LIMIT_DEFAULT`   | `100`   | All NestJS API endpoints                 |
-| `RATE_LIMIT_STREAMING` | `20`    | LLM run and `advancestream` endpoints   |
-| `RATE_LIMIT_STRICT`    | `10`    | OAuth token exchange                    |
-| `RATE_LIMIT_MCP`       | `60`    | MCP Express endpoint                    |
+| Variable               | Default | Description                           |
+| ---------------------- | ------- | ------------------------------------- |
+| `RATE_LIMIT_DEFAULT`   | `100`   | All NestJS API endpoints              |
+| `RATE_LIMIT_STREAMING` | `20`    | LLM run and `advancestream` endpoints |
+| `RATE_LIMIT_STRICT`    | `10`    | OAuth token exchange                  |
+| `RATE_LIMIT_MCP`       | `60`    | MCP Express endpoint                  |
+
+Set `TRUST_PROXY` to the number of trusted proxy hops when the deployment is
+behind nginx, Caddy, Traefik, or another reverse proxy. Leave it unset or set
+it to `false` when clients connect directly to the API.
 
 ## Whitelabeling
 

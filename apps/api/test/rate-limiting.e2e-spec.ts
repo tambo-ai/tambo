@@ -7,7 +7,7 @@ import { AudioService } from "../src/audio/audio.service";
 describe("Rate Limiting (e2e)", () => {
   let app: INestApplication;
 
-  beforeAll(async () => {
+  beforeEach(async () => {
     process.env.RATE_LIMIT_DEFAULT = "3";
 
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -21,7 +21,7 @@ describe("Rate Limiting (e2e)", () => {
     await app.init();
   }, 30_000);
 
-  afterAll(async () => {
+  afterEach(async () => {
     if (app) {
       await app.close();
     }

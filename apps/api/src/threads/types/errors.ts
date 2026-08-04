@@ -45,6 +45,12 @@ export class EndpointDeprecatedException extends HttpException {
   }
 }
 
+export class RateLimitException extends HttpException {
+  constructor(problemDetails: ProblemDetails) {
+    super(problemDetails, HttpStatus.TOO_MANY_REQUESTS);
+  }
+}
+
 export class SuggestionNotFoundException extends NotFoundException {
   constructor(messageId: string) {
     super({

@@ -1,13 +1,15 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import type { MCPHandlers } from "@tambo-ai-cloud/core";
-import { TAMBO_MCP_ACCESS_KEY_CLAIM, hashKey } from "@tambo-ai-cloud/core";
+import { TAMBO_MCP_ACCESS_KEY_CLAIM } from "@tambo-ai-cloud/core";
 import { getDb, HydraDb } from "@tambo-ai-cloud/db";
+import { ConfigService } from "@nestjs/config";
 import cors from "cors";
 import { Express, NextFunction, Request, Response } from "express";
 import { getThreadMCPClients } from "src/common/systemTools";
 import { extractAndVerifyMcpAccessToken } from "../common/utils/oauth";
 import { registerElicitationHandlers } from "./elicitations";
+import { createMcpRateLimitMiddleware } from "./mcp-rate-limit";
 import { registerPromptHandlers } from "./prompts";
 import { registerResourceHandlers } from "./resources";
 
@@ -23,104 +25,19 @@ interface AuthenticatedMcpRequest extends Request {
 
 /**
  * Fixed-window rate limiter for MCP endpoints.
- * Uses hashed API keys as tracker when available, falls back to IP.
+ * Uses the source address as tracker before bearer-token authentication.
  * MCP runs outside the NestJS guard pipeline, so this is a standalone
  * Express middleware rate limiter.
  */
-const rawMcpRateLimit = process.env.RATE_LIMIT_MCP ?? "60";
-const MCP_RATE_LIMIT = Number(rawMcpRateLimit);
-if (!Number.isFinite(MCP_RATE_LIMIT) || MCP_RATE_LIMIT <= 0) {
-  throw new Error(
-    `Invalid RATE_LIMIT_MCP="${rawMcpRateLimit}": must be a positive number.`,
-  );
-}
-const MCP_RATE_WINDOW_MS = 60_000;
-const MCP_RATE_LIMIT_ENTRIES_MAX = 10_000;
-const mcpRateLimitStore = new Map<
-  string,
-  { count: number; windowStart: number }
->();
-
-function evictOldestMcpEntries(): void {
-  const now = Date.now();
-  // First pass: remove expired entries
-  for (const [key, entry] of mcpRateLimitStore) {
-    if (now - entry.windowStart > MCP_RATE_WINDOW_MS) {
-      mcpRateLimitStore.delete(key);
-    }
-  }
-  // Second pass: if still over cap, remove oldest entries
-  if (mcpRateLimitStore.size > MCP_RATE_LIMIT_ENTRIES_MAX) {
-    const entries = [...mcpRateLimitStore.entries()].sort(
-      (a, b) => a[1].windowStart - b[1].windowStart,
+function parseMcpRateLimit(configService: ConfigService): number {
+  const raw = configService.get<string>("RATE_LIMIT_MCP") ?? "60";
+  const parsed = Number(raw);
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    throw new Error(
+      `Invalid RATE_LIMIT_MCP="${raw}": must be a positive number.`,
     );
-    const toRemove = entries.slice(
-      0,
-      mcpRateLimitStore.size - MCP_RATE_LIMIT_ENTRIES_MAX,
-    );
-    for (const [key] of toRemove) {
-      mcpRateLimitStore.delete(key);
-    }
   }
-}
-
-// Sweep expired entries every minute.
-// unref() prevents the timer from keeping the process alive.
-const mcpSweepInterval = setInterval(evictOldestMcpEntries, MCP_RATE_WINDOW_MS);
-mcpSweepInterval.unref();
-
-function mcpRateLimitMiddleware(
-  req: Request,
-  res: Response,
-  next: NextFunction,
-): void {
-  const apiKey = req.headers["x-api-key"];
-  const key = Array.isArray(apiKey) ? apiKey[0] : apiKey;
-  const tracker = key
-    ? `mcp:apikey:${hashKey(key)}`
-    : `mcp:ip:${req.ip ?? req.socket.remoteAddress ?? "unknown"}`;
-
-  const now = Date.now();
-  const entry = mcpRateLimitStore.get(tracker);
-
-  if (!entry || now - entry.windowStart > MCP_RATE_WINDOW_MS) {
-    // Enforce cap before inserting
-    if (mcpRateLimitStore.size >= MCP_RATE_LIMIT_ENTRIES_MAX) {
-      evictOldestMcpEntries();
-    }
-    mcpRateLimitStore.set(tracker, { count: 1, windowStart: now });
-    res.setHeader("X-RateLimit-Limit", MCP_RATE_LIMIT);
-    res.setHeader("X-RateLimit-Remaining", MCP_RATE_LIMIT - 1);
-    next();
-    return;
-  }
-
-  entry.count++;
-
-  if (entry.count > MCP_RATE_LIMIT) {
-    const retryAfterSeconds = Math.ceil(
-      (entry.windowStart + MCP_RATE_WINDOW_MS - now) / 1000,
-    );
-    res.setHeader("Retry-After", retryAfterSeconds);
-    res.setHeader("X-RateLimit-Limit", MCP_RATE_LIMIT);
-    res.setHeader("X-RateLimit-Remaining", 0);
-    res.setHeader(
-      "X-RateLimit-Reset",
-      new Date(entry.windowStart + MCP_RATE_WINDOW_MS).toISOString(),
-    );
-    res.status(429).json({
-      type: "https://docs.tambo.co/reference/problems/rate-limit",
-      status: 429,
-      title: "Too Many Requests",
-      detail: `Rate limit exceeded. Try again in ${retryAfterSeconds} seconds.`,
-      instance: req.originalUrl ?? req.url,
-    });
-    return;
-  }
-
-  res.setHeader("X-RateLimit-Limit", MCP_RATE_LIMIT);
-  res.setHeader("X-RateLimit-Remaining", MCP_RATE_LIMIT - entry.count);
-  next();
+  return parsed;
 }
 
 export async function createMcpServer(
@@ -359,7 +276,12 @@ const handler = async (req: AuthenticatedMcpRequest, res: Response) => {
  * @param path - The path to register the route on
  * @param server - The MCP server to handle the requests
  */
-export function registerHandler(expressApp: Express, path: string) {
+export function registerHandler(
+  expressApp: Express,
+  path: string,
+  configService: ConfigService,
+) {
+  const rateLimit = parseMcpRateLimit(configService);
   expressApp.use(
     path,
     // Enable CORS for all routes so Inspector can connect
@@ -375,7 +297,7 @@ export function registerHandler(expressApp: Express, path: string) {
       ],
     }),
     // Rate limit MCP requests after CORS but before authentication
-    mcpRateLimitMiddleware,
+    createMcpRateLimitMiddleware(rateLimit),
     // Authenticate the request
     authenticateMcpRequest,
   );

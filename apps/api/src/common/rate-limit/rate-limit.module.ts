@@ -2,6 +2,7 @@ import { Module } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { APP_GUARD } from "@nestjs/core";
 import { ThrottlerModule } from "@nestjs/throttler";
+import { ConfigServiceSingleton } from "../../config.service";
 import { RateLimitGuard } from "./rate-limit.guard";
 
 function parseRateLimitEnv(
@@ -32,30 +33,16 @@ function parseRateLimitEnv(
  * storage with `@nestjs/throttler-storage-redis` to share counters across
  * instances.
  */
-let rateLimitDefault = 100;
-let rateLimitStreaming = 20;
-let rateLimitStrict = 10;
-
 @Module({
   imports: [
     ThrottlerModule.forRootAsync({
       imports: [],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => {
-        rateLimitDefault = parseRateLimitEnv(
+        const rateLimitDefault = parseRateLimitEnv(
           configService,
           "RATE_LIMIT_DEFAULT",
           100,
-        );
-        rateLimitStreaming = parseRateLimitEnv(
-          configService,
-          "RATE_LIMIT_STREAMING",
-          20,
-        );
-        rateLimitStrict = parseRateLimitEnv(
-          configService,
-          "RATE_LIMIT_STRICT",
-          10,
         );
 
         return {
@@ -82,10 +69,18 @@ export class RateLimitModule {}
 
 /** Per-minute limit for streaming endpoints (LLM runs, advancestream). */
 export function getRateLimitStreaming(): number {
-  return rateLimitStreaming;
+  return parseRateLimitEnv(
+    ConfigServiceSingleton.getInstance(),
+    "RATE_LIMIT_STREAMING",
+    20,
+  );
 }
 
 /** Per-minute limit for strict endpoints (OAuth token exchange). */
 export function getRateLimitStrict(): number {
-  return rateLimitStrict;
+  return parseRateLimitEnv(
+    ConfigServiceSingleton.getInstance(),
+    "RATE_LIMIT_STRICT",
+    10,
+  );
 }
