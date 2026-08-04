@@ -1,10 +1,11 @@
 import { createRequire } from "node:module";
+import path from "node:path";
 import type { Config } from "jest";
 
 const require = createRequire(import.meta.url);
-const mcpSdkCjsDirectory = require
-  .resolve("@modelcontextprotocol/sdk/client/index.js")
-  .replace("/client/index.js", "");
+const mcpSdkCjsDirectory = path.dirname(
+  path.dirname(require.resolve("@modelcontextprotocol/sdk/client/index.js")),
+);
 
 const config: Config = {
   preset: "ts-jest",
