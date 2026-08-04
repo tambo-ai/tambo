@@ -69,11 +69,51 @@
   "overrides": {
     "@ai-sdk/openai": "$@ai-sdk/openai",
     "@ai-sdk/anthropic": "$@ai-sdk/anthropic",
+    "@hono/node-server": "2.1.0",
+    "@a2a-js/sdk": {
+      "express": {
+        "body-parser": "1.20.6"
+      }
+    },
+    "body-parser": "2.3.0",
+    "minimatch@3": {
+      "brace-expansion": "1.1.18"
+    },
+    "minimatch@9": {
+      "brace-expansion": "2.1.4"
+    },
+    "minimatch@10": {
+      "brace-expansion": "5.0.9"
+    },
+    "fast-uri": "3.1.5",
+    "hono": "4.13.0",
+    "ip-address": "10.4.0",
+    "js-yaml": "4.3.1",
+    "@istanbuljs/load-nyc-config": {
+      "js-yaml": "3.15.1"
+    },
+    "@nestjs/swagger": {
+      "js-yaml": "4.3.1"
+    },
+    "concurrently": {
+      "shell-quote": "1.9.0"
+    },
+    "gray-matter": {
+      "js-yaml": "3.15.1"
+    },
+    "next": {
+      "postcss": "8.5.23",
+      "sharp": "0.35.3"
+    },
+    "postcss": "8.5.25",
+    "protobufjs": "7.6.5",
     "picomatch@>=4.0.0": "4.0.4",
     "picomatch@<3.0.0": "2.3.2",
     "path-to-regexp@<0.1.13": "0.1.13",
     "react": "19.2.6",
     "react-dom": "19.2.6",
+    "svgo": "3.3.4",
+    "ws": "8.21.2",
     "@types/react": "19.2.15",
     "@types/react-dom": "19.2.3"
   },

@@ -11,10 +11,10 @@ import {
   type CallToolRequest,
 } from "@modelcontextprotocol/sdk/types.js";
 import { Command } from "commander";
-import cors from "cors";
 import express from "express";
 import { createServer } from "http";
 import { randomUUID } from "node:crypto";
+import { createMcpCorsMiddleware } from "./cors.js";
 import { McpServiceRegistry } from "./mcp-service.js";
 import { testService } from "./test-service.js";
 // Create MCP service registry and register services
@@ -143,7 +143,7 @@ async function main() {
     )
     .option(
       "--allowed-origins <origins>",
-      "comma-separated list of allowed origins for DNS rebinding protection",
+      "comma-separated list of origins allowed for CORS and DNS rebinding protection",
     )
     .parse(process.argv);
 
@@ -187,18 +187,8 @@ async function main() {
       serverOptions.enableSessionManagement ?? true;
     app.use(
       "/mcp",
-      cors({
-        origin: "*", // use "*" with caution in production
-        methods: "GET,POST,DELETE",
-        preflightContinue: false,
-        optionsSuccessStatus: 204,
-        exposedHeaders: [
-          "mcp-session-id",
-          "last-event-id",
-          "mcp-protocol-version",
-        ],
-      }),
-    ); // Enable CORS for all routes so Inspector can connect
+      createMcpCorsMiddleware(serverOptions.allowedOrigins ?? []),
+    );
 
     // Handle POST requests for client-to-server communication
     app.post("/mcp", async (req, res) => {

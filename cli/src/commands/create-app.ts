@@ -4,7 +4,6 @@ import ora from "ora";
 import path from "path";
 import {
   execFileSync,
-  execSync,
   GuidanceError,
   interactivePrompt,
   isInteractive,
@@ -54,32 +53,18 @@ interface CreateAppOptions {
 }
 
 function safeRemoveGitFolder(gitFolder: string): void {
-  // Validate that the folder ends with '.git' and does not contain shell metacharacters
-  if (!gitFolder.endsWith(".git") || /[;&|<>$\r\n\t\v\f]/.test(gitFolder)) {
+  if (path.basename(gitFolder) !== ".git") {
     console.error(chalk.red("Invalid git folder path"));
     return;
   }
+
   try {
-    if (process.platform === "win32") {
-      // Windows: First remove read-only attributes, then remove directory
-      try {
-        execSync(`attrib -r "${gitFolder}\\*.*" /s`, { stdio: "ignore" });
-      } catch (_e) {
-        console.error(chalk.red("Failed to remove read-only attributes"));
-      }
-      try {
-        execSync(`rmdir /s /q "${gitFolder}"`, { stdio: "ignore" });
-      } catch (_e) {
-        fs.rmSync(gitFolder, { recursive: true, force: true });
-      }
-    } else {
-      // Unix-like systems (Mac, Linux)
-      try {
-        execSync(`rm -rf "${gitFolder}"`, { stdio: "ignore" });
-      } catch (_e) {
-        fs.rmSync(gitFolder, { recursive: true, force: true });
-      }
-    }
+    fs.rmSync(gitFolder, {
+      recursive: true,
+      force: true,
+      maxRetries: 3,
+      retryDelay: 100,
+    });
   } catch (_error) {
     // If all removal attempts fail, warn but continue
     console.warn(
@@ -236,10 +221,9 @@ export async function handleCreateApp(
     }).start();
 
     try {
-      execSync(
-        `git clone --depth 1 ${selectedTemplate.repository} ${
-          appName === "." ? "." : appName
-        }`,
+      execFileSync(
+        "git",
+        ["clone", "--depth", "1", selectedTemplate.repository, targetDir],
         { stdio: "pipe", allowNonInteractive: true },
       );
       cloneSpinner.succeed(
@@ -296,13 +280,21 @@ export async function handleCreateApp(
 
       try {
         // Use --initial-branch=main to set the initial branch to main
-        execSync("git init --initial-branch=main", {
+        execFileSync("git", ["init", "--initial-branch=main"], {
           stdio: "ignore",
           allowNonInteractive: true,
         });
-        execSync("git add .", { stdio: "ignore", allowNonInteractive: true });
-        execSync(
-          `git commit -m "Initial commit from Tambo ${selectedTemplate.name} template"`,
+        execFileSync("git", ["add", "."], {
+          stdio: "ignore",
+          allowNonInteractive: true,
+        });
+        execFileSync(
+          "git",
+          [
+            "commit",
+            "-m",
+            `Initial commit from Tambo ${selectedTemplate.name} template`,
+          ],
           {
             stdio: "ignore",
             allowNonInteractive: true,
@@ -361,7 +353,7 @@ export async function handleCreateApp(
         // - Project selection
         // - Installation path
         // - Agent docs creation
-        execSync("npx tambo init", {
+        execFileSync("npx", ["tambo", "init"], {
           stdio: "inherit", // Allow user interaction for all prompts
           allowNonInteractive: true,
         });
