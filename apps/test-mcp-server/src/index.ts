@@ -143,7 +143,7 @@ async function main() {
     )
     .option(
       "--allowed-origins <origins>",
-      "comma-separated list of origins allowed for CORS and DNS rebinding protection",
+      "comma-separated configured origins for CORS and DNS rebinding protection (loopback origins are always allowed by CORS)",
     )
     .parse(process.argv);
 
