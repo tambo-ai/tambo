@@ -52,7 +52,7 @@ interface CreateAppOptions {
   name?: string;
 }
 
-function safeRemoveGitFolder(gitFolder: string): void {
+export function safeRemoveGitFolder(gitFolder: string): void {
   if (path.basename(gitFolder) !== ".git") {
     console.error(chalk.red("Invalid git folder path"));
     return;
