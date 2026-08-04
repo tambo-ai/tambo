@@ -9,7 +9,11 @@
           "200": {
             "description": "",
             "content": {
-              "application/json": { "schema": { "type": "string" } }
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
             }
           }
         },
@@ -20,7 +24,11 @@
       "get": {
         "operationId": "AppController_checkHealth",
         "parameters": [],
-        "responses": { "200": { "description": "" } },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
         "tags": ["Auth"]
       }
     },
@@ -33,7 +41,9 @@
           "required": true,
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/CreateMcpAccessToken" }
+              "schema": {
+                "$ref": "#/components/schemas/CreateMcpAccessToken"
+              }
             }
           }
         },
@@ -55,7 +65,11 @@
             "description": "Thread not found or does not belong to project"
           }
         },
-        "security": [{ "apiKey": [] }],
+        "security": [
+          {
+            "apiKey": []
+          }
+        ],
         "summary": "Create an MCP access token",
         "tags": ["Auth"]
       }
@@ -69,7 +83,9 @@
           "required": true,
           "content": {
             "application/x-www-form-urlencoded": {
-              "schema": { "$ref": "#/components/schemas/OAuthTokenRequest" }
+              "schema": {
+                "$ref": "#/components/schemas/OAuthTokenRequest"
+              }
             }
           }
         },
@@ -78,16 +94,24 @@
             "description": "Token exchange successful",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/OAuthTokenResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/OAuthTokenResponse"
+                }
               }
             }
           },
           "400": {
             "description": "Bad request - invalid grant type or missing parameters"
           },
-          "401": { "description": "Unauthorized - invalid OAuth token" }
+          "401": {
+            "description": "Unauthorized - invalid OAuth token"
+          }
         },
-        "security": [{ "apiKey": [] }],
+        "security": [
+          {
+            "apiKey": []
+          }
+        ],
         "summary": "OAuth 2.0 Token Exchange Endpoint",
         "tags": ["OAuth"]
       }
@@ -101,12 +125,18 @@
             "description": "",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ProjectResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectResponse"
+                }
               }
             }
           }
         },
-        "security": [{ "apiKey": [] }],
+        "security": [
+          {
+            "apiKey": []
+          }
+        ],
         "tags": ["Projects"]
       }
     },
@@ -118,7 +148,9 @@
             "name": "id",
             "required": true,
             "in": "path",
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -126,12 +158,18 @@
             "description": "",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ProjectResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectResponse"
+                }
               }
             }
           }
         },
-        "security": [{ "apiKey": [] }],
+        "security": [
+          {
+            "apiKey": []
+          }
+        ],
         "tags": ["Projects"]
       },
       "delete": {
@@ -141,18 +179,28 @@
             "name": "id",
             "required": true,
             "in": "path",
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
           "200": {
             "description": "",
             "content": {
-              "application/json": { "schema": { "type": "boolean" } }
+              "application/json": {
+                "schema": {
+                  "type": "boolean"
+                }
+              }
             }
           }
         },
-        "security": [{ "apiKey": [] }],
+        "security": [
+          {
+            "apiKey": []
+          }
+        ],
         "tags": ["Projects"]
       }
     },
@@ -164,7 +212,9 @@
             "name": "id",
             "required": true,
             "in": "path",
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -174,13 +224,19 @@
               "application/json": {
                 "schema": {
                   "type": "array",
-                  "items": { "$ref": "#/components/schemas/APIKeyResponse" }
+                  "items": {
+                    "$ref": "#/components/schemas/APIKeyResponse"
+                  }
                 }
               }
             }
           }
         },
-        "security": [{ "apiKey": [] }],
+        "security": [
+          {
+            "apiKey": []
+          }
+        ],
         "tags": ["Projects"]
       }
     },
@@ -192,24 +248,36 @@
             "name": "id",
             "required": true,
             "in": "path",
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           },
           {
             "name": "apiKeyId",
             "required": true,
             "in": "path",
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
           "200": {
             "description": "",
             "content": {
-              "application/json": { "schema": { "type": "boolean" } }
+              "application/json": {
+                "schema": {
+                  "type": "boolean"
+                }
+              }
             }
           }
         },
-        "security": [{ "apiKey": [] }],
+        "security": [
+          {
+            "apiKey": []
+          }
+        ],
         "tags": ["Projects"]
       }
     },
@@ -221,7 +289,9 @@
             "name": "id",
             "required": true,
             "in": "path",
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -239,7 +309,11 @@
             }
           }
         },
-        "security": [{ "apiKey": [] }],
+        "security": [
+          {
+            "apiKey": []
+          }
+        ],
         "tags": ["Projects"]
       }
     },
@@ -251,13 +325,17 @@
             "name": "id",
             "required": true,
             "in": "path",
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           },
           {
             "name": "providerKeyId",
             "required": true,
             "in": "path",
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -272,7 +350,11 @@
             }
           }
         },
-        "security": [{ "apiKey": [] }],
+        "security": [
+          {
+            "apiKey": []
+          }
+        ],
         "tags": ["Projects"]
       }
     },
@@ -284,14 +366,20 @@
             "name": "componentname",
             "required": true,
             "in": "path",
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
           "200": {
             "description": "",
             "content": {
-              "application/json": { "schema": { "type": "object" } }
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
             }
           }
         },
@@ -306,7 +394,9 @@
           "required": true,
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/ThreadRequest" }
+              "schema": {
+                "$ref": "#/components/schemas/ThreadRequest"
+              }
             }
           }
         },
@@ -315,12 +405,21 @@
             "description": "",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Thread" }
+                "schema": {
+                  "$ref": "#/components/schemas/Thread"
+                }
               }
             }
           }
         },
-        "security": [{ "bearer": [] }, { "apiKey": [] }],
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
         "tags": ["threads"]
       }
     },
@@ -332,26 +431,36 @@
             "name": "projectId",
             "required": true,
             "in": "path",
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           },
           {
             "name": "contextKey",
             "required": false,
             "in": "query",
             "description": "Unique user identifier for the thread",
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           },
           {
             "name": "offset",
             "required": false,
             "in": "query",
-            "schema": { "default": 0, "type": "number" }
+            "schema": {
+              "default": 0,
+              "type": "number"
+            }
           },
           {
             "name": "limit",
             "required": false,
             "in": "query",
-            "schema": { "default": 10, "type": "number" }
+            "schema": {
+              "default": 10,
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -359,12 +468,21 @@
             "description": "",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ThreadList" }
+                "schema": {
+                  "$ref": "#/components/schemas/ThreadList"
+                }
               }
             }
           }
         },
-        "security": [{ "bearer": [] }, { "apiKey": [] }],
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
         "tags": ["threads"]
       }
     },
@@ -376,19 +494,25 @@
             "name": "id",
             "required": true,
             "in": "path",
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           },
           {
             "name": "contextKey",
             "required": false,
             "in": "query",
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           },
           {
             "name": "includeInternal",
             "required": false,
             "in": "query",
-            "schema": { "type": "boolean" }
+            "schema": {
+              "type": "boolean"
+            }
           }
         ],
         "responses": {
@@ -396,12 +520,21 @@
             "description": "",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ThreadWithMessages" }
+                "schema": {
+                  "$ref": "#/components/schemas/ThreadWithMessages"
+                }
               }
             }
           }
         },
-        "security": [{ "bearer": [] }, { "apiKey": [] }],
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
         "tags": ["threads"]
       },
       "put": {
@@ -411,14 +544,18 @@
             "name": "id",
             "required": true,
             "in": "path",
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/ThreadRequest" }
+              "schema": {
+                "$ref": "#/components/schemas/ThreadRequest"
+              }
             }
           }
         },
@@ -427,12 +564,21 @@
             "description": "",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Thread" }
+                "schema": {
+                  "$ref": "#/components/schemas/Thread"
+                }
               }
             }
           }
         },
-        "security": [{ "bearer": [] }, { "apiKey": [] }],
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
         "tags": ["threads"]
       },
       "delete": {
@@ -442,11 +588,24 @@
             "name": "id",
             "required": true,
             "in": "path",
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           }
         ],
-        "responses": { "200": { "description": "" } },
-        "security": [{ "bearer": [] }, { "apiKey": [] }],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
         "tags": ["threads"]
       }
     },
@@ -460,7 +619,10 @@
             "required": true,
             "in": "path",
             "description": "ID of the thread to cancel",
-            "schema": { "example": "thread_123456789", "type": "string" }
+            "schema": {
+              "example": "thread_123456789",
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -468,7 +630,9 @@
             "description": "Thread cancelled successfully",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Thread" }
+                "schema": {
+                  "$ref": "#/components/schemas/Thread"
+                }
               }
             }
           },
@@ -476,7 +640,9 @@
             "description": "Thread is not in a cancellable state",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ProblemDetails" }
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
               }
             }
           },
@@ -484,12 +650,21 @@
             "description": "Thread not found",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ProblemDetails" }
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
               }
             }
           }
         },
-        "security": [{ "bearer": [] }, { "apiKey": [] }],
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
         "summary": "Cancel thread advancement",
         "tags": ["threads"]
       }
@@ -502,14 +677,18 @@
             "name": "id",
             "required": true,
             "in": "path",
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/MessageRequest" }
+              "schema": {
+                "$ref": "#/components/schemas/MessageRequest"
+              }
             }
           }
         },
@@ -517,11 +696,22 @@
           "201": {
             "description": "",
             "content": {
-              "application/json": { "schema": { "type": "object" } }
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
             }
           }
         },
-        "security": [{ "bearer": [] }, { "apiKey": [] }],
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
         "tags": ["threads"]
       },
       "get": {
@@ -532,7 +722,10 @@
             "required": true,
             "in": "path",
             "description": "Id of the thread to get messages for",
-            "schema": { "example": "thr_123.456", "type": "string" }
+            "schema": {
+              "example": "thr_123.456",
+              "type": "string"
+            }
           },
           {
             "name": "includeInternal",
@@ -540,7 +733,9 @@
             "in": "query",
             "description": "Whether to include internal messages, must be `true`",
             "deprecated": true,
-            "schema": { "type": "boolean" }
+            "schema": {
+              "type": "boolean"
+            }
           }
         ],
         "responses": {
@@ -550,13 +745,22 @@
               "application/json": {
                 "schema": {
                   "type": "array",
-                  "items": { "$ref": "#/components/schemas/ThreadMessage" }
+                  "items": {
+                    "$ref": "#/components/schemas/ThreadMessage"
+                  }
                 }
               }
             }
           }
         },
-        "security": [{ "bearer": [] }, { "apiKey": [] }],
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
         "tags": ["threads"]
       }
     },
@@ -569,18 +773,35 @@
             "required": true,
             "in": "path",
             "description": "Id of the thread that contains the message",
-            "schema": { "example": "thr_123.456", "type": "string" }
+            "schema": {
+              "example": "thr_123.456",
+              "type": "string"
+            }
           },
           {
             "name": "messageId",
             "required": true,
             "in": "path",
             "description": "Id of the message to delete",
-            "schema": { "example": "msg_123.456", "type": "string" }
+            "schema": {
+              "example": "msg_123.456",
+              "type": "string"
+            }
           }
         ],
-        "responses": { "200": { "description": "" } },
-        "security": [{ "bearer": [] }, { "apiKey": [] }],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
         "tags": ["threads"]
       }
     },
@@ -594,14 +815,20 @@
             "required": true,
             "in": "path",
             "description": "ID of the thread to get suggestions for",
-            "schema": { "example": "thread_123456789", "type": "string" }
+            "schema": {
+              "example": "thread_123456789",
+              "type": "string"
+            }
           },
           {
             "name": "messageId",
             "required": true,
             "in": "path",
             "description": "ID of the message to get suggestions for",
-            "schema": { "example": "msg_123456789", "type": "string" }
+            "schema": {
+              "example": "msg_123456789",
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -611,7 +838,9 @@
               "application/json": {
                 "schema": {
                   "type": "array",
-                  "items": { "$ref": "#/components/schemas/Suggestion" }
+                  "items": {
+                    "$ref": "#/components/schemas/Suggestion"
+                  }
                 }
               }
             }
@@ -620,12 +849,21 @@
             "description": "Message not found or has no suggestions",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ProblemDetails" }
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
               }
             }
           }
         },
-        "security": [{ "bearer": [] }, { "apiKey": [] }],
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
         "summary": "Get suggestions for a message",
         "tags": ["threads"]
       },
@@ -638,21 +876,29 @@
             "required": true,
             "in": "path",
             "description": "ID of the thread to generate suggestions for",
-            "schema": { "example": "thread_123456789", "type": "string" }
+            "schema": {
+              "example": "thread_123456789",
+              "type": "string"
+            }
           },
           {
             "name": "messageId",
             "required": true,
             "in": "path",
             "description": "ID of the message to generate suggestions for",
-            "schema": { "example": "msg_123456789", "type": "string" }
+            "schema": {
+              "example": "msg_123456789",
+              "type": "string"
+            }
           }
         ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/SuggestionsGenerate" }
+              "schema": {
+                "$ref": "#/components/schemas/SuggestionsGenerate"
+              }
             }
           }
         },
@@ -663,7 +909,9 @@
               "application/json": {
                 "schema": {
                   "type": "array",
-                  "items": { "$ref": "#/components/schemas/Suggestion" }
+                  "items": {
+                    "$ref": "#/components/schemas/Suggestion"
+                  }
                 }
               }
             }
@@ -672,7 +920,9 @@
             "description": "Invalid request parameters",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ProblemDetails" }
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
               }
             }
           },
@@ -680,7 +930,9 @@
             "description": "Message not found",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ProblemDetails" }
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
               }
             }
           },
@@ -688,12 +940,21 @@
             "description": "Failed to generate suggestions",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ProblemDetails" }
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
               }
             }
           }
         },
-        "security": [{ "bearer": [] }, { "apiKey": [] }],
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
         "summary": "Generate new suggestions",
         "tags": ["threads"]
       }
@@ -707,14 +968,20 @@
             "required": true,
             "in": "path",
             "description": "Id of the thread that contains the message",
-            "schema": { "example": "thr_123.456", "type": "string" }
+            "schema": {
+              "example": "thr_123.456",
+              "type": "string"
+            }
           },
           {
             "name": "messageId",
             "required": true,
             "in": "path",
             "description": "Id of the message to update component state for",
-            "schema": { "example": "msg_123.456", "type": "string" }
+            "schema": {
+              "example": "msg_123.456",
+              "type": "string"
+            }
           }
         ],
         "requestBody": {
@@ -732,12 +999,21 @@
             "description": "",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ThreadMessage" }
+                "schema": {
+                  "$ref": "#/components/schemas/ThreadMessage"
+                }
               }
             }
           }
         },
-        "security": [{ "bearer": [] }, { "apiKey": [] }],
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
         "tags": ["threads"]
       }
     },
@@ -752,14 +1028,19 @@
             "required": true,
             "in": "path",
             "description": "Id of an existing thread to advance",
-            "schema": { "example": "thr_123.456", "type": "string" }
+            "schema": {
+              "example": "thr_123.456",
+              "type": "string"
+            }
           }
         ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/AdvanceThread" }
+              "schema": {
+                "$ref": "#/components/schemas/AdvanceThread"
+              }
             }
           }
         },
@@ -778,12 +1059,21 @@
             "description": "This endpoint is deprecated",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ProblemDetails" }
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
               }
             }
           }
         },
-        "security": [{ "bearer": [] }, { "apiKey": [] }],
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
         "summary": "DEPRECATED - Advance a thread (non-streaming)",
         "tags": ["threads"]
       }
@@ -798,19 +1088,35 @@
             "required": true,
             "in": "path",
             "description": "Id of an existing thread to advance",
-            "schema": { "example": "thr_123.456", "type": "string" }
+            "schema": {
+              "example": "thr_123.456",
+              "type": "string"
+            }
           }
         ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/AdvanceThread" }
+              "schema": {
+                "$ref": "#/components/schemas/AdvanceThread"
+              }
             }
           }
         },
-        "responses": { "201": { "description": "" } },
-        "security": [{ "bearer": [] }, { "apiKey": [] }],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
         "summary": "Advance a thread stream",
         "tags": ["threads"]
       }
@@ -836,12 +1142,21 @@
             "description": "This endpoint is deprecated",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ProblemDetails" }
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
               }
             }
           }
         },
-        "security": [{ "bearer": [] }, { "apiKey": [] }],
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
         "summary": "DEPRECATED - Create and advance a thread (non-streaming)",
         "tags": ["threads"]
       }
@@ -855,12 +1170,25 @@
           "required": true,
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/AdvanceThread" }
+              "schema": {
+                "$ref": "#/components/schemas/AdvanceThread"
+              }
             }
           }
         },
-        "responses": { "201": { "description": "" } },
-        "security": [{ "bearer": [] }, { "apiKey": [] }],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
         "summary": "Create and advance a thread stream",
         "tags": ["threads"]
       }
@@ -875,14 +1203,19 @@
             "required": true,
             "in": "path",
             "description": "ID of the thread to generate name for",
-            "schema": { "example": "thread_123456789", "type": "string" }
+            "schema": {
+              "example": "thread_123456789",
+              "type": "string"
+            }
           },
           {
             "name": "contextKey",
             "required": false,
             "in": "query",
             "description": "Unique user identifier for the thread",
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -890,7 +1223,9 @@
             "description": "Thread name generated successfully",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Thread" }
+                "schema": {
+                  "$ref": "#/components/schemas/Thread"
+                }
               }
             }
           },
@@ -898,12 +1233,21 @@
             "description": "Thread not found",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ProblemDetails" }
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
               }
             }
           }
         },
-        "security": [{ "bearer": [] }, { "apiKey": [] }],
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
         "summary": "Generate and set a thread's name",
         "tags": ["threads"]
       }
@@ -918,7 +1262,9 @@
           "description": "Audio file to transcribe",
           "content": {
             "multipart/form-data": {
-              "schema": { "$ref": "#/components/schemas/TranscribeAudioDto" }
+              "schema": {
+                "$ref": "#/components/schemas/TranscribeAudioDto"
+              }
             }
           }
         },
@@ -926,12 +1272,22 @@
           "201": {
             "description": "",
             "content": {
-              "application/json": { "schema": { "type": "string" } }
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
             }
           },
-          "400": { "description": "Invalid audio file or format" }
+          "400": {
+            "description": "Invalid audio file or format"
+          }
         },
-        "security": [{ "apiKey": [] }],
+        "security": [
+          {
+            "apiKey": []
+          }
+        ],
         "summary": "Transcribe audio to text",
         "tags": ["audio"]
       }
@@ -946,21 +1302,29 @@
             "required": true,
             "in": "header",
             "description": "Shared secret for webhook authentication",
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           },
           {
             "name": "x-webhook-source",
             "required": false,
             "in": "header",
             "description": "Source identifier for the webhook",
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
           "200": {
             "description": "",
             "content": {
-              "application/json": { "schema": { "type": "object" } }
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
             }
           }
         },
@@ -977,7 +1341,9 @@
           "required": true,
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/PresignUploadDto" }
+              "schema": {
+                "$ref": "#/components/schemas/PresignUploadDto"
+              }
             }
           }
         },
@@ -995,9 +1361,18 @@
           "400": {
             "description": "Invalid request (missing contentType or size, or size exceeds 10MB)"
           },
-          "503": { "description": "Storage is not configured" }
+          "503": {
+            "description": "Storage is not configured"
+          }
         },
-        "security": [{ "bearer": [] }, { "apiKey": [] }],
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
         "summary": "Get a presigned URL for direct S3 upload",
         "tags": ["storage"]
       }
@@ -1024,14 +1399,18 @@
             "required": false,
             "in": "query",
             "description": "Cursor for pagination",
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           },
           {
             "name": "userKey",
             "required": false,
             "in": "query",
             "description": "Filter by user key",
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -1039,12 +1418,21 @@
             "description": "List of threads",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ListThreadsResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ListThreadsResponse"
+                }
               }
             }
           }
         },
-        "security": [{ "bearer": [] }, { "apiKey": [] }],
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
         "summary": "List threads",
         "tags": ["v1"]
       },
@@ -1056,7 +1444,9 @@
           "required": true,
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/CreateThreadRequest" }
+              "schema": {
+                "$ref": "#/components/schemas/CreateThreadRequest"
+              }
             }
           }
         },
@@ -1072,7 +1462,14 @@
             }
           }
         },
-        "security": [{ "bearer": [] }, { "apiKey": [] }],
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
         "summary": "Create empty thread",
         "tags": ["v1"]
       }
@@ -1087,14 +1484,19 @@
             "required": true,
             "in": "path",
             "description": "Thread ID",
-            "schema": { "example": "thr_abc123xyz", "type": "string" }
+            "schema": {
+              "example": "thr_abc123xyz",
+              "type": "string"
+            }
           },
           {
             "name": "userKey",
             "required": false,
             "in": "query",
             "description": "Optional user key for thread organization",
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -1102,13 +1504,24 @@
             "description": "Thread with messages",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/GetThreadResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/GetThreadResponse"
+                }
               }
             }
           },
-          "404": { "description": "Thread not found" }
+          "404": {
+            "description": "Thread not found"
+          }
         },
-        "security": [{ "bearer": [] }, { "apiKey": [] }],
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
         "summary": "Get thread with messages",
         "tags": ["v1"]
       },
@@ -1121,21 +1534,28 @@
             "required": true,
             "in": "path",
             "description": "Thread ID",
-            "schema": { "example": "thr_abc123xyz", "type": "string" }
+            "schema": {
+              "example": "thr_abc123xyz",
+              "type": "string"
+            }
           },
           {
             "name": "userKey",
             "required": false,
             "in": "query",
             "description": "Optional user key for thread organization",
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/UpdateThreadRequest" }
+              "schema": {
+                "$ref": "#/components/schemas/UpdateThreadRequest"
+              }
             }
           }
         },
@@ -1150,9 +1570,18 @@
               }
             }
           },
-          "404": { "description": "Thread not found" }
+          "404": {
+            "description": "Thread not found"
+          }
         },
-        "security": [{ "bearer": [] }, { "apiKey": [] }],
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
         "summary": "Update thread",
         "tags": ["v1"]
       },
@@ -1165,21 +1594,37 @@
             "required": true,
             "in": "path",
             "description": "Thread ID",
-            "schema": { "example": "thr_abc123xyz", "type": "string" }
+            "schema": {
+              "example": "thr_abc123xyz",
+              "type": "string"
+            }
           },
           {
             "name": "userKey",
             "required": false,
             "in": "query",
             "description": "Identifier for a user in your system. Required if no bearer token is provided.",
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
-          "204": { "description": "Thread deleted successfully" },
-          "404": { "description": "Thread not found" }
+          "204": {
+            "description": "Thread deleted successfully"
+          },
+          "404": {
+            "description": "Thread not found"
+          }
         },
-        "security": [{ "bearer": [] }, { "apiKey": [] }],
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
         "summary": "Delete thread",
         "tags": ["v1"]
       }
@@ -1194,7 +1639,10 @@
             "required": true,
             "in": "path",
             "description": "Thread ID",
-            "schema": { "example": "thr_abc123xyz", "type": "string" }
+            "schema": {
+              "example": "thr_abc123xyz",
+              "type": "string"
+            }
           },
           {
             "name": "limit",
@@ -1213,7 +1661,9 @@
             "required": false,
             "in": "query",
             "description": "Cursor for pagination",
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           },
           {
             "name": "order",
@@ -1231,7 +1681,9 @@
             "required": false,
             "in": "query",
             "description": "Identifier for a user in your system. Required if no bearer token is provided.",
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -1245,9 +1697,18 @@
               }
             }
           },
-          "404": { "description": "Thread not found" }
+          "404": {
+            "description": "Thread not found"
+          }
         },
-        "security": [{ "bearer": [] }, { "apiKey": [] }],
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
         "summary": "List messages",
         "tags": ["v1"]
       }
@@ -1262,21 +1723,29 @@
             "required": true,
             "in": "path",
             "description": "Thread ID",
-            "schema": { "example": "thr_abc123xyz", "type": "string" }
+            "schema": {
+              "example": "thr_abc123xyz",
+              "type": "string"
+            }
           },
           {
             "name": "messageId",
             "required": true,
             "in": "path",
             "description": "Message ID",
-            "schema": { "example": "msg_xyz789abc", "type": "string" }
+            "schema": {
+              "example": "msg_xyz789abc",
+              "type": "string"
+            }
           },
           {
             "name": "userKey",
             "required": false,
             "in": "query",
             "description": "Identifier for a user in your system. Required if no bearer token is provided.",
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -1284,13 +1753,24 @@
             "description": "Message details",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/GetMessageResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/GetMessageResponse"
+                }
               }
             }
           },
-          "404": { "description": "Message not found" }
+          "404": {
+            "description": "Message not found"
+          }
         },
-        "security": [{ "bearer": [] }, { "apiKey": [] }],
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
         "summary": "Get message",
         "tags": ["v1"]
       }
@@ -1316,22 +1796,37 @@
             "headers": {
               "X-Thread-Id": {
                 "description": "The created thread ID",
-                "schema": { "type": "string" }
+                "schema": {
+                  "type": "string"
+                }
               },
               "X-Run-Id": {
                 "description": "The created run ID",
-                "schema": { "type": "string" }
+                "schema": {
+                  "type": "string"
+                }
               }
             },
             "content": {
               "text/event-stream": {
-                "schema": { "$ref": "#/components/schemas/BaseEvent" }
+                "schema": {
+                  "$ref": "#/components/schemas/BaseEvent"
+                }
               }
             }
           },
-          "409": { "description": "Concurrent run conflict" }
+          "409": {
+            "description": "Concurrent run conflict"
+          }
         },
-        "security": [{ "bearer": [] }, { "apiKey": [] }],
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
         "summary": "Create thread with run (SSE)",
         "tags": ["v1"]
       }
@@ -1346,14 +1841,19 @@
             "required": true,
             "in": "path",
             "description": "Thread ID",
-            "schema": { "example": "thr_abc123xyz", "type": "string" }
+            "schema": {
+              "example": "thr_abc123xyz",
+              "type": "string"
+            }
           }
         ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/CreateRunRequest" }
+              "schema": {
+                "$ref": "#/components/schemas/CreateRunRequest"
+              }
             }
           }
         },
@@ -1363,19 +1863,34 @@
             "headers": {
               "X-Run-Id": {
                 "description": "The created run ID",
-                "schema": { "type": "string" }
+                "schema": {
+                  "type": "string"
+                }
               }
             },
             "content": {
               "text/event-stream": {
-                "schema": { "$ref": "#/components/schemas/BaseEvent" }
+                "schema": {
+                  "$ref": "#/components/schemas/BaseEvent"
+                }
               }
             }
           },
-          "404": { "description": "Thread not found" },
-          "409": { "description": "Concurrent run conflict" }
+          "404": {
+            "description": "Thread not found"
+          },
+          "409": {
+            "description": "Concurrent run conflict"
+          }
         },
-        "security": [{ "bearer": [] }, { "apiKey": [] }],
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
         "summary": "Create run on existing thread (SSE)",
         "tags": ["v1"]
       }
@@ -1390,21 +1905,29 @@
             "required": true,
             "in": "path",
             "description": "Thread ID",
-            "schema": { "example": "thr_abc123xyz", "type": "string" }
+            "schema": {
+              "example": "thr_abc123xyz",
+              "type": "string"
+            }
           },
           {
             "name": "runId",
             "required": true,
             "in": "path",
             "description": "Run ID",
-            "schema": { "example": "run_xyz789abc", "type": "string" }
+            "schema": {
+              "example": "run_xyz789abc",
+              "type": "string"
+            }
           },
           {
             "name": "userKey",
             "required": false,
             "in": "query",
             "description": "Identifier for a user in your system. Required if no bearer token is provided.",
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -1412,13 +1935,24 @@
             "description": "Run cancelled",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/CancelRunResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/CancelRunResponse"
+                }
               }
             }
           },
-          "404": { "description": "Run not found" }
+          "404": {
+            "description": "Run not found"
+          }
         },
-        "security": [{ "bearer": [] }, { "apiKey": [] }],
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
         "summary": "Cancel run",
         "tags": ["v1"]
       }
@@ -1433,21 +1967,29 @@
             "required": true,
             "in": "path",
             "description": "Thread ID",
-            "schema": { "example": "thr_abc123xyz", "type": "string" }
+            "schema": {
+              "example": "thr_abc123xyz",
+              "type": "string"
+            }
           },
           {
             "name": "componentId",
             "required": true,
             "in": "path",
             "description": "Component ID",
-            "schema": { "example": "comp_xyz789abc", "type": "string" }
+            "schema": {
+              "example": "comp_xyz789abc",
+              "type": "string"
+            }
           }
         ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/UpdateComponentState" }
+              "schema": {
+                "$ref": "#/components/schemas/UpdateComponentState"
+              }
             }
           }
         },
@@ -1465,10 +2007,21 @@
           "400": {
             "description": "Invalid request (missing state/patch, or invalid patch)"
           },
-          "404": { "description": "Component not found in thread" },
-          "409": { "description": "Cannot update state while run is active" }
+          "404": {
+            "description": "Component not found in thread"
+          },
+          "409": {
+            "description": "Cannot update state while run is active"
+          }
         },
-        "security": [{ "bearer": [] }, { "apiKey": [] }],
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
         "summary": "Update component state",
         "tags": ["v1"]
       }
@@ -1483,14 +2036,20 @@
             "required": true,
             "in": "path",
             "description": "Thread ID",
-            "schema": { "example": "thr_abc123xyz", "type": "string" }
+            "schema": {
+              "example": "thr_abc123xyz",
+              "type": "string"
+            }
           },
           {
             "name": "messageId",
             "required": true,
             "in": "path",
             "description": "Message ID",
-            "schema": { "example": "msg_xyz789abc", "type": "string" }
+            "schema": {
+              "example": "msg_xyz789abc",
+              "type": "string"
+            }
           },
           {
             "name": "limit",
@@ -1509,14 +2068,18 @@
             "required": false,
             "in": "query",
             "description": "Cursor for pagination",
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           },
           {
             "name": "userKey",
             "required": false,
             "in": "query",
             "description": "Optional user key for thread organization",
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -1530,9 +2093,18 @@
               }
             }
           },
-          "404": { "description": "Message not found" }
+          "404": {
+            "description": "Message not found"
+          }
         },
-        "security": [{ "bearer": [] }, { "apiKey": [] }],
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
         "summary": "List suggestions for a message",
         "tags": ["v1"]
       },
@@ -1545,14 +2117,20 @@
             "required": true,
             "in": "path",
             "description": "Thread ID",
-            "schema": { "example": "thr_abc123xyz", "type": "string" }
+            "schema": {
+              "example": "thr_abc123xyz",
+              "type": "string"
+            }
           },
           {
             "name": "messageId",
             "required": true,
             "in": "path",
             "description": "Message ID",
-            "schema": { "example": "msg_xyz789abc", "type": "string" }
+            "schema": {
+              "example": "msg_xyz789abc",
+              "type": "string"
+            }
           }
         ],
         "requestBody": {
@@ -1576,10 +2154,21 @@
               }
             }
           },
-          "400": { "description": "Invalid request parameters" },
-          "404": { "description": "Message not found" }
+          "400": {
+            "description": "Invalid request parameters"
+          },
+          "404": {
+            "description": "Message not found"
+          }
         },
-        "security": [{ "bearer": [] }, { "apiKey": [] }],
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
         "summary": "Generate suggestions for a message",
         "tags": ["v1"]
       }
@@ -1595,8 +2184,16 @@
   "servers": [],
   "components": {
     "securitySchemes": {
-      "apiKey": { "type": "apiKey", "in": "header", "name": "x-api-key" },
-      "bearer": { "scheme": "bearer", "bearerFormat": "JWT", "type": "http" }
+      "apiKey": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "x-api-key"
+      },
+      "bearer": {
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "type": "http"
+      }
     },
     "schemas": {
       "CreateMcpAccessToken": {
@@ -1701,18 +2298,44 @@
       "ProjectResponse": {
         "type": "object",
         "properties": {
-          "id": { "type": "string" },
-          "name": { "type": "string" },
-          "userId": { "type": "string" },
-          "defaultLlmProviderName": { "type": "string" },
-          "defaultLlmModelName": { "type": "string" },
-          "customLlmModelName": { "type": "string" },
-          "customLlmBaseURL": { "type": "string" },
-          "customInstructions": { "type": "string" },
-          "maxInputTokens": { "type": "number", "nullable": true },
-          "allowSystemPromptOverride": { "type": "boolean" },
-          "isTokenRequired": { "type": "boolean" },
-          "providerType": { "enum": ["llm", "agent"], "type": "string" },
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "userId": {
+            "type": "string"
+          },
+          "defaultLlmProviderName": {
+            "type": "string"
+          },
+          "defaultLlmModelName": {
+            "type": "string"
+          },
+          "customLlmModelName": {
+            "type": "string"
+          },
+          "customLlmBaseURL": {
+            "type": "string"
+          },
+          "customInstructions": {
+            "type": "string"
+          },
+          "maxInputTokens": {
+            "type": "number",
+            "nullable": true
+          },
+          "allowSystemPromptOverride": {
+            "type": "boolean"
+          },
+          "isTokenRequired": {
+            "type": "boolean"
+          },
+          "providerType": {
+            "enum": ["llm", "agent"],
+            "type": "string"
+          },
           "agentProviderType": {
             "enum": [
               "ag-ui",
@@ -1724,37 +2347,76 @@
             ],
             "type": "string"
           },
-          "agentName": { "type": "string" },
-          "agentUrl": { "type": "string" },
-          "customLlmParameters": { "type": "object" }
+          "agentName": {
+            "type": "string"
+          },
+          "agentUrl": {
+            "type": "string"
+          },
+          "customLlmParameters": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
         },
         "required": ["id", "name", "userId", "isTokenRequired", "providerType"]
       },
       "APIKeyResponse": {
         "type": "object",
         "properties": {
-          "id": { "type": "string" },
-          "name": { "type": "string" },
-          "partiallyHiddenKey": { "type": "string" },
-          "lastUsed": { "format": "date-time", "type": "string" },
-          "created": { "format": "date-time", "type": "string" },
-          "createdByUserId": { "type": "string" }
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "partiallyHiddenKey": {
+            "type": "string"
+          },
+          "lastUsed": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "created": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "createdByUserId": {
+            "type": "string"
+          }
         }
       },
       "ProviderKeyResponse": {
         "type": "object",
         "properties": {
-          "id": { "type": "string" },
-          "providerName": { "type": "string" },
-          "providerKeyEncrypted": { "type": "string" },
-          "partiallyHiddenKey": { "type": "string" }
+          "id": {
+            "type": "string"
+          },
+          "providerName": {
+            "type": "string"
+          },
+          "providerKeyEncrypted": {
+            "type": "string"
+          },
+          "partiallyHiddenKey": {
+            "type": "string"
+          }
         }
       },
       "SimpleProjectResponse": {
         "type": "object",
         "properties": {
-          "id": { "type": "string" },
-          "name": { "type": "string" }
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
         },
         "required": ["id", "name"]
       },
@@ -1765,8 +2427,13 @@
             "type": "string",
             "description": "Unique user identifier for the thread"
           },
-          "metadata": { "type": "object", "additionalProperties": true },
-          "projectId": { "type": "string" },
+          "metadata": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "projectId": {
+            "type": "string"
+          },
           "generationStage": {
             "enum": [
               "IDLE",
@@ -1780,16 +2447,25 @@
             ],
             "type": "string"
           },
-          "statusMessage": { "type": "string" },
-          "name": { "type": "string" }
+          "statusMessage": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
         },
         "required": ["projectId"]
       },
       "Thread": {
         "type": "object",
         "properties": {
-          "metadata": { "type": "object", "additionalProperties": true },
-          "projectId": { "type": "string" },
+          "metadata": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "projectId": {
+            "type": "string"
+          },
           "generationStage": {
             "enum": [
               "IDLE",
@@ -1803,11 +2479,23 @@
             ],
             "type": "string"
           },
-          "statusMessage": { "type": "string" },
-          "name": { "type": "string" },
-          "id": { "type": "string" },
-          "createdAt": { "format": "date-time", "type": "string" },
-          "updatedAt": { "format": "date-time", "type": "string" }
+          "statusMessage": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
         },
         "required": ["projectId", "id", "createdAt", "updatedAt"]
       },
@@ -1816,20 +2504,34 @@
         "properties": {
           "items": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/Thread" }
+            "items": {
+              "$ref": "#/components/schemas/Thread"
+            }
           },
-          "total": { "type": "number" },
-          "offset": { "type": "number" },
-          "limit": { "type": "number" },
-          "count": { "type": "number" }
+          "total": {
+            "type": "number"
+          },
+          "offset": {
+            "type": "number"
+          },
+          "limit": {
+            "type": "number"
+          },
+          "count": {
+            "type": "number"
+          }
         },
         "required": ["items", "total", "offset", "limit", "count"]
       },
       "ToolParameter": {
         "type": "object",
         "properties": {
-          "parameterName": { "type": "string" },
-          "parameterValue": { "type": "object" }
+          "parameterName": {
+            "type": "string"
+          },
+          "parameterValue": {
+            "type": "object"
+          }
         },
         "required": ["parameterName", "parameterValue"]
       },
@@ -1844,7 +2546,9 @@
           "parameters": {
             "description": "The parameters of the function to call.",
             "type": "array",
-            "items": { "$ref": "#/components/schemas/ToolParameter" }
+            "items": {
+              "$ref": "#/components/schemas/ToolParameter"
+            }
           },
           "toolName": {
             "type": "string",
@@ -1861,16 +2565,26 @@
       "ImageUrl": {
         "type": "object",
         "properties": {
-          "url": { "type": "string" },
-          "detail": { "type": "string", "enum": ["auto", "high", "low"] }
+          "url": {
+            "type": "string"
+          },
+          "detail": {
+            "type": "string",
+            "enum": ["auto", "high", "low"]
+          }
         },
         "required": ["url"]
       },
       "InputAudio": {
         "type": "object",
         "properties": {
-          "data": { "type": "string" },
-          "format": { "type": "string", "enum": ["wav", "mp3"] }
+          "data": {
+            "type": "string"
+          },
+          "format": {
+            "type": "string",
+            "enum": ["wav", "mp3"]
+          }
         },
         "required": ["data", "format"]
       },
@@ -1880,7 +2594,9 @@
           "audience": {
             "description": "Target audience for this resource",
             "type": "array",
-            "items": { "type": "string" }
+            "items": {
+              "type": "string"
+            }
           },
           "priority": {
             "type": "number",
@@ -1923,7 +2639,11 @@
           },
           "annotations": {
             "description": "Annotations for additional metadata (MCP-specific). Can include audience, priority, or custom properties.",
-            "allOf": [{ "$ref": "#/components/schemas/ResourceAnnotations" }]
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ResourceAnnotations"
+              }
+            ]
           }
         }
       },
@@ -1932,7 +2652,11 @@
         "properties": {
           "type": {
             "description": "The type of content part",
-            "allOf": [{ "$ref": "#/components/schemas/ContentPartType" }]
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ContentPartType"
+              }
+            ]
           },
           "text": {
             "type": "string",
@@ -1940,15 +2664,27 @@
           },
           "image_url": {
             "description": "Image URL content (when type is 'image_url')",
-            "allOf": [{ "$ref": "#/components/schemas/ImageUrl" }]
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ImageUrl"
+              }
+            ]
           },
           "input_audio": {
             "description": "Input audio content (when type is 'input_audio')",
-            "allOf": [{ "$ref": "#/components/schemas/InputAudio" }]
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/InputAudio"
+              }
+            ]
           },
           "resource": {
             "description": "Resource content (when type is 'resource'). Supports MCP Resources with URI, text, or blob data.",
-            "allOf": [{ "$ref": "#/components/schemas/Resource" }]
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Resource"
+              }
+            ]
           }
         },
         "required": ["type"]
@@ -1956,30 +2692,49 @@
       "ComponentDecisionV2": {
         "type": "object",
         "properties": {
-          "props": { "type": "object", "additionalProperties": true },
+          "props": {
+            "type": "object",
+            "additionalProperties": true
+          },
           "componentState": {
             "type": "object",
-            "nullable": true,
-            "additionalProperties": true
+            "additionalProperties": true,
+            "nullable": true
           },
           "toolCallRequest": {
             "description": "The tool call request. This is filled in whether the tool call is a server-side or client-side tool call.",
-            "allOf": [{ "$ref": "#/components/schemas/ToolCallRequest" }]
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ToolCallRequest"
+              }
+            ]
           },
           "toolCallId": {
             "type": "string",
             "example": {
               "parameters": [
-                { "parameterName": "name", "parameterValue": "John Doe" }
+                {
+                  "parameterName": "name",
+                  "parameterValue": "John Doe"
+                }
               ],
               "toolName": "get_user_info"
             },
             "description": "The unique id of the tool call. This is filled in whether the tool call is a server-side or client-side tool call."
           },
-          "componentName": { "type": "string", "nullable": true },
-          "message": { "type": "string" },
-          "statusMessage": { "type": "string" },
-          "completionStatusMessage": { "type": "string" }
+          "componentName": {
+            "type": "string",
+            "nullable": true
+          },
+          "message": {
+            "type": "string"
+          },
+          "statusMessage": {
+            "type": "string"
+          },
+          "completionStatusMessage": {
+            "type": "string"
+          }
         },
         "required": ["props", "componentState", "componentName", "message"]
       },
@@ -1990,20 +2745,32 @@
             "type": "string",
             "description": "The id of the parent message, if the message was created during the \ngeneration of another message, such as during an agent call, MCP Elicitation, or MCP Sample"
           },
-          "metadata": { "type": "object", "additionalProperties": true },
+          "metadata": {
+            "type": "object",
+            "additionalProperties": true
+          },
           "reasoning": {
             "description": "Reasoning text from the LLM, if the model supports it.",
             "type": "array",
-            "items": { "type": "string" }
+            "items": {
+              "type": "string"
+            }
           },
           "reasoningDurationMS": {
             "type": "number",
             "description": "Duration of reasoning in milliseconds"
           },
-          "componentState": { "type": "object", "additionalProperties": true },
+          "componentState": {
+            "type": "object",
+            "additionalProperties": true
+          },
           "toolCallRequest": {
             "description": "The tool call request. This is filled in only if the tool call is a client-side tool call.",
-            "allOf": [{ "$ref": "#/components/schemas/ToolCallRequest" }]
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ToolCallRequest"
+              }
+            ]
           },
           "tool_call_id": {
             "type": "string",
@@ -2015,7 +2782,9 @@
             "deprecated": true,
             "description": "Deprecated: use the role and the presence of tool calls to determine the action type"
           },
-          "error": { "type": "string" },
+          "error": {
+            "type": "string"
+          },
           "isCancelled": {
             "type": "boolean",
             "description": "Whether the message has been cancelled"
@@ -2025,8 +2794,12 @@
             "additionalProperties": true,
             "description": "Additional context to provide to the AI beyond the user query, such as the info about the current page the user is visiting."
           },
-          "id": { "type": "string" },
-          "threadId": { "type": "string" },
+          "id": {
+            "type": "string"
+          },
+          "threadId": {
+            "type": "string"
+          },
           "role": {
             "enum": ["user", "assistant", "system", "tool"],
             "type": "string"
@@ -2037,9 +2810,19 @@
               "$ref": "#/components/schemas/ChatCompletionContentPart"
             }
           },
-          "component": { "$ref": "#/components/schemas/ComponentDecisionV2" },
-          "tool_calls": { "type": "array", "items": { "type": "object" } },
-          "createdAt": { "format": "date-time", "type": "string" }
+          "component": {
+            "$ref": "#/components/schemas/ComponentDecisionV2"
+          },
+          "tool_calls": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          }
         },
         "required": [
           "componentState",
@@ -2053,8 +2836,13 @@
       "ThreadWithMessages": {
         "type": "object",
         "properties": {
-          "metadata": { "type": "object", "additionalProperties": true },
-          "projectId": { "type": "string" },
+          "metadata": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "projectId": {
+            "type": "string"
+          },
           "generationStage": {
             "enum": [
               "IDLE",
@@ -2068,14 +2856,28 @@
             ],
             "type": "string"
           },
-          "statusMessage": { "type": "string" },
-          "name": { "type": "string" },
-          "id": { "type": "string" },
-          "createdAt": { "format": "date-time", "type": "string" },
-          "updatedAt": { "format": "date-time", "type": "string" },
+          "statusMessage": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
           "messages": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/ThreadMessage" }
+            "items": {
+              "$ref": "#/components/schemas/ThreadMessage"
+            }
           }
         },
         "required": ["projectId", "id", "createdAt", "updatedAt", "messages"]
@@ -2124,16 +2926,23 @@
           "errors": {
             "description": "An array of error details to accompany a problem details response",
             "example": [
-              { "detail": "Invalid message ID format", "pointer": "/messageId" }
+              {
+                "detail": "Invalid message ID format",
+                "pointer": "/messageId"
+              }
             ],
             "type": "array",
-            "items": { "type": "string" }
+            "items": {
+              "type": "string"
+            }
           },
           "details": {
             "type": "object",
+            "additionalProperties": true,
             "description": "Additional error details specific to this occurrence",
-            "example": { "messageId": "msg_123456789" },
-            "additionalProperties": true
+            "example": {
+              "messageId": "msg_123456789"
+            }
           }
         },
         "required": ["type"]
@@ -2143,21 +2952,28 @@
         "properties": {
           "reasoning": {
             "type": "array",
-            "items": { "type": "string" },
+            "items": {
+              "type": "string"
+            },
             "description": "Reasoning text from the LLM, if the model supports it."
           },
           "reasoningDurationMS": {
             "type": "number",
             "description": "Duration of reasoning in milliseconds"
           },
-          "metadata": { "type": "object", "additionalProperties": true },
+          "metadata": {
+            "type": "object",
+            "additionalProperties": true
+          },
           "actionType": {
             "enum": ["tool_call", "tool_response"],
             "type": "string",
             "deprecated": true,
             "description": "No longer used - instead set role and the tool call information"
           },
-          "error": { "type": "string" },
+          "error": {
+            "type": "string"
+          },
           "isCancelled": {
             "type": "boolean",
             "description": "Whether the message has been cancelled"
@@ -2186,9 +3002,15 @@
               "$ref": "#/components/schemas/ChatCompletionContentPart"
             }
           },
-          "component": { "$ref": "#/components/schemas/ComponentDecisionV2" },
-          "toolCallRequest": { "$ref": "#/components/schemas/ToolCallRequest" },
-          "tool_call_id": { "type": "string" }
+          "component": {
+            "$ref": "#/components/schemas/ComponentDecisionV2"
+          },
+          "toolCallRequest": {
+            "$ref": "#/components/schemas/ToolCallRequest"
+          },
+          "tool_call_id": {
+            "type": "string"
+          }
         },
         "required": ["role", "content"]
       },
@@ -2222,9 +3044,14 @@
           },
           "metadata": {
             "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
             "description": "Additional metadata for the suggestion",
-            "additionalProperties": { "type": "string" },
-            "example": { "category": "error-handling", "priority": "high" }
+            "example": {
+              "category": "error-handling",
+              "priority": "high"
+            }
           }
         },
         "required": [
@@ -2238,17 +3065,36 @@
       "ToolParameters": {
         "type": "object",
         "properties": {
-          "name": { "type": "string" },
-          "type": { "type": "string" },
-          "description": { "type": "string" },
-          "isRequired": { "type": "boolean" },
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "isRequired": {
+            "type": "boolean"
+          },
           "items": {
             "type": "object",
-            "properties": { "type": { "type": "string" } },
+            "properties": {
+              "type": {
+                "type": "string"
+              }
+            },
             "required": ["type"]
           },
-          "enumValues": { "type": "array", "items": { "type": "string" } },
-          "schema": { "type": "object" }
+          "enumValues": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "schema": {
+            "type": "object"
+          }
         },
         "required": ["name", "type", "description", "isRequired"]
       },
@@ -2259,11 +3105,17 @@
             "type": "number",
             "description": "Maximum number of times this tool can be called in a single thread execution.Overrides project-level maxToolCalls setting for this specific tool."
           },
-          "name": { "type": "string" },
-          "description": { "type": "string" },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
           "parameters": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/ToolParameters" }
+            "items": {
+              "$ref": "#/components/schemas/ToolParameters"
+            }
           }
         },
         "required": ["name", "description", "parameters"]
@@ -2276,8 +3128,12 @@
             "description": "JSON Schema for the component's props",
             "additionalProperties": true
           },
-          "name": { "type": "string" },
-          "description": { "type": "string" },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
           "contextTools": {
             "type": "array",
             "items": {
@@ -2310,18 +3166,26 @@
                     "parameters": []
                   }
                 ],
-                "props": { "variant": "primary", "size": "medium" }
+                "props": {
+                  "variant": "primary",
+                  "size": "medium"
+                }
               }
             ],
             "type": "array",
-            "items": { "$ref": "#/components/schemas/AvailableComponent" }
+            "items": {
+              "$ref": "#/components/schemas/AvailableComponent"
+            }
           }
         }
       },
       "UpdateComponentStateRequest": {
         "type": "object",
         "properties": {
-          "state": { "type": "object", "additionalProperties": true }
+          "state": {
+            "type": "object",
+            "additionalProperties": true
+          }
         },
         "required": ["state"]
       },
@@ -2334,19 +3198,29 @@
           },
           "toolCallCounts": {
             "type": "object",
+            "additionalProperties": {
+              "type": "number"
+            },
             "description": "Tool call counts",
-            "example": { "tool_name": 1 },
-            "additionalProperties": { "type": "number" }
+            "example": {
+              "tool_name": 1
+            }
           },
           "initialMessages": {
             "description": "Initial messages to include when creating a new thread",
             "type": "array",
-            "items": { "$ref": "#/components/schemas/MessageRequest" }
+            "items": {
+              "$ref": "#/components/schemas/MessageRequest"
+            }
           },
-          "messageToAppend": { "$ref": "#/components/schemas/MessageRequest" },
+          "messageToAppend": {
+            "$ref": "#/components/schemas/MessageRequest"
+          },
           "availableComponents": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/AvailableComponent" }
+            "items": {
+              "$ref": "#/components/schemas/AvailableComponent"
+            }
           },
           "clientTools": {
             "type": "array",
@@ -2354,7 +3228,9 @@
               "$ref": "#/components/schemas/ComponentContextToolMetadata"
             }
           },
-          "forceToolChoice": { "type": "string" }
+          "forceToolChoice": {
+            "type": "string"
+          }
         },
         "required": ["messageToAppend"]
       },
@@ -2367,7 +3243,11 @@
               "role": "assistant",
               "content": "Hello, how are you?"
             },
-            "allOf": [{ "$ref": "#/components/schemas/ThreadMessage" }]
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ThreadMessage"
+              }
+            ]
           },
           "statusMessage": {
             "type": "string",
@@ -2497,12 +3377,18 @@
           },
           "lastRunError": {
             "description": "Error information from the last run",
-            "allOf": [{ "$ref": "#/components/schemas/RunError" }]
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/RunError"
+              }
+            ]
           },
           "pendingToolCallIds": {
             "description": "Tool call IDs awaiting client-side results. If non-empty, next run must provide tool_result content with previousRunId set.",
             "type": "array",
-            "items": { "type": "string" }
+            "items": {
+              "type": "string"
+            }
           },
           "lastCompletedRunId": {
             "type": "string",
@@ -2510,6 +3396,7 @@
           },
           "metadata": {
             "type": "object",
+            "additionalProperties": true,
             "description": "Additional metadata"
           },
           "createdAt": {
@@ -2531,7 +3418,9 @@
           "threads": {
             "description": "List of threads",
             "type": "array",
-            "items": { "$ref": "#/components/schemas/V1Thread" }
+            "items": {
+              "$ref": "#/components/schemas/V1Thread"
+            }
           },
           "nextCursor": {
             "type": "string",
@@ -2572,7 +3461,11 @@
           },
           "resource": {
             "description": "Resource data containing URI, text, or blob",
-            "allOf": [{ "$ref": "#/components/schemas/Resource" }]
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Resource"
+              }
+            ]
           }
         },
         "required": ["type", "resource"]
@@ -2598,8 +3491,12 @@
           },
           "input": {
             "type": "object",
+            "additionalProperties": true,
             "description": "Input arguments for the tool",
-            "example": { "location": "San Francisco", "unit": "celsius" }
+            "example": {
+              "location": "San Francisco",
+              "unit": "celsius"
+            }
           }
         },
         "required": ["type", "id", "name", "input"]
@@ -2623,8 +3520,12 @@
             "description": "Result content (text or resource blocks)",
             "items": {
               "oneOf": [
-                { "$ref": "#/components/schemas/TextContent" },
-                { "$ref": "#/components/schemas/ResourceContent" }
+                {
+                  "$ref": "#/components/schemas/TextContent"
+                },
+                {
+                  "$ref": "#/components/schemas/ResourceContent"
+                }
               ],
               "discriminator": {
                 "propertyName": "type",
@@ -2663,11 +3564,16 @@
           },
           "props": {
             "type": "object",
+            "additionalProperties": true,
             "description": "Props to pass to the component",
-            "example": { "temperature": 72, "location": "San Francisco" }
+            "example": {
+              "temperature": 72,
+              "location": "San Francisco"
+            }
           },
           "state": {
             "type": "object",
+            "additionalProperties": true,
             "description": "Current state of the component"
           }
         },
@@ -2692,11 +3598,21 @@
             "description": "Content blocks in this message",
             "items": {
               "oneOf": [
-                { "$ref": "#/components/schemas/TextContent" },
-                { "$ref": "#/components/schemas/ResourceContent" },
-                { "$ref": "#/components/schemas/ToolUseContent" },
-                { "$ref": "#/components/schemas/ToolResultContent" },
-                { "$ref": "#/components/schemas/ComponentContent" }
+                {
+                  "$ref": "#/components/schemas/TextContent"
+                },
+                {
+                  "$ref": "#/components/schemas/ResourceContent"
+                },
+                {
+                  "$ref": "#/components/schemas/ToolUseContent"
+                },
+                {
+                  "$ref": "#/components/schemas/ToolResultContent"
+                },
+                {
+                  "$ref": "#/components/schemas/ComponentContent"
+                }
               ],
               "discriminator": {
                 "propertyName": "type",
@@ -2717,6 +3633,7 @@
           },
           "metadata": {
             "type": "object",
+            "additionalProperties": true,
             "description": "Additional metadata"
           },
           "parentMessageId": {
@@ -2767,12 +3684,18 @@
           },
           "lastRunError": {
             "description": "Error information from the last run",
-            "allOf": [{ "$ref": "#/components/schemas/RunError" }]
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/RunError"
+              }
+            ]
           },
           "pendingToolCallIds": {
             "description": "Tool call IDs awaiting client-side results. If non-empty, next run must provide tool_result content with previousRunId set.",
             "type": "array",
-            "items": { "type": "string" }
+            "items": {
+              "type": "string"
+            }
           },
           "lastCompletedRunId": {
             "type": "string",
@@ -2780,6 +3703,7 @@
           },
           "metadata": {
             "type": "object",
+            "additionalProperties": true,
             "description": "Additional metadata"
           },
           "createdAt": {
@@ -2795,7 +3719,9 @@
           "messages": {
             "description": "Messages in this thread",
             "type": "array",
-            "items": { "$ref": "#/components/schemas/Message" }
+            "items": {
+              "$ref": "#/components/schemas/Message"
+            }
           }
         },
         "required": ["id", "runStatus", "createdAt", "updatedAt", "messages"]
@@ -2814,8 +3740,12 @@
             "description": "Content blocks (text or resource)",
             "items": {
               "oneOf": [
-                { "$ref": "#/components/schemas/TextContent" },
-                { "$ref": "#/components/schemas/ResourceContent" }
+                {
+                  "$ref": "#/components/schemas/TextContent"
+                },
+                {
+                  "$ref": "#/components/schemas/ResourceContent"
+                }
               ],
               "discriminator": {
                 "propertyName": "type",
@@ -2828,6 +3758,7 @@
           },
           "metadata": {
             "type": "object",
+            "additionalProperties": true,
             "description": "Additional metadata to attach to the message"
           }
         },
@@ -2842,12 +3773,15 @@
           },
           "metadata": {
             "type": "object",
+            "additionalProperties": true,
             "description": "Additional metadata to attach to the thread"
           },
           "initialMessages": {
             "description": "Initial messages to seed the thread with",
             "type": "array",
-            "items": { "$ref": "#/components/schemas/InitialMessage" }
+            "items": {
+              "$ref": "#/components/schemas/InitialMessage"
+            }
           }
         }
       },
@@ -2887,12 +3821,18 @@
           },
           "lastRunError": {
             "description": "Error information from the last run",
-            "allOf": [{ "$ref": "#/components/schemas/RunError" }]
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/RunError"
+              }
+            ]
           },
           "pendingToolCallIds": {
             "description": "Tool call IDs awaiting client-side results. If non-empty, next run must provide tool_result content with previousRunId set.",
             "type": "array",
-            "items": { "type": "string" }
+            "items": {
+              "type": "string"
+            }
           },
           "lastCompletedRunId": {
             "type": "string",
@@ -2900,6 +3840,7 @@
           },
           "metadata": {
             "type": "object",
+            "additionalProperties": true,
             "description": "Additional metadata"
           },
           "createdAt": {
@@ -2924,6 +3865,7 @@
           },
           "metadata": {
             "type": "object",
+            "additionalProperties": true,
             "description": "Additional metadata to update"
           }
         }
@@ -2964,12 +3906,18 @@
           },
           "lastRunError": {
             "description": "Error information from the last run",
-            "allOf": [{ "$ref": "#/components/schemas/RunError" }]
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/RunError"
+              }
+            ]
           },
           "pendingToolCallIds": {
             "description": "Tool call IDs awaiting client-side results. If non-empty, next run must provide tool_result content with previousRunId set.",
             "type": "array",
-            "items": { "type": "string" }
+            "items": {
+              "type": "string"
+            }
           },
           "lastCompletedRunId": {
             "type": "string",
@@ -2977,6 +3925,7 @@
           },
           "metadata": {
             "type": "object",
+            "additionalProperties": true,
             "description": "Additional metadata"
           },
           "createdAt": {
@@ -2998,7 +3947,9 @@
           "messages": {
             "description": "List of messages in the thread",
             "type": "array",
-            "items": { "$ref": "#/components/schemas/Message" }
+            "items": {
+              "$ref": "#/components/schemas/Message"
+            }
           },
           "nextCursor": {
             "type": "string",
@@ -3030,11 +3981,21 @@
             "description": "Content blocks in this message",
             "items": {
               "oneOf": [
-                { "$ref": "#/components/schemas/TextContent" },
-                { "$ref": "#/components/schemas/ResourceContent" },
-                { "$ref": "#/components/schemas/ToolUseContent" },
-                { "$ref": "#/components/schemas/ToolResultContent" },
-                { "$ref": "#/components/schemas/ComponentContent" }
+                {
+                  "$ref": "#/components/schemas/TextContent"
+                },
+                {
+                  "$ref": "#/components/schemas/ResourceContent"
+                },
+                {
+                  "$ref": "#/components/schemas/ToolUseContent"
+                },
+                {
+                  "$ref": "#/components/schemas/ToolResultContent"
+                },
+                {
+                  "$ref": "#/components/schemas/ComponentContent"
+                }
               ],
               "discriminator": {
                 "propertyName": "type",
@@ -3055,6 +4016,7 @@
           },
           "metadata": {
             "type": "object",
+            "additionalProperties": true,
             "description": "Additional metadata"
           },
           "parentMessageId": {
@@ -3083,9 +4045,15 @@
             "description": "Content blocks (text, resource, or tool_result)",
             "items": {
               "oneOf": [
-                { "$ref": "#/components/schemas/TextContent" },
-                { "$ref": "#/components/schemas/ResourceContent" },
-                { "$ref": "#/components/schemas/ToolResultContent" }
+                {
+                  "$ref": "#/components/schemas/TextContent"
+                },
+                {
+                  "$ref": "#/components/schemas/ResourceContent"
+                },
+                {
+                  "$ref": "#/components/schemas/ToolResultContent"
+                }
               ],
               "discriminator": {
                 "propertyName": "type",
@@ -3099,10 +4067,12 @@
           },
           "metadata": {
             "type": "object",
+            "additionalProperties": true,
             "description": "Additional metadata to attach to the message"
           },
           "additionalContext": {
             "type": "object",
+            "additionalProperties": true,
             "description": "Additional context to provide to the AI beyond the user query, such as current page URL or application state"
           }
         },
@@ -3127,9 +4097,16 @@
             "example": {
               "type": "object",
               "properties": {
-                "temperature": { "type": "number" },
-                "location": { "type": "string" },
-                "unit": { "type": "string", "enum": ["celsius", "fahrenheit"] }
+                "temperature": {
+                  "type": "number"
+                },
+                "location": {
+                  "type": "string"
+                },
+                "unit": {
+                  "type": "string",
+                  "enum": ["celsius", "fahrenheit"]
+                }
               },
               "required": ["temperature", "location"]
             }
@@ -3160,8 +4137,14 @@
             "example": {
               "type": "object",
               "properties": {
-                "location": { "type": "string", "description": "City name" },
-                "unit": { "type": "string", "enum": ["celsius", "fahrenheit"] }
+                "location": {
+                  "type": "string",
+                  "description": "City name"
+                },
+                "unit": {
+                  "type": "string",
+                  "enum": ["celsius", "fahrenheit"]
+                }
               },
               "required": ["location"]
             }
@@ -3188,7 +4171,11 @@
         "properties": {
           "message": {
             "description": "The user's message",
-            "allOf": [{ "$ref": "#/components/schemas/InputMessage" }]
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/InputMessage"
+              }
+            ]
           },
           "userKey": {
             "type": "string",
@@ -3197,20 +4184,31 @@
           "availableComponents": {
             "description": "Available UI components the model can render",
             "type": "array",
-            "items": { "$ref": "#/components/schemas/V1AvailableComponent" }
+            "items": {
+              "$ref": "#/components/schemas/V1AvailableComponent"
+            }
           },
           "tools": {
             "description": "Client-side tools the model can call",
             "type": "array",
-            "items": { "$ref": "#/components/schemas/Tool" }
+            "items": {
+              "$ref": "#/components/schemas/Tool"
+            }
           },
           "toolChoice": {
             "description": "How the model should use tools",
             "oneOf": [
-              { "type": "string", "enum": ["auto", "required", "none"] },
+              {
+                "type": "string",
+                "enum": ["auto", "required", "none"]
+              },
               {
                 "type": "object",
-                "properties": { "name": { "type": "string" } }
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  }
+                }
               }
             ]
           },
@@ -3236,14 +4234,20 @@
           },
           "runMetadata": {
             "type": "object",
+            "additionalProperties": true,
             "description": "Metadata for the run"
           },
           "thread": {
             "description": "Thread configuration",
-            "allOf": [{ "$ref": "#/components/schemas/CreateThreadRequest" }]
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CreateThreadRequest"
+              }
+            ]
           },
           "threadMetadata": {
             "type": "object",
+            "additionalProperties": true,
             "description": "Metadata for the thread"
           }
         },
@@ -3270,7 +4274,11 @@
         "properties": {
           "message": {
             "description": "The user's message",
-            "allOf": [{ "$ref": "#/components/schemas/InputMessage" }]
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/InputMessage"
+              }
+            ]
           },
           "userKey": {
             "type": "string",
@@ -3279,20 +4287,31 @@
           "availableComponents": {
             "description": "Available UI components the model can render",
             "type": "array",
-            "items": { "$ref": "#/components/schemas/V1AvailableComponent" }
+            "items": {
+              "$ref": "#/components/schemas/V1AvailableComponent"
+            }
           },
           "tools": {
             "description": "Client-side tools the model can call",
             "type": "array",
-            "items": { "$ref": "#/components/schemas/Tool" }
+            "items": {
+              "$ref": "#/components/schemas/Tool"
+            }
           },
           "toolChoice": {
             "description": "How the model should use tools",
             "oneOf": [
-              { "type": "string", "enum": ["auto", "required", "none"] },
+              {
+                "type": "string",
+                "enum": ["auto", "required", "none"]
+              },
               {
                 "type": "object",
-                "properties": { "name": { "type": "string" } }
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  }
+                }
               }
             ]
           },
@@ -3318,6 +4337,7 @@
           },
           "runMetadata": {
             "type": "object",
+            "additionalProperties": true,
             "description": "Metadata for the run"
           }
         },
@@ -3373,17 +4393,31 @@
           },
           "state": {
             "type": "object",
+            "additionalProperties": true,
             "description": "Full replacement state object",
-            "example": { "loading": false, "data": [1, 2, 3] }
+            "example": {
+              "loading": false,
+              "data": [1, 2, 3]
+            }
           },
           "patch": {
             "description": "JSON Patch operations to apply to current state",
             "example": [
-              { "op": "replace", "path": "/loading", "value": false },
-              { "op": "add", "path": "/data/-", "value": 4 }
+              {
+                "op": "replace",
+                "path": "/loading",
+                "value": false
+              },
+              {
+                "op": "add",
+                "path": "/data/-",
+                "value": 4
+              }
             ],
             "type": "array",
-            "items": { "$ref": "#/components/schemas/JsonPatchOperation" }
+            "items": {
+              "$ref": "#/components/schemas/JsonPatchOperation"
+            }
           }
         }
       },
@@ -3392,8 +4426,12 @@
         "properties": {
           "state": {
             "type": "object",
+            "additionalProperties": true,
             "description": "New complete state of the component",
-            "example": { "loading": false, "data": [1, 2, 3, 4] }
+            "example": {
+              "loading": false,
+              "data": [1, 2, 3, 4]
+            }
           }
         },
         "required": ["state"]
@@ -3404,7 +4442,9 @@
           "suggestions": {
             "description": "List of suggestions for the message",
             "type": "array",
-            "items": { "$ref": "#/components/schemas/Suggestion" }
+            "items": {
+              "$ref": "#/components/schemas/Suggestion"
+            }
           },
           "nextCursor": {
             "type": "string",
@@ -3434,7 +4474,9 @@
           "availableComponents": {
             "description": "Available components that suggestions can reference",
             "type": "array",
-            "items": { "$ref": "#/components/schemas/V1AvailableComponent" }
+            "items": {
+              "$ref": "#/components/schemas/V1AvailableComponent"
+            }
           }
         }
       },
@@ -3444,7 +4486,9 @@
           "suggestions": {
             "description": "List of suggestions for the message",
             "type": "array",
-            "items": { "$ref": "#/components/schemas/Suggestion" }
+            "items": {
+              "$ref": "#/components/schemas/Suggestion"
+            }
           },
           "nextCursor": {
             "type": "string",
@@ -3459,5 +4503,12 @@
       }
     }
   },
-  "security": [{ "apiKey": [] }, { "bearer": [] }]
+  "security": [
+    {
+      "apiKey": []
+    },
+    {
+      "bearer": []
+    }
+  ]
 }
