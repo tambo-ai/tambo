@@ -34,7 +34,7 @@
   "devDependencies": {
     "@types/node": "^22.19.15",
     "chokidar": "^5.0.0",
-    "class-validator": "^0.14.4",
+    "class-validator": "^0.15.0",
     "husky": "^9.1.7",
     "lint-staged": "^17.0.7",
     "prettier": "^3.8.3",
