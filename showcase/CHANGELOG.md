@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.38.1](https://github.com/tambo-ai/tambo/compare/showcase-v0.38.0...showcase-v0.38.1) (2026-08-05)
+
+
+### Bug Fixes
+
+* **deps:** bump dompurify to ^3.4.11 ([#2972](https://github.com/tambo-ai/tambo/issues/2972)) ([b73ed83](https://github.com/tambo-ai/tambo/commit/b73ed83dab16b1daf48ef7e8eb0e613794f6901c))
+* **deps:** replace dependency framer-motion with motion ^12.29.0 ([#3003](https://github.com/tambo-ai/tambo/issues/3003)) ([fbf65b2](https://github.com/tambo-ai/tambo/commit/fbf65b211ae67a4154786b57e1bbff80683fecbd))
+* **security:** remediate open alerts ([#3002](https://github.com/tambo-ai/tambo/issues/3002)) ([aa63c7d](https://github.com/tambo-ai/tambo/commit/aa63c7dc82d4a5009aa59062a1e27260ccf444b2))
+
+
+### Miscellaneous Chores
+
+* **deps:** update dependency next to v15.5.21 [security] ([#2997](https://github.com/tambo-ai/tambo/issues/2997)) ([e7e467f](https://github.com/tambo-ai/tambo/commit/e7e467fbe60aa80edf3283c23636389abeef1ca4))
+* **deps:** update eslint to v16.2.9 ([#2962](https://github.com/tambo-ai/tambo/issues/2962)) ([3964a8a](https://github.com/tambo-ai/tambo/commit/3964a8a6551abf9b0f678f9ace3029be38ecc858))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @tambo-ai/react bumped from * to 1.3.1
+
 ## [0.38.0](https://github.com/tambo-ai/tambo/compare/showcase-v0.37.7...showcase-v0.38.0) (2026-06-16)
 
 
