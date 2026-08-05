@@ -43,7 +43,7 @@
     "@modelcontextprotocol/sdk": "^1.30.0",
     "ipaddr.js": "^1.9.1",
     "jose": "^5.10.0",
-    "js-yaml": "^4.3.0",
+    "js-yaml": "^5.2.2",
     "openai": "^6.16.0",
     "resend": "^6.12.3",
     "undici": "^8.9.0"
