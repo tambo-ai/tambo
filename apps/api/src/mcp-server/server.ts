@@ -10,6 +10,7 @@ import { getThreadMCPClients } from "src/common/systemTools";
 import { extractAndVerifyMcpAccessToken } from "../common/utils/oauth";
 import { registerElicitationHandlers } from "./elicitations";
 import { createMcpRateLimitMiddleware } from "./mcp-rate-limit";
+import { parseRateLimitEnv } from "../common/rate-limit/rate-limit.module";
 import { registerPromptHandlers } from "./prompts";
 import { registerResourceHandlers } from "./resources";
 
@@ -23,21 +24,8 @@ interface AuthenticatedMcpRequest extends Request {
   [MCP_REQUEST_CONTEXT_KEY]?: string;
 }
 
-/**
- * Fixed-window rate limiter for MCP endpoints.
- * Uses the source address as tracker before bearer-token authentication.
- * MCP runs outside the NestJS guard pipeline, so this is a standalone
- * Express middleware rate limiter.
- */
 function parseMcpRateLimit(configService: ConfigService): number {
-  const raw = configService.get<string>("RATE_LIMIT_MCP") ?? "60";
-  const parsed = Number(raw);
-  if (!Number.isFinite(parsed) || parsed <= 0) {
-    throw new Error(
-      `Invalid RATE_LIMIT_MCP="${raw}": must be a positive number.`,
-    );
-  }
-  return parsed;
+  return parseRateLimitEnv(configService, "RATE_LIMIT_MCP", 60);
 }
 
 export async function createMcpServer(

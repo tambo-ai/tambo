@@ -122,10 +122,11 @@ describe("RateLimitGuard", () => {
   });
 
   it("extracts request and response from the execution context", () => {
-    const result = getInternals(guard).getRequestResponse(createMockContext());
+    const context = createMockContext();
+    const result = getInternals(guard).getRequestResponse(context);
 
-    expect(result.req).toBeDefined();
-    expect(result.res).toBeDefined();
+    expect(result.req).toBe(context.switchToHttp().getRequest());
+    expect(result.res).toBe(context.switchToHttp().getResponse());
   });
 
   it("throws a typed 429 with Problem Details", () => {

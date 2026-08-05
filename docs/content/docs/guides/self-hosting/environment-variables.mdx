@@ -71,8 +71,10 @@ Email login requires at minimum `RESEND_API_KEY` and `EMAIL_FROM_DEFAULT`.
 
 ## Rate limiting
 
-These variables control per-minute request limits. The API uses the default
-limit for all NestJS endpoints unless a route-specific limit applies.
+These variables control per-minute request limits. REST limits are keyed by
+validated project API key or source address and endpoint. MCP limits are keyed
+by source address. Counters are local to each API process unless shared storage
+is configured.
 
 | Variable               | Default | Description                           |
 | ---------------------- | ------- | ------------------------------------- |

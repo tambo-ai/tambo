@@ -36,13 +36,14 @@ describe("Rate Limiting (e2e)", () => {
   });
 
   it("should return 429 with Problem Details body when rate limit is exceeded", async () => {
-    const responses = await Promise.all([
-      request(app.getHttpServer()).get("/"),
-      request(app.getHttpServer()).get("/"),
-      request(app.getHttpServer()).get("/"),
-      request(app.getHttpServer()).get("/"),
-      request(app.getHttpServer()).get("/"),
-    ]);
+    const agent = request(app.getHttpServer());
+    const responses = [
+      await agent.get("/"),
+      await agent.get("/"),
+      await agent.get("/"),
+      await agent.get("/"),
+      await agent.get("/"),
+    ];
 
     const rateLimited = responses.find((r) => r.status === 429);
     expect(rateLimited).toBeDefined();
@@ -61,9 +62,19 @@ describe("Rate Limiting (e2e)", () => {
   });
 
   it("should return RFC 9457 Content-Type on 429", async () => {
-    const responses = await Promise.all(
-      Array.from({ length: 10 }, () => request(app.getHttpServer()).get("/")),
-    );
+    const agent = request(app.getHttpServer());
+    const responses = [
+      await agent.get("/"),
+      await agent.get("/"),
+      await agent.get("/"),
+      await agent.get("/"),
+      await agent.get("/"),
+      await agent.get("/"),
+      await agent.get("/"),
+      await agent.get("/"),
+      await agent.get("/"),
+      await agent.get("/"),
+    ];
 
     const rateLimited = responses.find((r) => r.status === 429);
     expect(rateLimited).toBeDefined();

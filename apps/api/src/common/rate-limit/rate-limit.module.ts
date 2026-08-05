@@ -1,11 +1,10 @@
 import { Module } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
+import { ConfigModule, ConfigService } from "@nestjs/config";
 import { APP_GUARD } from "@nestjs/core";
 import { ThrottlerModule } from "@nestjs/throttler";
-import { ConfigServiceSingleton } from "../../config.service";
 import { RateLimitGuard } from "./rate-limit.guard";
 
-function parseRateLimitEnv(
+export function parseRateLimitEnv(
   configService: ConfigService,
   key: string,
   fallback: number,
@@ -25,24 +24,41 @@ function parseRateLimitEnv(
  * Rate limit values read from environment variables. Used by both the
  * global throttler and per-route @Throttle decorators.
  *
- * - `RATE_LIMIT_DEFAULT` (default: 100) — global per-minute limit
+ * - `RATE_LIMIT_DEFAULT` (default: 100) — default per-endpoint limit
  * - `RATE_LIMIT_STREAMING` (default: 20) — LLM run and advancestream endpoints
  * - `RATE_LIMIT_STRICT` (default: 10) — OAuth token exchange
+ * - `RATE_LIMIT_MCP` (default: 60) — MCP endpoint
  *
  * For production multi-instance deployments, replace the default in-memory
  * storage with `@nestjs/throttler-storage-redis` to share counters across
  * instances.
  */
+const rateLimitValues = {
+  streaming: 20,
+  strict: 10,
+};
+
 @Module({
   imports: [
+    ConfigModule,
     ThrottlerModule.forRootAsync({
-      imports: [],
+      imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => {
         const rateLimitDefault = parseRateLimitEnv(
           configService,
           "RATE_LIMIT_DEFAULT",
           100,
+        );
+        rateLimitValues.streaming = parseRateLimitEnv(
+          configService,
+          "RATE_LIMIT_STREAMING",
+          20,
+        );
+        rateLimitValues.strict = parseRateLimitEnv(
+          configService,
+          "RATE_LIMIT_STRICT",
+          10,
         );
 
         return {
@@ -69,18 +85,10 @@ export class RateLimitModule {}
 
 /** Per-minute limit for streaming endpoints (LLM runs, advancestream). */
 export function getRateLimitStreaming(): number {
-  return parseRateLimitEnv(
-    ConfigServiceSingleton.getInstance(),
-    "RATE_LIMIT_STREAMING",
-    20,
-  );
+  return rateLimitValues.streaming;
 }
 
 /** Per-minute limit for strict endpoints (OAuth token exchange). */
 export function getRateLimitStrict(): number {
-  return parseRateLimitEnv(
-    ConfigServiceSingleton.getInstance(),
-    "RATE_LIMIT_STRICT",
-    10,
-  );
+  return rateLimitValues.strict;
 }

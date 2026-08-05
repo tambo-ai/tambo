@@ -27,10 +27,11 @@ The API returns a `429 Too Many Requests` status with this problem type when you
 
 ## Rate Limiting
 
-The API enforces per-minute limits per validated project API key (or source
-address when authentication has not succeeded) and endpoint. The in-memory
-counters are local to each API process. Limits are configurable via environment
-variables:
+REST endpoints enforce per-minute limits per validated project API key (or
+source address when authentication has not succeeded) and endpoint. MCP uses
+the source address because bearer authentication runs after its limiter. The
+in-memory counters are local to each API process, so multiple replicas have
+independent counters. Limits are configurable via environment variables:
 
 | Environment Variable   | Default | Applies To                          |
 | ---------------------- | ------- | ----------------------------------- |
