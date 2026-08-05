@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.146.2](https://github.com/tambo-ai/tambo/compare/api-v0.146.1...api-v0.146.2) (2026-08-05)
+
+
+### Bug Fixes
+
+* **api:** lock message id mapping on first emission in v1 stream ([#2975](https://github.com/tambo-ai/tambo/issues/2975)) ([2aee0a3](https://github.com/tambo-ai/tambo/commit/2aee0a3b49401fb6b3b176022f557b2a1544668a))
+* **api:** remove unused @opentelemetry/exporter-otlp-http ([#2973](https://github.com/tambo-ai/tambo/issues/2973)) ([6968440](https://github.com/tambo-ai/tambo/commit/6968440873b7104cfdfda9b01a41283e21b9b9b7))
+* **deps:** update ag-ui to v0.0.57 ([#2966](https://github.com/tambo-ai/tambo/issues/2966)) ([4e14c18](https://github.com/tambo-ai/tambo/commit/4e14c18d562957394e3d0575262908dd71c8fec8))
+* **deps:** update dependency rxjs to v7.8.2 ([#2967](https://github.com/tambo-ai/tambo/issues/2967)) ([ef60366](https://github.com/tambo-ai/tambo/commit/ef603660ad0ee0abadbb432955481bc5d2a4d868))
+* **security:** remediate open alerts ([#3002](https://github.com/tambo-ai/tambo/issues/3002)) ([aa63c7d](https://github.com/tambo-ai/tambo/commit/aa63c7dc82d4a5009aa59062a1e27260ccf444b2))
+
 ## [0.146.1](https://github.com/tambo-ai/tambo/compare/api-v0.146.0...api-v0.146.1) (2026-06-16)
 
 
