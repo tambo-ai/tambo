@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.56.3](https://github.com/tambo-ai/tambo/compare/tambo-v0.56.2...tambo-v0.56.3) (2026-08-05)
+
+
+### Bug Fixes
+
+* **security:** remediate open alerts ([#3002](https://github.com/tambo-ai/tambo/issues/3002)) ([aa63c7d](https://github.com/tambo-ai/tambo/commit/aa63c7dc82d4a5009aa59062a1e27260ccf444b2))
+
+
+### Miscellaneous Chores
+
+* **deps:** update dependency js-yaml to v4.3.0 [security] ([#2998](https://github.com/tambo-ai/tambo/issues/2998)) ([bc30cd7](https://github.com/tambo-ai/tambo/commit/bc30cd7dfdaed4ece89d0e48251566c24ea259dd))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @tambo-ai/react bumped from * to 1.3.1
+
 ## [0.56.2](https://github.com/tambo-ai/tambo/compare/tambo-v0.56.1...tambo-v0.56.2) (2026-06-16)
 
 
