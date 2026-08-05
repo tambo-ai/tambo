@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.1.13](https://github.com/tambo-ai/tambo/compare/@tambo-ai/react-ui-base-v0.1.12...@tambo-ai/react-ui-base-v0.1.13) (2026-08-05)
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * devDependencies
+    * @tambo-ai/react bumped from 1.3.0 to 1.3.1
+  * peerDependencies
+    * @tambo-ai/react bumped from * to 1.3.1
+
 ## [0.1.12](https://github.com/tambo-ai/tambo/compare/@tambo-ai/react-ui-base-v0.1.11...@tambo-ai/react-ui-base-v0.1.12) (2026-06-16)
 
 
