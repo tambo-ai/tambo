@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.2.1](https://github.com/tambo-ai/tambo/compare/client-v1.2.0...client-v1.2.1) (2026-08-05)
+
+
+### Bug Fixes
+
+* **client:** prevent orphaned ephemeral messages persisting across runs ([#2995](https://github.com/tambo-ai/tambo/issues/2995)) ([d24882e](https://github.com/tambo-ai/tambo/commit/d24882e2b581a564a7bb4f2727feb15e3737452d))
+* **deps:** update ag-ui to v0.0.57 ([#2966](https://github.com/tambo-ai/tambo/issues/2966)) ([4e14c18](https://github.com/tambo-ai/tambo/commit/4e14c18d562957394e3d0575262908dd71c8fec8))
+* **deps:** update tambo-ai to v0.96.4 ([#2970](https://github.com/tambo-ai/tambo/issues/2970)) ([16ad0f8](https://github.com/tambo-ai/tambo/commit/16ad0f86f2f3ac71a56b073e3314c5729479dfca))
+* **security:** remediate open alerts ([#3002](https://github.com/tambo-ai/tambo/issues/3002)) ([aa63c7d](https://github.com/tambo-ai/tambo/commit/aa63c7dc82d4a5009aa59062a1e27260ccf444b2))
+
 ## [1.2.0](https://github.com/tambo-ai/tambo/compare/client-v1.1.4...client-v1.2.0) (2026-06-15)
 
 
