@@ -26,6 +26,7 @@ import {
 } from "@nestjs/swagger";
 import { Throttle } from "@nestjs/throttler";
 import { getRateLimitStreaming } from "../common/rate-limit/rate-limit.config";
+import { RateLimitGuard } from "../common/rate-limit/rate-limit.guard";
 import { Request, Response } from "express";
 import { ApiKeyGuard } from "../projects/guards/apikey.guard";
 import { BearerTokenGuard } from "../projects/guards/bearer-token.guard";
@@ -67,7 +68,7 @@ import { classifyStreamingError } from "./v1-error-classifier";
 @ApiTags("v1")
 @ApiSecurity("apiKey")
 @ApiSecurity("bearer")
-@UseGuards(ApiKeyGuard, BearerTokenGuard)
+@UseGuards(ApiKeyGuard, RateLimitGuard, BearerTokenGuard)
 @Controller("v1")
 export class V1Controller {
   private readonly logger = new Logger(V1Controller.name);

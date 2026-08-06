@@ -2,6 +2,7 @@ import { ExecutionContext } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
 import { ThrottlerModuleOptions, ThrottlerStorage } from "@nestjs/throttler";
 import { Request, Response } from "express";
+import { ProjectId } from "../../projects/guards/apikey.guard";
 import { RateLimitException } from "../../threads/types/errors";
 import { RateLimitGuard } from "./rate-limit.guard";
 
@@ -86,6 +87,16 @@ describe("RateLimitGuard", () => {
 
     await expect(getInternals(guard).getTracker(request)).resolves.toBe(
       "ip:192.168.1.100",
+    );
+  });
+
+  it("uses the validated project ID when a prior guard attached it", async () => {
+    const context = createMockContext({}, "192.168.1.100");
+    const request = context.switchToHttp().getRequest();
+    request[ProjectId] = "p_123";
+
+    await expect(getInternals(guard).getTracker(request)).resolves.toBe(
+      "project:p_123",
     );
   });
 

@@ -43,6 +43,7 @@ describe("createMcpRateLimitMiddleware", () => {
     expect(secondResponse.type).toHaveBeenCalledWith(
       "application/problem+json",
     );
+    middleware.dispose();
   });
 
   it("keeps separate source address buckets", () => {
@@ -53,6 +54,7 @@ describe("createMcpRateLimitMiddleware", () => {
     middleware(createRequest("10.0.0.2"), createResponse(), next);
 
     expect(next).toHaveBeenCalledTimes(2);
+    middleware.dispose();
   });
 
   it("allows a source again after the window expires", () => {
@@ -67,20 +69,30 @@ describe("createMcpRateLimitMiddleware", () => {
       middleware(createRequest("10.0.0.1"), createResponse(), next);
 
       expect(next).toHaveBeenCalledTimes(2);
+      middleware.dispose();
     } finally {
       jest.useRealTimers();
     }
   });
 
-  it("evicts the first entry when the store reaches its cap", () => {
+  it("uses an overflow bucket when the store reaches its cap", () => {
     const middleware = createMcpRateLimitMiddleware(1);
     const next = jest.fn();
 
     for (let index = 0; index <= 10_000; index++) {
-      middleware(createRequest(`10.0.0.${index}`), createResponse(), next);
+      const thirdOctet = Math.floor(index / 256);
+      const fourthOctet = index % 256;
+      middleware(
+        createRequest(`192.0.${thirdOctet}.${fourthOctet}`),
+        createResponse(),
+        next,
+      );
     }
-    middleware(createRequest("10.0.0.0"), createResponse(), next);
+    const blockedResponse = createResponse();
+    middleware(createRequest("192.0.0.0"), blockedResponse, next);
 
-    expect(next).toHaveBeenCalledTimes(10_002);
+    expect(next).toHaveBeenCalledTimes(10_001);
+    expect(blockedResponse.status).toHaveBeenCalledWith(429);
+    middleware.dispose();
   });
 });

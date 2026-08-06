@@ -108,6 +108,9 @@ spec:
           env:
             - name: PORT
               value: "3000"
+            # Set this to the actual ingress/proxy hop count for the cluster.
+            - name: TRUST_PROXY
+              value: "1"
           envFrom:
             - secretRef:
                 name: tambo-secrets

@@ -17,6 +17,7 @@ import {
 } from "@nestjs/swagger";
 import { Throttle } from "@nestjs/throttler";
 import { getRateLimitStrict } from "../common/rate-limit/rate-limit.config";
+import { RateLimitGuard } from "../common/rate-limit/rate-limit.guard";
 import * as Sentry from "@sentry/nestjs";
 import { OAuthValidationMode } from "@tambo-ai-cloud/core";
 import { getDb, operations } from "@tambo-ai-cloud/db";
@@ -36,7 +37,7 @@ export class OAuthController {
   constructor(private readonly logger: CorrelationLoggerService) {}
 
   @ApiSecurity("apiKey")
-  @UseGuards(ApiKeyGuard)
+  @UseGuards(ApiKeyGuard, RateLimitGuard)
   @Post("token")
   @Throttle({ default: { limit: () => getRateLimitStrict(), ttl: 60_000 } })
   @ApiConsumes("application/x-www-form-urlencoded")

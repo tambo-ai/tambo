@@ -1,7 +1,7 @@
 import { ConfigService } from "@nestjs/config";
 
 const rateLimitValues = {
-  streaming: 20,
+  streaming: 100,
   strict: 10,
 };
 
@@ -32,7 +32,7 @@ export function initializeRateLimitConfig(
   rateLimitValues.streaming = parseRateLimitEnv(
     configService,
     "RATE_LIMIT_STREAMING",
-    20,
+    100,
   );
   rateLimitValues.strict = parseRateLimitEnv(
     configService,

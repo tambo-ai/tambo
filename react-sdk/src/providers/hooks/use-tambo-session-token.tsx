@@ -40,6 +40,8 @@ export function useTamboSessionToken(
         return await client.beta.auth.getToken(tokenAsArrayBuffer as any);
       },
       enabled: !!userToken,
+      // A throttled token exchange must not amplify into more requests.
+      retry: false,
       refetchInterval: (result) => {
         if (result.state.data?.expires_in) {
           return result.state.data.expires_in * 1000;

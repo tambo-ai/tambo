@@ -10,6 +10,8 @@ import {
 } from "@nestjs/throttler";
 import { Request, Response } from "express";
 import { ProblemDetails, RateLimitException } from "../../threads/types/errors";
+import { ProjectId } from "../../projects/guards/apikey.guard";
+import { normalizeRateLimitAddress } from "./rate-limit-address";
 
 const RATE_LIMIT_PROBLEM_TYPE =
   "https://docs.tambo.co/reference/problems/rate-limit";
@@ -47,7 +49,13 @@ export class RateLimitGuard extends ThrottlerGuard {
     req: Record<string, unknown>,
   ): Promise<string> {
     const request = req as unknown as Request;
-    return `ip:${request.ip ?? request.socket.remoteAddress ?? "unknown"}`;
+    const projectId = request[ProjectId];
+    if (typeof projectId === "string") {
+      return `project:${projectId}`;
+    }
+    return `ip:${normalizeRateLimitAddress(
+      request.ip ?? request.socket.remoteAddress,
+    )}`;
   }
 
   /**

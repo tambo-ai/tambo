@@ -16,7 +16,7 @@ All configuration is done through environment variables in the `docker.env` file
 | `PROVIDER_KEY_SECRET` | Yes      | 32+ character secret for provider key encryption                                         |
 | `NEXTAUTH_SECRET`     | Yes      | Secret for NextAuth.js sessions                                                          |
 | `NEXTAUTH_URL`        | Yes      | Base URL for auth callbacks (e.g., `http://localhost:8260` or `https://your-domain.com`) |
-| `TRUST_PROXY`         | No       | Trusted reverse-proxy hop count (`false` by default)                                     |
+| `TRUST_PROXY`         | No       | Trusted reverse-proxy hop count (`false` by default; numeric only)                       |
 
 ## OpenAI configuration
 
@@ -71,15 +71,15 @@ Email login requires at minimum `RESEND_API_KEY` and `EMAIL_FROM_DEFAULT`.
 
 ## Rate limiting
 
-These variables control per-minute request limits. REST and MCP limits are
-keyed by source address and endpoint because the global limiter runs before API
-authentication. Counters are local to each API process unless shared storage is
-configured.
+These variables control per-minute request limits. REST limits are keyed by
+validated project API key and endpoint, with a source-address guard protecting
+the authentication path. MCP limits are keyed by source address. Counters are
+local to each API process unless shared storage is configured.
 
 | Variable               | Default | Description                           |
 | ---------------------- | ------- | ------------------------------------- |
 | `RATE_LIMIT_DEFAULT`   | `100`   | All NestJS API endpoints              |
-| `RATE_LIMIT_STREAMING` | `20`    | LLM run and `advancestream` endpoints |
+| `RATE_LIMIT_STREAMING` | `100`   | LLM run and `advancestream` endpoints |
 | `RATE_LIMIT_STRICT`    | `10`    | OAuth token exchange                  |
 | `RATE_LIMIT_MCP`       | `60`    | MCP Express endpoint                  |
 

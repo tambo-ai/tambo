@@ -77,18 +77,15 @@ function configureTrustProxy(app: INestApplication): void {
     return;
   }
 
-  if (raw === "true" || raw === "false") {
-    app
-      .getHttpAdapter()
-      .getInstance()
-      .set("trust proxy", raw === "true");
+  if (raw === "false") {
+    app.getHttpAdapter().getInstance().set("trust proxy", false);
     return;
   }
 
   const hops = Number(raw);
   if (!Number.isInteger(hops) || hops < 0) {
     throw new Error(
-      `Invalid TRUST_PROXY="${raw}": must be true, false, or a non-negative integer.`,
+      `Invalid TRUST_PROXY="${raw}": must be false or a non-negative integer.`,
     );
   }
   app.getHttpAdapter().getInstance().set("trust proxy", hops);

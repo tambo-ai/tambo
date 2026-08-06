@@ -1,17 +1,27 @@
 import { NextFunction, Request, Response } from "express";
+import { normalizeRateLimitAddress } from "../common/rate-limit/rate-limit-address";
 
 const MCP_RATE_WINDOW_MS = 60_000;
 const MCP_RATE_LIMIT_ENTRIES_MAX = 10_000;
+const MCP_OVERFLOW_KEY = "mcp:overflow";
 
-interface MpcRateLimitEntry {
+interface McpRateLimitEntry {
   count: number;
   windowStart: number;
 }
 
+export type McpRateLimitMiddleware = ((
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => void) & {
+  dispose: () => void;
+};
+
 export function createMcpRateLimitMiddleware(
   rateLimit: number,
-): (req: Request, res: Response, next: NextFunction) => void {
-  const store = new Map<string, MpcRateLimitEntry>();
+): McpRateLimitMiddleware {
+  const store = new Map<string, McpRateLimitEntry>();
 
   const removeExpiredEntries = (): void => {
     const now = Date.now();
@@ -22,26 +32,32 @@ export function createMcpRateLimitMiddleware(
     }
   };
 
-  const evictFirstEntry = (): void => {
-    const firstKey = store.keys().next().value;
-    if (typeof firstKey === "string") {
-      store.delete(firstKey);
-    }
-  };
-
   const sweepInterval = setInterval(removeExpiredEntries, MCP_RATE_WINDOW_MS);
   sweepInterval.unref();
 
-  return (req, res, next): void => {
-    const tracker = `mcp:ip:${req.ip ?? req.socket.remoteAddress ?? "unknown"}`;
+  const getStorageKey = (tracker: string): string => {
+    if (store.has(tracker)) {
+      return tracker;
+    }
+    if (store.has(MCP_OVERFLOW_KEY)) {
+      return MCP_OVERFLOW_KEY;
+    }
+    if (store.size < MCP_RATE_LIMIT_ENTRIES_MAX) {
+      return tracker;
+    }
+    return MCP_OVERFLOW_KEY;
+  };
+
+  const middleware = ((req, res, next): void => {
+    const tracker = `mcp:ip:${normalizeRateLimitAddress(
+      req.ip ?? req.socket.remoteAddress,
+    )}`;
     const now = Date.now();
-    const entry = store.get(tracker);
+    const storageKey = getStorageKey(tracker);
+    const entry = store.get(storageKey);
 
     if (!entry || now - entry.windowStart > MCP_RATE_WINDOW_MS) {
-      if (store.size >= MCP_RATE_LIMIT_ENTRIES_MAX) {
-        evictFirstEntry();
-      }
-      store.set(tracker, { count: 1, windowStart: now });
+      store.set(storageKey, { count: 1, windowStart: now });
       res.setHeader("X-RateLimit-Limit", rateLimit);
       res.setHeader("X-RateLimit-Remaining", rateLimit - 1);
       next();
@@ -74,5 +90,7 @@ export function createMcpRateLimitMiddleware(
     res.setHeader("X-RateLimit-Limit", rateLimit);
     res.setHeader("X-RateLimit-Remaining", rateLimit - entry.count);
     next();
-  };
+  }) as McpRateLimitMiddleware;
+  middleware.dispose = () => clearInterval(sweepInterval);
+  return middleware;
 }

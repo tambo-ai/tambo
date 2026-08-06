@@ -2,6 +2,7 @@ import { Module } from "@nestjs/common";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { APP_GUARD } from "@nestjs/core";
 import { ThrottlerModule } from "@nestjs/throttler";
+import { BoundedThrottlerStorage } from "./bounded-throttler-storage";
 import { initializeRateLimitConfig } from "./rate-limit.config";
 import { RateLimitGuard } from "./rate-limit.guard";
 
@@ -10,7 +11,7 @@ import { RateLimitGuard } from "./rate-limit.guard";
  * global throttler and per-route @Throttle decorators.
  *
  * - `RATE_LIMIT_DEFAULT` (default: 100) — default per-endpoint limit
- * - `RATE_LIMIT_STREAMING` (default: 20) — LLM run and advancestream endpoints
+ * - `RATE_LIMIT_STREAMING` (default: 100) — LLM run and advancestream endpoints
  * - `RATE_LIMIT_STRICT` (default: 10) — OAuth token exchange
  * - `RATE_LIMIT_MCP` (default: 60) — MCP endpoint
  *
@@ -35,7 +36,7 @@ import { RateLimitGuard } from "./rate-limit.guard";
               ttl: 60_000,
             },
           ],
-          setHeaders: true,
+          storage: new BoundedThrottlerStorage(),
         };
       },
     }),
