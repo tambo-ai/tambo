@@ -16,7 +16,7 @@ import {
   ApiTags,
 } from "@nestjs/swagger";
 import { Throttle } from "@nestjs/throttler";
-import { getRateLimitStrict } from "../common/rate-limit/rate-limit.module";
+import { getRateLimitStrict } from "../common/rate-limit/rate-limit.config";
 import * as Sentry from "@sentry/nestjs";
 import { OAuthValidationMode } from "@tambo-ai-cloud/core";
 import { getDb, operations } from "@tambo-ai-cloud/db";

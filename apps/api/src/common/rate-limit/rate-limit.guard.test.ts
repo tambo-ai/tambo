@@ -1,8 +1,6 @@
 import { ExecutionContext } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
 import { Reflector } from "@nestjs/core";
 import { ThrottlerModuleOptions, ThrottlerStorage } from "@nestjs/throttler";
-import { encryptApiKey } from "@tambo-ai-cloud/core";
 import { Request, Response } from "express";
 import { RateLimitException } from "../../threads/types/errors";
 import { RateLimitGuard } from "./rate-limit.guard";
@@ -69,10 +67,7 @@ function createGuard(): RateLimitGuard {
       blockedStatuses: [],
     }),
   };
-  const configService = {
-    get: jest.fn().mockReturnValue("invalid-test-secret"),
-  } as unknown as ConfigService;
-  return new RateLimitGuard(options, storage, new Reflector(), configService);
+  return new RateLimitGuard(options, storage, new Reflector());
 }
 
 describe("RateLimitGuard", () => {
@@ -91,20 +86,6 @@ describe("RateLimitGuard", () => {
 
     await expect(getInternals(guard).getTracker(request)).resolves.toBe(
       "ip:192.168.1.100",
-    );
-  });
-
-  it("uses the project ID from a cryptographically valid API key", async () => {
-    const encryptedApiKey = encryptApiKey(
-      "proj_123",
-      "api-key-value",
-      "invalid-test-secret",
-    );
-    const context = createMockContext({ "x-api-key": encryptedApiKey });
-    const request = context.switchToHttp().getRequest();
-
-    await expect(getInternals(guard).getTracker(request)).resolves.toBe(
-      "project:proj_123",
     );
   });
 

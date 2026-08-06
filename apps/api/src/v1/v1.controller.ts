@@ -25,7 +25,7 @@ import {
   ApiTags,
 } from "@nestjs/swagger";
 import { Throttle } from "@nestjs/throttler";
-import { getRateLimitStreaming } from "../common/rate-limit/rate-limit.module";
+import { getRateLimitStreaming } from "../common/rate-limit/rate-limit.config";
 import { Request, Response } from "express";
 import { ApiKeyGuard } from "../projects/guards/apikey.guard";
 import { BearerTokenGuard } from "../projects/guards/bearer-token.guard";

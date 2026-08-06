@@ -1,5 +1,4 @@
 import { ExecutionContext, Injectable } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
 import { Reflector } from "@nestjs/core";
 import {
   ThrottlerGuard,
@@ -9,7 +8,6 @@ import {
   ThrottlerModuleOptions,
   ThrottlerStorage,
 } from "@nestjs/throttler";
-import { decryptApiKey } from "@tambo-ai-cloud/core";
 import { Request, Response } from "express";
 import { ProblemDetails, RateLimitException } from "../../threads/types/errors";
 
@@ -17,9 +15,9 @@ const RATE_LIMIT_PROBLEM_TYPE =
   "https://docs.tambo.co/reference/problems/rate-limit";
 
 /**
- * Custom throttler guard that uses a cryptographically valid project ID when
- * available before authentication guards run, falling back to source address.
- * Invalid client-supplied credentials cannot create distinct buckets.
+ * Custom throttler guard that uses the source address before authentication
+ * guards run. Project identity is intentionally not inferred from credentials
+ * until ApiKeyGuard has validated them.
  */
 @Injectable()
 export class RateLimitGuard extends ThrottlerGuard {
@@ -29,7 +27,6 @@ export class RateLimitGuard extends ThrottlerGuard {
     @InjectThrottlerStorage()
     storage: ThrottlerStorage,
     reflector: Reflector,
-    private readonly configService: ConfigService,
   ) {
     super(options, storage, reflector);
   }
@@ -45,26 +42,11 @@ export class RateLimitGuard extends ThrottlerGuard {
     };
   }
 
-  /** Returns a validated project tracker or a source-address fallback. */
+  /** Returns a tracker that unauthenticated callers cannot rotate per request. */
   protected override async getTracker(
     req: Record<string, unknown>,
   ): Promise<string> {
     const request = req as unknown as Request;
-
-    const apiKeyHeader = request.headers["x-api-key"];
-    const apiKey = Array.isArray(apiKeyHeader) ? apiKeyHeader[0] : apiKeyHeader;
-    const apiKeySecret = this.configService.get<string>("API_KEY_SECRET");
-    if (apiKey && apiKeySecret) {
-      try {
-        const { storedString: projectId } = decryptApiKey(apiKey, apiKeySecret);
-        if (projectId) {
-          return `project:${projectId}`;
-        }
-      } catch {
-        // Invalid credentials use the source-address bucket.
-      }
-    }
-
     return `ip:${request.ip ?? request.socket.remoteAddress ?? "unknown"}`;
   }
 

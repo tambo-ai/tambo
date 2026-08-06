@@ -10,7 +10,7 @@ import { getThreadMCPClients } from "src/common/systemTools";
 import { extractAndVerifyMcpAccessToken } from "../common/utils/oauth";
 import { registerElicitationHandlers } from "./elicitations";
 import { createMcpRateLimitMiddleware } from "./mcp-rate-limit";
-import { parseRateLimitEnv } from "../common/rate-limit/rate-limit.module";
+import { parseRateLimitEnv } from "../common/rate-limit/rate-limit.config";
 import { registerPromptHandlers } from "./prompts";
 import { registerResourceHandlers } from "./resources";
 

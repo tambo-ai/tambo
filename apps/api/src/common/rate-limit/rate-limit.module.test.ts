@@ -1,5 +1,10 @@
 import { ConfigService } from "@nestjs/config";
-import { parseRateLimitEnv } from "./rate-limit.module";
+import {
+  getRateLimitStreaming,
+  getRateLimitStrict,
+  initializeRateLimitConfig,
+  parseRateLimitEnv,
+} from "./rate-limit.config";
 
 function createConfigService(value: string | undefined): ConfigService {
   return {
@@ -30,5 +35,22 @@ describe("parseRateLimitEnv", () => {
     expect(() =>
       parseRateLimitEnv(createConfigService("invalid"), "RATE_LIMIT_TEST", 25),
     ).toThrow('Invalid RATE_LIMIT_TEST="invalid"');
+  });
+
+  it("validates and stores all route-specific limits during initialization", () => {
+    const configService = {
+      get: jest.fn((key: string) => {
+        const values: Record<string, string> = {
+          RATE_LIMIT_DEFAULT: "100",
+          RATE_LIMIT_STREAMING: "21",
+          RATE_LIMIT_STRICT: "11",
+        };
+        return values[key];
+      }),
+    } as unknown as ConfigService;
+
+    expect(initializeRateLimitConfig(configService)).toBe(100);
+    expect(getRateLimitStreaming()).toBe(21);
+    expect(getRateLimitStrict()).toBe(11);
   });
 });

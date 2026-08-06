@@ -2,23 +2,8 @@ import { Module } from "@nestjs/common";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { APP_GUARD } from "@nestjs/core";
 import { ThrottlerModule } from "@nestjs/throttler";
+import { initializeRateLimitConfig } from "./rate-limit.config";
 import { RateLimitGuard } from "./rate-limit.guard";
-
-export function parseRateLimitEnv(
-  configService: ConfigService,
-  key: string,
-  fallback: number,
-): number {
-  const raw = configService.get<string>(key);
-  if (raw === undefined || raw === "") {
-    return fallback;
-  }
-  const parsed = Number(raw);
-  if (!Number.isFinite(parsed) || parsed <= 0) {
-    throw new Error(`Invalid ${key}="${raw}": must be a positive number.`);
-  }
-  return parsed;
-}
 
 /**
  * Rate limit values read from environment variables. Used by both the
@@ -33,11 +18,6 @@ export function parseRateLimitEnv(
  * storage with `@nestjs/throttler-storage-redis` to share counters across
  * instances.
  */
-const rateLimitValues = {
-  streaming: 20,
-  strict: 10,
-};
-
 @Module({
   imports: [
     ConfigModule,
@@ -45,21 +25,7 @@ const rateLimitValues = {
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => {
-        const rateLimitDefault = parseRateLimitEnv(
-          configService,
-          "RATE_LIMIT_DEFAULT",
-          100,
-        );
-        rateLimitValues.streaming = parseRateLimitEnv(
-          configService,
-          "RATE_LIMIT_STREAMING",
-          20,
-        );
-        rateLimitValues.strict = parseRateLimitEnv(
-          configService,
-          "RATE_LIMIT_STRICT",
-          10,
-        );
+        const rateLimitDefault = initializeRateLimitConfig(configService);
 
         return {
           throttlers: [
@@ -82,13 +48,3 @@ const rateLimitValues = {
   ],
 })
 export class RateLimitModule {}
-
-/** Per-minute limit for streaming endpoints (LLM runs, advancestream). */
-export function getRateLimitStreaming(): number {
-  return rateLimitValues.streaming;
-}
-
-/** Per-minute limit for strict endpoints (OAuth token exchange). */
-export function getRateLimitStrict(): number {
-  return rateLimitValues.strict;
-}

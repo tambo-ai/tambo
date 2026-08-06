@@ -31,7 +31,8 @@ describe("Rate Limiting (e2e)", () => {
   it("should include rate limit headers on successful responses", async () => {
     const response = await request(app.getHttpServer()).get("/").expect(200);
 
-    expect(response.headers["x-ratelimit-limit"]).toBeDefined();
+    expect(response.headers["x-ratelimit-limit"]).toBe("3");
+    expect(response.headers["x-ratelimit-remaining"]).toBe("2");
     expect(response.headers["x-ratelimit-reset"]).toBeDefined();
   });
 

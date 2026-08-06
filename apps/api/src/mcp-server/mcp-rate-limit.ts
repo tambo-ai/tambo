@@ -22,10 +22,10 @@ export function createMcpRateLimitMiddleware(
     }
   };
 
-  const evictOldestEntry = (): void => {
-    const oldestKey = store.keys().next().value;
-    if (typeof oldestKey === "string") {
-      store.delete(oldestKey);
+  const evictFirstEntry = (): void => {
+    const firstKey = store.keys().next().value;
+    if (typeof firstKey === "string") {
+      store.delete(firstKey);
     }
   };
 
@@ -39,7 +39,7 @@ export function createMcpRateLimitMiddleware(
 
     if (!entry || now - entry.windowStart > MCP_RATE_WINDOW_MS) {
       if (store.size >= MCP_RATE_LIMIT_ENTRIES_MAX) {
-        evictOldestEntry();
+        evictFirstEntry();
       }
       store.set(tracker, { count: 1, windowStart: now });
       res.setHeader("X-RateLimit-Limit", rateLimit);

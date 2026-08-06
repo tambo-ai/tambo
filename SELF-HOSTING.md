@@ -56,10 +56,9 @@ Rate limits can be adjusted with `RATE_LIMIT_DEFAULT`, `RATE_LIMIT_STREAMING`,
 60 requests per minute respectively. See the [environment variables reference](https://tambo.co/docs/guides/self-hosting/environment-variables)
 for details.
 
-REST limits are per project and endpoint when a valid API key is supplied. MCP
-limits are per source address because MCP authentication runs after its rate
-limiter. The default storage is process-local, so configure shared storage for
-consistent limits across multiple API replicas.
+REST and MCP limits are per source address and endpoint because the global
+limiter runs before API authentication. The default storage is process-local,
+so configure shared storage for consistent limits across multiple API replicas.
 
 When using a reverse proxy, set `TRUST_PROXY` to the number of trusted proxy
 hops so rate limits can distinguish client addresses. Leave it unset for direct

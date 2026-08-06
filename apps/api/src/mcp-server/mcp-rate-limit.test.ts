@@ -54,4 +54,33 @@ describe("createMcpRateLimitMiddleware", () => {
 
     expect(next).toHaveBeenCalledTimes(2);
   });
+
+  it("allows a source again after the window expires", () => {
+    jest.useFakeTimers();
+    try {
+      const middleware = createMcpRateLimitMiddleware(1);
+      const next = jest.fn();
+
+      middleware(createRequest("10.0.0.1"), createResponse(), next);
+      middleware(createRequest("10.0.0.1"), createResponse(), next);
+      jest.advanceTimersByTime(60_001);
+      middleware(createRequest("10.0.0.1"), createResponse(), next);
+
+      expect(next).toHaveBeenCalledTimes(2);
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it("evicts the first entry when the store reaches its cap", () => {
+    const middleware = createMcpRateLimitMiddleware(1);
+    const next = jest.fn();
+
+    for (let index = 0; index <= 10_000; index++) {
+      middleware(createRequest(`10.0.0.${index}`), createResponse(), next);
+    }
+    middleware(createRequest("10.0.0.0"), createResponse(), next);
+
+    expect(next).toHaveBeenCalledTimes(10_002);
+  });
 });

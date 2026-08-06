@@ -23,7 +23,7 @@ import {
   ApiTags,
 } from "@nestjs/swagger";
 import { Throttle } from "@nestjs/throttler";
-import { getRateLimitStreaming } from "../common/rate-limit/rate-limit.module";
+import { getRateLimitStreaming } from "../common/rate-limit/rate-limit.config";
 import * as Sentry from "@sentry/nestjs";
 import { AsyncQueue } from "@tambo-ai-cloud/core";
 import { operations } from "@tambo-ai-cloud/db";
