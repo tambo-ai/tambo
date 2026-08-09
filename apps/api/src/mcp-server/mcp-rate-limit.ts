@@ -36,22 +36,31 @@ export function createMcpRateLimitMiddleware(
   sweepInterval.unref();
 
   const getStorageKey = (tracker: string): string => {
-    if (store.has(tracker)) {
-      return tracker;
-    }
-    if (store.has(MCP_OVERFLOW_KEY)) {
-      return MCP_OVERFLOW_KEY;
+    removeExpiredEntries();
+
+    if (store.has(tracker) || store.has(MCP_OVERFLOW_KEY)) {
+      return store.has(tracker) ? tracker : MCP_OVERFLOW_KEY;
     }
     if (store.size < MCP_RATE_LIMIT_ENTRIES_MAX) {
       return tracker;
+    }
+
+    const firstKey = store.keys().next().value;
+    if (typeof firstKey === "string") {
+      store.delete(firstKey);
     }
     return MCP_OVERFLOW_KEY;
   };
 
   const middleware = ((req, res, next): void => {
-    const tracker = `mcp:ip:${normalizeRateLimitAddress(
-      req.ip ?? req.socket.remoteAddress,
-    )}`;
+    // Prefer an authenticated project id if the authentication middleware
+    // set it (see createSessionlessMcpServer / authenticateMcpRequest).
+    // A string property `mcpProjectId` is set when a bearer token is
+    // validated; fall back to the client IP if not present.
+    const projectId = (req as any).mcpProjectId as string | undefined;
+    const tracker = projectId
+      ? `mcp:project:${projectId}`
+      : `mcp:ip:${normalizeRateLimitAddress(req.ip ?? req.socket.remoteAddress)}`;
     const now = Date.now();
     const storageKey = getStorageKey(tracker);
     const entry = store.get(storageKey);

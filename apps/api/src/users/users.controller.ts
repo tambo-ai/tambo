@@ -10,7 +10,6 @@ import {
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { ApiHeader, ApiOperation, ApiTags } from "@nestjs/swagger";
-import { SkipThrottle } from "@nestjs/throttler";
 import type { HydraDatabase } from "@tambo-ai-cloud/db";
 import { operations } from "@tambo-ai-cloud/db";
 import { DATABASE } from "../common/database-provider";
@@ -58,7 +57,6 @@ export class UsersController {
   }
 
   @Post("webhook/signup")
-  @SkipThrottle()
   @HttpCode(200)
   @ApiOperation({
     summary: "Handle new user signup webhook from Supabase",

@@ -11,7 +11,7 @@ import { RateLimitGuard } from "./rate-limit.guard";
  * global throttler and per-route @Throttle decorators.
  *
  * - `RATE_LIMIT_DEFAULT` (default: 100) — default per-endpoint limit
- * - `RATE_LIMIT_STREAMING` (default: 100) — LLM run and advancestream endpoints
+ * - `RATE_LIMIT_STREAMING` (default: 200) — LLM run and advancestream endpoints
  * - `RATE_LIMIT_STRICT` (default: 10) — OAuth token exchange
  * - `RATE_LIMIT_MCP` (default: 60) — MCP endpoint
  *

@@ -54,7 +54,7 @@ apps/api/src
 
 - Env variables are documented at the repo root (`turbo.json` globalEnv). Use `.env` locally; never commit secrets.
 - `src/config.service.ts` centralizes config access and should be the only way to read env vars inside modules.
-- For new configuration, add validation rules there and document the variable in README + AGENTS if it impacts workflows.
+- For new configuration, add validation rules there and document the variable in README + AGENTS if it impacts workflows. Rate-limit deployments must leave `TRUST_PROXY` unset or `false` for direct API exposure and set it to a numeric hop count only behind a real reverse proxy.
 
 ## Authentication & Authorization
 

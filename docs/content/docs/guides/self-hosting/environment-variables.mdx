@@ -16,7 +16,7 @@ All configuration is done through environment variables in the `docker.env` file
 | `PROVIDER_KEY_SECRET` | Yes      | 32+ character secret for provider key encryption                                         |
 | `NEXTAUTH_SECRET`     | Yes      | Secret for NextAuth.js sessions                                                          |
 | `NEXTAUTH_URL`        | Yes      | Base URL for auth callbacks (e.g., `http://localhost:8260` or `https://your-domain.com`) |
-| `TRUST_PROXY`         | No       | Trusted reverse-proxy hop count (`false` by default; numeric only)                       |
+| `TRUST_PROXY`         | No       | Trusted reverse-proxy hop count (`false` by default; enable only behind a real proxy)    |
 
 ## OpenAI configuration
 
@@ -79,13 +79,16 @@ local to each API process unless shared storage is configured.
 | Variable               | Default | Description                           |
 | ---------------------- | ------- | ------------------------------------- |
 | `RATE_LIMIT_DEFAULT`   | `100`   | All NestJS API endpoints              |
-| `RATE_LIMIT_STREAMING` | `100`   | LLM run and `advancestream` endpoints |
+| `RATE_LIMIT_STREAMING` | `200`   | LLM run and `advancestream` endpoints |
 | `RATE_LIMIT_STRICT`    | `10`    | OAuth token exchange                  |
 | `RATE_LIMIT_MCP`       | `60`    | MCP Express endpoint                  |
 
 Set `TRUST_PROXY` to the number of trusted proxy hops when the deployment is
 behind nginx, Caddy, Traefik, or another reverse proxy. Leave it unset or set
-it to `false` when clients connect directly to the API.
+it to `false` when clients connect directly to the API. The default Docker
+stack exposes the API directly, so `docker.env.example` leaves this variable
+commented out. Enabling it without a proxy makes `X-Forwarded-For` attacker
+controlled and bypasses source-address rate limits.
 
 ## Whitelabeling
 

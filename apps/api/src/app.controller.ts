@@ -14,8 +14,8 @@ import {
   ApiSecurity,
   ApiTags,
 } from "@nestjs/swagger";
-import { operations } from "@tambo-ai-cloud/db";
 import { SkipThrottle } from "@nestjs/throttler";
+import { operations } from "@tambo-ai-cloud/db";
 import { type Request } from "express";
 import { AppService } from "./app.service";
 import {
@@ -36,12 +36,13 @@ export class AppController {
   ) {}
 
   @Get()
+  @SkipThrottle()
   getHello(): string {
     return this.appService.getHello();
   }
 
-  @Get("health")
   @SkipThrottle()
+  @Get("health")
   async checkHealth() {
     const health = await this.appService.checkHealth();
     return {

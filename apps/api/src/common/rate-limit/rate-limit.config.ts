@@ -1,7 +1,7 @@
 import { ConfigService } from "@nestjs/config";
 
 const rateLimitValues = {
-  streaming: 100,
+  streaming: 200,
   strict: 10,
 };
 
@@ -14,9 +14,13 @@ export function parseRateLimitEnv(
   if (raw === undefined || raw === "") {
     return fallback;
   }
-  const parsed = Number(raw);
-  if (!Number.isFinite(parsed) || parsed <= 0) {
-    throw new Error(`Invalid ${key}="${raw}": must be a positive number.`);
+  const normalized = raw.trim();
+  const isDecimalInteger = normalized
+    .split("")
+    .every((character) => character >= "0" && character <= "9");
+  const parsed = Number(normalized);
+  if (!isDecimalInteger || !Number.isSafeInteger(parsed) || parsed <= 0) {
+    throw new Error(`Invalid ${key}="${raw}": must be a positive integer.`);
   }
   return parsed;
 }
@@ -32,7 +36,7 @@ export function initializeRateLimitConfig(
   rateLimitValues.streaming = parseRateLimitEnv(
     configService,
     "RATE_LIMIT_STREAMING",
-    100,
+    200,
   );
   rateLimitValues.strict = parseRateLimitEnv(
     configService,

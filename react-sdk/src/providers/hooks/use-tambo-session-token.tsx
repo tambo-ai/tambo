@@ -3,6 +3,19 @@ import TamboAI from "@tambo-ai/typescript-sdk";
 import { QueryClient, useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 
+function shouldRetrySessionToken(
+  failureCount: number,
+  error: unknown,
+): boolean {
+  if (typeof error === "object" && error !== null) {
+    const status = "status" in error ? error.status : error.statusCode;
+    if (status === 429) {
+      return false;
+    }
+  }
+  return failureCount < 3;
+}
+
 /**
  * This internal hook is used to get the Tambo session token and keep it
  * refreshed.
@@ -40,8 +53,8 @@ export function useTamboSessionToken(
         return await client.beta.auth.getToken(tokenAsArrayBuffer as any);
       },
       enabled: !!userToken,
-      // A throttled token exchange must not amplify into more requests.
-      retry: false,
+      // Preserve transient-error retries without amplifying throttling.
+      retry: shouldRetrySessionToken,
       refetchInterval: (result) => {
         if (result.state.data?.expires_in) {
           return result.state.data.expires_in * 1000;

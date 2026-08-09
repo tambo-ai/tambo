@@ -52,7 +52,7 @@ FALLBACK_OPENAI_API_KEY=your-openai-api-key
 `docker.env.example` includes placeholder values; replace them with strong secrets before starting the stack.
 
 Rate limits can be adjusted with `RATE_LIMIT_DEFAULT`, `RATE_LIMIT_STREAMING`,
-`RATE_LIMIT_STRICT`, and `RATE_LIMIT_MCP`. The defaults are 100, 100, 10, and
+`RATE_LIMIT_STRICT`, and `RATE_LIMIT_MCP`. The defaults are 100, 200, 10, and
 60 requests per minute respectively. See the [environment variables reference](https://tambo.co/docs/guides/self-hosting/environment-variables)
 for details.
 
@@ -63,7 +63,9 @@ across multiple API replicas.
 
 When using a reverse proxy, set `TRUST_PROXY` to the number of trusted proxy
 hops so rate limits can distinguish client addresses. Leave it unset for direct
-connections.
+connections. Do not enable it in the default Docker stack, which exposes the
+API directly without a reverse proxy. Add it to the required deployment values
+when a proxy is actually terminating requests.
 
 ### 4. Start Services
 

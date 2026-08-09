@@ -59,8 +59,8 @@ export class RateLimitGuard extends ThrottlerGuard {
   }
 
   /**
-   * Throws a typed 429 so the existing exception filter preserves status,
-   * logging, and Sentry behavior while the content type is retained.
+   * Throws a typed 429 RateLimitException which is caught by
+   * RateLimitExceptionFilter to format the response as RFC 9457 Problem Details.
    */
   protected override throwThrottlingException(
     context: ExecutionContext,

@@ -6,12 +6,20 @@ import { ConfigService } from "@nestjs/config";
 import { HttpAdapterHost, NestFactory } from "@nestjs/core";
 import { SwaggerModule } from "@nestjs/swagger";
 import * as Sentry from "@sentry/nestjs";
-import { json, urlencoded } from "express";
+import {
+  json,
+  type NextFunction,
+  type Request,
+  type Response,
+  urlencoded,
+} from "express";
 import helmet from "helmet";
 import { AppModule } from "./app.module";
 import { DomainExceptionFilter } from "./common/filters/domain-exception.filter";
+import { RateLimitExceptionFilter } from "./common/filters/rate-limit-exception.filter";
 import { SentryExceptionFilter } from "./common/filters/sentry-exception.filter";
 import { generateOpenAPIConfig } from "./common/openapi";
+import { createApiKeyProjectIdMiddleware } from "./common/rate-limit/api-key-project-id.middleware";
 import { registerHandler } from "./mcp-server/server";
 
 async function bootstrap() {
@@ -22,6 +30,7 @@ async function bootstrap() {
   app.useGlobalFilters(
     new SentryExceptionFilter(httpAdapter),
     new DomainExceptionFilter(),
+    new RateLimitExceptionFilter(),
   );
 
   app.useGlobalPipes(new ValidationPipe({ transform: true }));
@@ -30,6 +39,7 @@ async function bootstrap() {
   configureSwagger(app);
   app.use(json({ limit: "10mb" }));
   app.use(urlencoded({ extended: true, limit: "10mb" }));
+  app.use(createApiKeyProjectIdMiddleware(app.get(ConfigService)));
 
   // Register MCP server handler
   const expressInstance = app.getHttpAdapter().getInstance();
@@ -74,11 +84,13 @@ function configureTrustProxy(app: INestApplication): void {
   const config = app.get(ConfigService);
   const raw = config.get<string>("TRUST_PROXY");
   if (raw === undefined || raw === "") {
+    addTrustProxyConfigurationWarning(app, false);
     return;
   }
 
   if (raw === "false") {
     app.getHttpAdapter().getInstance().set("trust proxy", false);
+    addTrustProxyConfigurationWarning(app, false);
     return;
   }
 
@@ -89,6 +101,32 @@ function configureTrustProxy(app: INestApplication): void {
     );
   }
   app.getHttpAdapter().getInstance().set("trust proxy", hops);
+  addTrustProxyConfigurationWarning(app, true);
+}
+
+function addTrustProxyConfigurationWarning(
+  app: INestApplication,
+  trustsProxy: boolean,
+): void {
+  let warnedAboutMissingHeader = false;
+  let warnedAboutUnexpectedHeader = false;
+
+  app.use((request: Request, _response: Response, next: NextFunction): void => {
+    const hasForwardedFor = Boolean(request.get("x-forwarded-for"));
+    if (trustsProxy && !hasForwardedFor && !warnedAboutMissingHeader) {
+      warnedAboutMissingHeader = true;
+      console.warn(
+        "TRUST_PROXY is enabled, but a request has no X-Forwarded-For header; verify the reverse proxy configuration.",
+      );
+    }
+    if (!trustsProxy && hasForwardedFor && !warnedAboutUnexpectedHeader) {
+      warnedAboutUnexpectedHeader = true;
+      console.warn(
+        "A request has X-Forwarded-For, but TRUST_PROXY is disabled; verify the reverse proxy configuration.",
+      );
+    }
+    next();
+  });
 }
 
 function configureSwagger(app: INestApplication) {

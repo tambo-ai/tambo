@@ -22,13 +22,12 @@ import {
   ApiSecurity,
   ApiTags,
 } from "@nestjs/swagger";
-import { Throttle } from "@nestjs/throttler";
-import { getRateLimitStreaming } from "../common/rate-limit/rate-limit.config";
-import { RateLimitGuard } from "../common/rate-limit/rate-limit.guard";
+import { SkipThrottle, Throttle } from "@nestjs/throttler";
 import * as Sentry from "@sentry/nestjs";
 import { AsyncQueue } from "@tambo-ai-cloud/core";
 import { operations } from "@tambo-ai-cloud/db";
 import { type Request, type Response } from "express";
+import { getRateLimitStreaming } from "../common/rate-limit/rate-limit.config";
 import { extractContextInfo } from "../common/utils/extract-context-info";
 import { ApiKeyGuard } from "../projects/guards/apikey.guard";
 import { BearerTokenGuard } from "../projects/guards/bearer-token.guard";
@@ -61,7 +60,8 @@ import { throttleChunks } from "./util/streaming";
 @ApiTags("threads")
 @ApiSecurity("apiKey")
 @ApiSecurity("bearer")
-@UseGuards(ApiKeyGuard, RateLimitGuard, BearerTokenGuard)
+@SkipThrottle()
+@UseGuards(ApiKeyGuard, BearerTokenGuard)
 @Controller("threads")
 export class ThreadsController {
   private readonly logger = new Logger(ThreadsController.name);

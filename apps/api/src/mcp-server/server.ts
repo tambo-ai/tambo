@@ -1,16 +1,16 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
+import { ConfigService } from "@nestjs/config";
 import type { MCPHandlers } from "@tambo-ai-cloud/core";
 import { TAMBO_MCP_ACCESS_KEY_CLAIM } from "@tambo-ai-cloud/core";
 import { getDb, HydraDb } from "@tambo-ai-cloud/db";
-import { ConfigService } from "@nestjs/config";
 import cors from "cors";
 import { Express, NextFunction, Request, Response } from "express";
 import { getThreadMCPClients } from "src/common/systemTools";
+import { parseRateLimitEnv } from "../common/rate-limit/rate-limit.config";
 import { extractAndVerifyMcpAccessToken } from "../common/utils/oauth";
 import { registerElicitationHandlers } from "./elicitations";
 import { createMcpRateLimitMiddleware } from "./mcp-rate-limit";
-import { parseRateLimitEnv } from "../common/rate-limit/rate-limit.config";
 import { registerPromptHandlers } from "./prompts";
 import { registerResourceHandlers } from "./resources";
 
@@ -194,6 +194,9 @@ async function authenticateMcpRequest(
 
     // Attach projectId which is common to both token types
     (req as AuthenticatedMcpRequest)[MCP_REQUEST_PROJECT_ID] = claim.projectId;
+    // Also expose a stable string property so downstream non-symbol code can
+    // read the project id (used by the MCP rate limiter to key per-project).
+    (req as any).mcpProjectId = claim.projectId;
 
     // Attach either contextKey (session-less) or threadId (thread-bound)
     if (claim.contextKey) {
@@ -282,12 +285,18 @@ export function registerHandler(
         "mcp-session-id",
         "last-event-id",
         "mcp-protocol-version",
+        // expose rate limit headers to clients
+        "Retry-After",
+        "X-RateLimit-Limit",
+        "X-RateLimit-Remaining",
+        "X-RateLimit-Reset",
       ],
     }),
-    // Rate limit MCP requests after CORS but before authentication
-    createMcpRateLimitMiddleware(rateLimit),
-    // Authenticate the request
+    // Authenticate the request first so the limiter can key per-project when
+    // a valid bearer token is present.
     authenticateMcpRequest,
+    // Rate limit MCP requests after authentication
+    createMcpRateLimitMiddleware(rateLimit),
   );
 
   // MCP over HTTP expects POST; restrict to POST to avoid ambiguity

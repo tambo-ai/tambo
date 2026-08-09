@@ -67,6 +67,15 @@ src/
 
 See `devdocs/OBSERVABILITY.md` for expectations and tag conventions.
 
+## Rate Limiting
+
+The API applies source-address limits before authentication and validated
+project limits after authentication. Configure `RATE_LIMIT_DEFAULT`,
+`RATE_LIMIT_STREAMING` (default `200`), `RATE_LIMIT_STRICT`, and
+`RATE_LIMIT_MCP` in `.env`. `TRUST_PROXY` must remain unset or `false` when
+the API is directly exposed; set it to a numeric proxy-hop count only when a
+real reverse proxy terminates requests. The default storage is process-local.
+
 ## Testing
 
 - Co-locate `.test.ts` files next to implementations; e2e specs live in `apps/api/test/`.

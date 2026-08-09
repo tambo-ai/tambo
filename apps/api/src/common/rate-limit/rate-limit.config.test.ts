@@ -25,6 +25,13 @@ describe("parseRateLimitEnv", () => {
     ).toBe(25);
   });
 
+  it("uses the correct streaming fallback", () => {
+    const configService = createConfigService(undefined);
+    initializeRateLimitConfig(configService);
+
+    expect(getRateLimitStreaming()).toBe(200);
+  });
+
   it("parses a positive numeric value", () => {
     expect(
       parseRateLimitEnv(createConfigService("12"), "RATE_LIMIT_TEST", 25),
@@ -35,6 +42,12 @@ describe("parseRateLimitEnv", () => {
     expect(() =>
       parseRateLimitEnv(createConfigService("invalid"), "RATE_LIMIT_TEST", 25),
     ).toThrow('Invalid RATE_LIMIT_TEST="invalid"');
+  });
+
+  it.each(["1.5", "1e9", "0x10"])('rejects non-integer value "%s"', (value) => {
+    expect(() =>
+      parseRateLimitEnv(createConfigService(value), "RATE_LIMIT_TEST", 25),
+    ).toThrow("must be a positive integer");
   });
 
   it("validates and stores all route-specific limits during initialization", () => {

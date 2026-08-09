@@ -24,14 +24,16 @@ import {
   ApiSecurity,
   ApiTags,
 } from "@nestjs/swagger";
-import { Throttle } from "@nestjs/throttler";
-import { getRateLimitStreaming } from "../common/rate-limit/rate-limit.config";
-import { RateLimitGuard } from "../common/rate-limit/rate-limit.guard";
+import { SkipThrottle, Throttle } from "@nestjs/throttler";
 import { Request, Response } from "express";
+import { getRateLimitStreaming } from "../common/rate-limit/rate-limit.config";
 import { ApiKeyGuard } from "../projects/guards/apikey.guard";
 import { BearerTokenGuard } from "../projects/guards/bearer-token.guard";
-import { V1ThreadInProjectGuard } from "./guards/v1-thread-in-project-guard";
-import { getV1ContextInfo } from "./utils/get-v1-context-info";
+import {
+  UpdateComponentStateDto,
+  UpdateComponentStateResponseDto,
+} from "./dto/component-state.dto";
+import { V1BaseEventDto } from "./dto/event.dto";
 import {
   V1GetMessageResponseDto,
   V1ListMessagesQueryDto,
@@ -43,9 +45,11 @@ import {
   V1CreateThreadWithRunDto,
 } from "./dto/run.dto";
 import {
-  UpdateComponentStateDto,
-  UpdateComponentStateResponseDto,
-} from "./dto/component-state.dto";
+  V1GenerateSuggestionsDto,
+  V1GenerateSuggestionsResponseDto,
+  V1ListSuggestionsQueryDto,
+  V1ListSuggestionsResponseDto,
+} from "./dto/suggestion.dto";
 import {
   V1CreateThreadDto,
   V1CreateThreadResponseDto,
@@ -55,20 +59,16 @@ import {
   V1UpdateThreadDto,
   V1UpdateThreadResponseDto,
 } from "./dto/thread.dto";
-import { V1BaseEventDto } from "./dto/event.dto";
-import {
-  V1GenerateSuggestionsDto,
-  V1GenerateSuggestionsResponseDto,
-  V1ListSuggestionsQueryDto,
-  V1ListSuggestionsResponseDto,
-} from "./dto/suggestion.dto";
-import { V1Service } from "./v1.service";
+import { V1ThreadInProjectGuard } from "./guards/v1-thread-in-project-guard";
+import { getV1ContextInfo } from "./utils/get-v1-context-info";
 import { classifyStreamingError } from "./v1-error-classifier";
+import { V1Service } from "./v1.service";
 
 @ApiTags("v1")
 @ApiSecurity("apiKey")
 @ApiSecurity("bearer")
-@UseGuards(ApiKeyGuard, RateLimitGuard, BearerTokenGuard)
+@SkipThrottle()
+@UseGuards(ApiKeyGuard, BearerTokenGuard)
 @Controller("v1")
 export class V1Controller {
   private readonly logger = new Logger(V1Controller.name);

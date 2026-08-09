@@ -11,6 +11,7 @@ interface RateLimitEntry {
   totalHits: number;
   windowStart: number;
   blockedUntil: number;
+  expiresAt: number;
 }
 
 const MAX_ENTRIES = 10_000;
@@ -18,6 +19,14 @@ const OVERFLOW_KEY = "rate-limit:overflow";
 
 export class BoundedThrottlerStorage implements ThrottlerStorage {
   private readonly entries = new Map<string, RateLimitEntry>();
+  private readonly cleanupInterval = setInterval(
+    () => this.removeExpiredEntries(),
+    60_000,
+  );
+
+  constructor() {
+    this.cleanupInterval.unref();
+  }
 
   async increment(
     key: string,
@@ -39,9 +48,14 @@ export class BoundedThrottlerStorage implements ThrottlerStorage {
       totalHits: entry.totalHits + 1,
       windowStart: entry.windowStart,
       blockedUntil: entry.blockedUntil,
+      expiresAt: entry.expiresAt,
     };
     if (nextEntry.totalHits > limit) {
       nextEntry.blockedUntil = now + blockDuration;
+      nextEntry.expiresAt = Math.max(
+        nextEntry.expiresAt,
+        nextEntry.blockedUntil,
+      );
     }
     this.entries.set(storageKey, nextEntry);
 
@@ -54,6 +68,8 @@ export class BoundedThrottlerStorage implements ThrottlerStorage {
   }
 
   private getStorageKey(key: string): string {
+    this.removeExpiredEntries();
+
     if (this.entries.has(key) || this.entries.has(OVERFLOW_KEY)) {
       return this.entries.has(key) ? key : OVERFLOW_KEY;
     }
@@ -73,13 +89,31 @@ export class BoundedThrottlerStorage implements ThrottlerStorage {
     now: number,
     ttl: number,
   ): RateLimitEntry {
-    if (!entry || now - entry.windowStart >= ttl) {
-      return { totalHits: 0, windowStart: now, blockedUntil: 0 };
+    if (!entry || entry.expiresAt <= now) {
+      return this.createEntry(now, ttl);
     }
     if (entry.blockedUntil > 0 && entry.blockedUntil <= now) {
-      return { ...entry, totalHits: 0, blockedUntil: 0 };
+      return this.createEntry(now, ttl);
     }
     return entry;
+  }
+
+  private createEntry(now: number, ttl: number): RateLimitEntry {
+    return {
+      totalHits: 0,
+      windowStart: now,
+      blockedUntil: 0,
+      expiresAt: now + ttl,
+    };
+  }
+
+  private removeExpiredEntries(): void {
+    const now = Date.now();
+    for (const [key, entry] of this.entries) {
+      if (entry.expiresAt <= now) {
+        this.entries.delete(key);
+      }
+    }
   }
 
   private toStorageRecord(
