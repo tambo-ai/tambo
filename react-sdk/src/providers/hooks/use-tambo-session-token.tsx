@@ -8,7 +8,12 @@ function shouldRetrySessionToken(
   error: unknown,
 ): boolean {
   if (typeof error === "object" && error !== null) {
-    const status = "status" in error ? error.status : error.statusCode;
+    let status: number | undefined;
+    if ("status" in error) {
+      status = (error as { status?: number }).status;
+    } else if ("statusCode" in error) {
+      status = (error as { statusCode?: number }).statusCode;
+    }
     if (status === 429) {
       return false;
     }

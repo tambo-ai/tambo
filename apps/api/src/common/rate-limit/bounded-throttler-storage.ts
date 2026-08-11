@@ -70,9 +70,10 @@ export class BoundedThrottlerStorage implements ThrottlerStorage {
   private getStorageKey(key: string): string {
     this.removeExpiredEntries();
 
-    if (this.entries.has(key) || this.entries.has(OVERFLOW_KEY)) {
-      return this.entries.has(key) ? key : OVERFLOW_KEY;
+    if (this.entries.has(key)) {
+      return key;
     }
+
     if (this.entries.size < MAX_ENTRIES) {
       return key;
     }

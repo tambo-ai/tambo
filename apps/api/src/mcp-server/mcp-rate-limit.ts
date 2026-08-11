@@ -38,8 +38,8 @@ export function createMcpRateLimitMiddleware(
   const getStorageKey = (tracker: string): string => {
     removeExpiredEntries();
 
-    if (store.has(tracker) || store.has(MCP_OVERFLOW_KEY)) {
-      return store.has(tracker) ? tracker : MCP_OVERFLOW_KEY;
+    if (store.has(tracker)) {
+      return tracker;
     }
     if (store.size < MCP_RATE_LIMIT_ENTRIES_MAX) {
       return tracker;
@@ -96,6 +96,81 @@ export function createMcpRateLimitMiddleware(
       return;
     }
 
+    res.setHeader("X-RateLimit-Limit", rateLimit);
+    res.setHeader("X-RateLimit-Remaining", rateLimit - entry.count);
+    next();
+  }) as McpRateLimitMiddleware;
+  middleware.dispose = () => clearInterval(sweepInterval);
+  return middleware;
+}
+
+// A lightweight source-address-only limiter that runs before authentication
+// to protect the HMAC verification and other cheap per-request work.
+export function createMcpIpRateLimitMiddleware(
+  rateLimit: number,
+): McpRateLimitMiddleware {
+  const store = new Map<string, McpRateLimitEntry>();
+  const removeExpiredEntries = (): void => {
+    const now = Date.now();
+    for (const [key, entry] of store) {
+      if (now - entry.windowStart > MCP_RATE_WINDOW_MS) {
+        store.delete(key);
+      }
+    }
+  };
+  const sweepInterval = setInterval(removeExpiredEntries, MCP_RATE_WINDOW_MS);
+  sweepInterval.unref();
+
+  const middleware = ((req, res, next): void => {
+    removeExpiredEntries();
+    const tracker = `mcp:ip:${normalizeRateLimitAddress(
+      req.ip ?? req.socket.remoteAddress,
+    )}`;
+    const now = Date.now();
+
+    let storageKey = tracker;
+    if (!store.has(tracker) && store.size >= MCP_RATE_LIMIT_ENTRIES_MAX) {
+      if (!store.has(MCP_OVERFLOW_KEY)) {
+        const firstKey = store.keys().next().value;
+        if (typeof firstKey === "string") {
+          store.delete(firstKey);
+        }
+        store.set(MCP_OVERFLOW_KEY, { count: 0, windowStart: now });
+      }
+      storageKey = MCP_OVERFLOW_KEY;
+    }
+
+    const entry = store.get(storageKey);
+    if (!entry || now - entry.windowStart > MCP_RATE_WINDOW_MS) {
+      store.set(storageKey, { count: 1, windowStart: now });
+      res.setHeader("X-RateLimit-Limit", rateLimit);
+      res.setHeader("X-RateLimit-Remaining", rateLimit - 1);
+      next();
+      return;
+    }
+
+    entry.count++;
+    if (entry.count > rateLimit) {
+      const retryAfterSeconds = Math.max(
+        1,
+        Math.ceil((entry.windowStart + MCP_RATE_WINDOW_MS - now) / 1000),
+      );
+      res.setHeader("Retry-After", retryAfterSeconds);
+      res.setHeader("X-RateLimit-Limit", rateLimit);
+      res.setHeader("X-RateLimit-Remaining", 0);
+      res.setHeader("X-RateLimit-Reset", retryAfterSeconds);
+      res
+        .status(429)
+        .type("application/problem+json")
+        .json({
+          type: "https://docs.tambo.co/reference/problems/rate-limit",
+          status: 429,
+          title: "Too Many Requests",
+          detail: `Rate limit exceeded. Try again in ${retryAfterSeconds} seconds.`,
+          instance: req.originalUrl ?? req.url,
+        });
+      return;
+    }
     res.setHeader("X-RateLimit-Limit", rateLimit);
     res.setHeader("X-RateLimit-Remaining", rateLimit - entry.count);
     next();

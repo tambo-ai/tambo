@@ -10,7 +10,10 @@ import { getThreadMCPClients } from "src/common/systemTools";
 import { parseRateLimitEnv } from "../common/rate-limit/rate-limit.config";
 import { extractAndVerifyMcpAccessToken } from "../common/utils/oauth";
 import { registerElicitationHandlers } from "./elicitations";
-import { createMcpRateLimitMiddleware } from "./mcp-rate-limit";
+import {
+  createMcpIpRateLimitMiddleware,
+  createMcpRateLimitMiddleware,
+} from "./mcp-rate-limit";
 import { registerPromptHandlers } from "./prompts";
 import { registerResourceHandlers } from "./resources";
 
@@ -292,10 +295,13 @@ export function registerHandler(
         "X-RateLimit-Reset",
       ],
     }),
-    // Authenticate the request first so the limiter can key per-project when
-    // a valid bearer token is present.
+    // Lightweight source-address limiter before authentication to protect
+    // the token-verification HMAC and other cheap per-request work.
+    createMcpIpRateLimitMiddleware(rateLimit),
+    // Authenticate the request so the per-project limiter can key by project
+    // when a valid bearer token is present.
     authenticateMcpRequest,
-    // Rate limit MCP requests after authentication
+    // Rate limit MCP requests after authentication (per-project when available)
     createMcpRateLimitMiddleware(rateLimit),
   );
 

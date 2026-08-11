@@ -1,5 +1,8 @@
 import { Request, Response } from "express";
-import { createMcpRateLimitMiddleware } from "./mcp-rate-limit";
+import {
+  createMcpIpRateLimitMiddleware,
+  createMcpRateLimitMiddleware,
+} from "./mcp-rate-limit";
 
 function createRequest(ip: string, headers: Record<string, string> = {}) {
   return {
@@ -93,6 +96,34 @@ describe("createMcpRateLimitMiddleware", () => {
 
     expect(next).toHaveBeenCalledTimes(10_001);
     expect(blockedResponse.status).toHaveBeenCalledWith(429);
+    middleware.dispose();
+  });
+
+  it("routes new IPs into overflow once the IP store is full", () => {
+    const middleware = createMcpIpRateLimitMiddleware(1);
+    const next = jest.fn();
+
+    for (let index = 0; index < 10_000; index++) {
+      const thirdOctet = Math.floor(index / 256);
+      const fourthOctet = index % 256;
+      middleware(
+        createRequest(`192.0.${thirdOctet}.${fourthOctet}`),
+        createResponse(),
+        next,
+      );
+    }
+
+    const firstOverflowResponse = createResponse();
+    middleware(createRequest("193.0.0.1"), firstOverflowResponse, next);
+    expect(firstOverflowResponse.status).not.toHaveBeenCalled();
+    expect(next).toHaveBeenCalledTimes(10_001);
+
+    const secondOverflowResponse = createResponse();
+    middleware(createRequest("193.0.0.2"), secondOverflowResponse, next);
+    expect(secondOverflowResponse.status).toHaveBeenCalledWith(429);
+    expect(secondOverflowResponse.type).toHaveBeenCalledWith(
+      "application/problem+json",
+    );
     middleware.dispose();
   });
 });
