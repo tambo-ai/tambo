@@ -103,7 +103,7 @@
     },
     "next": {
       "postcss": "8.5.23",
-      "sharp": "0.35.3"
+      "sharp": "0.35.4"
     },
     "postcss": "8.5.25",
     "protobufjs": "7.6.5",
