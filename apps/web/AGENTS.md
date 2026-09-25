@@ -105,3 +105,19 @@ apps/web
 - Forgetting to wrap pages with the required providers (NextAuth, Tambo). Missing providers manifest as runtime errors; follow `app/providers.tsx`.
 
 Use this guide every time you touch `apps/web` so the dashboard stays consistent with the rest of the monorepo.
+
+## Guided dashboard entry (#2478)
+
+The authenticated dashboard renders an inline getting-started form for accounts
+without projects. Project creation uses the existing `createProject2` mutation;
+its successful response advances to local starter instructions even if refreshing
+the project list fails. The optional referral question remains independent of
+project creation and uses the existing write-once user mutation. Existing users
+retain the regular project manager and creation dialog.
+
+The guide confirms project creation only. It does not infer a working app or a
+received message from API keys, copied commands, or aggregate message counts.
+The project overview keeps direct quickstart and existing-app documentation
+links available after navigation. No new backend endpoint or completion flag is
+introduced. Verify the real query/mutation boundary, retry behavior, and keyboard
+focus before changing this flow.
