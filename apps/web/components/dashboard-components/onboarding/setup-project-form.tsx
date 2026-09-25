@@ -67,7 +67,7 @@ export const TamboSetupProjectForm: FC<TamboSetupProjectFormProps> = ({
             again.
           </p>
         )}
-        <Button type="submit" disabled={isPending} className="self-start">
+        <Button type="submit" aria-disabled={isPending} className="self-start">
           {isPending ? "Creating project…" : "Create project"}
         </Button>
       </form>

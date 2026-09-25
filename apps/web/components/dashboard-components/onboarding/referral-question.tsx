@@ -13,10 +13,13 @@ export function TamboReferralQuestion() {
   const mutation = api.user.saveReferralSource.useMutation();
 
   return (
-    <details className="rounded-md border border-border p-4">
-      <summary className="cursor-pointer rounded-sm text-sm text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4">
+    <section
+      aria-labelledby={id}
+      className="rounded-md border border-border p-4"
+    >
+      <h2 id={id} className="text-sm font-medium text-foreground">
         How did you hear about us? (optional)
-      </summary>
+      </h2>
       <form
         className="flex flex-col gap-4 pt-4"
         onSubmit={(event) => {
@@ -65,7 +68,7 @@ export function TamboReferralQuestion() {
             type="submit"
             variant="outline"
             className="self-start"
-            disabled={!source || mutation.isPending}
+            aria-disabled={!source || mutation.isPending}
           >
             {mutation.isPending ? "Saving…" : "Save answer"}
           </Button>
@@ -77,6 +80,6 @@ export function TamboReferralQuestion() {
           </p>
         )}
       </form>
-    </details>
+    </section>
   );
 }

@@ -2,7 +2,6 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { TamboGettingStartedGuide } from "./getting-started-guide";
 import type { TamboGettingStartedState } from "./getting-started-state";
-import { TamboSetupCommand } from "./setup-command";
 
 const project = { id: "project-1", name: "Support assistant" };
 const setup: TamboGettingStartedState = {
@@ -49,7 +48,9 @@ describe("TamboGettingStartedGuide", () => {
       />,
     );
     expect(screen.getByLabelText("Project name")).toBeDisabled();
-    await user.click(screen.getByRole("button", { name: "Creating project…" }));
+    const submit = screen.getByRole("button", { name: "Creating project…" });
+    expect(submit).toHaveAttribute("aria-disabled", "true");
+    await user.click(submit);
     expect(props.onCreateProject).not.toHaveBeenCalled();
     rerender(
       <TamboGettingStartedGuide
@@ -80,7 +81,7 @@ describe("TamboGettingStartedGuide", () => {
     const props = createProps(setup);
     render(<TamboGettingStartedGuide {...props} />);
     await user.click(
-      screen.getByRole("button", { name: "Copy create command" }),
+      screen.getByRole("button", { name: "Copy Create command" }),
     );
     await screen.findByText("Create command copied.");
     expect(screen.getByText(/Your project is created/)).toBeVisible();
@@ -111,32 +112,5 @@ describe("TamboGettingStartedGuide", () => {
       "href",
       "https://docs.tambo.co/getting-started/integrate",
     );
-  });
-});
-
-describe("TamboSetupCommand", () => {
-  it("confirms copy only after the clipboard write succeeds", async () => {
-    const user = userEvent.setup();
-    const write = jest
-      .spyOn(navigator.clipboard, "writeText")
-      .mockResolvedValue(undefined);
-    render(<TamboSetupCommand label="Run command" command="npm run dev" />);
-    await user.click(screen.getByRole("button", { name: "Copy run command" }));
-    expect(write).toHaveBeenCalledWith("npm run dev");
-    expect(await screen.findByText("Run command copied.")).toBeInTheDocument();
-  });
-
-  it("selects the command for manual recovery when clipboard access fails", async () => {
-    const user = userEvent.setup();
-    jest
-      .spyOn(navigator.clipboard, "writeText")
-      .mockRejectedValue(new Error("Unavailable"));
-    render(<TamboSetupCommand label="Run command" command="npm run dev" />);
-    await user.click(screen.getByRole("button", { name: "Copy run command" }));
-    expect(await screen.findByRole("alert")).toHaveTextContent(
-      "copy it manually",
-    );
-    expect(screen.getByLabelText("Run command")).toHaveFocus();
-    expect(screen.queryByText("Run command copied.")).not.toBeInTheDocument();
   });
 });

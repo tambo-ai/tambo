@@ -17,7 +17,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { motion } from "framer-motion";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -30,7 +30,7 @@ import * as z from "zod/v3";
 interface CreateProjectDialogProps {
   /** Whether the dialog is open */
   open?: boolean;
-  /** Callback function when dialog open state changes. Can be empty function when embedded. */
+  /** Callback function when dialog open state changes. */
   onOpenChange?: (open: boolean) => void;
   /**
    * Callback function when form is submitted
@@ -38,21 +38,6 @@ interface CreateProjectDialogProps {
    * @returns Promise resolving to an object containing the created project's ID
    */
   onSubmit: (projectName: string) => Promise<{ id: string }>;
-  /** Optional callback function when back button is clicked */
-  onBack?: () => void;
-  /**
-   * Controls how the dialog content is rendered
-   * @default false
-   * - When true: Renders only the form content without dialog wrapper (for embedding in other dialogs)
-   * - When false: Renders as a standalone dialog with its own modal wrapper
-   * @example
-   * // Inside another dialog (e.g., onboarding wizard)
-   * <CreateProjectDialog embedded={true} onOpenChange={() => {}} />
-   *
-   * // As standalone dialog
-   * <CreateProjectDialog embedded={false} onOpenChange={setIsOpen} />
-   */
-  embedded?: boolean;
   /** Custom title for the dialog */
   title?: string;
   /**
@@ -88,8 +73,7 @@ const itemVariants = {
 };
 
 /**
- * A dialog component for creating new projects. Can be used either as a standalone dialog
- * or embedded within another dialog (like the onboarding wizard).
+ * A dialog component for creating new projects.
  *
  * @component
  * @example
@@ -101,20 +85,6 @@ const itemVariants = {
  *   onSubmit={handleCreateProject}
  *   title="Create New Project"
  * />
- * ```
- *
- * @example
- * // Embedded within another dialog
- * ```tsx
- * <Dialog>
- *   <DialogContent>
- *     <CreateProjectDialog
- *       embedded={true}
- *       onOpenChange={() => {}}
- *       onSubmit={handleCreateProject}
- *     />
- *   </DialogContent>
- * </Dialog>
  * ```
  *
  * @example
@@ -132,8 +102,6 @@ export function CreateProjectDialog({
   open = true,
   onOpenChange,
   onSubmit,
-  onBack,
-  embedded = false,
   title = "Create New Project",
   preventNavigation = false,
 }: CreateProjectDialogProps) {
@@ -167,13 +135,11 @@ export function CreateProjectDialog({
 
   const formContent = (
     <motion.div initial="hidden" animate="visible" variants={containerVariants}>
-      {!embedded && (
-        <DialogHeader className="mb-6">
-          <motion.div variants={itemVariants}>
-            <DialogTitle className="font-semibold">{title}</DialogTitle>
-          </motion.div>
-        </DialogHeader>
-      )}
+      <DialogHeader className="mb-6">
+        <motion.div variants={itemVariants}>
+          <DialogTitle className="font-semibold">{title}</DialogTitle>
+        </motion.div>
+      </DialogHeader>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-2">
           <motion.div variants={itemVariants}>
@@ -200,21 +166,13 @@ export function CreateProjectDialog({
           </motion.div>
           <motion.div variants={itemVariants} className="pt-2">
             <DialogFooter>
-              {onBack && (
-                <Button type="button" variant="outline" onClick={onBack}>
-                  <ArrowLeft className="mr-2 h-4 w-4" />
-                  Back
-                </Button>
-              )}
-              {!embedded && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => onOpenChange?.(false)}
-                >
-                  Cancel
-                </Button>
-              )}
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChange?.(false)}
+              >
+                Cancel
+              </Button>
               <Button type="submit" disabled={isLoading}>
                 {isLoading ? (
                   <>
@@ -231,10 +189,6 @@ export function CreateProjectDialog({
       </Form>
     </motion.div>
   );
-
-  if (embedded) {
-    return formContent;
-  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

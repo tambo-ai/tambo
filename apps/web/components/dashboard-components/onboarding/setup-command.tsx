@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { useClipboard } from "@/hooks/use-clipboard";
 import { Check, Copy } from "lucide-react";
 import { type FC, useId, useRef, useState } from "react";
 
@@ -14,17 +15,17 @@ export const TamboSetupCommand: FC<TamboSetupCommandProps> = ({
   label,
   command,
 }) => {
-  const [status, setStatus] = useState<"idle" | "copying" | "copied" | "error">(
-    "idle",
-  );
+  const [status, setStatus] = useState<"idle" | "copying" | "error">("idle");
+  const [copied, copy] = useClipboard(command);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const id = useId();
 
   const handleCopy = async () => {
+    if (status === "copying") return;
     setStatus("copying");
     try {
-      await navigator.clipboard.writeText(command);
-      setStatus("copied");
+      if (!(await copy())) throw new Error("Clipboard unavailable");
+      setStatus("idle");
     } catch {
       setStatus("error");
       inputRef.current?.focus();
@@ -35,7 +36,7 @@ export const TamboSetupCommand: FC<TamboSetupCommandProps> = ({
   return (
     <div className="flex min-w-0 flex-col gap-2">
       <div className="flex items-center justify-between gap-3">
-        <label className="text-sm font-medium" htmlFor={id}>
+        <label className="text-sm font-medium" htmlFor={id} id={`${id}-label`}>
           {label}
         </label>
         <Button
@@ -44,15 +45,17 @@ export const TamboSetupCommand: FC<TamboSetupCommandProps> = ({
           size="sm"
           className="gap-2"
           onClick={() => void handleCopy()}
-          disabled={status === "copying"}
-          aria-label={`Copy ${label.toLowerCase()}`}
+          aria-disabled={status === "copying"}
+          aria-labelledby={`${id}-copy-action ${id}-label`}
         >
-          {status === "copied" ? (
+          {copied && status !== "error" ? (
             <Check aria-hidden="true" className="h-4 w-4" />
           ) : (
             <Copy aria-hidden="true" className="h-4 w-4" />
           )}
-          {status === "copied" ? "Copied" : "Copy"}
+          <span id={`${id}-copy-action`}>
+            {copied && status !== "error" ? "Copied" : "Copy"}
+          </span>
         </Button>
       </div>
       <Textarea
@@ -66,7 +69,7 @@ export const TamboSetupCommand: FC<TamboSetupCommandProps> = ({
         aria-describedby={status === "error" ? `${id}-error` : undefined}
       />
       <span className="sr-only" role="status">
-        {status === "copied" ? `${label} copied.` : ""}
+        {copied && status !== "error" ? `${label} copied.` : ""}
       </span>
       {status === "error" && (
         <p id={`${id}-error`} role="alert" className="text-sm text-destructive">

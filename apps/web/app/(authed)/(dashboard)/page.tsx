@@ -143,11 +143,13 @@ export default function DashboardPage() {
 
   if (projectLoadingError && !projects && !setupProject) {
     return (
-      <TamboGettingStartedGuide
-        state={{ status: "error" }}
-        onRetryLoad={() => void refetchProjects()}
-        onCreateProject={handleCreateFirstProject}
-      />
+      <div className="py-6 md:py-14">
+        <TamboGettingStartedGuide
+          state={{ status: "error" }}
+          onRetryLoad={() => void refetchProjects()}
+          onCreateProject={handleCreateFirstProject}
+        />
+      </div>
     );
   }
 

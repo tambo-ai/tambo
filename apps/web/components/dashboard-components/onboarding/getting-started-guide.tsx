@@ -79,7 +79,6 @@ export const TamboGettingStartedGuide: FC<TamboGettingStartedGuideProps> = ({
               creation={state.creation}
               onCreateProject={onCreateProject}
             />
-            {referralQuestion}
           </div>
         )}
         {state.status === "project-created" && (
@@ -88,7 +87,7 @@ export const TamboGettingStartedGuide: FC<TamboGettingStartedGuideProps> = ({
               <h2
                 ref={nextStepRef}
                 tabIndex={-1}
-                className="text-lg font-medium"
+                className="rounded-sm text-lg font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4"
               >
                 Connect {state.project.name}
               </h2>
@@ -121,7 +120,11 @@ export const TamboGettingStartedGuide: FC<TamboGettingStartedGuideProps> = ({
             </Button>
           </div>
         )}
-        <div className="flex flex-wrap gap-x-5 gap-y-3 border-t border-border pt-5 text-sm">
+        {state.status !== "error" && referralQuestion}
+        <nav
+          aria-label="Project setup guides"
+          className="flex flex-wrap gap-x-5 gap-y-3 border-t border-border pt-5 text-sm"
+        >
           <Link
             className="underline underline-offset-4"
             href="https://docs.tambo.co/getting-started/quickstart"
@@ -134,7 +137,7 @@ export const TamboGettingStartedGuide: FC<TamboGettingStartedGuideProps> = ({
           >
             Already have a React app?
           </Link>
-        </div>
+        </nav>
       </CardContent>
     </Card>
   );

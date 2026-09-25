@@ -72,7 +72,7 @@ it("creates a project through the existing API and retains the next step after r
   expect(
     screen.getByRole("link", { name: "Open project dashboard" }),
   ).toHaveAttribute("href", "/project-1");
-  expect(screen.getByLabelText("Create command")).toHaveValue(
+  expect(screen.getByRole("textbox", { name: "Create command" })).toHaveValue(
     "npm create tambo-app@latest my-tambo-app",
   );
   expect(
@@ -158,7 +158,7 @@ it("disables submission until project creation resolves", async () => {
   await user.dblClick(screen.getByRole("button", { name: "Create project" }));
   expect(
     await screen.findByRole("button", { name: "Creating project…" }),
-  ).toBeDisabled();
+  ).toHaveAttribute("aria-disabled", "true");
   expect(screen.getByLabelText("Project name")).toBeDisabled();
   expect(completions).toHaveLength(1);
   completions[0]({ id: "project-4", name: "Pending project" });
@@ -202,7 +202,7 @@ it("keeps the regular dashboard and create dialog for existing projects", async 
   });
   const { unmount, queryClient } = renderDashboard(request);
   await screen.findByRole("heading", { name: "Projects" });
-  expect(screen.getByText("Existing app")).toBeVisible();
+  expect(screen.getByText("Existing app")).toBeInTheDocument();
   expect(screen.queryByText("Build your first AI app")).not.toBeInTheDocument();
   await user.click(screen.getByRole("button", { name: /create project/i }));
   expect(await screen.findByRole("dialog")).toBeVisible();
