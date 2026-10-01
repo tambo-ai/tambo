@@ -88,18 +88,18 @@
     "fast-uri": "3.1.5",
     "hono": "4.13.0",
     "ip-address": "10.4.0",
-    "js-yaml": "5.2.2",
+    "js-yaml": "5.4.1",
     "@istanbuljs/load-nyc-config": {
-      "js-yaml": "5.2.2"
+      "js-yaml": "5.4.1"
     },
     "@nestjs/swagger": {
-      "js-yaml": "5.2.2"
+      "js-yaml": "5.4.1"
     },
     "concurrently": {
       "shell-quote": "1.9.0"
     },
     "gray-matter": {
-      "js-yaml": "5.2.2"
+      "js-yaml": "5.4.1"
     },
     "next": {
       "postcss": "8.5.23",
