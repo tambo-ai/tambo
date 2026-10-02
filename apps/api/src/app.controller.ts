@@ -16,6 +16,7 @@ import {
 } from "@nestjs/swagger";
 import { operations } from "@tambo-ai-cloud/db";
 import { type Request } from "express";
+import { SkipThrottle } from "@nestjs/throttler";
 import { AppService } from "./app.service";
 import {
   CreateMcpAccessTokenDto,
@@ -34,11 +35,13 @@ export class AppController {
     private readonly authService: AuthService,
   ) {}
 
+  @SkipThrottle()
   @Get()
   getHello(): string {
     return this.appService.getHello();
   }
 
+  @SkipThrottle()
   @Get("health")
   async checkHealth() {
     const health = await this.appService.checkHealth();

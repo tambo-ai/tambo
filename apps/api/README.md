@@ -60,6 +60,19 @@ src/
 2. Enter `x-api-key` header (generate from the dashboard)
 3. Endpoints note when bearer tokens are required
 
+## Rate Limiting
+
+- Global guard: `common/rate-limit/rate-limit.guard.ts` (registered by
+  `common/rate-limit/rate-limit.module.ts`) enforces `RATE_LIMIT_DEFAULT`
+  (default 100) requests per minute, per endpoint, per client IP.
+- Over-limit responses are RFC 9457 Problem Details 429s with `Retry-After`
+  and `X-RateLimit-*` headers; health endpoints (`GET /`, `GET /health`) are
+  exempt via `@SkipThrottle()`.
+- Counters are in-memory (per process) and proxy headers are not trusted, so
+  limits are approximate behind load balancers or with multiple replicas.
+  Per-project limits keyed on the validated project identity are planned as a
+  follow-up.
+
 ## Observability
 
 - Sentry configured in `src/sentry.ts` with tags (`projectId`, `threadId`, etc.).
