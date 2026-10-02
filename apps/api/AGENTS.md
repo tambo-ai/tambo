@@ -62,6 +62,7 @@ apps/api/src
 - Guards must fail fast with clear messages. No silent fallbacks or defaulting to the first project.
 - Reuse `ProjectAccessOwnGuard` for project-scoped routes; do not clone guard logic.
 - When adding a new auth path, update Swagger decorators so docs stay accurate.
+- Rate limiting is enforced by the global `RateLimitGuard` (`common/rate-limit/`); infra endpoints use method-level `@SkipThrottle()`, never class-level (it would suppress per-route `@Throttle()` tiers). Enforcement is opt-in via `RATE_LIMIT_ENABLED`; client IPs are trusted only for the `TRUST_PROXY` hop count, never by default.
 
 ## Data Access
 

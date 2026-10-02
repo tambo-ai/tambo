@@ -162,8 +162,9 @@ In general, try to fit changes into the following categories. If you can't find 
      - types - V1 TypeScript interfaces and types
      - providers - V1 provider components
    - rest-api - OpenAPI specification for Tambo Cloud REST API
-   - **problems/** (1 page)
+   - **problems/** (2 pages)
      - endpoint-deprecated - Documentation for endpoint deprecation errors (410 Gone)
+     - rate-limit - Documentation for rate limit errors (429 Too Many Requests)
    - **cli/** (6 pages including index)
      - global-options - Global CLI options
      - configuration - CSS and Tailwind configuration

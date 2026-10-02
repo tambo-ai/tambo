@@ -4,23 +4,33 @@ import "./sentry";
 import { INestApplication, ValidationPipe } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { HttpAdapterHost, NestFactory } from "@nestjs/core";
+import { NestExpressApplication } from "@nestjs/platform-express";
 import { SwaggerModule } from "@nestjs/swagger";
 import * as Sentry from "@sentry/nestjs";
 import { json, urlencoded } from "express";
 import helmet from "helmet";
 import { AppModule } from "./app.module";
 import { DomainExceptionFilter } from "./common/filters/domain-exception.filter";
+import { RateLimitExceptionFilter } from "./common/filters/rate-limit-exception.filter";
+import { parseTrustProxyEnv } from "./common/rate-limit/rate-limit.config";
 import { SentryExceptionFilter } from "./common/filters/sentry-exception.filter";
 import { generateOpenAPIConfig } from "./common/openapi";
 import { registerHandler } from "./mcp-server/server";
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, { cors: true });
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
+    cors: true,
+  });
+
+  // Trust only the configured number of proxy hops for client addresses
+  // (default: none). Never "true": it would trust attacker-controlled headers.
+  app.set("trust proxy", parseTrustProxyEnv(app.get(ConfigService)));
 
   const { httpAdapter } = app.get(HttpAdapterHost);
   app.useGlobalFilters(
     new SentryExceptionFilter(httpAdapter),
     new DomainExceptionFilter(),
+    new RateLimitExceptionFilter(),
   );
 
   app.useGlobalPipes(new ValidationPipe({ transform: true }));

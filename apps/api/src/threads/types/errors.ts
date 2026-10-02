@@ -107,3 +107,9 @@ export class FreeLimitReachedError extends HttpException {
     );
   }
 }
+
+export class RateLimitException extends HttpException {
+  constructor(problemDetails: ProblemDetails) {
+    super(problemDetails, HttpStatus.TOO_MANY_REQUESTS);
+  }
+}
