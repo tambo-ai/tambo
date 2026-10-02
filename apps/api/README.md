@@ -63,14 +63,19 @@ src/
 ## Rate Limiting
 
 - Global guard: `common/rate-limit/rate-limit.guard.ts` (registered by
-  `common/rate-limit/rate-limit.module.ts`) enforces `RATE_LIMIT_DEFAULT`
-  (default 100) requests per minute, per endpoint, per client IP.
+  `common/rate-limit/rate-limit.module.ts`) allows `RATE_LIMIT_DEFAULT`
+  (default 100) requests per minute, per endpoint, per client IP, with a
+  60-second TTL. Enforcement is opt-in via `RATE_LIMIT_ENABLED=true`.
+- Client IPs are trusted only for the `TRUST_PROXY` hop count (default:
+  none). Leave it unset when exposed directly; set it behind a reverse
+  proxy or ingress, otherwise all clients share one bucket.
 - Over-limit responses are RFC 9457 Problem Details 429s with `Retry-After`
   and `X-RateLimit-*` headers; health endpoints (`GET /`, `GET /health`) are
   exempt via `@SkipThrottle()`.
-- Counters are in-memory (per process) and proxy headers are not trusted, so
-  limits are approximate behind load balancers or with multiple replicas.
-  Per-project limits keyed on the validated project identity are planned as a
+- Budgets are per egress IP, so backends calling on behalf of end users
+  share one budget, and each agentic tool round counts against it. Counters
+  are in-memory (per process).
+- Per-project limits keyed on the validated project identity are planned as a
   follow-up.
 
 ## Observability

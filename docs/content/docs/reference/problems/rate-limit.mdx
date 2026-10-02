@@ -5,7 +5,7 @@ description: Error response when API requests exceed the rate limit
 
 The API returns a `429 Too Many Requests` status with this problem type when you exceed the configured request rate.
 
-Limits apply per API endpoint, per client source address, over a fixed 60-second window. The default budget is 100 requests per minute per endpoint, tunable with the `RATE_LIMIT_DEFAULT` environment variable. Health endpoints (`GET /`, `GET /health`) are exempt.
+Limits apply per API endpoint, per client source address, with a 60-second TTL: each request counts for 60 seconds, and once an endpoint's budget is spent further requests are rejected until the window resets. The default budget is 100 requests per minute per endpoint, tunable with the `RATE_LIMIT_DEFAULT` environment variable. Health endpoints (`GET /`, `GET /health`) are exempt.
 
 ## Response Format
 
@@ -29,7 +29,7 @@ Limits apply per API endpoint, per client source address, over a fixed 60-second
 
 ## Rate Limit Headers
 
-Every response carries rate limit headers:
+Responses that pass through the rate limiter carry these headers (exempt routes and handlers mounted outside NestJS do not):
 
 - **`X-RateLimit-Limit`** - Requests allowed per window for this endpoint
 - **`X-RateLimit-Remaining`** - Requests remaining in the current window
@@ -43,6 +43,14 @@ When you receive this error:
 1. Read the `Retry-After` header and wait that long before retrying
 2. Back off exponentially if you keep receiving `429` responses
 3. Contact support if your workload legitimately needs a higher limit
+
+## Configuration
+
+Rate limiting ships disabled: set `RATE_LIMIT_ENABLED=true` to enforce it. When the API runs behind a reverse proxy or ingress, set `TRUST_PROXY` to the number of trusted proxy hops so limits track originating clients; leave it unset when the API is exposed directly, otherwise every client shares one bucket.
+
+## Shared Budgets
+
+Budgets are keyed per client IP, so everyone behind one egress address shares them: office NATs, VPNs, and your own backend when it calls the API on behalf of end users. Each agentic tool round counts as a request against the same budget, so long tool-using runs consume it quickly.
 
 ## See Also
 

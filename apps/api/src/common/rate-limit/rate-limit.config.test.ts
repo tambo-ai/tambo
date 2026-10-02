@@ -2,7 +2,9 @@ import { ConfigService } from "@nestjs/config";
 import {
   RATE_LIMIT_DEFAULT,
   RATE_LIMIT_MAX,
+  isRateLimitEnabled,
   parseRateLimitEnv,
+  parseTrustProxyEnv,
   resolveRateLimitDefault,
 } from "./rate-limit.config";
 
@@ -100,5 +102,59 @@ describe("resolveRateLimitDefault", () => {
     } finally {
       delete process.env.RATE_LIMIT_DEFAULT;
     }
+  });
+});
+
+describe("isRateLimitEnabled", () => {
+  it("is disabled when unset or empty", () => {
+    expect(isRateLimitEnabled(createConfigService({}))).toBe(false);
+    expect(
+      isRateLimitEnabled(createConfigService({ RATE_LIMIT_ENABLED: "" })),
+    ).toBe(false);
+  });
+
+  it.each(["true", "True", " TRUE "])("enables on %s", (value) => {
+    expect(
+      isRateLimitEnabled(createConfigService({ RATE_LIMIT_ENABLED: value })),
+    ).toBe(true);
+  });
+
+  it.each(["false", "False", " FALSE "])("stays disabled on %s", (value) => {
+    expect(
+      isRateLimitEnabled(createConfigService({ RATE_LIMIT_ENABLED: value })),
+    ).toBe(false);
+  });
+
+  it.each(["yes", "1", "on"])("rejects %s", (value) => {
+    expect(() =>
+      isRateLimitEnabled(createConfigService({ RATE_LIMIT_ENABLED: value })),
+    ).toThrow(`Invalid RATE_LIMIT_ENABLED="${value}"`);
+  });
+});
+
+describe("parseTrustProxyEnv", () => {
+  it("trusts nothing when unset, empty, or false", () => {
+    expect(parseTrustProxyEnv(createConfigService({}))).toBe(false);
+    expect(parseTrustProxyEnv(createConfigService({ TRUST_PROXY: "" }))).toBe(
+      false,
+    );
+    expect(
+      parseTrustProxyEnv(createConfigService({ TRUST_PROXY: "false" })),
+    ).toBe(false);
+    expect(
+      parseTrustProxyEnv(createConfigService({ TRUST_PROXY: " False " })),
+    ).toBe(false);
+  });
+
+  it.each(["0", "1", "2"])("trusts %s hops", (value) => {
+    expect(
+      parseTrustProxyEnv(createConfigService({ TRUST_PROXY: value })),
+    ).toBe(Number(value));
+  });
+
+  it.each(["true", "yes", "-1", "1.5", "0x1", "one"])("rejects %s", (value) => {
+    expect(() =>
+      parseTrustProxyEnv(createConfigService({ TRUST_PROXY: value })),
+    ).toThrow(`Invalid TRUST_PROXY="${value}"`);
   });
 });
