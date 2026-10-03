@@ -165,6 +165,111 @@ describe("useTamboStreamStatus", () => {
   });
 
   describe("Streaming State Transitions", () => {
+    it("tracks nested fields independently as their content arrives", () => {
+      interface ProfileProps {
+        user: { name: string; email: string | null };
+      }
+      const setProps = (
+        props: ProfileProps,
+        streamingState: "streaming" | "done",
+      ) => {
+        const component = createComponentContent({ props, streamingState });
+        mockUseStreamState.mockReturnValue(
+          createStreamState(createThreadState([createMessage(component)])),
+        );
+      };
+
+      setProps({ user: { name: "Ada", email: null } }, "streaming");
+      const { result, rerender } = renderHook(() =>
+        useTamboStreamStatus<ProfileProps>(),
+      );
+
+      expect(result.current.propStatus.user?.isStreaming).toBe(true);
+      expect(result.current.propStatus.user?.name?.isStreaming).toBe(true);
+      expect(result.current.propStatus.user?.email?.isPending).toBe(true);
+
+      setProps(
+        { user: { name: "Ada", email: "ada@example.com" } },
+        "streaming",
+      );
+      rerender();
+      expect(result.current.propStatus.user?.email?.isStreaming).toBe(true);
+
+      setProps({ user: { name: "Ada", email: "ada@example.com" } }, "done");
+      rerender();
+      expect(result.current.propStatus.user?.name?.isSuccess).toBe(true);
+      expect(result.current.propStatus.user?.email?.isSuccess).toBe(true);
+    });
+
+    it("separates completed array items from the trailing streaming item", () => {
+      interface ListProps {
+        recommendations: { id: number; label: string }[];
+      }
+      const setItems = (
+        recommendations: ListProps["recommendations"],
+        streamingState: "streaming" | "done",
+      ) => {
+        const component = createComponentContent({
+          props: { recommendations },
+          streamingState,
+        });
+        mockUseStreamState.mockReturnValue(
+          createStreamState(createThreadState([createMessage(component)])),
+        );
+      };
+
+      setItems([], "streaming");
+      const { result, rerender } = renderHook(() =>
+        useTamboStreamStatus<ListProps>(),
+      );
+      expect(result.current.propStatus.recommendations?.completedItems).toEqual(
+        [],
+      );
+      expect(result.current.propStatus.recommendations?.streamingItems).toEqual(
+        [],
+      );
+
+      setItems([{ id: 1, label: "First" }], "streaming");
+      rerender();
+      expect(result.current.propStatus.recommendations?.completedItems).toEqual(
+        [],
+      );
+      expect(result.current.propStatus.recommendations?.streamingItems).toEqual(
+        [{ id: 1, label: "First" }],
+      );
+
+      setItems(
+        [
+          { id: 1, label: "First" },
+          { id: 2, label: "Second" },
+        ],
+        "streaming",
+      );
+      rerender();
+      expect(result.current.propStatus.recommendations?.completedItems).toEqual(
+        [{ id: 1, label: "First" }],
+      );
+      expect(result.current.propStatus.recommendations?.streamingItems).toEqual(
+        [{ id: 2, label: "Second" }],
+      );
+
+      setItems(
+        [
+          { id: 1, label: "First" },
+          { id: 2, label: "Second" },
+        ],
+        "done",
+      );
+      rerender();
+      expect(
+        result.current.propStatus.recommendations?.completedItems,
+      ).toHaveLength(2);
+      expect(result.current.propStatus.recommendations?.streamingItems).toEqual(
+        [],
+      );
+      expect(result.current.propStatus.recommendations?.isSuccess).toBe(true);
+    });
+
     it("should show isStreaming when component is streaming even before props receive content", () => {
       // Component is streaming but props are still empty
       const componentContent = createComponentContent({

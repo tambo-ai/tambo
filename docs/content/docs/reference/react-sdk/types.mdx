@@ -638,6 +638,11 @@ interface PropStatus {
 }
 ```
 
+`PropStatusMap<Props>` preserves the shape of nested object props, so a nested
+field can be checked with `propStatus.user?.name?.isStreaming`. Array props also
+provide `completedItems` and `streamingItems`. While streaming, the last item is
+treated as in progress; when the component finishes, all items are complete.
+
 | Property      | Type      | Description                                        |
 | ------------- | --------- | -------------------------------------------------- |
 | `isPending`   | `boolean` | No tokens received for this prop yet               |
