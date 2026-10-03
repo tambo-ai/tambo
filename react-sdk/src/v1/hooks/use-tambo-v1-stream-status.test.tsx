@@ -78,7 +78,7 @@ function createThreadState(
       lastRunCancelled: false,
     },
     streaming: {
-      status: "idle",
+      status: "streaming",
     },
     accumulatingToolArgs: {},
     ...overrides,
@@ -165,6 +165,205 @@ describe("useTamboStreamStatus", () => {
   });
 
   describe("Streaming State Transitions", () => {
+    it("tracks nested fields independently as their content arrives", () => {
+      interface ProfileProps {
+        user: { name: string; email: string | null };
+      }
+      const setProps = (
+        props: ProfileProps,
+        streamingState: "streaming" | "done",
+      ) => {
+        const component = createComponentContent({ props, streamingState });
+        mockUseStreamState.mockReturnValue(
+          createStreamState(createThreadState([createMessage(component)])),
+        );
+      };
+
+      setProps({ user: { name: "Ada", email: null } }, "streaming");
+      const { result, rerender } = renderHook(() =>
+        useTamboStreamStatus<ProfileProps>(),
+      );
+
+      expect(result.current.propStatus.user?.isStreaming).toBe(true);
+      expect(result.current.propStatus.user?.fields?.name?.isStreaming).toBe(
+        true,
+      );
+      expect(result.current.propStatus.user?.fields?.email?.isPending).toBe(
+        true,
+      );
+
+      setProps(
+        { user: { name: "Ada", email: "ada@example.com" } },
+        "streaming",
+      );
+      rerender();
+      expect(result.current.propStatus.user?.fields?.email?.isStreaming).toBe(
+        true,
+      );
+
+      setProps({ user: { name: "Ada", email: "ada@example.com" } }, "done");
+      rerender();
+      expect(result.current.propStatus.user?.fields?.name?.isSuccess).toBe(
+        true,
+      );
+      expect(result.current.propStatus.user?.fields?.email?.isSuccess).toBe(
+        true,
+      );
+    });
+
+    it("keeps nested fields whose names match status flags", () => {
+      interface FormProps {
+        form: { error: string; isPending: string };
+      }
+      const component = createComponentContent({
+        props: { form: { error: "Invalid code", isPending: "Queued" } },
+        streamingState: "streaming",
+      });
+      mockUseStreamState.mockReturnValue(
+        createStreamState(createThreadState([createMessage(component)])),
+      );
+
+      const { result } = renderHook(() => useTamboStreamStatus<FormProps>());
+
+      expect(result.current.propStatus.form?.error).toBeUndefined();
+      expect(result.current.propStatus.form?.fields?.error?.isStreaming).toBe(
+        true,
+      );
+      expect(
+        result.current.propStatus.form?.fields?.isPending?.isStreaming,
+      ).toBe(true);
+    });
+
+    it("separates completed array items from the trailing streaming item", () => {
+      interface ListProps {
+        recommendations: { id: number; label: string }[];
+      }
+      const setItems = (
+        recommendations: ListProps["recommendations"],
+        streamingState: "streaming" | "done",
+      ) => {
+        const component = createComponentContent({
+          props: { recommendations },
+          streamingState,
+        });
+        mockUseStreamState.mockReturnValue(
+          createStreamState(createThreadState([createMessage(component)])),
+        );
+      };
+
+      setItems([], "streaming");
+      const { result, rerender } = renderHook(() =>
+        useTamboStreamStatus<ListProps>(),
+      );
+      expect(result.current.propStatus.recommendations?.completedItems).toEqual(
+        [],
+      );
+      expect(result.current.propStatus.recommendations?.streamingItems).toEqual(
+        [],
+      );
+
+      setItems([{ id: 1, label: "First" }], "streaming");
+      rerender();
+      expect(result.current.propStatus.recommendations?.completedItems).toEqual(
+        [],
+      );
+      expect(result.current.propStatus.recommendations?.streamingItems).toEqual(
+        [{ id: 1, label: "First" }],
+      );
+
+      setItems(
+        [
+          { id: 1, label: "First" },
+          { id: 2, label: "Second" },
+        ],
+        "streaming",
+      );
+      rerender();
+      expect(result.current.propStatus.recommendations?.completedItems).toEqual(
+        [{ id: 1, label: "First" }],
+      );
+      expect(result.current.propStatus.recommendations?.streamingItems).toEqual(
+        [{ id: 2, label: "Second" }],
+      );
+
+      setItems(
+        [
+          { id: 1, label: "First" },
+          { id: 2, label: "Second" },
+        ],
+        "done",
+      );
+      rerender();
+      expect(result.current.propStatus.recommendations?.completedItems).toEqual(
+        [
+          { id: 1, label: "First" },
+          { id: 2, label: "Second" },
+        ],
+      );
+      expect(result.current.propStatus.recommendations?.streamingItems).toEqual(
+        [],
+      );
+      expect(result.current.propStatus.recommendations?.isSuccess).toBe(true);
+    });
+
+    it.each(["cancelled", "errored"])(
+      "exposes the trailing array item after a run is %s",
+      (outcome) => {
+        interface ListProps {
+          recommendations: { id: number; label: string }[];
+        }
+        const items = [
+          { id: 1, label: "First" },
+          { id: 2, label: "Second" },
+        ];
+        const component = createComponentContent({
+          props: { recommendations: items },
+          streamingState: "streaming",
+        });
+        const message = createMessage(component);
+        const activeThread = createThreadState([message]);
+        mockUseStreamState.mockReturnValue(createStreamState(activeThread));
+
+        const { result, rerender } = renderHook(() =>
+          useTamboStreamStatus<ListProps>(),
+        );
+        expect(
+          result.current.propStatus.recommendations?.streamingItems,
+        ).toEqual([items[1]]);
+
+        // A waiting run may resume, so its trailing item remains in progress.
+        mockUseStreamState.mockReturnValue(
+          createStreamState(
+            createThreadState([message], { streaming: { status: "waiting" } }),
+          ),
+        );
+        rerender();
+        expect(
+          result.current.propStatus.recommendations?.streamingItems,
+        ).toEqual([items[1]]);
+
+        const stoppedThread = createThreadState([message], {
+          streaming: {
+            status: "idle",
+            ...(outcome === "errored"
+              ? { error: { message: "Generation failed" } }
+              : {}),
+          },
+        });
+        mockUseStreamState.mockReturnValue(createStreamState(stoppedThread));
+        rerender();
+
+        expect(
+          result.current.propStatus.recommendations?.completedItems,
+        ).toEqual(items);
+        expect(
+          result.current.propStatus.recommendations?.streamingItems,
+        ).toEqual([]);
+        expect(result.current.streamStatus.isStreaming).toBe(false);
+        expect(result.current.streamStatus.isError).toBe(outcome === "errored");
+      },
+    );
+
     it("should show isStreaming when component is streaming even before props receive content", () => {
       // Component is streaming but props are still empty
       const componentContent = createComponentContent({
