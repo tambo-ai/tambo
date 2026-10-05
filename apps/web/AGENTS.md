@@ -25,6 +25,8 @@ npm run clean        # Remove .next/, dist/, coverage/
 
 Always run lint + type-check + tests before committing; PRs must keep everything passing.
 
+Keep the npm version in `apps/web/Dockerfile` aligned with the root `package.json` package manager pin. Container builds must use the same npm version as regular CI.
+
 ## Directory Structure
 
 ```

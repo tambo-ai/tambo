@@ -25,6 +25,8 @@ Add a reverse proxy (nginx, Caddy, or Traefik) in front of the web and API servi
 
 ## Building and pushing images
 
+The API and web Dockerfiles use the npm version pinned in the repository's root `package.json`. Keep those versions aligned when maintaining your images so container builds install the same locked dependencies as CI.
+
 Build the Docker images locally:
 
 ```bash
