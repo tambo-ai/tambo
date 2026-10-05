@@ -1,6 +1,7 @@
 "use client";
 
 import HeaderSearch from "@/components/header-search";
+import { SHUTDOWN_ANNOUNCEMENT_URL } from "@/lib/shutdown";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -62,10 +63,10 @@ export default function HeaderBar() {
                 </span>
               </Link>
               <Link
-                href="https://console.tambo.co"
+                href={SHUTDOWN_ANNOUNCEMENT_URL}
                 className="inline-flex items-center justify-center rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
               >
-                Dashboard
+                Shutdown notice
               </Link>
             </nav>
           </div>

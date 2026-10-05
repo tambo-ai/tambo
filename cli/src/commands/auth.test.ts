@@ -6,6 +6,7 @@ import {
   it,
   jest,
 } from "@jest/globals";
+import { SHUTDOWN_NOTICE_ENV_VAR } from "../utils/shutdown-notice.js";
 
 // Mock token-storage module
 let mockHasStoredToken = false;
@@ -264,6 +265,25 @@ describe("auth commands", () => {
   });
 
   describe("handleAuthLogin", () => {
+    it("prints the Tambo Cloud shutdown notice before logging in", async () => {
+      delete process.env[SHUTDOWN_NOTICE_ENV_VAR];
+      const warnSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
+      mockHasStoredToken = false;
+      mockDeviceAuthSuccess = true;
+
+      try {
+        const result = await handleAuthLogin();
+
+        const warnings = warnSpy.mock.calls.map((call) => `${call[0]}`);
+        expect(warnings.join("\n")).toContain("Tambo Cloud is shutting down");
+        // Non-blocking: login still proceeds
+        expect(result).toBe(0);
+      } finally {
+        warnSpy.mockRestore();
+        delete process.env[SHUTDOWN_NOTICE_ENV_VAR];
+      }
+    });
+
     it("prompts for re-auth when already authenticated", async () => {
       mockHasStoredToken = true;
       mockIsTokenValid = true;

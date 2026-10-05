@@ -3,9 +3,11 @@ title: init
 description: Use the `tambo init` command to create a Tambo project, get an API key, and configure authentication for your app.
 ---
 
+<include>../../../../shared/shutdown-callout.mdx</include>
+
 `npx tambo init`
 
-Walks you through creating a Tambo project and getting your free API Key. If you don't already have an account, <a href="https://console.tambo.co" className="text-secondary hover:underline font-medium">sign up for free</a> to get your API key.
+Walks you through creating a Tambo project and getting an API key. New Tambo Cloud signups are closed; if you don't already have an account, [self-host Tambo](https://github.com/tambo-ai/tambo/blob/main/SELF-HOSTING.md) and use an API key from your own instance.
 
 After obtaining your API key, you'll need to set it up in your project:
 
@@ -101,9 +103,11 @@ npx tambo init --api-key="$TAMBO_API_KEY"
 
 The init command offers two hosting options for your Tambo project:
 
-### Tambo Cloud (Recommended)
+### Tambo Cloud
 
 **Setup time:** ~1 minute
+
+Existing accounts only: new signups are closed, and Tambo Cloud stops responding after October 31, 2026. See the [announcement](https://tambo.co/blog/posts/tambo-is-shutting-down).
 
 The fastest way to get started. Tambo Cloud handles all backend infrastructure for you.
 
@@ -112,7 +116,6 @@ The fastest way to get started. Tambo Cloud handles all backend infrastructure f
 - Hosted AI backend
 - Automatic scaling
 - No infrastructure to manage
-- Free tier available
 
 **When to choose:**
 
@@ -121,7 +124,7 @@ The fastest way to get started. Tambo Cloud handles all backend infrastructure f
 - You're building a prototype or MVP
 - You want automatic updates and scaling
 
-### Self-Hosted
+### Self-Hosted (Recommended)
 
 **Setup time:** ~5-10 minutes
 
@@ -145,9 +148,9 @@ Run the Tambo backend on your own infrastructure using Docker.
 After selecting self-host, the CLI provides detailed instructions:
 
 ```bash
-? How would you like to host your Tambo project?
-  ❯ Tambo Cloud (~1 minute) [Recommended]
-    Self-host (~5-10 minutes)
+? Choose where to connect your app:
+  ❯ Self-host (time: 5-10 minutes) — recommended
+    Tambo Cloud — existing accounts only (signups closed; shuts down October 31, 2026)
 
 # If self-host selected:
 To self-host Tambo:

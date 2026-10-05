@@ -22,6 +22,7 @@ import {
 } from "../lib/token-storage.js";
 import { EVENTS, trackEvent } from "../lib/telemetry.js";
 import { GuidanceError, isInteractive } from "../utils/interactive.js";
+import { showShutdownNotice } from "../utils/shutdown-notice.js";
 
 export interface AuthStatusOptions {
   quiet?: boolean;
@@ -143,6 +144,7 @@ export async function handleAuthStatus(
  * @returns Exit code: 0 on success, 1 on failure
  */
 export async function handleAuthLogin(): Promise<number> {
+  showShutdownNotice();
   console.log(chalk.bold("\n🔐 Login to tambo\n"));
 
   // Check if already authenticated

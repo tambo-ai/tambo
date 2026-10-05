@@ -1,5 +1,9 @@
 # Self-Hosting Guide
 
+> **Tambo Cloud is shutting down.** New signups are closed, and the hosted API stops responding after **October 31, 2026** (user data is deleted November 30, 2026). [Read the announcement](https://tambo.co/blog/posts/tambo-is-shutting-down).
+> Self-hosting is the path forward for running Tambo after that date. This repository stays up, and this guide covers everything you need.
+> The team is now building [Charming](https://usecharming.com), a collaborative cloud for apps built with any AI agent.
+
 This guide is for deploying and self-hosting Tambo.
 
 > **Looking to contribute?** See [CONTRIBUTING.md](./CONTRIBUTING.md) for local development setup.

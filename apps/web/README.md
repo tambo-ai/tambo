@@ -12,6 +12,11 @@ npm run dev
 
 The dev server runs on `http://localhost:8260`.
 
+Cloud signup closure and shutdown notices are automatic when `NEXTAUTH_URL` uses
+`tambo.co` or one of its subdomains. Self-hosted deployments should use their own
+dashboard URL; signup remains enabled and the Cloud shutdown banner is hidden.
+No shutdown flag is required.
+
 ## Commands
 
 ```bash

@@ -7,6 +7,7 @@ import {
   jest,
 } from "@jest/globals";
 import { fs as memfsFs, vol } from "memfs";
+import { SHUTDOWN_NOTICE_ENV_VAR } from "../utils/shutdown-notice.js";
 
 const execFileSyncCalls: { args: string[]; file: string }[] = [];
 const mockRmSync = jest.fn((...args: Parameters<typeof memfsFs.rmSync>) =>
@@ -116,6 +117,23 @@ describe("handleCreateApp", () => {
       recursive: true,
       retryDelay: 100,
     });
+  });
+
+  it("prints the Tambo Cloud shutdown notice before creating the app", async () => {
+    delete process.env[SHUTDOWN_NOTICE_ENV_VAR];
+    const warnSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
+
+    try {
+      await handleCreateApp({ name: "notice-app", template: "standard" });
+
+      const warnings = warnSpy.mock.calls.map((call) => `${call[0]}`);
+      expect(warnings.join("\n")).toContain("Tambo Cloud is shutting down");
+      // Non-blocking: app creation still proceeds
+      expect(execFileSyncCalls[0]?.file).toBe("git");
+    } finally {
+      warnSpy.mockRestore();
+      delete process.env[SHUTDOWN_NOTICE_ENV_VAR];
+    }
   });
 
   it("refuses to remove a directory that is not named .git", () => {

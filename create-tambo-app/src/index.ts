@@ -1,6 +1,12 @@
 #!/usr/bin/env node
 
 import spawn from "cross-spawn";
+import {
+  SHUTDOWN_NOTICE_ENV_VAR,
+  showShutdownNotice,
+} from "./shutdown-notice.js";
+
+showShutdownNotice();
 
 // Use npx to ensure we get the latest version of tambo
 const args = ["-y", "tambo@latest", "create-app", ...process.argv.slice(2)];
@@ -10,6 +16,7 @@ const command = process.platform === "win32" ? "npx.cmd" : "npx";
 
 const child = spawn(command, args, {
   stdio: "inherit",
+  env: { ...process.env, [SHUTDOWN_NOTICE_ENV_VAR]: "1" },
 });
 
 // Handle the case where `npx` is not found on PATH. When not using a shell,

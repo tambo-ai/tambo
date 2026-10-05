@@ -48,6 +48,12 @@ apps/web
 - API routes under `app/api/` proxy to backend services (keep these thin; business logic belongs in `server/`).
 - Marketing/demos live alongside dashboard routes, so always scope imports to avoid bundling unnecessary admin code in public pages.
 
+### Tambo Cloud Shutdown
+
+- Shutdown behavior is automatic when `NEXTAUTH_URL` uses `tambo.co` or one of its subdomains; there is no shutdown environment flag.
+- Cloud sign-ins must match an existing provider account or email before NextAuth can create a user. Returning users can still sign in.
+- Self-hosted deployments use their own `NEXTAUTH_URL` and keep normal signup behavior without the shutdown banner.
+
 ## State & Data Patterns
 
 - **tRPC**: Client entrypoints live in `trpc/react.tsx`; server contexts live in `app/trpc/`. Always define new procedures in the API router and derive hooks via `trpc.<procedure>.useQuery()`.

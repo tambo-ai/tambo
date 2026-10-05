@@ -10,7 +10,7 @@ export const components: TamboComponent[] = [
   {
     name: "DashboardCard",
     description:
-      "A card component that directs users to the tambo dashboard, whenever a user asks to go to the dashboard, use this component to redirect them to the dashboard.",
+      "A card explaining that Tambo Cloud is shutting down (new signups are closed; the hosted API stops responding after October 31, 2026), linking to the shutdown announcement and the self-hosting guide. Whenever a user asks to go to the Tambo dashboard or console, sign up, log in, or get a Tambo Cloud API key, use this component.",
     component: DashboardCardComponent,
     propsSchema: z.object({}),
   },
