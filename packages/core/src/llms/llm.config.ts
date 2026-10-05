@@ -1,5 +1,6 @@
 import type { LlmProviderConfig } from "../llm-config-types";
 import { anthropicModels } from "./models/anthropic";
+import { atlasCloudModels } from "./models/atlascloud";
 import { cerebrasModels } from "./models/cerebras";
 import { geminiModels } from "./models/gemini";
 import { mistralModels } from "./models/mistral";
@@ -59,6 +60,13 @@ export const llmProviderConfig: LlmProviderConfig = {
     docLinkRoot: "https://inference-docs.cerebras.ai/",
     apiKeyLink: "https://cloud.cerebras.ai/",
     models: cerebrasModels,
+  },
+  atlascloud: {
+    apiName: "atlascloud",
+    displayName: "Atlas Cloud",
+    docLinkRoot: "https://atlascloud.ai/docs",
+    apiKeyLink: "https://atlascloud.ai/docs/api-keys",
+    models: atlasCloudModels,
   },
 };
 // Not using Groq for now because it is still giving some issues.

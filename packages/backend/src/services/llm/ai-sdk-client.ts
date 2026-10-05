@@ -93,6 +93,9 @@ function getProviderFromModel(model: string, provider: Provider): string {
     case "cerebras":
       // Cerebras uses openai-compatible provider with custom base URL
       return "openai-compatible";
+    case "atlascloud":
+      // Atlas Cloud uses openai-compatible provider with custom base URL
+      return "openai-compatible";
     default:
       // Fallback to OpenAI for unknown providers
       return "openai";
@@ -409,6 +412,9 @@ export class AISdkClient implements LLMClient {
         if (this.provider === "cerebras") {
           config.baseURL = "https://api.cerebras.ai/v1";
           config.providerName = "cerebras";
+        } else if (this.provider === "atlascloud") {
+          config.baseURL = "https://api.atlascloud.ai/v1";
+          config.providerName = "atlascloud";
         } else if (this.baseURL) {
           config.baseURL = this.baseURL;
         }

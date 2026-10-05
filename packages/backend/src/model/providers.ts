@@ -7,4 +7,5 @@ export type Provider =
   | "groq"
   | "openrouter"
   | "openai-compatible"
-  | "cerebras";
+  | "cerebras"
+  | "atlascloud";
