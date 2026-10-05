@@ -17,6 +17,8 @@ npm run postinstall  # Process MDX files (automatic)
 npm run postbuild    # Generate sitemap (automatic)
 ```
 
+The Docker Compose guide documents the CI smoke-test scope: PostgreSQL, API, and dashboard. Object storage requires separate configuration and testing.
+
 ## Architecture Overview
 
 ### Fumadocs Structure
