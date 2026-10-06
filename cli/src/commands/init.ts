@@ -35,6 +35,10 @@ import { handleAddComponent } from "./add/index.js";
 import { setupTailwindAndGlobals } from "./add/tailwind-setup.js";
 import { handleAgentDocsUpdate } from "./shared/agent-docs.js";
 import { getLibDirectory } from "./shared/path-utils.js";
+import {
+  SELF_HOSTING_URL,
+  showShutdownNotice,
+} from "../utils/shutdown-notice.js";
 
 /**
  * Creates a tambo.ts file with empty registry of tools and components
@@ -651,10 +655,13 @@ async function handleHostingChoiceAndAuth(): Promise<boolean> {
       name: "hostingChoice",
       message: "Choose where to connect your app:",
       choices: [
-        { name: "Cloud (time: 1 minute) — recommended", value: "cloud" },
-        { name: "Self-host (time: 5-10 minutes)", value: "self" },
+        { name: "Self-host (time: 5-10 minutes) — recommended", value: "self" },
+        {
+          name: "Tambo Cloud — existing accounts only (signups closed; shuts down October 31, 2026)",
+          value: "cloud",
+        },
       ],
-      default: "cloud",
+      default: "self",
     },
     chalk.yellow(
       `Cannot prompt for hosting choice in non-interactive mode. Please set ${getTamboApiKeyEnvVar()} in .env file manually.`,
@@ -678,14 +685,12 @@ async function handleHostingChoiceAndAuth(): Promise<boolean> {
       default: true,
     },
     chalk.yellow(
-      "Cannot prompt to open browser in non-interactive mode. Visit https://github.com/tambo-ai/tambo-cloud manually.",
+      "Cannot prompt to open browser in non-interactive mode. Visit https://github.com/tambo-ai/tambo/blob/main/SELF-HOSTING.md manually.",
     ),
   );
   if (openRepo) {
     try {
-      await open(
-        "https://github.com/tambo-ai/tambo/blob/main/README.md#getting-started",
-      );
+      await open("https://github.com/tambo-ai/tambo/blob/main/SELF-HOSTING.md");
     } catch (_e) {
       // non-fatal
     }
@@ -706,7 +711,10 @@ async function handleHostingChoiceAndAuth(): Promise<boolean> {
       message: "How would you like to proceed?",
       choices: [
         { name: "Paste API key (default)", value: "paste" },
-        { name: "Use Cloud instead (takes < 1 minute)", value: "cloud" },
+        {
+          name: "Use Tambo Cloud instead — existing accounts only (shuts down October 31, 2026)",
+          value: "cloud",
+        },
       ],
       default: "paste",
     },
@@ -1115,6 +1123,8 @@ export async function handleInit({
   projectName,
   projectId,
 }: InitOptions): Promise<void> {
+  showShutdownNotice();
+
   // In non-interactive mode, check if we have what we need
   if (!isInteractive()) {
     // If API key is provided directly, we can skip auth entirely
@@ -1213,7 +1223,7 @@ export async function handleInit({
 
     // No API key or project info provided - need guidance
     throw new GuidanceError("API key required in non-interactive mode", [
-      "npx tambo init --api-key=sk_...  # Get key from https://console.tambo.co",
+      `npx tambo init --api-key=sk_...  # Get a key from your self-hosted Tambo: ${SELF_HOSTING_URL}`,
       "npx tambo init --project-name=myapp   # Create new project (requires browser auth)",
       "npx tambo init --project-id=abc123    # Use existing project (requires browser auth)",
     ]);

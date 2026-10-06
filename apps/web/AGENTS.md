@@ -25,6 +25,8 @@ npm run clean        # Remove .next/, dist/, coverage/
 
 Always run lint + type-check + tests before committing; PRs must keep everything passing.
 
+Keep the npm version in `apps/web/Dockerfile` aligned with the root `package.json` package manager pin. Container builds must use the same npm version as regular CI.
+
 ## Directory Structure
 
 ```
@@ -47,6 +49,12 @@ apps/web
 - Segments such as `app/(authed)/` wrap authenticated dashboard routes; `app/login` and `app/oauth` handle entry flows.
 - API routes under `app/api/` proxy to backend services (keep these thin; business logic belongs in `server/`).
 - Marketing/demos live alongside dashboard routes, so always scope imports to avoid bundling unnecessary admin code in public pages.
+
+### Tambo Cloud Shutdown
+
+- Shutdown behavior is automatic when `NEXTAUTH_URL` uses `tambo.co` or one of its subdomains; there is no shutdown environment flag.
+- Cloud sign-ins must match an existing provider account or email before NextAuth can create a user. Returning users can still sign in.
+- Self-hosted deployments use their own `NEXTAUTH_URL` and keep normal signup behavior without the shutdown banner.
 
 ## State & Data Patterns
 

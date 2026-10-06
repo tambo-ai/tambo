@@ -2,6 +2,7 @@ import chalk from "chalk";
 import fs from "fs";
 import ora from "ora";
 import path from "path";
+import { showShutdownNotice } from "../utils/shutdown-notice.js";
 import {
   execFileSync,
   GuidanceError,
@@ -96,6 +97,8 @@ function updatePackageJson(targetDir: string, appName: string): void {
 export async function handleCreateApp(
   options: CreateAppOptions = {},
 ): Promise<void> {
+  showShutdownNotice();
+
   // In non-interactive mode, check if we have what we need
   if (!isInteractive() && !options.name) {
     throw new GuidanceError(

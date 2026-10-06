@@ -17,6 +17,8 @@ npm run postinstall  # Process MDX files (automatic)
 npm run postbuild    # Generate sitemap (automatic)
 ```
 
+The Docker Compose guide documents the CI smoke-test scope: PostgreSQL, API, and dashboard. Object storage requires separate configuration and testing.
+
 ## Architecture Overview
 
 ### Fumadocs Structure
@@ -394,6 +396,19 @@ When adding custom components:
 2. Register in `src/mdx-components.tsx`
 3. Ensure SSR compatibility
 4. Follow accessibility guidelines
+
+#### Shared MDX Snippets
+
+Reusable MDX content that must read identically on several pages lives in `content/shared/` (outside the docs collection, so it never becomes a page). Pull it in with Fumadocs' `<include>` tag, using a path relative to the page:
+
+```mdx
+<include>../../shared/shutdown-callout.mdx</include>
+```
+
+Included content is inlined at build time, so it also appears in `/llms-full.txt` and the per-page `.mdx` output (a React component would only show its tag name there).
+
+- `content/shared/shutdown-callout.mdx` is the Tambo Cloud shutdown callout. Add it to any page that sends readers to Tambo Cloud (console.tambo.co, the hosted dashboard, or Tambo Cloud API keys). Edit the wording there, never inline.
+- Site chrome (banner, header links, `/llms.txt` notice) reads its shutdown links and wording from `src/lib/shutdown.ts`.
 
 ## Important Development Rules
 

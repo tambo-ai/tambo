@@ -5,6 +5,7 @@ import ora from "ora";
 import path from "path";
 import { COMPONENT_SUBDIR } from "../../constants/paths.js";
 import { isInteractive } from "../../utils/interactive.js";
+import { SELF_HOSTING_URL } from "../../utils/shutdown-notice.js";
 
 const TAMBO_SECTION_VERSION = "v1.0";
 const VERSION_MARKER = `<!-- tambo-docs-${TAMBO_SECTION_VERSION} -->`;
@@ -22,7 +23,7 @@ This project uses **Tambo AI** for building AI assistants with generative UI and
 The Tambo CLI auto-detects non-interactive environments. Use these commands:
 
 \`\`\`bash
-# Initialize (requires API key from https://console.tambo.co)
+# Initialize (requires an API key from your self-hosted Tambo: ${SELF_HOSTING_URL})
 npx tambo init --api-key=sk_...
 
 # Add components

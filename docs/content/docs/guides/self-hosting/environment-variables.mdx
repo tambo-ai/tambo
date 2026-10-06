@@ -3,6 +3,12 @@ title: Environment variables
 description: Complete reference for all Tambo self-hosting environment variables.
 ---
 
+<Callout type="info">
+  Tambo Cloud is shutting down ([read the
+  announcement](https://tambo.co/blog/posts/tambo-is-shutting-down)).
+  Self-hosting is how you keep running Tambo after October 31, 2026.
+</Callout>
+
 All configuration is done through environment variables in the `docker.env` file. This page covers every variable grouped by category.
 
 ## Core configuration
@@ -16,6 +22,8 @@ All configuration is done through environment variables in the `docker.env` file
 | `PROVIDER_KEY_SECRET` | Yes      | 32+ character secret for provider key encryption                                         |
 | `NEXTAUTH_SECRET`     | Yes      | Secret for NextAuth.js sessions                                                          |
 | `NEXTAUTH_URL`        | Yes      | Base URL for auth callbacks (e.g., `http://localhost:8260` or `https://your-domain.com`) |
+
+Cloud signup closure and shutdown notices apply automatically when `NEXTAUTH_URL` uses `tambo.co` or one of its subdomains. Set it to your own dashboard URL when self-hosting; new accounts remain enabled and the Cloud shutdown banner is hidden. No shutdown flag is required.
 
 ## OpenAI configuration
 

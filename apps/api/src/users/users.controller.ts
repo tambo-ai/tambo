@@ -1,19 +1,13 @@
 import {
-  BadRequestException,
   Body,
   Controller,
   Headers,
   HttpCode,
-  Inject,
   Post,
   UnauthorizedException,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { ApiHeader, ApiOperation, ApiTags } from "@nestjs/swagger";
-import type { HydraDatabase } from "@tambo-ai-cloud/db";
-import { operations } from "@tambo-ai-cloud/db";
-import { DATABASE } from "../common/database-provider";
-import { EmailService } from "../common/services/email.service";
 import { CorrelationLoggerService } from "../common/services/logger.service";
 
 interface SupabaseWebhookPayload {
@@ -22,13 +16,6 @@ interface SupabaseWebhookPayload {
   schema: string;
   record: {
     id: string;
-    email?: string;
-    raw_user_meta_data?: {
-      full_name?: string;
-      name?: string;
-      first_name?: string;
-    };
-    created_at?: string;
   };
   old_record?: Record<string, unknown>;
 }
@@ -39,9 +26,6 @@ export class UsersController {
   private readonly webhookSecret: string;
 
   constructor(
-    @Inject(DATABASE)
-    private readonly db: HydraDatabase,
-    private readonly emailService: EmailService,
     private readonly logger: CorrelationLoggerService,
     private readonly configService: ConfigService,
   ) {
@@ -73,7 +57,7 @@ export class UsersController {
     description: "Source identifier for the webhook",
     required: false,
   })
-  async handleSignupWebhook(
+  handleSignupWebhook(
     @Body() payload: SupabaseWebhookPayload,
     @Headers("x-webhook-secret") webhookSecret?: string,
     @Headers("x-webhook-source") webhookSource?: string,
@@ -107,107 +91,15 @@ export class UsersController {
       return { acknowledged: true, reason: "Not a user signup event" };
     }
 
-    const { record } = payload;
-    const userId = record.id;
-    const userEmail = record.email;
-
-    if (!userEmail) {
-      this.logger.warn(`New user ${userId} has no email address`);
-      return { acknowledged: true, reason: "No email address" };
-    }
-
-    try {
-      // Perform all validation checks
-      const validation = await operations.validateUserForWelcomeEmail(
-        this.db,
-        userId,
-        userEmail,
-      );
-
-      if (!validation.isValid) {
-        throw new BadRequestException(validation.error);
-      }
-
-      if (validation.alreadySent) {
-        this.logger.log(
-          `Welcome email already sent for user ${userId}, skipping`,
-        );
-        return {
-          acknowledged: true,
-          emailSent: false,
-          reason: "Welcome email already sent",
-        };
-      }
-
-      // Extract first name from metadata
-      const metadata = record.raw_user_meta_data || {};
-      const firstName =
-        metadata.first_name ||
-        metadata.name?.split(" ")[0] ||
-        metadata.full_name?.split(" ")[0];
-
-      // Send welcome email
-      const emailResult = await this.emailService.sendWelcomeEmail(
-        userEmail,
-        firstName,
-      );
-
-      // Track the email send
-      await this.db.transaction(async (tx) => {
-        await operations.trackWelcomeEmail(
-          tx,
-          userId,
-          emailResult.success,
-          emailResult.error,
-        );
-      });
-
-      this.logger.log(
-        `Welcome email ${emailResult.success ? "sent" : "failed"} for user ${userId}`,
-      );
-
-      return {
-        acknowledged: true,
-        emailSent: emailResult.success,
-      };
-    } catch (error) {
-      // Don't track failures for validation errors
-      if (
-        error instanceof BadRequestException ||
-        error instanceof UnauthorizedException
-      ) {
-        throw error;
-      }
-
-      this.logger.error(
-        `Error processing signup webhook for user ${userId}:`,
-        error instanceof Error ? error.message : "Unknown error",
-      );
-
-      try {
-        await this.db.transaction(async (tx) => {
-          await operations.trackWelcomeEmail(
-            tx,
-            userId,
-            false,
-            error instanceof Error ? error.message : "Unknown error",
-          );
-        });
-      } catch (trackingError) {
-        this.logger.error(
-          `Failed to track welcome email failure for user ${userId}:`,
-          trackingError instanceof Error
-            ? trackingError.message
-            : "Unknown tracking error",
-        );
-      }
-
-      // Always return success to prevent webhook retries, even if tracking failed
-      return {
-        acknowledged: true,
-        emailSent: false,
-        error: "Failed to send email",
-      };
-    }
+    // Lifecycle emails (including the welcome email) are disabled while
+    // Tambo Cloud shuts down. Acknowledge so Supabase does not retry.
+    this.logger.log(
+      `Signup webhook received for user ${payload.record.id}; welcome emails are disabled`,
+    );
+    return {
+      acknowledged: true,
+      emailSent: false,
+      reason: "Welcome emails are disabled",
+    };
   }
 }

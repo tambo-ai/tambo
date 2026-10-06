@@ -1,3 +1,4 @@
+import { ShutdownNotice } from "@/components/shutdown-notice";
 import { getAuthProviders } from "@/lib/auth";
 import { Metadata } from "next";
 import { LoginPageBody } from "./LoginPage";
@@ -9,5 +10,5 @@ export const metadata: Metadata = {
 
 export default function LoginPage() {
   const providers = getAuthProviders();
-  return <LoginPageBody providers={providers} />;
+  return <LoginPageBody providers={providers} banner={<ShutdownNotice />} />;
 }

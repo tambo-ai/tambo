@@ -1,3 +1,4 @@
+import { ShutdownBanner } from "@/components/shutdown-banner";
 import { GeistMono, GeistSans, sentientLight } from "@/lib/fonts";
 import { cn } from "@/lib/utils";
 import {
@@ -88,6 +89,7 @@ export default function RootLayout({
         <Suspense>
           <PostHogPageview />
         </Suspense>
+        <ShutdownBanner />
         <PostHogRootProvider>{children}</PostHogRootProvider>
       </body>
     </html>

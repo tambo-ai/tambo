@@ -1,5 +1,7 @@
 import { env } from "@/lib/env";
+import { isExistingUser } from "@/lib/is-existing-user";
 import { SupabaseAdapter } from "@/lib/nextauth-supabase-adapter";
+import { isTamboCloud, SHUTDOWN_CONFIG } from "@/lib/shutdown-config";
 import * as Sentry from "@sentry/nextjs";
 import {
   isEmailAllowed,
@@ -142,8 +144,10 @@ function getProviders(): Provider[] {
   return providers;
 }
 
+const adapter = SupabaseAdapter();
+
 export const authOptions: NextAuthOptions = {
-  adapter: SupabaseAdapter(),
+  adapter,
   providers: getProviders(),
   session: {
     strategy: "jwt",
@@ -154,10 +158,16 @@ export const authOptions: NextAuthOptions = {
      * Restrict sign-in to verified emails belonging to the configured domain
      * when `ALLOWED_LOGIN_DOMAIN` is set.
      *
+     * On managed Tambo Cloud hosts, new signups are closed automatically:
+     * sign-ins that do not match an existing user are redirected to the
+     * signups-closed page before NextAuth creates the user. Self-hosted
+     * deployments keep normal signup behavior.
+     *
      * Also creates an audit entry in the unified sessions table for browser logins.
      * Note: With JWT strategy, actual auth is controlled by JWT - this is just audit.
+     * @returns Whether sign-in is allowed, or the rejection page URL
      */
-    async signIn({ user, profile }) {
+    async signIn({ user, account, profile }) {
       const allowedDomain = env.ALLOWED_LOGIN_DOMAIN;
 
       // Attempt to determine verification status. Google returns
@@ -202,6 +212,16 @@ export const authOptions: NextAuthOptions = {
         // Redirect to a generic unauthorized page. We MUST NOT leak the
         // restricted domain or full incoming email in the response.
         return "/unauthorized";
+      }
+
+      if (
+        isTamboCloud() &&
+        !(await isExistingUser(adapter, { email, account }))
+      ) {
+        console.warn(
+          `Blocked new signup via ${account?.provider ?? "unknown provider"}: signups are closed`,
+        );
+        return SHUTDOWN_CONFIG.SIGNUPS_CLOSED_PATH;
       }
 
       // Create audit entry for browser session

@@ -25,6 +25,8 @@ npm run clean         # Remove dist/ + coverage/
 
 Always align with the root-level requirement to run `npm run lint`, `npm run check-types`, and `npm test` before opening a PR.
 
+Keep the npm version in `apps/api/Dockerfile` aligned with the root `package.json` package manager pin. Container builds must use the same npm version as regular CI.
+
 ## Directory Structure
 
 ```

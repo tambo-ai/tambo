@@ -1,3 +1,7 @@
+> **Tambo Cloud is shutting down.** New signups are closed. Tambo Cloud keeps running until **October 31, 2026**, after which the hosted API stops responding; user data is deleted November 30, 2026. [Read the announcement](https://tambo.co/blog/posts/tambo-is-shutting-down).
+> Tambo is open source and self-hostable: see [SELF-HOSTING.md](./SELF-HOSTING.md) to keep running it yourself.
+> The team is now building [Charming](https://usecharming.com), a collaborative cloud for apps built with any AI agent.
+
 <div align="center">
   <img src="assets/octo-white-background-rounded.png" width="150">
   <h1>Tambo AI</h1>
@@ -18,14 +22,11 @@
 </p>
 
 <p align="center">
-  <a href="https://tambo.link/yXkF0hQ">Start For Free</a> •
+  <a href="https://tambo.co/blog/posts/tambo-is-shutting-down">Shutdown Notice</a> •
+  <a href="./SELF-HOSTING.md">Self-Host</a> •
   <a href="https://docs.tambo.co">Docs</a> •
   <a href="https://discord.gg/dJNvPEHth6">Discord</a>
 </p>
-
----
-
-> **Tambo 1.0 is here!** Read the announcement: [Introducing Tambo: Generative UI for React](https://tambo.co/blog/posts/introducing-tambo-generative-ui)
 
 ---
 
@@ -69,7 +70,7 @@ cd my-tambo-app
 npm run dev
 ```
 
-[**Tambo Cloud**](https://tambo.link/yXkF0hQ) is a hosted backend, free to get started with plenty of credits to start building. **Self-hosted** runs on your own infrastructure.
+**Tambo Cloud** is the hosted backend; new signups are closed and it shuts down October 31, 2026 ([announcement](https://tambo.co/blog/posts/tambo-is-shutting-down)). **Self-hosted** runs on your own infrastructure; see [SELF-HOSTING.md](./SELF-HOSTING.md).
 
 Check out the [pre-built component library](https://ui.tambo.co) for agent and generative UI primitives:
 

@@ -100,8 +100,10 @@ function HeroIllustration() {
 
 export function LoginPageBody({
   providers,
+  banner,
 }: {
   providers: AuthProviderConfig[];
+  banner?: React.ReactNode;
 }) {
   return (
     <motion.div
@@ -110,6 +112,7 @@ export function LoginPageBody({
       animate="visible"
       variants={containerVariants}
     >
+      {banner}
       <DashboardHeader />
 
       {/* Main content matching hero layout */}

@@ -22,7 +22,6 @@ import {
 import { DATABASE } from "../common/database-provider";
 import { AnalyticsService } from "../common/services/analytics.service";
 import { AuthService } from "../common/services/auth.service";
-import { EmailService } from "../common/services/email.service";
 import { CorrelationLoggerService } from "../common/services/logger.service";
 import { StorageConfigService } from "../common/services/storage-config.service";
 import { ProjectsService } from "../projects/projects.service";
@@ -172,8 +171,6 @@ jest.mock("@tambo-ai-cloud/db", () => {
     getProjectMessageUsage: jest.fn(),
     updateProjectMessageUsage: jest.fn(),
     incrementMessageCount: jest.fn(),
-    hasUserReceivedFirstMessageEmail: jest.fn(),
-    getProjectMembers: jest.fn(),
 
     // projects
     getProject: jest.fn(),
@@ -351,17 +348,6 @@ describe("ThreadsService.advanceThread initialization", () => {
         {
           provide: CorrelationLoggerService,
           useValue: { log: jest.fn(), warn: jest.fn(), error: jest.fn() },
-        },
-        {
-          provide: EmailService,
-          useValue: {
-            sendMessageLimitNotification: jest
-              .fn()
-              .mockResolvedValue({ success: true }),
-            sendFirstMessageEmail: jest
-              .fn()
-              .mockResolvedValue({ success: true }),
-          },
         },
         {
           provide: ConfigService,
@@ -1563,11 +1549,9 @@ describe("ThreadsService.advanceThread initialization", () => {
   });
 
   describe("Message Limits & Rate Limiting", () => {
-    let emailService: EmailService;
     let projectsService: ProjectsService;
 
     beforeEach(() => {
-      emailService = module.get(EmailService);
       projectsService = module.get(ProjectsService);
 
       // Set up default mocks for findOne and findOneWithKeys
@@ -1604,11 +1588,7 @@ describe("ThreadsService.advanceThread initialization", () => {
       );
     });
 
-    it("should send notification email when limit reached for first time", async () => {
-      jest.mocked(fakeDb.query.projectMembers.findFirst).mockResolvedValue({
-        user: { id: "user_1", email: "user@test.com" },
-      } as any);
-
+    it("should not record a limit notification when the limit is reached", async () => {
       operations.getProjectMessageUsage.mockResolvedValue({
         projectId,
         messageCount: 500, // At FREE_MESSAGE_LIMIT
@@ -1616,17 +1596,7 @@ describe("ThreadsService.advanceThread initialization", () => {
         createdAt: new Date(),
         updatedAt: new Date(),
         firstMessageSentAt: new Date(),
-        notificationSentAt: null, // Not sent yet
-      });
-
-      jest.mocked(projectsService.findOne).mockResolvedValue({
-        id: projectId,
-        name: "Test Project",
-        defaultLlmProviderName: "openai",
-        defaultLlmModelName: DEFAULT_OPENAI_MODEL,
-        userId: "user_1",
-        isTokenRequired: false,
-        providerType: AiProviderType.LLM,
+        notificationSentAt: null,
       });
 
       const checkLimit = (service as any).checkMessageLimit_.bind(service);
@@ -1635,98 +1605,24 @@ describe("ThreadsService.advanceThread initialization", () => {
         FreeLimitReachedError,
       );
 
-      expect(emailService.sendMessageLimitNotification).toHaveBeenCalledWith(
-        projectId,
-        "user@test.com",
-        "Test Project",
-      );
-
-      expect(operations.updateProjectMessageUsage).toHaveBeenCalledWith(
-        fakeDb,
-        projectId,
-        expect.objectContaining({
-          notificationSentAt: expect.any(Date),
-        }),
-      );
+      expect(operations.updateProjectMessageUsage).not.toHaveBeenCalled();
     });
 
-    it("should not send duplicate notification emails", async () => {
-      operations.getProjectMessageUsage.mockResolvedValue({
-        projectId,
-        messageCount: 500, // At FREE_MESSAGE_LIMIT
-        hasApiKey: false,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        firstMessageSentAt: new Date(),
-        notificationSentAt: new Date(), // Already sent
-      });
-
-      const checkLimit = (service as any).checkMessageLimit_.bind(service);
-
-      await expect(checkLimit(projectId)).rejects.toThrow(
-        FreeLimitReachedError,
-      );
-
-      expect(emailService.sendMessageLimitNotification).not.toHaveBeenCalled();
-    });
-
-    it("should send first message email for new projects", async () => {
-      operations.getProject.mockResolvedValue(
-        createMockDBProject(projectId, { name: "New Project" }),
-      );
-
-      // First call returns undefined (no usage)
+    it("should only create the usage record for new projects", async () => {
       operations.getProjectMessageUsage.mockResolvedValue(undefined);
-
-      // Mock the updateProjectMessageUsage calls
-      operations.updateProjectMessageUsage
-        .mockResolvedValueOnce({
-          projectId,
-          messageCount: 1,
-          hasApiKey: false,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          firstMessageSentAt: null,
-          notificationSentAt: null,
-        })
-        .mockResolvedValueOnce({
-          projectId,
-          messageCount: 1,
-          hasApiKey: false,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          firstMessageSentAt: new Date(),
-          notificationSentAt: null,
-        });
-
-      operations.getProjectMembers.mockResolvedValue({
-        name: "New Project",
-        members: [{ user: { id: "user_1", email: "user@test.com" } }],
-      } as any);
-
-      operations.hasUserReceivedFirstMessageEmail.mockResolvedValue(false);
 
       const checkLimit = (service as any).checkMessageLimit_.bind(service);
       await checkLimit(projectId);
 
-      expect(emailService.sendFirstMessageEmail).toHaveBeenCalledWith(
-        "user@test.com",
-        null,
-        "New Project",
-      );
-
-      // Check that updateProjectMessageUsage was called twice - once to create, once to update firstMessageSentAt
-      expect(operations.updateProjectMessageUsage).toHaveBeenCalledTimes(2);
-      expect(operations.updateProjectMessageUsage).toHaveBeenLastCalledWith(
+      expect(operations.updateProjectMessageUsage).toHaveBeenCalledTimes(1);
+      expect(operations.updateProjectMessageUsage).toHaveBeenCalledWith(
         fakeDb,
         projectId,
-        expect.objectContaining({
-          firstMessageSentAt: expect.any(Date),
-        }),
+        { messageCount: 1 },
       );
     });
 
-    it("should not send first message email if user already received it", async () => {
+    it("should increment the message count when using the fallback key", async () => {
       operations.getProjectMessageUsage.mockResolvedValue({
         projectId,
         messageCount: 1,
@@ -1737,17 +1633,14 @@ describe("ThreadsService.advanceThread initialization", () => {
         notificationSentAt: null,
       });
 
-      operations.getProjectMembers.mockResolvedValue({
-        name: "Project",
-        members: [{ user: { id: "user_1", email: "user@test.com" } }],
-      } as any);
-
-      operations.hasUserReceivedFirstMessageEmail.mockResolvedValue(true);
-
       const checkLimit = (service as any).checkMessageLimit_.bind(service);
       await checkLimit(projectId);
 
-      expect(emailService.sendFirstMessageEmail).not.toHaveBeenCalled();
+      expect(operations.incrementMessageCount).toHaveBeenCalledWith(
+        fakeDb,
+        projectId,
+      );
+      expect(operations.updateProjectMessageUsage).not.toHaveBeenCalled();
     });
   });
 
