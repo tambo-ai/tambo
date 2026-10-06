@@ -15,6 +15,7 @@ import { DATABASE, DatabaseProvider } from "./common/database-provider";
 import { RequestLoggerMiddleware } from "./common/middleware/request-logger.middleware";
 import { SdkVersionMiddleware } from "./common/middleware/sdk-version.middleware";
 import { SentryFlushMiddleware } from "./common/middleware/sentry-flush.middleware";
+import { RateLimitModule } from "./common/rate-limit/rate-limit.module";
 import { AuthService } from "./common/services/auth.service";
 import { StorageConfigService } from "./common/services/storage-config.service";
 import { ConfigServiceSingleton } from "./config.service";
@@ -49,6 +50,7 @@ export class GlobalModule {}
     AudioModule,
     GlobalModule,
     MemoryModule,
+    RateLimitModule,
     SkillsModule,
     UsersModule,
     SchedulerModule,

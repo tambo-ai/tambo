@@ -65,16 +65,19 @@ Email login requires at minimum `RESEND_API_KEY` and `EMAIL_FROM_DEFAULT`.
 
 ## Optional features
 
-| Variable                   | Description                                |
-| -------------------------- | ------------------------------------------ |
-| `ALLOWED_LOGIN_DOMAIN`     | Restrict logins to a specific email domain |
-| `DISALLOWED_EMAIL_DOMAINS` | Block signups from these domains           |
-| `LANGFUSE_PUBLIC_KEY`      | Langfuse analytics public key              |
-| `LANGFUSE_SECRET_KEY`      | Langfuse analytics secret key              |
-| `LANGFUSE_HOST`            | Langfuse host URL                          |
-| `NEXT_PUBLIC_POSTHOG_KEY`  | PostHog analytics key                      |
-| `NEXT_PUBLIC_POSTHOG_HOST` | PostHog host URL                           |
-| `SENTRY_DSN`               | Sentry error tracking DSN                  |
+| Variable                   | Description                                                                       |
+| -------------------------- | --------------------------------------------------------------------------------- |
+| `ALLOWED_LOGIN_DOMAIN`     | Restrict logins to a specific email domain                                        |
+| `DISALLOWED_EMAIL_DOMAINS` | Block signups from these domains                                                  |
+| `LANGFUSE_PUBLIC_KEY`      | Langfuse analytics public key                                                     |
+| `LANGFUSE_SECRET_KEY`      | Langfuse analytics secret key                                                     |
+| `LANGFUSE_HOST`            | Langfuse host URL                                                                 |
+| `NEXT_PUBLIC_POSTHOG_KEY`  | PostHog analytics key                                                             |
+| `NEXT_PUBLIC_POSTHOG_HOST` | PostHog host URL                                                                  |
+| `SENTRY_DSN`               | Sentry error tracking DSN                                                         |
+| `RATE_LIMIT_ENABLED`       | Enforce API rate limiting (`true` to enable; default off)                         |
+| `RATE_LIMIT_DEFAULT`       | Requests per minute per endpoint per client IP (default: `100`)                   |
+| `TRUST_PROXY`              | Trusted reverse-proxy hops for client IPs (unset = none; required behind a proxy) |
 
 ## Whitelabeling
 
