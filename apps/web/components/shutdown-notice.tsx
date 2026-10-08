@@ -1,4 +1,5 @@
 import { ShutdownBanner } from "@/components/shutdown-banner";
+import { env } from "@/lib/env";
 import { isTamboCloud } from "@/lib/shutdown-config";
 import type { FC } from "react";
 
@@ -10,5 +11,5 @@ export const ShutdownNotice: FC = () => {
   if (!isTamboCloud()) {
     return null;
   }
-  return <ShutdownBanner />;
+  return <ShutdownBanner isSignupClosed={env.DISABLE_NEW_SIGNUPS === "true"} />;
 };

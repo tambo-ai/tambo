@@ -26,8 +26,8 @@ export const SHUTDOWN_CONFIG = {
 
 /**
  * Identify managed Tambo Cloud deployments from the existing authentication
- * URL. Signup closure and shutdown notices apply automatically on Tambo-owned
- * hosts; self-hosted deployments keep normal behavior. Server-side only.
+ * URL. Shutdown notices apply automatically on Tambo-owned hosts; self-hosted
+ * deployments don't show them. Server-side only.
  * @returns true when the authentication URL uses the Tambo Cloud domain
  */
 export function isTamboCloud(): boolean {

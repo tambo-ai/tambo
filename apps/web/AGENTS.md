@@ -54,6 +54,7 @@ apps/web
 
 - The shutdown banner is automatic when `NEXTAUTH_URL` uses `tambo.co` or one of its subdomains; self-hosted deployments don't show it.
 - New signups close only when `DISABLE_NEW_SIGNUPS=true`. Sign-ins must then match an existing provider account or email before NextAuth can create a user; others are redirected to `/signups-closed`. Returning users can still sign in.
+- The banner's "New signups are closed" sentence follows `DISABLE_NEW_SIGNUPS`, not the hostname. `/signups-closed` shows shutdown copy only on Tambo Cloud and neutral copy on self-hosted instances.
 
 ## State & Data Patterns
 
