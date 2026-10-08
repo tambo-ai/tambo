@@ -3,6 +3,7 @@ import { cn } from "@/lib/utils";
 import type { FC } from "react";
 
 interface ShutdownBannerProps {
+  isSignupClosed: boolean;
   className?: string;
 }
 
@@ -10,10 +11,14 @@ const linkClassName =
   "font-medium underline underline-offset-2 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-sm";
 
 /**
- * Site-wide notice that Tambo Cloud is shutting down and signups are closed.
+ * Site-wide notice that Tambo Cloud is shutting down, and whether new signups
+ * are closed.
  * @returns The shutdown banner
  */
-export const ShutdownBanner: FC<ShutdownBannerProps> = ({ className }) => (
+export const ShutdownBanner: FC<ShutdownBannerProps> = ({
+  isSignupClosed,
+  className,
+}) => (
   <aside
     aria-label="Tambo Cloud shutdown notice"
     className={cn(
@@ -22,8 +27,8 @@ export const ShutdownBanner: FC<ShutdownBannerProps> = ({ className }) => (
     )}
   >
     <p>
-      Tambo Cloud is shutting down on {SHUTDOWN_CONFIG.SERVICE_END_DATE}. New
-      signups are closed.{" "}
+      Tambo Cloud is shutting down on {SHUTDOWN_CONFIG.SERVICE_END_DATE}.{" "}
+      {isSignupClosed && "New signups are closed. "}
       <a
         href={SHUTDOWN_CONFIG.URLS.ANNOUNCEMENT}
         target="_blank"

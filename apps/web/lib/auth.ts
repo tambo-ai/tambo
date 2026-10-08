@@ -1,7 +1,7 @@
 import { env } from "@/lib/env";
 import { isExistingUser } from "@/lib/is-existing-user";
 import { SupabaseAdapter } from "@/lib/nextauth-supabase-adapter";
-import { isTamboCloud, SHUTDOWN_CONFIG } from "@/lib/shutdown-config";
+import { SHUTDOWN_CONFIG } from "@/lib/shutdown-config";
 import * as Sentry from "@sentry/nextjs";
 import {
   isEmailAllowed,
@@ -158,10 +158,9 @@ export const authOptions: NextAuthOptions = {
      * Restrict sign-in to verified emails belonging to the configured domain
      * when `ALLOWED_LOGIN_DOMAIN` is set.
      *
-     * On managed Tambo Cloud hosts, new signups are closed automatically:
-     * sign-ins that do not match an existing user are redirected to the
-     * signups-closed page before NextAuth creates the user. Self-hosted
-     * deployments keep normal signup behavior.
+     * When `DISABLE_NEW_SIGNUPS` is "true", sign-ins that do not match an
+     * existing user are redirected to the signups-closed page before NextAuth
+     * creates the user.
      *
      * Also creates an audit entry in the unified sessions table for browser logins.
      * Note: With JWT strategy, actual auth is controlled by JWT - this is just audit.
@@ -215,7 +214,7 @@ export const authOptions: NextAuthOptions = {
       }
 
       if (
-        isTamboCloud() &&
+        env.DISABLE_NEW_SIGNUPS === "true" &&
         !(await isExistingUser(adapter, { email, account }))
       ) {
         console.warn(
