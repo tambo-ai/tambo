@@ -52,9 +52,8 @@ apps/web
 
 ### Tambo Cloud Shutdown
 
-- Shutdown behavior is automatic when `NEXTAUTH_URL` uses `tambo.co` or one of its subdomains; there is no shutdown environment flag.
-- Cloud sign-ins must match an existing provider account or email before NextAuth can create a user. Returning users can still sign in.
-- Self-hosted deployments use their own `NEXTAUTH_URL` and keep normal signup behavior without the shutdown banner.
+- The shutdown banner is automatic when `NEXTAUTH_URL` uses `tambo.co` or one of its subdomains; self-hosted deployments don't show it.
+- New signups close only when `DISABLE_NEW_SIGNUPS=true`. Sign-ins must then match an existing provider account or email before NextAuth can create a user; others are redirected to `/signups-closed`. Returning users can still sign in.
 
 ## State & Data Patterns
 

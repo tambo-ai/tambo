@@ -142,17 +142,20 @@ describe("auth callbacks", () => {
 
     beforeEach(() => {
       jest.spyOn(console, "warn").mockImplementation(() => {});
-      mockEnv.NEXTAUTH_URL = "https://console.tambo.co";
       mockGetUserByAccount.mockResolvedValue(null);
       mockGetUserByEmail.mockResolvedValue(null);
     });
 
     afterEach(() => {
       jest.mocked(console.warn).mockRestore();
-      mockEnv.NEXTAUTH_URL = "https://console.tambo.co";
+      delete mockEnv.DISABLE_NEW_SIGNUPS;
     });
 
-    describe("on Tambo Cloud", () => {
+    describe("when new signups are disabled", () => {
+      beforeEach(() => {
+        mockEnv.DISABLE_NEW_SIGNUPS = "true";
+      });
+
       it("allows an existing user whose provider account is linked", async () => {
         mockGetUserByAccount.mockResolvedValue(existingUser);
 
@@ -186,7 +189,7 @@ describe("auth callbacks", () => {
         expect(mockGetUserByEmail).toHaveBeenCalledWith("existing@example.com");
       });
 
-      it("automatically redirects new users to the signups-closed page", async () => {
+      it("redirects new users to the signups-closed page", async () => {
         const result = await callSignIn({
           email: "new@example.com",
           account: makeAccount({
@@ -210,27 +213,25 @@ describe("auth callbacks", () => {
       });
     });
 
-    describe("when self-hosting", () => {
-      it.each([
-        "http://localhost:8260",
-        "https://tambo.example.com",
-        "https://fake-tambo.co",
-        "https://console.tambo.co.example.com",
-      ])("allows new users on %s without looking them up", async (url) => {
-        mockEnv.NEXTAUTH_URL = url;
+    describe("when new signups are enabled", () => {
+      it.each([undefined, "", "false"])(
+        "allows new users when DISABLE_NEW_SIGNUPS is %s without looking them up",
+        async (value) => {
+          mockEnv.DISABLE_NEW_SIGNUPS = value;
 
-        const result = await callSignIn({
-          email: "new@example.com",
-          account: makeAccount({
-            provider: "google",
-            providerAccountId: "g-2",
-          }),
-        });
+          const result = await callSignIn({
+            email: "new@example.com",
+            account: makeAccount({
+              provider: "google",
+              providerAccountId: "g-2",
+            }),
+          });
 
-        expect(result).toBe(true);
-        expect(mockGetUserByAccount).not.toHaveBeenCalled();
-        expect(mockGetUserByEmail).not.toHaveBeenCalled();
-      });
+          expect(result).toBe(true);
+          expect(mockGetUserByAccount).not.toHaveBeenCalled();
+          expect(mockGetUserByEmail).not.toHaveBeenCalled();
+        },
+      );
     });
   });
 
