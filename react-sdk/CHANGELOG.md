@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.4.0](https://github.com/tambo-ai/tambo/compare/react-v1.3.0...react-v1.4.0) (2026-10-08)
+
+
+### Features
+
+* **cloud:** prepare Tambo Cloud shutdown ([#3027](https://github.com/tambo-ai/tambo/issues/3027)) ([0bd450b](https://github.com/tambo-ai/tambo/commit/0bd450b607e5bf0f78ebf17279b75ab7fff773ef))
+
+
+### Bug Fixes
+
+* **deps:** update ag-ui to v0.0.57 ([#2966](https://github.com/tambo-ai/tambo/issues/2966)) ([4e14c18](https://github.com/tambo-ai/tambo/commit/4e14c18d562957394e3d0575262908dd71c8fec8))
+* **react-sdk:** accept compatible @tambo-ai/client releases ([#3032](https://github.com/tambo-ai/tambo/issues/3032)) ([addf7cb](https://github.com/tambo-ai/tambo/commit/addf7cbcbbb81a0a5de0ca23cbcbf36da7afd391))
+* **security:** remediate open alerts ([#3002](https://github.com/tambo-ai/tambo/issues/3002)) ([aa63c7d](https://github.com/tambo-ai/tambo/commit/aa63c7dc82d4a5009aa59062a1e27260ccf444b2))
+
 ## [1.3.0](https://github.com/tambo-ai/tambo/compare/react-v1.2.8...react-v1.3.0) (2026-06-15)
 
 
