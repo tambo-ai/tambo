@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.0](https://github.com/tambo-ai/tambo/compare/create-tambo-app-v0.3.5...create-tambo-app-v0.4.0) (2026-10-09)
+
+
+### Features
+
+* **cloud:** prepare Tambo Cloud shutdown ([#3027](https://github.com/tambo-ai/tambo/issues/3027)) ([0bd450b](https://github.com/tambo-ai/tambo/commit/0bd450b607e5bf0f78ebf17279b75ab7fff773ef))
+
 ## [0.3.5](https://github.com/tambo-ai/tambo/compare/create-tambo-app-v0.3.4...create-tambo-app-v0.3.5) (2026-06-16)
 
 
