@@ -15,8 +15,8 @@ import { DATABASE, DatabaseProvider } from "./common/database-provider";
 import { RequestLoggerMiddleware } from "./common/middleware/request-logger.middleware";
 import { SdkVersionMiddleware } from "./common/middleware/sdk-version.middleware";
 import { SentryFlushMiddleware } from "./common/middleware/sentry-flush.middleware";
+import { RateLimitModule } from "./common/rate-limit/rate-limit.module";
 import { AuthService } from "./common/services/auth.service";
-import { EmailService } from "./common/services/email.service";
 import { StorageConfigService } from "./common/services/storage-config.service";
 import { ConfigServiceSingleton } from "./config.service";
 import { OAuthModule } from "./oauth/oauth.module";
@@ -50,6 +50,7 @@ export class GlobalModule {}
     AudioModule,
     GlobalModule,
     MemoryModule,
+    RateLimitModule,
     SkillsModule,
     UsersModule,
     SchedulerModule,
@@ -57,7 +58,7 @@ export class GlobalModule {}
     V1Module,
   ],
   controllers: [AppController],
-  providers: [AppService, EmailService, AuthService],
+  providers: [AppService, AuthService],
 })
 export class AppModule implements OnModuleInit {
   constructor(private configService: ConfigService) {}

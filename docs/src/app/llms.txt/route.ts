@@ -1,3 +1,4 @@
+import { LLMS_SHUTDOWN_NOTICE } from "@/lib/shutdown";
 import { source } from "@/lib/source";
 
 export const revalidate = 3600;
@@ -41,6 +42,7 @@ export async function GET() {
   scanned.push(
     "> Tambo is a Generative UI Agent for React that lets AI dynamically render registered components. Tambo's UI Agent handles component registration, message threads, streaming, and tool integration.",
   );
+  scanned.push(LLMS_SHUTDOWN_NOTICE);
   scanned.push(
     "Use `/llms-full.txt` for a single file containing all docs. Append `.mdx` to any docs path to fetch that page as Markdown (e.g. `/getting-started/quickstart.mdx`).",
   );

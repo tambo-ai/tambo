@@ -1,7 +1,6 @@
 import { Module } from "@nestjs/common";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { AuthService } from "../common/services/auth.service";
-import { EmailService } from "../common/services/email.service";
 import { CorrelationLoggerService } from "../common/services/logger.service";
 import { ProjectsModule } from "../projects/projects.module";
 import { MemoryModule } from "../memory/memory.module";
@@ -14,7 +13,6 @@ import { ThreadsService } from "./threads.service";
   controllers: [ThreadsController],
   providers: [
     ThreadsService,
-    EmailService,
     AuthService,
     CorrelationLoggerService,
     {

@@ -3,6 +3,12 @@ title: Environment variables
 description: Complete reference for all Tambo self-hosting environment variables.
 ---
 
+<Callout type="info">
+  Tambo Cloud is shutting down ([read the
+  announcement](https://tambo.co/blog/posts/tambo-is-shutting-down)).
+  Self-hosting is how you keep running Tambo after October 31, 2026.
+</Callout>
+
 All configuration is done through environment variables in the `docker.env` file. This page covers every variable grouped by category.
 
 ## Core configuration
@@ -16,6 +22,8 @@ All configuration is done through environment variables in the `docker.env` file
 | `PROVIDER_KEY_SECRET` | Yes      | 32+ character secret for provider key encryption                                         |
 | `NEXTAUTH_SECRET`     | Yes      | Secret for NextAuth.js sessions                                                          |
 | `NEXTAUTH_URL`        | Yes      | Base URL for auth callbacks (e.g., `http://localhost:8260` or `https://your-domain.com`) |
+
+Cloud signup closure and shutdown notices apply automatically when `NEXTAUTH_URL` uses `tambo.co` or one of its subdomains. Set it to your own dashboard URL when self-hosting; new accounts remain enabled and the Cloud shutdown banner is hidden. No shutdown flag is required.
 
 ## OpenAI configuration
 
@@ -57,16 +65,20 @@ Email login requires at minimum `RESEND_API_KEY` and `EMAIL_FROM_DEFAULT`.
 
 ## Optional features
 
-| Variable                   | Description                                |
-| -------------------------- | ------------------------------------------ |
-| `ALLOWED_LOGIN_DOMAIN`     | Restrict logins to a specific email domain |
-| `DISALLOWED_EMAIL_DOMAINS` | Block signups from these domains           |
-| `LANGFUSE_PUBLIC_KEY`      | Langfuse analytics public key              |
-| `LANGFUSE_SECRET_KEY`      | Langfuse analytics secret key              |
-| `LANGFUSE_HOST`            | Langfuse host URL                          |
-| `NEXT_PUBLIC_POSTHOG_KEY`  | PostHog analytics key                      |
-| `NEXT_PUBLIC_POSTHOG_HOST` | PostHog host URL                           |
-| `SENTRY_DSN`               | Sentry error tracking DSN                  |
+| Variable                   | Description                                                                       |
+| -------------------------- | --------------------------------------------------------------------------------- |
+| `ALLOWED_LOGIN_DOMAIN`     | Restrict logins to a specific email domain                                        |
+| `DISALLOWED_EMAIL_DOMAINS` | Block signups from these domains                                                  |
+| `DISABLE_NEW_SIGNUPS`      | Set to `true` to block new account creation; existing users can still sign in     |
+| `LANGFUSE_PUBLIC_KEY`      | Langfuse analytics public key                                                     |
+| `LANGFUSE_SECRET_KEY`      | Langfuse analytics secret key                                                     |
+| `LANGFUSE_HOST`            | Langfuse host URL                                                                 |
+| `NEXT_PUBLIC_POSTHOG_KEY`  | PostHog analytics key                                                             |
+| `NEXT_PUBLIC_POSTHOG_HOST` | PostHog host URL                                                                  |
+| `SENTRY_DSN`               | Sentry error tracking DSN                                                         |
+| `RATE_LIMIT_ENABLED`       | Enforce API rate limiting (`true` to enable; default off)                         |
+| `RATE_LIMIT_DEFAULT`       | Requests per minute per endpoint per client IP (default: `100`)                   |
+| `TRUST_PROXY`              | Trusted reverse-proxy hops for client IPs (unset = none; required behind a proxy) |
 
 ## Whitelabeling
 

@@ -192,7 +192,7 @@ CLI utilities use Jest with ESM support and memfs for filesystem mocking:
 - **Location**: Tests live beside the files they cover
 - **Example**: `src/commands/add/index.ts` → `src/commands/add/index.test.ts`
 - Use `memfs` (`vol.fromJSON()`) to mock filesystem operations
-- Mock external dependencies: `child_process.execSync`, `inquirer.prompt`, registry utilities
+- Mock external dependencies: the `execFileSync` wrapper in `src/utils/interactive.ts`, `inquirer.prompt`, registry utilities
 - Helper functions in `src/__fixtures__/mock-fs-setup.ts` for common test scenarios
 - See `src/commands/list/index.test.ts` and `src/commands/add/index.test.ts` for examples
 

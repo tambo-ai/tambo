@@ -12,6 +12,8 @@ import {
 } from "@ag-ui/client";
 import {
   Message as AGUIMessage,
+  ReasoningMessageChunkEvent,
+  ReasoningMessageContentEvent,
   StateDeltaEvent,
   ThinkingTextMessageContentEvent,
   ToolCallEndEvent,
@@ -44,7 +46,10 @@ interface WithReasoning {
   parentMessageId?: string;
 }
 
-type NonActivityMessage = Exclude<AGUIMessage, { role: "activity" }>;
+type NonActivityMessage = Extract<
+  AGUIMessage,
+  { role: "assistant" | "developer" | "system" | "tool" | "user" }
+>;
 
 export type AgentMessage = NonActivityMessage & WithReasoning;
 
@@ -463,7 +468,8 @@ export class AgentClient {
           // this is kind of out-of-band events, not sure what to do with them yet.
           break;
         }
-        case EventType.THINKING_START: {
+        case EventType.THINKING_START:
+        case EventType.REASONING_START: {
           if (!currentMessage) {
             currentMessage = createNewMessage("assistant", generateMessageId());
           }
@@ -477,10 +483,12 @@ export class AgentClient {
           };
           break;
         }
-        case EventType.THINKING_END: {
+        case EventType.THINKING_END:
+        case EventType.REASONING_END: {
           break;
         }
-        case EventType.THINKING_TEXT_MESSAGE_START: {
+        case EventType.THINKING_TEXT_MESSAGE_START:
+        case EventType.REASONING_MESSAGE_START: {
           if (!currentMessage) {
             currentMessage = createNewMessage("assistant", generateMessageId());
           }
@@ -496,8 +504,13 @@ export class AgentClient {
           break;
         }
 
-        case EventType.THINKING_TEXT_MESSAGE_CONTENT: {
-          const e = event as ThinkingTextMessageContentEvent;
+        case EventType.THINKING_TEXT_MESSAGE_CONTENT:
+        case EventType.REASONING_MESSAGE_CONTENT:
+        case EventType.REASONING_MESSAGE_CHUNK: {
+          const e = event as
+            | ThinkingTextMessageContentEvent
+            | ReasoningMessageContentEvent
+            | ReasoningMessageChunkEvent;
           if (!currentMessage) {
             throw new Error("No current message");
           }
@@ -506,7 +519,7 @@ export class AgentClient {
           currentMessage = Object.assign({}, currentMessage, {
             reasoning: [
               ...(currentMessage.reasoning?.slice(0, -1) ?? []),
-              currentReasoningString + e.delta,
+              currentReasoningString + (e.delta ?? ""),
             ],
           });
           yield {
@@ -515,7 +528,9 @@ export class AgentClient {
           };
           break;
         }
-        case EventType.THINKING_TEXT_MESSAGE_END: {
+        case EventType.THINKING_TEXT_MESSAGE_END:
+        case EventType.REASONING_MESSAGE_END:
+        case EventType.REASONING_ENCRYPTED_VALUE: {
           break;
         }
         case EventType.ACTIVITY_SNAPSHOT:
@@ -545,7 +560,8 @@ function invalidEvent(eventType: never) {
 function getLastMessage(messages: AGUIMessage[]): NonActivityMessage | null {
   // Filter out activity messages and get the last non-activity message
   const nonActivityMessages = messages.filter(
-    (m): m is NonActivityMessage => m.role !== "activity",
+    (m): m is NonActivityMessage =>
+      m.role !== "activity" && m.role !== "reasoning",
   );
   return nonActivityMessages.length > 0
     ? nonActivityMessages[nonActivityMessages.length - 1]

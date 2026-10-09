@@ -1524,30 +1524,35 @@ export class V1Service {
  * so the client SDK can correctly reference messages for operations like
  * component state updates.
  *
+ * The mapping is locked on the first event for a given temp ID: if the real
+ * DB ID is not yet available (the message hasn't been persisted when the START
+ * event is emitted), the temp ID maps to itself so every subsequent event for
+ * that message keeps emitting the same ID. Without this, a START emitted with a
+ * temp ID and an END later transformed to the real ID would mismatch and crash
+ * the client's event accumulator.
+ *
  * @param event - The AG-UI event to transform
  * @param realMessageId - The real DB message ID from advanceThread
  * @param mapping - Map tracking temp→real ID associations
  * @returns The event with real message IDs
  */
-function transformEventMessageIds(
+export function transformEventMessageIds(
   event: BaseEvent,
   realMessageId: string | undefined,
   mapping: Map<string, string>,
 ): BaseEvent {
-  if (!realMessageId) {
-    return event;
-  }
+  // Lock the ID on first encounter. If the real DB ID is known, map to it;
+  // otherwise map the temp ID to itself so the whole message stays consistent.
+  const resolveMessageId = (tempId: string): string => {
+    if (!mapping.has(tempId)) {
+      mapping.set(tempId, realMessageId ?? tempId);
+    }
+    return mapping.get(tempId)!;
+  };
 
   // Handle TEXT_MESSAGE_* events (messageId at top level)
   if ("messageId" in event && typeof event.messageId === "string") {
-    const tempId = event.messageId;
-
-    // Record mapping on first encounter
-    if (!mapping.has(tempId)) {
-      mapping.set(tempId, realMessageId);
-    }
-
-    return { ...event, messageId: mapping.get(tempId) ?? tempId };
+    return { ...event, messageId: resolveMessageId(event.messageId) };
   }
 
   // Handle tambo.component.start custom event (messageId in value)
@@ -1561,18 +1566,11 @@ function transformEventMessageIds(
       customEvent.name === "tambo.component.start" &&
       customEvent.value?.messageId
     ) {
-      const tempId = customEvent.value.messageId;
-
-      // Record mapping on first encounter
-      if (!mapping.has(tempId)) {
-        mapping.set(tempId, realMessageId);
-      }
-
       return {
         ...event,
         value: {
           ...customEvent.value,
-          messageId: mapping.get(tempId) ?? tempId,
+          messageId: resolveMessageId(customEvent.value.messageId),
         },
       };
     }

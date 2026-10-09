@@ -20,20 +20,27 @@ jest.mock("next-auth/providers/email", () => {
 });
 
 // Mock env so auth.ts can be imported without real env vars
+const mockEnv: Record<string, string | undefined> = {
+  GITHUB_CLIENT_ID: "gh-id",
+  GITHUB_CLIENT_SECRET: "gh-secret",
+  GOOGLE_CLIENT_ID: "google-id",
+  GOOGLE_CLIENT_SECRET: "google-secret",
+  NEXTAUTH_SECRET: "test-secret",
+  NEXTAUTH_URL: "https://console.tambo.co",
+  DATABASE_URL: "postgres://localhost/test",
+};
 jest.mock("@/lib/env", () => ({
-  env: {
-    GITHUB_CLIENT_ID: "gh-id",
-    GITHUB_CLIENT_SECRET: "gh-secret",
-    GOOGLE_CLIENT_ID: "google-id",
-    GOOGLE_CLIENT_SECRET: "google-secret",
-    NEXTAUTH_SECRET: "test-secret",
-    DATABASE_URL: "postgres://localhost/test",
-  },
+  env: mockEnv,
 }));
 
 // Mock external dependencies that auth.ts imports
+const mockGetUserByAccount = jest.fn();
+const mockGetUserByEmail = jest.fn();
 jest.mock("@/lib/nextauth-supabase-adapter", () => ({
-  SupabaseAdapter: () => ({}),
+  SupabaseAdapter: () => ({
+    getUserByAccount: (...args: unknown[]) => mockGetUserByAccount(...args),
+    getUserByEmail: (...args: unknown[]) => mockGetUserByEmail(...args),
+  }),
 }));
 
 jest.mock("@tambo-ai-cloud/db", () => ({
@@ -117,6 +124,115 @@ describe("auth callbacks", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  describe("signIn callback", () => {
+    const existingUser = {
+      id: "db-user-1",
+      email: "existing@example.com",
+      emailVerified: null,
+    };
+
+    const callSignIn = (params: { email: string; account: Account }) =>
+      authOptions.callbacks!.signIn!({
+        user: { id: "provider-sub", email: params.email },
+        account: params.account,
+        profile: { email: params.email, email_verified: true },
+      } as any);
+
+    beforeEach(() => {
+      jest.spyOn(console, "warn").mockImplementation(() => {});
+      mockGetUserByAccount.mockResolvedValue(null);
+      mockGetUserByEmail.mockResolvedValue(null);
+    });
+
+    afterEach(() => {
+      jest.mocked(console.warn).mockRestore();
+      delete mockEnv.DISABLE_NEW_SIGNUPS;
+    });
+
+    describe("when new signups are disabled", () => {
+      beforeEach(() => {
+        mockEnv.DISABLE_NEW_SIGNUPS = "true";
+      });
+
+      it("allows an existing user whose provider account is linked", async () => {
+        mockGetUserByAccount.mockResolvedValue(existingUser);
+
+        const result = await callSignIn({
+          email: "existing@example.com",
+          account: makeAccount({
+            provider: "google",
+            providerAccountId: "g-1",
+          }),
+        });
+
+        expect(result).toBe(true);
+        expect(mockGetUserByAccount).toHaveBeenCalledWith({
+          provider: "google",
+          providerAccountId: "g-1",
+        });
+      });
+
+      it("allows an existing user signing in with a new provider for the same email", async () => {
+        mockGetUserByEmail.mockResolvedValue(existingUser);
+
+        const result = await callSignIn({
+          email: "existing@example.com",
+          account: makeAccount({
+            provider: "github",
+            providerAccountId: "gh-1",
+          }),
+        });
+
+        expect(result).toBe(true);
+        expect(mockGetUserByEmail).toHaveBeenCalledWith("existing@example.com");
+      });
+
+      it("redirects new users to the signups-closed page", async () => {
+        const result = await callSignIn({
+          email: "new@example.com",
+          account: makeAccount({
+            provider: "google",
+            providerAccountId: "g-2",
+          }),
+        });
+
+        expect(result).toBe("/signups-closed");
+      });
+
+      it("fails the sign-in when the user lookup errors", async () => {
+        mockGetUserByAccount.mockRejectedValue(new Error("db down"));
+
+        await expect(
+          callSignIn({
+            email: "existing@example.com",
+            account: makeAccount(),
+          }),
+        ).rejects.toThrow("db down");
+      });
+    });
+
+    describe("when new signups are enabled", () => {
+      it.each([undefined, "", "false"])(
+        "allows new users when DISABLE_NEW_SIGNUPS is %s without looking them up",
+        async (value) => {
+          mockEnv.DISABLE_NEW_SIGNUPS = value;
+
+          const result = await callSignIn({
+            email: "new@example.com",
+            account: makeAccount({
+              provider: "google",
+              providerAccountId: "g-2",
+            }),
+          });
+
+          expect(result).toBe(true);
+          expect(mockGetUserByAccount).not.toHaveBeenCalled();
+          expect(mockGetUserByEmail).not.toHaveBeenCalled();
+        },
+      );
+    });
   });
 
   describe("jwt callback", () => {

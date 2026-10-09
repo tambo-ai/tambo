@@ -150,7 +150,8 @@ jobs:
       - name: Setup and start Docker stack
         run: |
           ./scripts/cloud/tambo-setup.sh
-          ./scripts/cloud/tambo-start.sh
+          # This smoke test exercises PostgreSQL, API, and web with no S3 storage configured.
+          docker compose --env-file docker.env up -d postgres api web
         timeout-minutes: 8
 
       - name: Wait for services to be healthy

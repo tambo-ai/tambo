@@ -1,4 +1,5 @@
 import { NextAuthLayoutWrapper } from "@/components/auth/nextauth-layout-wrapper";
+import { ShutdownNotice } from "@/components/shutdown-notice";
 import { HydrateClient, trpc } from "@/server/api/root";
 
 export default async function AuthedLayout({
@@ -12,6 +13,7 @@ export default async function AuthedLayout({
   ]);
   return (
     <HydrateClient>
+      <ShutdownNotice />
       <NextAuthLayoutWrapper>{children}</NextAuthLayoutWrapper>
     </HydrateClient>
   );

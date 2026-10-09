@@ -24,8 +24,8 @@
   "author": "",
   "license": "Apache-2.0",
   "dependencies": {
-    "@ag-ui/client": "0.0.44",
-    "@ag-ui/core": "^0.0.44",
+    "@ag-ui/client": "0.0.57",
+    "@ag-ui/core": "^0.0.57",
     "@ag-ui/crewai": "^0.0.3",
     "@ag-ui/llamaindex": "^0.1.5",
     "@ag-ui/mastra": "^1.0.0",
@@ -52,7 +52,7 @@
     "nanoid": "^3.3.11",
     "openai": "^6.33.0",
     "partial-json": "^0.1.7",
-    "rxjs": "7.8.1",
+    "rxjs": "7.8.2",
     "zod": "^3.25.76",
     "zod-to-json-schema": "^3.25.1"
   },

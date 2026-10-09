@@ -9,6 +9,7 @@ import {
 import { fs as memfsFs, vol } from "memfs";
 import { toTreeSync } from "memfs/lib/print";
 import type { FrameworkConfig } from "../utils/framework-detection.js";
+import { SHUTDOWN_NOTICE_ENV_VAR } from "../utils/shutdown-notice.js";
 import {
   createBasicProject,
   createNextProject,
@@ -78,6 +79,11 @@ jest.unstable_mockModule("../lib/telemetry.js", () => ({
 
 // Mock inquirer for user prompts
 let inquirerResponses: Record<string, unknown> = {};
+const promptedQuestions: {
+  name: string;
+  default?: unknown;
+  choices?: unknown[];
+}[] = [];
 const mockPrompt = async (
   question:
     | { name: string; default?: unknown; type?: string; choices?: unknown[] }
@@ -89,6 +95,7 @@ const mockPrompt = async (
       }[],
 ) => {
   const questions = Array.isArray(question) ? question : [question];
+  promptedQuestions.push(...questions);
   const responses: Record<string, unknown> = {};
   for (const q of questions) {
     // Handle checkbox type - return array if response is provided, otherwise empty array
@@ -404,6 +411,58 @@ describe("handleInit", () => {
     mockDeviceAuthShouldFail = false;
     mockProjects = [];
     mockGeneratedApiKey = "test-api-key-123";
+  });
+
+  describe("Tambo Cloud shutdown notice", () => {
+    it("prints the shutdown notice before proceeding", async () => {
+      delete process.env[SHUTDOWN_NOTICE_ENV_VAR];
+      const warnSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
+      vol.fromJSON({});
+
+      try {
+        await handleInit({});
+
+        const warnings = warnSpy.mock.calls.map((call) => `${call[0]}`);
+        expect(warnings.join("\n")).toContain("Tambo Cloud is shutting down");
+        // Non-blocking: init still continues to its normal checks
+        expect(logs.join("\n")).toContain(
+          "Could not find a valid package.json",
+        );
+      } finally {
+        warnSpy.mockRestore();
+        delete process.env[SHUTDOWN_NOTICE_ENV_VAR];
+      }
+    });
+  });
+
+  describe("hosting choice", () => {
+    it("defaults to self-hosting and marks Tambo Cloud as ending", async () => {
+      promptedQuestions.length = 0;
+      vol.fromJSON(createBasicProject());
+      inquirerResponses = {
+        openRepo: false,
+        apiKeyOrCloud: "paste",
+        apiKey: "self-hosted-key-456",
+        confirmReplace: true,
+      };
+
+      await handleInit({});
+
+      const hostingQuestion = promptedQuestions.find(
+        (q) => q.name === "hostingChoice",
+      );
+      expect(hostingQuestion?.default).toBe("self");
+      const choices = (hostingQuestion?.choices ?? []) as {
+        name: string;
+        value: string;
+      }[];
+      expect(choices[0]).toMatchObject({ value: "self" });
+      expect(choices[0].name).toContain("recommended");
+      const cloudChoice = choices.find((c) => c.value === "cloud");
+      expect(cloudChoice?.name).not.toContain("recommended");
+      expect(cloudChoice?.name).toContain("October 31, 2026");
+      expect(cloudChoice?.name).toContain("signups closed");
+    });
   });
 
   describe("error cases", () => {

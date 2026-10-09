@@ -32,6 +32,7 @@ The package implements a simple proxy pattern:
 ### Single Entry Point
 
 - **`src/index.ts`** - Entire package implementation
+- **`src/shutdown-notice.ts`** - Prints the Tambo Cloud shutdown notice before delegating; sets `TAMBO_SHUTDOWN_NOTICE_SHOWN` so the `tambo` CLI doesn't print it again
 - Uses Node.js `spawn` to execute `tambo` CLI
 - Inherits stdio for seamless user experience
 - Exits with same code as underlying process

@@ -877,6 +877,62 @@ describe("AgentClient", () => {
         expect(responses).toMatchSnapshot();
       });
 
+      it("should handle AG-UI reasoning message events", async () => {
+        const queue = new AsyncQueue<EventHandlerParams>();
+        const stream = agentClient.streamRunAgent(queue, {
+          messages: [mockMessage("Think about this")],
+          tools: [],
+        });
+
+        mockGenerator.pushEvent({
+          type: EventType.REASONING_START,
+          messageId: "reasoning-1",
+        });
+
+        mockGenerator.pushEvent({
+          type: EventType.REASONING_MESSAGE_START,
+          messageId: "reasoning-message-1",
+          role: "reasoning",
+        });
+
+        mockGenerator.pushEvent({
+          type: EventType.REASONING_MESSAGE_CONTENT,
+          messageId: "reasoning-message-1",
+          delta: "Let me think about this...",
+        });
+
+        mockGenerator.pushEvent({
+          type: EventType.REASONING_MESSAGE_END,
+          messageId: "reasoning-message-1",
+        });
+
+        mockGenerator.pushEvent({
+          type: EventType.REASONING_END,
+          messageId: "reasoning-1",
+        });
+
+        mockGenerator.pushEvent({
+          type: EventType.RUN_FINISHED,
+          result: "Reasoning completed",
+        });
+
+        const responses: AgentResponse[] = [];
+        for await (const response of stream) {
+          responses.push(response);
+        }
+
+        mockGenerator.finish();
+
+        expect(responses).toHaveLength(4);
+        expect(responses[0].message.reasoning).toEqual([]);
+        expect(responses[1].message.reasoning).toEqual([""]);
+        expect(responses[2].message.reasoning).toEqual([
+          "Let me think about this...",
+        ]);
+        expect(responses[3].message.content).toBe("Reasoning completed");
+        expect(responses[3].complete).toBe(true);
+      });
+
       it("should handle multiple thinking text messages", async () => {
         const queue = new AsyncQueue<EventHandlerParams>();
         const stream = agentClient.streamRunAgent(queue, {

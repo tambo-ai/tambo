@@ -1,9 +1,6 @@
 import chalk from "chalk";
-import type { ExecFileSyncOptions, ExecSyncOptions } from "child_process";
-import {
-  execFileSync as nodeExecFileSync,
-  execSync as nodeExecSync,
-} from "child_process";
+import type { ExecFileSyncOptions } from "child_process";
+import { execFileSync as nodeExecFileSync } from "child_process";
 import path from "node:path";
 import spawn from "cross-spawn";
 import type { Answers, DistinctQuestion, PromptSession } from "inquirer";
@@ -109,13 +106,6 @@ Run ${chalk.cyan("tambo --help")} or ${chalk.cyan("tambo <command> --help")} for
   return result as T;
 }
 
-export interface SafeExecSyncOptions extends ExecSyncOptions {
-  /**
-   * Allow execution in non-interactive mode (e.g., when user passes --yes flag)
-   */
-  allowNonInteractive?: boolean;
-}
-
 export interface SafeExecFileSyncOptions extends ExecFileSyncOptions {
   /**
    * Allow execution in non-interactive mode (e.g., when user passes --yes flag)
@@ -196,7 +186,7 @@ const formatCommandForDiagnostics = (
  * Safe wrapper around execFileSync (preferred) that prevents execution of external commands
  * in non-interactive environments unless explicitly allowed.
  *
- * Uses execFileSync by default, falls back to execSync only when shell features are needed.
+ * Preserves argument boundaries by invoking the executable without a shell.
  *
  * On Windows, uses cross-spawn for known package manager binaries (npm, npx, pnpm, yarn, rush)
  * since they are batch files/shims that require cmd.exe invocation.
@@ -212,6 +202,7 @@ const formatCommandForDiagnostics = (
  * @param file - The file/command to execute
  * @param args - Arguments to pass to the command
  * @param options - Options to pass to execFileSync, including allowNonInteractive flag
+ * @returns Command stdout when it is piped, otherwise an empty buffer or string.
  * @throws NonInteractiveError if running in a non-interactive environment without allowNonInteractive
  */
 export function execFileSync(
@@ -344,34 +335,4 @@ export function execFileSync(
   }
 
   return nodeExecFileSync(file, args, execOptions);
-}
-
-/**
- * Safe wrapper around execSync that prevents execution of external commands
- * in non-interactive environments unless explicitly allowed.
- *
- * SECURITY WARNING: This uses execSync which invokes a shell and is vulnerable to
- * shell injection. Prefer execFileSync when possible. Only use this when you need
- * shell features like pipes, redirects, or glob expansion.
- *
- * @param command - The command to execute
- * @param options - Options to pass to execSync, including allowNonInteractive flag
- * @throws NonInteractiveError if running in a non-interactive environment without allowNonInteractive
- */
-export function execSync(
-  command: string,
-  options?: SafeExecSyncOptions,
-): Buffer | string {
-  const { allowNonInteractive, ...execOptions } = options ?? {};
-
-  if (!isInteractive() && !allowNonInteractive) {
-    throw new NonInteractiveError(
-      `${chalk.red("Error: Cannot execute external command in non-interactive mode.")}\n\n` +
-        `${chalk.yellow("Command:")} ${command}\n\n` +
-        `${chalk.blue("Reason:")} Running external commands (npm, npx, git) requires user confirmation.\n` +
-        `Use appropriate flags to run in interactive mode or provide all necessary options upfront.`,
-    );
-  }
-
-  return nodeExecSync(command, execOptions);
 }
