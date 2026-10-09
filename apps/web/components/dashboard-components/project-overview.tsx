@@ -70,6 +70,24 @@ export function ProjectOverview({ projectId }: ProjectOverviewProps) {
     >
       <ProjectInfo project={project} createdAt={createdAtIso} />
 
+      <nav
+        aria-label="Project setup guides"
+        className="flex flex-wrap gap-x-5 gap-y-3 text-sm"
+      >
+        <Link
+          className="underline underline-offset-4"
+          href="https://docs.tambo.co/getting-started/quickstart"
+        >
+          Starter quickstart
+        </Link>
+        <Link
+          className="underline underline-offset-4"
+          href="https://docs.tambo.co/getting-started/integrate"
+        >
+          Add Tambo to an existing app
+        </Link>
+      </nav>
+
       {noApiKeys && (
         <Alert className="bg-card">
           <KeyRound className="h-4 w-4 self-center" />
@@ -77,7 +95,8 @@ export function ProjectOverview({ projectId }: ProjectOverviewProps) {
             <div className="min-w-0">
               <AlertTitle>Create an API key</AlertTitle>
               <AlertDescription>
-                Generate an API key to connect your app to this project.
+                The starter CLI creates a key when you select this project. To
+                connect an existing app manually, create a key in settings.
               </AlertDescription>
             </div>
             <Button asChild size="sm" className="shrink-0">

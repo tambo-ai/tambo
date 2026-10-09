@@ -2,14 +2,16 @@
 
 import { CreateProjectDialog } from "@/components/dashboard-components/create-project-dialog";
 import { DashboardCard } from "@/components/dashboard-components/dashboard-card";
-import { OnboardingWizard } from "@/components/dashboard-components/onboarding-wizard";
+import { TamboGettingStartedGuide } from "@/components/dashboard-components/onboarding/getting-started-guide";
+import type { TamboSetupProject } from "@/components/dashboard-components/onboarding/getting-started-state";
+import { TamboReferralQuestion } from "@/components/dashboard-components/onboarding/referral-question";
 import { ProjectsManager } from "@/components/dashboard-components/projects-manager";
 import { Icons } from "@/components/icons";
 import { useToast } from "@/hooks/use-toast";
 import { api } from "@/trpc/react";
 import { motion } from "framer-motion";
 import { useSession } from "next-auth/react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 // Animation variants
 const containerVariants = {
@@ -25,8 +27,11 @@ const containerVariants = {
 
 export default function DashboardPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
+  const [setupProject, setSetupProject] = useState<TamboSetupProject | null>(
+    null,
+  );
   const [messagesPeriod, setMessagesPeriod] = useState("all time");
+  const creatingFirstProject = useRef(false);
   const [usersPeriod, setUsersPeriod] = useState("all time");
   const { toast } = useToast();
   const { data: session, status } = useSession();
@@ -63,15 +68,26 @@ export default function DashboardPage() {
     }
   }, [projectLoadingError, toast]);
 
-  // Open onboarding wizard for new users (no projects), otherwise use regular create dialog
-  useEffect(() => {
-    if (!isProjectsLoading && projects && projects.length === 0) {
-      setIsOnboardingOpen(true);
-    }
-  }, [isProjectsLoading, projects]);
-
-  const { mutateAsync: createProject } =
-    api.project.createProject2.useMutation();
+  const createProjectMutation = api.project.createProject2.useMutation();
+  const { mutateAsync: createProject } = createProjectMutation;
+  const handleCreateFirstProject = (name: string) => {
+    // A second submit can arrive before React renders the pending mutation.
+    if (creatingFirstProject.current) return;
+    creatingFirstProject.current = true;
+    createProjectMutation.mutate(
+      { name },
+      {
+        onSuccess: async (project) => {
+          // Keep the confirmed project available even if refreshing the list fails.
+          setSetupProject({ id: project.id, name: project.name });
+          await refetchProjects();
+        },
+        onSettled: () => {
+          creatingFirstProject.current = false;
+        },
+      },
+    );
+  };
   const { mutateAsync: addProviderKey } =
     api.project.addProviderKey.useMutation();
 
@@ -88,7 +104,6 @@ export default function DashboardPage() {
       });
       await refetchProjects();
       setIsCreateDialogOpen(false);
-      setIsOnboardingOpen(false);
       toast({
         title: "Success",
         description: "Project created successfully",
@@ -126,6 +141,39 @@ export default function DashboardPage() {
     return <LoadingSpinner />;
   }
 
+  if (projectLoadingError && !projects && !setupProject) {
+    return (
+      <div className="py-6 md:py-14">
+        <TamboGettingStartedGuide
+          state={{ status: "error" }}
+          onRetryLoad={() => void refetchProjects()}
+          onCreateProject={handleCreateFirstProject}
+        />
+      </div>
+    );
+  }
+
+  if (setupProject || projects?.length === 0) {
+    const creation =
+      createProjectMutation.status === "success"
+        ? "idle"
+        : createProjectMutation.status;
+    return (
+      <div className="py-6 md:py-14">
+        <TamboGettingStartedGuide
+          state={
+            setupProject
+              ? { status: "project-created", project: setupProject }
+              : { status: "needs-project", creation }
+          }
+          onCreateProject={handleCreateFirstProject}
+          onRetryLoad={() => void refetchProjects()}
+          referralQuestion={<TamboReferralQuestion />}
+        />
+      </div>
+    );
+  }
+
   return (
     <motion.div initial="hidden" animate="visible" variants={containerVariants}>
       <>
@@ -158,13 +206,6 @@ export default function DashboardPage() {
           onRefetchProjects={async () => {
             await refetchProjects();
           }}
-        />
-
-        {/* Onboarding wizard for new users (no projects) */}
-        <OnboardingWizard
-          open={isOnboardingOpen}
-          onOpenChange={setIsOnboardingOpen}
-          onSubmit={handleCreateProject}
         />
 
         {/* Regular create project dialog for existing users */}
