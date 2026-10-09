@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.136.0](https://github.com/tambo-ai/tambo/compare/web-v0.135.1...web-v0.136.0) (2026-10-08)
+
+
+### Features
+
+* **cloud:** prepare Tambo Cloud shutdown ([#3027](https://github.com/tambo-ai/tambo/issues/3027)) ([0bd450b](https://github.com/tambo-ai/tambo/commit/0bd450b607e5bf0f78ebf17279b75ab7fff773ef))
+* **web:** gate new signups behind DISABLE_NEW_SIGNUPS ([#3031](https://github.com/tambo-ai/tambo/issues/3031)) ([524d917](https://github.com/tambo-ai/tambo/commit/524d917e279cc936108a4724a26d9b862e13b241))
+
+
+### Bug Fixes
+
+* **deps:** bump dompurify to ^3.4.11 ([#2972](https://github.com/tambo-ai/tambo/issues/2972)) ([b73ed83](https://github.com/tambo-ai/tambo/commit/b73ed83dab16b1daf48ef7e8eb0e613794f6901c))
+* **deps:** replace dependency framer-motion with motion ^12.29.0 ([#3003](https://github.com/tambo-ai/tambo/issues/3003)) ([fbf65b2](https://github.com/tambo-ai/tambo/commit/fbf65b211ae67a4154786b57e1bbff80683fecbd))
+* **security:** remediate open alerts ([#3002](https://github.com/tambo-ai/tambo/issues/3002)) ([aa63c7d](https://github.com/tambo-ai/tambo/commit/aa63c7dc82d4a5009aa59062a1e27260ccf444b2))
+
+
+### Miscellaneous Chores
+
+* **deps:** update dependency js-yaml to v4.3.0 [security] ([#2998](https://github.com/tambo-ai/tambo/issues/2998)) ([bc30cd7](https://github.com/tambo-ai/tambo/commit/bc30cd7dfdaed4ece89d0e48251566c24ea259dd))
+
 ## [0.135.1](https://github.com/tambo-ai/tambo/compare/web-v0.135.0...web-v0.135.1) (2026-06-16)
 
 
