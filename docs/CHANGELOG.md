@@ -1,5 +1,35 @@
 # Changelog
 
+## [1.35.0](https://github.com/tambo-ai/tambo/compare/docs-v1.34.1...docs-v1.35.0) (2026-10-09)
+
+
+### Features
+
+* **api:** add global IP-based rate limiting with RFC 9457 429s ([#3024](https://github.com/tambo-ai/tambo/issues/3024)) ([97a895c](https://github.com/tambo-ai/tambo/commit/97a895c6c86307f8b75264c8a28736833dce8cae))
+* **cloud:** prepare Tambo Cloud shutdown ([#3027](https://github.com/tambo-ai/tambo/issues/3027)) ([0bd450b](https://github.com/tambo-ai/tambo/commit/0bd450b607e5bf0f78ebf17279b75ab7fff773ef))
+* **web:** gate new signups behind DISABLE_NEW_SIGNUPS ([#3031](https://github.com/tambo-ai/tambo/issues/3031)) ([524d917](https://github.com/tambo-ai/tambo/commit/524d917e279cc936108a4724a26d9b862e13b241))
+
+
+### Bug Fixes
+
+* **deps:** bump dompurify to ^3.4.11 ([#2972](https://github.com/tambo-ai/tambo/issues/2972)) ([b73ed83](https://github.com/tambo-ai/tambo/commit/b73ed83dab16b1daf48ef7e8eb0e613794f6901c))
+* **deps:** replace dependency framer-motion with motion ^12.29.0 ([#3003](https://github.com/tambo-ai/tambo/issues/3003)) ([fbf65b2](https://github.com/tambo-ai/tambo/commit/fbf65b211ae67a4154786b57e1bbff80683fecbd))
+* **security:** remediate open alerts ([#3002](https://github.com/tambo-ai/tambo/issues/3002)) ([aa63c7d](https://github.com/tambo-ai/tambo/commit/aa63c7dc82d4a5009aa59062a1e27260ccf444b2))
+
+
+### Miscellaneous Chores
+
+* **deps:** update dependency @types/node to v22.19.21 ([#2960](https://github.com/tambo-ai/tambo/issues/2960)) ([e6a2a6d](https://github.com/tambo-ai/tambo/commit/e6a2a6d77f742ab4cc3f52238c4020eedd30b1dd))
+* **deps:** update dependency @types/node to v22.20.1 ([#2993](https://github.com/tambo-ai/tambo/issues/2993)) ([52e9e1a](https://github.com/tambo-ai/tambo/commit/52e9e1ac5570ba8bea8b1ba956c722e112e93b12))
+* **deps:** update dependency next to v15.5.21 [security] ([#2997](https://github.com/tambo-ai/tambo/issues/2997)) ([e7e467f](https://github.com/tambo-ai/tambo/commit/e7e467fbe60aa80edf3283c23636389abeef1ca4))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @tambo-ai/react-ui-base bumped from * to 0.1.13
+
 ## [1.34.1](https://github.com/tambo-ai/tambo/compare/docs-v1.34.0...docs-v1.34.1) (2026-06-16)
 
 
