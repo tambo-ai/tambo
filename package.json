@@ -101,10 +101,10 @@
       "js-yaml": "3.15.1"
     },
     "next": {
-      "postcss": "8.5.23",
+      "postcss": "8.5.29",
       "sharp": "0.35.3"
     },
-    "postcss": "8.5.25",
+    "postcss": "8.5.29",
     "protobufjs": "7.6.5",
     "picomatch@>=4.0.0": "4.0.4",
     "picomatch@<3.0.0": "2.3.2",
