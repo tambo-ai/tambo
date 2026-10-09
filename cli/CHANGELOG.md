@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.57.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.56.2...tambo-v0.57.0) (2026-10-09)
+
+
+### Features
+
+* **cloud:** prepare Tambo Cloud shutdown ([#3027](https://github.com/tambo-ai/tambo/issues/3027)) ([0bd450b](https://github.com/tambo-ai/tambo/commit/0bd450b607e5bf0f78ebf17279b75ab7fff773ef))
+
+
+### Bug Fixes
+
+* **security:** remediate open alerts ([#3002](https://github.com/tambo-ai/tambo/issues/3002)) ([aa63c7d](https://github.com/tambo-ai/tambo/commit/aa63c7dc82d4a5009aa59062a1e27260ccf444b2))
+
+
+### Miscellaneous Chores
+
+* **deps:** update dependency js-yaml to v4.3.0 [security] ([#2998](https://github.com/tambo-ai/tambo/issues/2998)) ([bc30cd7](https://github.com/tambo-ai/tambo/commit/bc30cd7dfdaed4ece89d0e48251566c24ea259dd))
+
 ## [0.56.2](https://github.com/tambo-ai/tambo/compare/tambo-v0.56.1...tambo-v0.56.2) (2026-06-16)
 
 
