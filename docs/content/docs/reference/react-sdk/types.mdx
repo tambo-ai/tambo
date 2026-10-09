@@ -638,6 +638,13 @@ interface PropStatus {
 }
 ```
 
+`PropStatusMap<Props>` puts nested object fields under `fields`, so a nested
+field can be checked with `propStatus.user?.fields?.name?.isStreaming`. This
+keeps field names such as `error` and `isPending` separate from status flags.
+Array props also provide `completedItems` and `streamingItems`. While a run is
+active, the last item is treated as in progress. When the run finishes, fails,
+or is cancelled, all received items move to `completedItems`.
+
 | Property      | Type      | Description                                        |
 | ------------- | --------- | -------------------------------------------------- |
 | `isPending`   | `boolean` | No tokens received for this prop yet               |

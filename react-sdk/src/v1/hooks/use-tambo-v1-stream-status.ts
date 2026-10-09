@@ -82,18 +82,117 @@ export interface PropStatus {
   error?: Error;
 }
 
+/** Status for a prop, including nested fields or progressively streamed array items. */
+export type PropStatusNode<Value> = PropStatus &
+  (NonNullable<Value> extends readonly (infer Item)[]
+    ? { completedItems: Item[]; streamingItems: Item[] }
+    : NonNullable<Value> extends object
+      ? {
+          fields?: {
+            [Key in keyof NonNullable<Value>]?: PropStatusNode<
+              NonNullable<Value>[Key]
+            >;
+          };
+        }
+      : Record<never, never>);
+
+/** Mirrors the component's prop shape with streaming status at each field. */
+export type PropStatusMap<Props extends object> = {
+  [Key in keyof Props]?: PropStatusNode<Props[Key]>;
+};
+
+/** Records paths that have received content, including paths inside objects. */
+function collectStartedPaths(
+  value: unknown,
+  path: string[],
+  addPath: (path: string[]) => void,
+): void {
+  if (value === undefined || value === null || value === "") return;
+
+  addPath(path);
+  // Array items are exposed through completedItems/streamingItems, not child
+  // statuses. Walking each item on every token adds work with no benefit.
+  if (Array.isArray(value)) return;
+  if (typeof value === "object") {
+    Object.entries(value).forEach(([key, child]) =>
+      collectStartedPaths(child, [...path, key], addPath),
+    );
+  }
+}
+
+/**
+ * Derives a nested status tree from the parsed props and component lifecycle.
+ * @returns Status flags and any child field or array item status.
+ */
+function createPropStatus(
+  value: unknown,
+  path: string[],
+  started: Set<string>,
+  isStreamingDone: boolean,
+  isComponentStreaming: boolean,
+): PropStatus & Record<string, unknown> {
+  const hasStarted = started.has(JSON.stringify(path));
+  const isComplete = hasStarted && isStreamingDone;
+  const status: PropStatus & Record<string, unknown> = {
+    isPending: !hasStarted,
+    isStreaming: hasStarted && !isComplete && isComponentStreaming,
+    isSuccess: isComplete,
+    error: undefined,
+  };
+
+  if (Array.isArray(value)) {
+    if (isStreamingDone) {
+      return { ...status, completedItems: [...value], streamingItems: [] };
+    }
+    if (isComponentStreaming) {
+      return {
+        ...status,
+        completedItems: value.slice(0, -1),
+        streamingItems: value.slice(-1),
+      };
+    }
+    return {
+      ...status,
+      // A cancelled or failed run can leave the component marked "streaming".
+      // Once the run stops, no trailing item is still in progress.
+      completedItems: [...value],
+      streamingItems: [],
+    };
+  }
+
+  if (value && typeof value === "object") {
+    const children = Object.fromEntries(
+      Object.entries(value).map(([key, child]) => [
+        key,
+        createPropStatus(
+          child,
+          [...path, key],
+          started,
+          isStreamingDone,
+          isComponentStreaming,
+        ),
+      ]),
+    );
+    return { ...status, fields: children };
+  }
+
+  return status;
+}
+
 /**
  * Track streaming status for individual props by monitoring their values.
  * Monitors when props receive their first token and when they complete streaming.
  * @template Props - The type of the component props being tracked
  * @param props - The current component props object
  * @param componentStreamingState - The current streaming state of the component
- * @returns A record mapping each prop key to its PropStatus
+ * @param isRunActive - Whether the thread's current run can still receive updates
+ * @returns A status tree with nested object statuses under `fields`
  */
 function usePropsStreamingStatus<Props extends object>(
   props: Props | undefined,
   componentStreamingState: TamboComponentContent["streamingState"] | undefined,
-): Partial<Record<keyof Props, PropStatus>> {
+  isRunActive: boolean,
+): PropStatusMap<Props> {
   /** Track which props have received content */
   const [startedProps, setStartedProps] = useState(new Set<string>());
 
@@ -102,43 +201,43 @@ function usePropsStreamingStatus<Props extends object>(
     if (!props) return;
 
     setStartedProps((prev) => {
-      let changed = false;
-      const newStarted = new Set(prev);
+      let newStarted: Set<string> | undefined;
+      const addPath = (path: string[]) => {
+        const key = JSON.stringify(path);
+        if (prev.has(key)) return;
+        newStarted ??= new Set(prev);
+        newStarted.add(key);
+      };
 
       for (const [key, value] of Object.entries(props)) {
-        const hasContent =
-          value !== undefined && value !== null && value !== "";
-        if (hasContent && !newStarted.has(key)) {
-          newStarted.add(key);
-          changed = true;
-        }
+        collectStartedPaths(value, [key], addPath);
       }
-
-      return changed ? newStarted : prev;
+      return newStarted ?? prev;
     });
   }, [props]);
 
   /** Derive prop statuses from started props and streaming state */
   return useMemo(() => {
-    if (!props) return {} as Record<keyof Props, PropStatus>;
+    if (!props) return {};
 
     const isStreamingDone = componentStreamingState === "done";
-    const isComponentStreaming = componentStreamingState === "streaming";
+    const isComponentStreaming =
+      componentStreamingState === "streaming" && isRunActive;
 
-    const result = {} as Record<keyof Props, PropStatus>;
-    for (const key of Object.keys(props)) {
-      const hasStarted = startedProps.has(key);
-      const isComplete = hasStarted && isStreamingDone;
-
-      result[key as keyof Props] = {
-        isPending: !hasStarted && !isComplete,
-        isStreaming: hasStarted && !isComplete && isComponentStreaming,
-        isSuccess: isComplete,
-        error: undefined,
-      };
+    const statusByProp: PropStatusMap<Props> = {};
+    for (const [key, value] of Object.entries(props)) {
+      Object.assign(statusByProp, {
+        [key]: createPropStatus(
+          value,
+          [key],
+          startedProps,
+          isStreamingDone,
+          isComponentStreaming,
+        ),
+      });
     }
-    return result;
-  }, [props, startedProps, componentStreamingState]);
+    return statusByProp;
+  }, [props, startedProps, componentStreamingState, isRunActive]);
 }
 
 /**
@@ -148,6 +247,7 @@ function usePropsStreamingStatus<Props extends object>(
  * @param componentStreamingState - The current streaming state of the component
  * @param propStatus - Status record for each individual prop
  * @param hasComponent - Whether a component exists in the current message
+ * @param isRunActive - Whether the thread's current run can still receive updates
  * @param streamError - Any error from the streaming process itself
  * @returns The aggregated StreamStatus for the entire component
  */
@@ -155,6 +255,7 @@ function deriveGlobalStreamStatus(
   componentStreamingState: TamboComponentContent["streamingState"] | undefined,
   propStatus: Partial<Record<string, PropStatus>>,
   hasComponent: boolean,
+  isRunActive: boolean,
   streamError?: Error,
 ): StreamStatus {
   const propStatuses: PropStatus[] = Object.values(propStatus).filter(
@@ -167,7 +268,8 @@ function deriveGlobalStreamStatus(
     propStatuses.length > 0 && propStatuses.every((p) => p.isSuccess);
 
   // Component is streaming if streamingState is "streaming" (even before props start)
-  const isComponentStreaming = componentStreamingState === "streaming";
+  const isComponentStreaming =
+    componentStreamingState === "streaming" && isRunActive;
   const anyPropStreaming = propStatuses.some((p) => p.isStreaming);
 
   /** Find first error from stream or any prop */
@@ -226,7 +328,7 @@ export function useTamboStreamStatus<
   Props extends object = Record<string, unknown>,
 >(): {
   streamStatus: StreamStatus;
-  propStatus: Partial<Record<keyof Props, PropStatus>>;
+  propStatus: PropStatusMap<Props>;
 } {
   const { componentId, threadId } = useComponentContent();
   const streamState = useStreamState();
@@ -252,6 +354,9 @@ export function useTamboStreamStatus<
 
   /** Get the current thread state */
   const threadState = streamState.threadMap[threadId];
+  const isRunActive =
+    threadState?.streaming.status === "streaming" ||
+    threadState?.streaming.status === "waiting";
 
   /** Get error message from stream state if any */
   const streamErrorMessage = threadState?.streaming.error?.message;
@@ -274,6 +379,7 @@ export function useTamboStreamStatus<
   const propStatus = usePropsStreamingStatus(
     componentProps,
     componentStreamingState,
+    isRunActive,
   );
 
   /** Derive global stream status from prop statuses and component streaming state */
@@ -286,12 +392,14 @@ export function useTamboStreamStatus<
       componentStreamingState,
       propStatus,
       hasComponent,
+      isRunActive,
       streamError,
     );
   }, [
     componentStreamingState,
     propStatus,
     componentContent,
+    isRunActive,
     streamErrorMessage,
   ]);
 
