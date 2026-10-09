@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.1.13](https://github.com/tambo-ai/tambo/compare/@tambo-ai/react-ui-base-v0.1.12...@tambo-ai/react-ui-base-v0.1.13) (2026-10-09)
+
+
+### Features
+
+* **cloud:** prepare Tambo Cloud shutdown ([#3027](https://github.com/tambo-ai/tambo/issues/3027)) ([0bd450b](https://github.com/tambo-ai/tambo/commit/0bd450b607e5bf0f78ebf17279b75ab7fff773ef))
+
+
+### Miscellaneous Chores
+
+* **react-ui-base:** accept compatible @tambo-ai/react releases ([#3033](https://github.com/tambo-ai/tambo/issues/3033)) ([42ccee5](https://github.com/tambo-ai/tambo/commit/42ccee5c1021af7eabd61845104843fd54c133f6))
+
 ## [0.1.12](https://github.com/tambo-ai/tambo/compare/@tambo-ai/react-ui-base-v0.1.11...@tambo-ai/react-ui-base-v0.1.12) (2026-06-16)
 
 
