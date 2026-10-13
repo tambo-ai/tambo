@@ -183,7 +183,10 @@ export function canBeNull(originalSchema: JSONSchema7Definition): boolean {
     return false;
   }
 
-  if (originalSchema.type === "null") {
+  if (
+    originalSchema.type === "null" ||
+    (Array.isArray(originalSchema.type) && originalSchema.type.includes("null"))
+  ) {
     return true;
   }
 
