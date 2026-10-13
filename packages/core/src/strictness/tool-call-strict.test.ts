@@ -4,6 +4,44 @@ import type { ToolCallRequest } from "../ComponentDecision";
 import { canBeNull, unstrictifyToolCallRequest } from "./tool-call-strict";
 
 describe("unstrictifyToolCallRequest", () => {
+  it("preserves optional nullable type-array nulls instead of applying defaults", () => {
+    const originalTool: OpenAI.Chat.Completions.ChatCompletionTool = {
+      type: "function",
+      function: {
+        name: "update_preferences",
+        parameters: {
+          type: "object",
+          properties: {
+            title: { type: ["string", "null"], default: "unused" },
+            color: { type: ["string", "number"], default: "fallback" },
+            optional: { type: ["string", "number"] },
+          },
+        },
+      },
+    };
+    const toolCallRequest: ToolCallRequest = {
+      toolName: "update_preferences",
+      parameters: [
+        { parameterName: "title", parameterValue: null },
+        { parameterName: "color", parameterValue: null },
+        { parameterName: "optional", parameterValue: null },
+      ],
+    };
+
+    expect(unstrictifyToolCallRequest(originalTool, toolCallRequest)).toEqual({
+      toolName: "update_preferences",
+      parameters: [
+        { parameterName: "title", parameterValue: null },
+        { parameterName: "color", parameterValue: "fallback" },
+      ],
+    });
+    expect(toolCallRequest.parameters).toEqual([
+      { parameterName: "title", parameterValue: null },
+      { parameterName: "color", parameterValue: null },
+      { parameterName: "optional", parameterValue: null },
+    ]);
+  });
+
   it("should return the original request if originalTool is undefined", () => {
     const toolCallRequest: ToolCallRequest = {
       toolName: "test",
@@ -499,6 +537,19 @@ describe("unstrictifyToolCallRequest", () => {
 });
 
 describe("canBeNull", () => {
+  it.each<JSONSchema7>([
+    { type: ["string", "null"] },
+    { type: ["null", "number"] },
+    { type: ["null"] },
+    { anyOf: [{ type: "number" }, { type: ["string", "null"] }] },
+  ])("recognizes null in %j", (schema) => {
+    expect(canBeNull(schema)).toBe(true);
+  });
+
+  it("keeps type arrays without null non-nullable", () => {
+    expect(canBeNull({ type: ["string", "number"] })).toBe(false);
+  });
+
   it("should return true for schema with type null", () => {
     const schema: JSONSchema7 = { type: "null" };
     expect(canBeNull(schema)).toBe(true);
