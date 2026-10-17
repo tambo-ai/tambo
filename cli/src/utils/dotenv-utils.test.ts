@@ -7,6 +7,21 @@ import {
   setTamboApiKey,
 } from "./dotenv-utils.js";
 
+const mixedTamboAssignments = [
+  "export TAMBO_API_KEY=old-secret",
+  "  VITE_TAMBO_API_KEY = old-vite-secret",
+  "NEXT_PUBLIC_TAMBO_API_KEY: old-colon-secret",
+  "OTHER=value",
+  "# export TAMBO_API_KEY=keep-comment",
+  "MY_TAMBO_API_KEY=keep-other",
+].join("\n");
+
+const preservedTamboAssignments = [
+  "OTHER=value",
+  "# export TAMBO_API_KEY=keep-comment",
+  "MY_TAMBO_API_KEY=keep-other",
+].join("\n");
+
 describe("parseDotenvContent", () => {
   it("parses simple key-value pairs", () => {
     const content = "FOO=bar\nBAZ=qux";
@@ -125,6 +140,18 @@ describe("findAllTamboApiKeys", () => {
 });
 
 describe("setTamboApiKey", () => {
+  it("rotates exported, padded, and colon-style keys without removing comments", () => {
+    expect(
+      setTamboApiKey(
+        mixedTamboAssignments,
+        "NEXT_PUBLIC_TAMBO_API_KEY",
+        "fresh-secret",
+      ),
+    ).toBe(
+      `${preservedTamboAssignments}\nNEXT_PUBLIC_TAMBO_API_KEY=fresh-secret\n`,
+    );
+  });
+
   it("appends key to empty content", () => {
     const result = setTamboApiKey("", "NEXT_PUBLIC_TAMBO_API_KEY", "new-key");
     expect(result).toBe("NEXT_PUBLIC_TAMBO_API_KEY=new-key\n");
@@ -203,6 +230,12 @@ describe("setTamboApiKey", () => {
 });
 
 describe("removeTamboApiKeys", () => {
+  it("removes exported, padded, and colon-style keys while preserving others", () => {
+    expect(removeTamboApiKeys(mixedTamboAssignments)).toBe(
+      preservedTamboAssignments,
+    );
+  });
+
   it("removes single key", () => {
     const content = "OTHER=value\nNEXT_PUBLIC_TAMBO_API_KEY=key\nFOO=bar";
     const result = removeTamboApiKeys(content);
