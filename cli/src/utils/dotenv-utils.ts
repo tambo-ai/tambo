@@ -13,10 +13,10 @@ export const TAMBO_API_KEY_NAMES = [
 
 export type TamboApiKeyName = (typeof TAMBO_API_KEY_NAMES)[number];
 
-// The dotenv parser accepts both `export KEY=value` and whitespace around `=`.
-// Remove those forms too, or rotating a CLI key can leave an old key active.
+// The dotenv parser accepts `export KEY=value`, spaces around `=`, and
+// `KEY: value`. Remove those forms so rotating a key never leaves an old one.
 const TAMBO_API_KEY_ASSIGNMENT = new RegExp(
-  String.raw`^\s*(?:export\s+)?(?:${TAMBO_API_KEY_NAMES.join("|")})\s*=`,
+  String.raw`^\s*(?:export\s+)?(?:${TAMBO_API_KEY_NAMES.join("|")})(?:\s*=|:\s)`,
 );
 
 interface TamboApiKeyInfo {
