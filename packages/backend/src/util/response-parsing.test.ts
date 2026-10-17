@@ -22,6 +22,19 @@ describe("extractMessageContent", () => {
     logSpy.mockRestore();
   });
 
+  it.each([null, 0, false, { nested: "message" }])(
+    "does not return a non-string message field: %p",
+    (message) => {
+      const content = JSON.stringify({ message });
+      expect(extractMessageContent(content, false)).toBe(content);
+    },
+  );
+
+  it("extracts both nonempty and empty string messages", () => {
+    expect(extractMessageContent('{"message":"hello"}', false)).toBe("hello");
+    expect(extractMessageContent('{"message":""}', false)).toBe("");
+  });
+
   it("should handle partial JSON parsing edge cases", () => {
     // partial-json allows parsing truncated JSON strings
     // e.g. '{"message": "He' -> { message: "He" }
