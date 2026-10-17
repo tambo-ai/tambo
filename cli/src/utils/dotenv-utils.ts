@@ -13,6 +13,12 @@ export const TAMBO_API_KEY_NAMES = [
 
 export type TamboApiKeyName = (typeof TAMBO_API_KEY_NAMES)[number];
 
+// The dotenv parser accepts both `export KEY=value` and whitespace around `=`.
+// Remove those forms too, or rotating a CLI key can leave an old key active.
+const TAMBO_API_KEY_ASSIGNMENT = new RegExp(
+  String.raw`^\s*(?:export\s+)?(?:${TAMBO_API_KEY_NAMES.join("|")})\s*=`,
+);
+
 interface TamboApiKeyInfo {
   keyName: TamboApiKeyName;
   value: string;
@@ -75,11 +81,9 @@ export function setTamboApiKey(
 ): string {
   // Split into lines, filter out any existing Tambo API key lines
   const lines = content.split("\n");
-  const filteredLines = lines.filter((line) => {
-    const trimmed = line.trim();
-    // Keep empty lines, comments, and non-Tambo-key lines
-    return !TAMBO_API_KEY_NAMES.some((name) => trimmed.startsWith(`${name}=`));
-  });
+  const filteredLines = lines.filter(
+    (line) => !TAMBO_API_KEY_ASSIGNMENT.test(line),
+  );
 
   // Join back and ensure we have a newline before appending
   let result = filteredLines.join("\n");
@@ -103,10 +107,9 @@ export function setTamboApiKey(
  */
 export function removeTamboApiKeys(content: string): string {
   const lines = content.split("\n");
-  const filteredLines = lines.filter((line) => {
-    const trimmed = line.trim();
-    return !TAMBO_API_KEY_NAMES.some((name) => trimmed.startsWith(`${name}=`));
-  });
+  const filteredLines = lines.filter(
+    (line) => !TAMBO_API_KEY_ASSIGNMENT.test(line),
+  );
 
   return filteredLines.join("\n");
 }
