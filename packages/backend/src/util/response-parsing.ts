@@ -22,7 +22,7 @@ export function extractMessageContent(
       );
     }
     if (parsed && typeof parsed === "object") {
-      if ("message" in parsed) {
+      if ("message" in parsed && typeof parsed.message === "string") {
         return parsed.message;
       }
       if (isPartialLegacyComponentDecision(parsed)) {
