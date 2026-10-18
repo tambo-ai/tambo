@@ -89,16 +89,16 @@
     "hono": "4.13.0",
     "ip-address": "10.4.0",
     "@istanbuljs/load-nyc-config": {
-      "js-yaml": "3.15.1"
+      "js-yaml": "5.4.1"
     },
     "@nestjs/swagger": {
-      "js-yaml": "5.2.3"
+      "js-yaml": "5.4.1"
     },
     "concurrently": {
       "shell-quote": "1.9.0"
     },
     "gray-matter": {
-      "js-yaml": "3.15.1"
+      "js-yaml": "5.4.1"
     },
     "next": {
       "postcss": "8.5.23",
