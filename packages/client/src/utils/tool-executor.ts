@@ -110,8 +110,11 @@ export async function executeClientTool(
       // Convert to content format (TextContent | ResourceContent)
       const transformed = await tool.transformToContent(result);
       content = transformed.map((part) => {
-        if (part.type === "text" && "text" in part && part.text) {
+        if (part.type === "text" && typeof part.text === "string") {
           return { type: "text" as const, text: part.text };
+        }
+        if (part.type === "resource" && part.resource) {
+          return { type: "resource" as const, resource: part.resource };
         }
         // For other types, stringify as text
         return {
