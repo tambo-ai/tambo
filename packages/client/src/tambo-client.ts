@@ -375,6 +375,8 @@ export class TamboClient {
           role: msg.role,
           content: msg.content as TamboThread["messages"][0]["content"],
           createdAt: msg.createdAt,
+          parentMessageId: msg.parentMessageId ?? undefined,
+          metadata: (msg.metadata as Record<string, unknown>) ?? undefined,
           threadId,
         })),
       });

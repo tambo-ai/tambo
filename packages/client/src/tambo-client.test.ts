@@ -274,6 +274,8 @@ describe("TamboClient", () => {
             role: "user",
             content: [{ type: "text", text: "Hello" }],
             createdAt: "2026-01-01T00:00:00Z",
+            parentMessageId: "msg-parent",
+            metadata: {},
           },
         ],
       });
@@ -285,6 +287,8 @@ describe("TamboClient", () => {
       expect(thread).toBeDefined();
       expect(thread!.messages).toHaveLength(1);
       expect(thread!.messages[0].id).toBe("msg-1");
+      expect(thread!.messages[0].parentMessageId).toBe("msg-parent");
+      expect(thread!.messages[0].metadata).toEqual({});
     });
   });
 
@@ -630,6 +634,8 @@ describe("TamboClient", () => {
             role: "assistant",
             content: [{ type: "text", text: "Hi" }],
             createdAt: "2026-01-01T00:00:01Z",
+            parentMessageId: "msg-parent",
+            metadata: { source: "sampling", count: 0, visible: false },
           },
         ],
         lastCompletedRunId: "run-99",
@@ -641,7 +647,43 @@ describe("TamboClient", () => {
       expect(thread.id).toBe("thread-fetch");
       expect(thread.name).toBe("Fetched Thread");
       expect(thread.messages).toHaveLength(1);
+      expect(thread.messages[0]).toMatchObject({
+        id: "msg-1",
+        role: "assistant",
+        content: [{ type: "text", text: "Hi" }],
+        createdAt: "2026-01-01T00:00:01Z",
+        parentMessageId: "msg-parent",
+        metadata: { source: "sampling", count: 0, visible: false },
+      });
+      expect(client.getThread("thread-fetch")?.messages).toEqual(
+        thread.messages,
+      );
     });
+
+    it.each([undefined, null])(
+      "normalizes %s message parent and metadata to undefined",
+      async (value) => {
+        mocks.threadsRetrieve.mockResolvedValue({
+          id: "thread-fetch",
+          messages: [
+            {
+              id: "msg-1",
+              role: "user",
+              content: [{ type: "text", text: "Hi" }],
+              parentMessageId: value,
+              metadata: value,
+            },
+          ],
+        });
+
+        const client = new TamboClient({ apiKey: "test-key" });
+        const thread = await client.fetchThread("thread-fetch");
+
+        expect(thread.messages).toHaveLength(1);
+        expect(thread.messages[0].parentMessageId).toBeUndefined();
+        expect(thread.messages[0].metadata).toBeUndefined();
+      },
+    );
 
     it("sets lastCompletedRunId when present in API response", async () => {
       mocks.threadsRetrieve.mockResolvedValue({
