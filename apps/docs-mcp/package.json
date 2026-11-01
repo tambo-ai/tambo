@@ -20,7 +20,7 @@
     "openai": "^6.16.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "zod": "^3.25.76"
+    "zod": "^4.0.0"
   },
   "devDependencies": {
     "@tambo-ai/eslint-config": "*",
