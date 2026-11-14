@@ -72,10 +72,10 @@
     "@hono/node-server": "2.1.0",
     "@a2a-js/sdk": {
       "express": {
-        "body-parser": "1.20.6"
+        "body-parser": "2.4.0"
       }
     },
-    "body-parser": "2.3.0",
+    "body-parser": "2.4.0",
     "minimatch@3": {
       "brace-expansion": "1.1.18"
     },
